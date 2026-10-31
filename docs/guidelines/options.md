@@ -30,12 +30,17 @@ services.AddSingleton<IValidateOptions<WhatsmeowSidecarOptions>, WhatsmeowSideca
 ```
 
 `BindConfiguration` is the bind.
-Under AOT it must go through the configuration-binding source generator, not the reflection binder [inferred: .NET enables the generator with `PublishAot`; confirm with `tests/AotSmoke` zero warnings].
+Under AOT it must go through the configuration-binding source generator, not the reflection binder.
+A library does not get that generator from `IsAotCompatible`: set `<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>` in `Whatsmeow.Extensions.Hosting`, or `BindConfiguration` raises IL2026/IL3050 [observed: ARCHITECTURE §14 Spike results].
 Path resolve, computed defaults, and the `WHATSMEOW_NET_SIDECAR_PATH` override belong in the one setup step (`WhatsmeowSidecarOptionsSetup.Apply`), not in a private `Load` and not in the binary locator.
 The no-DI path calls the same `Apply`.
 That is the only place the environment variable is read.
 
-`Duration` options bind from configuration strings [unknown: whether NodaTime ships a `TypeConverter` the generated binder can use; decide at scaffold time, and never fall back to a public `TimeSpan`].
+### Time options are `TimeSpan`
+
+Time-valued options are `TimeSpan` (see [csharp.md](csharp.md) Time).
+The binding generator binds `TimeSpan` from a `00:00:30` string under Native AOT [observed: ARCHITECTURE §14 Spike results].
+Do not invent a custom time type for options: the spike showed that a type the binder does not know (NodaTime `Duration`) is silently left at its default, with no error.
 
 ## Fail at start
 

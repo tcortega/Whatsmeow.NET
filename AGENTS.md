@@ -6,7 +6,7 @@ Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) before changing the contract, 
 [docs/RESEARCH.md](docs/RESEARCH.md) is the why with sources; reference only.
 
 This is a library, not a VSA API. No Immediate.Handlers, `[Handler]`, Immediate.Injections, EF, or Refit.
-House rules (bridge, compras, chrominal) win over anything older in this repo.
+House rules (bridge, compras, chrominal) win over anything older in this repo, except the exceptions recorded in the ARCHITECTURE Decision log (BCL time, `IWhatsAppClient`).
 Generated code is committed: never hand-edit `sidecar/gen/` or `Whatsmeow.Protocol*`; run `buf generate`.
 ARCHITECTURE §13 invariants are wrong to break without an ADR first.
 
@@ -25,7 +25,7 @@ Tabs, file-scoped namespaces, house `.editorconfig` at the root.
 No record primary constructors. Seal types. `var` everywhere.
 No `else`. Guards, early return, switch expressions.
 Throw helpers on every `WhatsmeowException` subtype; never `throw new` at the call site.
-Time is NodaTime everywhere, public API included. `IClock` injected. Never BCL date/time types or `TimeProvider`.
+Time is BCL (`DateTimeOffset` UTC, `TimeSpan`) from an injected `TimeProvider`; this library opts out of the house NodaTime rule. No `DateTime`, no ambient now, no timer without the `TimeProvider`.
 `SessionId` / `MessageId` are Vogen; `Jid` is hand-written.
 No runtime reflection. Source generators, `[LoggerMessage]`, `[LibraryImport]`, `JsonSerializerContext`.
 `ConfigureAwait(false)` everywhere. `CancellationToken` last, `Async` suffix. No sync-over-async.
@@ -40,6 +40,7 @@ Options and configuration: [docs/guidelines/options.md](docs/guidelines/options.
 `context.Context` first. `%w` errors, mapped to `ErrorInfo` only in `internal/server`.
 No `reflect`, `unsafe`, cgo, or mutable globals. Import the contract as `whatsmeowv1`.
 The whatsmeow event handler only writes to the outbox; it never blocks on .NET, the network, or media.
+whatsmeow facts (ack gating, off-queue events, retries) are measured at the pin in ARCHITECTURE §14; re-check on every bump, never from memory.
 Go idioms: [docs/guidelines/go.md](docs/guidelines/go.md).
 
 ## Contract rules

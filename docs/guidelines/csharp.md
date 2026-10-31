@@ -49,7 +49,7 @@ public sealed record SendResult
 {
 	public required MessageId Id { get; init; }
 	public required Jid Chat { get; init; }
-	public required Instant Timestamp { get; init; }
+	public required DateTimeOffset Timestamp { get; init; }
 }
 ```
 
@@ -67,7 +67,7 @@ Moved from ARCHITECTURE §8.3; the event and content hierarchy shape stays there
 
 - Immutability throughout: `required` / `init` members, `ImmutableArray<T>` / `IReadOnlyList<T>` for collections.
 - Async: client operations return `Task`/`Task<T>`. Handler callbacks return `ValueTask`. Every async method takes a `CancellationToken` as its last parameter. The `Async` suffix is always used.
-- Time is NodaTime (see Time). Public members expose `Instant` and `Duration`, never BCL date/time types.
+- Time is BCL (see Time). Public members expose `DateTimeOffset` (UTC) and `TimeSpan`, never `DateTime` and never NodaTime.
 - Extension blocks: convenience only (ARCHITECTURE §8.2).
 
 ### The one interface exception
@@ -93,35 +93,42 @@ public readonly partial struct SessionId
 }
 ```
 
-Why Vogen in a public library: its analyzers reject `default(SessionId)` and `new SessionId()`, and its generated guard throws on an uninitialized instance.
+Why Vogen in a public library: `default(SessionId)` is a compile error (VOG009), and an uninitialized instance (a defaulted field) throws on `.Value` [observed: spike, Native AOT].
 A hand-written `readonly record struct` cannot stop a silent default, and `MessageId` plus `SessionId` is the dedupe key (ARCHITECTURE §8.4).
 
-Rules:
+Rules (measured in the 2026-10-31 spike, Vogen 8.0.7, ARCHITECTURE §14):
 
-- One `[assembly: VogenDefaults(throws: typeof(WhatsmeowValidationException))]` in `Whatsmeow.Client`, so no `ValueObjectValidationException` leaks into the public API.
-  Vogen requires that exception to have a specific public constructor [unknown: the docs wording is ambiguous; confirm at scaffold time].
-- Vogen ships a runtime assembly, `Vogen.SharedTypes.dll` (20 KB, no further dependencies) [observed: Vogen 8.0.7 nupkg], so consumers get it transitively. That is accepted.
-- `conversions:` is decided by ARCHITECTURE §14 spike 5 (zero AOT/trim warnings). Start with `Conversions.SystemTextJson` only. `TypeConverter` goes through `System.ComponentModel` [inferred: may warn under trimming].
+- One assembly attribute in `Whatsmeow.Client`:
+
+  ```csharp
+  [assembly: VogenDefaults(
+  	throws: typeof(WhatsmeowValidationException),
+  	conversions: Conversions.SystemTextJson,
+  	systemTextJsonConverterFactoryGeneration: SystemTextJsonConverterFactoryGeneration.Omit)]
+  ```
+
+- `throws:` keeps `ValueObjectValidationException` out of the public API. The exception needs a public constructor taking one `string`, or the build fails with VOG013 [observed]. A primary constructor `(string message)` satisfies it.
+- `Conversions.SystemTextJson` only. Never `Conversions.Default`: it adds a `TypeConverter`, and a consumer reaching it through `TypeDescriptor.GetConverter` gets IL2026/IL2111/IL3050 under trimming [observed]. The library itself compiles warning-free either way.
+- `Omit` the factory. Otherwise Vogen emits a public `VogenTypesFactory` in the assembly root namespace, which leaks into our public API [observed: generated code].
+- Consumer JSON works without the factory: a consumer's own STJ source-gen context reads the `[JsonConverter]` from our compiled metadata, round-trips, and rejects invalid values, under Native AOT with zero warnings [observed].
+- Inside our own assembly, STJ source-gen cannot see Vogen's converters, because generators do not see each other's output (it serialized `{}`) [observed; Vogen docs say the same]. No `JsonSerializerContext` of ours may contain a Vogen type. Serialize `.Value` instead. Today none needs to: the ready line carries no IDs.
+- `Vogen.SharedTypes.dll` (20 KB, no further dependencies) is a hard runtime dependency: our nupkg depends on `Vogen` (`exclude="Build,Analyzers"`), and deleting the dll makes a consumer crash with `FileNotFoundException` [observed]. Never mark Vogen `PrivateAssets="all"`. The dependency is accepted.
 - `Jid` is a `readonly struct` implementing `ISpanParsable<Jid>`, with no positional members. It carries both PN and LID forms where known.
 
 ## Time
 
-Time is NodaTime.
-Never `DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`, `TimeZoneInfo`, or `TimeProvider`.
-`Instant` is a point in time.
-`LocalDate` / `LocalTime` / `LocalDateTime` are civil values with no zone.
-`Duration` is a fixed length.
-`Period` is a calendrical length.
-`DateTimeZone` is an IANA zone.
-Now is `IClock`: default to `SystemClock.Instance`, inject it, tests use `FakeClock` (`NodaTime.Testing`).
-Do not call `SystemClock.Instance` at a call site.
-`TimeSpan` only at BCL interop (timeouts, delays, Polly, gRPC deadlines).
-Do not store it, and do not expose it publicly.
-Proto `Timestamp` / `Duration` map to `Instant` / `Duration` in slice mapping code (see [proto.md](proto.md)).
+This library deviates from the house NodaTime rule (ARCHITECTURE Decision log 0009).
+NodaTime in the public API would force it on every consumer, and the library does no zone or calendar math, only timestamps, timeouts, backoff, `RetryAfter` and `Until` [inferred: from ARCHITECTURE §7-§8, nothing there needs a zone].
+NodaTime's strengths go unused, and its costs were measured (ARCHITECTURE §14 Spike results): `Duration` options bind silently wrong, Polly schedules only through `TimeProvider`, and `FakeClock` cannot drive timers.
 
-Open: Polly v8, `Task.Delay`, `PeriodicTimer` and CTS timeouts are driven by `TimeProvider`/`TimeSpan` [observed: Polly `ResiliencePipelineBuilder.TimeProvider`].
-With `TimeProvider` banned, `FakeClock` cannot advance them.
-How we bridge that is ARCHITECTURE §14 question 7. Until it is decided, do not scatter `#pragma` suppressions of RS0030.
+- A point in time is `DateTimeOffset` with a zero offset (UTC). Never `DateTime`.
+- A length of time is `TimeSpan`.
+- Now is `TimeProvider.GetUtcNow()`, from an injected `TimeProvider` (default `TimeProvider.System`). Never `DateTimeOffset.UtcNow` or `.Now`.
+- Elapsed time is `TimeProvider.GetTimestamp()` / `GetElapsedTime()`. Never `Stopwatch`.
+- Every timer takes the same `TimeProvider`: `Task.Delay(TimeSpan, TimeProvider, CancellationToken)`, `new CancellationTokenSource(TimeSpan, TimeProvider)`, `new PeriodicTimer(TimeSpan, TimeProvider)`, Polly's `ResiliencePipelineBuilder.TimeProvider`.
+- No `DateOnly`, `TimeOnly` or `TimeZoneInfo`. Nothing here needs a civil date or a zone; if something ever does, that is an ADR, not a quiet `TimeZoneInfo`.
+- Proto `Timestamp` / `Duration` map with Google.Protobuf's own `ToDateTimeOffset()` / `ToTimeSpan()` (see [proto.md](proto.md)).
+- Tests use one `FakeTimeProvider` (`Microsoft.Extensions.TimeProvider.Testing`). It drives "now", delays and Polly together: in the spike one `FakeTimeProvider` drove a Polly exponential retry with 2s, 4s and 8s gaps under Native AOT [observed].
 
 ## Async and concurrency
 
@@ -176,7 +183,25 @@ Copy from tcortega/bridge when scaffolding `dotnet/`, then apply the deltas list
 Lives at `dotnet/BannedSymbols.txt`.
 It must cover:
 
-- BCL date/time: the house NodaTime set (`T:System.DateTime`, `T:System.DateTimeOffset`, `T:System.DateOnly`, `T:System.TimeOnly`, `T:System.TimeZoneInfo`, `T:System.TimeProvider`), each with its NodaTime replacement in the message.
+- Ambient time and timers that bypass `TimeProvider`. These exact IDs were checked against BannedApiAnalyzers 5.6.0: each flags the bad call and none flags the `TimeProvider` overload [observed: spike]:
+
+  ```text
+  T:System.DateTime; Use DateTimeOffset, from TimeProvider
+  T:System.DateOnly; No civil dates in this library
+  T:System.TimeOnly; No civil times in this library
+  T:System.TimeZoneInfo; No zones in this library
+  P:System.DateTimeOffset.Now; Use the injected TimeProvider.GetUtcNow()
+  P:System.DateTimeOffset.UtcNow; Use the injected TimeProvider.GetUtcNow()
+  M:System.Threading.Tasks.Task.Delay(System.TimeSpan); Use Task.Delay(TimeSpan, TimeProvider, CancellationToken)
+  M:System.Threading.Tasks.Task.Delay(System.TimeSpan,System.Threading.CancellationToken); Use Task.Delay(TimeSpan, TimeProvider, CancellationToken)
+  M:System.Threading.Tasks.Task.Delay(System.Int32); Use Task.Delay(TimeSpan, TimeProvider, CancellationToken)
+  M:System.Threading.Tasks.Task.Delay(System.Int32,System.Threading.CancellationToken); Use Task.Delay(TimeSpan, TimeProvider, CancellationToken)
+  M:System.Threading.CancellationTokenSource.#ctor(System.TimeSpan); Use new CancellationTokenSource(TimeSpan, TimeProvider)
+  M:System.Threading.CancellationTokenSource.#ctor(System.Int32); Use new CancellationTokenSource(TimeSpan, TimeProvider)
+  M:System.Threading.PeriodicTimer.#ctor(System.TimeSpan); Use new PeriodicTimer(TimeSpan, TimeProvider)
+  T:System.Diagnostics.Stopwatch; Use TimeProvider.GetTimestamp / GetElapsedTime
+  ```
+
 - `System.Reflection.*` activation and invocation APIs, `Activator`, `Type.GetType`, `MakeGenericType`.
 - `Newtonsoft.Json`, `Grpc.Core`.
 - `DllImportAttribute`.
@@ -187,6 +212,7 @@ It must cover:
 * Put a generated protobuf type in the stable public API. Only the `[Experimental]` `Raw` escape hatch may.
 * Let `RpcException` escape the public API, or return Result types for I/O failures.
 * Bind options by hand. See [options.md](options.md).
-* Use BCL date/time types. See Time.
+* Read the clock or start a timer without the injected `TimeProvider`. See Time.
+* Add NodaTime to a shipped package. See Time.
 * Log with `ILogger.LogXxx` extension calls. `[LoggerMessage]` only.
 * Copy VsaTemplate handlers, Immediate.*, EF, Auth0, Hangfire, email, Linq2DB, or TUnit.

@@ -4,7 +4,7 @@
 > **Name:** Whatsmeow.NET. Identifiers are in [Naming](#naming).
 > **Background:** the full research behind every decision here is in [`RESEARCH.md`](RESEARCH.md). This document states *what we do*. The research explains *why*, with sources.
 > **How to write the code:** [`guidelines/`](guidelines/README.md). Coding rules that used to live here (§6 proto style, §7.9, the idiom half of §8.3, §8.9 table, §8.10, test discipline) moved there; each spot keeps a pointer.
-> **House rules win:** where this document and the house guidelines (shared with bridge, compras, chrominal) disagreed, the house rule was applied and recorded as an ADR seed in the [Decision log](#decision-log).
+> **House rules win:** where this document and the house guidelines (shared with bridge, compras, chrominal) disagreed, the house rule was applied, except where a measured reason made this library opt out (BCL time, `IWhatsAppClient`). Both kinds are ADR seeds in the [Decision log](#decision-log).
 
 Whatsmeow.NET gives .NET applications full access to WhatsApp's multi-device protocol by wrapping the Go library [whatsmeow](https://github.com/tulir/whatsmeow). It has two parts, released together from one repo:
 
@@ -46,7 +46,7 @@ Upstream whatsmeow stays lowercase `whatsmeow` in prose, so the two stay easy to
 **Goals**
 
 - Feature parity with whatsmeow for personal and group messaging, media, contacts, groups, presence, receipts and history sync.
-- **No lost messages.** Delivery is at-least-once from WhatsApp all the way into user handlers, and survives a crash of either process.
+- **No lost messages.** Delivery is at-least-once from WhatsApp all the way into user handlers, and survives a crash of either process, for every stanza kind whose server ack whatsmeow lets a handler withhold: decrypted messages, non-retry receipts, and `w:gp2` group notifications. Undecryptable messages are acked early by design, and their content is recovered by the retry protocol: it arrives later as a normal, gated message (§7.2 `AutomaticMessageRerequestFromPhone`). The remaining kinds (retry receipts, calls, app state, history-sync receipts, most notifications) are acked by whatsmeow regardless of our handler, so for those the guarantee is best effort. This matches how whatsmeow's maintainer runs it in production (§14 question 8).
 - Absorb whatsmeow's weekly churn. A whatsmeow bump changes Go adapter code only. It never changes the `whatsmeow.v1` contract or the public C# API.
 - Modern and strict: `net10.0` / C# 14, Native AOT and trimming compatible, no runtime reflection, latest stable toolchains.
 - Zero setup for consumers. `dotnet add package` is enough; the sidecar binary ships inside NuGet.
@@ -154,7 +154,7 @@ Vertical-slice thinking applies to this library. A **slice is a WhatsApp capabil
   src/Whatsmeow.Extensions.Hosting/   # DI, options, keyed sessions, hosted supervisor
   src/Whatsmeow.Testing/              # FakeWhatsAppClient, in-memory transport
   src/Whatsmeow.Sidecar.Native.{win,linux,osx}/   # pack-only: runtimes/{rid}/native/whatsmeow-net[.exe]
-  tests/Whatsmeow.Client.Tests/       # vital unit tests only: dispatcher, supervisor (FakeClock)
+  tests/Whatsmeow.Client.Tests/       # vital unit tests only: dispatcher, supervisor (FakeTimeProvider)
   tests/Whatsmeow.IntegrationTests/   # default: real whatsmeow-net in fake-WhatsApp mode
   tests/Whatsmeow.LiveTests/          # real WhatsApp; opt-in, never in default CI
   tests/AotSmoke/                  # PublishAot console app, zero warnings required
@@ -173,19 +173,19 @@ Re-verify exact versions on nuget.org and proxy.golang.org when scaffolding. "La
 
 | Area | Choice |
 |---|---|
-| Go | 1.27.x toolchain; `go 1.26` module floor, matching whatsmeow's |
+| Go | 1.27.x toolchain (1.27.3 current); `go 1.26` module floor, matching whatsmeow's `go 1.26.0` (toolchain `go1.27.2`) at the pin |
 | whatsmeow | exact pseudo-version, bumped weekly by CI |
 | gRPC (Go) | grpc-go latest 1.8x, protobuf-go APIv2 (`google.golang.org/protobuf`) |
-| SQLite | `modernc.org/sqlite` (driver `"sqlite"`), no CGO |
+| SQLite | `modernc.org/sqlite` (driver `"sqlite"`), no CGO. DSN: `file:whatsmeow-net.db?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=synchronous(FULL)&_txlock=immediate` (§14 question 3; whatsmeow's `Upgrade` refuses to run without foreign keys) |
 | Go logging | zerolog, the same logger whatsmeow uses through `waLog.Zerolog` |
 | Proto tooling | buf v2 (managed mode), protoc-gen-go, protoc-gen-go-grpc, protoc-gen-csharp + grpc C# plugin |
 | .NET | `net10.0` only, C# 14, `.slnx`, Central Package Management, artifacts output |
 | gRPC (.NET) | `Grpc.Net.Client`, `Google.Protobuf`, `Grpc.StatusProto`. **Never** `Grpc.Core` |
 | Resilience | Polly v8 (`Microsoft.Extensions.Resilience` where appropriate) |
-| Time (.NET) | NodaTime everywhere, public API included (`Instant`, `Duration`, `IClock`); `NodaTime.Serialization.Protobuf` for WKT mapping. BCL date/time types and `TimeProvider` banned. See §14 question 7 |
+| Time (.NET) | BCL: `DateTimeOffset` (UTC) and `TimeSpan`, from an injected `TimeProvider`; Google.Protobuf's built-in WKT conversions. No NodaTime in shipped packages (opt-out from the house rule, Decision log 0009) |
 | IDs (.NET) | Vogen for primitive wrappers (`SessionId`, `MessageId`); `Jid` hand-written |
 | Analyzers (.NET) | `AnalysisLevel latest-all`, `Meziantou.Analyzer`, `Microsoft.CodeAnalysis.BannedApiAnalyzers`, house `.editorconfig` |
-| Tests | xUnit v3 on Microsoft.Testing.Platform, `FakeClock` (`NodaTime.Testing`); Go `testing` with `-race` |
+| Tests | xUnit v3 on Microsoft.Testing.Platform, `FakeTimeProvider` (`Microsoft.Extensions.TimeProvider.Testing`); Go `testing` with `-race` |
 | Versioning / release | MinVer from git tags; GoReleaser v2; NuGet Trusted Publishing (OIDC) |
 
 ---
@@ -196,9 +196,10 @@ The contract is the most important artifact in the repo. Both sides are generate
 
 **Rules**
 
-- Proto style (proto3, buf STANDARD, AIP-191, `_UNSPECIFIED` zero values, WKTs, field numbering) and the NodaTime mapping: [guidelines/proto.md](guidelines/proto.md).
+- Proto style (proto3, buf STANDARD, AIP-191, `_UNSPECIFIED` zero values, WKTs, field numbering) and the `Timestamp`/`Duration` mapping: [guidelines/proto.md](guidelines/proto.md).
 - **Independent of whatsmeow's Go API.** No field mirrors a whatsmeow Go struct by accident. Mapping happens in Go slice code.
 - whatsmeow's own protos (`WAWebProtobufsE2E.Message` etc.) are imported **unmodified** from `third_party/whatsmeow` and embedded as **typed fields**. On the wire, a typed field is identical to a `bytes` field holding the serialized message.
+- The Go server uses a lenient codec (`AllowPartial` both ways) installed with `grpc.ForceServerCodecV2`, never a global `encoding.RegisterCodec`. With grpc-go's default codec, a message missing a proto2 `required` field fails to decode before any interceptor runs, as a bare `Internal` with no `ErrorInfo`; with the lenient codec it reaches the slice, whatsmeow's send-path `proto.Marshal` rejects it, and the slice maps that to `INVALID_ARGUMENT` (§14 question 1).
 - `buf breaking` gates `whatsmeow.v1` only. Upstream wire changes are reported but don't block.
 - `GetInfo` reports `version`, `protocol` (an integer contract revision), `whatsmeow_version`, `wa_web_version`, `go_version` and `commit`.
 
@@ -226,26 +227,38 @@ A protocol adapter, nothing more: session lifecycle, pairing, event capture into
 
 ### 7.2 whatsmeow configuration (mandatory)
 
+The reference is the maintainer's own production bridge, mautrix-whatsapp `5dd621f` (`pkg/connector/client.go:81-93`), which sets the same core flags. Where we differ, the row says why.
+
 | Setting | Value | Why |
 |---|---|---|
-| `SynchronousAck` | `true` | ack WhatsApp only after our handler succeeded |
-| `EnableDecryptedEventBuffer` | `true` | redelivery after a crash is decryptable and deduplicated |
-| handler registration | `AddEventHandlerWithSuccessStatus` | returning `false` withholds the ack |
-| `ManualHistorySyncDownload` | `true` | history blobs aren't deleted from the server before we have them |
-| `UseRetryMessageStore` | `true` | retry receipts can be answered after a restart |
-| `EnableAutoReconnect` | `true`, with `AutoReconnectHook` capping and jittering the backoff | avoids the zombie-socket bug seen when it's disabled |
+| `SynchronousAck` | `true` | ack WhatsApp only after our handler succeeded, for the gated kinds only (§1, §14 whatsmeow source review) |
+| `EnableDecryptedEventBuffer` | `true` | redelivery after a crash is decryptable and deduplicated, for DM and group Signal messages only (not bot `msmsg` or newsletter messages) |
+| handler registration | `AddEventHandlerWithSuccessStatus` | returning `false` withholds the ack, for the gated kinds only |
+| `ManualHistorySyncDownload` | `true` | history blobs aren't deleted from the server before we have them; we call `DownloadHistorySync` and then `DeleteMedia` ourselves (§7.7) |
+| `UseRetryMessageStore` | `true` | retry receipts can be answered after a restart. mautrix defaults this to `false` ("by default, the bridge only stores messages in memory, and therefore can't accept retry receipts if the bridge is restarted"); we choose robustness |
+| `AutomaticMessageRerequestFromPhone` | `true` | an undecryptable message gets a retry receipt to the sender, and after `RequestFromPhoneDelay` (5 s) a re-request to our own phone; the recovered content arrives as a gated `events.Message` (`retry.go:422-440`), with the same message ID [inferred: retry resends the original message; not traced]. mautrix sets it |
+| `InitialAutoReconnect` | `true` | retry when the first connect at startup fails; mautrix's default (`initial_auto_reconnect: true`) |
+| `EnableAutoReconnect` | `true`, with `AutoReconnectHook func(error) bool` capping and jittering the backoff (whatsmeow calls the hook only after a failed reconnect attempt) | with it off, a dead socket only emits `KeepAliveTimeout` and is never closed: the keepalive loop forces a reconnect only when auto reconnect is on (`keepalive.go:46`). This is the mechanism behind the "zombie socket" report; no "zombie" appears in the code |
 | `store.DeviceProps`, `SetOSInfo`, `SetWAVersion` | set **once** at startup | process-global in whatsmeow; never mutated per session |
 
 ### 7.3 The event handler contract (critical)
 
-whatsmeow runs handlers **synchronously, in order, on one queue per client**. Therefore the handler:
+whatsmeow runs most handlers **synchronously, in order, on one node queue per client**, but not all (§14 whatsmeow source review):
+
+- Connection events are dispatched off the queue on their own goroutines (`LoggedOut`, `StreamReplaced`, `Disconnected`, `KeepAlive*`, `IdentityChange`, `TemporaryBan`, `Connected`, `PairSuccess`, automatic-mode `HistorySync`). They can run concurrently with message handlers.
+- When the queue is full (2048 nodes), whatsmeow logs that ordering is no longer guaranteed and enqueues from a goroutine (`client.go:900`).
+- A node that takes over about 5 minutes is left running in the background and the queue moves on (`client.go:954-970`).
+
+Therefore the handler stays fast (milliseconds, never near the 5-minute cutoff), and:
 
 1. Converts the event to a `whatsmeow.v1` event (pure mapping, no I/O except the next step).
 2. Runs **one short transaction**: `INSERT INTO outbox … ON CONFLICT DO NOTHING`.
 3. Signals waiting stream goroutines without blocking.
-4. Returns `true` only after the commit. It returns `false` on a DB error or a panic; it uses its **own** `recover()`, because whatsmeow treats a recovered panic as success.
+4. Returns `true` only after the commit. It returns `false` on a DB error or a panic; it uses its **own** `recover()`, because whatsmeow's `dispatchEvent` recovers a panic and returns "not failed", so the ack goes out, and the remaining handlers are skipped (`client.go:999-1013`).
 
 The handler **never** calls gRPC, never waits on .NET, never downloads media, and never returns `false` just because no consumer is connected.
+
+`UndecryptableMessage` is written to the outbox like any event (mautrix shows it as a placeholder), so .NET can show "waiting for this message". The recovered message arrives later, and the dedupe key (§8.4) ties the two together if it carries the same `MessageId` [inferred; verify in the Phase 1 live test].
 
 Ephemeral high-volume events (presence, typing) bypass the outbox. They go into a bounded in-memory ring buffer with `seq = 0` and emit a `QueueOverflowEvent` when items are dropped.
 
@@ -254,26 +267,27 @@ Ephemeral high-volume events (presence, typing) bypass the outbox. They go into 
 Every whatsmeow signal maps to exactly one state. Each transition is written to the outbox as a `ConnectionStateEvent` and published to `WatchSessionState`.
 
 `Created → Pairing → Connecting → Connected → CaughtUp`, with transient `Reconnecting` and the terminal or blocking states `LoggedOut`, `Replaced`, `TempBanned{until}`, `Outdated`, `Error{reason}`.
+whatsmeow's `events.PermanentDisconnect` implementations at the pin are `*LoggedOut`, `*StreamReplaced`, `*ClientOutdated`, `*CATRefreshError`, `*TemporaryBan` and `*ConnectFailure` (`types/events/events.go:118-128`); each maps to one of these states (`CATRefreshError` and `ConnectFailure` to `Error{reason}`).
 
-Actions the sidecar itself starts (`Disconnect`, `Logout`) produce no whatsmeow events, so the sidecar synthesizes those transitions. On `LoggedOut`, whatsmeow has already deleted the device rows; the sidecar must not delete them again. Each SQLite file has a single owner, enforced with a lock file or lease row.
+Actions the sidecar itself starts (`Disconnect`, `Logout`) produce no whatsmeow events (a self-initiated `Logout()` emits no `LoggedOut`), so the sidecar synthesizes those transitions. On a server-side `LoggedOut`, whatsmeow dispatches the event on a goroutine and deletes the device rows concurrently (`go cli.dispatchEvent(...)` then `cli.Store.Delete(ctx)`, `connectionevents.go:43-44`), so the handler may see the rows before or after deletion. The `LoggedOut` handler must not read or write the device rows and must not delete them itself; it only writes the outbox transition. Each SQLite file has a single owner, enforced with a lock file or lease row.
 
 ### 7.5 Sending
 
 - Per-session FIFO queue with a token bucket and jitter. It pauses on `TempBanned`, backs off on 429, and fails all pending sends on `LoggedOut`.
 - Idempotent sends: .NET supplies `client_message_id`, which is used as the WhatsApp message ID through `SendRequestExtra.ID` and persisted with the result.
 - **A send whose outcome is unknown is never automatically replayed.** It surfaces as an error.
-- Responses report `SendResponse.Chat`, because whatsmeow may redirect a phone-number JID to a LID.
+- Responses report `SendResponse.Chat`, because whatsmeow redirects a phone-number user JID to its LID, fetching it with `GetUserInfo` if needed; with no LID it returns `ErrRecipientNotOnWhatsApp` (`send.go:340-363`), which maps to `RECIPIENT_NOT_ON_WHATSAPP`.
 
 ### 7.6 Media
 
-- Upload uses `UploadReader` (constant memory, retried up to 3 times with backoff). Download uses `DownloadToFile`. Never use the in-memory `Upload([]byte)` / `Download` variants for user media.
+- Upload uses `UploadReader(ctx, io.Reader, io.ReadWriteSeeker tempFile, MediaType)` (constant memory through a temp file). whatsmeow does **not** retry uploads: `rawUpload` makes one POST to the first host (`upload.go:243-302`). The media slice owns upload retry with backoff, rewinding the temp file. Download uses `DownloadToFile`, which retries up to 5 times with an `(n+1)`-second or `Retry-After` backoff (`download-to-file.go:164`); its `File` must implement `ReaderAt`, `WriterAt`, `Truncate` and `Stat`. Never use the in-memory `Upload([]byte)` / `Download` variants for user media.
 - Same host: hand files over by **path** under a configured root, validated against path traversal. Otherwise use **64 KiB chunk streams**. Never put whole files inline in a message.
 - `MediaRef` (`direct_path`, `media_key`, `file_sha256`, `file_enc_sha256`, `file_length`, `mimetype`, `streaming_sidecar`) is enough to download lazily or to forward without re-uploading.
 - Expired media returns `MEDIA_EXPIRED`. The caller then calls `RequestMediaRetry`, and the new path arrives as a `MediaRetryEvent`.
 
 ### 7.7 History sync
 
-Notifications are persisted to a queue table. After `OfflineSyncCompleted`, a low-priority worker downloads each blob, parses messages with `ParseWebMessage`, and writes **batched** `HistoryMessagesEvent` rows plus progress events. Live traffic always has priority.
+Notifications (`ProtocolMessage.HistorySyncNotification` inside `events.Message`) are persisted to a queue table. After `OfflineSyncCompleted`, a low-priority worker downloads each blob with `DownloadHistorySync(ctx, notif, synchronousStorage)`, parses messages with `ParseWebMessage`, writes **batched** `HistoryMessagesEvent` rows plus progress events, and only then calls `DeleteMedia` (in manual mode whatsmeow deletes nothing itself). whatsmeow still sends the `hist_sync` receipt unless `DisableManualHistorySyncReceipt` is set. Live traffic always has priority.
 
 ### 7.8 Process conventions
 
@@ -327,7 +341,7 @@ SendResult result = await client.Messages.SendTextAsync(chat, "hello", cancellat
 - Events: `public abstract record WhatsAppEvent` with `sealed record` cases (`MessageReceived`, `ReceiptReceived`, `ConnectionStateChanged`, …). Message content is a separate `abstract record MessageContent` hierarchy with sealed cases (`TextContent`, `ImageContent`, …, `UnknownContent`). These are shaped so they can become C# `closed`/`union` types later without breaking users' `switch` statements.
 - Identifiers: `MessageId` and `SessionId` are Vogen value objects; `Jid` is a hand-written `readonly struct Jid : ISpanParsable<Jid>`. `Jid` carries both PN and LID forms where known. Events always include `Sender`/`SenderAlt` and `Chat`/`RecipientAlt`. Rules and rationale: [guidelines/csharp.md](guidelines/csharp.md) IDs.
 - **Generated protobuf types never appear in the stable public API.** The only exception is the opt-in `Raw` escape hatch: `MessageReceived.Raw` (an `[Experimental]`-attributed property) and `client.Messages.SendRawAsync(WAWebProtobufsE2E.Message …)`. These live in `Whatsmeow.Protocol.WhatsApp` types and are documented as unstable.
-- Time is NodaTime, public API included: `Instant` and `Duration` in public members, `IClock` injected, never BCL date/time types.
+- Time is BCL: `DateTimeOffset` (UTC) and `TimeSpan` in public members, "now" and every timer from one injected `TimeProvider`, never `DateTime`.
 - Idioms (immutability with `required`/`init` and `ImmutableArray<T>`/`IReadOnlyList<T>`, `Task` vs `ValueTask`, `CancellationToken` last, `Async` suffix, time): [guidelines/csharp.md](guidelines/csharp.md) Public API modeling and Time.
 
 ### 8.4 Event pipeline and delivery guarantee
@@ -353,7 +367,7 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
 
 ### 8.5 Sidecar supervision
 
-- **Locate the binary** in this order: `options.SidecarPath` or `WHATSMEOW_NET_SIDECAR_PATH`; then `AppContext.BaseDirectory`; then `AppContext.BaseDirectory/runtimes/<rid>/native/`. The RID is derived from `RuntimeInformation` plus musl detection. Never use `Assembly.Location`.
+- **Locate the binary** in this order: `options.SidecarPath` or `WHATSMEOW_NET_SIDECAR_PATH`; then `AppContext.BaseDirectory`; then `AppContext.BaseDirectory/runtimes/<rid>/native/`. The RID is derived from `RuntimeInformation` plus musl detection. The CGO-free Linux binary runs unchanged on Alpine (musl) and Debian (glibc) (§14 question 6), so a musl RID resolves to the same binary as its glibc RID. Never use `Assembly.Location`.
 - **Make it executable:** call `File.SetUnixFileMode(+x)` before every start. If that fails, copy the binary to a writable cache directory (never `/tmp` mounted `noexec`).
 - **Start:** redirect stdin/stdout/stderr, write the token as the first stdin line, wait for the ready line within `StartupTimeout`, verify the nonce, then call `grpc.health.v1`. If startup fails, the exception includes the tail of stderr.
 - **Tether:** keep stdin open for the sidecar's whole lifetime. On Windows, also assign the process to a Job Object with `KILL_ON_JOB_CLOSE` (P/Invoke generated by CsWin32).
@@ -368,10 +382,10 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
 ### 8.6 Transport
 
 - `GrpcChannel.ForAddress("http://localhost", new GrpcChannelOptions { HttpHandler = new SocketsHttpHandler { ConnectCallback = … } })`.
-- Unix domain socket by default. On Windows, the named-pipe fallback is selectable, and the default is chosen by the Phase 0 soak test.
+- Unix domain socket by default on every OS, Windows included (§14 question 2: stable, and 2-3x faster than named pipes for large frames and bidi). On Windows the named-pipe transport stays selectable as a fallback; it passed the same soak.
 - An auth token is added to every call by an interceptor, together with `ThrowOperationCanceledOnCancellation = true`.
 - `MaxReceiveMessageSize` and `MaxSendMessageSize` are set explicitly to 16 MiB on both sides.
-- Never call `GrpcChannel.ConnectAsync` or read `GrpcChannel.State`; neither works with `ConnectCallback`. Readiness comes from the handshake.
+- Never call `GrpcChannel.ConnectAsync` or read `GrpcChannel.State`; both throw `InvalidOperationException` ("doesn't support client-side load balancing or connectivity state tracking") when `ConnectCallback` is set (§14 transport spike). Readiness comes from the handshake.
 
 ### 8.7 Errors
 
@@ -379,7 +393,7 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
 - Subtypes:
   - `SidecarUnavailableException`, `SidecarVersionMismatchException`
   - `NotLoggedInException`, `SessionLoggedOutException`, `SessionNotFoundException`
-  - `RateLimitedException` (`RetryAfter`, a NodaTime `Duration`), `TemporarilyBannedException` (`Until`, a NodaTime `Instant`)
+  - `RateLimitedException` (`RetryAfter`, a `TimeSpan`), `TemporarilyBannedException` (`Until`, a `DateTimeOffset`)
   - `RecipientNotFoundException`, `MediaExpiredException`, `WhatsmeowValidationException`
 - Cancellation surfaces as `OperationCanceledException`, and deadlines as `TimeoutException`.
 - `RpcException` never escapes the public API. No Result types for I/O failures.
@@ -411,7 +425,7 @@ Moved to [guidelines/csharp.md](guidelines/csharp.md) Async and concurrency: `Ch
 
 **Media send:** .NET prepares metadata (thumbnail, dimensions, waveform) → `UploadMedia` (path or chunks) → `UploadReader` → `MediaRef` → `SendMedia(MediaRef, metadata)`. Re-sending an existing `MediaRef` skips the upload.
 
-**Pairing:** `Pair` stream opens → sidecar calls `GetQRChannel` and then `Connect` → QR codes are streamed (or a phone pairing code after the first QR event) → `PairSuccess` → the sidecar waits for `PreKeysUploaded` → `success` → session state becomes `Connected`.
+**Pairing:** `Pair` stream opens → sidecar calls `GetQRChannel` and then `Connect` (`GetQRChannel` after connect returns `ErrQRAlreadyConnected`) → QR codes are streamed (or a phone pairing code via `PairPhone` after the first QR event; whatsmeow documents this order but does not enforce it) → `PairSuccess` → the sidecar waits on `Client.PreKeysUploaded` (an `*exsync.Event` field, not an event type; it fires on the first successful pre-key upload, on the connect after pairing) → `success` → session state becomes `Connected`.
 
 **Startup:** locate the binary → chmod → spawn → write the token → ready line → nonce check → health check → `GetInfo` version check → `WatchSessionState` and `StreamEvents(after_seq = cursor)` for each session.
 
@@ -420,7 +434,8 @@ Moved to [guidelines/csharp.md](guidelines/csharp.md) Async and concurrency: `Ch
 ## 10. Security
 
 - The socket lives in a freshly created `0700` directory with a short random name; a stale socket file is removed before `Listen`. Linux abstract sockets are never used.
-- Windows named pipes use a random name, a current-user-only DACL, and `PipeOptions.CurrentUserOnly` on the client.
+- Windows named pipes use a random name, a current-user-only DACL (go-winio `D:P(A;;GA;;;OW)`), and `PipeOptions.CurrentUserOnly` on the client; that combination connected in the soak.
+- On Windows, `os.Chmod(dir, 0700)` does not set an ACL. The socket directory's protection comes from the user's `%LOCALAPPDATA%\Temp` ACL [inferred: default per-user ACL, not measured], so the sidecar sets an explicit owner-only DACL on that directory at creation, and the token stays the real gate.
 - A per-launch 32-byte token is delivered on stdin (never argv or environment variables). It is checked in constant time by a gRPC interceptor. A nonce echo guards against connecting to a stale sidecar.
 - The SQLite database holds long-term private keys. It is created `0600`, and the docs recommend disk encryption. Backups use `VACUUM INTO` and must be encrypted by the user.
 - Media paths are confined to a configured root, and path traversal is rejected.
@@ -439,7 +454,7 @@ How to write each test, what is banned, and the can-it-fail check: [guidelines/t
 | Integration (default) | real `whatsmeow-net` started with `--fake-whatsapp`, a test-only build tag that replaces whatsmeow with a scripted fake and exposes a control service to inject events and failures; one FullCycle per slice through the public API, covering proto ↔ record mapping and error mapping; kill-either-process tests for delivery guarantees | `tests/Whatsmeow.IntegrationTests` |
 | Go unit | every slice, with whatsmeow faked behind the slice's small interface; event-mapping tables covering every event type; outbox replay/ack/crash semantics; `-race` always | `sidecar/internal/**` |
 | Contract | `buf lint`, `buf breaking` against `main`; generated-code diff check | CI |
-| .NET unit (vital only) | dispatcher per-chat ordering and watermark acking; supervisor restart/backoff state machine with `FakeClock` | `tests/Whatsmeow.Client.Tests` |
+| .NET unit (vital only) | dispatcher per-chat ordering and watermark acking; supervisor restart/backoff state machine with `FakeTimeProvider` | `tests/Whatsmeow.Client.Tests` |
 | Live | real WhatsApp with a dedicated test number; manual pairing; opt-in through environment variables; never in default CI | `tests/Whatsmeow.LiveTests` |
 | Packaging | `dotnet pack` → restore from a local feed → run on win-x64, linux-x64 (glibc and Alpine), osx-arm64 | CI matrix |
 | AOT | `tests/AotSmoke`, zero warnings | CI |
@@ -448,7 +463,8 @@ How to write each test, what is banned, and the can-it-fail check: [guidelines/t
 
 ## 12. Release and upstream tracking
 
-- One git tag (`vX.Y.Z`) drives both GoReleaser (binaries, signed and notarized) and `dotnet pack` (MinVer). The versions are always equal.
+- One git tag (`vX.Y.Z`) drives both GoReleaser (binaries) and `dotnet pack` (MinVer). The versions are always equal.
+- No Developer ID signing, notarization, or Authenticode (§14 questions 2 and 6). A binary restored by `dotnet restore` from nuget.org carries no `com.apple.quarantine` attribute, and an ad-hoc signed one runs even though `spctl` rejects it (§14 question 6) [inferred: Gatekeeper assesses only quarantined launches, which matches what we saw]. Apple Silicon needs arm64 code to be signed at all, and the Go linker ad-hoc signs `darwin/arm64` itself. An app that embeds us and ships as a notarized `.app` signs its embedded binaries as part of its own release [inferred: standard macOS app signing, not our concern].
 - **Weekly `whatsmeow-bump` workflow:**
   1. Bump the whatsmeow pin.
   2. Copy the protos from the **exact** module directory (`go mod download -json`).
@@ -466,12 +482,12 @@ How to write each test, what is banned, and the can-it-fail check: [guidelines/t
 Any change that violates one of these is wrong unless an ADR changes the invariant first.
 
 1. The whatsmeow event handler never blocks on .NET, the network, or media. It only writes to the outbox.
-2. A WhatsApp message is acked to the server only after it is durably in the outbox.
+2. A WhatsApp message of a gated kind (§1) is acked to the server only after it is durably in the outbox. Ungated kinds are acked by whatsmeow regardless; we never claim otherwise.
 3. An event is acked by .NET only after all of its handlers have completed. Acks follow the watermark.
-4. Every whatsmeow `PermanentDisconnect` maps to an explicit session state and is delivered to .NET. "Silent" sessions are a bug.
+4. Every whatsmeow `PermanentDisconnect` (six types at the pin, §7.4) maps to an explicit session state and is delivered to .NET. "Silent" sessions are a bug.
 5. `whatsmeow.v1` never breaks without a `protocol` increment, and `buf breaking` enforces this.
 6. Generated protobuf types never appear in the stable public C# API.
-7. No runtime reflection, no `async void`, no sync-over-async, no `Grpc.Core`, no `Newtonsoft.Json`, no BCL date/time types.
+7. No runtime reflection, no `async void`, no sync-over-async, no `Grpc.Core`, no `Newtonsoft.Json`, no `DateTime`, no clock or timer that bypasses the injected `TimeProvider`.
 8. No whole-file media in a single gRPC message; use paths or chunks.
 9. The sidecar cannot outlive its parent process.
 10. A send with an unknown outcome is never automatically retried.
@@ -486,13 +502,113 @@ These can change the architecture. Resolve them before Phase 1 and record each o
 
 | # | Question | Decides |
 |---|---|---|
-| 1 | Does grpc-go's codec fail on whatsmeow messages with missing proto2 `required` fields? | typed fields vs `AllowPartial` codec vs `bytes` |
-| 2 | Windows: AF_UNIX streaming stability (grpc-go #7039) vs named pipes | default Windows transport |
-| 3 | modernc + sqlstore under contention, and whether `_txlock=immediate` is supported | final DSN |
-| 4 | Are any event types still acked before dispatch with `SynchronousAck`? | the exact scope of the delivery guarantee |
-| 5 | AOT/trim warnings from the large generated WhatsApp types, from NodaTime (+ `NodaTime.Serialization.Protobuf`), and from Vogen-generated code with the chosen `conversions:` | the AOT claim; Vogen `conversions:`, or a fallback to hand-written ID wrappers |
-| 6 | Sidecar binary size; Alpine run; macOS signing | packaging details |
-| 7 | NodaTime at BCL interop: Polly v8 takes a `TimeProvider` and `TimeSpan` delays [observed: Polly docs, `ResiliencePipelineBuilder.TimeProvider`], as do `Task.Delay`, `PeriodicTimer` and CTS timeouts. With `TimeProvider` banned, `FakeClock` cannot drive them. Candidate: one internal `IClock`-backed adapter, the only file allowed to suppress RS0030 [inferred, untested] | how supervisor backoff, ack timers and timeouts are tested with `FakeClock` |
+| 1 | Does grpc-go's codec fail on whatsmeow messages with missing proto2 `required` fields? | **Answered: yes.** Typed fields stay, with a server-only lenient codec (§6) |
+| 2 | Windows: AF_UNIX streaming stability (grpc-go #7039) vs named pipes | **Answered.** Both stable on Go 1.27.3; AF_UNIX is the default, named pipe the fallback (§8.6) |
+| 3 | modernc + sqlstore under contention, and whether `_txlock=immediate` is supported | **Answered.** Supported; final DSN in §5 |
+| 4 | Are any event types still acked before dispatch with `SynchronousAck`? | **Answered: yes, many.** The guarantee is scoped to gated kinds (§1, §13 invariant 2) |
+| 5 | AOT/trim warnings from the large generated WhatsApp types, and from Vogen-generated code with the chosen `conversions:` | **Answered (go), see Spike results.** The AOT claim holds; Vogen uses `Conversions.SystemTextJson` |
+| 6 | Sidecar binary size; Alpine run; macOS signing | **Answered.** No Developer ID signing or notarization needed (§12) |
+| 7 | Can house-rule NodaTime coexist with BCL timers (Polly v8, `Task.Delay`, `PeriodicTimer`, CTS timeouts) and with testable fake time? | **Answered, see Spike results.** It can only with an interop adapter and two fakes; Antonio chose BCL time instead (Decision log 0009) |
+| 8 | Should the delivery guarantee extend to the ungated kinds, via an upstream whatsmeow PR or a fork? | **Answered: no fork.** Follow the maintainer's configuration and fix real gaps upstream. See Spike results |
+
+
+### Spike results (2026-10-31)
+
+Run on macOS arm64, .NET SDK 10.0.400, `dotnet publish -r osx-arm64` with `PublishAot=true`, `TrimmerSingleWarn=false`.
+Packages: Google.Protobuf 3.36.2, Grpc.Tools 2.85.0, NodaTime 3.3.7 and NodaTime.Serialization.Protobuf 2.0.2 (measured, then dropped), Vogen 8.0.7, Polly.Core 8.9.0, Microsoft.Extensions.* 10.0.14, Microsoft.Extensions.TimeProvider.Testing 10.11.0, BannedApiAnalyzers 5.6.0.
+Protos: all 57 `.proto` files from whatsmeow `56e5ad0581cee858000f856b1a98dbd03cc5b14f`, compiled unmodified with `GrpcServices="None"`.
+The spikes were throwaway code outside the repo; each result below was observed in their output unless tagged.
+
+**Question 5: answered, go.**
+
+- Zero IL/AOT warnings for the full set: the 57 generated WhatsApp types (build, serialize, parse, equality, descriptor lookup), Google.Protobuf `Timestamp`↔`DateTimeOffset` and `Duration`↔`TimeSpan`, NodaTime with a Tzdb lookup and `NodaTime.Serialization.Protobuf`, Vogen value objects, Polly retry, the `[OptionsValidator]` generator and the configuration-binding generator.
+- Every path ran correctly in the native binary (about 10 MB for the whole spike).
+- The only trim warnings came from a probe that called `TypeDescriptor.GetConverter` on a Vogen type with `Conversions.Default`. That is why Vogen uses `Conversions.SystemTextJson` only ([guidelines/csharp.md](guidelines/csharp.md) IDs).
+- Not covered: `Grpc.Net.Client` and the generated `whatsmeow.v1` stubs (they do not exist yet). `tests/AotSmoke` stays the gate.
+
+**Vogen and options findings** (they shape rules in the guidelines):
+
+- Vogen needs a public `(string)` constructor on the `throws:` exception (VOG013). `default(T)` is a compile error (VOG009). A defaulted field throws on `.Value` at runtime.
+- `Vogen.SharedTypes.dll` is a hard runtime dependency of consumers: the nupkg depends on `Vogen`, and a consumer without the dll crashes with `FileNotFoundException`.
+- STJ source-gen inside the same assembly cannot see Vogen converters (it serialized `{}`). A consumer's STJ source-gen sees them through metadata, under AOT, with zero warnings. Omit the public `VogenTypesFactory`.
+- `TimeSpan` binds from `00:00:30` through the binding generator under AOT. `NodaTime.Duration` does not bind from a configuration string at all: the generator treats it as an object with properties, the reflection binder ignores it too, and both keep the old value without an error.
+- A library with only `IsAotCompatible=true` does not get the configuration-binding generator: `BindConfiguration` raised IL2026/IL3050 until `EnableConfigurationBindingGenerator=true` was set. Only `PublishAot=true` turns it on implicitly.
+
+**Question 1: answered, typed fields stay.** grpc-go 1.85.0, protobuf-go 1.36.12, whatsmeow at the pin.
+
+- whatsmeow protos have 125 proto2 `required` fields. `Message.extendedTextMessage.endCardTiles[]` reaches `VideoEndCard`, which has four.
+- grpc-go's default codec refuses to marshal such a message (`code = Internal`, "error while marshaling"), and refuses to unmarshal it on the server ("failed to unmarshal the received message", `Internal`, no `ErrorInfo`) before any interceptor runs.
+- whatsmeow's own decrypt path (`proto.Unmarshal`, `message.go:290`, `:446`) rejects the same message, so anything whatsmeow hands us inbound is already complete. The risk is only .NET → sidecar.
+- C# Google.Protobuf 3.36.2 is lenient: `ToByteArray()` and `ParseFrom()` accept the partial message; `IsInitialized()` returns false.
+- With `grpc.ForceServerCodecV2(lenient codec)` the partial message reaches the handler. whatsmeow's send path marshals with plain `proto.Marshal` (`send.go:1106`, `:1261`), so the slice gets a "required field not set" error and returns `InvalidArgument`. Complete messages are unaffected.
+
+**Question 2: answered.** GitHub Actions run 41228306743, spike code at commit `0e5774d` under `spikes/windows-transport/` (the `spike/windows-transport` branch was deleted after recording these results): Go 1.27.3 grpc-go 1.85.0 server, .NET 10.0.14 Native AOT client, on Windows Server 2022 (build 20348, x64), Windows Server 2025 (build 26100, x64) and Windows 11 (build 26200, arm64).
+
+- The grpc-go #7039 reproducer shape (Go client and server, AF_UNIX, bidi, 500 B messages back to back, 90 s): 15.1-21.5M messages echoed in order, no transport error, on all three. That matches a third-party report on the issue that the corruption was a Go runtime bug, present on Go 1.22.12 and gone on Go 1.26.5.
+- .NET client ↔ Go sidecar, every test passing on both transports and all three hosts, with 60 s or 30 s budgets:
+
+| Test | AF_UNIX | Named pipe |
+|---|---|---|
+| server stream, 512 B, in order | 34-40M events, 563k-654k/s | 34-38M events, 564k-631k/s |
+| server stream, 64 KiB messages | 1,078-1,482 MiB/s | 393-545 MiB/s |
+| client stream upload, 64 KiB chunks, in order | 308-390 MiB/s | 328-469 MiB/s |
+| bidi 500 B back to back + a ping every 50 ms | 3.2-4.2M echoed in order | 1.5-2.1M echoed in order |
+| stdin EOF stops the sidecar | exit 0 | exit 0 |
+
+- Mark-of-the-Web: the `protoc.exe` that `dotnet restore` pulled from nuget.org has no `Zone.Identifier` stream, and our unsigned `sidecar.exe` (Authenticode `NotSigned`) starts. So no Authenticode signing is needed either [inferred: SmartScreen keys on Mark-of-the-Web, which matches what we saw].
+
+**Question 3: answered.** modernc v1.61.1 parses `_txlock=deferred|immediate|exclusive` (`sqlite.go:426`); `dbutil.ParseDialect` accepts any `sqlite*` name. Workload: 8 sessions, 10,400 ops mixing whatsmeow's own store writes (sessions, identities, pre-keys, app-state versions and MACs), our outbox insert transactions, and a read-then-write cursor transaction, 3 runs each.
+
+| DSN | SQLITE_BUSY |
+|---|---|
+| WAL, deferred, no `busy_timeout` | 7,886-9,568 (about 90%) |
+| WAL, deferred, `busy_timeout(5000)` | 574-678, all in the read-then-write transaction |
+| WAL, `_txlock=immediate`, `busy_timeout(5000)` | 0 |
+
+`synchronous(FULL)` costs about 2-5x over `NORMAL` (0.7-1.9 s vs 2.0-3.2 s for the 10,400 ops), still with 0 BUSY. FULL is chosen because invariant 2 needs the outbox row to survive power loss, not only a process crash [inferred: from SQLite's documented WAL durability, not measured here].
+
+**Question 4: answered by source review** of whatsmeow at the pin. A review agent read the source; the starred items were re-checked by hand.
+
+- Acks a handler can withhold: decrypted `*events.Message` and `*events.FBMessage`, newsletter plaintext messages, non-retry receipts*, `w:gp2` group notifications*.
+- Acked regardless of the handler: undecryptable messages* (retry receipt and ack go out before `UndecryptableMessage` is dispatched, `message.go:424-437`), unavailable messages, missing-secret `msmsg` (nacked), already-processed messages, retry receipts* (acked inside the retry handler, `receipt.go:34-38`), calls, app state, `hist_sync` receipts, and every notification type except `w:gp2` and `server_sync`*; `encrypt` and `account_sync` notifications run on goroutines*.
+- A handler panic counts as success*. A placeholder-resend failure is turned into success (`message.go:1174`).
+- Grouped receipts with several participants: only the last participant's handler result decides the ack*, because the loop overwrites `cancelled` (`receipt.go:29-31`).
+- How soon the server redelivers an unacked message is [unknown].
+
+**Other whatsmeow claims this document used to state, checked at the pin:**
+
+- Confirmed: all six `Client` fields in §7.2*; `store.DeviceProps`, `store.SetOSInfo`, `store.SetWAVersion` are package-level; `SendRequestExtra.ID` and `SendResponse.Chat`; `SendMediaRetryReceipt` with the result as `*events.MediaRetry`; `ParseWebMessage`; `events.OfflineSyncCompleted`; `waLog.Zerolog`; `events.PermanentDisconnect`*.
+- Refuted, now corrected above: "one queue per client" (§7.3)*; "whatsmeow has already deleted the device rows" on `LoggedOut` (§7.4)*; "`UploadReader` retries up to 3 times" (§7.6)*; "a `PreKeysUploaded` event" (§9; it is a `Client` field)*; "the zombie-socket bug" (§7.2, not in code; the mechanism is the keepalive loop)*.
+- `RESEARCH.md` still contains the refuted claims as originally researched. This section wins over it.
+
+**Question 6: answered.** Go 1.27.3, `CGO_ENABLED=0 -trimpath -ldflags "-s -w"`, a sidecar-shaped binary (whatsmeow client, sqlstore with the §5 DSN, gRPC health server on a Unix socket, zerolog).
+
+- Sizes: linux-amd64 22.9 MB, linux-arm64 21.9 MB, darwin-arm64 22.4 MB, darwin-amd64 23.3 MB, windows-amd64 23.2 MB, windows-arm64 21.9 MB.
+- The Linux binaries ran (store upgrade, client, socket, ready line) on `alpine:3` and `debian:stable-slim`, arm64 natively and amd64 under emulation.
+- macOS: the Go linker ad-hoc signs `darwin/arm64`; `darwin/amd64` is unsigned. `spctl` rejects both, but that only applies to quarantined launches. The macOS `protoc` that `dotnet restore` pulled from nuget.org (Grpc.Tools 2.85.0) has no `com.apple.quarantine`, is only ad-hoc signed, and runs. Developer ID signing and notarization are therefore dropped (§12).
+
+**Transport spike: answered.** Go 1.27.3 grpc-go 1.85.0 server, .NET Grpc.Net.Client 2.85.0 client published with Native AOT (0 IL/AOT warnings), osx-arm64.
+
+- Spawn, token on stdin, JSON ready line on stdout, unary call over a Unix socket through `SocketsHttpHandler.ConnectCallback`: works.
+- Server stream of 200,000 events with 512-byte payloads: in order, about 849,000 events/s.
+- `GrpcChannel.State` and `ConnectAsync` throw `InvalidOperationException` with `ConnectCallback` set, confirming §8.6.
+- Closing stdin stops the sidecar (exit 0).
+
+**Question 8: answered, follow the maintainer.**
+
+- whatsmeow's maintainer runs whatsmeow in production in mautrix-whatsapp. At `5dd621f` (2026-10-30, whatsmeow `20261026125351-1fbae988179a`) it sets `AddEventHandlerWithSuccessStatus`, `SynchronousAck = true`, `EnableDecryptedEventBuffer` (on when `PortalEventBuffer == 0`, which we take to be the default [inferred]), `ManualHistorySyncDownload = true`, `AutomaticMessageRerequestFromPhone = true`, and `InitialAutoReconnect` (default `true`) (`pkg/connector/client.go:81-93`, `example-config.yaml:66`).
+- Its handler returns real success for messages, receipts, undecryptable messages, calls, media retries and group changes, and lets whatsmeow decide which acks that gates (`pkg/connector/handlewhatsapp.go:78-132`). `UndecryptableMessage` becomes a placeholder event (`handlewhatsapp.go:435-458`).
+- The maintainer recommends `SynchronousAck` plus `EnableDecryptedEventBuffer` against losing a decrypted-but-undispatched message (tulir/whatsmeow#1093). His note says hitting that is "very rare unless the program is running on a mobile phone".
+- Gaps get fixed upstream: tulir/whatsmeow#1312 made `server_sync` fetch app state before acking under `SynchronousAck`. It was merged 2026-10-30 19:55:14 UTC, which is our pin.
+- So a fork would buy coverage the maintainer considers unnecessary, at the cost of the weekly-bump goal. We take his configuration, and report a gap upstream when a test proves one.
+
+**Question 7: answered; BCL time chosen.**
+
+- Polly v8 has no NodaTime support; it schedules only through `System.TimeProvider` (no NodaTime or `IClock` reference in Polly.Core 8.9.0).
+- NodaTime 3.3 bridges one way only: `TimeProvider.ToClock()`. `IClock` has no timer API, so no `IClock`-backed `TimeProvider` can exist, and `FakeClock` cannot drive delays.
+- One `FakeTimeProvider` drove a Polly exponential retry (2s, 4s, 8s gaps) and every "now" read in the same test.
+- So NodaTime would have needed an interop file, two fakes, a hand-parsed options step, an extra protobuf package, and a forced dependency on every consumer, for a library with no zone or calendar math. Antonio chose BCL time (Decision log 0009).
+- BannedApiAnalyzers 5.6.0 flags each ambient-time and timer ID listed in [guidelines/csharp.md](guidelines/csharp.md) BannedSymbols.txt, and none of their `TimeProvider` overloads.
 
 ---
 
@@ -504,7 +620,7 @@ These can change the architecture. Resolve them before Phase 1 and record each o
 | 1 | Sessions, state machine, pairing, outbox and event stream, raw and text send, receipts; .NET supervisor, transport, dispatcher, errors, `Jid`, core events | pair a real phone; kill either process mid-stream; no lost or duplicated messages |
 | 2 | Media, reactions, edits, revokes, polls, presence, contacts and LID, groups, send pacing | parity report covers messaging, groups and contacts |
 | 3 | History sync, chat state, hosting package, telemetry, `Whatsmeow.Testing` | hosted sample with two sessions; history doesn't delay live traffic |
-| 4 | Native packages, signing, Trusted Publishing, weekly bump, AOT smoke, PublicAPI baseline, External mode, docs | `dotnet add package` works on all target RIDs from nuget.org |
+| 4 | Native packages, Trusted Publishing, weekly bump, AOT smoke, PublicAPI baseline, External mode, docs | `dotnet add package` works on all target RIDs from nuget.org |
 
 ---
 
@@ -521,9 +637,11 @@ Decisions are recorded in `docs/adr/NNNN-title.md` (context, decision, consequen
 - 0007: Packaging as per-OS native NuGet packages with exact-version pins
 - 0008: Product name Whatsmeow.NET; identifiers rooted at `Whatsmeow`; sidecar binary `whatsmeow-net`
 
-House-rule alignment (the house rule replaced what this document said before):
+House-rule alignment (applied, or opted out of with a measured reason):
 
-- 0009: NodaTime everywhere, public API included; replaces an injected `TimeProvider`
+- 0009: BCL time (`DateTimeOffset`/`TimeSpan`, injected `TimeProvider`) instead of the house NodaTime rule, because NodaTime would be forced on consumers and its costs were measured (§14 question 7)
 - 0010: Vogen for primitive ID wrappers; `Jid` stays hand-written; replaces hand-written `readonly record struct` IDs
 - 0011: Integration tests by default, with .NET unit tests only for the dispatcher and supervisor; replaces a broad .NET unit layer
 - 0012: `IWhatsAppClient` kept as the single exception to "no interface just to mock it"
+- 0013: whatsmeow configuration follows the maintainer's production bridge (mautrix-whatsapp); gaps are fixed upstream, never in a fork (§14 question 8)
+- 0014: AF_UNIX as the default transport on Windows too; named pipe as the selectable fallback (§14 question 2)

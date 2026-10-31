@@ -23,7 +23,7 @@ That is `tests/Whatsmeow.IntegrationTests`.
 .NET unit tests exist only for:
 
 * dispatcher per-chat ordering and the ack watermark
-* the supervisor restart/backoff state machine (driven by `FakeClock`)
+* the supervisor restart/backoff state machine (driven by `FakeTimeProvider`)
 
 Proto-to-record mapping and error mapping are covered through integration, not unit tests.
 Go keeps per-slice unit tests; see [go.md](go.md).
@@ -134,7 +134,7 @@ No `Thread.Sleep`, no `Task.Delay` to wait for something.
 No public network in the default suite.
 No order dependence between facts beyond what the shared fixture already owns.
 Wait on a condition, not a duration.
-Time comes from `FakeClock` wherever the code takes an `IClock`.
+Time is faked, never waited on: one `FakeTimeProvider` drives now, delays and Polly ([csharp.md](csharp.md) Time).
 
 ## Live WhatsApp
 

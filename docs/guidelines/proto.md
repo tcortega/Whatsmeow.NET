@@ -12,8 +12,8 @@ Moved from ARCHITECTURE §6; the contract's policy (independence from whatsmeow,
 
 ## Mapping in .NET
 
-- `google.protobuf.Timestamp` maps to NodaTime `Instant`, and `google.protobuf.Duration` to NodaTime `Duration`, in slice mapping code. Never to BCL types (see [csharp.md](csharp.md) Time).
-- `NodaTime.Serialization.Protobuf` provides these conversions [observed: package 2.0.2 on nuget.org, published 2025-01; whether its API fits AOT is part of ARCHITECTURE §14 spike 5].
+- `google.protobuf.Timestamp` maps to `DateTimeOffset` (UTC), and `google.protobuf.Duration` to `TimeSpan`, in slice mapping code (see [csharp.md](csharp.md) Time).
+- Use Google.Protobuf's own `Timestamp.ToDateTimeOffset()` / `Timestamp.FromDateTimeOffset()` and `Duration.ToTimeSpan()` / `Duration.FromTimeSpan()`. No extra package. They round-trip under Native AOT with zero warnings [observed: Google.Protobuf 3.36.2, ARCHITECTURE §14 Spike results].
 
 ## Changing the contract
 
