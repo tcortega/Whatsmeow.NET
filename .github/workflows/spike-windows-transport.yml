@@ -1,0 +1,69 @@
+name: spike-windows-transport
+
+on:
+  push:
+    branches: [spike/windows-transport]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-latest
+            rid: win-x64
+          - runner: windows-2022
+            rid: win-x64
+          - runner: windows-11-arm
+            rid: win-arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: spikes/windows-transport
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.27.x'
+          cache-dependency-path: spikes/windows-transport/go/go.sum
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+      - name: Environment
+        run: |
+          go version
+          dotnet --version
+          [System.Environment]::OSVersion.VersionString
+          (Get-CimInstance Win32_OperatingSystem).Caption + ' build ' + (Get-CimInstance Win32_OperatingSystem).BuildNumber
+      - name: Generate Go code
+        working-directory: spikes/windows-transport/go
+        run: |
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.12
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.6.2
+          dotnet restore ../dotnet/WinClient.csproj
+          $protoc = Get-ChildItem "$env:USERPROFILE\.nuget\packages\grpc.tools\2.85.0\tools\windows_x64\protoc.exe"
+          New-Item -ItemType Directory -Force gen | Out-Null
+          & $protoc.FullName -I ../proto --plugin=protoc-gen-go="$(go env GOPATH)\bin\protoc-gen-go.exe" --plugin=protoc-gen-go-grpc="$(go env GOPATH)\bin\protoc-gen-go-grpc.exe" --go_out=gen --go_opt=paths=source_relative --go-grpc_out=gen --go-grpc_opt=paths=source_relative ../proto/spike.proto
+      - name: Build sidecar and control
+        working-directory: spikes/windows-transport/go
+        env:
+          CGO_ENABLED: '0'
+        run: |
+          go vet ./...
+          go build -o ../sidecar.exe ./server
+          go build -o ../control.exe ./control
+      - name: Publish .NET client (Native AOT)
+        run: dotnet publish dotnet/WinClient.csproj -c Release -r ${{ matrix.rid }} -o out
+      - name: Go control, AF_UNIX bidi (#7039 shape)
+        run: ./control.exe -duration 90s
+      - name: .NET client over AF_UNIX
+        run: ./out/WinClient.exe ./sidecar.exe uds 60
+      - name: .NET client over named pipe
+        if: success() || failure()
+        run: ./out/WinClient.exe ./sidecar.exe pipe 60

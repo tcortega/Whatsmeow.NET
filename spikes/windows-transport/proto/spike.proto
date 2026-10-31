@@ -1,0 +1,18 @@
+syntax = "proto3";
+package spike.v1;
+option go_package = "spike/gen;spikev1";
+option csharp_namespace = "Spike.V1";
+
+message StreamEventsRequest { uint64 after_seq = 1; uint32 count = 2; uint32 payload_size = 3; }
+message Event { uint64 seq = 1; bytes payload = 2; }
+message PingRequest {}
+message PingResponse { string nonce = 1; }
+message Chunk { uint64 index = 1; bytes data = 2; }
+message UploadResult { uint64 chunks = 1; uint64 bytes = 2; bool in_order = 3; }
+
+service EventService {
+  rpc Ping(PingRequest) returns (PingResponse);
+  rpc StreamEvents(StreamEventsRequest) returns (stream Event);
+  rpc Upload(stream Chunk) returns (UploadResult);
+  rpc Chat(stream Event) returns (stream Event);
+}
