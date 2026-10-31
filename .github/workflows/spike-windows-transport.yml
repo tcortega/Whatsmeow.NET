@@ -61,9 +61,22 @@ jobs:
       - name: Publish .NET client (Native AOT)
         run: dotnet publish dotnet/WinClient.csproj -c Release -r ${{ matrix.rid }} -o out
       - name: Go control, AF_UNIX bidi (#7039 shape)
+        if: success() || failure()
         run: ./control.exe -duration 90s
       - name: .NET client over AF_UNIX
+        if: success() || failure()
         run: ./out/WinClient.exe ./sidecar.exe uds 60
       - name: .NET client over named pipe
         if: success() || failure()
         run: ./out/WinClient.exe ./sidecar.exe pipe 60
+      - name: Mark-of-the-Web on NuGet-restored native binary
+        if: success() || failure()
+        run: |
+          $exe = Get-ChildItem "$env:USERPROFILE\.nuget\packages\grpc.tools\2.85.0\tools\windows_x64\protoc.exe"
+          $zone = Get-Item $exe.FullName -Stream Zone.Identifier -ErrorAction SilentlyContinue
+          if ($zone) { "FAIL MOTW present: " + (Get-Content $exe.FullName -Stream Zone.Identifier -Raw) } else { "PASS no Zone.Identifier stream on " + $exe.FullName }
+          $sig = Get-AuthenticodeSignature $exe.FullName
+          "INFO Authenticode status: " + $sig.Status + " signer: " + $sig.SignerCertificate.Subject
+          $go = Get-AuthenticodeSignature ./sidecar.exe
+          "INFO our sidecar.exe Authenticode status: " + $go.Status
+          & ./sidecar.exe --transport pipe < NUL | Select-Object -First 1

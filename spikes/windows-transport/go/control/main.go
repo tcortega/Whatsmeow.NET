@@ -48,7 +48,7 @@ func main() {
 	srv := grpc.NewServer()
 	spikev1.RegisterEventServiceServer(srv, svc{})
 	go srv.Serve(lis)
-	conn, err := grpc.NewClient("unix://"+filepath.ToSlash(sock), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("unix:"+filepath.ToSlash(sock), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		fmt.Println("FAIL dial", err)
 		os.Exit(1)
