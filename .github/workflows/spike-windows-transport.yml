@@ -79,4 +79,4 @@ jobs:
           "INFO Authenticode status: " + $sig.Status + " signer: " + $sig.SignerCertificate.Subject
           $go = Get-AuthenticodeSignature ./sidecar.exe
           "INFO our sidecar.exe Authenticode status: " + $go.Status
-          & ./sidecar.exe --transport pipe < NUL | Select-Object -First 1
+          $null | & ./sidecar.exe --transport pipe | Select-Object -First 1
