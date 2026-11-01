@@ -120,6 +120,18 @@ namespace Whatsmeow.IntegrationTests.Fake {
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryRequest> __Marshaller_whatsmeow_fake_v1_FailNextContactQueryRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryResponse> __Marshaller_whatsmeow_fake_v1_FailNextContactQueryResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DeliverPresenceRequest> __Marshaller_whatsmeow_fake_v1_DeliverPresenceRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DeliverPresenceRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DeliverPresenceResponse> __Marshaller_whatsmeow_fake_v1_DeliverPresenceResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DeliverPresenceResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DeliverChatPresenceRequest> __Marshaller_whatsmeow_fake_v1_DeliverChatPresenceRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DeliverChatPresenceRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DeliverChatPresenceResponse> __Marshaller_whatsmeow_fake_v1_DeliverChatPresenceResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DeliverChatPresenceResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.SetPushNameRequest> __Marshaller_whatsmeow_fake_v1_SetPushNameRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.SetPushNameRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.SetPushNameResponse> __Marshaller_whatsmeow_fake_v1_SetPushNameResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.SetPushNameResponse.Parser));
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse> __Method_DeliverMessage = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse>(
@@ -256,6 +268,30 @@ namespace Whatsmeow.IntegrationTests.Fake {
         "FailNextContactQuery",
         __Marshaller_whatsmeow_fake_v1_FailNextContactQueryRequest,
         __Marshaller_whatsmeow_fake_v1_FailNextContactQueryResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverPresenceRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverPresenceResponse> __Method_DeliverPresence = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverPresenceRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverPresenceResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "DeliverPresence",
+        __Marshaller_whatsmeow_fake_v1_DeliverPresenceRequest,
+        __Marshaller_whatsmeow_fake_v1_DeliverPresenceResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverChatPresenceRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverChatPresenceResponse> __Method_DeliverChatPresence = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverChatPresenceRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverChatPresenceResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "DeliverChatPresence",
+        __Marshaller_whatsmeow_fake_v1_DeliverChatPresenceRequest,
+        __Marshaller_whatsmeow_fake_v1_DeliverChatPresenceResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.SetPushNameRequest, global::Whatsmeow.IntegrationTests.Fake.SetPushNameResponse> __Method_SetPushName = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.SetPushNameRequest, global::Whatsmeow.IntegrationTests.Fake.SetPushNameResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "SetPushName",
+        __Marshaller_whatsmeow_fake_v1_SetPushNameRequest,
+        __Marshaller_whatsmeow_fake_v1_SetPushNameResponse);
 
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
@@ -1237,6 +1273,174 @@ namespace Whatsmeow.IntegrationTests.Fake {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryResponse> FailNextContactQueryAsync(global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_FailNextContactQuery, null, options, request);
+      }
+      /// <summary>
+      /// DeliverPresence makes WhatsApp send a user's presence to the session's client, which dispatches events.Presence on
+      /// its node queue (presence.go:39-58), and returns once the client's event handlers ran. whatsmeow answers nothing.
+      /// A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.DeliverPresenceResponse DeliverPresence(global::Whatsmeow.IntegrationTests.Fake.DeliverPresenceRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return DeliverPresence(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// DeliverPresence makes WhatsApp send a user's presence to the session's client, which dispatches events.Presence on
+      /// its node queue (presence.go:39-58), and returns once the client's event handlers ran. whatsmeow answers nothing.
+      /// A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.DeliverPresenceResponse DeliverPresence(global::Whatsmeow.IntegrationTests.Fake.DeliverPresenceRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_DeliverPresence, null, options, request);
+      }
+      /// <summary>
+      /// DeliverPresence makes WhatsApp send a user's presence to the session's client, which dispatches events.Presence on
+      /// its node queue (presence.go:39-58), and returns once the client's event handlers ran. whatsmeow answers nothing.
+      /// A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DeliverPresenceResponse> DeliverPresenceAsync(global::Whatsmeow.IntegrationTests.Fake.DeliverPresenceRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return DeliverPresenceAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// DeliverPresence makes WhatsApp send a user's presence to the session's client, which dispatches events.Presence on
+      /// its node queue (presence.go:39-58), and returns once the client's event handlers ran. whatsmeow answers nothing.
+      /// A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DeliverPresenceResponse> DeliverPresenceAsync(global::Whatsmeow.IntegrationTests.Fake.DeliverPresenceRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_DeliverPresence, null, options, request);
+      }
+      /// <summary>
+      /// DeliverChatPresence makes WhatsApp send a user's chat state to the session's client, which dispatches
+      /// events.ChatPresence on its node queue (presence.go:18-37), and returns once the client's event handlers ran.
+      /// whatsmeow answers nothing. A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.DeliverChatPresenceResponse DeliverChatPresence(global::Whatsmeow.IntegrationTests.Fake.DeliverChatPresenceRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return DeliverChatPresence(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// DeliverChatPresence makes WhatsApp send a user's chat state to the session's client, which dispatches
+      /// events.ChatPresence on its node queue (presence.go:18-37), and returns once the client's event handlers ran.
+      /// whatsmeow answers nothing. A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.DeliverChatPresenceResponse DeliverChatPresence(global::Whatsmeow.IntegrationTests.Fake.DeliverChatPresenceRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_DeliverChatPresence, null, options, request);
+      }
+      /// <summary>
+      /// DeliverChatPresence makes WhatsApp send a user's chat state to the session's client, which dispatches
+      /// events.ChatPresence on its node queue (presence.go:18-37), and returns once the client's event handlers ran.
+      /// whatsmeow answers nothing. A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DeliverChatPresenceResponse> DeliverChatPresenceAsync(global::Whatsmeow.IntegrationTests.Fake.DeliverChatPresenceRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return DeliverChatPresenceAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// DeliverChatPresence makes WhatsApp send a user's chat state to the session's client, which dispatches
+      /// events.ChatPresence on its node queue (presence.go:18-37), and returns once the client's event handlers ran.
+      /// whatsmeow answers nothing. A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DeliverChatPresenceResponse> DeliverChatPresenceAsync(global::Whatsmeow.IntegrationTests.Fake.DeliverChatPresenceRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_DeliverChatPresence, null, options, request);
+      }
+      /// <summary>
+      /// SetPushName makes the app state sync set the account's push name, as whatsmeow does for the push name setting: it
+      /// sets the device's push name and saves the device (appstate.go:364-374). Until then SendPresence fails with
+      /// whatsmeow's ErrNoPushName (presence.go:67-68). A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.SetPushNameResponse SetPushName(global::Whatsmeow.IntegrationTests.Fake.SetPushNameRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SetPushName(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SetPushName makes the app state sync set the account's push name, as whatsmeow does for the push name setting: it
+      /// sets the device's push name and saves the device (appstate.go:364-374). Until then SendPresence fails with
+      /// whatsmeow's ErrNoPushName (presence.go:67-68). A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.SetPushNameResponse SetPushName(global::Whatsmeow.IntegrationTests.Fake.SetPushNameRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_SetPushName, null, options, request);
+      }
+      /// <summary>
+      /// SetPushName makes the app state sync set the account's push name, as whatsmeow does for the push name setting: it
+      /// sets the device's push name and saves the device (appstate.go:364-374). Until then SendPresence fails with
+      /// whatsmeow's ErrNoPushName (presence.go:67-68). A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.SetPushNameResponse> SetPushNameAsync(global::Whatsmeow.IntegrationTests.Fake.SetPushNameRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SetPushNameAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SetPushName makes the app state sync set the account's push name, as whatsmeow does for the push name setting: it
+      /// sets the device's push name and saves the device (appstate.go:364-374). Until then SendPresence fails with
+      /// whatsmeow's ErrNoPushName (presence.go:67-68). A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.SetPushNameResponse> SetPushNameAsync(global::Whatsmeow.IntegrationTests.Fake.SetPushNameRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_SetPushName, null, options, request);
       }
       /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]

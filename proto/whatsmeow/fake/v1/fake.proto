@@ -94,6 +94,20 @@ service FakeWhatsAppService {
   // GetProfilePictureInfo, GetBlocklist, UpdateBlocklist) with an IQ error of code: 429 is whatsmeow's
   // ErrIQRateOverLimit (errors.go:197).
   rpc FailNextContactQuery(FailNextContactQueryRequest) returns (FailNextContactQueryResponse);
+  // DeliverPresence makes WhatsApp send a user's presence to the session's client, which dispatches events.Presence on
+  // its node queue (presence.go:39-58), and returns once the client's event handlers ran. whatsmeow answers nothing.
+  // A session without a client is an error.
+  rpc DeliverPresence(DeliverPresenceRequest) returns (DeliverPresenceResponse);
+
+  // DeliverChatPresence makes WhatsApp send a user's chat state to the session's client, which dispatches
+  // events.ChatPresence on its node queue (presence.go:18-37), and returns once the client's event handlers ran.
+  // whatsmeow answers nothing. A session without a client is an error.
+  rpc DeliverChatPresence(DeliverChatPresenceRequest) returns (DeliverChatPresenceResponse);
+
+  // SetPushName makes the app state sync set the account's push name, as whatsmeow does for the push name setting: it
+  // sets the device's push name and saves the device (appstate.go:364-374). Until then SendPresence fails with
+  // whatsmeow's ErrNoPushName (presence.go:67-68). A session without a client is an error.
+  rpc SetPushName(SetPushNameRequest) returns (SetPushNameResponse);
 }
 
 // LinkDeviceRequest names the session and the device's JID.
@@ -308,8 +322,81 @@ message Sent {
     Disconnect disconnect = 4;
     // The client asked WhatsApp to unlink its device (Logout).
     RemoveCompanionDevice remove_companion_device = 5;
+    // The client set its presence (SendPresence).
+    Presence presence = 6;
+    // The client subscribed to a user's presence (SubscribePresence).
+    SubscribePresence subscribe_presence = 7;
+    // The client set its state in a chat (SendChatPresence).
+    ChatPresence chat_presence = 8;
   }
 }
+
+// Presence is the <presence> SendPresence sends (presence.go:64-87).
+message Presence {
+  // "available" or "unavailable".
+  string type = 1;
+  // The account's push name.
+  string name = 2;
+}
+
+// SubscribePresence is the <presence type="subscribe"> SubscribePresence sends (presence.go:97-125).
+message SubscribePresence {
+  // The user, in whatsmeow's string form.
+  string to = 1;
+}
+
+// ChatPresence is the <chatstate> SendChatPresence sends (presence.go:130-144).
+message ChatPresence {
+  // The chat, in whatsmeow's string form.
+  string to = 1;
+  // "composing" or "paused".
+  string state = 2;
+  // "audio" while recording; empty otherwise, and always with paused.
+  string media = 3;
+}
+
+// DeliverPresenceRequest is one presence stanza.
+message DeliverPresenceRequest {
+  // The session whose client receives it.
+  string session_id = 1;
+  // The user whose presence it is.
+  string from = 2;
+  // True when the user is offline.
+  bool unavailable = 3;
+  // When the user was last online; unset is none, as for a user whose privacy settings hide it.
+  google.protobuf.Timestamp last_seen = 4;
+}
+
+// DeliverPresenceResponse has no fields.
+message DeliverPresenceResponse {}
+
+// DeliverChatPresenceRequest is one chat state stanza.
+message DeliverChatPresenceRequest {
+  // The session whose client receives it.
+  string session_id = 1;
+  // The chat.
+  string chat = 2;
+  // The user in the chat.
+  string sender = 3;
+  // The state's tag, as WhatsApp sends it: "composing", "paused", or one whatsmeow does not know.
+  string state = 4;
+  // "audio" while recording; empty otherwise.
+  string media = 5;
+}
+
+// DeliverChatPresenceResponse has no fields.
+message DeliverChatPresenceResponse {}
+
+// SetPushNameRequest names the session and the push name.
+message SetPushNameRequest {
+  // The session whose account gets the push name.
+  string session_id = 1;
+  // The push name.
+  string name = 2;
+}
+
+// SetPushNameResponse has no fields.
+message SetPushNameResponse {}
 
 // Disconnect is the client closing a connection that was open.
 message Disconnect {}

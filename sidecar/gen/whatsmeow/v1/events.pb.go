@@ -812,11 +812,327 @@ func (*AckEventsResponse) Descriptor() ([]byte, []int) {
 	return file_whatsmeow_v1_events_proto_rawDescGZIP(), []int{9}
 }
 
+// PresenceEvent is a user's presence, sent after a SubscribePresence.
+type PresenceEvent struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The user, a JID in whatsmeow's string form.
+	From string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
+	// Online or offline; never unspecified.
+	State PresenceState `protobuf:"varint,2,opt,name=state,proto3,enum=whatsmeow.v1.PresenceState" json:"state,omitempty"`
+	// When the user was last online; unset when WhatsApp sent none, as for a user whose privacy settings hide it.
+	LastSeen      *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=last_seen,json=lastSeen,proto3" json:"last_seen,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PresenceEvent) Reset() {
+	*x = PresenceEvent{}
+	mi := &file_whatsmeow_v1_events_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PresenceEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PresenceEvent) ProtoMessage() {}
+
+func (x *PresenceEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_events_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PresenceEvent.ProtoReflect.Descriptor instead.
+func (*PresenceEvent) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_events_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *PresenceEvent) GetFrom() string {
+	if x != nil {
+		return x.From
+	}
+	return ""
+}
+
+func (x *PresenceEvent) GetState() PresenceState {
+	if x != nil {
+		return x.State
+	}
+	return PresenceState_PRESENCE_STATE_UNSPECIFIED
+}
+
+func (x *PresenceEvent) GetLastSeen() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastSeen
+	}
+	return nil
+}
+
+// ChatPresenceEvent is what a user is doing in a chat: typing, recording, or neither any more.
+type ChatPresenceEvent struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Who and where.
+	Source *MessageSource `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
+	// The state; unspecified for one this list does not have.
+	State         ChatPresenceState `protobuf:"varint,2,opt,name=state,proto3,enum=whatsmeow.v1.ChatPresenceState" json:"state,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChatPresenceEvent) Reset() {
+	*x = ChatPresenceEvent{}
+	mi := &file_whatsmeow_v1_events_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChatPresenceEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChatPresenceEvent) ProtoMessage() {}
+
+func (x *ChatPresenceEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_events_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChatPresenceEvent.ProtoReflect.Descriptor instead.
+func (*ChatPresenceEvent) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_events_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ChatPresenceEvent) GetSource() *MessageSource {
+	if x != nil {
+		return x.Source
+	}
+	return nil
+}
+
+func (x *ChatPresenceEvent) GetState() ChatPresenceState {
+	if x != nil {
+		return x.State
+	}
+	return ChatPresenceState_CHAT_PRESENCE_STATE_UNSPECIFIED
+}
+
+// QueueOverflowEvent is how many ephemeral events a stream did not get.
+type QueueOverflowEvent struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// How many were dropped since the last event of the stream.
+	Dropped       uint64 `protobuf:"varint,1,opt,name=dropped,proto3" json:"dropped,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *QueueOverflowEvent) Reset() {
+	*x = QueueOverflowEvent{}
+	mi := &file_whatsmeow_v1_events_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *QueueOverflowEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueueOverflowEvent) ProtoMessage() {}
+
+func (x *QueueOverflowEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_events_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use QueueOverflowEvent.ProtoReflect.Descriptor instead.
+func (*QueueOverflowEvent) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_events_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *QueueOverflowEvent) GetDropped() uint64 {
+	if x != nil {
+		return x.Dropped
+	}
+	return 0
+}
+
+// StreamEphemeralEventsRequest opens a session's ephemeral event stream.
+type StreamEphemeralEventsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The session id.
+	SessionId     string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamEphemeralEventsRequest) Reset() {
+	*x = StreamEphemeralEventsRequest{}
+	mi := &file_whatsmeow_v1_events_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamEphemeralEventsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamEphemeralEventsRequest) ProtoMessage() {}
+
+func (x *StreamEphemeralEventsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_events_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamEphemeralEventsRequest.ProtoReflect.Descriptor instead.
+func (*StreamEphemeralEventsRequest) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_events_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *StreamEphemeralEventsRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+// StreamEphemeralEventsResponse is one ephemeral event. It has no seq.
+// Payload cases are numbered from 10, in the order they are added.
+type StreamEphemeralEventsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The event.
+	//
+	// Types that are valid to be assigned to Payload:
+	//
+	//	*StreamEphemeralEventsResponse_Presence
+	//	*StreamEphemeralEventsResponse_ChatPresence
+	//	*StreamEphemeralEventsResponse_QueueOverflow
+	Payload       isStreamEphemeralEventsResponse_Payload `protobuf_oneof:"payload"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamEphemeralEventsResponse) Reset() {
+	*x = StreamEphemeralEventsResponse{}
+	mi := &file_whatsmeow_v1_events_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamEphemeralEventsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamEphemeralEventsResponse) ProtoMessage() {}
+
+func (x *StreamEphemeralEventsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_events_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamEphemeralEventsResponse.ProtoReflect.Descriptor instead.
+func (*StreamEphemeralEventsResponse) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_events_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *StreamEphemeralEventsResponse) GetPayload() isStreamEphemeralEventsResponse_Payload {
+	if x != nil {
+		return x.Payload
+	}
+	return nil
+}
+
+func (x *StreamEphemeralEventsResponse) GetPresence() *PresenceEvent {
+	if x != nil {
+		if x, ok := x.Payload.(*StreamEphemeralEventsResponse_Presence); ok {
+			return x.Presence
+		}
+	}
+	return nil
+}
+
+func (x *StreamEphemeralEventsResponse) GetChatPresence() *ChatPresenceEvent {
+	if x != nil {
+		if x, ok := x.Payload.(*StreamEphemeralEventsResponse_ChatPresence); ok {
+			return x.ChatPresence
+		}
+	}
+	return nil
+}
+
+func (x *StreamEphemeralEventsResponse) GetQueueOverflow() *QueueOverflowEvent {
+	if x != nil {
+		if x, ok := x.Payload.(*StreamEphemeralEventsResponse_QueueOverflow); ok {
+			return x.QueueOverflow
+		}
+	}
+	return nil
+}
+
+type isStreamEphemeralEventsResponse_Payload interface {
+	isStreamEphemeralEventsResponse_Payload()
+}
+
+type StreamEphemeralEventsResponse_Presence struct {
+	// A user's presence.
+	Presence *PresenceEvent `protobuf:"bytes,10,opt,name=presence,proto3,oneof"`
+}
+
+type StreamEphemeralEventsResponse_ChatPresence struct {
+	// A user's state in a chat.
+	ChatPresence *ChatPresenceEvent `protobuf:"bytes,11,opt,name=chat_presence,json=chatPresence,proto3,oneof"`
+}
+
+type StreamEphemeralEventsResponse_QueueOverflow struct {
+	// Events this stream did not get.
+	QueueOverflow *QueueOverflowEvent `protobuf:"bytes,12,opt,name=queue_overflow,json=queueOverflow,proto3,oneof"`
+}
+
+func (*StreamEphemeralEventsResponse_Presence) isStreamEphemeralEventsResponse_Payload() {}
+
+func (*StreamEphemeralEventsResponse_ChatPresence) isStreamEphemeralEventsResponse_Payload() {}
+
+func (*StreamEphemeralEventsResponse_QueueOverflow) isStreamEphemeralEventsResponse_Payload() {}
+
 var File_whatsmeow_v1_events_proto protoreflect.FileDescriptor
 
 const file_whatsmeow_v1_events_proto_rawDesc = "" +
 	"\n" +
-	"\x19whatsmeow/v1/events.proto\x12\fwhatsmeow.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x1awhatsmeow/v1/contact.proto\x1a\x1awhatsmeow/v1/session.proto\"\x9d\x01\n" +
+	"\x19whatsmeow/v1/events.proto\x12\fwhatsmeow.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x1awhatsmeow/v1/contact.proto\x1a\x1bwhatsmeow/v1/presence.proto\x1a\x1awhatsmeow/v1/session.proto\"\x9d\x01\n" +
 	"\rMessageSource\x12\x12\n" +
 	"\x04chat\x18\x01 \x01(\tR\x04chat\x12\x16\n" +
 	"\x06sender\x18\x02 \x01(\tR\x06sender\x12\x1d\n" +
@@ -863,7 +1179,25 @@ const file_whatsmeow_v1_events_proto_rawDesc = "" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x1a\n" +
 	"\bconsumer\x18\x02 \x01(\tR\bconsumer\x12\x1a\n" +
 	"\tup_to_seq\x18\x03 \x01(\x04R\aupToSeq\"\x13\n" +
-	"\x11AckEventsResponse*\xd6\x02\n" +
+	"\x11AckEventsResponse\"\x8f\x01\n" +
+	"\rPresenceEvent\x12\x12\n" +
+	"\x04from\x18\x01 \x01(\tR\x04from\x121\n" +
+	"\x05state\x18\x02 \x01(\x0e2\x1b.whatsmeow.v1.PresenceStateR\x05state\x127\n" +
+	"\tlast_seen\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\blastSeen\"\x7f\n" +
+	"\x11ChatPresenceEvent\x123\n" +
+	"\x06source\x18\x01 \x01(\v2\x1b.whatsmeow.v1.MessageSourceR\x06source\x125\n" +
+	"\x05state\x18\x02 \x01(\x0e2\x1f.whatsmeow.v1.ChatPresenceStateR\x05state\".\n" +
+	"\x12QueueOverflowEvent\x12\x18\n" +
+	"\adropped\x18\x01 \x01(\x04R\adropped\"=\n" +
+	"\x1cStreamEphemeralEventsRequest\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\"\xf8\x01\n" +
+	"\x1dStreamEphemeralEventsResponse\x129\n" +
+	"\bpresence\x18\n" +
+	" \x01(\v2\x1b.whatsmeow.v1.PresenceEventH\x00R\bpresence\x12F\n" +
+	"\rchat_presence\x18\v \x01(\v2\x1f.whatsmeow.v1.ChatPresenceEventH\x00R\fchatPresence\x12I\n" +
+	"\x0equeue_overflow\x18\f \x01(\v2 .whatsmeow.v1.QueueOverflowEventH\x00R\rqueueOverflowB\t\n" +
+	"\apayload*\xd6\x02\n" +
 	"\vReceiptType\x12\x1c\n" +
 	"\x18RECEIPT_TYPE_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16RECEIPT_TYPE_DELIVERED\x10\x01\x12\x17\n" +
@@ -877,10 +1211,11 @@ const file_whatsmeow_v1_events_proto_rawDesc = "" +
 	"\x15RECEIPT_TYPE_INACTIVE\x10\t\x12\x19\n" +
 	"\x15RECEIPT_TYPE_PEER_MSG\x10\n" +
 	"\x12\x1d\n" +
-	"\x19RECEIPT_TYPE_HISTORY_SYNC\x10\v2\xb5\x01\n" +
+	"\x19RECEIPT_TYPE_HISTORY_SYNC\x10\v2\xa9\x02\n" +
 	"\fEventService\x12W\n" +
 	"\fStreamEvents\x12!.whatsmeow.v1.StreamEventsRequest\x1a\".whatsmeow.v1.StreamEventsResponse0\x01\x12L\n" +
-	"\tAckEvents\x12\x1e.whatsmeow.v1.AckEventsRequest\x1a\x1f.whatsmeow.v1.AckEventsResponseB\xc1\x01\n" +
+	"\tAckEvents\x12\x1e.whatsmeow.v1.AckEventsRequest\x1a\x1f.whatsmeow.v1.AckEventsResponse\x12r\n" +
+	"\x15StreamEphemeralEvents\x12*.whatsmeow.v1.StreamEphemeralEventsRequest\x1a+.whatsmeow.v1.StreamEphemeralEventsResponse0\x01B\xc1\x01\n" +
 	"\x10com.whatsmeow.v1B\vEventsProtoP\x01ZFgithub.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1;whatsmeowv1\xa2\x02\x03WXX\xaa\x02\x15Whatsmeow.Protocol.V1\xca\x02\fWhatsmeow\\V1\xe2\x02\x18Whatsmeow\\V1\\GPBMetadata\xea\x02\rWhatsmeow::V1b\x06proto3"
 
 var (
@@ -896,48 +1231,64 @@ func file_whatsmeow_v1_events_proto_rawDescGZIP() []byte {
 }
 
 var file_whatsmeow_v1_events_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_whatsmeow_v1_events_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_whatsmeow_v1_events_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_whatsmeow_v1_events_proto_goTypes = []any{
-	(ReceiptType)(0),                  // 0: whatsmeow.v1.ReceiptType
-	(*MessageSource)(nil),             // 1: whatsmeow.v1.MessageSource
-	(*MessageInfo)(nil),               // 2: whatsmeow.v1.MessageInfo
-	(*MessageEvent)(nil),              // 3: whatsmeow.v1.MessageEvent
-	(*ReceiptEvent)(nil),              // 4: whatsmeow.v1.ReceiptEvent
-	(*UndecryptableMessageEvent)(nil), // 5: whatsmeow.v1.UndecryptableMessageEvent
-	(*ConnectionStateEvent)(nil),      // 6: whatsmeow.v1.ConnectionStateEvent
-	(*StreamEventsRequest)(nil),       // 7: whatsmeow.v1.StreamEventsRequest
-	(*StreamEventsResponse)(nil),      // 8: whatsmeow.v1.StreamEventsResponse
-	(*AckEventsRequest)(nil),          // 9: whatsmeow.v1.AckEventsRequest
-	(*AckEventsResponse)(nil),         // 10: whatsmeow.v1.AckEventsResponse
-	(*timestamppb.Timestamp)(nil),     // 11: google.protobuf.Timestamp
-	(*waE2E.Message)(nil),             // 12: WAWebProtobufsE2E.Message
-	(*SessionState)(nil),              // 13: whatsmeow.v1.SessionState
-	(*ContactEvent)(nil),              // 14: whatsmeow.v1.ContactEvent
+	(ReceiptType)(0),                      // 0: whatsmeow.v1.ReceiptType
+	(*MessageSource)(nil),                 // 1: whatsmeow.v1.MessageSource
+	(*MessageInfo)(nil),                   // 2: whatsmeow.v1.MessageInfo
+	(*MessageEvent)(nil),                  // 3: whatsmeow.v1.MessageEvent
+	(*ReceiptEvent)(nil),                  // 4: whatsmeow.v1.ReceiptEvent
+	(*UndecryptableMessageEvent)(nil),     // 5: whatsmeow.v1.UndecryptableMessageEvent
+	(*ConnectionStateEvent)(nil),          // 6: whatsmeow.v1.ConnectionStateEvent
+	(*StreamEventsRequest)(nil),           // 7: whatsmeow.v1.StreamEventsRequest
+	(*StreamEventsResponse)(nil),          // 8: whatsmeow.v1.StreamEventsResponse
+	(*AckEventsRequest)(nil),              // 9: whatsmeow.v1.AckEventsRequest
+	(*AckEventsResponse)(nil),             // 10: whatsmeow.v1.AckEventsResponse
+	(*PresenceEvent)(nil),                 // 11: whatsmeow.v1.PresenceEvent
+	(*ChatPresenceEvent)(nil),             // 12: whatsmeow.v1.ChatPresenceEvent
+	(*QueueOverflowEvent)(nil),            // 13: whatsmeow.v1.QueueOverflowEvent
+	(*StreamEphemeralEventsRequest)(nil),  // 14: whatsmeow.v1.StreamEphemeralEventsRequest
+	(*StreamEphemeralEventsResponse)(nil), // 15: whatsmeow.v1.StreamEphemeralEventsResponse
+	(*timestamppb.Timestamp)(nil),         // 16: google.protobuf.Timestamp
+	(*waE2E.Message)(nil),                 // 17: WAWebProtobufsE2E.Message
+	(*SessionState)(nil),                  // 18: whatsmeow.v1.SessionState
+	(*ContactEvent)(nil),                  // 19: whatsmeow.v1.ContactEvent
+	(PresenceState)(0),                    // 20: whatsmeow.v1.PresenceState
+	(ChatPresenceState)(0),                // 21: whatsmeow.v1.ChatPresenceState
 }
 var file_whatsmeow_v1_events_proto_depIdxs = []int32{
 	1,  // 0: whatsmeow.v1.MessageInfo.source:type_name -> whatsmeow.v1.MessageSource
-	11, // 1: whatsmeow.v1.MessageInfo.message_time:type_name -> google.protobuf.Timestamp
+	16, // 1: whatsmeow.v1.MessageInfo.message_time:type_name -> google.protobuf.Timestamp
 	2,  // 2: whatsmeow.v1.MessageEvent.info:type_name -> whatsmeow.v1.MessageInfo
-	12, // 3: whatsmeow.v1.MessageEvent.message:type_name -> WAWebProtobufsE2E.Message
+	17, // 3: whatsmeow.v1.MessageEvent.message:type_name -> WAWebProtobufsE2E.Message
 	1,  // 4: whatsmeow.v1.ReceiptEvent.source:type_name -> whatsmeow.v1.MessageSource
-	11, // 5: whatsmeow.v1.ReceiptEvent.receipt_time:type_name -> google.protobuf.Timestamp
+	16, // 5: whatsmeow.v1.ReceiptEvent.receipt_time:type_name -> google.protobuf.Timestamp
 	0,  // 6: whatsmeow.v1.ReceiptEvent.type:type_name -> whatsmeow.v1.ReceiptType
 	2,  // 7: whatsmeow.v1.UndecryptableMessageEvent.info:type_name -> whatsmeow.v1.MessageInfo
-	13, // 8: whatsmeow.v1.ConnectionStateEvent.state:type_name -> whatsmeow.v1.SessionState
+	18, // 8: whatsmeow.v1.ConnectionStateEvent.state:type_name -> whatsmeow.v1.SessionState
 	3,  // 9: whatsmeow.v1.StreamEventsResponse.message:type_name -> whatsmeow.v1.MessageEvent
 	4,  // 10: whatsmeow.v1.StreamEventsResponse.receipt:type_name -> whatsmeow.v1.ReceiptEvent
 	5,  // 11: whatsmeow.v1.StreamEventsResponse.undecryptable_message:type_name -> whatsmeow.v1.UndecryptableMessageEvent
 	6,  // 12: whatsmeow.v1.StreamEventsResponse.connection_state:type_name -> whatsmeow.v1.ConnectionStateEvent
-	14, // 13: whatsmeow.v1.StreamEventsResponse.contact:type_name -> whatsmeow.v1.ContactEvent
-	7,  // 14: whatsmeow.v1.EventService.StreamEvents:input_type -> whatsmeow.v1.StreamEventsRequest
-	9,  // 15: whatsmeow.v1.EventService.AckEvents:input_type -> whatsmeow.v1.AckEventsRequest
-	8,  // 16: whatsmeow.v1.EventService.StreamEvents:output_type -> whatsmeow.v1.StreamEventsResponse
-	10, // 17: whatsmeow.v1.EventService.AckEvents:output_type -> whatsmeow.v1.AckEventsResponse
-	16, // [16:18] is the sub-list for method output_type
-	14, // [14:16] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	19, // 13: whatsmeow.v1.StreamEventsResponse.contact:type_name -> whatsmeow.v1.ContactEvent
+	20, // 14: whatsmeow.v1.PresenceEvent.state:type_name -> whatsmeow.v1.PresenceState
+	16, // 15: whatsmeow.v1.PresenceEvent.last_seen:type_name -> google.protobuf.Timestamp
+	1,  // 16: whatsmeow.v1.ChatPresenceEvent.source:type_name -> whatsmeow.v1.MessageSource
+	21, // 17: whatsmeow.v1.ChatPresenceEvent.state:type_name -> whatsmeow.v1.ChatPresenceState
+	11, // 18: whatsmeow.v1.StreamEphemeralEventsResponse.presence:type_name -> whatsmeow.v1.PresenceEvent
+	12, // 19: whatsmeow.v1.StreamEphemeralEventsResponse.chat_presence:type_name -> whatsmeow.v1.ChatPresenceEvent
+	13, // 20: whatsmeow.v1.StreamEphemeralEventsResponse.queue_overflow:type_name -> whatsmeow.v1.QueueOverflowEvent
+	7,  // 21: whatsmeow.v1.EventService.StreamEvents:input_type -> whatsmeow.v1.StreamEventsRequest
+	9,  // 22: whatsmeow.v1.EventService.AckEvents:input_type -> whatsmeow.v1.AckEventsRequest
+	14, // 23: whatsmeow.v1.EventService.StreamEphemeralEvents:input_type -> whatsmeow.v1.StreamEphemeralEventsRequest
+	8,  // 24: whatsmeow.v1.EventService.StreamEvents:output_type -> whatsmeow.v1.StreamEventsResponse
+	10, // 25: whatsmeow.v1.EventService.AckEvents:output_type -> whatsmeow.v1.AckEventsResponse
+	15, // 26: whatsmeow.v1.EventService.StreamEphemeralEvents:output_type -> whatsmeow.v1.StreamEphemeralEventsResponse
+	24, // [24:27] is the sub-list for method output_type
+	21, // [21:24] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_whatsmeow_v1_events_proto_init() }
@@ -946,6 +1297,7 @@ func file_whatsmeow_v1_events_proto_init() {
 		return
 	}
 	file_whatsmeow_v1_contact_proto_init()
+	file_whatsmeow_v1_presence_proto_init()
 	file_whatsmeow_v1_session_proto_init()
 	file_whatsmeow_v1_events_proto_msgTypes[7].OneofWrappers = []any{
 		(*StreamEventsResponse_Message)(nil),
@@ -954,13 +1306,18 @@ func file_whatsmeow_v1_events_proto_init() {
 		(*StreamEventsResponse_ConnectionState)(nil),
 		(*StreamEventsResponse_Contact)(nil),
 	}
+	file_whatsmeow_v1_events_proto_msgTypes[14].OneofWrappers = []any{
+		(*StreamEphemeralEventsResponse_Presence)(nil),
+		(*StreamEphemeralEventsResponse_ChatPresence)(nil),
+		(*StreamEphemeralEventsResponse_QueueOverflow)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_whatsmeow_v1_events_proto_rawDesc), len(file_whatsmeow_v1_events_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   10,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

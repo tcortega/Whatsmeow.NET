@@ -68,6 +68,10 @@ namespace Whatsmeow.Protocol.V1 {
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.AckEventsRequest> __Marshaller_whatsmeow_v1_AckEventsRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.AckEventsRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.AckEventsResponse> __Marshaller_whatsmeow_v1_AckEventsResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.AckEventsResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.StreamEphemeralEventsRequest> __Marshaller_whatsmeow_v1_StreamEphemeralEventsRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.StreamEphemeralEventsRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.StreamEphemeralEventsResponse> __Marshaller_whatsmeow_v1_StreamEphemeralEventsResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.StreamEphemeralEventsResponse.Parser));
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.Protocol.V1.StreamEventsRequest, global::Whatsmeow.Protocol.V1.StreamEventsResponse> __Method_StreamEvents = new grpc::Method<global::Whatsmeow.Protocol.V1.StreamEventsRequest, global::Whatsmeow.Protocol.V1.StreamEventsResponse>(
@@ -84,6 +88,14 @@ namespace Whatsmeow.Protocol.V1 {
         "AckEvents",
         __Marshaller_whatsmeow_v1_AckEventsRequest,
         __Marshaller_whatsmeow_v1_AckEventsResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.Protocol.V1.StreamEphemeralEventsRequest, global::Whatsmeow.Protocol.V1.StreamEphemeralEventsResponse> __Method_StreamEphemeralEvents = new grpc::Method<global::Whatsmeow.Protocol.V1.StreamEphemeralEventsRequest, global::Whatsmeow.Protocol.V1.StreamEphemeralEventsResponse>(
+        grpc::MethodType.ServerStreaming,
+        __ServiceName,
+        "StreamEphemeralEvents",
+        __Marshaller_whatsmeow_v1_StreamEphemeralEventsRequest,
+        __Marshaller_whatsmeow_v1_StreamEphemeralEventsResponse);
 
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
@@ -223,6 +235,48 @@ namespace Whatsmeow.Protocol.V1 {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.AckEventsResponse> AckEventsAsync(global::Whatsmeow.Protocol.V1.AckEventsRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_AckEvents, null, options, request);
+      }
+      /// <summary>
+      /// StreamEphemeralEvents sends the session's ephemeral events, presence and chat presence, as they arrive. They are
+      /// best effort: never recorded, never acked, without a seq, and gone when the sidecar restarts. Their order is kept
+      /// among themselves, not relative to StreamEvents.
+      /// The sidecar keeps each session's newest 256 in memory, also while no stream is open. A stream opened while none
+      /// is open first gets the ones no stream was sent; one opened while another is open starts with the next one. Every
+      /// open stream gets every event from then on. When events a stream would get were dropped, because more arrived
+      /// than are kept while the stream fell behind or none was open, the stream gets a QueueOverflowEvent with how many,
+      /// before the next event.
+      /// The stream ends with SESSION_NOT_FOUND when the session is deleted.
+      /// Errors: SESSION_NOT_FOUND.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncServerStreamingCall<global::Whatsmeow.Protocol.V1.StreamEphemeralEventsResponse> StreamEphemeralEvents(global::Whatsmeow.Protocol.V1.StreamEphemeralEventsRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return StreamEphemeralEvents(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// StreamEphemeralEvents sends the session's ephemeral events, presence and chat presence, as they arrive. They are
+      /// best effort: never recorded, never acked, without a seq, and gone when the sidecar restarts. Their order is kept
+      /// among themselves, not relative to StreamEvents.
+      /// The sidecar keeps each session's newest 256 in memory, also while no stream is open. A stream opened while none
+      /// is open first gets the ones no stream was sent; one opened while another is open starts with the next one. Every
+      /// open stream gets every event from then on. When events a stream would get were dropped, because more arrived
+      /// than are kept while the stream fell behind or none was open, the stream gets a QueueOverflowEvent with how many,
+      /// before the next event.
+      /// The stream ends with SESSION_NOT_FOUND when the session is deleted.
+      /// Errors: SESSION_NOT_FOUND.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncServerStreamingCall<global::Whatsmeow.Protocol.V1.StreamEphemeralEventsResponse> StreamEphemeralEvents(global::Whatsmeow.Protocol.V1.StreamEphemeralEventsRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncServerStreamingCall(__Method_StreamEphemeralEvents, null, options, request);
       }
       /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]

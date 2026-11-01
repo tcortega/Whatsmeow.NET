@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	EventService_StreamEvents_FullMethodName = "/whatsmeow.v1.EventService/StreamEvents"
-	EventService_AckEvents_FullMethodName    = "/whatsmeow.v1.EventService/AckEvents"
+	EventService_StreamEvents_FullMethodName          = "/whatsmeow.v1.EventService/StreamEvents"
+	EventService_AckEvents_FullMethodName             = "/whatsmeow.v1.EventService/AckEvents"
+	EventService_StreamEphemeralEvents_FullMethodName = "/whatsmeow.v1.EventService/StreamEphemeralEvents"
 )
 
 // EventServiceClient is the client API for EventService service.
@@ -58,6 +59,17 @@ type EventServiceClient interface {
 	// recorded seq, not what this process streamed, so an ack sent across a sidecar restart still succeeds.
 	// Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND.
 	AckEvents(ctx context.Context, in *AckEventsRequest, opts ...grpc.CallOption) (*AckEventsResponse, error)
+	// StreamEphemeralEvents sends the session's ephemeral events, presence and chat presence, as they arrive. They are
+	// best effort: never recorded, never acked, without a seq, and gone when the sidecar restarts. Their order is kept
+	// among themselves, not relative to StreamEvents.
+	// The sidecar keeps each session's newest 256 in memory, also while no stream is open. A stream opened while none
+	// is open first gets the ones no stream was sent; one opened while another is open starts with the next one. Every
+	// open stream gets every event from then on. When events a stream would get were dropped, because more arrived
+	// than are kept while the stream fell behind or none was open, the stream gets a QueueOverflowEvent with how many,
+	// before the next event.
+	// The stream ends with SESSION_NOT_FOUND when the session is deleted.
+	// Errors: SESSION_NOT_FOUND.
+	StreamEphemeralEvents(ctx context.Context, in *StreamEphemeralEventsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamEphemeralEventsResponse], error)
 }
 
 type eventServiceClient struct {
@@ -97,6 +109,25 @@ func (c *eventServiceClient) AckEvents(ctx context.Context, in *AckEventsRequest
 	return out, nil
 }
 
+func (c *eventServiceClient) StreamEphemeralEvents(ctx context.Context, in *StreamEphemeralEventsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamEphemeralEventsResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &EventService_ServiceDesc.Streams[1], EventService_StreamEphemeralEvents_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamEphemeralEventsRequest, StreamEphemeralEventsResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type EventService_StreamEphemeralEventsClient = grpc.ServerStreamingClient[StreamEphemeralEventsResponse]
+
 // EventServiceServer is the server API for EventService service.
 // All implementations must embed UnimplementedEventServiceServer
 // for forward compatibility.
@@ -132,6 +163,17 @@ type EventServiceServer interface {
 	// recorded seq, not what this process streamed, so an ack sent across a sidecar restart still succeeds.
 	// Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND.
 	AckEvents(context.Context, *AckEventsRequest) (*AckEventsResponse, error)
+	// StreamEphemeralEvents sends the session's ephemeral events, presence and chat presence, as they arrive. They are
+	// best effort: never recorded, never acked, without a seq, and gone when the sidecar restarts. Their order is kept
+	// among themselves, not relative to StreamEvents.
+	// The sidecar keeps each session's newest 256 in memory, also while no stream is open. A stream opened while none
+	// is open first gets the ones no stream was sent; one opened while another is open starts with the next one. Every
+	// open stream gets every event from then on. When events a stream would get were dropped, because more arrived
+	// than are kept while the stream fell behind or none was open, the stream gets a QueueOverflowEvent with how many,
+	// before the next event.
+	// The stream ends with SESSION_NOT_FOUND when the session is deleted.
+	// Errors: SESSION_NOT_FOUND.
+	StreamEphemeralEvents(*StreamEphemeralEventsRequest, grpc.ServerStreamingServer[StreamEphemeralEventsResponse]) error
 	mustEmbedUnimplementedEventServiceServer()
 }
 
@@ -147,6 +189,9 @@ func (UnimplementedEventServiceServer) StreamEvents(*StreamEventsRequest, grpc.S
 }
 func (UnimplementedEventServiceServer) AckEvents(context.Context, *AckEventsRequest) (*AckEventsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AckEvents not implemented")
+}
+func (UnimplementedEventServiceServer) StreamEphemeralEvents(*StreamEphemeralEventsRequest, grpc.ServerStreamingServer[StreamEphemeralEventsResponse]) error {
+	return status.Error(codes.Unimplemented, "method StreamEphemeralEvents not implemented")
 }
 func (UnimplementedEventServiceServer) mustEmbedUnimplementedEventServiceServer() {}
 func (UnimplementedEventServiceServer) testEmbeddedByValue()                      {}
@@ -198,6 +243,17 @@ func _EventService_AckEvents_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EventService_StreamEphemeralEvents_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamEphemeralEventsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(EventServiceServer).StreamEphemeralEvents(m, &grpc.GenericServerStream[StreamEphemeralEventsRequest, StreamEphemeralEventsResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type EventService_StreamEphemeralEventsServer = grpc.ServerStreamingServer[StreamEphemeralEventsResponse]
+
 // EventService_ServiceDesc is the grpc.ServiceDesc for EventService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -214,6 +270,11 @@ var EventService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "StreamEvents",
 			Handler:       _EventService_StreamEvents_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "StreamEphemeralEvents",
+			Handler:       _EventService_StreamEphemeralEvents_Handler,
 			ServerStreams: true,
 		},
 	},

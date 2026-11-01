@@ -5,6 +5,7 @@ package whatsmeow.v1;
 import "google/protobuf/timestamp.proto";
 import "waE2E/WAWebProtobufsE2E.proto";
 import "whatsmeow/v1/contact.proto";
+import "whatsmeow/v1/presence.proto";
 import "whatsmeow/v1/session.proto";
 
 // EventService delivers each session's events at least once, from the sidecar's durable outbox.
@@ -39,6 +40,18 @@ service EventService {
   // recorded seq, not what this process streamed, so an ack sent across a sidecar restart still succeeds.
   // Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND.
   rpc AckEvents(AckEventsRequest) returns (AckEventsResponse);
+
+  // StreamEphemeralEvents sends the session's ephemeral events, presence and chat presence, as they arrive. They are
+  // best effort: never recorded, never acked, without a seq, and gone when the sidecar restarts. Their order is kept
+  // among themselves, not relative to StreamEvents.
+  // The sidecar keeps each session's newest 256 in memory, also while no stream is open. A stream opened while none
+  // is open first gets the ones no stream was sent; one opened while another is open starts with the next one. Every
+  // open stream gets every event from then on. When events a stream would get were dropped, because more arrived
+  // than are kept while the stream fell behind or none was open, the stream gets a QueueOverflowEvent with how many,
+  // before the next event.
+  // The stream ends with SESSION_NOT_FOUND when the session is deleted.
+  // Errors: SESSION_NOT_FOUND.
+  rpc StreamEphemeralEvents(StreamEphemeralEventsRequest) returns (stream StreamEphemeralEventsResponse);
 }
 
 // MessageSource is who a message or receipt is from and in which chat.
@@ -175,3 +188,47 @@ message AckEventsRequest {
 
 // AckEventsResponse has no fields.
 message AckEventsResponse {}
+
+// PresenceEvent is a user's presence, sent after a SubscribePresence.
+message PresenceEvent {
+  // The user, a JID in whatsmeow's string form.
+  string from = 1;
+  // Online or offline; never unspecified.
+  PresenceState state = 2;
+  // When the user was last online; unset when WhatsApp sent none, as for a user whose privacy settings hide it.
+  google.protobuf.Timestamp last_seen = 3;
+}
+
+// ChatPresenceEvent is what a user is doing in a chat: typing, recording, or neither any more.
+message ChatPresenceEvent {
+  // Who and where.
+  MessageSource source = 1;
+  // The state; unspecified for one this list does not have.
+  ChatPresenceState state = 2;
+}
+
+// QueueOverflowEvent is how many ephemeral events a stream did not get.
+message QueueOverflowEvent {
+  // How many were dropped since the last event of the stream.
+  uint64 dropped = 1;
+}
+
+// StreamEphemeralEventsRequest opens a session's ephemeral event stream.
+message StreamEphemeralEventsRequest {
+  // The session id.
+  string session_id = 1;
+}
+
+// StreamEphemeralEventsResponse is one ephemeral event. It has no seq.
+// Payload cases are numbered from 10, in the order they are added.
+message StreamEphemeralEventsResponse {
+  // The event.
+  oneof payload {
+    // A user's presence.
+    PresenceEvent presence = 10;
+    // A user's state in a chat.
+    ChatPresenceEvent chat_presence = 11;
+    // Events this stream did not get.
+    QueueOverflowEvent queue_overflow = 12;
+  }
+}

@@ -90,7 +90,7 @@ internal static class RpcErrors
 				RecipientNotFoundException.Throw(exception);
 				break;
 			case null or ErrorReason.Unspecified or ErrorReason.Internal or ErrorReason.Unauthenticated or ErrorReason.SidecarShuttingDown
-				or ErrorReason.ConsumerReplaced or ErrorReason.WhatsappError or ErrorReason.WhatsappTimedOut:
+				or ErrorReason.ConsumerReplaced or ErrorReason.WhatsappError or ErrorReason.WhatsappTimedOut or ErrorReason.NoPushName:
 			default:
 				break;
 		}
@@ -136,6 +136,7 @@ internal static class RpcErrors
 			ErrorReason.OutcomeUnknown => WhatsmeowErrorCode.OutcomeUnknown,
 			ErrorReason.WhatsappError => WhatsmeowErrorCode.WhatsAppError,
 			ErrorReason.WhatsappTimedOut => WhatsmeowErrorCode.WhatsAppTimedOut,
+			ErrorReason.NoPushName => WhatsmeowErrorCode.NoPushName,
 			null or ErrorReason.Unspecified => WhatsmeowErrorCode.Unknown,
 			_ => WhatsmeowErrorCode.Unknown,
 		};

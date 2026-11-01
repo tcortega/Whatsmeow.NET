@@ -34,6 +34,7 @@ import (
 	eventsslice "github.com/tcortega/Whatsmeow.NET/sidecar/internal/events"
 	wmlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/outbox"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/presence"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/session"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/sidecar"
@@ -199,6 +200,7 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 
 	whatsmeowv1.RegisterSessionServiceServer(srv, sessions)
 	whatsmeowv1.RegisterContactServiceServer(srv, contacts.New(sessions))
+	whatsmeowv1.RegisterPresenceServiceServer(srv, presence.New(sessions))
 
 	served := make(chan error, 1)
 

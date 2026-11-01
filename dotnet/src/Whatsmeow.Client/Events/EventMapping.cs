@@ -1,8 +1,10 @@
 using Google.Protobuf.WellKnownTypes;
 using Whatsmeow.Contacts;
+using Whatsmeow.Presence;
 using Whatsmeow.Protocol.V1;
 using Whatsmeow.Sessions;
 using E2E = Whatsmeow.Proto.WAWebProtobufsE2E;
+using EphemeralPayload = Whatsmeow.Protocol.V1.StreamEphemeralEventsResponse.PayloadOneofCase;
 using Payload = Whatsmeow.Protocol.V1.StreamEventsResponse.PayloadOneofCase;
 
 namespace Whatsmeow.Events;
@@ -55,6 +57,46 @@ internal static class EventMapping
 			// The contact's lane: a user's changes run in order with their direct chat when it uses the same form.
 			Payload.Contact => response.Contact.Jid,
 			Payload.ConnectionState or Payload.Receipt or Payload.None => SessionLane,
+			_ => SessionLane,
+		};
+
+	/// <summary>
+	/// The record of an ephemeral event, or null for a payload case or a state this client does not know. The time and
+	/// the alt JIDs map as for <see cref="ToEvent(SessionId, StreamEventsResponse)"/>.
+	/// </summary>
+	/// <exception cref="WhatsmeowValidationException">The user, the chat or the sender is missing or malformed: the event is unusable.</exception>
+	public static WhatsAppEvent? ToEvent(SessionId sessionId, StreamEphemeralEventsResponse response) =>
+		response.PayloadCase switch
+		{
+			EphemeralPayload.Presence when PresenceMapping.ToState(response.Presence.State) is { } state => new PresenceChanged
+			{
+				SessionId = sessionId,
+				From = Jid.Parse(response.Presence.From),
+				State = state,
+				LastSeen = response.Presence.LastSeen is null ? null : ToTime(response.Presence.LastSeen),
+			},
+			EphemeralPayload.ChatPresence when PresenceMapping.ToState(response.ChatPresence.State) is { } state => new ChatPresenceChanged
+			{
+				SessionId = sessionId,
+				Source = ToSource(response.ChatPresence.Source),
+				State = state,
+			},
+			EphemeralPayload.QueueOverflow => new EphemeralEventsDropped
+			{
+				SessionId = sessionId,
+				Count = (long)Math.Min(response.QueueOverflow.Dropped, long.MaxValue),
+			},
+			EphemeralPayload.Presence or EphemeralPayload.ChatPresence or EphemeralPayload.None => null,
+			_ => null,
+		};
+
+	/// <summary>The lane an ephemeral event runs in: its user or its chat; the session's lane without one.</summary>
+	public static string Lane(StreamEphemeralEventsResponse response) =>
+		response.PayloadCase switch
+		{
+			EphemeralPayload.Presence => response.Presence.From,
+			EphemeralPayload.ChatPresence => response.ChatPresence.Source?.Chat ?? SessionLane,
+			EphemeralPayload.QueueOverflow or EphemeralPayload.None => SessionLane,
 			_ => SessionLane,
 		};
 

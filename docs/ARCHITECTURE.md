@@ -117,7 +117,7 @@ Vertical-slice thinking applies to this library. A **slice is a WhatsApp capabil
 | Media | `media.proto` | `internal/media` | `Media/` | `client.Media` |
 | Contacts & LID | `contact.proto` | `internal/contacts` | `Contacts/` | `client.Contacts` |
 | Groups | `group.proto` | `internal/groups` | `Groups/` | `client.Groups` |
-| Presence & receipts | `message.proto` (presence RPCs) | `internal/presence` | `Presence/` | `client.Presence` |
+| Presence | `presence.proto`; `events.proto` (`StreamEphemeralEvents`) | `internal/presence`; `internal/events` (`ring.go`) | `Presence/` | `client.SendPresenceAsync`, `client.SubscribePresenceAsync`, `client.SendChatPresenceAsync`; events |
 | History sync | `events.proto` (history events) | `internal/history` | `History/` | events + `client.Messages.RequestHistoryAsync` |
 | Chat state (Phase 3) | `chatstate.proto` | `internal/chatstate` | `ChatState/` | `client.Chats` |
 
@@ -242,8 +242,9 @@ The contract is the most important artifact in the repo. Both sides are generate
 |---|---|---|
 | `SidecarService` | unary | `GetInfo`, `Shutdown`; `grpc.health.v1` is also served |
 | `SessionService` | unary + `Pair` (server stream) + `WatchSessionState` (server stream, snapshot first) | app-chosen session IDs |
-| `EventService` | `StreamEvents` (server stream) + `AckEvents` (unary) | durable `seq`, resume with `after_seq`, per-consumer cursor |
-| `MessageService` | unary | raw `SendMessage` plus typed helpers (text, media, reaction, edit, revoke, poll, read, presence) |
+| `EventService` | `StreamEvents` (server stream) + `AckEvents` (unary) + `StreamEphemeralEvents` (server stream) | durable `seq`, resume with `after_seq`, per-consumer cursor; presence and typing best effort, without a seq ([ADR 0027](adr/0027-ephemeral-events-presence-and-typing.md)) |
+| `MessageService` | unary | raw `SendMessage` plus typed helpers (text, media, reaction, edit, revoke, poll, read) |
+| `PresenceService` | unary | own presence, typing, presence subscription |
 | `MediaService` | `UploadMedia` (client stream), `DownloadMedia` (server stream), `RequestMediaRetry` | path handoff or 64 KiB chunks |
 | `ContactService`, `GroupService` | unary | includes LID↔PN resolution |
 | `ChatStateService` | unary | Phase 3 |
@@ -297,7 +298,7 @@ The handler **never** calls gRPC, never waits on .NET, never downloads media, an
 
 `UndecryptableMessage` is written to the outbox like any event (mautrix shows it as a placeholder), so .NET can show "waiting for this message". The recovered message arrives later as a `MessageEvent` in the same chat, and the dedupe key (§8.4) ties the two together if it carries the same `MessageId` [inferred for the phone's copy; verify in the Phase 1 live test, #10].
 
-Ephemeral high-volume events (presence, typing) bypass the outbox. They go into a bounded in-memory ring buffer with `seq = 0` and emit a `QueueOverflowEvent` when items are dropped.
+Ephemeral high-volume events (presence, typing) bypass the outbox. whatsmeow dispatches them on the node queue and answers neither, so they are not gated (presence.go:18-58). The handler pushes them into the session's ring in memory, its newest 256, and returns true; `StreamEphemeralEvents` sends them without a seq to every open stream, best effort, and a `QueueOverflowEvent` with how many a stream did not get. A restart loses them ([ADR 0027](adr/0027-ephemeral-events-presence-and-typing.md)).
 
 ### 7.4 Session state machine
 
@@ -419,6 +420,7 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
   1. DI handlers: `IWhatsAppEventHandler<TEvent>.HandleAsync(TEvent, CancellationToken)` (Phase 3, #39).
   2. Delegates: `client.On<TEvent>(handler)`, which returns `IDisposable` (#8).
   3. Opt-in `IAsyncEnumerable` reader (single consumer, mainly for scripts and tests; not built).
+- **Ephemeral events** (presence, typing, `EphemeralEventsDropped`) come on `StreamEphemeralEvents`, with a reader, channel and dispatcher of their own that never ack: they never move, hold back or delay the watermark, run in lanes per user or chat, and are best effort, never repeated (ADR 0027).
 - `WaitForAsync<TEvent>(predicate, timeout, ct)` supports request/response-style flows; it is a handler in the same dispatcher, so it sees events in their chat's order. `OnHandlerError(callback)` reports a handler that threw.
 
 ### 8.5 Sidecar supervision
@@ -465,7 +467,7 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
 
 | Reason | Exception |
 |---|---|
-| `INTERNAL`, `CONSUMER_REPLACED`, `WHATSAPP_ERROR`, `WHATSAPP_TIMED_OUT` | `WhatsmeowException` |
+| `INTERNAL`, `CONSUMER_REPLACED`, `WHATSAPP_ERROR`, `WHATSAPP_TIMED_OUT`, `NO_PUSH_NAME` | `WhatsmeowException` |
 | `INVALID_ARGUMENT` | `WhatsmeowValidationException` |
 | `UNAUTHENTICATED`, `SIDECAR_SHUTTING_DOWN` | `SidecarUnavailableException` |
 | `SESSION_NOT_FOUND` | `SessionNotFoundException` |
@@ -588,7 +590,7 @@ How to write each test, what is banned, and the can-it-fail check: [guidelines/t
 
 Any change that violates one of these is wrong unless an ADR changes the invariant first.
 
-1. The whatsmeow event handler never blocks on .NET, the network, or media. It only writes to the outbox.
+1. The whatsmeow event handler never blocks on .NET, the network, or media. It only writes to the outbox, or, for an ephemeral event, to the session's ring in memory ([ADR 0027](adr/0027-ephemeral-events-presence-and-typing.md)).
 2. A WhatsApp stanza of a gated kind (§1) is answered to the server (a delivery receipt for a message, an ack for a receipt or notification) only after it is durably in the outbox ([ADR 0022](adr/0022-outbox-event-stream-and-dispatcher.md)). Ungated kinds are answered by whatsmeow regardless; we never claim otherwise.
 3. An event is acked by .NET only after all of its handlers have completed. Acks follow the watermark.
 4. Every whatsmeow `PermanentDisconnect` (six types at the pin, §7.4) maps to an explicit session state and is delivered to .NET. "Silent" sessions are a bug.
@@ -703,6 +705,7 @@ Setup: Go 1.27.3 grpc-go 1.85.0 server, .NET 10.0.14 Native AOT client, on Windo
   - One stanza, several Messages: whatsmeow dispatches a Message for each decrypted `enc` part with the same info (message.go:355-497, 1172-1178), and processProtocolParts filters none (938-961); a group message with a new sender key has a part with only the sender key next to the skmsg content (send.go:795-831). The outbox skips the sender-key-only part (ADR 0022).
   - A server stream blocked in `Send` on flow control is woken only by the stream's own end, not by a context derived from it (grpc-go 1.85.0 http2_server.go:624, flowcontrol.go:54-66).
   - SQLite spends a seq on an `INSERT … ON CONFLICT DO NOTHING` that inserts nothing [observed: `TestARedispatchedMessageKeepsItsSeqAndIsStreamedOnce`].
+- Measured for Presence (#32), whatsmeow at the pin and mautrix-whatsapp `5dd621f`: `presence` and `chatstate` are node handlers (client.go:322-323), queued and run on the node queue (client.go:896-903, 944); `handlePresence` and `handleChatState` ignore the handlers' result and send nothing back (presence.go:18-58), so neither is gated. `events.Presence.LastSeen` is the zero time when the stanza has no `last` or `last="deny"` (presence.go:49-52); an unknown chat state tag is logged and dispatched (presence.go:26-35). `SendPresence` refuses with `ErrNoPushName` without the push name (presence.go:67-68), which only the app state's push-name setting sets and saves (appstate.go:364-374); available turns active delivery receipts on and unavailable off (presence.go:70-75), and a receipt then has no type instead of `inactive` (receipt.go:280-296). `SubscribePresence` needs the own JID (tctoken.go:121-122) and sends without a privacy token when none is stored, as `ErrorOnSubscribePresenceWithoutToken` is false by default (presence.go:104-110, client.go:188). `SendChatPresence` sends media only with composing (presence.go:131-136). All three only write the stanza: `ErrNotConnected` when there is no socket (client.go:982), `socket.ErrSocketClosed` when it closed (framesocket.go:128). mautrix handles `ChatPresence` and never `Presence`, never subscribes, and sends unavailable after connecting and after a push-name change (pkg/connector/handlewhatsapp.go:91, 154-156, 186-189).
 - Measured for Contacts (#33), whatsmeow at the pin ([ADR 0028](adr/0028-contacts-blocklist-and-lid-resolution.md)):
   - `IsOnWhatsApp` queries `+digits@c.us` with LID addressing; the answer's `JID` is the LID when there is one, `PhoneNumber` the `pn_jid`, `IsIn` the contact type `in`, `Query` the number as sent, and the LID pairs are stored (user.go:176-229); an answer with a LID and no `pn_jid` leaves `PhoneNumber` empty (user.go:194-204). What WhatsApp answers for an unregistered number, and whether it answers every number of a batch, are [unknown].
   - `GetUserInfo` gives `Status`, `PictureID`, `VerifiedName`, `LID` and the devices, stores the pairs, and stores a verified name through `updateBusinessName`, which dispatches `BusinessName` when it changed (user.go:232-280, 709-736). How it keys the answer to a LID query is [unknown].
@@ -797,6 +800,7 @@ Phase 0 decisions:
 - [0022](adr/0022-outbox-event-stream-and-dispatcher.md): The outbox (seq in the transaction, natural keys, retention, cascade delete), `StreamEvents` replacement, the dispatcher and watermark ack, events from the first connect, invariant 2 says "answered", and the phone's copy of an undecryptable message is not gated (#8)
 - [0023](adr/0023-native-packages-build-pin-and-find.md): One MinVer version for every package and binary; the binaries from a plain `go build` over `tools/check-licenses -targets`, not GoReleaser; exact pins by rewriting NuGet's `_ProjectReferencesWithVersions`; `ExcludeFromSingleFile` in the native packages; `build/ci.sh package` and `install` prove a new consumer finds the binary (#43)
 - [0024](adr/0024-tether-backups.md): The tether backups: `--parent-pid`; Linux `PR_SET_PDEATHSIG` with SIGUSR1 that only wakes a parent check; a macOS parent poll; a Windows kill-on-close Job Object from the client, hand-written `[LibraryImport]`, a failed job fails the start; SIGPIPE ignored (#22)
+- [0027](adr/0027-ephemeral-events-presence-and-typing.md): Presence and typing on `StreamEphemeralEvents`, without a seq or an ack, from a 256-event ring per session in memory; a second .NET dispatcher with no ack; `NO_PUSH_NAME`; invariant 1 names the ring (#32)
 - [0028](adr/0028-contacts-blocklist-and-lid-resolution.md): Contacts & LID: `Online` for calls to WhatsApp and `Device` for store reads, LID resolution from the store only, contact events through the outbox unkeyed and best effort, a slice records its own events through an `events.Mapper`, no whatsmeow error text in a status, `WHATSAPP_TIMED_OUT` for a read without an answer (#33)
 
 House-rule alignment (applied, or opted out of with a measured reason):

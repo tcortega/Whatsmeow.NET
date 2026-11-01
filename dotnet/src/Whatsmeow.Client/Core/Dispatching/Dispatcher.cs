@@ -11,8 +11,11 @@ namespace Whatsmeow.Core.Dispatching;
 /// watermark that does not move for <see cref="StuckAfter"/> while events wait is logged.
 /// </summary>
 /// <param name="input">The events, in seq order.</param>
-/// <param name="ackAsync">Sends the ack; a <see cref="WhatsmeowException"/> from it is logged and retried on the next tick.</param>
-internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, CancellationToken, Task> ackAsync, TimeProvider timeProvider, ILogger logger)
+/// <param name="ackAsync">
+/// Sends the ack; a <see cref="WhatsmeowException"/> from it is logged and retried on the next tick. Null for events
+/// nothing acks, the ephemeral ones: then there is no ack timer, no stuck watermark warning and no last ack.
+/// </param>
+internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, CancellationToken, Task>? ackAsync, TimeProvider timeProvider, ILogger logger)
 	: IAsyncDisposable
 {
 	/// <summary>Events received and not finished, at most.</summary>
@@ -67,9 +70,12 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 		if (_disposed != 0)
 			return;
 
+		_loop = ReadAsync(_stopping.Token);
+		if (ackAsync is null)
+			return;
+
 		// Created here, not in the loop, so a tick of the clock from now on is never missed.
 		_timer = new PeriodicTimer(AckInterval, timeProvider);
-		_loop = ReadAsync(_stopping.Token);
 		_ackLoop = AckLoopAsync(_timer, _stopping.Token);
 	}
 
@@ -82,7 +88,7 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 			ulong watermark;
 			lock (_lock)
 				watermark = _watermark;
-			if (watermark <= _acked)
+			if (ackAsync is null || watermark <= _acked)
 				return;
 
 			try

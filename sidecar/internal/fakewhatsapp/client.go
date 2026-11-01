@@ -42,6 +42,8 @@ type Client struct {
 	codes int
 	// preKeysUploaded is whatsmeow's PreKeysUploaded (client.go:116), set by the login after a link.
 	preKeysUploaded bool
+	// activeReceipts is whatsmeow's sendActiveReceipts (client.go:95), which SendPresence turns on and off.
+	activeReceipts bool
 	// queue runs one dispatch at a time, as whatsmeow's per-client node queue does (ARCHITECTURE §7.3).
 	queue    sync.Mutex
 	mu       sync.RWMutex

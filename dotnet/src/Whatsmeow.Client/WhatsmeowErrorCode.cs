@@ -68,4 +68,7 @@ public enum WhatsmeowErrorCode
 
 	/// <summary>WhatsApp did not answer a read in time; nothing was done, and the call can be repeated.</summary>
 	WhatsAppTimedOut,
+
+	/// <summary>The account has no push name yet, which sending presence needs; nothing was sent.</summary>
+	NoPushName,
 }

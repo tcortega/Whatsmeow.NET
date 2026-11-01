@@ -107,3 +107,16 @@ func TestConsumerReplacedBecomesAborted(t *testing.T) {
 		t.Fatalf("reason %q, want CONSUMER_REPLACED", info.GetReason())
 	}
 }
+
+func TestNoPushNameBecomesItsStatus(t *testing.T) {
+	t.Parallel()
+
+	st, _ := status.FromError(New(token, zerolog.Nop()).toStatus("/test", fmt.Errorf("send presence: %w", ErrNoPushName)))
+	if st.Code() != codes.FailedPrecondition || len(st.Details()) != 1 {
+		t.Fatalf("status %v, want FAILED_PRECONDITION with one ErrorInfo", st)
+	}
+
+	if info, _ := st.Details()[0].(*errdetails.ErrorInfo); info.GetReason() != "NO_PUSH_NAME" {
+		t.Errorf("ErrorInfo %v, want NO_PUSH_NAME", info)
+	}
+}

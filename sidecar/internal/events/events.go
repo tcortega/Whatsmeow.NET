@@ -33,6 +33,8 @@ type Service struct {
 
 	mu      sync.Mutex
 	streams map[consumer]*registration
+	// rings are the sessions' ephemeral events (ring.go).
+	rings map[string]*ring
 }
 
 type consumer struct{ session, name string }
@@ -48,7 +50,7 @@ type Mapper func(sessionID string, evt any) (key string, event *whatsmeowv1.Stre
 // New returns the slice on box. Each mapper is a slice's: the handler records what the first that maps an event
 // returns, after the events this slice maps itself.
 func New(box *outbox.Outbox, log zerolog.Logger, mappers ...Mapper) *Service {
-	return &Service{box: box, log: log, mappers: mappers, streams: map[consumer]*registration{}}
+	return &Service{box: box, log: log, mappers: mappers, streams: map[consumer]*registration{}, rings: map[string]*ring{}}
 }
 
 // Handler is the whatsmeow event handler of one session's client (ARCHITECTURE §7.3). It maps the event, records it
@@ -65,6 +67,13 @@ func (svc *Service) Handler(sessionID string) whatsmeow.EventHandlerWithSuccessS
 				ok = false
 			}
 		}()
+
+		// Ephemeral: into the session's ring in memory, never the outbox, and never waiting for a stream.
+		if event, ok := toEphemeral(evt); ok {
+			svc.ring(sessionID).push(event)
+
+			return true
+		}
 
 		key, event, record := svc.toEvent(sessionID, evt)
 		if !record {
@@ -191,10 +200,10 @@ func (svc *Service) send(ctx context.Context, id string, after uint64, watch out
 }
 
 // sendOrEnd sends event, or returns when ctx ends first. Send blocks while the client does not read: backpressure
-// stops here, and the events stay in the outbox. Its wait ends only with the stream itself, not with ctx, a context
+// stops here, and the events stay in the outbox, or the ephemeral ones in the ring until it drops them. Its wait ends only with the stream itself, not with ctx, a context
 // derived from it (grpc-go http2_server.go:624, flowcontrol.go:54-66), so a replaced stream would stay in it; the send
 // runs on its own goroutine, which ends when grpc-go finishes the stream as this handler returns.
-func sendOrEnd(ctx context.Context, stream grpc.ServerStreamingServer[whatsmeowv1.StreamEventsResponse], event *whatsmeowv1.StreamEventsResponse) error {
+func sendOrEnd[T any](ctx context.Context, stream grpc.ServerStreamingServer[T], event *T) error {
 	sent := make(chan error, 1)
 
 	go func() { sent <- stream.Send(event) }()

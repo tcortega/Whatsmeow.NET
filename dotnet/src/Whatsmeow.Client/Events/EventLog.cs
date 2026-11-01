@@ -19,4 +19,10 @@ internal static partial class EventLog
 
 	[LoggerMessage(35, LogLevel.Debug, "Acked the events of session {SessionId} up to {Seq}")]
 	public static partial void Acked(ILogger logger, string sessionId, ulong seq);
+
+	[LoggerMessage(36, LogLevel.Warning, "An ephemeral {PayloadCase} event of session {SessionId} this client cannot read is skipped")]
+	public static partial void EphemeralEventSkipped(ILogger logger, string payloadCase, string sessionId);
+
+	[LoggerMessage(37, LogLevel.Error, "An ephemeral event of session {SessionId} cannot be read; it is skipped")]
+	public static partial void EphemeralEventUnreadable(ILogger logger, Exception exception, string sessionId);
 }

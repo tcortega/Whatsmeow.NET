@@ -107,7 +107,7 @@ func (w *WhatsApp) NewClient(sessionID string) *Client {
 // parts of one message stanza to it, in order, and records
 // what whatsmeow answers at the pin: nothing when a handler of any part failed (message.go:459-462), otherwise one
 // receipt (message.go:489-495), of type inactive for a message from someone else while the client sends no active
-// receipts (receipt.go:280-296).
+// receipts, and of no type once SendPresence turned them on (receipt.go:280-296).
 func (w *WhatsApp) deliverMessage(ctx context.Context, sessionID string, parts ...*events.Message) error {
 	w.mu.Lock()
 	c, ok := w.clients[sessionID]
@@ -126,7 +126,7 @@ func (w *WhatsApp) deliverMessage(ctx context.Context, sessionID string, parts .
 		}
 	}
 
-	receipt := &fakev1.Receipt{Id: id, Type: string(types.ReceiptTypeInactive)}
+	receipt := &fakev1.Receipt{Id: id, Type: c.receiptType()}
 	w.append(&fakev1.Sent{SessionId: sessionID, Kind: &fakev1.Sent_Receipt{Receipt: receipt}})
 
 	return nil

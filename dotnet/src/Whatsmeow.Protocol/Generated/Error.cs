@@ -24,7 +24,7 @@ namespace Whatsmeow.Protocol.V1 {
     static ErrorReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Chh3aGF0c21lb3cvdjEvZXJyb3IucHJvdG8SDHdoYXRzbWVvdy52MSrgBQoL",
+            "Chh3aGF0c21lb3cvdjEvZXJyb3IucHJvdG8SDHdoYXRzbWVvdy52MSr/BQoL",
             "RXJyb3JSZWFzb24SHAoYRVJST1JfUkVBU09OX1VOU1BFQ0lGSUVEEAASGQoV",
             "RVJST1JfUkVBU09OX0lOVEVSTkFMEAESIQodRVJST1JfUkVBU09OX0lOVkFM",
             "SURfQVJHVU1FTlQQAhIgChxFUlJPUl9SRUFTT05fVU5BVVRIRU5USUNBVEVE",
@@ -41,11 +41,12 @@ namespace Whatsmeow.Protocol.V1 {
             "X09OX1dIQVRTQVBQEBASHQoZRVJST1JfUkVBU09OX1JBVEVfTElNSVRFRBAR",
             "EiAKHEVSUk9SX1JFQVNPTl9PVVRDT01FX1VOS05PV04QEhIfChtFUlJPUl9S",
             "RUFTT05fV0hBVFNBUFBfRVJST1IQExIjCh9FUlJPUl9SRUFTT05fV0hBVFNB",
-            "UFBfVElNRURfT1VUEBRCwAEKEGNvbS53aGF0c21lb3cudjFCCkVycm9yUHJv",
-            "dG9QAVpGZ2l0aHViLmNvbS90Y29ydGVnYS9XaGF0c21lb3cuTkVUL3NpZGVj",
-            "YXIvZ2VuL3doYXRzbWVvdy92MTt3aGF0c21lb3d2MaICA1dYWKoCFVdoYXRz",
-            "bWVvdy5Qcm90b2NvbC5WMcoCDFdoYXRzbWVvd1xWMeICGFdoYXRzbWVvd1xW",
-            "MVxHUEJNZXRhZGF0YeoCDVdoYXRzbWVvdzo6VjFiBnByb3RvMw=="));
+            "UFBfVElNRURfT1VUEBQSHQoZRVJST1JfUkVBU09OX05PX1BVU0hfTkFNRRAV",
+            "QsABChBjb20ud2hhdHNtZW93LnYxQgpFcnJvclByb3RvUAFaRmdpdGh1Yi5j",
+            "b20vdGNvcnRlZ2EvV2hhdHNtZW93Lk5FVC9zaWRlY2FyL2dlbi93aGF0c21l",
+            "b3cvdjE7d2hhdHNtZW93djGiAgNXWFiqAhVXaGF0c21lb3cuUHJvdG9jb2wu",
+            "VjHKAgxXaGF0c21lb3dcVjHiAhhXaGF0c21lb3dcVjFcR1BCTWV0YWRhdGHq",
+            "Ag1XaGF0c21lb3c6OlYxYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Whatsmeow.Protocol.V1.ErrorReason), }, null, null));
@@ -154,6 +155,11 @@ namespace Whatsmeow.Protocol.V1 {
     /// got no answer is OUTCOME_UNKNOWN instead.
     /// </summary>
     [pbr::OriginalName("ERROR_REASON_WHATSAPP_TIMED_OUT")] WhatsappTimedOut = 20,
+    /// <summary>
+    /// FAILED_PRECONDITION. The account has no push name yet, which whatsmeow needs to send presence: WhatsApp sends it
+    /// with the first app state sync after pairing. Nothing was sent.
+    /// </summary>
+    [pbr::OriginalName("ERROR_REASON_NO_PUSH_NAME")] NoPushName = 21,
   }
 
   #endregion

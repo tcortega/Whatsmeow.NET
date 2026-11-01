@@ -79,6 +79,9 @@ const (
 	// UNAVAILABLE. WhatsApp did not answer a read in time; nothing was done, and the call can be repeated. A write that
 	// got no answer is OUTCOME_UNKNOWN instead.
 	ErrorReason_ERROR_REASON_WHATSAPP_TIMED_OUT ErrorReason = 20
+	// FAILED_PRECONDITION. The account has no push name yet, which whatsmeow needs to send presence: WhatsApp sends it
+	// with the first app state sync after pairing. Nothing was sent.
+	ErrorReason_ERROR_REASON_NO_PUSH_NAME ErrorReason = 21
 )
 
 // Enum value maps for ErrorReason.
@@ -105,6 +108,7 @@ var (
 		18: "ERROR_REASON_OUTCOME_UNKNOWN",
 		19: "ERROR_REASON_WHATSAPP_ERROR",
 		20: "ERROR_REASON_WHATSAPP_TIMED_OUT",
+		21: "ERROR_REASON_NO_PUSH_NAME",
 	}
 	ErrorReason_value = map[string]int32{
 		"ERROR_REASON_UNSPECIFIED":               0,
@@ -128,6 +132,7 @@ var (
 		"ERROR_REASON_OUTCOME_UNKNOWN":           18,
 		"ERROR_REASON_WHATSAPP_ERROR":            19,
 		"ERROR_REASON_WHATSAPP_TIMED_OUT":        20,
+		"ERROR_REASON_NO_PUSH_NAME":              21,
 	}
 )
 
@@ -162,7 +167,7 @@ var File_whatsmeow_v1_error_proto protoreflect.FileDescriptor
 
 const file_whatsmeow_v1_error_proto_rawDesc = "" +
 	"\n" +
-	"\x18whatsmeow/v1/error.proto\x12\fwhatsmeow.v1*\xe0\x05\n" +
+	"\x18whatsmeow/v1/error.proto\x12\fwhatsmeow.v1*\xff\x05\n" +
 	"\vErrorReason\x12\x1c\n" +
 	"\x18ERROR_REASON_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15ERROR_REASON_INTERNAL\x10\x01\x12!\n" +
@@ -185,7 +190,8 @@ const file_whatsmeow_v1_error_proto_rawDesc = "" +
 	"\x19ERROR_REASON_RATE_LIMITED\x10\x11\x12 \n" +
 	"\x1cERROR_REASON_OUTCOME_UNKNOWN\x10\x12\x12\x1f\n" +
 	"\x1bERROR_REASON_WHATSAPP_ERROR\x10\x13\x12#\n" +
-	"\x1fERROR_REASON_WHATSAPP_TIMED_OUT\x10\x14B\xc0\x01\n" +
+	"\x1fERROR_REASON_WHATSAPP_TIMED_OUT\x10\x14\x12\x1d\n" +
+	"\x19ERROR_REASON_NO_PUSH_NAME\x10\x15B\xc0\x01\n" +
 	"\x10com.whatsmeow.v1B\n" +
 	"ErrorProtoP\x01ZFgithub.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1;whatsmeowv1\xa2\x02\x03WXX\xaa\x02\x15Whatsmeow.Protocol.V1\xca\x02\fWhatsmeow\\V1\xe2\x02\x18Whatsmeow\\V1\\GPBMetadata\xea\x02\rWhatsmeow::V1b\x06proto3"
 
