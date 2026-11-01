@@ -36,11 +36,15 @@ public sealed class FakeSidecar : IAsyncLifetime
 	}
 
 	/// <summary>
-	/// Kills the sidecar and returns once the supervisor restarted it, so the next test finds it running. Only tests
-	/// in the <see cref="SidecarCrashes"/> call it.
+	/// Kills the sidecar and returns once the supervisor restarted it, so the next test finds it running. Only a test
+	/// in the <see cref="SidecarCrashes"/> collection may call it: one that runs in parallel would break other tests.
 	/// </summary>
+	/// <exception cref="InvalidOperationException">The calling test is not in the <see cref="SidecarCrashes"/> collection.</exception>
 	public async Task CrashAsync(CancellationToken cancellationToken)
 	{
+		if (TestContext.Current.TestCollection?.TestCollectionClassName != typeof(SidecarCrashes).FullName)
+			throw new InvalidOperationException($"CrashAsync runs only in the {nameof(SidecarCrashes)} collection, which never runs in parallel.");
+
 		var restarts = _logs.Named("SidecarRestarted").Count;
 		var (processId, _) = await _logs.StartedAsync(_logs.Named("SidecarStarted").Count, cancellationToken).ConfigureAwait(false);
 

@@ -20,6 +20,15 @@ public sealed class FakeSidecarTests(FakeSidecar fixture)
 
 		Assert.Equal((StatusCode.Internal, """deliver message "M1" to session "fake-control": the session has no client"""), (error.StatusCode, error.Status.Detail));
 	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task CrashAsync_OutsideTheCrashCollection_Throws()
+	{
+		var ct = TestContext.Current.CancellationToken;
+
+		// This class runs in parallel with others, so a crash here would break them.
+		_ = await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.CrashAsync(ct));
+	}
 }
 
 /// <summary>A crash of the shared sidecar leaves the fixture working for the next test.</summary>

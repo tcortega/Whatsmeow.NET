@@ -32,7 +32,7 @@ A Go file behind a build tag is invisible to build, test, lint and the cgo check
   A withheld answer is shown by order (the next message's receipt comes first), never by waiting for an absence.
 - **Shared fixture.** `FakeSidecar`, an xUnit v3 assembly fixture, builds the fake-tag binary and owns one sidecar for the run.
   It hands tests the public `WhatsmeowSidecar` and the control client, which goes through the sidecar's own channel (`WhatsmeowSidecar.CallInvoker`, internal), so it carries the current token and follows restarts.
-  A test crashes the sidecar only with `CrashAsync`, which returns once the supervisor restarted it, in a collection that never runs in parallel.
+  A test crashes the sidecar only with `CrashAsync`, which returns once the supervisor restarted it, and throws unless the test is in the `SidecarCrashes` collection, which never runs in parallel.
 
 ## Consequences
 
