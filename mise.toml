@@ -1,0 +1,6 @@
+# Tools without a native pin file. Go is pinned by sidecar/go.mod (toolchain), .NET by global.json.
+# Versions verified as latest stable on 2026-10-31 (ARCHITECTURE §5).
+[tools]
+buf = "1.75.0"
+golangci-lint = "2.15.0"
+protoc = "36.2"
