@@ -42,7 +42,7 @@ Design:
 
 - In the table above, AF_UNIX was about 2-4x faster for server streams of 64 KiB messages and about 1.5-3x for bidi.
 - Client-stream upload was comparable, with the named-pipe range equal or higher (328-469 vs 308-390 MiB/s) [inferred: ratios from the range ends across the three hosts, not paired per host].
-- Without the explicit DACL, the socket directory's protection would come from the user's `%LOCALAPPDATA%\Temp` ACL [inferred: default per-user ACL, not measured].
+- Without the explicit DACL, the socket directory's protection would come from the user's `%LOCALAPPDATA%\Temp` ACL; #4 measured it on a CI runner and recorded it in [ARCHITECTURE §10](../ARCHITECTURE.md#10-security).
 - RESEARCH.md also reports third-party network stacks on managed machines breaking AF_UNIX `connect` for the JDK; whether that affects us is [unknown], and the fallback is the way out.
 - Both transports stay in the code and in CI.
 - The spike code stays reachable through the `spike/windows-transport` tag; the branch was deleted after the results were recorded.
