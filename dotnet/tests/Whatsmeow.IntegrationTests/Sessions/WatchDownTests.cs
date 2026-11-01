@@ -33,6 +33,7 @@ public sealed class WatchDownTests(FakeSidecar fixture, SidecarBinaries binaries
 		// that is gone can end with a TaskCanceledException instead of a status [observed: #8 review, O2].
 		await using var watch = StateWatch.Start(client, ct);
 		Assert.Equal(new SessionState.Disconnected(), await watch.NextAsync());
-		_ = Assert.Single(logs.Named("SidecarRestarted"));
+		// From the restarted sidecar: the client logs its start before any call reaches it.
+		Assert.Equal(2, logs.Named("SidecarStarted").Count);
 	}
 }
