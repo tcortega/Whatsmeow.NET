@@ -10,7 +10,7 @@
 // Once sidecar/go.mod requires the module, the required version must be the pinned one.
 //
 // By default it only checks, and exits non-zero on any difference. With -write it replaces the copy.
-// Run it from the sidecar module: go -C sidecar run ./scripts/sync-protos [-write].
+// Run it from the tools module: go -C tools run ./sync-protos [-write].
 package main
 
 import (
@@ -48,7 +48,7 @@ var (
 func main() {
 	write := flag.Bool("write", false, "replace the copy with the pinned module's files instead of checking it")
 	dir := flag.String("dir", filepath.Join("..", "third_party", "whatsmeow"), "the third_party copy, holding VERSION")
-	goMod := flag.String("gomod", "go.mod", "the sidecar go.mod; its require of the module, once present, must match VERSION")
+	goMod := flag.String("gomod", filepath.Join("..", "sidecar", "go.mod"), "the sidecar go.mod; its require of the module, once present, must match VERSION")
 	flag.Parse()
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
@@ -130,7 +130,7 @@ func run(ctx context.Context, cfg config) error {
 	}
 
 	if !cfg.write {
-		return report(cfg.out, differences, fmt.Errorf("%w: %d differences; run go -C sidecar run ./scripts/sync-protos -write", errMismatch, len(differences)))
+		return report(cfg.out, differences, fmt.Errorf("%w: %d differences; run go -C tools run ./sync-protos -write", errMismatch, len(differences)))
 	}
 
 	err = replace(ctx, cfg.dir, want, have)

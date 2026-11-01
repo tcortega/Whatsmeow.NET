@@ -11,7 +11,7 @@
 //   - positional-record: a record with a primary constructor (docs/guidelines/csharp.md Types, VSA0002).
 //
 // The rules and their reasons are in docs/guidelines/csharp.md Suppressions.
-// Run it from the sidecar module: go -C sidecar run ./scripts/check-repo [-root ..].
+// Run it from the tools module: go -C tools run ./check-repo [-root ..].
 package main
 
 import (
