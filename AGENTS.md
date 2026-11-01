@@ -6,6 +6,7 @@ Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) before changing the contract, 
 [docs/RESEARCH.md](docs/RESEARCH.md) is the why with sources; reference only.
 
 This is a library, not a VSA API. No Immediate.Handlers, `[Handler]`, Immediate.Injections, EF, or Refit.
+Never over-engineer: build the simplest thing that meets the issue. No speculative options, layers, abstractions or "for later" code; add them when a real second use exists.
 House rules (bridge, compras, chrominal) win over anything older in this repo, except the exceptions recorded in the ARCHITECTURE Decision log (BCL time, `IWhatsAppClient`).
 Generated code is committed: never hand-edit `sidecar/gen/` or `Whatsmeow.Protocol*`; regenerate it (Commands).
 ARCHITECTURE §13 invariants are wrong to break without an ADR first.
