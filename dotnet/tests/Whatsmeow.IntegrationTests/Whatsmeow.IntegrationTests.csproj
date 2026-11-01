@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="xunit.v3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="../../src/Whatsmeow.Client/Whatsmeow.Client.csproj" />
+	</ItemGroup>
+
+	<ItemGroup Label="Usings">
+		<Using Include="Xunit" />
+	</ItemGroup>
+</Project>

@@ -1,0 +1,9 @@
+<Project>
+	<Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+	<!-- Everything under src/ ships: AOT and trim clean, checked by tests/AotSmoke (docs/guidelines/csharp.md Reflection). -->
+	<PropertyGroup>
+		<IsAotCompatible>true</IsAotCompatible>
+		<IsTrimmable>true</IsTrimmable>
+	</PropertyGroup>
+</Project>

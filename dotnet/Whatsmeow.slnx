@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Whatsmeow.Client/Whatsmeow.Client.csproj" />
+    <Project Path="src/Whatsmeow.Protocol.WhatsApp/Whatsmeow.Protocol.WhatsApp.csproj" />
+    <Project Path="src/Whatsmeow.Protocol/Whatsmeow.Protocol.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AotSmoke/AotSmoke.csproj" />
+    <Project Path="tests/Whatsmeow.Client.Tests/Whatsmeow.Client.Tests.csproj" />
+    <Project Path="tests/Whatsmeow.IntegrationTests/Whatsmeow.IntegrationTests.csproj" />
+  </Folder>
+</Solution>
