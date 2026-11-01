@@ -194,6 +194,23 @@ func TestRunPassesWhenTheAllowlistMatches(t *testing.T) {
 	}
 }
 
+func TestRunReportsAChangedStdLicence(t *testing.T) {
+	t.Parallel()
+
+	f := newFixture(t, true)
+	f.module(t, depPath, map[string]string{"LICENSE": mitText}, targets()...)
+	writeFile(t, f.goroot, "LICENSE", stdText+" changed")
+
+	out, err := f.run(t, depLine(t)+stdLines(t))
+	if !errors.Is(err, errFindings) {
+		t.Fatalf("run = %v, want errFindings", err)
+	}
+
+	if !strings.Contains(out, allowFile+":2: [licence-changed] the Go standard library: LICENSE has sha256 ") {
+		t.Fatalf("output = %q", out)
+	}
+}
+
 func TestRunFailsWithoutTheMainPackage(t *testing.T) {
 	t.Parallel()
 
