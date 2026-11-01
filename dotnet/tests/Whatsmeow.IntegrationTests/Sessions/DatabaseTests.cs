@@ -15,7 +15,9 @@ public sealed class DatabaseTests(FakeSidecar fixture, SidecarBinaries binaries)
 
 		var error = await Assert.ThrowsAsync<SidecarUnavailableException>(() => WhatsmeowSidecar.StartAsync(options, ct));
 
-		Assert.Contains($"the database {fixture.DatabasePath}: lock {fixture.DatabasePath}.lock: in use by another whatsmeow-net", error.Message, StringComparison.Ordinal);
+		// The message ends with the sidecar's stderr tail, its JSON log lines, where a Windows path's backslashes are escaped.
+		var expected = $"the database {fixture.DatabasePath}: lock {fixture.DatabasePath}.lock: in use by another whatsmeow-net";
+		Assert.Contains(expected.Replace(@"\", @"\\", StringComparison.Ordinal), error.Message, StringComparison.Ordinal);
 	}
 }
 
