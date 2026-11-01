@@ -13,18 +13,13 @@ import (
 // It is installed per server with grpc.ForceServerCodecV2, never registered globally.
 type lenientCodec struct{}
 
-var (
-	marshalPartial   = proto.MarshalOptions{AllowPartial: true}   //nolint:gochecknoglobals // immutable options value
-	unmarshalPartial = proto.UnmarshalOptions{AllowPartial: true} //nolint:gochecknoglobals // immutable options value
-)
-
 func (lenientCodec) Marshal(v any) (mem.BufferSlice, error) {
 	m, ok := v.(proto.Message)
 	if !ok {
 		return nil, fmt.Errorf("marshal: %T is not a proto.Message", v)
 	}
 
-	b, err := marshalPartial.Marshal(m)
+	b, err := proto.MarshalOptions{AllowPartial: true}.Marshal(m)
 	if err != nil {
 		return nil, fmt.Errorf("marshal %T: %w", v, err)
 	}
@@ -41,7 +36,7 @@ func (lenientCodec) Unmarshal(data mem.BufferSlice, v any) error {
 	buf := data.MaterializeToBuffer(mem.DefaultBufferPool())
 	defer buf.Free()
 
-	if err := unmarshalPartial.Unmarshal(buf.ReadOnlyData(), m); err != nil {
+	if err := (proto.UnmarshalOptions{AllowPartial: true}).Unmarshal(buf.ReadOnlyData(), m); err != nil {
 		return fmt.Errorf("unmarshal %T: %w", v, err)
 	}
 
