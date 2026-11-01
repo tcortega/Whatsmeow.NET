@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<!-- C# root per ARCHITECTURE Naming; namespaces follow folders (Whatsmeow.Core, Whatsmeow.Sidecar). -->
+		<!-- C# root per ARCHITECTURE Naming: the entry point and shared public types sit at the root (ADR 0018). -->
 		<RootNamespace>Whatsmeow</RootNamespace>
 	</PropertyGroup>
 
@@ -29,6 +29,5 @@
 	<ItemGroup Label="Usings">
 		<Using Include="System.Diagnostics.CodeAnalysis" />
 		<Using Include="Microsoft.Extensions.Logging" />
-		<Using Include="Whatsmeow.Core" />
 	</ItemGroup>
 </Project>

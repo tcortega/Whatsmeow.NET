@@ -1,4 +1,4 @@
-namespace Whatsmeow.Sidecar;
+namespace Whatsmeow;
 
 /// <summary>The running sidecar's identity.</summary>
 public sealed record SidecarInfo

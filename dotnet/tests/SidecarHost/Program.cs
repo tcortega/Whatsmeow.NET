@@ -2,7 +2,7 @@
 // stdout, and then waits on stdin forever. The test kills this process hard and watches the sidecar exit on its own.
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
-using Whatsmeow.Sidecar;
+using Whatsmeow;
 
 var logs = new FakeLogCollector();
 using var provider = new FakeLoggerProvider(logs);

@@ -18,7 +18,5 @@
 	<ItemGroup Label="Usings">
 		<Using Include="Xunit" />
 		<Using Include="Microsoft.Extensions.Logging" />
-		<Using Include="Whatsmeow.Core" />
-		<Using Include="Whatsmeow.Sidecar" />
 	</ItemGroup>
 </Project>

@@ -4,8 +4,9 @@ using Microsoft.Extensions.Options;
 using Whatsmeow.Core.Errors;
 using Whatsmeow.Core.Transport;
 using Whatsmeow.Protocol.V1;
+using Whatsmeow.Sidecar;
 
-namespace Whatsmeow.Sidecar;
+namespace Whatsmeow;
 
 /// <summary>
 /// The <c>whatsmeow-net</c> sidecar process and the one channel to it. It finds, starts, checks and supervises the

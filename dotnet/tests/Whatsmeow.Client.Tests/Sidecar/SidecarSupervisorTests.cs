@@ -1,7 +1,6 @@
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Time.Testing;
-using Whatsmeow.Core;
 using Whatsmeow.Sidecar;
 
 namespace Whatsmeow.Client.Tests.Sidecar;

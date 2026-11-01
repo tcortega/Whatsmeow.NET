@@ -1,4 +1,4 @@
-namespace Whatsmeow.Sidecar;
+namespace Whatsmeow;
 
 /// <summary>How <see cref="WhatsmeowSidecar"/> finds and starts the sidecar.</summary>
 public sealed class WhatsmeowSidecarOptions

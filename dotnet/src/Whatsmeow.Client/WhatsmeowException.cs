@@ -1,6 +1,6 @@
 using Grpc.Core;
 
-namespace Whatsmeow.Core;
+namespace Whatsmeow;
 
 /// <summary>
 /// The base of every error this library raises. A failed sidecar call carries its gRPC error as the

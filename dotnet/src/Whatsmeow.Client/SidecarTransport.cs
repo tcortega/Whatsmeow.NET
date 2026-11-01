@@ -1,4 +1,4 @@
-namespace Whatsmeow.Sidecar;
+namespace Whatsmeow;
 
 /// <summary>How the client talks to the sidecar process.</summary>
 public enum SidecarTransport

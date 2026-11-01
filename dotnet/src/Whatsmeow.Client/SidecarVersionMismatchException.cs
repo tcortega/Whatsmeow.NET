@@ -1,4 +1,4 @@
-namespace Whatsmeow.Core;
+namespace Whatsmeow;
 
 /// <summary>
 /// The sidecar is not the version this client was built with, or speaks a contract revision it does not support.

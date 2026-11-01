@@ -1,6 +1,6 @@
 using Grpc.Core;
 
-namespace Whatsmeow.Core;
+namespace Whatsmeow;
 
 /// <summary>
 /// The sidecar could not be found, did not start, or cannot be reached right now.
