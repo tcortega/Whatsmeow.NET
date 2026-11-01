@@ -1,0 +1,145 @@
+// Banned APIs (docs/guidelines/csharp.md, ARCHITECTURE §13 invariant 7). RS0030 is an error.
+// An ID without a parameter list matches only the parameterless overload, so every overload is listed.
+// Generated code is exempt (dotnet/.globalconfig).
+
+// Time: BCL, from the injected TimeProvider. No civil dates, times or zones.
+T:System.DateTime; Use DateTimeOffset, from TimeProvider
+T:System.DateOnly; No civil dates in this library
+T:System.TimeOnly; No civil times in this library
+T:System.TimeZoneInfo; No zones in this library
+P:System.DateTimeOffset.Now; Use the injected TimeProvider.GetUtcNow()
+P:System.DateTimeOffset.UtcNow; Use the injected TimeProvider.GetUtcNow()
+T:System.Diagnostics.Stopwatch; Use TimeProvider.GetTimestamp / GetElapsedTime
+
+// Timers that bypass the TimeProvider.
+M:System.Threading.Tasks.Task.Delay(System.TimeSpan); Use Task.Delay(TimeSpan, TimeProvider, CancellationToken)
+M:System.Threading.Tasks.Task.Delay(System.TimeSpan,System.Threading.CancellationToken); Use Task.Delay(TimeSpan, TimeProvider, CancellationToken)
+M:System.Threading.Tasks.Task.Delay(System.Int32); Use Task.Delay(TimeSpan, TimeProvider, CancellationToken)
+M:System.Threading.Tasks.Task.Delay(System.Int32,System.Threading.CancellationToken); Use Task.Delay(TimeSpan, TimeProvider, CancellationToken)
+M:System.Threading.CancellationTokenSource.#ctor(System.TimeSpan); Use new CancellationTokenSource(TimeSpan, TimeProvider)
+M:System.Threading.CancellationTokenSource.#ctor(System.Int32); Use new CancellationTokenSource(TimeSpan, TimeProvider)
+M:System.Threading.PeriodicTimer.#ctor(System.TimeSpan); Use new PeriodicTimer(TimeSpan, TimeProvider)
+M:System.Threading.Timer.#ctor(System.Threading.TimerCallback); Use TimeProvider.CreateTimer
+M:System.Threading.Timer.#ctor(System.Threading.TimerCallback,System.Object,System.Int32,System.Int32); Use TimeProvider.CreateTimer
+M:System.Threading.Timer.#ctor(System.Threading.TimerCallback,System.Object,System.Int64,System.Int64); Use TimeProvider.CreateTimer
+M:System.Threading.Timer.#ctor(System.Threading.TimerCallback,System.Object,System.UInt32,System.UInt32); Use TimeProvider.CreateTimer
+M:System.Threading.Timer.#ctor(System.Threading.TimerCallback,System.Object,System.TimeSpan,System.TimeSpan); Use TimeProvider.CreateTimer
+T:System.Timers.Timer; Use TimeProvider.CreateTimer
+
+// Blocking: no sleeps and no sync-over-async. An await does not call these; only explicit calls are flagged.
+M:System.Threading.Thread.Sleep(System.Int32); Never block a thread; await Task.Delay(TimeSpan, TimeProvider, CancellationToken)
+M:System.Threading.Thread.Sleep(System.TimeSpan); Never block a thread; await Task.Delay(TimeSpan, TimeProvider, CancellationToken)
+M:System.Threading.Tasks.Task.Wait; No sync-over-async; await instead
+M:System.Threading.Tasks.Task.Wait(System.TimeSpan); No sync-over-async; await instead
+M:System.Threading.Tasks.Task.Wait(System.TimeSpan,System.Threading.CancellationToken); No sync-over-async; await instead
+M:System.Threading.Tasks.Task.Wait(System.Threading.CancellationToken); No sync-over-async; await instead
+M:System.Threading.Tasks.Task.Wait(System.Int32); No sync-over-async; await instead
+M:System.Threading.Tasks.Task.Wait(System.Int32,System.Threading.CancellationToken); No sync-over-async; await instead
+M:System.Threading.Tasks.Task.WaitAll(System.Threading.Tasks.Task[]); No sync-over-async; await Task.WhenAll
+M:System.Threading.Tasks.Task.WaitAll(System.ReadOnlySpan{System.Threading.Tasks.Task}); No sync-over-async; await Task.WhenAll
+M:System.Threading.Tasks.Task.WaitAll(System.Threading.Tasks.Task[],System.TimeSpan); No sync-over-async; await Task.WhenAll
+M:System.Threading.Tasks.Task.WaitAll(System.Threading.Tasks.Task[],System.Int32); No sync-over-async; await Task.WhenAll
+M:System.Threading.Tasks.Task.WaitAll(System.Threading.Tasks.Task[],System.Threading.CancellationToken); No sync-over-async; await Task.WhenAll
+M:System.Threading.Tasks.Task.WaitAll(System.Threading.Tasks.Task[],System.Int32,System.Threading.CancellationToken); No sync-over-async; await Task.WhenAll
+M:System.Threading.Tasks.Task.WaitAll(System.Collections.Generic.IEnumerable{System.Threading.Tasks.Task},System.Threading.CancellationToken); No sync-over-async; await Task.WhenAll
+M:System.Threading.Tasks.Task.WaitAny(System.Threading.Tasks.Task[]); No sync-over-async; await Task.WhenAny
+M:System.Threading.Tasks.Task.WaitAny(System.Threading.Tasks.Task[],System.TimeSpan); No sync-over-async; await Task.WhenAny
+M:System.Threading.Tasks.Task.WaitAny(System.Threading.Tasks.Task[],System.Threading.CancellationToken); No sync-over-async; await Task.WhenAny
+M:System.Threading.Tasks.Task.WaitAny(System.Threading.Tasks.Task[],System.Int32); No sync-over-async; await Task.WhenAny
+M:System.Threading.Tasks.Task.WaitAny(System.Threading.Tasks.Task[],System.Int32,System.Threading.CancellationToken); No sync-over-async; await Task.WhenAny
+P:System.Threading.Tasks.Task`1.Result; No sync-over-async; await instead
+P:System.Threading.Tasks.ValueTask`1.Result; No sync-over-async; await instead
+M:System.Runtime.CompilerServices.TaskAwaiter.GetResult; No sync-over-async; await instead
+M:System.Runtime.CompilerServices.TaskAwaiter`1.GetResult; No sync-over-async; await instead
+M:System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult; No sync-over-async; await instead
+M:System.Runtime.CompilerServices.ValueTaskAwaiter`1.GetResult; No sync-over-async; await instead
+M:System.Runtime.CompilerServices.ConfiguredTaskAwaitable.ConfiguredTaskAwaiter.GetResult; No sync-over-async; await instead
+M:System.Runtime.CompilerServices.ConfiguredTaskAwaitable`1.ConfiguredTaskAwaiter.GetResult; No sync-over-async; await instead
+M:System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter.GetResult; No sync-over-async; await instead
+M:System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1.ConfiguredValueTaskAwaiter.GetResult; No sync-over-async; await instead
+
+// Process exits: a library never kills its host, and a test never kills the runner (docs/guidelines/tests.md).
+M:System.Environment.Exit(System.Int32); A library never ends its host process
+M:System.Environment.FailFast(System.String); A library never ends its host process
+M:System.Environment.FailFast(System.String,System.Exception); A library never ends its host process
+
+// Runtime reflection: activation, invocation and assembly scanning (docs/guidelines/csharp.md Reflection).
+T:System.Activator; No runtime reflection; construct explicitly
+M:System.Type.GetType(System.String); No runtime reflection
+M:System.Type.GetType(System.String,System.Boolean); No runtime reflection
+M:System.Type.GetType(System.String,System.Boolean,System.Boolean); No runtime reflection
+M:System.Type.GetType(System.String,System.Func{System.Reflection.AssemblyName,System.Reflection.Assembly},System.Func{System.Reflection.Assembly,System.String,System.Boolean,System.Type}); No runtime reflection
+M:System.Type.GetType(System.String,System.Func{System.Reflection.AssemblyName,System.Reflection.Assembly},System.Func{System.Reflection.Assembly,System.String,System.Boolean,System.Type},System.Boolean); No runtime reflection
+M:System.Type.GetType(System.String,System.Func{System.Reflection.AssemblyName,System.Reflection.Assembly},System.Func{System.Reflection.Assembly,System.String,System.Boolean,System.Type},System.Boolean,System.Boolean); No runtime reflection
+M:System.Type.MakeGenericType(System.Type[]); No runtime reflection; key on the compile-time type
+M:System.Reflection.MethodInfo.MakeGenericMethod(System.Type[]); No runtime reflection; key on the compile-time type
+M:System.Type.InvokeMember(System.String,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object,System.Object[]); No runtime reflection
+M:System.Type.InvokeMember(System.String,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object,System.Object[],System.Globalization.CultureInfo); No runtime reflection
+M:System.Type.InvokeMember(System.String,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object,System.Object[],System.Reflection.ParameterModifier[],System.Globalization.CultureInfo,System.String[]); No runtime reflection
+M:System.Reflection.MethodBase.Invoke(System.Object,System.Object[]); No runtime reflection
+M:System.Reflection.MethodBase.Invoke(System.Object,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object[],System.Globalization.CultureInfo); No runtime reflection
+M:System.Reflection.ConstructorInfo.Invoke(System.Object[]); No runtime reflection
+M:System.Reflection.ConstructorInfo.Invoke(System.Reflection.BindingFlags,System.Reflection.Binder,System.Object[],System.Globalization.CultureInfo); No runtime reflection
+M:System.Reflection.PropertyInfo.GetValue(System.Object); No runtime reflection
+M:System.Reflection.PropertyInfo.GetValue(System.Object,System.Object[]); No runtime reflection
+M:System.Reflection.PropertyInfo.GetValue(System.Object,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object[],System.Globalization.CultureInfo); No runtime reflection
+M:System.Reflection.PropertyInfo.SetValue(System.Object,System.Object); No runtime reflection
+M:System.Reflection.PropertyInfo.SetValue(System.Object,System.Object,System.Object[]); No runtime reflection
+M:System.Reflection.PropertyInfo.SetValue(System.Object,System.Object,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object[],System.Globalization.CultureInfo); No runtime reflection
+M:System.Reflection.FieldInfo.GetValue(System.Object); No runtime reflection
+M:System.Reflection.FieldInfo.SetValue(System.Object,System.Object); No runtime reflection
+M:System.Reflection.FieldInfo.SetValue(System.Object,System.Object,System.Reflection.BindingFlags,System.Reflection.Binder,System.Globalization.CultureInfo); No runtime reflection
+M:System.Delegate.DynamicInvoke(System.Object[]); No runtime reflection
+M:System.Reflection.Assembly.Load(System.String); No assembly loading or scanning
+M:System.Reflection.Assembly.Load(System.Reflection.AssemblyName); No assembly loading or scanning
+M:System.Reflection.Assembly.Load(System.Byte[]); No assembly loading or scanning
+M:System.Reflection.Assembly.Load(System.Byte[],System.Byte[]); No assembly loading or scanning
+M:System.Reflection.Assembly.LoadFrom(System.String); No assembly loading or scanning
+M:System.Reflection.Assembly.LoadFrom(System.String,System.Byte[],System.Configuration.Assemblies.AssemblyHashAlgorithm); No assembly loading or scanning
+M:System.Reflection.Assembly.LoadFile(System.String); No assembly loading or scanning
+M:System.Reflection.Assembly.GetType(System.String); No assembly loading or scanning
+M:System.Reflection.Assembly.GetType(System.String,System.Boolean); No assembly loading or scanning
+M:System.Reflection.Assembly.GetType(System.String,System.Boolean,System.Boolean); No assembly loading or scanning
+M:System.Reflection.Assembly.GetTypes; No assembly loading or scanning
+M:System.Reflection.Assembly.GetExportedTypes; No assembly loading or scanning
+M:System.Reflection.Assembly.CreateInstance(System.String); No runtime reflection
+M:System.Reflection.Assembly.CreateInstance(System.String,System.Boolean); No runtime reflection
+M:System.Reflection.Assembly.CreateInstance(System.String,System.Boolean,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object[],System.Globalization.CultureInfo,System.Object[]); No runtime reflection
+M:System.AppDomain.GetAssemblies; No assembly loading or scanning
+M:System.AppDomain.CreateInstance(System.String,System.String); No runtime reflection
+M:System.AppDomain.CreateInstance(System.String,System.String,System.Object[]); No runtime reflection
+M:System.AppDomain.CreateInstance(System.String,System.String,System.Boolean,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object[],System.Globalization.CultureInfo,System.Object[]); No runtime reflection
+M:System.AppDomain.CreateInstanceAndUnwrap(System.String,System.String); No runtime reflection
+M:System.AppDomain.CreateInstanceAndUnwrap(System.String,System.String,System.Object[]); No runtime reflection
+M:System.AppDomain.CreateInstanceAndUnwrap(System.String,System.String,System.Boolean,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object[],System.Globalization.CultureInfo,System.Object[]); No runtime reflection
+N:System.Reflection.Emit; No runtime code generation
+
+// Protobuf: generated IBufferMessage code only, never descriptor-driven JSON.
+T:Google.Protobuf.JsonFormatter; No reflection-based protobuf JSON; map to records and use System.Text.Json source generation
+T:Google.Protobuf.JsonParser; No reflection-based protobuf JSON; map to records and use System.Text.Json source generation
+
+// Native interop: source-generated only.
+T:System.Runtime.InteropServices.DllImportAttribute; Use [LibraryImport]
+
+// Newtonsoft.Json and Grpc.Core are also banned as packages (dotnet/Directory.Build.targets, WMN0001).
+N:Newtonsoft.Json; Use System.Text.Json with a JsonSerializerContext
+// Only the types that live in the Grpc.Core package. Grpc.Core.Api shares the namespace and is needed by Grpc.Net.Client.
+T:Grpc.Core.CallInvocationDetails`2; Grpc.Core is banned; use Grpc.Net.Client
+T:Grpc.Core.Calls; Grpc.Core is banned; use Grpc.Net.Client
+T:Grpc.Core.Channel; Grpc.Core is banned; use Grpc.Net.Client
+T:Grpc.Core.ChannelOption; Grpc.Core is banned; use Grpc.Net.Client
+T:Grpc.Core.ChannelOptions; Grpc.Core is banned; use Grpc.Net.Client
+T:Grpc.Core.ChannelState; Grpc.Core is banned; use Grpc.Net.Client
+T:Grpc.Core.CompressionLevel; Grpc.Core is banned; use Grpc.Net.Client
+T:Grpc.Core.DefaultCallInvoker; Grpc.Core is banned; use Grpc.Net.Client
+T:Grpc.Core.GrpcEnvironment; Grpc.Core is banned; use Grpc.Net.Client
+T:Grpc.Core.Interceptors.ServerServiceDefinitionExtensions; Grpc.Core is banned; use Grpc.Net.Client
+N:Grpc.Core.Logging; Grpc.Core is banned; use Grpc.Net.Client
+T:Grpc.Core.Server; Grpc.Core is banned; use Grpc.Net.Client
+T:Grpc.Core.ServerCredentials; Grpc.Core is banned; use Grpc.Net.Client
+T:Grpc.Core.ServerPort; Grpc.Core is banned; use Grpc.Net.Client
+T:Grpc.Core.SslClientCertificateRequestType; Grpc.Core is banned; use Grpc.Net.Client
+T:Grpc.Core.SslServerCredentials; Grpc.Core is banned; use Grpc.Net.Client
+T:Grpc.Core.Utils.AsyncStreamExtensions; Grpc.Core is banned; use Grpc.Net.Client
+T:Grpc.Core.Utils.BenchmarkUtil; Grpc.Core is banned; use Grpc.Net.Client
+T:Grpc.Core.Utils.TaskUtils; Grpc.Core is banned; use Grpc.Net.Client

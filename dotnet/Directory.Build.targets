@@ -1,0 +1,56 @@
+<Project>
+	<Target Name="_SetupSourceControlMetadata" AfterTargets="InitializeSourceControlInformation">
+		<ItemGroup>
+			<!-- The full commit SHA -->
+			<AssemblyMetadata Include="SourceRevision" Value="$(SourceRevisionId)" />
+			<!-- e.g. refs/heads/master -->
+			<AssemblyMetadata Include="SourceBranch" Value="$(SourceBranchName)" />
+		</ItemGroup>
+	</Target>
+
+	<!--
+		The SDK finds .editorconfig and .globalconfig files from the directories of the project's own Compile items.
+		A project with no source file yet (an empty test project) would get neither, and its generated xunit entry point
+		would be analyzed with default severities and without the generated-code exclusion. Add them explicitly then.
+	-->
+	<ItemGroup Condition="'@(Compile)' == ''">
+		<EditorConfigFiles Include="$(MSBuildThisFileDirectory)../.editorconfig" />
+		<EditorConfigFiles Include="$(MSBuildThisFileDirectory).globalconfig" />
+	</ItemGroup>
+
+	<!--
+		Banned packages, anywhere in the resolved graph (ARCHITECTURE §13 invariant 7).
+		A package ban, not a namespace ban: Grpc.Core.Api, which Grpc.Net.Client needs, also uses the Grpc.Core namespace.
+	-->
+	<ItemGroup>
+		<BannedPackage Include="Grpc.Core" Reason="it is the deprecated native gRPC C core; use Grpc.Net.Client" />
+		<BannedPackage Include="Newtonsoft.Json" Reason="use System.Text.Json with a JsonSerializerContext" />
+	</ItemGroup>
+
+	<Target Name="_RejectBannedPackages" AfterTargets="ResolvePackageAssets">
+		<ItemGroup>
+			<_ResolvedPackageId Include="@(RuntimeCopyLocalItems->'%(NuGetPackageId)');@(ResolvedCompileFileDefinitions->'%(NuGetPackageId)');@(NativeCopyLocalItems->'%(NuGetPackageId)')" />
+			<_BannedPackageMissing Include="@(BannedPackage)" Exclude="@(_ResolvedPackageId)" />
+			<_BannedPackageFound Include="@(BannedPackage)" Exclude="@(_BannedPackageMissing)" />
+		</ItemGroup>
+
+		<Error Condition="'@(_BannedPackageFound)' != ''" Code="WMN0001" Text="Banned packages in the dependency graph (ARCHITECTURE §13 invariant 7): @(_BannedPackageFound->'%(Identity): %(Reason)', '; ')." />
+	</Target>
+
+	<!--
+		A test project that is not a Microsoft.Testing.Platform app is silently skipped by dotnet test.
+		Every project named *Tests must be one (docs/guidelines/tests.md).
+	-->
+	<Target Name="_RequireTestingPlatform" BeforeTargets="CoreCompile" Condition="$(MSBuildProjectName.EndsWith('Tests')) AND '$(IsTestingPlatformApplication)' != 'true'">
+		<Error Code="WMN0002" Text="$(MSBuildProjectName) is named like a test project but is not a Microsoft.Testing.Platform app, so dotnet test would skip it. Reference xunit.v3." />
+	</Target>
+
+	<!--
+		A test project with no source file yet has no tests, and the platform exits 8 ("zero tests ran").
+		Allow that only while the project has no *.cs file. Once it has one, zero discovered tests fails the run,
+		so a runner that stops discovering tests cannot pass silently (docs/guidelines/tests.md).
+	-->
+	<PropertyGroup Condition="'$(IsTestingPlatformApplication)' == 'true' AND '$([System.IO.Directory]::GetFiles($(MSBuildProjectDirectory), &quot;*.cs&quot;, System.IO.SearchOption.AllDirectories))' == ''">
+		<TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --ignore-exit-code 8</TestingPlatformCommandLineArguments>
+	</PropertyGroup>
+</Project>

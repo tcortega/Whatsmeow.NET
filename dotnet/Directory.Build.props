@@ -1,0 +1,38 @@
+<Project>
+	<PropertyGroup>
+		<LangVersion>latest</LangVersion>
+
+		<Nullable>enable</Nullable>
+		<WarningsAsErrors>Nullable</WarningsAsErrors>
+
+		<ImplicitUsings>enable</ImplicitUsings>
+
+		<TargetFramework>net10.0</TargetFramework>
+		<AnalysisLevel>latest-all</AnalysisLevel>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<TieredPGO>true</TieredPGO>
+
+		<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+
+		<!-- Generating documentation file required for unused usings analyzer -->
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<!-- 1591 is undocumented apis; don't actually care about documentation atm. -->
+		<NoWarn>$(NoWarn),1591</NoWarn>
+
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+		<!-- bin/ and obj/ go to dotnet/artifacts/, never next to the sources. -->
+		<UseArtifactsOutput>true</UseArtifactsOutput>
+		<!-- Pinned here: by default it follows the nearest Directory.Build.props, which would split it under src/. -->
+		<ArtifactsPath>$(MSBuildThisFileDirectory)artifacts</ArtifactsPath>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+		<!-- Don't block development work; but block CI if dev work isn't complete. -->
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<MSBuildTreatWarningsAsErrors>true</MSBuildTreatWarningsAsErrors>
+
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+	</PropertyGroup>
+</Project>
