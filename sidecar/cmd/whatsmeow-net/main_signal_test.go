@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"sync"
 	"syscall"
 	"testing"
 	"time"
@@ -17,11 +18,26 @@ import (
 
 const testToken = "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"
 
-// child is this test binary re-executed as whatsmeow-net, stopped once it has logged "starting".
+// child is this test binary re-executed as whatsmeow-net, returned once it has logged "starting". Its whole
+// stderr is kept, and every failure prints it.
 type child struct {
-	cmd    *exec.Cmd
-	stdin  io.WriteCloser
-	stdout *bufio.Reader
+	cmd     *exec.Cmd
+	stdin   io.WriteCloser
+	stdout  *bufio.Reader
+	mu      sync.Mutex
+	stderr  strings.Builder
+	drained chan struct{}
+}
+
+// fatalf fails the test with the child's stderr so far.
+func (s *child) fatalf(t *testing.T, format string, args ...any) {
+	t.Helper()
+
+	s.mu.Lock()
+	stderr := s.stderr.String()
+	s.mu.Unlock()
+
+	t.Fatalf(format+"\nsidecar stderr:\n%s", append(args, stderr)...)
 }
 
 func startSidecar(t *testing.T) *child {
@@ -61,21 +77,38 @@ func startSidecar(t *testing.T) *child {
 
 	t.Cleanup(func() { _ = cmd.Process.Kill(); _ = cmd.Wait() })
 
+	s := &child{cmd: cmd, stdin: stdin, stdout: bufio.NewReader(stdout), drained: make(chan struct{})}
+	started := make(chan struct{})
+
 	// "starting" is logged once the signal handling is in place, before the token is read.
-	lines := bufio.NewScanner(stderr)
-	for lines.Scan() {
-		if strings.Contains(lines.Text(), `"message":"starting"`) {
-			break
+	go func() {
+		defer close(s.drained)
+
+		lines := bufio.NewScanner(stderr)
+		for lines.Scan() {
+			s.mu.Lock()
+			s.stderr.WriteString(lines.Text() + "\n")
+			s.mu.Unlock()
+
+			if strings.Contains(lines.Text(), `"message":"starting"`) {
+				close(started)
+			}
 		}
+	}()
+
+	select {
+	case <-started:
+	case <-s.drained:
+		s.fatalf(t, "the sidecar exited before it logged starting")
 	}
 
-	go func() { _, _ = io.Copy(io.Discard, stderr) }()
-
-	return &child{cmd: cmd, stdin: stdin, stdout: bufio.NewReader(stdout)}
+	return s
 }
 
 func (s *child) exitCode(t *testing.T) int {
 	t.Helper()
+
+	<-s.drained // all of stderr is read before Wait closes the pipe
 
 	err := s.cmd.Wait()
 
@@ -85,7 +118,7 @@ func (s *child) exitCode(t *testing.T) int {
 	}
 
 	if err != nil {
-		t.Fatalf("wait: %v", err)
+		s.fatalf(t, "wait: %v", err)
 	}
 
 	return 0
@@ -97,11 +130,11 @@ func TestSigtermBeforeTheTokenStopsTheSidecar(t *testing.T) {
 	s := startSidecar(t)
 
 	if err := s.cmd.Process.Signal(syscall.SIGTERM); err != nil {
-		t.Fatalf("signal: %v", err)
+		s.fatalf(t, "signal: %v", err)
 	}
 
 	if code := s.exitCode(t); code != exitStopped {
-		t.Fatalf("exit code = %d, want %d", code, exitStopped)
+		s.fatalf(t, "exit code = %d, want %d", code, exitStopped)
 	}
 }
 
@@ -112,21 +145,21 @@ func TestSigintIsIgnored(t *testing.T) {
 
 	// A terminal Ctrl+C reaches the whole process group; the tethered sidecar must survive it.
 	if err := s.cmd.Process.Signal(syscall.SIGINT); err != nil {
-		t.Fatalf("signal: %v", err)
+		s.fatalf(t, "signal: %v", err)
 	}
 
 	if _, err := io.WriteString(s.stdin, testToken+"\n"); err != nil {
-		t.Fatalf("write the token: %v", err)
+		s.fatalf(t, "write the token: %v", err)
 	}
 
 	ready, err := s.stdout.ReadString('\n')
 	if err != nil || !strings.Contains(ready, `"event":"ready"`) {
-		t.Fatalf("ready line = %q, %v; SIGINT stopped the sidecar", ready, err)
+		s.fatalf(t, "ready line = %q, %v; SIGINT stopped the sidecar", ready, err)
 	}
 
 	_ = s.stdin.Close()
 
 	if code := s.exitCode(t); code != exitStopped {
-		t.Fatalf("exit code = %d, want %d", code, exitStopped)
+		s.fatalf(t, "exit code = %d, want %d", code, exitStopped)
 	}
 }
