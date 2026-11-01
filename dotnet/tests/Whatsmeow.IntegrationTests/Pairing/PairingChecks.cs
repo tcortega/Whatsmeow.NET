@@ -10,6 +10,9 @@ namespace Whatsmeow.IntegrationTests.Pairing;
 /// </summary>
 internal static partial class PairingChecks
 {
+	/// <summary>The state when the first code came: pairing.</summary>
+	public static void ValidatePairingStarted(SessionState atFirstCode) => Assert.Equal(new SessionState.Pairing(), atFirstCode);
+
 	/// <summary>
 	/// One or more distinct QR codes in whatsmeow's format, then <see cref="PairingUpdate.Paired"/>, and the session
 	/// usable right after.
@@ -21,7 +24,7 @@ internal static partial class PairingChecks
 		Assert.NotEmpty(codes);
 		Assert.All(codes, code => Assert.Matches(QrCodeFormat(), code));
 		Assert.Distinct(codes, StringComparer.Ordinal);
-		AssertUsable(after);
+		ValidateUsable(after);
 	}
 
 	/// <summary>One pairing code in WhatsApp's format, then <see cref="PairingUpdate.Paired"/>, and the session usable right after.</summary>
@@ -32,15 +35,15 @@ internal static partial class PairingChecks
 			update => Assert.Matches(PairingCodeFormat(), Assert.IsType<PairingUpdate.PairingCode>(update).Code),
 			update => Assert.Equal(new PairingUpdate.Paired(), update)
 		);
-		AssertUsable(after);
+		ValidateUsable(after);
 	}
 
 	/// <summary>
-	/// Connected when <see cref="PairingUpdate.Paired"/> came. WhatsApp may already have sent the offline backlog by
-	/// the time the state is read, which makes it CaughtUp [inferred: live only, the fake never sends it].
+	/// A session WhatsApp logged in: Connected, or already CaughtUp. WhatsApp may already have sent the offline backlog
+	/// by the time the state is read [inferred: live only, the fake never sends it; to be confirmed live].
 	/// </summary>
-	private static void AssertUsable(SessionState after) =>
-		Assert.Contains(after, new SessionState[] { new SessionState.Connected(), new SessionState.CaughtUp() });
+	public static void ValidateUsable(SessionState state) =>
+		Assert.Contains(state, new SessionState[] { new SessionState.Connected(), new SessionState.CaughtUp() });
 
 	/// <summary>whatsmeow's QR payload: ref, the noise key, the identity key, the ADV secret, the client type (pair.go:125-130).</summary>
 	[GeneratedRegex("^https://wa\\.me/settings/linked_devices#.+,[A-Za-z0-9+/]{43}=,[A-Za-z0-9+/]{43}=,[A-Za-z0-9+/]{43}=,[0-9a-z]$", RegexOptions.None, matchTimeoutMilliseconds: 1000)]

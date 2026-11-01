@@ -71,10 +71,11 @@ public sealed class WhatsmeowSessions
 		_ = _clients.TryRemove(sessionId, out _);
 	}
 
-	internal void Remember(SessionId sessionId)
+	/// <summary>Remembers the session as one the application connected; true when it was not remembered yet.</summary>
+	internal bool Remember(SessionId sessionId)
 	{
 		lock (_lock)
-			_ = _connected.Add(sessionId);
+			return _connected.Add(sessionId);
 	}
 
 	private bool IsRemembered(SessionId sessionId)

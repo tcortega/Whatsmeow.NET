@@ -49,11 +49,16 @@ type attempt struct {
 	// dropped: the connection dropped before the link, which whatsmeow's QR channel reports as a timeout
 	// (qrchan.go:196-197).
 	dropped bool
+	// stopped is closed, with stopReason, when WhatsApp ended the connection before the link.
+	stopped    chan struct{}
+	stopReason string
 	// loggedIn is closed when the login after the link ended: with Connected, or with a stopping state.
 	loggedIn chan struct{}
 	ended    bool
 	// usable: the login came with the pre-keys uploaded, and the session is Connected.
 	usable bool
+	// disconnected: Disconnect ended the wait for the login.
+	disconnected bool
 }
 
 func (a *attempt) end() {
@@ -64,8 +69,13 @@ func (a *attempt) end() {
 }
 
 // whilePairing applies the events that mean something else while a Pair call is open, and reports whether it did.
-// s.mu is held.
+// Once the login after the link ended, the session's state machine has them again, even before the Pair call closed
+// the attempt. s.mu is held.
 func (svc *Service) whilePairing(s *session, a *attempt, evt any) bool {
+	if a.ended {
+		return false
+	}
+
 	switch e := evt.(type) {
 	case *events.PairSuccess:
 		s.jid, s.lid = e.ID.String(), ""
@@ -75,15 +85,16 @@ func (svc *Service) whilePairing(s *session, a *attempt, evt any) bool {
 
 		a.linked = true
 
-		// A restart now finds a paired session: Disconnected, not Created.
-		if err := svc.persist(svc.lifetime, s); err != nil {
+		// A restart now finds a paired session: Disconnected, not Created. The device is saved already
+		// (pair.go:222-226), so this is recorded during a shutdown too.
+		if err := svc.persist(svc.recording, s); err != nil {
 			svc.log.Error().Err(err).Str("session_id", s.id).Msg("recording the linked device failed")
 		}
 	case *events.Disconnected:
 		// After the link, whatsmeow reconnects a paired client on its own (client.go:612-622, 648).
 		a.dropped = a.dropped || !a.linked
 	case *events.Connected:
-		if !a.linked || a.ended {
+		if !a.linked {
 			return true
 		}
 
@@ -96,16 +107,39 @@ func (svc *Service) whilePairing(s *session, a *attempt, evt any) bool {
 
 		a.end()
 	case events.PermanentDisconnect:
-		// Before the link there is no account to stop: the QR channel ends the pairing (qrchan.go:187-199), and the
-		// session goes back to its previous state. After it, the stopping state is the session's (ARCHITECTURE §13
-		// invariant 4).
-		if a.linked && !a.ended {
+		// After the link, the stopping state is the session's (ARCHITECTURE §13 invariant 4). Before it there is no
+		// account to stop: the pairing ends with PAIRING_FAILED and the session goes back to its previous state. The
+		// QR channel ends on some of these (qrchan.go:187-199), not on StreamReplaced or CATRefreshError, so the
+		// pairing does not wait for it.
+		if a.linked {
 			svc.apply(s, evt)
 			a.end()
+
+			return true
+		}
+
+		if a.stopReason == "" {
+			a.stopReason = fmt.Sprintf("%T", evt)
+			close(a.stopped)
 		}
 	default:
 		return false
 	}
+
+	return true
+}
+
+// stopLogin ends a linked pairing's wait for the login, for Disconnect, and reports whether there was one. s.mu is
+// held.
+func stopLogin(s *session) bool {
+	a := s.pairing
+	if a == nil || !a.linked || a.ended {
+		return false
+	}
+
+	a.disconnected = true
+	a.end()
+	s.pairing = nil
 
 	return true
 }
@@ -151,7 +185,9 @@ func (svc *Service) Pair(req *whatsmeowv1.PairRequest, stream grpc.ServerStreami
 	// Linked. A cancel from now on never disconnects: the login goes on without the call (session.proto).
 	result := make(chan error, 1)
 
-	svc.logins.Go(func() { result <- svc.awaitLogin(s, a) })
+	if !svc.spawn(func() { result <- svc.awaitLogin(s, a) }) {
+		return fmt.Errorf("pair session %q: the sidecar is stopping: %w", s.id, svc.lifetime.Err())
+	}
 
 	select {
 	case <-ctx.Done():
@@ -197,6 +233,13 @@ func (svc *Service) startPairing(ctx context.Context, s *session) (*attempt, Cli
 
 	s.mu.Lock()
 
+	// Deleted after Pair found it: nobody would end what this connects.
+	if s.gone() {
+		s.mu.Unlock()
+
+		return nil, nil, nil, fmt.Errorf("pair session %q: %w", s.id, server.ErrSessionNotFound)
+	}
+
 	previous := s.state
 	switch previous.GetKind().(type) {
 	case *whatsmeowv1.SessionState_Created_, *whatsmeowv1.SessionState_LoggedOut_:
@@ -212,7 +255,7 @@ func (svc *Service) startPairing(ctx context.Context, s *session) (*attempt, Cli
 
 	svc.attach(s, svc.devices.NewDevice())
 
-	a := &attempt{previous: previous, loggedIn: make(chan struct{})}
+	a := &attempt{previous: previous, stopped: make(chan struct{}), loggedIn: make(chan struct{})}
 	s.pairing = a
 	client := s.client
 
@@ -271,6 +314,8 @@ func (svc *Service) showCodes(ctx context.Context, s *session, a *attempt, clien
 			return fmt.Errorf("pair session %q: %w", s.id, ctx.Err())
 		case <-s.deleted:
 			return fmt.Errorf("pair session %q: %w", s.id, server.ErrSessionNotFound)
+		case <-a.stopped:
+			return fmt.Errorf("pair session %q: WhatsApp ended the connection (%s): %w", s.id, a.stopReason, server.ErrPairingFailed)
 		case next, open := <-qr:
 			if !open {
 				return fmt.Errorf("pair session %q: the QR channel closed: %w", s.id, server.ErrPairingFailed)
@@ -352,7 +397,17 @@ func (svc *Service) unpair(ctx context.Context, s *session, a *attempt) bool {
 		return true
 	}
 
-	if s.gone() || s.pairing != a {
+	client := s.client
+
+	if s.gone() {
+		s.mu.Unlock()
+		// Delete disconnected the client already; again costs nothing, and holds if that ever changes.
+		client.Disconnect()
+
+		return false
+	}
+
+	if s.pairing != a {
 		s.mu.Unlock()
 
 		return false
@@ -363,7 +418,6 @@ func (svc *Service) unpair(ctx context.Context, s *session, a *attempt) bool {
 		svc.log.Error().Err(err).Str("session_id", s.id).Msg("recording the state before pairing failed")
 	}
 
-	client := s.client
 	s.mu.Unlock()
 
 	client.Disconnect()
@@ -399,6 +453,11 @@ func (svc *Service) awaitLogin(s *session, a *attempt) error {
 
 	timedOut := !a.ended
 	a.end()
+
+	if a.disconnected {
+		return fmt.Errorf("pair session %q: the session was disconnected before the login: %w", s.id, server.ErrPairingFailed)
+	}
+
 	s.pairing = nil
 
 	switch {

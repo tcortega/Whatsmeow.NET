@@ -35,7 +35,8 @@ public interface IWhatsAppClient
 	/// </summary>
 	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
 	/// <exception cref="PairingException">
-	/// The session is being paired (<see cref="WhatsmeowErrorCode.PairingInProgress"/>); cancel the pairing instead.
+	/// The session is being paired and the phone has not linked it yet (<see cref="WhatsmeowErrorCode.PairingInProgress"/>);
+	/// cancel the pairing instead. Once the phone linked it, disconnecting stops the login, and the pairing fails.
 	/// </exception>
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
 	Task DisconnectAsync(CancellationToken cancellationToken = default);
@@ -43,10 +44,12 @@ public interface IWhatsAppClient
 	/// <summary>
 	/// Pairs a session that is <see cref="SessionState.Created"/> or <see cref="SessionState.LoggedOut"/> by QR code: it
 	/// yields each <see cref="PairingUpdate.QrCode"/> as WhatsApp rotates it, then <see cref="PairingUpdate.Paired"/>,
-	/// the last, once the session is usable and <see cref="SessionState.Connected"/>. The client then connects the
-	/// session again after a sidecar restart, as after <see cref="ConnectAsync"/>.
-	/// Cancel <paramref name="cancellationToken"/> to stop: before the phone linked the device, the session goes back
-	/// to its state before; after, the login goes on, and the session ends up Connected or Disconnected.
+	/// the last, once the session is usable and <see cref="SessionState.Connected"/>. Each enumeration starts a new
+	/// pairing. The client connects the session again after a sidecar restart, as after <see cref="ConnectAsync"/>.
+	/// Cancel <paramref name="cancellationToken"/>, or stop enumerating (a <see langword="break"/>, <c>FirstAsync</c>, disposing
+	/// the enumerator), to stop: before the phone linked the device, the session goes back to its state before; after,
+	/// the login goes on without you, and the session ends up <see cref="SessionState.Connected"/>,
+	/// <see cref="SessionState.Disconnected"/>, or in a stopping state WhatsApp ended the login with.
 	/// </summary>
 	/// <exception cref="PairingException">
 	/// <see cref="WhatsmeowErrorCode.AlreadyPaired"/>: the session is paired, which pairing leaves untouched;
@@ -65,11 +68,12 @@ public interface IWhatsAppClient
 	/// <summary>
 	/// Pairs a session that is <see cref="SessionState.Created"/> or <see cref="SessionState.LoggedOut"/> by phone
 	/// number: the phone gets a notification, and this yields one <see cref="PairingUpdate.PairingCode"/> to enter
-	/// on it, then <see cref="PairingUpdate.Paired"/>, as <see cref="PairWithQrCodeAsync"/> does. The code stays usable
-	/// until pairing times out, after about 160 seconds.
+	/// on it, then <see cref="PairingUpdate.Paired"/>, as <see cref="PairWithQrCodeAsync"/> does, a new pairing for
+	/// each enumeration. Pairing times out when the QR codes WhatsApp rotates meanwhile run out, which took 160 seconds
+	/// when measured; how long WhatsApp itself honours the phone code has not been measured.
 	/// </summary>
 	/// <param name="phoneNumber">The account's phone number in international format; anything but digits is ignored.</param>
-	/// <param name="cancellationToken">Cancels pairing, as for <see cref="PairWithQrCodeAsync"/>.</param>
+	/// <param name="cancellationToken">Cancels pairing, as for <see cref="PairWithQrCodeAsync"/>; so does stopping the enumeration.</param>
 	/// <exception cref="WhatsmeowValidationException">The phone number is too short or not international; nothing connected.</exception>
 	/// <exception cref="RateLimitedException">WhatsApp rate limited the request; the session is as before.</exception>
 	/// <exception cref="WhatsmeowException">WhatsApp refused, with <see cref="WhatsmeowErrorCode.WhatsAppError"/>.</exception>

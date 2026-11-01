@@ -130,7 +130,7 @@ Any of these in a diff is a failed slice, green or not:
 * `try/catch` or `if` around an assert so failure is swallowed
 * new `Skip`, `Skip.If`, `Explicit`, commented-out facts, or `Assert.True(true)`. The declared exceptions:
   * the platform condition `NoexecTests` (the copy fallback), which needs a `noexec` mount that only root can make: its tests run where `WHATSMEOW_NET_TEST_NOEXEC_DIR` names one (`build/ci.sh` provides it on linux-x64 CI), and fails instead of skipping when `CI=true` on linux-x64 and the mount is missing;
-  * the live opt-in `[LiveFact]`, explicit unless `WHATSMEOW_LIVE_PHONE_NUMBER` is set, in `Whatsmeow.LiveTests` only: `build/ci.sh` fails when `LiveFact` or `Explicit` appears anywhere else
+  * the live opt-in `[LiveFact]`, explicit unless `WHATSMEOW_LIVE_DATABASE` is set (and, for the phone-code test, `WHATSMEOW_LIVE_PHONE_NUMBER`), in `Whatsmeow.LiveTests` only: `build/ci.sh` fails when `LiveFact` appears anywhere else, `Explicit` outside `LiveFactAttribute.cs`, or a `[Fact]` or `[Theory]` in `Whatsmeow.LiveTests`
 * weakening `Assert.Equal(expected, actual)` to `NotNull` or dropping fields
 * special-casing chats, ids, or payloads that exist only in the test
 * retries or loops to get past a failure
@@ -152,10 +152,14 @@ Time is faked, never waited on: one `FakeTimeProvider` drives now, delays and Po
 The default suite and CI use `--fake-whatsapp`.
 
 `tests/Whatsmeow.LiveTests` runs against real WhatsApp with a dedicated test number and manual pairing ([ADR 0021](../adr/0021-pairing.md)).
-Its tests are `[LiveFact]`: they run only when `WHATSMEOW_LIVE_PHONE_NUMBER` holds the dedicated number, and otherwise start nothing and are reported as not run.
-`build/ci.sh` runs `dotnet test` without that variable, so CI never runs them.
+Its tests are `[LiveFact]`: they run only when `WHATSMEOW_LIVE_DATABASE` names the live database, and otherwise start nothing and are reported as not run; the phone-code test also needs `WHATSMEOW_LIVE_PHONE_NUMBER`, the dedicated number.
+`build/ci.sh` runs `dotnet test` without either variable, so CI never runs them, and the live sidecar refuses to start without the database.
+The live session `live` is persistent: it is paired by QR code once and reused by every later run, #10's included, with no scan; it is never logged out or deleted.
+Its database (`~/.whatsmeow-net-live/live.db` in `~/secrets.env`, a 0700 directory outside the repository, the file 0600) holds the account's keys: a secret, never committed, copied, or used by CI.
+If the phone logs the session out, that run fails with `LoggedOut`, and the next run pairs it again by QR code.
+The phone-code test pairs a throwaway session, `live-phone`, and logs it out and deletes it at the end, so the phone keeps only the live session's device.
 Same assertions as the fake-mode suite: a live test calls the fake-mode tests' own checks (`Whatsmeow.IntegrationTests/Pairing/PairingChecks.cs`, through a project reference), and only the person replaces the fake. No live-only skips and no weakened equals.
-The number is a secret: keep it in `~/secrets.env` and never print it; the live sidecar log redacts it.
+The number and the database path are secrets: keep them in `~/secrets.env` and never print them; the live sidecar log redacts the number.
 Run, from the repository root:
 
 ```sh
@@ -164,8 +168,7 @@ set -a; source ~/secrets.env; set +a
 dotnet test --project dotnet/tests/Whatsmeow.LiveTests -c Release
 ```
 
-The person watches `dotnet/artifacts/live/`: `qr.png` is the QR code to scan (rewritten on each rotation), then `pairing-code.txt` the code to enter on the phone; `sidecar.log` is the sidecar's log.
-Each session a live test paired is logged out at the end.
+The person watches `dotnet/artifacts/live/`: `qr.png` is the QR code to scan (rewritten on each rotation), only when the live session is not paired yet, and `pairing-code.txt` the code to enter on the phone; `sidecar.log` is the sidecar's log.
 
 Fake-only seams (injected failures, scripted disconnects) stay on fake-mode fixtures. They are not a live concern.
 

@@ -26,7 +26,7 @@ public sealed class PairingTests(FakeSidecar fixture)
 			switch (updates.Count)
 			{
 				case 1:
-					Assert.Equal(new SessionState.Pairing(), await SessionSetup.StateAsync(client, ct));
+					PairingChecks.ValidatePairingStarted(await SessionSetup.StateAsync(client, ct));
 					_ = await fixture.Fake.RotateQrCodeAsync(new RotateQrCodeRequest { SessionId = "pair-qr" }, cancellationToken: ct);
 					break;
 				case 2:
@@ -51,8 +51,10 @@ public sealed class PairingTests(FakeSidecar fixture)
 		await foreach (var update in client.PairWithPhoneNumberAsync("+1 555 123 4567", ct))
 		{
 			updates.Add(update);
-			if (update is PairingUpdate.PairingCode)
-				_ = await fixture.Fake.LinkDeviceAsync(new LinkDeviceRequest { SessionId = "pair-phone", Jid = SessionSetup.Jid("pair-phone") }, cancellationToken: ct);
+			if (update is not PairingUpdate.PairingCode)
+				continue;
+			PairingChecks.ValidatePairingStarted(await SessionSetup.StateAsync(client, ct));
+			_ = await fixture.Fake.LinkDeviceAsync(new LinkDeviceRequest { SessionId = "pair-phone", Jid = SessionSetup.Jid("pair-phone") }, cancellationToken: ct);
 		}
 
 		PairingChecks.ValidatePhonePairing(updates, await SessionSetup.StateAsync(client, ct));

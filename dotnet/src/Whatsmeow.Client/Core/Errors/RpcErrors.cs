@@ -45,6 +45,9 @@ internal static class RpcErrors
 		Reason(exception, out _) is ErrorReason.Unauthenticated or ErrorReason.SidecarShuttingDown
 		|| (Reason(exception, out _) is null && exception.StatusCode is StatusCode.Unavailable);
 
+	/// <summary>The reason the call failed with, as the public code.</summary>
+	public static WhatsmeowErrorCode CodeOf(RpcException exception) => ToCode(Reason(exception, out _));
+
 	[DoesNotReturn]
 	public static void Throw(RpcException exception)
 	{

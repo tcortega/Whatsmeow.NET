@@ -17,7 +17,7 @@ public abstract record PairingUpdate
 		public required string Code { get; init; }
 	}
 
-	/// <summary>The code to enter on the phone, sent once. It stays usable until pairing times out.</summary>
+	/// <summary>The code to enter on the phone, sent once. Pairing waits for it until it times out.</summary>
 	public sealed record PairingCode : PairingUpdate
 	{
 		/// <summary>The code, formatted for display.</summary>

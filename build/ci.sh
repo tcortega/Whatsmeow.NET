@@ -247,19 +247,24 @@ shipped_have_no_fake() {
 	return "$rc"
 }
 
-# The live tests (docs/guidelines/tests.md Live WhatsApp) are contained: [LiveFact] and Explicit, declared exceptions
-# to the banned list, appear only in Whatsmeow.LiveTests, and QRCoder, which it alone uses, in no shipped project.
+# The live tests (docs/guidelines/tests.md Live WhatsApp) are contained: [LiveFact] appears only in
+# Whatsmeow.LiveTests, Explicit, a declared exception to the banned list, only in its LiveFactAttribute.cs, every
+# test there is a [LiveFact] (no [Fact] or [Theory]), and QRCoder, which it alone uses, is in no shipped project.
 # Each grep has a positive control, or it could prove nothing.
 live_tests_contained() {
-	local live=dotnet/tests/Whatsmeow.LiveTests found lock rc=0
-	if ! grep -rqF --include='*.cs' '[LiveFact]' "$live" || ! grep -qF '"QRCoder"' "$live/packages.lock.json"; then
-		annotate error "live tests" "$live has no [LiveFact] or no QRCoder, so this check cannot see them"
+	local live=dotnet/tests/Whatsmeow.LiveTests attribute=dotnet/tests/Whatsmeow.LiveTests/LiveFactAttribute.cs
+	local explicit='(^|[^A-Za-z0-9_])Explicit[[:space:]]*=[^=]' found lock rc=0
+	if ! grep -rqF --include='*.cs' '[LiveFact' "$live" || ! grep -qE "$explicit" "$attribute" ||
+		! grep -qF '"QRCoder"' "$live/packages.lock.json"; then
+		annotate error "live tests" "no [LiveFact] in $live, no Explicit in $attribute, or no QRCoder in its lock file, so this check cannot see them"
 		return 1
 	fi
 	# Generated/ is buf's output, which nobody writes (docs/guidelines/csharp.md); its protos have Explicit fields.
-	found="$(grep -rnE --include='*.cs' --exclude-dir=artifacts --exclude-dir=Generated 'LiveFact|(^|[^A-Za-z0-9_])Explicit[[:space:]]*=[^=]' dotnet | grep -v "^$live/")"
+	found="$(grep -rnE --include='*.cs' --exclude-dir=artifacts --exclude-dir=Generated "LiveFact|$explicit" dotnet |
+		grep -v "^$live/" ; grep -rnE --include='*.cs' "$explicit" "$live" | grep -v "^$attribute:" ;
+		grep -rnE --include='*.cs' '\[(Fact|Theory)' "$live")"
 	if [ -n "$found" ]; then
-		annotate error "live tests" "LiveFact and Explicit belong to $live only (docs/guidelines/tests.md)"
+		annotate error "live tests" "LiveFact belongs to $live, Explicit to $attribute, and a live test is a [LiveFact] (docs/guidelines/tests.md)"
 		echo "$found"
 		rc=1
 	fi
@@ -269,7 +274,7 @@ live_tests_contained() {
 			rc=1
 		fi
 	done
-	[ "$rc" -eq 0 ] && echo "LiveFact, Explicit and QRCoder appear only in $live"
+	[ "$rc" -eq 0 ] && echo "LiveFact, Explicit, the live tests and QRCoder stay in $live"
 	return "$rc"
 }
 
@@ -283,8 +288,8 @@ job_dotnet() {
 		check "dotnet build" dotnet build dotnet/Whatsmeow.slnx -c Release --no-restore -p:ContinuousIntegrationBuild=true &&
 		{
 			check "no shipped assembly contains the fake WhatsApp control (ADR 0019)" shipped_have_no_fake
-			# Never the live tests, even with their variable exported in the shell that runs this.
-			check "dotnet test" env -u WHATSMEOW_LIVE_PHONE_NUMBER dotnet test --solution dotnet/Whatsmeow.slnx -c Release --no-build
+			# Never the live tests, even with their variables exported in the shell that runs this.
+			check "dotnet test" env -u WHATSMEOW_LIVE_DATABASE -u WHATSMEOW_LIVE_PHONE_NUMBER dotnet test --solution dotnet/Whatsmeow.slnx -c Release --no-build
 			check "AotSmoke publish (zero trim and AOT warnings)" dotnet publish dotnet/tests/AotSmoke/AotSmoke.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true &&
 				check "AotSmoke run" aot_smoke_run
 		}

@@ -432,8 +432,10 @@ namespace Whatsmeow.Protocol.V1 {
       }
       /// <summary>
       /// Disconnect closes the connection and stops reconnecting; the session stays paired (state Disconnected).
-      /// Disconnecting a session that is not connected succeeds and does nothing.
-      /// Errors: SESSION_NOT_FOUND, PAIRING_IN_PROGRESS (cancel the Pair call instead).
+      /// Disconnecting a session that is not connected succeeds and does nothing. While a Pair call is open and the phone
+      /// has not linked the device, it fails with PAIRING_IN_PROGRESS (cancel the Pair call instead); after the link it
+      /// stops the login, and the Pair call fails with PAIRING_FAILED.
+      /// Errors: SESSION_NOT_FOUND, PAIRING_IN_PROGRESS.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -447,8 +449,10 @@ namespace Whatsmeow.Protocol.V1 {
       }
       /// <summary>
       /// Disconnect closes the connection and stops reconnecting; the session stays paired (state Disconnected).
-      /// Disconnecting a session that is not connected succeeds and does nothing.
-      /// Errors: SESSION_NOT_FOUND, PAIRING_IN_PROGRESS (cancel the Pair call instead).
+      /// Disconnecting a session that is not connected succeeds and does nothing. While a Pair call is open and the phone
+      /// has not linked the device, it fails with PAIRING_IN_PROGRESS (cancel the Pair call instead); after the link it
+      /// stops the login, and the Pair call fails with PAIRING_FAILED.
+      /// Errors: SESSION_NOT_FOUND, PAIRING_IN_PROGRESS.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -460,8 +464,10 @@ namespace Whatsmeow.Protocol.V1 {
       }
       /// <summary>
       /// Disconnect closes the connection and stops reconnecting; the session stays paired (state Disconnected).
-      /// Disconnecting a session that is not connected succeeds and does nothing.
-      /// Errors: SESSION_NOT_FOUND, PAIRING_IN_PROGRESS (cancel the Pair call instead).
+      /// Disconnecting a session that is not connected succeeds and does nothing. While a Pair call is open and the phone
+      /// has not linked the device, it fails with PAIRING_IN_PROGRESS (cancel the Pair call instead); after the link it
+      /// stops the login, and the Pair call fails with PAIRING_FAILED.
+      /// Errors: SESSION_NOT_FOUND, PAIRING_IN_PROGRESS.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -475,8 +481,10 @@ namespace Whatsmeow.Protocol.V1 {
       }
       /// <summary>
       /// Disconnect closes the connection and stops reconnecting; the session stays paired (state Disconnected).
-      /// Disconnecting a session that is not connected succeeds and does nothing.
-      /// Errors: SESSION_NOT_FOUND, PAIRING_IN_PROGRESS (cancel the Pair call instead).
+      /// Disconnecting a session that is not connected succeeds and does nothing. While a Pair call is open and the phone
+      /// has not linked the device, it fails with PAIRING_IN_PROGRESS (cancel the Pair call instead); after the link it
+      /// stops the login, and the Pair call fails with PAIRING_FAILED.
+      /// Errors: SESSION_NOT_FOUND, PAIRING_IN_PROGRESS.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -551,7 +559,7 @@ namespace Whatsmeow.Protocol.V1 {
       /// WhatsApp ends the login with a stopping state (LoggedOut, TempBanned, ...), the session is in that state.
       /// The QR codes, and the phone code with them, run out after about 160 seconds: PAIRING_TIMED_OUT.
       /// Before the link, the client ends pairing by cancelling the call: the sidecar disconnects, and the session returns
-      /// to the state it had before Pair. After the link, a cancel never disconnects.
+      /// to the state it had before Pair. After the link, a cancel never disconnects; Disconnect does.
       /// Pairing a paired session fails with ALREADY_PAIRED, and a second Pair while one is open fails with
       /// PAIRING_IN_PROGRESS: it never starts a second pairing.
       /// Errors: INVALID_ARGUMENT (also a phone number that is too short or not international, field
@@ -577,7 +585,7 @@ namespace Whatsmeow.Protocol.V1 {
       /// WhatsApp ends the login with a stopping state (LoggedOut, TempBanned, ...), the session is in that state.
       /// The QR codes, and the phone code with them, run out after about 160 seconds: PAIRING_TIMED_OUT.
       /// Before the link, the client ends pairing by cancelling the call: the sidecar disconnects, and the session returns
-      /// to the state it had before Pair. After the link, a cancel never disconnects.
+      /// to the state it had before Pair. After the link, a cancel never disconnects; Disconnect does.
       /// Pairing a paired session fails with ALREADY_PAIRED, and a second Pair while one is open fails with
       /// PAIRING_IN_PROGRESS: it never starts a second pairing.
       /// Errors: INVALID_ARGUMENT (also a phone number that is too short or not international, field

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"runtime"
+	"sync"
 	"testing"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 )
 
 // pairStub is what a stub's pairing calls see and did. The stub's mu guards it.
@@ -388,7 +390,6 @@ func TestAPermanentDisconnectBeforeTheLinkLeavesTheSessionUnpaired(t *testing.T)
 	client := h.pairing("s1", nil)
 
 	client.emit(&events.ClientOutdated{})
-	h.wantState("s1", pairing())
 	client.send(whatsmeow.QRChannelClientOutdated)
 
 	wantReason(t, end(t, stream), codes.Aborted, "PAIRING_FAILED", nil)
@@ -686,5 +687,233 @@ func TestAFailedConnectEndsPairingWithConnectionFailed(t *testing.T) {
 
 	if h.stub("s1").disconnectCount() == 0 {
 		t.Fatal("the client was not disconnected")
+	}
+}
+
+func TestALinkDuringShutdownIsStillRecorded(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.create("s1")
+	_, _ = h.pair("s1", "")
+	client := h.pairing("s1", nil)
+
+	// Close ends the lifetime first (session.go Close); whatsmeow may still dispatch the link it saved.
+	h.svc.end()
+	client.linkAs(t, pairedJID, pairedLID)
+
+	h.stop()
+	startOn(t, h.path).wantState("s1", disconnected())
+}
+
+func TestEventsAfterTheLoginEndedAreTheSessionsAgain(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.create("s1")
+	_, _ = h.pair("s1", "")
+	client := h.pairing("s1", nil)
+	client.linkAs(t, pairedJID, pairedLID)
+	client.send(whatsmeow.QRChannelSuccess)
+
+	// Holding the session's ops keeps the wait for the login from finishing, so the pairing is still open when the
+	// next events come.
+	h.svc.mu.Lock()
+	s := h.svc.sessions["s1"]
+	h.svc.mu.Unlock()
+	s.ops.Lock()
+
+	release := sync.OnceFunc(s.ops.Unlock)
+	t.Cleanup(release) // before the harness's stop, which takes ops
+
+	client.logIn(true)
+	h.wantState("s1", connected())
+
+	client.emit(&events.Disconnected{})
+	h.wantState("s1", reconnecting())
+	client.emit(&events.LoggedOut{Reason: events.ConnectFailureLoggedOut})
+	h.wantState("s1", loggedOut(401))
+	release()
+}
+
+func TestAPermanentDisconnectTheQRChannelIgnoresEndsPairingBeforeTheLink(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+
+	// whatsmeow's QR channel ends on ClientOutdated, ConnectFailure, LoggedOut and TemporaryBan (qrchan.go:187-199),
+	// not on these.
+	for i, evt := range []events.PermanentDisconnect{&events.StreamReplaced{}, &events.CATRefreshError{Error: errors.New("refresh")}} {
+		id := "s" + string(rune('a'+i))
+		h.create(id)
+		stream, _ := h.pair(id, "")
+		client := h.pairing(id, nil)
+
+		client.emit(evt)
+
+		wantReason(t, end(t, stream), codes.Aborted, "PAIRING_FAILED", nil)
+		h.awaitState(id, created())
+
+		if client.disconnectCount() == 0 {
+			t.Fatalf("%T: the client was not disconnected", evt)
+		}
+	}
+}
+
+func TestDeleteAfterTheLinkEndsTheWaitForTheLogin(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.create("s1")
+	stream, _ := h.pair("s1", "")
+	client := h.pairing("s1", nil)
+	client.linkAs(t, pairedJID, pairedLID)
+	client.send(whatsmeow.QRChannelSuccess)
+
+	if _, err := h.client.DeleteSession(h.ctx, &whatsmeowv1.DeleteSessionRequest{SessionId: "s1"}); err != nil {
+		t.Fatalf("DeleteSession: %v", err)
+	}
+
+	// Well before the 60 s bound, which is longer than the test's own.
+	wantReason(t, end(t, stream), codes.NotFound, "SESSION_NOT_FOUND", nil)
+}
+
+func TestALinkThatComesAfterACancelIsRecorded(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.create("s1")
+	stream, cancel := h.pair("s1", "")
+	client := h.pairing("s1", nil)
+	client.send(code("c1"))
+	wantStep(t, recv(t, stream), qrStep("c1"))
+	cancel()
+	_ = end(t, stream)
+	h.awaitState("s1", created())
+
+	// whatsmeow saved the device and dispatches PairSuccess after all (pair.go:148-158): the session is paired.
+	client.linkAs(t, pairedJID, pairedLID)
+	h.wantState("s1", disconnected())
+}
+
+func TestALinkDuringTheCancelsDisconnectIsRecorded(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.create("s1")
+	stream, cancel := h.pair("s1", "")
+	client := h.pairing("s1", nil)
+	client.send(code("c1"))
+	wantStep(t, recv(t, stream), qrStep("c1"))
+
+	parsed, err := types.ParseJID(pairedJID)
+	if err != nil {
+		t.Fatalf("jid: %v", err)
+	}
+
+	client.mu.Lock()
+	client.disconnecting = func() {
+		// What whatsmeow does if the phone linked the device just as the call was cancelled (pair.go:148-158).
+		client.device.ID = &parsed
+		client.device.Account = &waAdv.ADVSignedDeviceIdentity{
+			Details: []byte{}, AccountSignature: make([]byte, 64), AccountSignatureKey: make([]byte, 32), DeviceSignature: make([]byte, 64),
+		}
+
+		if err := client.device.Save(context.Background()); err != nil {
+			t.Errorf("save the device: %v", err)
+		}
+
+		client.emit(&events.PairSuccess{ID: parsed})
+	}
+	client.mu.Unlock()
+
+	cancel()
+	_ = end(t, stream)
+	h.awaitState("s1", disconnected())
+}
+
+func TestAPairCallWhoseSessionWasDeletedMeanwhileConnectsNothing(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.create("s1")
+	h.svc.mu.Lock()
+	s := h.svc.sessions["s1"]
+	h.svc.mu.Unlock()
+	before := h.stub("s1")
+
+	// Pair found the session, then a Delete finished before Pair started pairing it.
+	if _, err := h.client.DeleteSession(h.ctx, &whatsmeowv1.DeleteSessionRequest{SessionId: "s1"}); err != nil {
+		t.Fatalf("DeleteSession: %v", err)
+	}
+
+	_, _, _, err := h.svc.startPairing(h.ctx, s)
+	if !errors.Is(err, server.ErrSessionNotFound) {
+		t.Fatalf("startPairing = %v, want %v", err, server.ErrSessionNotFound)
+	}
+
+	if h.stub("s1") != before {
+		t.Fatal("pairing a deleted session made a client")
+	}
+}
+
+func TestDisconnectAfterTheLinkEndsTheLoginAndDisconnects(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.create("s1")
+	stream, cancel := h.pair("s1", "")
+	client := h.pairing("s1", nil)
+	client.linkAs(t, pairedJID, pairedLID)
+	cancel()
+	_ = end(t, stream)
+
+	// The call is gone, so cancelling it is no way to stop the login.
+	if _, err := h.client.Disconnect(h.ctx, &whatsmeowv1.DisconnectRequest{SessionId: "s1"}); err != nil {
+		t.Fatalf("Disconnect after the link: %v", err)
+	}
+
+	h.wantState("s1", disconnected())
+
+	if client.disconnectCount() == 0 {
+		t.Fatal("the client was not disconnected")
+	}
+
+	// A login that still comes changes nothing.
+	client.logIn(true)
+	h.wantState("s1", disconnected())
+}
+
+func TestAClientThatReconnectsAfterItsSessionWasDeletedIsDisconnected(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.create("s1")
+	stream, _ := h.pair("s1", "")
+	client := h.pairing("s1", nil)
+	client.linkAs(t, pairedJID, pairedLID)
+	client.send(whatsmeow.QRChannelSuccess)
+
+	if _, err := h.client.DeleteSession(h.ctx, &whatsmeowv1.DeleteSessionRequest{SessionId: "s1"}); err != nil {
+		t.Fatalf("DeleteSession: %v", err)
+	}
+
+	_ = end(t, stream)
+	deleted := client.disconnectCount()
+
+	// whatsmeow's 515 goroutine disconnects, then connects again on its own (connectionevents.go:33-36): its
+	// connect checks only Store.Deleted (client.go:567), which Delete, deleting by the recorded JID, does not set.
+	if err := client.ConnectContext(context.Background()); err != nil {
+		t.Fatalf("ConnectContext: %v", err)
+	}
+
+	client.logIn(true)
+
+	for client.disconnectCount() == deleted {
+		if h.ctx.Err() != nil {
+			t.Fatal("the deleted session's client stayed connected")
+		}
+
+		runtime.Gosched()
 	}
 }
