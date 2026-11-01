@@ -343,10 +343,15 @@ namespace Whatsmeow.Protocol.V1 {
         return CallInvoker.AsyncUnaryCall(__Method_DeleteSession, null, options, request);
       }
       /// <summary>
-      /// Connect connects a paired session. It returns after whatsmeow's connect call: OK once the session is connected
-      /// or retrying (Reconnecting). After CONNECTION_FAILED the session keeps its previous state.
-      /// Connecting a session that is connecting or connected succeeds and does nothing. From TempBanned, Outdated,
-      /// Replaced or Error it is a new attempt.
+      /// Connect connects a paired session. The session is Connecting while whatsmeow's connect call runs, and Connect
+      /// returns once the WhatsApp connection is open (the session stays Connecting until WhatsApp accepts the login,
+      /// then becomes Connected) or whatsmeow is retrying (Reconnecting). A login WhatsApp refuses (a logout, a ban,
+      /// an outdated client) arrives later as the session's state. After CONNECTION_FAILED the session is back in its
+      /// previous state.
+      /// Connecting a session that is connecting or connected succeeds and does nothing. From Outdated, Replaced or
+      /// Error, and from TempBanned once the ban has ended or has no known end, it is a new attempt. While a ban with a
+      /// known end lasts, it fails with TEMPORARILY_BANNED. LOGGED_OUT and NOT_LOGGED_IN are the session's state, not
+      /// WhatsApp's answer.
       /// The sidecar never connects a session on its own, also not after a restart.
       /// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED.
       /// </summary>
@@ -361,10 +366,15 @@ namespace Whatsmeow.Protocol.V1 {
         return Connect(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
       /// <summary>
-      /// Connect connects a paired session. It returns after whatsmeow's connect call: OK once the session is connected
-      /// or retrying (Reconnecting). After CONNECTION_FAILED the session keeps its previous state.
-      /// Connecting a session that is connecting or connected succeeds and does nothing. From TempBanned, Outdated,
-      /// Replaced or Error it is a new attempt.
+      /// Connect connects a paired session. The session is Connecting while whatsmeow's connect call runs, and Connect
+      /// returns once the WhatsApp connection is open (the session stays Connecting until WhatsApp accepts the login,
+      /// then becomes Connected) or whatsmeow is retrying (Reconnecting). A login WhatsApp refuses (a logout, a ban,
+      /// an outdated client) arrives later as the session's state. After CONNECTION_FAILED the session is back in its
+      /// previous state.
+      /// Connecting a session that is connecting or connected succeeds and does nothing. From Outdated, Replaced or
+      /// Error, and from TempBanned once the ban has ended or has no known end, it is a new attempt. While a ban with a
+      /// known end lasts, it fails with TEMPORARILY_BANNED. LOGGED_OUT and NOT_LOGGED_IN are the session's state, not
+      /// WhatsApp's answer.
       /// The sidecar never connects a session on its own, also not after a restart.
       /// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED.
       /// </summary>
@@ -377,10 +387,15 @@ namespace Whatsmeow.Protocol.V1 {
         return CallInvoker.BlockingUnaryCall(__Method_Connect, null, options, request);
       }
       /// <summary>
-      /// Connect connects a paired session. It returns after whatsmeow's connect call: OK once the session is connected
-      /// or retrying (Reconnecting). After CONNECTION_FAILED the session keeps its previous state.
-      /// Connecting a session that is connecting or connected succeeds and does nothing. From TempBanned, Outdated,
-      /// Replaced or Error it is a new attempt.
+      /// Connect connects a paired session. The session is Connecting while whatsmeow's connect call runs, and Connect
+      /// returns once the WhatsApp connection is open (the session stays Connecting until WhatsApp accepts the login,
+      /// then becomes Connected) or whatsmeow is retrying (Reconnecting). A login WhatsApp refuses (a logout, a ban,
+      /// an outdated client) arrives later as the session's state. After CONNECTION_FAILED the session is back in its
+      /// previous state.
+      /// Connecting a session that is connecting or connected succeeds and does nothing. From Outdated, Replaced or
+      /// Error, and from TempBanned once the ban has ended or has no known end, it is a new attempt. While a ban with a
+      /// known end lasts, it fails with TEMPORARILY_BANNED. LOGGED_OUT and NOT_LOGGED_IN are the session's state, not
+      /// WhatsApp's answer.
       /// The sidecar never connects a session on its own, also not after a restart.
       /// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED.
       /// </summary>
@@ -395,10 +410,15 @@ namespace Whatsmeow.Protocol.V1 {
         return ConnectAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
       /// <summary>
-      /// Connect connects a paired session. It returns after whatsmeow's connect call: OK once the session is connected
-      /// or retrying (Reconnecting). After CONNECTION_FAILED the session keeps its previous state.
-      /// Connecting a session that is connecting or connected succeeds and does nothing. From TempBanned, Outdated,
-      /// Replaced or Error it is a new attempt.
+      /// Connect connects a paired session. The session is Connecting while whatsmeow's connect call runs, and Connect
+      /// returns once the WhatsApp connection is open (the session stays Connecting until WhatsApp accepts the login,
+      /// then becomes Connected) or whatsmeow is retrying (Reconnecting). A login WhatsApp refuses (a logout, a ban,
+      /// an outdated client) arrives later as the session's state. After CONNECTION_FAILED the session is back in its
+      /// previous state.
+      /// Connecting a session that is connecting or connected succeeds and does nothing. From Outdated, Replaced or
+      /// Error, and from TempBanned once the ban has ended or has no known end, it is a new attempt. While a ban with a
+      /// known end lasts, it fails with TEMPORARILY_BANNED. LOGGED_OUT and NOT_LOGGED_IN are the session's state, not
+      /// WhatsApp's answer.
       /// The sidecar never connects a session on its own, also not after a restart.
       /// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED.
       /// </summary>

@@ -13,6 +13,7 @@ public sealed class OptionsTests(SidecarBinaries binaries)
 		["startup timeout above an hour"] = o => o.StartupTimeout = TimeSpan.FromHours(1) + TimeSpan.FromTicks(1),
 		["largest startup timeout"] = o => o.StartupTimeout = TimeSpan.MaxValue,
 		["white space sidecar path"] = o => o.SidecarPath = "  ",
+		["white space database path"] = o => o.DatabasePath = "  ",
 		["undefined transport"] = o => o.Transport = (SidecarTransport)7,
 		["named pipe off Windows"] = o => o.Transport = SidecarTransport.NamedPipe,
 	};

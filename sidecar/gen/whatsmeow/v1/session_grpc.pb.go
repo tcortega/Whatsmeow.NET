@@ -49,10 +49,15 @@ type SessionServiceClient interface {
 	// It does not tell WhatsApp, so a paired device stays linked on the phone; to unlink it, call Logout first.
 	// Errors: SESSION_NOT_FOUND.
 	DeleteSession(ctx context.Context, in *DeleteSessionRequest, opts ...grpc.CallOption) (*DeleteSessionResponse, error)
-	// Connect connects a paired session. It returns after whatsmeow's connect call: OK once the session is connected
-	// or retrying (Reconnecting). After CONNECTION_FAILED the session keeps its previous state.
-	// Connecting a session that is connecting or connected succeeds and does nothing. From TempBanned, Outdated,
-	// Replaced or Error it is a new attempt.
+	// Connect connects a paired session. The session is Connecting while whatsmeow's connect call runs, and Connect
+	// returns once the WhatsApp connection is open (the session stays Connecting until WhatsApp accepts the login,
+	// then becomes Connected) or whatsmeow is retrying (Reconnecting). A login WhatsApp refuses (a logout, a ban,
+	// an outdated client) arrives later as the session's state. After CONNECTION_FAILED the session is back in its
+	// previous state.
+	// Connecting a session that is connecting or connected succeeds and does nothing. From Outdated, Replaced or
+	// Error, and from TempBanned once the ban has ended or has no known end, it is a new attempt. While a ban with a
+	// known end lasts, it fails with TEMPORARILY_BANNED. LOGGED_OUT and NOT_LOGGED_IN are the session's state, not
+	// WhatsApp's answer.
 	// The sidecar never connects a session on its own, also not after a restart.
 	// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED.
 	Connect(ctx context.Context, in *ConnectRequest, opts ...grpc.CallOption) (*ConnectResponse, error)
@@ -210,10 +215,15 @@ type SessionServiceServer interface {
 	// It does not tell WhatsApp, so a paired device stays linked on the phone; to unlink it, call Logout first.
 	// Errors: SESSION_NOT_FOUND.
 	DeleteSession(context.Context, *DeleteSessionRequest) (*DeleteSessionResponse, error)
-	// Connect connects a paired session. It returns after whatsmeow's connect call: OK once the session is connected
-	// or retrying (Reconnecting). After CONNECTION_FAILED the session keeps its previous state.
-	// Connecting a session that is connecting or connected succeeds and does nothing. From TempBanned, Outdated,
-	// Replaced or Error it is a new attempt.
+	// Connect connects a paired session. The session is Connecting while whatsmeow's connect call runs, and Connect
+	// returns once the WhatsApp connection is open (the session stays Connecting until WhatsApp accepts the login,
+	// then becomes Connected) or whatsmeow is retrying (Reconnecting). A login WhatsApp refuses (a logout, a ban,
+	// an outdated client) arrives later as the session's state. After CONNECTION_FAILED the session is back in its
+	// previous state.
+	// Connecting a session that is connecting or connected succeeds and does nothing. From Outdated, Replaced or
+	// Error, and from TempBanned once the ban has ended or has no known end, it is a new attempt. While a ban with a
+	// known end lasts, it fails with TEMPORARILY_BANNED. LOGGED_OUT and NOT_LOGGED_IN are the session's state, not
+	// WhatsApp's answer.
 	// The sidecar never connects a session on its own, also not after a restart.
 	// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED.
 	Connect(context.Context, *ConnectRequest) (*ConnectResponse, error)

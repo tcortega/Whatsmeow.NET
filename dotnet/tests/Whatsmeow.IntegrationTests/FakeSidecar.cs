@@ -17,6 +17,9 @@ public sealed class FakeSidecar : IAsyncLifetime
 	private readonly LogCapture _logs = new();
 	private string? _directory;
 
+	/// <summary>The sidecar's real SQLite file.</summary>
+	internal string DatabasePath { get; private set; } = "";
+
 	/// <summary>The public client.</summary>
 	public WhatsmeowSidecar Sidecar { get; private set; } = null!;
 
@@ -31,7 +34,10 @@ public sealed class FakeSidecar : IAsyncLifetime
 			.BuildAsync("sidecar", "./cmd/whatsmeow-net", $"-X main.version={SidecarBinaries.ClientVersion}", "fakewhatsapp", _directory, ct)
 			.ConfigureAwait(false);
 
-		Sidecar = await WhatsmeowSidecar.StartFakeWhatsAppAsync(new WhatsmeowSidecarOptions { SidecarPath = binary }, _logs.Factory, ct).ConfigureAwait(false);
+		DatabasePath = Path.Combine(_directory, "whatsmeow-net.db");
+		Sidecar = await WhatsmeowSidecar
+			.StartFakeWhatsAppAsync(new WhatsmeowSidecarOptions { SidecarPath = binary, DatabasePath = DatabasePath }, _logs.Factory, ct)
+			.ConfigureAwait(false);
 		Fake = new FakeWhatsAppService.FakeWhatsAppServiceClient(Sidecar.CallInvoker);
 	}
 

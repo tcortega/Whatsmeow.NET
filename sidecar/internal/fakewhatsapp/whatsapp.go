@@ -35,6 +35,8 @@ type WhatsApp struct {
 	changed chan struct{}
 	// waiting counts the waiters blocked on changed, so a test can deliver only once its wait is in flight.
 	waiting int
+	// background runs the events dispatched off the queue.
+	background sync.WaitGroup
 }
 
 // New returns a fake WhatsApp with no clients and an empty log.
@@ -75,6 +77,27 @@ func (w *WhatsApp) deliverMessage(sessionID string, evt *events.Message) error {
 
 	return nil
 }
+
+// client returns the session's client.
+func (w *WhatsApp) client(sessionID string) (*Client, error) {
+	w.mu.Lock()
+	c, ok := w.clients[sessionID]
+	w.mu.Unlock()
+
+	if !ok {
+		return nil, fmt.Errorf("session %q: %w", sessionID, ErrNoClient)
+	}
+
+	return c, nil
+}
+
+// offQueue dispatches evt to c on its own goroutine, as whatsmeow does for connection events (client.go:552, 621).
+func (w *WhatsApp) offQueue(c *Client, evt any) {
+	w.background.Go(func() { c.runHandlers(evt) })
+}
+
+// Wait waits for the events dispatched off the queue.
+func (w *WhatsApp) Wait() { w.background.Wait() }
 
 func (w *WhatsApp) append(sent *fakev1.Sent) {
 	w.mu.Lock()

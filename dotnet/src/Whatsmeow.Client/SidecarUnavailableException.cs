@@ -40,6 +40,6 @@ public sealed class SidecarUnavailableException : WhatsmeowException
 		);
 
 	[DoesNotReturn]
-	internal static void ThrowUnreachable(RpcException exception) =>
-		throw new SidecarUnavailableException($"The sidecar cannot be reached: {exception.Status.Detail}", exception);
+	internal static void ThrowUnreachable(RpcException exception, WhatsmeowErrorCode code) =>
+		throw new SidecarUnavailableException($"The sidecar cannot be reached: {exception.Status.Detail}", exception) { ErrorCode = code };
 }

@@ -103,14 +103,16 @@ Rules (measured in the 2026-10-31 spike, Vogen 8.0.7, ARCHITECTURE §14):
   ```csharp
   [assembly: VogenDefaults(
   	throws: typeof(WhatsmeowValidationException),
-  	conversions: Conversions.SystemTextJson,
+  	conversions: Conversions.None,
+  	tryFromGeneration: TryFromGeneration.GenerateBoolMethod,
   	systemTextJsonConverterFactoryGeneration: SystemTextJsonConverterFactoryGeneration.Omit)]
   ```
 
 - `throws:` keeps `ValueObjectValidationException` out of the public API. The exception needs a public constructor taking one `string`, or the build fails with VOG013 [observed]. A primary constructor `(string message)` satisfies it.
-- `Conversions.SystemTextJson` only. Never `Conversions.Default`: it adds a `TypeConverter`, and a consumer reaching it through `TypeDescriptor.GetConverter` gets IL2026/IL2111/IL3050 under trimming [observed]. The library itself compiles warning-free either way.
-- `Omit` the factory. Otherwise Vogen emits a public `VogenTypesFactory` in the assembly root namespace, which leaks into our public API [observed: generated code].
-- Consumer JSON works without the factory: a consumer's own STJ source-gen context reads the `[JsonConverter]` from our compiled metadata, round-trips, and rejects invalid values, under Native AOT with zero warnings [observed].
+- `Conversions.None` (ADR 0020). Vogen 8.0.7's `Conversions.SystemTextJson` converter is a public nested type with nullable annotations off, and PublicApiAnalyzers fails it with RS0041 [observed: #6]; a hand-written converter comes when a consumer needs JSON of an id. Never `Conversions.Default`: it adds a `TypeConverter`, and a consumer reaching it through `TypeDescriptor.GetConverter` gets IL2026/IL2111/IL3050 under trimming [observed].
+- `Omit` the factory. Otherwise Vogen emits a public `VogenTypesFactory` in the assembly root namespace, which leaks into our public API and fails RS0041, even with `Conversions.None` [observed: generated code, #6].
+- `TryFromGeneration.GenerateBoolMethod`, so `Vogen.ValueObjectOrError<T>` stays out of our API.
+- Vogen still implements `IConvertible` explicitly on a string id, with a public `GetTypeCode()`; no `VogenDefaults` parameter turns that off [observed: Vogen 8.0.7, #6].
 - Inside our own assembly, STJ source-gen cannot see Vogen's converters, because generators do not see each other's output (it serialized `{}`) [observed; Vogen docs say the same]. No `JsonSerializerContext` of ours may contain a Vogen type. Serialize `.Value` instead. Today none needs to: the ready line carries no IDs.
 - `Vogen.SharedTypes.dll` (20 KB, no further dependencies) is a hard runtime dependency: our nupkg depends on `Vogen` (`exclude="Build,Analyzers"`), and deleting the dll makes a consumer crash with `FileNotFoundException` [observed]. Never mark Vogen `PrivateAssets="all"`. The dependency is accepted.
 - `Jid` is a `readonly struct` implementing `ISpanParsable<Jid>`, with no positional members. It carries both PN and LID forms where known.

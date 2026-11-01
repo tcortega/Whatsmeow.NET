@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Whatsmeow.Core.Errors;
 using Whatsmeow.Core.Transport;
 using Whatsmeow.Protocol.V1;
+using Whatsmeow.Sessions;
 using Whatsmeow.Sidecar;
 
 namespace Whatsmeow;
@@ -31,8 +32,12 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 	private readonly LocalChannel _channel;
 	private readonly SidecarService.SidecarServiceClient _client;
 	private readonly SidecarSupervisor _supervisor;
+	private readonly CancellationTokenSource _disposing = new();
+	private readonly Lock _launchLock = new();
 	private volatile SidecarProcess? _current;
 	private int _disposed;
+	private int _launches;
+	private TaskCompletionSource _launched = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
 	private WhatsmeowSidecar(
 		WhatsmeowSidecarOptions options,
@@ -57,7 +62,11 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		_channel = new LocalChannel(options.Transport is SidecarTransport.NamedPipe, () => _current?.Endpoint, () => _current?.Token ?? "", loggerFactory);
 		_client = new SidecarService.SidecarServiceClient(_channel.CallInvoker);
 		_supervisor = new SidecarSupervisor(LaunchAsync, timeProvider, _log);
+		Sessions = new WhatsmeowSessions(this, _channel.CallInvoker, _log);
 	}
+
+	/// <summary>The sidecar's sessions, one WhatsApp account each.</summary>
+	public WhatsmeowSessions Sessions { get; }
 
 	/// <summary>Starts the sidecar, waits until it is ready and checks its version.</summary>
 	/// <exception cref="OptionsValidationException"><paramref name="options"/> is invalid; nothing was started.</exception>
@@ -103,7 +112,13 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		ArgumentNullException.ThrowIfNull(loggerFactory);
 
 		// A copy: the caller's instance is left as it is.
-		var effective = new WhatsmeowSidecarOptions { SidecarPath = options.SidecarPath, StartupTimeout = options.StartupTimeout, Transport = options.Transport };
+		var effective = new WhatsmeowSidecarOptions
+		{
+			SidecarPath = options.SidecarPath,
+			DatabasePath = options.DatabasePath,
+			StartupTimeout = options.StartupTimeout,
+			Transport = options.Transport,
+		};
 		WhatsmeowSidecarOptionsSetup.Apply(effective);
 		WhatsmeowSidecarOptionsSetup.Validate(effective);
 		var binary = SidecarBinary.Locate(effective);
@@ -135,6 +150,44 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 	/// </summary>
 	internal CallInvoker CallInvoker => _channel.CallInvoker;
 
+	internal bool IsDisposed => _disposed != 0;
+
+	/// <summary>How many sidecars started so far, counting the first.</summary>
+	internal int Launches
+	{
+		get
+		{
+			lock (_launchLock)
+				return _launches;
+		}
+	}
+
+	/// <summary>Waits until a sidecar started after the first <paramref name="launches"/>; disposing ends the wait.</summary>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed meanwhile.</exception>
+	internal async Task WaitForLaunchAsync(int launches, CancellationToken cancellationToken)
+	{
+		using var wait = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _disposing.Token);
+		while (true)
+		{
+			Task launched;
+			lock (_launchLock)
+			{
+				if (_launches > launches)
+					return;
+				launched = _launched.Task;
+			}
+
+			try
+			{
+				await launched.WaitAsync(wait.Token).ConfigureAwait(false);
+			}
+			catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+			{
+				ObjectDisposedException.ThrowIf(condition: true, this);
+			}
+		}
+	}
+
 	/// <summary>Reports the running sidecar's versions.</summary>
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached, for example while it restarts.</exception>
 	public async Task<SidecarInfo> GetInfoAsync(CancellationToken cancellationToken = default)
@@ -151,6 +204,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 
 		try
 		{
+			await _disposing.CancelAsync().ConfigureAwait(false);
 			await _supervisor.DisposeAsync().ConfigureAwait(false);
 		}
 		finally
@@ -164,14 +218,16 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 			{
 				_current = null;
 				_channel.Dispose();
+				_disposing.Dispose();
 				DeleteSocketDirectory();
 			}
 		}
 	}
 
 	/// <summary>
-	/// Starts one sidecar: spawn, ready line, nonce, then GetInfo and the version check (ARCHITECTURE §9). Used for
-	/// the first start and for every restart. A sidecar that fails a check is stopped before this throws.
+	/// Starts one sidecar: spawn, ready line, nonce, then GetInfo and the version check, then Connect again for the
+	/// sessions the application had connected (ARCHITECTURE §9). Used for the first start and for every restart. A
+	/// sidecar that fails a check is stopped before this throws.
 	/// </summary>
 	private async Task<(int ProcessId, Task<int> Exited)> LaunchAsync(CancellationToken cancellationToken)
 	{
@@ -183,7 +239,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		using var startup = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
 
 		var process = await SidecarProcess
-			.StartAsync(_binary, _options.Transport, _socketDirectory, _fakeWhatsApp, _options.StartupTimeout, _log, _sidecarLog, startup.Token, cancellationToken)
+			.StartAsync(_binary, _options.Transport, _socketDirectory, _options.DatabasePath!, _fakeWhatsApp, _options.StartupTimeout, _log, _sidecarLog, startup.Token, cancellationToken)
 			.ConfigureAwait(false);
 		_current = process;
 		SidecarLog.SidecarStarted(_log, process.Id, process.Version, process.Endpoint);
@@ -208,6 +264,17 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 			SidecarVersionMismatchException.Throw(ClientVersion.Current, info.Version, protocol, _minProtocol, _maxProtocol);
 		}
 
+		await Sessions.ReconnectAsync(cancellationToken).ConfigureAwait(false);
+
+		TaskCompletionSource launched;
+		lock (_launchLock)
+		{
+			_launches++;
+			launched = _launched;
+			_launched = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+		}
+
+		launched.SetResult();
 		return (process.Id, process.Exited);
 	}
 

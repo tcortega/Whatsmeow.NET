@@ -2325,8 +2325,9 @@ namespace Whatsmeow.Protocol.V1 {
 
       /// <summary>
       /// Paired, not connected: Disconnect was called, the sidecar restarted, or pairing failed after the link.
-      /// After a restart, a never-paired session is Created, a LoggedOut one stays LoggedOut with its code, and every
-      /// other paired one is Disconnected.
+      /// A restart keeps the states that stop a session: a never-paired session is Created, and LoggedOut, Replaced,
+      /// Outdated, TempBanned and Error come back as they were, with their fields. A session that was Connecting,
+      /// Connected, CaughtUp, Reconnecting or Disconnected comes back Disconnected.
       /// </summary>
       [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
       internal sealed partial class Disconnected : pb::IMessage<Disconnected>

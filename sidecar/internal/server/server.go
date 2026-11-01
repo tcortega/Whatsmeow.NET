@@ -185,7 +185,8 @@ func (s *Server) admit(method string) error {
 
 // toStatus maps a slice error to a status with an ErrorInfo. Slices return %w errors and never build a status,
 // so a status here came from grpc-go or this package and passes through. A context error keeps its own status
-// (CANCELLED, DEADLINE_EXCEEDED); every other error is INTERNAL.
+// (CANCELLED, DEADLINE_EXCEEDED); an error that wraps one of the reason errors (reasons.go) gets its reason and
+// metadata; every other error is INTERNAL.
 func (s *Server) toStatus(method string, err error) error {
 	if _, ok := status.FromError(err); ok {
 		return err
@@ -198,6 +199,12 @@ func (s *Server) toStatus(method string, err error) error {
 		return status.FromContextError(err).Err() //nolint:wrapcheck // a gRPC status reaches grpc-go unwrapped
 	}
 
+	if code, reason, metadata, ok := reasonOf(err); ok {
+		s.log.Debug().Err(err).Str("method", method).Msg("call failed with a reason")
+
+		return errorInfoWith(code, reason, err.Error(), metadata)
+	}
+
 	s.log.Error().Err(err).Str("method", method).Msg("call failed")
 
 	return errorInfo(codes.Internal, whatsmeowv1.ErrorReason_ERROR_REASON_INTERNAL, err.Error())
@@ -206,11 +213,17 @@ func (s *Server) toStatus(method string, err error) error {
 // errorInfo is a status of code carrying one ErrorInfo of reason, sent without its ERROR_REASON_ prefix
 // (error.proto).
 func errorInfo(code codes.Code, reason whatsmeowv1.ErrorReason, message string) error {
+	return errorInfoWith(code, reason, message, nil)
+}
+
+// errorInfoWith is errorInfo with ErrorInfo metadata.
+func errorInfoWith(code codes.Code, reason whatsmeowv1.ErrorReason, message string, metadata map[string]string) error {
 	st := status.New(code, message)
 
 	detailed, err := st.WithDetails(&errdetails.ErrorInfo{
-		Reason: strings.TrimPrefix(reason.String(), "ERROR_REASON_"),
-		Domain: errorDomain,
+		Reason:   strings.TrimPrefix(reason.String(), "ERROR_REASON_"),
+		Domain:   errorDomain,
+		Metadata: metadata,
 	})
 	if err != nil {
 		return st.Err() //nolint:wrapcheck // a gRPC status reaches grpc-go unwrapped

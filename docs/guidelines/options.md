@@ -32,7 +32,7 @@ services.AddSingleton<IValidateOptions<WhatsmeowSidecarOptions>, WhatsmeowSideca
 `BindConfiguration` is the bind.
 Under AOT it must go through the configuration-binding source generator, not the reflection binder.
 A library does not get that generator from `IsAotCompatible`: set `<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>` in `Whatsmeow.Extensions.Hosting`, or `BindConfiguration` raises IL2026/IL3050 [observed: ARCHITECTURE §14 Spike results].
-Path resolve, computed defaults, and the `WHATSMEOW_NET_SIDECAR_PATH` override belong in the one setup step (`WhatsmeowSidecarOptionsSetup.Apply`), not in a private `Load` and not in the binary locator.
+Path resolve, computed defaults (`DatabasePath` defaults to `whatsmeow-net.db` and becomes a full path against the current directory), and the `WHATSMEOW_NET_SIDECAR_PATH` override belong in the one setup step (`WhatsmeowSidecarOptionsSetup.Apply`), not in a private `Load` and not in the binary locator.
 The no-DI path calls the same `Apply`.
 That is the only place the environment variable is read.
 

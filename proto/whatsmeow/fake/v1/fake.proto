@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package whatsmeow.fake.v1;
 
+import "google/protobuf/duration.proto";
+
 // FakeWhatsAppService scripts the fake WhatsApp of a test build of whatsmeow-net (-tags fakewhatsapp) started with
 // --fake-whatsapp, and records what the sidecar sent to it. It is served next to whatsmeow.v1 on the same socket,
 // with the same token. It is not part of the whatsmeow.v1 contract and never ships (ADR 0019).
@@ -18,7 +20,100 @@ service FakeWhatsAppService {
   // until there is one. Only the call's deadline or cancellation ends the wait. The log lives in the sidecar process,
   // so it starts again, at index 1, after a restart.
   rpc WaitForSent(WaitForSentRequest) returns (WaitForSentResponse);
+
+  // LinkDevice makes the phone link the session's device, standing in for pairing until the Pair call exists (#7):
+  // the client stores the device under jid as whatsmeow does after a pair success (handlePair, pair.go:222-240),
+  // then dispatches PairSuccess and returns once its event handlers ran.
+  rpc LinkDevice(LinkDeviceRequest) returns (LinkDeviceResponse);
+
+  // FailNextConnect makes the session's next connect fail with an error whatsmeow does not retry. Without it a
+  // connect succeeds, and a linked client then gets Connected, as whatsmeow does once WhatsApp accepts the login.
+  rpc FailNextConnect(FailNextConnectRequest) returns (FailNextConnectResponse);
+
+  // RaisePermanentDisconnect makes WhatsApp end the session's connection with one of the six whatsmeow
+  // PermanentDisconnect events at the pin (types/events/events.go:118-128), dispatched off the node queue as
+  // whatsmeow does; the client is disconnected and does not reconnect. For logged_out the client also deletes its
+  // device concurrently, as whatsmeow does (connectionevents.go:37-44, 130-136). It returns before the handlers run.
+  rpc RaisePermanentDisconnect(RaisePermanentDisconnectRequest) returns (RaisePermanentDisconnectResponse);
 }
+
+// LinkDeviceRequest names the session and the device's JID.
+message LinkDeviceRequest {
+  // The session whose client is linked.
+  string session_id = 1;
+  // The device JID WhatsApp assigns, user:device@s.whatsapp.net.
+  string jid = 2;
+}
+
+// LinkDeviceResponse has no fields.
+message LinkDeviceResponse {}
+
+// FailNextConnectRequest names the session.
+message FailNextConnectRequest {
+  // The session whose next connect fails.
+  string session_id = 1;
+}
+
+// FailNextConnectResponse has no fields.
+message FailNextConnectResponse {}
+
+// RaisePermanentDisconnectRequest is one PermanentDisconnect event.
+message RaisePermanentDisconnectRequest {
+  // events.LoggedOut.
+  message LoggedOut {
+    // The connect failure reason: 401, 403 or 406.
+    int32 reason = 1;
+  }
+
+  // events.StreamReplaced.
+  message StreamReplaced {}
+
+  // events.ClientOutdated.
+  message ClientOutdated {}
+
+  // events.CATRefreshError.
+  message CatRefreshError {
+    // The refresh error's text.
+    string message = 1;
+  }
+
+  // events.TemporaryBan.
+  message TemporaryBan {
+    // The ban code.
+    int32 code = 1;
+    // The time left, whole seconds; zero when WhatsApp sent none.
+    google.protobuf.Duration expire = 2;
+  }
+
+  // events.ConnectFailure.
+  message ConnectFailure {
+    // The failure reason.
+    int32 reason = 1;
+    // The failure message.
+    string message = 2;
+  }
+
+  // The session whose connection ends.
+  string session_id = 1;
+  // The event.
+  oneof kind {
+    // See LoggedOut.
+    LoggedOut logged_out = 2;
+    // See StreamReplaced.
+    StreamReplaced stream_replaced = 3;
+    // See ClientOutdated.
+    ClientOutdated client_outdated = 4;
+    // See CatRefreshError.
+    CatRefreshError cat_refresh_error = 5;
+    // See TemporaryBan.
+    TemporaryBan temporary_ban = 6;
+    // See ConnectFailure.
+    ConnectFailure connect_failure = 7;
+  }
+}
+
+// RaisePermanentDisconnectResponse has no fields.
+message RaisePermanentDisconnectResponse {}
 
 // DeliverMessageRequest is one inbound message.
 message DeliverMessageRequest {
@@ -55,8 +150,18 @@ message Sent {
   oneof kind {
     // The receipt for a message WhatsApp delivered.
     Receipt receipt = 3;
+    // The client closed its connection.
+    Disconnect disconnect = 4;
+    // The client asked WhatsApp to unlink its device (Logout).
+    RemoveCompanionDevice remove_companion_device = 5;
   }
 }
+
+// Disconnect is the client closing a connection that was open.
+message Disconnect {}
+
+// RemoveCompanionDevice is the remove-companion-device request whatsmeow's Logout sends (client.go:749-779).
+message RemoveCompanionDevice {}
 
 // Receipt is the <receipt> whatsmeow sends for a decrypted message once its handlers succeeded
 // (sendMessageReceipt, receipt.go:280-296).

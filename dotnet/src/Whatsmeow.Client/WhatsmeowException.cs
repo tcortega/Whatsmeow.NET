@@ -4,7 +4,7 @@ namespace Whatsmeow;
 
 /// <summary>
 /// The base of every error this library raises. A failed sidecar call carries its gRPC error as the
-/// <see cref="Exception.InnerException"/>.
+/// <see cref="Exception.InnerException"/>, and the reason the sidecar sent as <see cref="ErrorCode"/>.
 /// </summary>
 public class WhatsmeowException : Exception
 {
@@ -25,7 +25,10 @@ public class WhatsmeowException : Exception
 	{
 	}
 
+	/// <summary>Why the call failed; <see cref="WhatsmeowErrorCode.Unknown"/> when the sidecar sent no reason this client knows.</summary>
+	public WhatsmeowErrorCode ErrorCode { get; internal init; }
+
 	[DoesNotReturn]
-	internal static void Throw(RpcException exception) =>
-		throw new WhatsmeowException($"The sidecar call failed: {exception.Status.Detail}", exception);
+	internal static void ThrowUnmapped(RpcException exception, WhatsmeowErrorCode code) =>
+		throw new WhatsmeowException($"The sidecar call failed: {exception.Status.Detail}", exception) { ErrorCode = code };
 }
