@@ -32,7 +32,7 @@ namespace Whatsmeow.Protocol.V1 {
             "dBIjCg1yZWNpcGllbnRfYWx0GAQgASgJUgxyZWNpcGllbnRBbHQSHAoKaXNf",
             "ZnJvbV9tZRgFIAEoCFIIaXNGcm9tTWUirgEKC01lc3NhZ2VJbmZvEjMKBnNv",
             "dXJjZRgBIAEoCzIbLndoYXRzbWVvdy52MS5NZXNzYWdlU291cmNlUgZzb3Vy",
-            "Y2USDgoCaWQYAiABKAlSAmlkEhsKCXB1c2hfbmFtZRgDIAEoCVIIcHVzaE5h",
+            "Y2USDgoCaWQYAiABKAlSAmlkEhsKCXB1c2hfbmFtZRgDIAEoBVIIcHVzaE5h",
             "bWUSPQoMbWVzc2FnZV90aW1lGAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRp",
             "bWVzdGFtcFILbWVzc2FnZVRpbWUicwoMTWVzc2FnZUV2ZW50Ei0KBGluZm8Y",
             "ASABKAsyGS53aGF0c21lb3cudjEuTWVzc2FnZUluZm9SBGluZm8SNAoHbWVz",
@@ -603,16 +603,16 @@ namespace Whatsmeow.Protocol.V1 {
 
     /// <summary>Field number for the "push_name" field.</summary>
     public const int PushNameFieldNumber = 3;
-    private string pushName_ = "";
+    private int pushName_;
     /// <summary>
     /// The sender's push name, when WhatsApp sent it.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string PushName {
+    public int PushName {
       get { return pushName_; }
       set {
-        pushName_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        pushName_ = value;
       }
     }
 
@@ -659,7 +659,7 @@ namespace Whatsmeow.Protocol.V1 {
       int hash = 1;
       if (source_ != null) hash ^= Source.GetHashCode();
       if (Id.Length != 0) hash ^= Id.GetHashCode();
-      if (PushName.Length != 0) hash ^= PushName.GetHashCode();
+      if (PushName != 0) hash ^= PushName.GetHashCode();
       if (messageTime_ != null) hash ^= MessageTime.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -687,9 +687,9 @@ namespace Whatsmeow.Protocol.V1 {
         output.WriteRawTag(18);
         output.WriteString(Id);
       }
-      if (PushName.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(PushName);
+      if (PushName != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(PushName);
       }
       if (messageTime_ != null) {
         output.WriteRawTag(34);
@@ -713,9 +713,9 @@ namespace Whatsmeow.Protocol.V1 {
         output.WriteRawTag(18);
         output.WriteString(Id);
       }
-      if (PushName.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(PushName);
+      if (PushName != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(PushName);
       }
       if (messageTime_ != null) {
         output.WriteRawTag(34);
@@ -737,8 +737,8 @@ namespace Whatsmeow.Protocol.V1 {
       if (Id.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Id);
       }
-      if (PushName.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(PushName);
+      if (PushName != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(PushName);
       }
       if (messageTime_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(MessageTime);
@@ -764,7 +764,7 @@ namespace Whatsmeow.Protocol.V1 {
       if (other.Id.Length != 0) {
         Id = other.Id;
       }
-      if (other.PushName.Length != 0) {
+      if (other.PushName != 0) {
         PushName = other.PushName;
       }
       if (other.messageTime_ != null) {
@@ -803,8 +803,8 @@ namespace Whatsmeow.Protocol.V1 {
             Id = input.ReadString();
             break;
           }
-          case 26: {
-            PushName = input.ReadString();
+          case 24: {
+            PushName = input.ReadInt32();
             break;
           }
           case 34: {
@@ -844,8 +844,8 @@ namespace Whatsmeow.Protocol.V1 {
             Id = input.ReadString();
             break;
           }
-          case 26: {
-            PushName = input.ReadString();
+          case 24: {
+            PushName = input.ReadInt32();
             break;
           }
           case 34: {

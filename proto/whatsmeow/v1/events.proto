@@ -56,7 +56,7 @@ message MessageInfo {
   // The WhatsApp message id.
   string id = 2;
   // The sender's push name, when WhatsApp sent it.
-  string push_name = 3;
+  int32 push_name = 3;
   // The message's WhatsApp timestamp.
   google.protobuf.Timestamp message_time = 4;
 }

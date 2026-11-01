@@ -61,8 +61,9 @@ jobs:
 
       - name: build/ci.sh contract
         env:
-          CI_EVENT: ${{ github.event_name }}
-          CI_BEFORE: ${{ github.event.before }}
+          # Throwaway (#3): compare with the contract branch tip, since main has no whatsmeow.v1 module yet.
+          CI_EVENT: push
+          CI_BEFORE: 565c2ce9ed546e3d238369c0699cf4808b2051b9
         run: bash build/ci.sh contract
 
   go:

@@ -204,7 +204,7 @@ type MessageInfo struct {
 	// The WhatsApp message id.
 	Id string `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
 	// The sender's push name, when WhatsApp sent it.
-	PushName string `protobuf:"bytes,3,opt,name=push_name,json=pushName,proto3" json:"push_name,omitempty"`
+	PushName int32 `protobuf:"varint,3,opt,name=push_name,json=pushName,proto3" json:"push_name,omitempty"`
 	// The message's WhatsApp timestamp.
 	MessageTime   *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=message_time,json=messageTime,proto3" json:"message_time,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -255,11 +255,11 @@ func (x *MessageInfo) GetId() string {
 	return ""
 }
 
-func (x *MessageInfo) GetPushName() string {
+func (x *MessageInfo) GetPushName() int32 {
 	if x != nil {
 		return x.PushName
 	}
-	return ""
+	return 0
 }
 
 func (x *MessageInfo) GetMessageTime() *timestamppb.Timestamp {
@@ -829,7 +829,7 @@ const file_whatsmeow_v1_events_proto_rawDesc = "" +
 	"\vMessageInfo\x123\n" +
 	"\x06source\x18\x01 \x01(\v2\x1b.whatsmeow.v1.MessageSourceR\x06source\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\tR\x02id\x12\x1b\n" +
-	"\tpush_name\x18\x03 \x01(\tR\bpushName\x12=\n" +
+	"\tpush_name\x18\x03 \x01(\x05R\bpushName\x12=\n" +
 	"\fmessage_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\vmessageTime\"s\n" +
 	"\fMessageEvent\x12-\n" +
 	"\x04info\x18\x01 \x01(\v2\x19.whatsmeow.v1.MessageInfoR\x04info\x124\n" +
