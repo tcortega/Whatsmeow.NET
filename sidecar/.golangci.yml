@@ -1,0 +1,57 @@
+# golangci-lint v2. Version pinned in /mise.toml. Rules: docs/guidelines/go.md.
+version: "2"
+
+run:
+  modules-download-mode: readonly
+
+linters:
+  default: standard
+  enable:
+    - contextcheck
+    - depguard
+    - errorlint
+    - exhaustive
+    - forbidigo
+    - gochecknoglobals
+    - gochecknoinits
+    - gosec
+    - importas
+    - noctx
+    - nolintlint
+    - revive
+    - wrapcheck
+  settings:
+    depguard:
+      rules:
+        main:
+          deny:
+            - pkg: reflect
+              desc: no runtime reflection (docs/guidelines/go.md)
+            - pkg: unsafe
+              desc: no unsafe and no cgo; cgo imports unsafe (docs/guidelines/go.md)
+    forbidigo:
+      analyze-types: true
+      forbid:
+        - pattern: ^encoding\.RegisterCodec(V2)?$
+          pkg: ^google\.golang\.org/grpc/encoding$
+          msg: package-level mutable state; install the lenient codec with grpc.ForceServerCodecV2 (docs/guidelines/go.md)
+    importas:
+      no-unaliased: true
+      alias:
+        - pkg: github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1
+          alias: whatsmeowv1
+    nolintlint:
+      allow-unused: false
+      require-explanation: true
+      require-specific: true
+  exclusions:
+    generated: strict
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/tcortega/Whatsmeow.NET
