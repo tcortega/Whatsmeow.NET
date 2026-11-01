@@ -34,10 +34,14 @@ Line coverage is a diagnostic. Behavior coverage is the point.
 
 ## Fixture
 
-One shared sidecar fixture via `IClassFixture<T>` (or an xUnit v3 assembly fixture).
-It owns the `whatsmeow-net --fake-whatsapp` process and its control service (inject events and failures).
-Tests get a client from the fixture and talk only the public API.
-Do not start a sidecar per test.
+One shared sidecar fixture: `FakeSidecar`, an xUnit v3 assembly fixture (`dotnet/tests/Whatsmeow.IntegrationTests/FakeSidecar.cs`, ADR 0019).
+It builds `whatsmeow-net` with `-tags fakewhatsapp` and owns one `--fake-whatsapp` process for the run.
+Tests get the public client from `fixture.Sidecar` and talk only the public API.
+They script and observe the fake WhatsApp through `fixture.Fake`, the test-only `whatsmeow.fake.v1` client on the sidecar's own channel.
+Observe with `WaitForSent`, which waits for a condition; show a withheld ack by order (the next stanza's ack comes first), never by waiting.
+The sidecar is shared and tests run in parallel, so each test uses session ids of its own.
+A test that crashes the sidecar calls `fixture.CrashAsync`, which returns once it was restarted, and sits in the `SidecarCrashes` collection, which never runs in parallel.
+Do not start a sidecar per test; the Sidecar slice's start and stop tests are the exception, because starting and stopping is their behaviour.
 Do not mock the transport, the dispatcher, or the sidecar.
 
 xUnit v3 on Microsoft.Testing.Platform, not TUnit.
@@ -95,7 +99,7 @@ A new test is not accepted until it is seen failing for the right reason: an ass
 
 Then mutate: break the production path the test claims to cover, rerun, confirm that test fails, revert the break.
 If it still passes, delete the test.
-State the mutation in the commit body.
+State the mutation in the PR body.
 
 This is the TestGen-LLM filter and the ACH point.
 Raw tests are junk until they die when the code is wrong.
