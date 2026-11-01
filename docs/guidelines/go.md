@@ -8,7 +8,10 @@ Moved from ARCHITECTURE §7.9 and §11; what the sidecar does is ARCHITECTURE §
 
 - `context.Context` is the first parameter of every function that does I/O or may block.
 - Errors are wrapped with `%w`; there are sentinel errors per slice. Errors are mapped to `ErrorInfo` in exactly one place, `internal/server`.
-- No `reflect`, no `unsafe`, no cgo, no package-level mutable state except the startup-only whatsmeow globals (ARCHITECTURE §7.2). Enforced with `golangci-lint` (`forbidigo`/`depguard`).
+- No `reflect`, no `unsafe`, no cgo, no package-level mutable state except the startup-only whatsmeow globals (ARCHITECTURE §7.2). Enforced with `golangci-lint` (`sidecar/.golangci.yml`): `depguard` denies `reflect` and `unsafe` (an `import "C"` file is reported as `unsafe` [observed: golangci-lint 2.15.0]), `gochecknoglobals` and `gochecknoinits` reject package state, `forbidigo` rejects `encoding.RegisterCodec(V2)`. Release builds use `CGO_ENABLED=0`.
+- Every error from another package is wrapped before it is returned (`wrapcheck`, `errorlint`).
+- A `//nolint` names the linter and says why (`nolintlint`). No other suppression.
+- Formatting is gofumpt plus goimports with the `github.com/tcortega/Whatsmeow.NET` local prefix (`golangci-lint fmt`).
 - Each slice talks to whatsmeow through a **small internal interface** (for example `type sender interface { SendMessage(...) }`), so tests can fake whatsmeow. `*whatsmeow.Client` satisfies it.
 - Import the generated contract as `whatsmeowv1`. Never name that package `whatsmeow`. See ARCHITECTURE [Naming](../ARCHITECTURE.md#naming).
 - Every goroutine has an owner, a cancellation path, and is waited on during shutdown (`errgroup`).
