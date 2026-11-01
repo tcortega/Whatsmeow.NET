@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<!-- Generated/ is written by buf from /buf.gen.whatsapp.yaml (see AGENTS.md). Never edit it by hand. -->
+	<ItemGroup>
+		<PackageReference Include="Google.Protobuf" />
+	</ItemGroup>
+</Project>
