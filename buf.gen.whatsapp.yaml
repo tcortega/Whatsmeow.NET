@@ -1,0 +1,15 @@
+# Upstream WhatsApp protos to C# for Whatsmeow.Protocol.WhatsApp (ARCHITECTURE §8.1).
+# Never generate Go from these: the sidecar imports whatsmeow's own packages (ARCHITECTURE §13 invariant 11).
+# Run: buf generate --template buf.gen.whatsapp.yaml
+version: v2
+clean: true
+managed:
+  enabled: true
+  override:
+    - file_option: csharp_namespace_prefix
+      value: Whatsmeow.Proto
+inputs:
+  - directory: third_party/whatsmeow
+plugins:
+  - protoc_builtin: csharp
+    out: dotnet/src/Whatsmeow.Protocol.WhatsApp/Generated
