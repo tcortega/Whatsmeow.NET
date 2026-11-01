@@ -1,0 +1,34 @@
+name: measure-windows-temp-acl
+
+# Throwaway (#4): measures the default ACL of %LOCALAPPDATA%\Temp and of a directory created in it the way the client
+# creates the socket directory, for ARCHITECTURE §10. Never merged.
+on: pull_request
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    runs-on: windows-2025
+    steps:
+      - name: Measure
+        shell: pwsh
+        run: |
+          "OS: " + (Get-CimInstance Win32_OperatingSystem).Caption + " build " + (Get-CimInstance Win32_OperatingSystem).BuildNumber
+          "pwsh .NET: " + [System.Runtime.InteropServices.RuntimeInformation]::FrameworkDescription
+          whoami /user
+          whoami /groups | Select-String "Administrators|Mandatory Label"
+          "TEMP=$env:TEMP"
+          "LOCALAPPDATA=$env:LOCALAPPDATA"
+          $temp = Join-Path $env:LOCALAPPDATA "Temp"
+          "--- $temp"
+          "SDDL: " + (Get-Acl $temp).Sddl
+          icacls $temp
+          $dir = [System.IO.Directory]::CreateTempSubdirectory("wmn-")
+          "--- CreateTempSubdirectory: " + $dir.FullName
+          "SDDL: " + (Get-Acl $dir.FullName).Sddl
+          icacls $dir.FullName
+          $file = Join-Path $dir.FullName "s"
+          Set-Content -Path $file -Value "x"
+          "--- a file inside it, owner: " + (Get-Acl $file).Owner
+          "SDDL: " + (Get-Acl $file).Sddl
