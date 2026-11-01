@@ -10,6 +10,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<!-- The live tests reuse the pairing checks and the sidecar build (docs/guidelines/tests.md Live WhatsApp). -->
+		<InternalsVisibleTo Include="Whatsmeow.LiveTests" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="../../src/Whatsmeow.Client/Whatsmeow.Client.csproj" />
 		<!-- Built first, for the kill-parent test. -->
 		<ProjectReference Include="../SidecarHost/SidecarHost.csproj" />

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Test-only: renders the QR code to scan. No shipped project references it (build/ci.sh checks). -->
+		<PackageReference Include="QRCoder" />
+		<PackageReference Include="xunit.v3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- The same checks as the fake-mode tests, and their sidecar build (docs/guidelines/tests.md Live WhatsApp). -->
+		<ProjectReference Include="../Whatsmeow.IntegrationTests/Whatsmeow.IntegrationTests.csproj" />
+	</ItemGroup>
+
+	<ItemGroup Label="Usings">
+		<Using Include="Xunit" />
+		<Using Include="Microsoft.Extensions.Logging" />
+	</ItemGroup>
+</Project>

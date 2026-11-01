@@ -40,7 +40,8 @@ Tests get the public client from `fixture.Sidecar` and talk only the public API.
 They script and observe the fake WhatsApp through `fixture.Fake`, the test-only `whatsmeow.fake.v1` client on the sidecar's own channel.
 Observe with `WaitForSent`, which waits for a condition; show a withheld receipt by order (the next message's receipt comes first), never by waiting.
 The sidecar is shared and tests run in parallel, so each test uses session ids of its own.
-A test that needs a paired session links it with the fake's `LinkDevice` until pairing exists (#7); `Sessions/SessionSetup.cs` has the helpers, and `Support/StateWatch.cs` reads a state watch by condition.
+A test that needs a paired session links it with the fake's `LinkDevice` without a Pair call, the quick way; `Sessions/SessionSetup.cs` has the helpers, and `Support/StateWatch.cs` reads a state watch by condition.
+The Pairing tests pair through the public API, with the fake WhatsApp as the phone (`Pairing/PairingTests.cs`).
 A test that starts a sidecar of its own gives it a database of its own (`binaries.NewDatabase()`): one sidecar owns a database file.
 A test that crashes the sidecar calls `fixture.CrashAsync`, which returns once it was restarted, and sits in the `SidecarCrashes` collection, which never runs in parallel; `CrashAsync` throws anywhere else.
 Do not start a sidecar per test; the Sidecar slice's start and stop tests are the exception, because starting and stopping is their behaviour.
@@ -127,7 +128,9 @@ Any of these in a diff is a failed slice, green or not:
 * hooks or modules that patch xUnit results
 * overriding `Equals`, `==`, or a comparer on a public record so assertions pass (record structural equality is required, not a cheat)
 * `try/catch` or `if` around an assert so failure is swallowed
-* new `Skip`, `Skip.If`, commented-out facts, or `Assert.True(true)`; the single declared platform condition is `NoexecTests` (the copy fallback), which needs a `noexec` mount that only root can make: its tests run where `WHATSMEOW_NET_TEST_NOEXEC_DIR` names one (`build/ci.sh` provides it on linux-x64 CI), and fails instead of skipping when `CI=true` on linux-x64 and the mount is missing
+* new `Skip`, `Skip.If`, `Explicit`, commented-out facts, or `Assert.True(true)`. The declared exceptions:
+  * the platform condition `NoexecTests` (the copy fallback), which needs a `noexec` mount that only root can make: its tests run where `WHATSMEOW_NET_TEST_NOEXEC_DIR` names one (`build/ci.sh` provides it on linux-x64 CI), and fails instead of skipping when `CI=true` on linux-x64 and the mount is missing;
+  * the live opt-in `[LiveFact]`, explicit unless `WHATSMEOW_LIVE_PHONE_NUMBER` is set, in `Whatsmeow.LiveTests` only: `build/ci.sh` fails when `LiveFact` or `Explicit` appears anywhere else
 * weakening `Assert.Equal(expected, actual)` to `NotNull` or dropping fields
 * special-casing chats, ids, or payloads that exist only in the test
 * retries or loops to get past a failure
@@ -148,9 +151,21 @@ Time is faked, never waited on: one `FakeTimeProvider` drives now, delays and Po
 
 The default suite and CI use `--fake-whatsapp`.
 
-`tests/Whatsmeow.LiveTests` runs against real WhatsApp with a dedicated test number and manual pairing.
-It is opt-in through environment variables and never runs in default CI.
-Same assertions as the fake-mode suite. No live-only skips and no weakened equals.
+`tests/Whatsmeow.LiveTests` runs against real WhatsApp with a dedicated test number and manual pairing ([ADR 0021](../adr/0021-pairing.md)).
+Its tests are `[LiveFact]`: they run only when `WHATSMEOW_LIVE_PHONE_NUMBER` holds the dedicated number, and otherwise start nothing and are reported as not run.
+`build/ci.sh` runs `dotnet test` without that variable, so CI never runs them.
+Same assertions as the fake-mode suite: a live test calls the fake-mode tests' own checks (`Whatsmeow.IntegrationTests/Pairing/PairingChecks.cs`, through a project reference), and only the person replaces the fake. No live-only skips and no weakened equals.
+The number is a secret: keep it in `~/secrets.env` and never print it; the live sidecar log redacts it.
+Run, from the repository root:
+
+```sh
+eval "$(mise env -s bash)"
+set -a; source ~/secrets.env; set +a
+dotnet test --project dotnet/tests/Whatsmeow.LiveTests -c Release
+```
+
+The person watches `dotnet/artifacts/live/`: `qr.png` is the QR code to scan (rewritten on each rotation), then `pairing-code.txt` the code to enter on the phone; `sidecar.log` is the sidecar's log.
+Each session a live test paired is logged out at the end.
 
 Fake-only seams (injected failures, scripted disconnects) stay on fake-mode fixtures. They are not a live concern.
 

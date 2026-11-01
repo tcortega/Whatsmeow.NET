@@ -247,16 +247,44 @@ shipped_have_no_fake() {
 	return "$rc"
 }
 
+# The live tests (docs/guidelines/tests.md Live WhatsApp) are contained: [LiveFact] and Explicit, declared exceptions
+# to the banned list, appear only in Whatsmeow.LiveTests, and QRCoder, which it alone uses, in no shipped project.
+# Each grep has a positive control, or it could prove nothing.
+live_tests_contained() {
+	local live=dotnet/tests/Whatsmeow.LiveTests found lock rc=0
+	if ! grep -rqF --include='*.cs' '[LiveFact]' "$live" || ! grep -qF '"QRCoder"' "$live/packages.lock.json"; then
+		annotate error "live tests" "$live has no [LiveFact] or no QRCoder, so this check cannot see them"
+		return 1
+	fi
+	# Generated/ is buf's output, which nobody writes (docs/guidelines/csharp.md); its protos have Explicit fields.
+	found="$(grep -rnE --include='*.cs' --exclude-dir=artifacts --exclude-dir=Generated 'LiveFact|(^|[^A-Za-z0-9_])Explicit[[:space:]]*=[^=]' dotnet | grep -v "^$live/")"
+	if [ -n "$found" ]; then
+		annotate error "live tests" "LiveFact and Explicit belong to $live only (docs/guidelines/tests.md)"
+		echo "$found"
+		rc=1
+	fi
+	for lock in dotnet/src/*/packages.lock.json; do
+		if grep -qF '"QRCoder"' "$lock"; then
+			annotate error "live tests" "$lock depends on QRCoder, which only $live may use"
+			rc=1
+		fi
+	done
+	[ "$rc" -eq 0 ] && echo "LiveFact, Explicit and QRCoder appear only in $live"
+	return "$rc"
+}
+
 job_dotnet() {
 	local before
 	before="$(tree_state)"
 	check "noexec mount for the copy fallback test" noexec_mount
 	check "repository guard (allowlists, suppressions, generated markers)" go -C tools run ./check-repo
+	check "the live tests are contained (docs/guidelines/tests.md)" live_tests_contained
 	check "dotnet restore (locked)" dotnet restore dotnet/Whatsmeow.slnx --locked-mode &&
 		check "dotnet build" dotnet build dotnet/Whatsmeow.slnx -c Release --no-restore -p:ContinuousIntegrationBuild=true &&
 		{
 			check "no shipped assembly contains the fake WhatsApp control (ADR 0019)" shipped_have_no_fake
-			check "dotnet test" dotnet test --solution dotnet/Whatsmeow.slnx -c Release --no-build
+			# Never the live tests, even with their variable exported in the shell that runs this.
+			check "dotnet test" env -u WHATSMEOW_LIVE_PHONE_NUMBER dotnet test --solution dotnet/Whatsmeow.slnx -c Release --no-build
 			check "AotSmoke publish (zero trim and AOT warnings)" dotnet publish dotnet/tests/AotSmoke/AotSmoke.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true &&
 				check "AotSmoke run" aot_smoke_run
 		}
