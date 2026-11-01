@@ -13,8 +13,9 @@ WhatsBox, the closest .NET prior art, is at-most-once with no replay [observed: 
 whatsmeow's handler model at the pin, re-checked by hand [observed: §14 Spike results, "Other whatsmeow claims", starred items]:
 
 - Most handlers run synchronously and in order on a node queue per client, but connection events are dispatched on their own goroutines; "one queue per client" as RESEARCH.md states it is refuted.
-- When the 2048-node queue is full, ordering is no longer guaranteed (`client.go:900`), and a node running for about 5 minutes is left in the background (`client.go:954-970`) ([ARCHITECTURE §7.3](../ARCHITECTURE.md#73-the-event-handler-contract-critical)).
 - On a server-side `LoggedOut`, whatsmeow deletes the device rows concurrently with dispatching the event; "whatsmeow has already deleted the device rows" is refuted.
+
+When the 2048-node queue is full, ordering is no longer guaranteed (`client.go:900`), and a node running for about 5 minutes is left in the background (`client.go:954-970`) [observed: source review at the pin, [ARCHITECTURE §7.3](../ARCHITECTURE.md#73-the-event-handler-contract-critical); not re-checked by hand].
 
 Which acks a handler can withhold, from a source review at the pin; items marked * were re-checked by hand [observed: §14 Spike results, Question 4]:
 
@@ -33,6 +34,13 @@ SQLite under contention, 8 sessions and 10,400 mixed ops, 3 runs each [observed:
 - `synchronous(FULL)` costs about 2-5x over `NORMAL` (0.7-1.9 s vs 2.0-3.2 s for the 10,400 ops), still with 0 BUSY.
 
 ## Decision
+
+Phase 0 verdicts:
+
+- Question 3: go, because modernc supports `_txlock=immediate`, and with it plus `busy_timeout(5000)` the contention workload saw 0 `SQLITE_BUSY`.
+- Question 4: go, with the guarantee scoped to the gated kinds, because whatsmeow acks many other kinds regardless of the handler.
+
+Design:
 
 - whatsmeow runs with `SynchronousAck = true`, `EnableDecryptedEventBuffer = true` and `AddEventHandlerWithSuccessStatus` ([ADR 0013](0013-whatsmeow-config-follows-mautrix-no-fork.md)).
 - The handler maps the event, runs one short `INSERT INTO outbox … ON CONFLICT DO NOTHING` transaction, signals waiting streams without blocking, and returns `true` only after the commit.

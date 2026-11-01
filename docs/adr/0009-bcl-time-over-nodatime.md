@@ -23,6 +23,12 @@ So NodaTime would have needed an interop file, two fakes, a hand-parsed options 
 
 ## Decision
 
+Phase 0 verdict:
+
+- Question 7: no-go for NodaTime, go for BCL time, because Polly and fake time work only through `TimeProvider`, and NodaTime would need an interop adapter and two fakes.
+
+Design:
+
 Antonio chose BCL time; this library opts out of the house NodaTime rule.
 
 - A point in time is `DateTimeOffset` with a zero offset (UTC); never `DateTime`.

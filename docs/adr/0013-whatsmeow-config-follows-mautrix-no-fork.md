@@ -26,6 +26,12 @@ All six `Client` fields in [ARCHITECTURE §7.2](../ARCHITECTURE.md#72-whatsmeow-
 
 ## Decision
 
+Phase 0 verdict:
+
+- Question 8: go: no fork, because the maintainer runs this configuration in production and fixes real gaps upstream, as #1312 did.
+
+Design:
+
 - whatsmeow is configured as in [ARCHITECTURE §7.2](../ARCHITECTURE.md#72-whatsmeow-configuration-mandatory), following mautrix-whatsapp: `SynchronousAck`, `EnableDecryptedEventBuffer`, `AddEventHandlerWithSuccessStatus`, `ManualHistorySyncDownload`, `AutomaticMessageRerequestFromPhone`, `InitialAutoReconnect`.
 - Where we differ, §7.2 says why: `UseRetryMessageStore = true`, because mautrix defaults it to `false` and we choose retry receipts that survive a restart.
 - `EnableAutoReconnect = true`, with an `AutoReconnectHook` that caps and jitters the backoff.

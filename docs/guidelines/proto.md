@@ -18,6 +18,7 @@ Moved from ARCHITECTURE §6; the contract's policy (independence from whatsmeow,
 ## Changing the contract
 
 - Run `buf lint` and `buf breaking` against `main` before pushing.
-  `buf breaking` gates from the first published tag ([ADR 0015](../adr/0015-buf-breaking-gates-from-first-published-tag.md)); before it, it only reports.
 - Regenerate (`buf generate`) and commit the generated Go and C#. CI fails on a diff.
-- From the first published tag on, any change to `whatsmeow.v1` increments `protocol` (ARCHITECTURE §12, §13 invariant 5); until then `protocol` stays 1.
+- From the first published `vX.Y.Z` tag on, `whatsmeow.v1` never breaks: a break means a new package `whatsmeow.v2` with its own ADR, every additive change increments `protocol`, and `buf breaking` gates `whatsmeow.v1` against `main`.
+  Before that tag, `protocol` keeps its initial value, 1, and `buf breaking` only reports ([ADR 0015](../adr/0015-buf-breaking-gates-from-first-published-tag.md)).
+  ARCHITECTURE §6, §11, §12 and §13 invariant 5 say the same.

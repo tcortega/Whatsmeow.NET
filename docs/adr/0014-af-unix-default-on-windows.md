@@ -23,9 +23,15 @@ Question 2, GitHub Actions run 41228306743, spike code at tag `spike/windows-tra
 | bidi 500 B back to back + a ping every 50 ms | 3.2-4.2M echoed in order | 1.5-2.1M echoed in order |
 | stdin EOF stops the sidecar | exit 0 | exit 0 |
 
-The spike's named pipe used an owner-only DACL `D:P(A;;GA;;;OW)` on the server and `PipeOptions.CurrentUserOnly` on the client [observed: tag `spike/windows-transport`, `go/server/pipe_windows.go:16`, `dotnet/Program.cs:50`].
+The spike's named pipe used an owner-only DACL `D:P(A;;GA;;;OW)` on the server and `PipeOptions.CurrentUserOnly` on the client [observed: tag `spike/windows-transport`, `spikes/windows-transport/go/server/pipe_windows.go:16`, `spikes/windows-transport/dotnet/Program.cs:50`].
 
 ## Decision
+
+Phase 0 verdict:
+
+- Question 2: go for AF_UNIX as the Windows default, because both transports passed every test on three Windows hosts and the #7039 reproducer saw no transport error.
+
+Design:
 
 - The Unix domain socket is the default transport on every OS, Windows included.
 - On Windows the named pipe stays selectable as a fallback: `\\.\pipe\whatsmeow-net-` plus a 128-bit random suffix, an owner-only DACL (go-winio `D:P(A;;GA;;;OW)`), and `PipeOptions.CurrentUserOnly` on the client.
@@ -34,7 +40,8 @@ The spike's named pipe used an owner-only DACL `D:P(A;;GA;;;OW)` on the server a
 
 ## Consequences
 
-- Windows gets the faster transport for large frames and bidi (about 2-3x in the table above).
+- In the table above, AF_UNIX was about 2-4x faster for server streams of 64 KiB messages and about 1.5-3x for bidi.
+- Client-stream upload was comparable, with the named-pipe range equal or higher (328-469 vs 308-390 MiB/s) [inferred: ratios from the range ends across the three hosts, not paired per host].
 - Without the explicit DACL, the socket directory's protection would come from the user's `%LOCALAPPDATA%\Temp` ACL [inferred: default per-user ACL, not measured].
 - RESEARCH.md also reports third-party network stacks on managed machines breaking AF_UNIX `connect` for the JDK; whether that affects us is [unknown], and the fallback is the way out.
 - Both transports stay in the code and in CI.

@@ -1,10 +1,16 @@
 # Architecture
 
-> **Status:** v1 design, frozen for implementation. Changes go through an ADR (see [Decision log](#decision-log)).
-> **Name:** Whatsmeow.NET. Identifiers are in [Naming](#naming).
-> **Background:** the full research behind every decision here is in [`RESEARCH.md`](RESEARCH.md). This document states *what we do*. The research explains *why*, with sources.
-> **How to write the code:** [`guidelines/`](guidelines/README.md). Coding rules that used to live here (§6 proto style, §7.9, the idiom half of §8.3, §8.9 table, §8.10, test discipline) moved there; each spot keeps a pointer.
-> **House rules win:** where this document and the house guidelines (shared with bridge, compras, chrominal) disagreed, the house rule was applied, except where a measured reason made this library opt out (BCL time, `IWhatsAppClient`). Both kinds are ADRs in the [Decision log](#decision-log).
+> **Status:** v1 design, frozen for implementation.
+> Changes go through an ADR (see [Decision log](#decision-log)).
+> **Name:** Whatsmeow.NET.
+> Identifiers are in [Naming](#naming).
+> **Background:** the full research behind every decision here is in [`RESEARCH.md`](RESEARCH.md).
+> This document states *what we do*.
+> The research explains *why*, with sources.
+> **How to write the code:** [`guidelines/`](guidelines/README.md).
+> Coding rules that used to live here (§6 proto style, §7.9, the idiom half of §8.3, §8.9 table, §8.10, test discipline) moved there; each spot keeps a pointer.
+> **House rules win:** where this document and the house guidelines (shared with bridge, compras, chrominal) disagreed, the house rule was applied, except where a measured reason made this library opt out (BCL time, `IWhatsAppClient`).
+> Both kinds are ADRs in the [Decision log](#decision-log).
 
 Whatsmeow.NET gives .NET applications full access to WhatsApp's multi-device protocol by wrapping the Go library [whatsmeow](https://github.com/tulir/whatsmeow). It has two parts, released together from one repo:
 
@@ -200,8 +206,9 @@ The contract is the most important artifact in the repo. Both sides are generate
 - **Independent of whatsmeow's Go API.** No field mirrors a whatsmeow Go struct by accident. Mapping happens in Go slice code.
 - whatsmeow's own protos (`WAWebProtobufsE2E.Message` etc.) are imported **unmodified** from `third_party/whatsmeow` and embedded as **typed fields**. On the wire, a typed field is identical to a `bytes` field holding the serialized message.
 - The Go server uses a lenient codec (`AllowPartial` both ways) installed with `grpc.ForceServerCodecV2`, never a global `encoding.RegisterCodec`. With grpc-go's default codec, a message missing a proto2 `required` field fails to decode before any interceptor runs, as a bare `Internal` with no `ErrorInfo`; with the lenient codec it reaches the slice, whatsmeow's send-path `proto.Marshal` rejects it, and the slice maps that to `INVALID_ARGUMENT` (§14 question 1).
-- `buf breaking` gates `whatsmeow.v1` only, from the first published tag ([ADR 0015](adr/0015-buf-breaking-gates-from-first-published-tag.md)).
-  Upstream wire changes are reported but don't block.
+- From the first published `vX.Y.Z` tag on, `whatsmeow.v1` never breaks: a break means a new package `whatsmeow.v2` with its own ADR, every additive change increments `protocol`, and `buf breaking` gates `whatsmeow.v1` against `main`.
+  Before that tag, `protocol` keeps its initial value, 1, and `buf breaking` only reports ([ADR 0015](adr/0015-buf-breaking-gates-from-first-published-tag.md)).
+  `buf breaking` covers `whatsmeow.v1` only; upstream wire changes are reported but don't block.
 - `GetInfo` reports `version`, `protocol` (an integer contract revision), `whatsmeow_version`, `wa_web_version`, `go_version` and `commit`.
 
 **Service shape** (full outline in the research report):
@@ -383,7 +390,10 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
 ### 8.6 Transport
 
 - `GrpcChannel.ForAddress("http://localhost", new GrpcChannelOptions { HttpHandler = new SocketsHttpHandler { ConnectCallback = … } })`.
-- Unix domain socket by default on every OS, Windows included (§14 question 2: stable, and 2-3x faster than named pipes for large frames and bidi). On Windows the named-pipe transport stays selectable as a fallback; it passed the same soak.
+- Unix domain socket by default on every OS, Windows included (§14 question 2: stable on both transports).
+  AF_UNIX was about 2-4x faster for server streams of 64 KiB messages and about 1.5-3x for bidi.
+  Client-stream upload was comparable, with the named-pipe range equal or higher (328-469 vs 308-390 MiB/s) [inferred: ratios from the range ends across the three hosts, not paired per host].
+  On Windows the named-pipe transport stays selectable as a fallback; it passed the same soak.
 - An auth token is added to every call by an interceptor, together with `ThrowOperationCanceledOnCancellation = true`.
 - `MaxReceiveMessageSize` and `MaxSendMessageSize` are set explicitly to 16 MiB on both sides.
 - Never call `GrpcChannel.ConnectAsync` or read `GrpcChannel.State`; both throw `InvalidOperationException` ("doesn't support client-side load balancing or connectivity state tracking") when `ConnectCallback` is set (§14 transport spike). Readiness comes from the handshake.
@@ -435,7 +445,7 @@ Moved to [guidelines/csharp.md](guidelines/csharp.md) Async and concurrency: `Ch
 ## 10. Security
 
 - The socket lives in a freshly created `0700` directory with a short random name; a stale socket file is removed before `Listen`. Linux abstract sockets are never used.
-- Windows named pipes use a random name, a current-user-only DACL (go-winio `D:P(A;;GA;;;OW)`), and `PipeOptions.CurrentUserOnly` on the client; that combination connected in the soak [observed: tag `spike/windows-transport`, `go/server/pipe_windows.go:16`, `dotnet/Program.cs:50`; §14 question 2].
+- Windows named pipes use a random name, a current-user-only DACL (go-winio `D:P(A;;GA;;;OW)`), and `PipeOptions.CurrentUserOnly` on the client; that combination connected in the soak [observed: tag `spike/windows-transport`, `spikes/windows-transport/go/server/pipe_windows.go:16`, `spikes/windows-transport/dotnet/Program.cs:50`; §14 question 2].
 - On Windows, `os.Chmod(dir, 0700)` does not set an ACL. The socket directory's protection comes from the user's `%LOCALAPPDATA%\Temp` ACL [inferred: default per-user ACL, not measured], so the sidecar sets an explicit owner-only DACL on that directory at creation, and the token stays the real gate.
 - A per-launch 32-byte token is delivered on stdin (never argv or environment variables). It is checked in constant time by a gRPC interceptor. A nonce echo guards against connecting to a stale sidecar.
 - The SQLite database holds long-term private keys. It is created `0600`, and the docs recommend disk encryption. Backups use `VACUUM INTO` and must be encrypted by the user.
@@ -454,7 +464,7 @@ How to write each test, what is banned, and the can-it-fail check: [guidelines/t
 |---|---|---|
 | Integration (default) | real `whatsmeow-net` started with `--fake-whatsapp`, a test-only build tag that replaces whatsmeow with a scripted fake and exposes a control service to inject events and failures; one FullCycle per slice through the public API, covering proto ↔ record mapping and error mapping; kill-either-process tests for delivery guarantees | `tests/Whatsmeow.IntegrationTests` |
 | Go unit | every slice, with whatsmeow faked behind the slice's small interface; event-mapping tables covering every event type; outbox replay/ack/crash semantics; `-race` always | `sidecar/internal/**` |
-| Contract | `buf lint`; `buf breaking` against `main`, reporting only until the first published `vX.Y.Z` tag and gating from then on ([ADR 0015](adr/0015-buf-breaking-gates-from-first-published-tag.md)); generated-code diff check | CI |
+| Contract | `buf lint`; `buf breaking`. From the first published `vX.Y.Z` tag on, `whatsmeow.v1` never breaks: a break means a new package `whatsmeow.v2` with its own ADR, every additive change increments `protocol`, and `buf breaking` gates `whatsmeow.v1` against `main`. Before that tag, `protocol` keeps its initial value, 1, and `buf breaking` only reports ([ADR 0015](adr/0015-buf-breaking-gates-from-first-published-tag.md)); generated-code diff check | CI |
 | .NET unit (vital only) | dispatcher per-chat ordering and watermark acking; supervisor restart/backoff state machine with `FakeTimeProvider` | `tests/Whatsmeow.Client.Tests` |
 | Live | real WhatsApp with a dedicated test number; manual pairing; opt-in through environment variables; never in default CI | `tests/Whatsmeow.LiveTests` |
 | Packaging | `dotnet pack` → restore from a local feed → run on win-x64, linux-x64 (glibc and Alpine), osx-arm64 | CI matrix |
@@ -477,7 +487,8 @@ How to write each test, what is banned, and the can-it-fail check: [guidelines/t
   5. Post a non-gating upstream wire-diff comment and a parity report.
   6. Open a PR.
 - The whatsmeow pin is an implementation detail; a bump that passes CI is a patch release.
-- From the first published tag on, a change to `whatsmeow.v1` increments `protocol`; until then `protocol` stays 1 ([ADR 0015](adr/0015-buf-breaking-gates-from-first-published-tag.md)).
+- From the first published `vX.Y.Z` tag on, `whatsmeow.v1` never breaks: a break means a new package `whatsmeow.v2` with its own ADR, every additive change increments `protocol`, and `buf breaking` gates `whatsmeow.v1` against `main`.
+  Before that tag, `protocol` keeps its initial value, 1, and `buf breaking` only reports ([ADR 0015](adr/0015-buf-breaking-gates-from-first-published-tag.md)).
 - `NOTICE` carries the MPL-2.0 source offer for whatsmeow at the pinned commit.
 
 ---
@@ -490,8 +501,8 @@ Any change that violates one of these is wrong unless an ADR changes the invaria
 2. A WhatsApp message of a gated kind (§1) is acked to the server only after it is durably in the outbox. Ungated kinds are acked by whatsmeow regardless; we never claim otherwise.
 3. An event is acked by .NET only after all of its handlers have completed. Acks follow the watermark.
 4. Every whatsmeow `PermanentDisconnect` (six types at the pin, §7.4) maps to an explicit session state and is delivered to .NET. "Silent" sessions are a bug.
-5. From the first published `vX.Y.Z` tag on, `whatsmeow.v1` never breaks without a `protocol` increment, and `buf breaking` enforces this against `main`.
-   Before that tag, `protocol` stays 1 and `buf breaking` reports without gating ([ADR 0015](adr/0015-buf-breaking-gates-from-first-published-tag.md)).
+5. From the first published `vX.Y.Z` tag on, `whatsmeow.v1` never breaks: a break means a new package `whatsmeow.v2` with its own ADR, every additive change increments `protocol`, and `buf breaking` gates `whatsmeow.v1` against `main`.
+   Before that tag, `protocol` keeps its initial value, 1, and `buf breaking` only reports ([ADR 0015](adr/0015-buf-breaking-gates-from-first-published-tag.md)).
 6. Generated protobuf types never appear in the stable public C# API.
 7. No runtime reflection, no `async void`, no sync-over-async, no `Grpc.Core`, no `Newtonsoft.Json`, no `DateTime`, no clock or timer that bypasses the injected `TimeProvider`.
 8. No whole-file media in a single gRPC message; use paths or chunks.
@@ -595,7 +606,10 @@ Setup: Go 1.27.3 grpc-go 1.85.0 server, .NET 10.0.14 Native AOT client, on Windo
 
 - Sizes: linux-amd64 22.9 MB, linux-arm64 21.9 MB, darwin-arm64 22.4 MB, darwin-amd64 23.3 MB, windows-amd64 23.2 MB, windows-arm64 21.9 MB.
 - The Linux binaries ran (store upgrade, client, socket, ready line) on `alpine:3` and `debian:stable-slim`, arm64 natively and amd64 under emulation.
-- macOS: the Go linker ad-hoc signs `darwin/arm64`; `darwin/amd64` is unsigned. `spctl` rejects both, but that only applies to quarantined launches. The macOS `protoc` that `dotnet restore` pulled from nuget.org (Grpc.Tools 2.85.0) has no `com.apple.quarantine`, is only ad-hoc signed, and runs. Developer ID signing and notarization are therefore dropped (§12).
+- macOS: the Go linker ad-hoc signs `darwin/arm64`; `darwin/amd64` is unsigned.
+  `spctl` rejects both, but that only applies to quarantined launches [inferred: Gatekeeper assesses only quarantined launches].
+  The macOS `protoc` that `dotnet restore` pulled from nuget.org (Grpc.Tools 2.85.0) has no `com.apple.quarantine`, is only ad-hoc signed, and runs.
+  Developer ID signing and notarization are therefore dropped (§12).
 
 **Transport spike: answered.** Go 1.27.3 grpc-go 1.85.0 server, .NET Grpc.Net.Client 2.85.0 client published with Native AOT (0 IL/AOT warnings), osx-arm64.
 
@@ -661,4 +675,4 @@ House-rule alignment (applied, or opted out of with a measured reason):
 
 Contract gating:
 
-- [0015](adr/0015-buf-breaking-gates-from-first-published-tag.md): `buf breaking` reports only until the first published `vX.Y.Z` tag and gates `whatsmeow.v1` from then on; `protocol` stays 1 until that tag
+- [0015](adr/0015-buf-breaking-gates-from-first-published-tag.md): from the first published `vX.Y.Z` tag on, `whatsmeow.v1` never breaks (a break is a new `whatsmeow.v2`), every additive change increments `protocol`, and `buf breaking` gates; before it, `protocol` keeps its initial value, 1, and `buf breaking` only reports

@@ -22,6 +22,12 @@ Question 2, Windows [observed: §14 Spike results, Question 2]: the `protoc.exe`
 
 ## Decision
 
+Phase 0 verdict:
+
+- Question 6: go without Developer ID signing, notarization or Authenticode, because the 21.9-23.3 MB CGO-free binaries ran on Alpine and Debian, and binaries restored from nuget.org carry no quarantine attribute or Mark-of-the-Web.
+
+Design:
+
 - The binaries ship in `Whatsmeow.Sidecar.Native.{win,linux,osx}` under `runtimes/{rid}/native/whatsmeow-net[.exe]`.
 - `Whatsmeow.Client` depends on them with exact versions (`[x.y.z]`); no `runtime.json` pointer package ([ARCHITECTURE §8.1](../ARCHITECTURE.md#81-packages)).
 - A musl RID resolves to the same binary as its glibc RID, which the Alpine run above supports.

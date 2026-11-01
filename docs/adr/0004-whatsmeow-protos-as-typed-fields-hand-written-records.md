@@ -24,6 +24,13 @@ Question 5: the 57 generated WhatsApp types build, serialize, parse, compare and
 
 ## Decision
 
+Phase 0 verdicts:
+
+- Question 1: go for typed fields, because the server-only lenient codec turns an incomplete message from .NET into `INVALID_ARGUMENT` instead of a bare `Internal`.
+- Question 5: go, because the 57 generated WhatsApp types and the Vogen types with `Conversions.SystemTextJson` publish under Native AOT with zero IL/AOT warnings.
+
+Design:
+
 - `whatsmeow.v1` (proto3) imports whatsmeow's protos unmodified from `third_party/whatsmeow`, copied from the exact pinned module directory, and embeds them as typed fields.
 - The Go server installs a lenient codec (`AllowPartial` both ways) with `grpc.ForceServerCodecV2`, never a global `encoding.RegisterCodec`.
 - An incomplete message from .NET is rejected by whatsmeow's send path and mapped to `INVALID_ARGUMENT`.
