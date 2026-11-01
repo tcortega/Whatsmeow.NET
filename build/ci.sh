@@ -3,7 +3,7 @@
 # Run it before pushing: bash build/ci.sh all (or contract, go, dotnet). Works in Git Bash on Windows.
 #
 # Every check runs and reports, even after an earlier one failed; the script fails at the end if any did.
-# A check that only makes sense once something exists (the sidecar has no Go package before #4) says so and passes.
+# A check that only makes sense once something exists (a Go module with no package yet) says so and passes.
 set -uo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -184,9 +184,24 @@ aot_smoke_run() {
 	"dotnet/artifacts/publish/AotSmoke/release_$rid/AotSmoke$exe"
 }
 
+# The noexec copy fallback test (ARCHITECTURE §8.5) needs a noexec mount, and only root can make one, so CI makes it
+# on Linux; the test fails there without it (docs/guidelines/tests.md). Elsewhere the test is skipped.
+noexec_mount() {
+	if [ "${GITHUB_ACTIONS:-}" != true ] || [ "$(uname -s)" != Linux ]; then
+		echo "not Linux CI: the noexec test is skipped"
+		return 0
+	fi
+	local dir="${RUNNER_TEMP:?}/noexec"
+	mkdir -p "$dir" || return
+	sudo mount -t tmpfs -o noexec,nosuid,nodev,mode=1777,size=256m tmpfs "$dir" || return
+	export WHATSMEOW_NET_TEST_NOEXEC_DIR="$dir"
+	echo "noexec tmpfs at $dir"
+}
+
 job_dotnet() {
 	local before
 	before="$(tree_state)"
+	check "noexec mount for the copy fallback test" noexec_mount
 	check "repository guard (allowlists, suppressions, generated markers)" go -C tools run ./check-repo
 	check "dotnet restore (locked)" dotnet restore dotnet/Whatsmeow.slnx --locked-mode &&
 		check "dotnet build" dotnet build dotnet/Whatsmeow.slnx -c Release --no-restore -p:ContinuousIntegrationBuild=true &&

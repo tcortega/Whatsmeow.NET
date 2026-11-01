@@ -1,0 +1,41 @@
+using Microsoft.Extensions.Options;
+
+namespace Whatsmeow.Sidecar;
+
+/// <summary>
+/// The one setup step and the validation of <see cref="WhatsmeowSidecarOptions"/>. It is the only reader of
+/// <c>WHATSMEOW_NET_SIDECAR_PATH</c> (docs/guidelines/options.md).
+/// </summary>
+internal static class WhatsmeowSidecarOptionsSetup
+{
+	public const string SidecarPathVariable = "WHATSMEOW_NET_SIDECAR_PATH";
+
+	/// <summary>Applies the computed defaults; the shape of a <c>PostConfigure</c> step for the hosting package (Phase 3).</summary>
+	public static void Apply(WhatsmeowSidecarOptions options) =>
+		options.SidecarPath ??= Environment.GetEnvironmentVariable(SidecarPathVariable);
+
+	/// <summary>
+	/// Throws <see cref="OptionsValidationException"/> listing every rule <paramref name="options"/> breaks. The
+	/// hosting package (Phase 3) runs the same rules as an <c>IValidateOptions</c>.
+	/// </summary>
+	public static void Validate(WhatsmeowSidecarOptions options)
+	{
+		var failures = new List<string>();
+
+		// Hand-written: [Range(typeof(TimeSpan), ...)] is trim-unsafe (IL2026), so no rule here fits the generator.
+		if (options.StartupTimeout <= TimeSpan.Zero)
+			failures.Add($"{nameof(WhatsmeowSidecarOptions.StartupTimeout)} must be more than zero.");
+
+		if (options.SidecarPath is { } path && string.IsNullOrWhiteSpace(path))
+			failures.Add($"{nameof(WhatsmeowSidecarOptions.SidecarPath)} must not be empty or white space.");
+
+		if (!Enum.IsDefined(options.Transport))
+			failures.Add($"{nameof(WhatsmeowSidecarOptions.Transport)} {options.Transport} is not a transport.");
+
+		if (options.Transport is SidecarTransport.NamedPipe && !OperatingSystem.IsWindows())
+			failures.Add($"{nameof(WhatsmeowSidecarOptions.Transport)} {SidecarTransport.NamedPipe} is Windows only.");
+
+		if (failures.Count > 0)
+			throw new OptionsValidationException(Options.DefaultName, typeof(WhatsmeowSidecarOptions), failures);
+	}
+}

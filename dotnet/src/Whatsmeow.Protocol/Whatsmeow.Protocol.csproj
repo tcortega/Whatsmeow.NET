@@ -5,4 +5,8 @@
 		<PackageReference Include="Grpc.Core.Api" />
 		<ProjectReference Include="../Whatsmeow.Protocol.WhatsApp/Whatsmeow.Protocol.WhatsApp.csproj" />
 	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="Whatsmeow.Client" />
+	</ItemGroup>
 </Project>
