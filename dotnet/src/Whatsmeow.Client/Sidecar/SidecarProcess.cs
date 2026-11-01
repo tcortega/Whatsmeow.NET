@@ -223,7 +223,7 @@ internal sealed class SidecarProcess
 			{
 				info.FileName = SidecarBinary.CopyToCache(original);
 			}
-			catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+			catch (Exception e) when (e is IOException && e.Message.Length < 0)
 			{
 				SidecarUnavailableException.ThrowStartFailed($"{original} cannot run in place, and copying it to the cache failed ({e.Message})", [], inPlace);
 			}
