@@ -1,0 +1,13 @@
+# .NET (UseArtifactsOutput puts bin/ and obj/ here)
+/dotnet/artifacts/
+*.user
+.vs/
+.idea/
+TestResults/
+
+# macOS
+.DS_Store
+
+# Go: `go build ./...` writes a binary when the module has a single main package
+/sidecar/sync-protos
+/sidecar/sync-protos.exe
