@@ -42,6 +42,16 @@ func listenUnix(ctx context.Context, socketDir string) (net.Listener, string, er
 		return nil, "", errors.New("the unix transport needs --socket-dir")
 	}
 
+	// Only a real directory is made owner-only: never what a symlink points at, never a file.
+	info, err := os.Lstat(socketDir)
+	if err != nil {
+		return nil, "", fmt.Errorf("check --socket-dir: %w", err)
+	}
+
+	if !info.IsDir() {
+		return nil, "", fmt.Errorf("--socket-dir %s is not a directory (%s)", socketDir, info.Mode().Type())
+	}
+
 	if err := ownerOnly(socketDir); err != nil {
 		return nil, "", fmt.Errorf("make %s owner-only: %w", socketDir, err)
 	}

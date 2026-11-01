@@ -8,7 +8,7 @@ import (
 	"github.com/Microsoft/go-winio"
 )
 
-func TestListenPipeServesARandomOwnerOnlyPipe(t *testing.T) {
+func TestListenPipeServesARandomPipeOnlyThisUserCanOpen(t *testing.T) {
 	t.Parallel()
 
 	lis, endpoint, err := Listen(context.Background(), Pipe, "")
@@ -23,10 +23,20 @@ func TestListenPipeServesARandomOwnerOnlyPipe(t *testing.T) {
 	}
 
 	go func() {
-		if conn, err := lis.Accept(); err == nil {
+		for {
+			conn, err := lis.Accept()
+			if err != nil {
+				return
+			}
+
 			_ = conn.Close()
 		}
 	}()
+
+	// Protected, and one ACE: full access for this user (GA maps to the pipe's full access, FA).
+	if got, want := dacl(t, endpoint), regexp.MustCompile(`^D:P[A-Z]*\(A;;(GA|FA);;;`+regexp.QuoteMeta(account(t))+`\)$`); !want.MatchString(got) {
+		t.Fatalf("pipe DACL = %s, want %s", got, want)
+	}
 
 	conn, err := winio.DialPipeContext(context.Background(), endpoint)
 	if err != nil {

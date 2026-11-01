@@ -72,3 +72,21 @@ func TestListenRejectsAnUnknownTransport(t *testing.T) {
 		t.Fatal("listen tcp succeeded")
 	}
 }
+
+func TestListenRefusesASocketDirectoryThatIsAFile(t *testing.T) {
+	t.Parallel()
+
+	file := filepath.Join(socketDir(t), "file")
+	if err := os.WriteFile(file, nil, 0o600); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+
+	if lis, _, err := Listen(context.Background(), Unix, file); err == nil {
+		_ = lis.Close()
+		t.Fatal("listen in a file succeeded")
+	}
+
+	if info, err := os.Stat(file); err != nil || info.Mode().Perm() != 0o600 {
+		t.Fatalf("the file changed: %v, %v", info.Mode(), err)
+	}
+}
