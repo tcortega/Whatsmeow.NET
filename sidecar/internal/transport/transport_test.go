@@ -81,12 +81,18 @@ func TestListenRefusesASocketDirectoryThatIsAFile(t *testing.T) {
 		t.Fatalf("write: %v", err)
 	}
 
+	before, err := os.Stat(file)
+	if err != nil {
+		t.Fatalf("stat: %v", err)
+	}
+
 	if lis, _, err := Listen(context.Background(), Unix, file); err == nil {
 		_ = lis.Close()
 		t.Fatal("listen in a file succeeded")
 	}
 
-	if info, err := os.Stat(file); err != nil || info.Mode().Perm() != 0o600 {
-		t.Fatalf("the file changed: %v, %v", info.Mode(), err)
+	// Compared with itself: Windows reports a writable file as 0666 whatever it was created with.
+	if after, err := os.Stat(file); err != nil || after.Mode() != before.Mode() {
+		t.Fatalf("the file changed: %v to %v, %v", before.Mode(), after.Mode(), err)
 	}
 }
