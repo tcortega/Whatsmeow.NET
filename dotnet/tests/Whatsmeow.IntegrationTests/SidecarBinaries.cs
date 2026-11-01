@@ -90,6 +90,9 @@ public sealed partial class SidecarBinaries : IAsyncLifetime
 		return path;
 	}
 
+	/// <summary>A database file of its own in a new directory, so each sidecar a test starts owns its database.</summary>
+	public string NewDatabase() => Path.Combine(NewDirectory(), "whatsmeow-net.db");
+
 	/// <summary>A new directory, deleted after the run.</summary>
 	public string NewDirectory()
 	{
