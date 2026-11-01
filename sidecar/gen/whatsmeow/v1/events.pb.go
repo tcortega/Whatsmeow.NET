@@ -577,6 +577,7 @@ type StreamEventsResponse struct {
 	//	*StreamEventsResponse_Receipt
 	//	*StreamEventsResponse_UndecryptableMessage
 	//	*StreamEventsResponse_ConnectionState
+	//	*StreamEventsResponse_Contact
 	Payload       isStreamEventsResponse_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -662,6 +663,15 @@ func (x *StreamEventsResponse) GetConnectionState() *ConnectionStateEvent {
 	return nil
 }
 
+func (x *StreamEventsResponse) GetContact() *ContactEvent {
+	if x != nil {
+		if x, ok := x.Payload.(*StreamEventsResponse_Contact); ok {
+			return x.Contact
+		}
+	}
+	return nil
+}
+
 type isStreamEventsResponse_Payload interface {
 	isStreamEventsResponse_Payload()
 }
@@ -686,6 +696,11 @@ type StreamEventsResponse_ConnectionState struct {
 	ConnectionState *ConnectionStateEvent `protobuf:"bytes,13,opt,name=connection_state,json=connectionState,proto3,oneof"`
 }
 
+type StreamEventsResponse_Contact struct {
+	// A change to a contact's profile; best effort (contact.proto).
+	Contact *ContactEvent `protobuf:"bytes,14,opt,name=contact,proto3,oneof"`
+}
+
 func (*StreamEventsResponse_Message) isStreamEventsResponse_Payload() {}
 
 func (*StreamEventsResponse_Receipt) isStreamEventsResponse_Payload() {}
@@ -693,6 +708,8 @@ func (*StreamEventsResponse_Receipt) isStreamEventsResponse_Payload() {}
 func (*StreamEventsResponse_UndecryptableMessage) isStreamEventsResponse_Payload() {}
 
 func (*StreamEventsResponse_ConnectionState) isStreamEventsResponse_Payload() {}
+
+func (*StreamEventsResponse_Contact) isStreamEventsResponse_Payload() {}
 
 // AckEventsRequest moves a consumer's cursor.
 type AckEventsRequest struct {
@@ -799,7 +816,7 @@ var File_whatsmeow_v1_events_proto protoreflect.FileDescriptor
 
 const file_whatsmeow_v1_events_proto_rawDesc = "" +
 	"\n" +
-	"\x19whatsmeow/v1/events.proto\x12\fwhatsmeow.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x1awhatsmeow/v1/session.proto\"\x9d\x01\n" +
+	"\x19whatsmeow/v1/events.proto\x12\fwhatsmeow.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x1awhatsmeow/v1/contact.proto\x1a\x1awhatsmeow/v1/session.proto\"\x9d\x01\n" +
 	"\rMessageSource\x12\x12\n" +
 	"\x04chat\x18\x01 \x01(\tR\x04chat\x12\x16\n" +
 	"\x06sender\x18\x02 \x01(\tR\x06sender\x12\x1d\n" +
@@ -831,14 +848,15 @@ const file_whatsmeow_v1_events_proto_rawDesc = "" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x1a\n" +
 	"\bconsumer\x18\x02 \x01(\tR\bconsumer\x12\x1b\n" +
-	"\tafter_seq\x18\x03 \x01(\x04R\bafterSeq\"\xd4\x02\n" +
+	"\tafter_seq\x18\x03 \x01(\x04R\bafterSeq\"\x8c\x03\n" +
 	"\x14StreamEventsResponse\x12\x10\n" +
 	"\x03seq\x18\x01 \x01(\x04R\x03seq\x126\n" +
 	"\amessage\x18\n" +
 	" \x01(\v2\x1a.whatsmeow.v1.MessageEventH\x00R\amessage\x126\n" +
 	"\areceipt\x18\v \x01(\v2\x1a.whatsmeow.v1.ReceiptEventH\x00R\areceipt\x12^\n" +
 	"\x15undecryptable_message\x18\f \x01(\v2'.whatsmeow.v1.UndecryptableMessageEventH\x00R\x14undecryptableMessage\x12O\n" +
-	"\x10connection_state\x18\r \x01(\v2\".whatsmeow.v1.ConnectionStateEventH\x00R\x0fconnectionStateB\t\n" +
+	"\x10connection_state\x18\r \x01(\v2\".whatsmeow.v1.ConnectionStateEventH\x00R\x0fconnectionState\x126\n" +
+	"\acontact\x18\x0e \x01(\v2\x1a.whatsmeow.v1.ContactEventH\x00R\acontactB\t\n" +
 	"\apayload\"i\n" +
 	"\x10AckEventsRequest\x12\x1d\n" +
 	"\n" +
@@ -894,6 +912,7 @@ var file_whatsmeow_v1_events_proto_goTypes = []any{
 	(*timestamppb.Timestamp)(nil),     // 11: google.protobuf.Timestamp
 	(*waE2E.Message)(nil),             // 12: WAWebProtobufsE2E.Message
 	(*SessionState)(nil),              // 13: whatsmeow.v1.SessionState
+	(*ContactEvent)(nil),              // 14: whatsmeow.v1.ContactEvent
 }
 var file_whatsmeow_v1_events_proto_depIdxs = []int32{
 	1,  // 0: whatsmeow.v1.MessageInfo.source:type_name -> whatsmeow.v1.MessageSource
@@ -909,15 +928,16 @@ var file_whatsmeow_v1_events_proto_depIdxs = []int32{
 	4,  // 10: whatsmeow.v1.StreamEventsResponse.receipt:type_name -> whatsmeow.v1.ReceiptEvent
 	5,  // 11: whatsmeow.v1.StreamEventsResponse.undecryptable_message:type_name -> whatsmeow.v1.UndecryptableMessageEvent
 	6,  // 12: whatsmeow.v1.StreamEventsResponse.connection_state:type_name -> whatsmeow.v1.ConnectionStateEvent
-	7,  // 13: whatsmeow.v1.EventService.StreamEvents:input_type -> whatsmeow.v1.StreamEventsRequest
-	9,  // 14: whatsmeow.v1.EventService.AckEvents:input_type -> whatsmeow.v1.AckEventsRequest
-	8,  // 15: whatsmeow.v1.EventService.StreamEvents:output_type -> whatsmeow.v1.StreamEventsResponse
-	10, // 16: whatsmeow.v1.EventService.AckEvents:output_type -> whatsmeow.v1.AckEventsResponse
-	15, // [15:17] is the sub-list for method output_type
-	13, // [13:15] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	14, // 13: whatsmeow.v1.StreamEventsResponse.contact:type_name -> whatsmeow.v1.ContactEvent
+	7,  // 14: whatsmeow.v1.EventService.StreamEvents:input_type -> whatsmeow.v1.StreamEventsRequest
+	9,  // 15: whatsmeow.v1.EventService.AckEvents:input_type -> whatsmeow.v1.AckEventsRequest
+	8,  // 16: whatsmeow.v1.EventService.StreamEvents:output_type -> whatsmeow.v1.StreamEventsResponse
+	10, // 17: whatsmeow.v1.EventService.AckEvents:output_type -> whatsmeow.v1.AckEventsResponse
+	16, // [16:18] is the sub-list for method output_type
+	14, // [14:16] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_whatsmeow_v1_events_proto_init() }
@@ -925,12 +945,14 @@ func file_whatsmeow_v1_events_proto_init() {
 	if File_whatsmeow_v1_events_proto != nil {
 		return
 	}
+	file_whatsmeow_v1_contact_proto_init()
 	file_whatsmeow_v1_session_proto_init()
 	file_whatsmeow_v1_events_proto_msgTypes[7].OneofWrappers = []any{
 		(*StreamEventsResponse_Message)(nil),
 		(*StreamEventsResponse_Receipt)(nil),
 		(*StreamEventsResponse_UndecryptableMessage)(nil),
 		(*StreamEventsResponse_ConnectionState)(nil),
+		(*StreamEventsResponse_Contact)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

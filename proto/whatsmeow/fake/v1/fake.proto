@@ -71,6 +71,29 @@ service FakeWhatsAppService {
   // whatsmeow does; the client is disconnected and does not reconnect. For logged_out the client also deletes its
   // device concurrently, as whatsmeow does (connectionevents.go:37-44, 130-136). It returns before the handlers run.
   rpc RaisePermanentDisconnect(RaisePermanentDisconnectRequest) returns (RaisePermanentDisconnectResponse);
+
+  // RegisterUser adds a user to WhatsApp's directory, which every session's lookups read: IsOnWhatsApp, GetUserInfo,
+  // and the LID that UpdateBlocklist fetches. An unregistered number is not on WhatsApp. Registering a phone_jid again
+  // replaces it.
+  rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse);
+
+  // SetProfilePicture sets what WhatsApp answers for the profile picture of a user or a group; without one it answers
+  // that there is none.
+  rpc SetProfilePicture(SetProfilePictureRequest) returns (SetProfilePictureResponse);
+
+  // DeliverContactNotification makes WhatsApp send the session's client a picture or status notification. As
+  // whatsmeow does, the client dispatches Picture or UserAbout on the node queue and ignores the handlers' result
+  // (notification.go:91-115, 449-466, 472); it returns once the handlers ran. A session without a client is an error.
+  rpc DeliverContactNotification(DeliverContactNotificationRequest) returns (DeliverContactNotificationResponse);
+
+  // SyncContact makes an app state sync deliver a contact's saved name: the client stores it, then dispatches Contact,
+  // as whatsmeow does (appstate.go:292-296). The session must be linked.
+  rpc SyncContact(SyncContactRequest) returns (SyncContactResponse);
+
+  // FailNextContactQuery makes WhatsApp answer the session's next contact query (IsOnWhatsApp, GetUserInfo,
+  // GetProfilePictureInfo, GetBlocklist, UpdateBlocklist) with an IQ error of code: 429 is whatsmeow's
+  // ErrIQRateOverLimit (errors.go:197).
+  rpc FailNextContactQuery(FailNextContactQueryRequest) returns (FailNextContactQueryResponse);
 }
 
 // LinkDeviceRequest names the session and the device's JID.
@@ -302,3 +325,105 @@ message Receipt {
   // The receipt type: "inactive" for a message from someone else while the client sends no active receipts.
   string type = 2;
 }
+
+// RegisterUserRequest is one WhatsApp user.
+message RegisterUserRequest {
+  // The user's phone-number JID, digits@s.whatsapp.net.
+  string phone_jid = 1;
+  // The user's LID, digits@lid; empty for none.
+  string lid = 2;
+  // The about text.
+  string about = 3;
+  // The verified business name; empty for none.
+  string business_name = 4;
+}
+
+// RegisterUserResponse has no fields.
+message RegisterUserResponse {}
+
+// SetProfilePictureRequest is one profile picture.
+message SetProfilePictureRequest {
+  // A picture that is set.
+  message Picture {
+    // The picture's id.
+    string id = 1;
+    // The picture's URL.
+    string url = 2;
+  }
+
+  // The picture is hidden from every session.
+  message Hidden {}
+
+  // The user or group.
+  string jid = 1;
+  // The picture.
+  oneof picture {
+    // See Picture.
+    Picture set = 2;
+    // See Hidden.
+    Hidden hidden = 3;
+  }
+}
+
+// SetProfilePictureResponse has no fields.
+message SetProfilePictureResponse {}
+
+// DeliverContactNotificationRequest is one notification.
+message DeliverContactNotificationRequest {
+  // A picture notification (notification.go:91-115).
+  message Picture {
+    // The user or group whose picture changed.
+    string jid = 1;
+    // The new picture's id; ignored when removed.
+    string id = 2;
+    // True when the picture was removed.
+    bool removed = 3;
+  }
+
+  // A status notification (notification.go:449-466).
+  message About {
+    // The user whose about text changed.
+    string jid = 1;
+    // The new about text.
+    string text = 2;
+  }
+
+  // The session whose client receives it.
+  string session_id = 1;
+  // The notification.
+  oneof kind {
+    // See Picture.
+    Picture picture = 2;
+    // See About.
+    About about = 3;
+  }
+}
+
+// DeliverContactNotificationResponse has no fields.
+message DeliverContactNotificationResponse {}
+
+// SyncContactRequest is one contact of an app state sync.
+message SyncContactRequest {
+  // The session whose client syncs it.
+  string session_id = 1;
+  // The contact's JID.
+  string jid = 2;
+  // The saved first name.
+  string first_name = 3;
+  // The saved full name.
+  string full_name = 4;
+}
+
+// SyncContactResponse has no fields.
+message SyncContactResponse {}
+
+// FailNextContactQueryRequest names the session and the error.
+message FailNextContactQueryRequest {
+  // The session whose next contact query fails.
+  string session_id = 1;
+  // WhatsApp's IQ error code.
+  int32 code = 2;
+}
+
+// FailNextContactQueryResponse has no fields.
+message FailNextContactQueryResponse {}

@@ -27,8 +27,9 @@ var errReplaced = errors.New("replaced by a newer stream of the same consumer")
 type Service struct {
 	whatsmeowv1.UnimplementedEventServiceServer
 
-	box *outbox.Outbox
-	log zerolog.Logger
+	box     *outbox.Outbox
+	log     zerolog.Logger
+	mappers []Mapper
 
 	mu      sync.Mutex
 	streams map[consumer]*registration
@@ -39,9 +40,15 @@ type consumer struct{ session, name string }
 // registration is one open stream; it is compared by identity, so a replaced stream never removes its successor.
 type registration struct{ cancel context.CancelCauseFunc }
 
-// New returns the slice on box.
-func New(box *outbox.Outbox, log zerolog.Logger) *Service {
-	return &Service{box: box, log: log, streams: map[consumer]*registration{}}
+// Mapper is how a slice records its own whatsmeow events (ARCHITECTURE §3: a slice owns its event mapping): it maps
+// evt of the session sessionID to the outbox event it records and that event's natural key, or false for an event the
+// slice does not record. It is pure: no I/O. An empty key never matches, so each such event is recorded once more.
+type Mapper func(sessionID string, evt any) (key string, event *whatsmeowv1.StreamEventsResponse, ok bool)
+
+// New returns the slice on box. Each mapper is a slice's: the handler records what the first that maps an event
+// returns, after the events this slice maps itself.
+func New(box *outbox.Outbox, log zerolog.Logger, mappers ...Mapper) *Service {
+	return &Service{box: box, log: log, mappers: mappers, streams: map[consumer]*registration{}}
 }
 
 // Handler is the whatsmeow event handler of one session's client (ARCHITECTURE §7.3). It maps the event, records it
@@ -59,7 +66,7 @@ func (svc *Service) Handler(sessionID string) whatsmeow.EventHandlerWithSuccessS
 			}
 		}()
 
-		key, event, record := toEvent(evt)
+		key, event, record := svc.toEvent(sessionID, evt)
 		if !record {
 			return true
 		}
@@ -79,6 +86,21 @@ func (svc *Service) Handler(sessionID string) whatsmeow.EventHandlerWithSuccessS
 
 		return true
 	}
+}
+
+// toEvent maps evt with this slice's own mapping, then with each slice's mapper.
+func (svc *Service) toEvent(sessionID string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) {
+	if key, event, ok := toEvent(evt); ok {
+		return key, event, true
+	}
+
+	for _, mapper := range svc.mappers {
+		if key, event, ok := mapper(sessionID, evt); ok {
+			return key, event, true
+		}
+	}
+
+	return "", nil, false
 }
 
 // StreamEvents sends the session's events after max(after_seq, cursor), then live ones, until the client cancels,

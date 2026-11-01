@@ -33,7 +33,7 @@ type Control struct {
 func NewControl(w *WhatsApp) *Control { return &Control{whatsApp: w} }
 
 // DeliverMessage delivers a decrypted message to the session's client.
-func (c *Control) DeliverMessage(_ context.Context, req *fakev1.DeliverMessageRequest) (*fakev1.DeliverMessageResponse, error) {
+func (c *Control) DeliverMessage(ctx context.Context, req *fakev1.DeliverMessageRequest) (*fakev1.DeliverMessageResponse, error) {
 	source, err := messageSource(req.GetChat(), req.GetSender(), req.GetSenderAlt(), req.GetRecipientAlt())
 	if err != nil {
 		return nil, fmt.Errorf("deliver message %q: %w", req.GetId(), err)
@@ -54,7 +54,7 @@ func (c *Control) DeliverMessage(_ context.Context, req *fakev1.DeliverMessageRe
 		parts = []*events.Message{senderKey, evt}
 	}
 
-	if err := c.whatsApp.deliverMessage(req.GetSessionId(), parts...); err != nil {
+	if err := c.whatsApp.deliverMessage(ctx, req.GetSessionId(), parts...); err != nil {
 		return nil, err
 	}
 

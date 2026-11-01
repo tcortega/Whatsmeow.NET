@@ -30,6 +30,7 @@ import (
 	wastore "go.mau.fi/whatsmeow/store"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/contacts"
 	eventsslice "github.com/tcortega/Whatsmeow.NET/sidecar/internal/events"
 	wmlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/outbox"
@@ -184,7 +185,8 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 	}
 
 	box := outbox.New(db.DB)
-	events := eventsslice.New(box, log)
+	// Each slice that records whatsmeow events in the outbox passes its mapper (eventsslice.Mapper).
+	events := eventsslice.New(box, log, contacts.Event)
 	whatsmeowv1.RegisterEventServiceServer(srv, events)
 
 	sessions, err := session.New(ctx, db.DB, db.Devices, box, recording(newClient, events), log) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
@@ -196,6 +198,7 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 	defer sessions.Close()
 
 	whatsmeowv1.RegisterSessionServiceServer(srv, sessions)
+	whatsmeowv1.RegisterContactServiceServer(srv, contacts.New(sessions))
 
 	served := make(chan error, 1)
 

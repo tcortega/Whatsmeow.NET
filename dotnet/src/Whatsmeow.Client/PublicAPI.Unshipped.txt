@@ -1,4 +1,201 @@
 #nullable enable
+Whatsmeow.Contacts.BlockedUser
+Whatsmeow.Contacts.BlockedUser.<Clone>$() -> Whatsmeow.Contacts.BlockedUser!
+Whatsmeow.Contacts.BlockedUser.BlockedUser() -> void
+Whatsmeow.Contacts.BlockedUser.Equals(Whatsmeow.Contacts.BlockedUser? other) -> bool
+override Whatsmeow.Contacts.BlockedUser.Equals(object? obj) -> bool
+override Whatsmeow.Contacts.BlockedUser.GetHashCode() -> int
+Whatsmeow.Contacts.BlockedUser.Jid.get -> Whatsmeow.Jid
+Whatsmeow.Contacts.BlockedUser.Jid.init -> void
+Whatsmeow.Contacts.BlockedUser.JidAlt.get -> Whatsmeow.Jid?
+Whatsmeow.Contacts.BlockedUser.JidAlt.init -> void
+override Whatsmeow.Contacts.BlockedUser.ToString() -> string!
+static Whatsmeow.Contacts.BlockedUser.operator !=(Whatsmeow.Contacts.BlockedUser? left, Whatsmeow.Contacts.BlockedUser? right) -> bool
+static Whatsmeow.Contacts.BlockedUser.operator ==(Whatsmeow.Contacts.BlockedUser? left, Whatsmeow.Contacts.BlockedUser? right) -> bool
+Whatsmeow.Contacts.Contact
+Whatsmeow.Contacts.Contact.<Clone>$() -> Whatsmeow.Contacts.Contact!
+Whatsmeow.Contacts.Contact.BusinessName.get -> string?
+Whatsmeow.Contacts.Contact.BusinessName.init -> void
+Whatsmeow.Contacts.Contact.Contact() -> void
+Whatsmeow.Contacts.Contact.Equals(Whatsmeow.Contacts.Contact? other) -> bool
+override Whatsmeow.Contacts.Contact.Equals(object? obj) -> bool
+override Whatsmeow.Contacts.Contact.GetHashCode() -> int
+Whatsmeow.Contacts.Contact.Jid.get -> Whatsmeow.Jid
+Whatsmeow.Contacts.Contact.Jid.init -> void
+Whatsmeow.Contacts.Contact.PushName.get -> string?
+Whatsmeow.Contacts.Contact.PushName.init -> void
+Whatsmeow.Contacts.Contact.SavedName.get -> string?
+Whatsmeow.Contacts.Contact.SavedName.init -> void
+override Whatsmeow.Contacts.Contact.ToString() -> string!
+static Whatsmeow.Contacts.Contact.operator !=(Whatsmeow.Contacts.Contact? left, Whatsmeow.Contacts.Contact? right) -> bool
+static Whatsmeow.Contacts.Contact.operator ==(Whatsmeow.Contacts.Contact? left, Whatsmeow.Contacts.Contact? right) -> bool
+Whatsmeow.Contacts.ContactChange
+abstract Whatsmeow.Contacts.ContactChange.<Clone>$() -> Whatsmeow.Contacts.ContactChange!
+Whatsmeow.Contacts.ContactChange.About
+override Whatsmeow.Contacts.ContactChange.About.<Clone>$() -> Whatsmeow.Contacts.ContactChange.About!
+Whatsmeow.Contacts.ContactChange.About.About() -> void
+Whatsmeow.Contacts.ContactChange.About.Equals(Whatsmeow.Contacts.ContactChange.About? other) -> bool
+override sealed Whatsmeow.Contacts.ContactChange.About.Equals(Whatsmeow.Contacts.ContactChange? other) -> bool
+override Whatsmeow.Contacts.ContactChange.About.Equals(object? obj) -> bool
+override Whatsmeow.Contacts.ContactChange.About.GetHashCode() -> int
+Whatsmeow.Contacts.ContactChange.About.Text.get -> string!
+Whatsmeow.Contacts.ContactChange.About.Text.init -> void
+override Whatsmeow.Contacts.ContactChange.About.ToString() -> string!
+static Whatsmeow.Contacts.ContactChange.About.operator !=(Whatsmeow.Contacts.ContactChange.About? left, Whatsmeow.Contacts.ContactChange.About? right) -> bool
+static Whatsmeow.Contacts.ContactChange.About.operator ==(Whatsmeow.Contacts.ContactChange.About? left, Whatsmeow.Contacts.ContactChange.About? right) -> bool
+Whatsmeow.Contacts.ContactChange.BusinessName
+override Whatsmeow.Contacts.ContactChange.BusinessName.<Clone>$() -> Whatsmeow.Contacts.ContactChange.BusinessName!
+Whatsmeow.Contacts.ContactChange.BusinessName.BusinessName() -> void
+Whatsmeow.Contacts.ContactChange.BusinessName.Equals(Whatsmeow.Contacts.ContactChange.BusinessName? other) -> bool
+override sealed Whatsmeow.Contacts.ContactChange.BusinessName.Equals(Whatsmeow.Contacts.ContactChange? other) -> bool
+override Whatsmeow.Contacts.ContactChange.BusinessName.Equals(object? obj) -> bool
+override Whatsmeow.Contacts.ContactChange.BusinessName.GetHashCode() -> int
+Whatsmeow.Contacts.ContactChange.BusinessName.Name.get -> string!
+Whatsmeow.Contacts.ContactChange.BusinessName.Name.init -> void
+override Whatsmeow.Contacts.ContactChange.BusinessName.ToString() -> string!
+static Whatsmeow.Contacts.ContactChange.BusinessName.operator !=(Whatsmeow.Contacts.ContactChange.BusinessName? left, Whatsmeow.Contacts.ContactChange.BusinessName? right) -> bool
+static Whatsmeow.Contacts.ContactChange.BusinessName.operator ==(Whatsmeow.Contacts.ContactChange.BusinessName? left, Whatsmeow.Contacts.ContactChange.BusinessName? right) -> bool
+Whatsmeow.Contacts.ContactChange.ContactChange(Whatsmeow.Contacts.ContactChange! original) -> void
+virtual Whatsmeow.Contacts.ContactChange.EqualityContract.get -> System.Type!
+virtual Whatsmeow.Contacts.ContactChange.Equals(Whatsmeow.Contacts.ContactChange? other) -> bool
+override Whatsmeow.Contacts.ContactChange.Equals(object? obj) -> bool
+override Whatsmeow.Contacts.ContactChange.GetHashCode() -> int
+Whatsmeow.Contacts.ContactChange.Picture
+override Whatsmeow.Contacts.ContactChange.Picture.<Clone>$() -> Whatsmeow.Contacts.ContactChange.Picture!
+Whatsmeow.Contacts.ContactChange.Picture.Equals(Whatsmeow.Contacts.ContactChange.Picture? other) -> bool
+override sealed Whatsmeow.Contacts.ContactChange.Picture.Equals(Whatsmeow.Contacts.ContactChange? other) -> bool
+override Whatsmeow.Contacts.ContactChange.Picture.Equals(object? obj) -> bool
+override Whatsmeow.Contacts.ContactChange.Picture.GetHashCode() -> int
+Whatsmeow.Contacts.ContactChange.Picture.Id.get -> string?
+Whatsmeow.Contacts.ContactChange.Picture.Id.init -> void
+Whatsmeow.Contacts.ContactChange.Picture.Picture() -> void
+override Whatsmeow.Contacts.ContactChange.Picture.ToString() -> string!
+static Whatsmeow.Contacts.ContactChange.Picture.operator !=(Whatsmeow.Contacts.ContactChange.Picture? left, Whatsmeow.Contacts.ContactChange.Picture? right) -> bool
+static Whatsmeow.Contacts.ContactChange.Picture.operator ==(Whatsmeow.Contacts.ContactChange.Picture? left, Whatsmeow.Contacts.ContactChange.Picture? right) -> bool
+virtual Whatsmeow.Contacts.ContactChange.PrintMembers(System.Text.StringBuilder! builder) -> bool
+Whatsmeow.Contacts.ContactChange.PushName
+override Whatsmeow.Contacts.ContactChange.PushName.<Clone>$() -> Whatsmeow.Contacts.ContactChange.PushName!
+Whatsmeow.Contacts.ContactChange.PushName.Equals(Whatsmeow.Contacts.ContactChange.PushName? other) -> bool
+override sealed Whatsmeow.Contacts.ContactChange.PushName.Equals(Whatsmeow.Contacts.ContactChange? other) -> bool
+override Whatsmeow.Contacts.ContactChange.PushName.Equals(object? obj) -> bool
+override Whatsmeow.Contacts.ContactChange.PushName.GetHashCode() -> int
+Whatsmeow.Contacts.ContactChange.PushName.Name.get -> string!
+Whatsmeow.Contacts.ContactChange.PushName.Name.init -> void
+Whatsmeow.Contacts.ContactChange.PushName.PushName() -> void
+override Whatsmeow.Contacts.ContactChange.PushName.ToString() -> string!
+static Whatsmeow.Contacts.ContactChange.PushName.operator !=(Whatsmeow.Contacts.ContactChange.PushName? left, Whatsmeow.Contacts.ContactChange.PushName? right) -> bool
+static Whatsmeow.Contacts.ContactChange.PushName.operator ==(Whatsmeow.Contacts.ContactChange.PushName? left, Whatsmeow.Contacts.ContactChange.PushName? right) -> bool
+override Whatsmeow.Contacts.ContactChange.ToString() -> string!
+static Whatsmeow.Contacts.ContactChange.operator !=(Whatsmeow.Contacts.ContactChange? left, Whatsmeow.Contacts.ContactChange? right) -> bool
+static Whatsmeow.Contacts.ContactChange.operator ==(Whatsmeow.Contacts.ContactChange? left, Whatsmeow.Contacts.ContactChange? right) -> bool
+Whatsmeow.Contacts.ContactUpdated
+override Whatsmeow.Contacts.ContactUpdated.<Clone>$() -> Whatsmeow.Contacts.ContactUpdated!
+Whatsmeow.Contacts.ContactUpdated.Change.get -> Whatsmeow.Contacts.ContactChange!
+Whatsmeow.Contacts.ContactUpdated.Change.init -> void
+Whatsmeow.Contacts.ContactUpdated.ContactUpdated() -> void
+Whatsmeow.Contacts.ContactUpdated.Equals(Whatsmeow.Contacts.ContactUpdated? other) -> bool
+override sealed Whatsmeow.Contacts.ContactUpdated.Equals(Whatsmeow.Events.WhatsAppEvent? other) -> bool
+override Whatsmeow.Contacts.ContactUpdated.Equals(object? obj) -> bool
+override Whatsmeow.Contacts.ContactUpdated.GetHashCode() -> int
+Whatsmeow.Contacts.ContactUpdated.Jid.get -> Whatsmeow.Jid
+Whatsmeow.Contacts.ContactUpdated.Jid.init -> void
+Whatsmeow.Contacts.ContactUpdated.JidAlt.get -> Whatsmeow.Jid?
+Whatsmeow.Contacts.ContactUpdated.JidAlt.init -> void
+override Whatsmeow.Contacts.ContactUpdated.ToString() -> string!
+static Whatsmeow.Contacts.ContactUpdated.operator !=(Whatsmeow.Contacts.ContactUpdated? left, Whatsmeow.Contacts.ContactUpdated? right) -> bool
+static Whatsmeow.Contacts.ContactUpdated.operator ==(Whatsmeow.Contacts.ContactUpdated? left, Whatsmeow.Contacts.ContactUpdated? right) -> bool
+Whatsmeow.Contacts.PhoneNumberCheck
+Whatsmeow.Contacts.PhoneNumberCheck.<Clone>$() -> Whatsmeow.Contacts.PhoneNumberCheck!
+Whatsmeow.Contacts.PhoneNumberCheck.Equals(Whatsmeow.Contacts.PhoneNumberCheck? other) -> bool
+override Whatsmeow.Contacts.PhoneNumberCheck.Equals(object? obj) -> bool
+override Whatsmeow.Contacts.PhoneNumberCheck.GetHashCode() -> int
+Whatsmeow.Contacts.PhoneNumberCheck.IsOnWhatsApp.get -> bool
+Whatsmeow.Contacts.PhoneNumberCheck.IsOnWhatsApp.init -> void
+Whatsmeow.Contacts.PhoneNumberCheck.Jid.get -> Whatsmeow.Jid?
+Whatsmeow.Contacts.PhoneNumberCheck.Jid.init -> void
+Whatsmeow.Contacts.PhoneNumberCheck.Lid.get -> Whatsmeow.Jid?
+Whatsmeow.Contacts.PhoneNumberCheck.Lid.init -> void
+Whatsmeow.Contacts.PhoneNumberCheck.PhoneNumber.get -> string!
+Whatsmeow.Contacts.PhoneNumberCheck.PhoneNumber.init -> void
+Whatsmeow.Contacts.PhoneNumberCheck.PhoneNumberCheck() -> void
+override Whatsmeow.Contacts.PhoneNumberCheck.ToString() -> string!
+static Whatsmeow.Contacts.PhoneNumberCheck.operator !=(Whatsmeow.Contacts.PhoneNumberCheck? left, Whatsmeow.Contacts.PhoneNumberCheck? right) -> bool
+static Whatsmeow.Contacts.PhoneNumberCheck.operator ==(Whatsmeow.Contacts.PhoneNumberCheck? left, Whatsmeow.Contacts.PhoneNumberCheck? right) -> bool
+Whatsmeow.Contacts.ProfilePicture
+abstract Whatsmeow.Contacts.ProfilePicture.<Clone>$() -> Whatsmeow.Contacts.ProfilePicture!
+virtual Whatsmeow.Contacts.ProfilePicture.EqualityContract.get -> System.Type!
+virtual Whatsmeow.Contacts.ProfilePicture.Equals(Whatsmeow.Contacts.ProfilePicture? other) -> bool
+override Whatsmeow.Contacts.ProfilePicture.Equals(object? obj) -> bool
+override Whatsmeow.Contacts.ProfilePicture.GetHashCode() -> int
+Whatsmeow.Contacts.ProfilePicture.Hidden
+override Whatsmeow.Contacts.ProfilePicture.Hidden.<Clone>$() -> Whatsmeow.Contacts.ProfilePicture.Hidden!
+Whatsmeow.Contacts.ProfilePicture.Hidden.Equals(Whatsmeow.Contacts.ProfilePicture.Hidden? other) -> bool
+override sealed Whatsmeow.Contacts.ProfilePicture.Hidden.Equals(Whatsmeow.Contacts.ProfilePicture? other) -> bool
+override Whatsmeow.Contacts.ProfilePicture.Hidden.Equals(object? obj) -> bool
+override Whatsmeow.Contacts.ProfilePicture.Hidden.GetHashCode() -> int
+Whatsmeow.Contacts.ProfilePicture.Hidden.Hidden() -> void
+override Whatsmeow.Contacts.ProfilePicture.Hidden.ToString() -> string!
+static Whatsmeow.Contacts.ProfilePicture.Hidden.operator !=(Whatsmeow.Contacts.ProfilePicture.Hidden? left, Whatsmeow.Contacts.ProfilePicture.Hidden? right) -> bool
+static Whatsmeow.Contacts.ProfilePicture.Hidden.operator ==(Whatsmeow.Contacts.ProfilePicture.Hidden? left, Whatsmeow.Contacts.ProfilePicture.Hidden? right) -> bool
+Whatsmeow.Contacts.ProfilePicture.None
+override Whatsmeow.Contacts.ProfilePicture.None.<Clone>$() -> Whatsmeow.Contacts.ProfilePicture.None!
+Whatsmeow.Contacts.ProfilePicture.None.Equals(Whatsmeow.Contacts.ProfilePicture.None? other) -> bool
+override sealed Whatsmeow.Contacts.ProfilePicture.None.Equals(Whatsmeow.Contacts.ProfilePicture? other) -> bool
+override Whatsmeow.Contacts.ProfilePicture.None.Equals(object? obj) -> bool
+override Whatsmeow.Contacts.ProfilePicture.None.GetHashCode() -> int
+Whatsmeow.Contacts.ProfilePicture.None.None() -> void
+override Whatsmeow.Contacts.ProfilePicture.None.ToString() -> string!
+static Whatsmeow.Contacts.ProfilePicture.None.operator !=(Whatsmeow.Contacts.ProfilePicture.None? left, Whatsmeow.Contacts.ProfilePicture.None? right) -> bool
+static Whatsmeow.Contacts.ProfilePicture.None.operator ==(Whatsmeow.Contacts.ProfilePicture.None? left, Whatsmeow.Contacts.ProfilePicture.None? right) -> bool
+virtual Whatsmeow.Contacts.ProfilePicture.PrintMembers(System.Text.StringBuilder! builder) -> bool
+Whatsmeow.Contacts.ProfilePicture.ProfilePicture(Whatsmeow.Contacts.ProfilePicture! original) -> void
+Whatsmeow.Contacts.ProfilePicture.Set
+override Whatsmeow.Contacts.ProfilePicture.Set.<Clone>$() -> Whatsmeow.Contacts.ProfilePicture.Set!
+Whatsmeow.Contacts.ProfilePicture.Set.Equals(Whatsmeow.Contacts.ProfilePicture.Set? other) -> bool
+override sealed Whatsmeow.Contacts.ProfilePicture.Set.Equals(Whatsmeow.Contacts.ProfilePicture? other) -> bool
+override Whatsmeow.Contacts.ProfilePicture.Set.Equals(object? obj) -> bool
+override Whatsmeow.Contacts.ProfilePicture.Set.GetHashCode() -> int
+Whatsmeow.Contacts.ProfilePicture.Set.Id.get -> string!
+Whatsmeow.Contacts.ProfilePicture.Set.Id.init -> void
+Whatsmeow.Contacts.ProfilePicture.Set.Set() -> void
+override Whatsmeow.Contacts.ProfilePicture.Set.ToString() -> string!
+Whatsmeow.Contacts.ProfilePicture.Set.Url.get -> System.Uri!
+Whatsmeow.Contacts.ProfilePicture.Set.Url.init -> void
+static Whatsmeow.Contacts.ProfilePicture.Set.operator !=(Whatsmeow.Contacts.ProfilePicture.Set? left, Whatsmeow.Contacts.ProfilePicture.Set? right) -> bool
+static Whatsmeow.Contacts.ProfilePicture.Set.operator ==(Whatsmeow.Contacts.ProfilePicture.Set? left, Whatsmeow.Contacts.ProfilePicture.Set? right) -> bool
+override Whatsmeow.Contacts.ProfilePicture.ToString() -> string!
+static Whatsmeow.Contacts.ProfilePicture.operator !=(Whatsmeow.Contacts.ProfilePicture? left, Whatsmeow.Contacts.ProfilePicture? right) -> bool
+static Whatsmeow.Contacts.ProfilePicture.operator ==(Whatsmeow.Contacts.ProfilePicture? left, Whatsmeow.Contacts.ProfilePicture? right) -> bool
+Whatsmeow.Contacts.ResolvedJid
+Whatsmeow.Contacts.ResolvedJid.<Clone>$() -> Whatsmeow.Contacts.ResolvedJid!
+Whatsmeow.Contacts.ResolvedJid.Alt.get -> Whatsmeow.Jid?
+Whatsmeow.Contacts.ResolvedJid.Alt.init -> void
+Whatsmeow.Contacts.ResolvedJid.Equals(Whatsmeow.Contacts.ResolvedJid? other) -> bool
+override Whatsmeow.Contacts.ResolvedJid.Equals(object? obj) -> bool
+override Whatsmeow.Contacts.ResolvedJid.GetHashCode() -> int
+Whatsmeow.Contacts.ResolvedJid.Jid.get -> Whatsmeow.Jid
+Whatsmeow.Contacts.ResolvedJid.Jid.init -> void
+Whatsmeow.Contacts.ResolvedJid.ResolvedJid() -> void
+override Whatsmeow.Contacts.ResolvedJid.ToString() -> string!
+static Whatsmeow.Contacts.ResolvedJid.operator !=(Whatsmeow.Contacts.ResolvedJid? left, Whatsmeow.Contacts.ResolvedJid? right) -> bool
+static Whatsmeow.Contacts.ResolvedJid.operator ==(Whatsmeow.Contacts.ResolvedJid? left, Whatsmeow.Contacts.ResolvedJid? right) -> bool
+Whatsmeow.Contacts.UserInfo
+Whatsmeow.Contacts.UserInfo.<Clone>$() -> Whatsmeow.Contacts.UserInfo!
+Whatsmeow.Contacts.UserInfo.About.get -> string?
+Whatsmeow.Contacts.UserInfo.About.init -> void
+Whatsmeow.Contacts.UserInfo.Equals(Whatsmeow.Contacts.UserInfo? other) -> bool
+override Whatsmeow.Contacts.UserInfo.Equals(object? obj) -> bool
+override Whatsmeow.Contacts.UserInfo.GetHashCode() -> int
+Whatsmeow.Contacts.UserInfo.Jid.get -> Whatsmeow.Jid
+Whatsmeow.Contacts.UserInfo.Jid.init -> void
+Whatsmeow.Contacts.UserInfo.PictureId.get -> string?
+Whatsmeow.Contacts.UserInfo.PictureId.init -> void
+override Whatsmeow.Contacts.UserInfo.ToString() -> string!
+Whatsmeow.Contacts.UserInfo.UserInfo() -> void
+Whatsmeow.Contacts.UserInfo.VerifiedBusinessName.get -> string?
+Whatsmeow.Contacts.UserInfo.VerifiedBusinessName.init -> void
+static Whatsmeow.Contacts.UserInfo.operator !=(Whatsmeow.Contacts.UserInfo? left, Whatsmeow.Contacts.UserInfo? right) -> bool
+static Whatsmeow.Contacts.UserInfo.operator ==(Whatsmeow.Contacts.UserInfo? left, Whatsmeow.Contacts.UserInfo? right) -> bool
 Whatsmeow.Events.ConnectionStateChanged
 override Whatsmeow.Events.ConnectionStateChanged.<Clone>$() -> Whatsmeow.Events.ConnectionStateChanged!
 Whatsmeow.Events.ConnectionStateChanged.ConnectionStateChanged() -> void
@@ -117,14 +314,22 @@ Whatsmeow.Events.WhatsAppEvent.WhatsAppEvent(Whatsmeow.Events.WhatsAppEvent! ori
 static Whatsmeow.Events.WhatsAppEvent.operator !=(Whatsmeow.Events.WhatsAppEvent? left, Whatsmeow.Events.WhatsAppEvent? right) -> bool
 static Whatsmeow.Events.WhatsAppEvent.operator ==(Whatsmeow.Events.WhatsAppEvent? left, Whatsmeow.Events.WhatsAppEvent? right) -> bool
 Whatsmeow.IWhatsAppClient
+Whatsmeow.IWhatsAppClient.BlockAsync(Whatsmeow.Jid user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Whatsmeow.IWhatsAppClient.ConnectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Whatsmeow.IWhatsAppClient.DisconnectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.GetBlocklistAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Whatsmeow.Contacts.BlockedUser!>>!
+Whatsmeow.IWhatsAppClient.GetContactsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Whatsmeow.Contacts.Contact!>>!
+Whatsmeow.IWhatsAppClient.GetProfilePictureAsync(Whatsmeow.Jid jid, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Contacts.ProfilePicture!>!
+Whatsmeow.IWhatsAppClient.GetUserInfoAsync(System.Collections.Generic.IReadOnlyList<Whatsmeow.Jid>! users, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Whatsmeow.Contacts.UserInfo!>>!
+Whatsmeow.IWhatsAppClient.IsOnWhatsAppAsync(System.Collections.Generic.IReadOnlyList<string!>! phoneNumbers, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Whatsmeow.Contacts.PhoneNumberCheck!>>!
 Whatsmeow.IWhatsAppClient.LogoutAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Whatsmeow.IWhatsAppClient.On<TEvent>(System.Func<TEvent!, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask>! handler) -> System.IDisposable!
 Whatsmeow.IWhatsAppClient.OnHandlerError(System.Action<Whatsmeow.Events.HandlerError!>! handler) -> System.IDisposable!
 Whatsmeow.IWhatsAppClient.PairWithPhoneNumberAsync(string! phoneNumber, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<Whatsmeow.Pairing.PairingUpdate!>!
 Whatsmeow.IWhatsAppClient.PairWithQrCodeAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<Whatsmeow.Pairing.PairingUpdate!>!
+Whatsmeow.IWhatsAppClient.ResolveJidsAsync(System.Collections.Generic.IReadOnlyList<Whatsmeow.Jid>! jids, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Whatsmeow.Contacts.ResolvedJid!>>!
 Whatsmeow.IWhatsAppClient.SessionId.get -> Whatsmeow.SessionId
+Whatsmeow.IWhatsAppClient.UnblockAsync(Whatsmeow.Jid user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Whatsmeow.IWhatsAppClient.WaitForAsync<TEvent>(System.Func<TEvent!, bool>! predicate, System.TimeSpan timeout, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TEvent!>!
 Whatsmeow.IWhatsAppClient.WatchStateAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<Whatsmeow.Sessions.SessionState!>!
 Whatsmeow.Jid
@@ -135,6 +340,8 @@ Whatsmeow.Jid.Device.init -> void
 Whatsmeow.Jid.Equals(Whatsmeow.Jid other) -> bool
 override Whatsmeow.Jid.Equals(object? obj) -> bool
 override Whatsmeow.Jid.GetHashCode() -> int
+Whatsmeow.Jid.IsLid.get -> bool
+Whatsmeow.Jid.IsPhoneNumber.get -> bool
 Whatsmeow.Jid.Jid() -> void
 static Whatsmeow.Jid.Parse(System.ReadOnlySpan<char> s) -> Whatsmeow.Jid
 static Whatsmeow.Jid.Parse(string! s) -> Whatsmeow.Jid
@@ -232,6 +439,10 @@ Whatsmeow.RateLimitedException
 Whatsmeow.RateLimitedException.RateLimitedException() -> void
 Whatsmeow.RateLimitedException.RateLimitedException(string! message) -> void
 Whatsmeow.RateLimitedException.RateLimitedException(string! message, System.Exception? innerException) -> void
+Whatsmeow.RecipientNotFoundException
+Whatsmeow.RecipientNotFoundException.RecipientNotFoundException() -> void
+Whatsmeow.RecipientNotFoundException.RecipientNotFoundException(string! message) -> void
+Whatsmeow.RecipientNotFoundException.RecipientNotFoundException(string! message, System.Exception? innerException) -> void
 Whatsmeow.SessionId
 Whatsmeow.SessionId.CompareTo(Whatsmeow.SessionId other) -> int
 Whatsmeow.SessionId.CompareTo(object? other) -> int

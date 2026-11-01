@@ -4,6 +4,7 @@ package whatsmeow.v1;
 
 import "google/protobuf/timestamp.proto";
 import "waE2E/WAWebProtobufsE2E.proto";
+import "whatsmeow/v1/contact.proto";
 import "whatsmeow/v1/session.proto";
 
 // EventService delivers each session's events at least once, from the sidecar's durable outbox.
@@ -157,6 +158,8 @@ message StreamEventsResponse {
     UndecryptableMessageEvent undecryptable_message = 12;
     // A session state transition.
     ConnectionStateEvent connection_state = 13;
+    // A change to a contact's profile; best effort (contact.proto).
+    ContactEvent contact = 14;
   }
 }
 
