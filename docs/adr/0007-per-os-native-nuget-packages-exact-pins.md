@@ -1,6 +1,6 @@
 # 0007. Packaging as per-OS native NuGet packages with exact-version pins
 
-- Status: Accepted
+- Status: Accepted; amended by [0016](0016-sidecar-binary-gpl-3-corresponding-source-per-release.md), which settles the licences in the last two Consequences
 - Date: 2026-10-31
 - Evidence: [ARCHITECTURE §14](../ARCHITECTURE.md#spike-results-2026-10-31) question 6, and the Mark-of-the-Web result in question 2
 

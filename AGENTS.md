@@ -89,6 +89,7 @@ Copy it for the next slice. Do not invent a second pattern.
 | Consumer fakes | `dotnet/src/Whatsmeow.Testing/` |
 | Integration test (default) | `dotnet/tests/Whatsmeow.IntegrationTests/` |
 | Dispatcher / supervisor unit test | `dotnet/tests/Whatsmeow.Client.Tests/` |
+| A new module linked into the sidecar | read its licence, then its lines in `sidecar/licenses.allow` (ADR 0016) |
 | Decision | `docs/adr/NNNN-title.md` |
 
 ## Tests
