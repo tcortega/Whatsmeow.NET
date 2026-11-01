@@ -7,17 +7,35 @@ Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) before changing the contract, 
 
 This is a library, not a VSA API. No Immediate.Handlers, `[Handler]`, Immediate.Injections, EF, or Refit.
 House rules (bridge, compras, chrominal) win over anything older in this repo, except the exceptions recorded in the ARCHITECTURE Decision log (BCL time, `IWhatsAppClient`).
-Generated code is committed: never hand-edit `sidecar/gen/` or `Whatsmeow.Protocol*`; run `buf generate`.
+Generated code is committed: never hand-edit `sidecar/gen/` or `Whatsmeow.Protocol*`; regenerate it (Commands).
 ARCHITECTURE §13 invariants are wrong to break without an ADR first.
 
 ## Tree
 
-proto/whatsmeow/v1/    our contract, one file per slice
-third_party/whatsmeow/ upstream protos copied from the exact pinned version
-sidecar/               Go module `github.com/tcortega/Whatsmeow.NET/sidecar`
-dotnet/                `Whatsmeow.slnx` (never a .sln), src/, tests/, samples/
+proto/whatsmeow/v1/    our contract, one file per slice (from #3)
+third_party/whatsmeow/ upstream protos copied from the exact pinned version (`VERSION`)
+sidecar/               Go module `github.com/tcortega/Whatsmeow.NET/sidecar`: product code and dependencies only
+tools/                 Go module for repo tools (`check-repo`, `sync-protos`), kept out of the product module
+build/ci.sh            every CI check; the workflow only calls it
+dotnet/                `Whatsmeow.slnx` (never a .sln), src/, tests/; samples/ later (Phase 3)
 docs/                  ARCHITECTURE, RESEARCH, guidelines/, adr/
-AGENTS.md              this file (CLAUDE.md is a symlink to it)
+global.json mise.toml  .NET SDK pin; Go, buf, golangci-lint, protoc and shellcheck pins
+nuget.config           nuget.org only
+AGENTS.md              this file (CLAUDE.md is a symlink to it; nothing may depend on it)
+
+## Commands
+
+Setup once: the .NET SDK from `global.json` (10.0.403), then `mise trust && mise install` for Go, buf, golangci-lint, protoc and shellcheck.
+
+Everything CI runs is `build/ci.sh`, one subcommand per CI job, on linux-x64, osx-arm64 and win-x64 (Git Bash on Windows).
+Run it from anywhere before pushing; it runs every check, reports each failure, and fails at the end:
+
+```sh
+bash build/ci.sh all        # or: setup, contract, go, dotnet
+```
+
+A package change regenerates `packages.lock.json` with a plain `dotnet restore dotnet/Whatsmeow.slnx`; commit it.
+Update third_party after a pin change with `go -C tools run ./sync-protos -write`, and generated code with `buf generate --template buf.gen.whatsapp.yaml`.
 
 ## .NET rules
 
@@ -45,7 +63,7 @@ Go idioms: [docs/guidelines/go.md](docs/guidelines/go.md).
 
 ## Contract rules
 
-From the first published tag, `whatsmeow.v1` never breaks (a break is a new `whatsmeow.v2` with its ADR), every additive change bumps `protocol`, and `buf breaking` gates; before it, `protocol` keeps its initial value, 1, and `buf breaking` only reports (ADR 0015).
+From the first published `v<semver>` tag (pre-releases and build metadata included), `whatsmeow.v1` never breaks (a break is a new `whatsmeow.v2` with its ADR), every additive change bumps `protocol`, and `buf breaking` gates; before it, `protocol` keeps its initial value, 1, and `buf breaking` only reports (ADR 0015).
 Never reuse or renumber a field.
 Proto style: [docs/guidelines/proto.md](docs/guidelines/proto.md).
 

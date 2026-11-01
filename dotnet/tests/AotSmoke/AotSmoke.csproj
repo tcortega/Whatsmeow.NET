@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<!-- Publishes every shipped assembly with Native AOT; any trim or AOT warning fails the publish. -->
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<IsPackable>false</IsPackable>
+		<PublishAot>true</PublishAot>
+		<TrimmerSingleWarn>false</TrimmerSingleWarn>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+		<!--
+			Every CI RID is listed so packages.lock.json is the same on every OS. The RID comes from the SDK's own host,
+			set here instead of with -r: a command-line -r flows to the referenced libraries, whose lock files have no RID,
+			and locked restore then fails with NU1004 [observed: scaffold, #2].
+		-->
+		<RuntimeIdentifiers>linux-x64;osx-arm64;win-x64</RuntimeIdentifiers>
+		<RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">$(NETCoreSdkRuntimeIdentifier)</RuntimeIdentifier>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="../../src/Whatsmeow.Client/Whatsmeow.Client.csproj" />
+		<ProjectReference Include="../../src/Whatsmeow.Protocol/Whatsmeow.Protocol.csproj" />
+		<ProjectReference Include="../../src/Whatsmeow.Protocol.WhatsApp/Whatsmeow.Protocol.WhatsApp.csproj" />
+	</ItemGroup>
+
+	<!-- Rooted, so the compiler analyzes all of each shipped assembly, not only what Program.cs reaches. -->
+	<ItemGroup>
+		<TrimmerRootAssembly Include="Whatsmeow.Client" />
+		<TrimmerRootAssembly Include="Whatsmeow.Protocol" />
+		<TrimmerRootAssembly Include="Whatsmeow.Protocol.WhatsApp" />
+	</ItemGroup>
+</Project>

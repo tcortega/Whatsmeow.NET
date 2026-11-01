@@ -1,0 +1,9 @@
+# .NET (UseArtifactsOutput puts bin/ and obj/ here)
+/dotnet/artifacts/
+*.user
+.vs/
+.idea/
+TestResults/
+
+# macOS
+.DS_Store

@@ -1,0 +1,6 @@
+# LF everywhere, on every OS, so generated code and the copied upstream protos are byte identical on Windows checkouts too.
+* text=auto eol=lf
+
+# Copied byte for byte from the pinned module; never convert line endings (sidecar/scripts/sync-protos checks the bytes).
+third_party/whatsmeow/** -text linguist-vendored
+dotnet/src/Whatsmeow.Protocol.WhatsApp/Generated/** linguist-generated

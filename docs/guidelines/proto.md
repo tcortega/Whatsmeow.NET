@@ -19,6 +19,11 @@ Moved from ARCHITECTURE §6; the contract's policy (independence from whatsmeow,
 
 - Run `buf lint` and `buf breaking` against `main` before pushing.
 - Regenerate (`buf generate`) and commit the generated Go and C#. CI fails on a diff.
-- From the first published `vX.Y.Z` tag on, `whatsmeow.v1` never breaks: a break means a new package `whatsmeow.v2` with its own ADR, every additive change increments `protocol`, and `buf breaking` gates `whatsmeow.v1` against `main`.
+- From the first published `v<semver>` tag (pre-releases and build metadata included) on, `whatsmeow.v1` never breaks: a break means a new package `whatsmeow.v2` with its own ADR, every additive change increments `protocol`, and `buf breaking` gates `whatsmeow.v1` against `main`.
   Before that tag, `protocol` keeps its initial value, 1, and `buf breaking` only reports ([ADR 0015](../adr/0015-buf-breaking-gates-from-first-published-tag.md)).
   ARCHITECTURE §6, §11, §12 and §13 invariant 5 say the same.
+  `build/ci.sh` (`buf_breaking`) implements the gate: a published tag is a `v<semver>` tag reachable from the comparison base.
+  With one, a break (`buf breaking` exit 100) fails the build; without one, it is a warning; any other exit code fails either way.
+  A pull request compares with its merge-base with `main`, never with a stacked base branch; a push to `main` compares with the commit `main` pointed at before; `workflow_dispatch` skips the step.
+  The base must exist in the clone, and both sides must compile (`buf build`), or the step fails; a base without `buf.yaml` (before #2 merged) is skipped with a notice.
+- `buf.yaml` declares the `proto` module with its first file (#3): buf rejects a module with no `.proto` files [observed: buf 1.75.0].

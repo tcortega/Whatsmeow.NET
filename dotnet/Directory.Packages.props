@@ -1,0 +1,19 @@
+<Project>
+	<PropertyGroup>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+		<CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Pairs with protoc in /mise.toml: protoc 36.2 generates the code this runtime reads. -->
+		<PackageVersion Include="Google.Protobuf" Version="3.36.2" />
+		<PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.6.0" />
+		<PackageVersion Include="xunit.v3" Version="4.0.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<GlobalPackageReference Include="Meziantou.Analyzer" Version="3.0.318" />
+		<GlobalPackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="5.6.0" PrivateAssets="all" />
+		<AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
+	</ItemGroup>
+</Project>

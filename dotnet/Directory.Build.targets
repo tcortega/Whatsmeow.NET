@@ -1,0 +1,121 @@
+<Project>
+	<Target Name="_SetupSourceControlMetadata" AfterTargets="InitializeSourceControlInformation">
+		<ItemGroup>
+			<!-- The full commit SHA -->
+			<AssemblyMetadata Include="SourceRevision" Value="$(SourceRevisionId)" />
+			<!-- House delta: no SourceBranch. The same commit built from two branches must give the same assembly. -->
+		</ItemGroup>
+	</Target>
+
+	<!--
+		The SDK finds .editorconfig and .globalconfig files from the directories of the project's own Compile items.
+		A project with no source file yet (an empty test project) would get neither, and its generated xunit entry point
+		would be analyzed with default severities and without the generated-code exclusion. Add them explicitly then.
+	-->
+	<ItemGroup Condition="'@(Compile)' == ''">
+		<EditorConfigFiles Include="$(MSBuildThisFileDirectory)../.editorconfig" />
+		<EditorConfigFiles Include="$(MSBuildThisFileDirectory).globalconfig" />
+	</ItemGroup>
+
+	<!--
+		Banned packages, anywhere in the resolved graph (ARCHITECTURE §13 invariant 7).
+		A package ban, not a namespace ban: Grpc.Core.Api, which Grpc.Net.Client needs, also uses the Grpc.Core namespace.
+	-->
+	<ItemGroup>
+		<BannedPackage Include="Grpc.Core" Reason="it is the deprecated native gRPC C core; use Grpc.Net.Client" />
+		<BannedPackage Include="Newtonsoft.Json" Reason="use System.Text.Json with a JsonSerializerContext" />
+	</ItemGroup>
+
+	<Target Name="_RejectBannedPackages" AfterTargets="ResolvePackageAssets">
+		<ItemGroup>
+			<_ResolvedPackageId Include="@(RuntimeCopyLocalItems->'%(NuGetPackageId)');@(ResolvedCompileFileDefinitions->'%(NuGetPackageId)');@(NativeCopyLocalItems->'%(NuGetPackageId)')" />
+			<_BannedPackageMissing Include="@(BannedPackage)" Exclude="@(_ResolvedPackageId)" />
+			<_BannedPackageFound Include="@(BannedPackage)" Exclude="@(_BannedPackageMissing)" />
+		</ItemGroup>
+
+		<Error Condition="'@(_BannedPackageFound)' != ''" Code="WMN0001" Text="Banned packages in the dependency graph (ARCHITECTURE §13 invariant 7): @(_BannedPackageFound->'%(Identity): %(Reason)', '; ')." />
+	</Target>
+
+	<!--
+		A test project that is not a Microsoft.Testing.Platform app is silently skipped by dotnet test.
+		Every project named *Tests must be one (docs/guidelines/tests.md).
+	-->
+	<Target Name="_RequireTestingPlatform" BeforeTargets="CoreCompile" Condition="$(MSBuildProjectName.EndsWith('Tests')) AND '$(IsTestingPlatformApplication)' != 'true'">
+		<Error Code="WMN0002" Text="$(MSBuildProjectName) is named like a test project but is not a Microsoft.Testing.Platform app, so dotnet test would skip it. Reference xunit.v3." />
+	</Target>
+
+	<!--
+		Rule switches (WMN0003): an allowlist. The analyzer set, its severities and the suppression baseline come from
+		Directory.Build.props, /.editorconfig and dotnet/.globalconfig only; a project may not turn any of it off.
+		It runs after CoreCompile, when the SDK and packages have added their analyzer configs.
+		Suppressions are written, justified pragmas, judged in review (docs/guidelines/csharp.md Suppressions).
+	-->
+	<Target Name="_RejectRuleSwitches" AfterTargets="CoreCompile">
+		<PropertyGroup>
+			<_WhatsmeowInSrc>$([System.String]::Copy('$(MSBuildProjectDirectory)/').StartsWith('$(MSBuildThisFileDirectory)src', StringComparison.OrdinalIgnoreCase))</_WhatsmeowInSrc>
+			<!--
+				The literal NoWarn baseline. Roslyn's Microsoft.CSharp.Core.targets adds 1701 and 1702 (assembly unification),
+				8002 (strong naming, ignored on .NET) and, inside Visual Studio, 2008; IL2121 comes with PublishAot; and 1591
+				(missing XML docs) is off outside dotnet/src.
+			-->
+			<_WhatsmeowAllowedNoWarnText>1701;1702;2008;8002;IL2121</_WhatsmeowAllowedNoWarnText>
+			<_WhatsmeowAllowedNoWarnText Condition="'$(_WhatsmeowInSrc)' != 'true'">1591;1701;1702;2008;8002;IL2121</_WhatsmeowAllowedNoWarnText>
+			<_WhatsmeowSdkDirectory>$([System.IO.Path]::GetFullPath('$(NetCoreRoot)sdk/$(NETCoreSdkVersion)/'))</_WhatsmeowSdkDirectory>
+		</PropertyGroup>
+
+		<ItemGroup>
+			<_WhatsmeowAllowedNoWarn Include="$(_WhatsmeowAllowedNoWarnText)" />
+			<_WhatsmeowExtraNoWarn Include="$([MSBuild]::Unescape($(NoWarn.Replace(',', ';').Replace(' ', ''))))" Exclude="@(_WhatsmeowAllowedNoWarn)" />
+			<_WhatsmeowAnalyzerName Include="@(Analyzer->'%(Filename)')" />
+
+			<!-- Analyzer configs: the two blessed files, this project's generated MSBuild editorconfig, and the SDK's own. -->
+			<_WhatsmeowConfig Include="@(EditorConfigFiles->'%(FullPath)')" Exclude="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../.editorconfig'));$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory).globalconfig'));$([System.IO.Path]::GetFullPath('$(GeneratedMSBuildEditorConfigFile)'))" />
+			<_WhatsmeowConfig Include="@(GlobalAnalyzerConfigFiles->Exists()->'%(FullPath)')" Exclude="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory).globalconfig'))" />
+			<_WhatsmeowConfig Remove="@(_WhatsmeowConfig)" Condition="$([System.String]::Copy('%(Identity)').StartsWith('$(_WhatsmeowSdkDirectory)', StringComparison.OrdinalIgnoreCase))" />
+		</ItemGroup>
+
+		<PropertyGroup>
+			<_WhatsmeowExtraNoWarnText>@(_WhatsmeowExtraNoWarn)</_WhatsmeowExtraNoWarnText>
+			<_WhatsmeowConfigText>@(_WhatsmeowConfig)</_WhatsmeowConfigText>
+		</PropertyGroup>
+
+		<ItemGroup>
+			<_WhatsmeowRuleSwitch Include="NoWarn adds $(_WhatsmeowExtraNoWarnText)" Condition="'$(_WhatsmeowExtraNoWarnText)' != ''" />
+			<_WhatsmeowRuleSwitch Include="analyzer config files other than the blessed ones: $(_WhatsmeowConfigText)" Condition="'$(_WhatsmeowConfigText)' != ''" />
+			<_WhatsmeowRuleSwitch Include="WarningsNotAsErrors is set ($(WarningsNotAsErrors))" Condition="'$(WarningsNotAsErrors)' != ''" />
+			<_WhatsmeowRuleSwitch Include="WarningsAsErrors drops Nullable" Condition="!$(WarningsAsErrors.Contains('Nullable'))" />
+			<_WhatsmeowRuleSwitch Include="TreatWarningsAsErrors is off in a CI build" Condition="('$(GITHUB_ACTIONS)' == 'true' OR '$(ContinuousIntegrationBuild)' == 'true') AND '$(TreatWarningsAsErrors)' != 'true'" />
+			<!-- 10 is the net10.0 default [observed: dotnet msbuild -getProperty:WarningLevel]. -->
+			<_WhatsmeowRuleSwitch Include="WarningLevel is $(WarningLevel), below 10" Condition="'$(WarningLevel)' == '' OR $(WarningLevel) &lt; 10" />
+			<_WhatsmeowRuleSwitch Include="CodeAnalysisRuleSet is set" Condition="'$(CodeAnalysisRuleSet)' != ''" />
+			<_WhatsmeowRuleSwitch Include="EnableNETAnalyzers is not true" Condition="'$(EnableNETAnalyzers)' != 'true'" />
+			<_WhatsmeowRuleSwitch Include="GenerateDocumentationFile is not true" Condition="'$(GenerateDocumentationFile)' != 'true'" />
+			<_WhatsmeowRuleSwitch Include="RunAnalyzers is false" Condition="'$(RunAnalyzers)' == 'false'" />
+			<_WhatsmeowRuleSwitch Include="RunAnalyzersDuringBuild is false" Condition="'$(RunAnalyzersDuringBuild)' == 'false'" />
+			<_WhatsmeowRuleSwitch Include="EnforceCodeStyleInBuild is not true" Condition="'$(EnforceCodeStyleInBuild)' != 'true'" />
+			<_WhatsmeowRuleSwitch Include="AnalysisLevel is $(AnalysisLevel), not latest-all" Condition="'$(AnalysisLevel)' != 'latest-all'" />
+			<_WhatsmeowRuleSwitch Include="Nullable is $(Nullable), not enable" Condition="'$(Nullable)' != 'enable'" />
+			<_WhatsmeowRuleSwitch Include="DiscoverEditorConfigFiles is false" Condition="'$(DiscoverEditorConfigFiles)' == 'false'" />
+			<_WhatsmeowRuleSwitch Include="DiscoverGlobalAnalyzerConfigFiles is false" Condition="'$(DiscoverGlobalAnalyzerConfigFiles)' == 'false'" />
+			<_WhatsmeowRuleSwitch Include="BannedSymbols.txt is not in AdditionalFiles" Condition="!@(AdditionalFiles->AnyHaveMetadataValue('FullPath', '$(MSBuildThisFileDirectory)BannedSymbols.txt'))" />
+			<_WhatsmeowRuleSwitch Include="the Meziantou.Analyzer analyzer is missing" Condition="!@(_WhatsmeowAnalyzerName->AnyHaveMetadataValue('Identity', 'Meziantou.Analyzer'))" />
+			<_WhatsmeowRuleSwitch Include="the BannedApiAnalyzers analyzer is missing" Condition="!@(_WhatsmeowAnalyzerName->AnyHaveMetadataValue('Identity', 'Microsoft.CodeAnalysis.BannedApiAnalyzers'))" />
+		</ItemGroup>
+
+		<Error Condition="'@(_WhatsmeowRuleSwitch)' != ''" Code="WMN0003" Text="$(MSBuildProjectName) turns off a build rule: @(_WhatsmeowRuleSwitch, '; '). Rules are set centrally; a suppression is a justified pragma (docs/guidelines/csharp.md Suppressions)." />
+	</Target>
+
+	<!-- Test results stay under dotnet/artifacts/, wherever dotnet test runs from. -->
+	<PropertyGroup Condition="'$(IsTestingPlatformApplication)' == 'true'">
+		<TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --results-directory &quot;$(ArtifactsPath)/TestResults/$(MSBuildProjectName)&quot;</TestingPlatformCommandLineArguments>
+	</PropertyGroup>
+
+	<!--
+		A test project with no source file yet has no tests, and the platform exits 8 ("zero tests ran").
+		Allow that only while the project has no *.cs file. Once it has one, zero discovered tests fails the run,
+		so a runner that stops discovering tests cannot pass silently (docs/guidelines/tests.md).
+	-->
+	<PropertyGroup Condition="'$(IsTestingPlatformApplication)' == 'true' AND '$([System.IO.Directory]::GetFiles($(MSBuildProjectDirectory), &quot;*.cs&quot;, System.IO.SearchOption.AllDirectories))' == ''">
+		<TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --ignore-exit-code 8</TestingPlatformCommandLineArguments>
+	</PropertyGroup>
+</Project>
