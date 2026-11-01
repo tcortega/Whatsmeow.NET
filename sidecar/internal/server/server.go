@@ -9,6 +9,7 @@ import (
 	"net"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/rs/zerolog"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -26,6 +27,8 @@ const (
 	// maxMessageSize is set explicitly on both sides (ARCHITECTURE §8.6).
 	maxMessageSize = 16 << 20
 	errorDomain    = "whatsmeow.net"
+	// stopGrace bounds the graceful stop, below the client's own 5 s grace (ADR 0017).
+	stopGrace = 3 * time.Second
 )
 
 // Server is the sidecar's gRPC server.
@@ -35,11 +38,17 @@ type Server struct {
 	log           zerolog.Logger
 	done          chan struct{}
 	once          sync.Once
+	// lifetime ends with Shutdown; every stream's context ends with it, so open streams end and the graceful
+	// stop does not wait for them.
+	lifetime  context.Context //nolint:containedctx // the server's own lifetime, not a request's
+	end       context.CancelFunc
+	stopGrace time.Duration
 }
 
 // New returns a server that accepts only calls whose authorization metadata is "Bearer <token>".
 func New(token string, log zerolog.Logger) *Server {
-	s := &Server{authorization: []byte("Bearer " + token), log: log, done: make(chan struct{})}
+	lifetime, end := context.WithCancel(context.Background())
+	s := &Server{authorization: []byte("Bearer " + token), log: log, done: make(chan struct{}), lifetime: lifetime, end: end, stopGrace: stopGrace}
 	s.grpc = grpc.NewServer(
 		grpc.ForceServerCodecV2(lenientCodec{}),
 		grpc.MaxRecvMsgSize(maxMessageSize),
@@ -67,14 +76,37 @@ func (s *Server) Serve(lis net.Listener) error {
 }
 
 // Shutdown starts the graceful stop: from now on every call except Shutdown fails with
-// SIDECAR_SHUTTING_DOWN. Calling it again does nothing.
-func (s *Server) Shutdown() { s.once.Do(func() { close(s.done) }) }
+// SIDECAR_SHUTTING_DOWN, and open streams end with it. Calling it again does nothing.
+func (s *Server) Shutdown() {
+	s.once.Do(func() {
+		close(s.done)
+		s.end()
+	})
+}
 
 // ShuttingDown is closed once Shutdown was called.
 func (s *Server) ShuttingDown() <-chan struct{} { return s.done }
 
-// Stop waits for the calls in flight, then stops serving and closes the listener.
-func (s *Server) Stop() { s.grpc.GracefulStop() }
+// Stop waits for the calls in flight, at most the stop grace, then stops serving and closes the listener.
+func (s *Server) Stop() {
+	stopped := make(chan struct{})
+
+	go func() {
+		s.grpc.GracefulStop()
+		close(stopped)
+	}()
+
+	timer := time.NewTimer(s.stopGrace)
+	defer timer.Stop()
+
+	select {
+	case <-stopped:
+	case <-timer.C:
+		s.log.Warn().Dur("grace", s.stopGrace).Msg("calls still running after the grace; stopping them")
+		// Stop closes every connection; a handler that ignores its context may still run, and ends with the process.
+		s.grpc.Stop()
+	}
+}
 
 func (s *Server) unary(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 	if err := s.admit(ctx, info.FullMethod); err != nil {
@@ -94,12 +126,35 @@ func (s *Server) stream(srv any, ss grpc.ServerStream, info *grpc.StreamServerIn
 		return err
 	}
 
-	if err := handler(srv, ss); err != nil {
+	ctx, cancel := context.WithCancel(ss.Context())
+	defer cancel()
+
+	stop := context.AfterFunc(s.lifetime, cancel)
+	defer stop()
+
+	err := handler(srv, &serverStream{ServerStream: ss, ctx: ctx})
+
+	select {
+	case <-s.done:
+		return errorInfo(codes.Unavailable, whatsmeowv1.ErrorReason_ERROR_REASON_SIDECAR_SHUTTING_DOWN, "the sidecar is shutting down")
+	default:
+	}
+
+	if err != nil {
 		return s.toStatus(info.FullMethod, err)
 	}
 
 	return nil
 }
+
+// serverStream is a stream whose context also ends when the server shuts down.
+type serverStream struct {
+	grpc.ServerStream
+
+	ctx context.Context //nolint:containedctx // replaces the stream's context, as grpc.ServerStream requires
+}
+
+func (s *serverStream) Context() context.Context { return s.ctx }
 
 // admit checks the token in constant time, then the shutdown gate. Shutdown passes the gate, because calling
 // it while shutting down succeeds (sidecar.proto).

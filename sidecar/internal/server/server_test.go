@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"testing"
+	"time"
 
 	"github.com/rs/zerolog"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -202,5 +203,81 @@ func TestAfterShutdownCallsAreRejectedExceptShutdown(t *testing.T) {
 	_, err = whatsmeowv1.NewSidecarServiceClient(conn).Shutdown(withToken("Bearer "+token), &whatsmeowv1.ShutdownRequest{})
 	if status.Code(err) != codes.Unimplemented {
 		t.Fatalf("shutdown while shutting down = %v, want it to reach its handler", err)
+	}
+}
+
+func TestShutdownEndsAnOpenStreamWithSidecarShuttingDown(t *testing.T) {
+	t.Parallel()
+
+	srv, conn, _ := start(t, nil)
+
+	stream, err := healthpb.NewHealthClient(conn).Watch(withToken("Bearer "+token), &healthpb.HealthCheckRequest{})
+	if err != nil {
+		t.Fatalf("watch: %v", err)
+	}
+
+	if _, err := stream.Recv(); err != nil {
+		t.Fatalf("first status: %v", err)
+	}
+
+	srv.Shutdown()
+	srv.Stop()
+
+	_, err = stream.Recv()
+	wantErrorInfo(t, err, codes.Unavailable, "SIDECAR_SHUTTING_DOWN")
+}
+
+// stuck is a stream handler that ignores its context, the worst case for a graceful stop.
+type stuck struct {
+	whatsmeowv1.UnimplementedEventServiceServer
+
+	opened  chan struct{}
+	release chan struct{}
+}
+
+func (s *stuck) StreamEvents(*whatsmeowv1.StreamEventsRequest, grpc.ServerStreamingServer[whatsmeowv1.StreamEventsResponse]) error {
+	close(s.opened)
+	<-s.release
+
+	return nil
+}
+
+func TestStopEndsAStreamThatIgnoresShutdownAfterTheGrace(t *testing.T) {
+	t.Parallel()
+
+	srv := New(token, zerolog.Nop())
+	srv.stopGrace = 50 * time.Millisecond
+	handler := &stuck{opened: make(chan struct{}), release: make(chan struct{})}
+	whatsmeowv1.RegisterEventServiceServer(srv, handler)
+
+	lis := bufconn.Listen(1 << 20)
+	served := make(chan error, 1)
+
+	go func() { served <- srv.Serve(lis) }()
+
+	t.Cleanup(func() { close(handler.release) })
+
+	conn, err := grpc.NewClient("passthrough:///bufnet",
+		grpc.WithContextDialer(func(ctx context.Context, _ string) (net.Conn, error) { return lis.DialContext(ctx) }),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		t.Fatalf("dial: %v", err)
+	}
+
+	t.Cleanup(func() { _ = conn.Close() })
+
+	stream, err := whatsmeowv1.NewEventServiceClient(conn).StreamEvents(withToken("Bearer "+token), &whatsmeowv1.StreamEventsRequest{})
+	if err != nil {
+		t.Fatalf("stream: %v", err)
+	}
+
+	go func() { _, _ = stream.Recv() }()
+
+	<-handler.opened
+	srv.Shutdown()
+	srv.Stop()
+
+	if err := <-served; err != nil {
+		t.Fatalf("serve: %v", err)
 	}
 }
