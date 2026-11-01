@@ -6,6 +6,14 @@
 		<PublishAot>true</PublishAot>
 		<TrimmerSingleWarn>false</TrimmerSingleWarn>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+		<!--
+			Every CI RID is listed so packages.lock.json is the same on every OS. The RID comes from the SDK's own host,
+			set here instead of with -r: a command-line -r flows to the referenced libraries, whose lock files have no RID,
+			and locked restore then fails with NU1004 [observed: scaffold, #2].
+		-->
+		<RuntimeIdentifiers>linux-x64;osx-arm64;win-x64</RuntimeIdentifiers>
+		<RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">$(NETCoreSdkRuntimeIdentifier)</RuntimeIdentifier>
 	</PropertyGroup>
 
 	<ItemGroup>

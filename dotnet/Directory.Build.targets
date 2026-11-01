@@ -3,8 +3,7 @@
 		<ItemGroup>
 			<!-- The full commit SHA -->
 			<AssemblyMetadata Include="SourceRevision" Value="$(SourceRevisionId)" />
-			<!-- e.g. refs/heads/master -->
-			<AssemblyMetadata Include="SourceBranch" Value="$(SourceBranchName)" />
+			<!-- House delta: no SourceBranch. The same commit built from two branches must give the same assembly. -->
 		</ItemGroup>
 	</Target>
 
@@ -44,6 +43,48 @@
 	<Target Name="_RequireTestingPlatform" BeforeTargets="CoreCompile" Condition="$(MSBuildProjectName.EndsWith('Tests')) AND '$(IsTestingPlatformApplication)' != 'true'">
 		<Error Code="WMN0002" Text="$(MSBuildProjectName) is named like a test project but is not a Microsoft.Testing.Platform app, so dotnet test would skip it. Reference xunit.v3." />
 	</Target>
+
+	<!--
+		Rule switches (WMN0003). The analyzer set, its severities and the suppression baseline come from
+		Directory.Build.props, /.editorconfig and dotnet/.globalconfig only. A project may not turn any of it off.
+		Suppressions are written, justified pragmas, judged in review (docs/guidelines/csharp.md Suppressions).
+	-->
+	<Target Name="_RejectRuleSwitches" BeforeTargets="CoreCompile">
+		<ItemGroup>
+			<!-- 1701 and 1702 (assembly unification) are the C# SDK defaults; IL2121 is added by the SDK when PublishAot is set. -->
+			<_WhatsmeowAllowedNoWarn Include="$([MSBuild]::Unescape($(WhatsmeowBaselineNoWarn.Replace(',', ';'))));1701;1702;IL2121" />
+			<_WhatsmeowExtraNoWarn Include="$([MSBuild]::Unescape($(NoWarn.Replace(',', ';').Replace(' ', ''))))" Exclude="@(_WhatsmeowAllowedNoWarn)" />
+			<_WhatsmeowAnalyzerName Include="@(Analyzer->'%(Filename)')" />
+		</ItemGroup>
+
+		<PropertyGroup>
+			<_WhatsmeowExtraNoWarnText>@(_WhatsmeowExtraNoWarn)</_WhatsmeowExtraNoWarnText>
+		</PropertyGroup>
+
+		<ItemGroup>
+			<_WhatsmeowRuleSwitch Include="NoWarn adds $(_WhatsmeowExtraNoWarnText)" Condition="'$(_WhatsmeowExtraNoWarnText)' != ''" />
+			<_WhatsmeowRuleSwitch Include="WarningsNotAsErrors is set ($(WarningsNotAsErrors))" Condition="'$(WarningsNotAsErrors)' != ''" />
+			<_WhatsmeowRuleSwitch Include="WarningsAsErrors drops Nullable" Condition="!$(WarningsAsErrors.Contains('Nullable'))" />
+			<_WhatsmeowRuleSwitch Include="TreatWarningsAsErrors is off in a CI build" Condition="('$(GITHUB_ACTIONS)' == 'true' OR '$(ContinuousIntegrationBuild)' == 'true') AND '$(TreatWarningsAsErrors)' != 'true'" />
+			<_WhatsmeowRuleSwitch Include="RunAnalyzers is false" Condition="'$(RunAnalyzers)' == 'false'" />
+			<_WhatsmeowRuleSwitch Include="RunAnalyzersDuringBuild is false" Condition="'$(RunAnalyzersDuringBuild)' == 'false'" />
+			<_WhatsmeowRuleSwitch Include="EnforceCodeStyleInBuild is not true" Condition="'$(EnforceCodeStyleInBuild)' != 'true'" />
+			<_WhatsmeowRuleSwitch Include="AnalysisLevel is $(AnalysisLevel), not latest-all" Condition="'$(AnalysisLevel)' != 'latest-all'" />
+			<_WhatsmeowRuleSwitch Include="Nullable is $(Nullable), not enable" Condition="'$(Nullable)' != 'enable'" />
+			<_WhatsmeowRuleSwitch Include="DiscoverEditorConfigFiles is false" Condition="'$(DiscoverEditorConfigFiles)' == 'false'" />
+			<_WhatsmeowRuleSwitch Include="DiscoverGlobalAnalyzerConfigFiles is false" Condition="'$(DiscoverGlobalAnalyzerConfigFiles)' == 'false'" />
+			<_WhatsmeowRuleSwitch Include="BannedSymbols.txt is not in AdditionalFiles" Condition="!@(AdditionalFiles->AnyHaveMetadataValue('FullPath', '$(MSBuildThisFileDirectory)BannedSymbols.txt'))" />
+			<_WhatsmeowRuleSwitch Include="the Meziantou.Analyzer analyzer is missing" Condition="!@(_WhatsmeowAnalyzerName->AnyHaveMetadataValue('Identity', 'Meziantou.Analyzer'))" />
+			<_WhatsmeowRuleSwitch Include="the BannedApiAnalyzers analyzer is missing" Condition="!@(_WhatsmeowAnalyzerName->AnyHaveMetadataValue('Identity', 'Microsoft.CodeAnalysis.BannedApiAnalyzers'))" />
+		</ItemGroup>
+
+		<Error Condition="'@(_WhatsmeowRuleSwitch)' != ''" Code="WMN0003" Text="$(MSBuildProjectName) turns off a build rule: @(_WhatsmeowRuleSwitch, '; '). Rules are set centrally; a suppression is a justified pragma (docs/guidelines/csharp.md Suppressions)." />
+	</Target>
+
+	<!-- Test results stay under dotnet/artifacts/, wherever dotnet test runs from. -->
+	<PropertyGroup Condition="'$(IsTestingPlatformApplication)' == 'true'">
+		<TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --results-directory &quot;$(ArtifactsPath)/TestResults/$(MSBuildProjectName)&quot;</TestingPlatformCommandLineArguments>
+	</PropertyGroup>
 
 	<!--
 		A test project with no source file yet has no tests, and the platform exits 8 ("zero tests ran").

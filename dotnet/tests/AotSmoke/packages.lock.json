@@ -1,0 +1,97 @@
+{
+  "version": 2,
+  "dependencies": {
+    "net10.0": {
+      "Meziantou.Analyzer": {
+        "type": "Direct",
+        "requested": "[3.0.318, )",
+        "resolved": "3.0.318",
+        "contentHash": "H3nJiK34glwVICWp6EnhQLgftwXvIIMwVFbafG5CXVlnFqXfNN5PToDdNmw7bFzEXfMHE6zwAT8Am89c9W8ThQ=="
+      },
+      "Microsoft.CodeAnalysis.BannedApiAnalyzers": {
+        "type": "Direct",
+        "requested": "[5.6.0, )",
+        "resolved": "5.6.0",
+        "contentHash": "Kcobt3pnOdO0A+6CKiMHZdTEluJpsfxiV20axtZdmfBQnDmiWTKPJADlgAfdTuKNAnVarrkJa0UEGwuOo91muw=="
+      },
+      "Microsoft.DotNet.ILCompiler": {
+        "type": "Direct",
+        "requested": "[10.0.14, )",
+        "resolved": "10.0.14",
+        "contentHash": "CDQ/+XRT1JT/0u87j9exR1AociehKUzxae4KCOWxCQ1PIKbYS0F8ovxaCrqRlkylGmbhywKxV/zbbrEhWa5NXg=="
+      },
+      "Microsoft.NET.ILLink.Tasks": {
+        "type": "Direct",
+        "requested": "[10.0.14, )",
+        "resolved": "10.0.14",
+        "contentHash": "YlTamXppEQls6DYWt7RdUuwWDb0lyw/vXCaGeQpLCpsLmfwGuCkOz/vIGgMTV7ECsJcavkCOkxZXv9s8rdAHkQ=="
+      },
+      "whatsmeow.client": {
+        "type": "Project"
+      },
+      "whatsmeow.protocol": {
+        "type": "Project"
+      },
+      "whatsmeow.protocol.whatsapp": {
+        "type": "Project",
+        "dependencies": {
+          "Google.Protobuf": "[3.36.2, )"
+        }
+      },
+      "Google.Protobuf": {
+        "type": "CentralTransitive",
+        "requested": "[3.36.2, )",
+        "resolved": "3.36.2",
+        "contentHash": "Ci1q1iJg74qAE5riTA2FbMS0wPbpruPQI/JQ9DrAsRo2VsSxgt1e/pmxGxgrci+pXJEgrSYg2vPl8rrStZkclQ=="
+      }
+    },
+    "net10.0/linux-x64": {
+      "Microsoft.DotNet.ILCompiler": {
+        "type": "Direct",
+        "requested": "[10.0.14, )",
+        "resolved": "10.0.14",
+        "contentHash": "CDQ/+XRT1JT/0u87j9exR1AociehKUzxae4KCOWxCQ1PIKbYS0F8ovxaCrqRlkylGmbhywKxV/zbbrEhWa5NXg==",
+        "dependencies": {
+          "runtime.linux-x64.Microsoft.DotNet.ILCompiler": "10.0.14"
+        }
+      },
+      "runtime.linux-x64.Microsoft.DotNet.ILCompiler": {
+        "type": "Transitive",
+        "resolved": "10.0.14",
+        "contentHash": "RbHp9HXSvTnYCy1X8LUQmL0LcW++jP8Crqvt6ZjSH2MXqJ7w3FBHS9sUf1iFuCD6ztYdAQNd/QgMpDGZE/aRIA=="
+      }
+    },
+    "net10.0/osx-arm64": {
+      "Microsoft.DotNet.ILCompiler": {
+        "type": "Direct",
+        "requested": "[10.0.14, )",
+        "resolved": "10.0.14",
+        "contentHash": "CDQ/+XRT1JT/0u87j9exR1AociehKUzxae4KCOWxCQ1PIKbYS0F8ovxaCrqRlkylGmbhywKxV/zbbrEhWa5NXg==",
+        "dependencies": {
+          "runtime.osx-arm64.Microsoft.DotNet.ILCompiler": "10.0.14"
+        }
+      },
+      "runtime.osx-arm64.Microsoft.DotNet.ILCompiler": {
+        "type": "Transitive",
+        "resolved": "10.0.14",
+        "contentHash": "t4T2d4Ye79r1GTjP9JuJHkA874jiKCvdhcsj8HAUD5U2XF8GpjRsT6YSusy67My5V12iydckl0D4qC9iZsmpvQ=="
+      }
+    },
+    "net10.0/win-x64": {
+      "Microsoft.DotNet.ILCompiler": {
+        "type": "Direct",
+        "requested": "[10.0.14, )",
+        "resolved": "10.0.14",
+        "contentHash": "CDQ/+XRT1JT/0u87j9exR1AociehKUzxae4KCOWxCQ1PIKbYS0F8ovxaCrqRlkylGmbhywKxV/zbbrEhWa5NXg==",
+        "dependencies": {
+          "runtime.win-x64.Microsoft.DotNet.ILCompiler": "10.0.14"
+        }
+      },
+      "runtime.win-x64.Microsoft.DotNet.ILCompiler": {
+        "type": "Transitive",
+        "resolved": "10.0.14",
+        "contentHash": "B28xsyrO3PRFGL9yd1lLWdX3/wATFkaxPFM3VmGOFG8pfx7jDeb1Yz09v6n+z0jNEPAlQLqOx2noOXw8aytYNw=="
+      }
+    }
+  }
+}

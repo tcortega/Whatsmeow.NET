@@ -25,9 +25,16 @@
 		<UseArtifactsOutput>true</UseArtifactsOutput>
 		<!-- Pinned here: by default it follows the nearest Directory.Build.props, which would split it under src/. -->
 		<ArtifactsPath>$(MSBuildThisFileDirectory)artifacts</ArtifactsPath>
+
+		<!-- Restores are reproducible: packages.lock.json is committed, and CI restores with locked mode. -->
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+
+		<!-- The suppression baseline. Directory.Build.targets fails the build (WMN0003) if a project adds to it. -->
+		<WhatsmeowBaselineNoWarn>$(NoWarn)</WhatsmeowBaselineNoWarn>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+	<!-- CI, or a local pre-push build with -p:ContinuousIntegrationBuild=true (AGENTS.md Commands). -->
+	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true' OR '$(ContinuousIntegrationBuild)' == 'true'">
 		<!-- Don't block development work; but block CI if dev work isn't complete. -->
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<MSBuildTreatWarningsAsErrors>true</MSBuildTreatWarningsAsErrors>
