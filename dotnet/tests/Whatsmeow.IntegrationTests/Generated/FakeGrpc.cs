@@ -65,6 +65,26 @@ namespace Whatsmeow.IntegrationTests.Fake {
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.LinkDeviceResponse> __Marshaller_whatsmeow_fake_v1_LinkDeviceResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.LinkDeviceResponse.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.RotateQrCodeRequest> __Marshaller_whatsmeow_fake_v1_RotateQrCodeRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.RotateQrCodeRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.RotateQrCodeResponse> __Marshaller_whatsmeow_fake_v1_RotateQrCodeResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.RotateQrCodeResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.ExpireQrCodesRequest> __Marshaller_whatsmeow_fake_v1_ExpireQrCodesRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.ExpireQrCodesRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.ExpireQrCodesResponse> __Marshaller_whatsmeow_fake_v1_ExpireQrCodesResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.ExpireQrCodesResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DropConnectionRequest> __Marshaller_whatsmeow_fake_v1_DropConnectionRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DropConnectionRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DropConnectionResponse> __Marshaller_whatsmeow_fake_v1_DropConnectionResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DropConnectionResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadRequest> __Marshaller_whatsmeow_fake_v1_FailNextPreKeyUploadRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadResponse> __Marshaller_whatsmeow_fake_v1_FailNextPreKeyUploadResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextPairPhoneRequest> __Marshaller_whatsmeow_fake_v1_FailNextPairPhoneRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextPairPhoneRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextPairPhoneResponse> __Marshaller_whatsmeow_fake_v1_FailNextPairPhoneResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextPairPhoneResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextConnectRequest> __Marshaller_whatsmeow_fake_v1_FailNextConnectRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextConnectRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextConnectResponse> __Marshaller_whatsmeow_fake_v1_FailNextConnectResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextConnectResponse.Parser));
@@ -100,6 +120,46 @@ namespace Whatsmeow.IntegrationTests.Fake {
         "LinkDevice",
         __Marshaller_whatsmeow_fake_v1_LinkDeviceRequest,
         __Marshaller_whatsmeow_fake_v1_LinkDeviceResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.RotateQrCodeRequest, global::Whatsmeow.IntegrationTests.Fake.RotateQrCodeResponse> __Method_RotateQrCode = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.RotateQrCodeRequest, global::Whatsmeow.IntegrationTests.Fake.RotateQrCodeResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "RotateQrCode",
+        __Marshaller_whatsmeow_fake_v1_RotateQrCodeRequest,
+        __Marshaller_whatsmeow_fake_v1_RotateQrCodeResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.ExpireQrCodesRequest, global::Whatsmeow.IntegrationTests.Fake.ExpireQrCodesResponse> __Method_ExpireQrCodes = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.ExpireQrCodesRequest, global::Whatsmeow.IntegrationTests.Fake.ExpireQrCodesResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "ExpireQrCodes",
+        __Marshaller_whatsmeow_fake_v1_ExpireQrCodesRequest,
+        __Marshaller_whatsmeow_fake_v1_ExpireQrCodesResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DropConnectionRequest, global::Whatsmeow.IntegrationTests.Fake.DropConnectionResponse> __Method_DropConnection = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DropConnectionRequest, global::Whatsmeow.IntegrationTests.Fake.DropConnectionResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "DropConnection",
+        __Marshaller_whatsmeow_fake_v1_DropConnectionRequest,
+        __Marshaller_whatsmeow_fake_v1_DropConnectionResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadRequest, global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadResponse> __Method_FailNextPreKeyUpload = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadRequest, global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "FailNextPreKeyUpload",
+        __Marshaller_whatsmeow_fake_v1_FailNextPreKeyUploadRequest,
+        __Marshaller_whatsmeow_fake_v1_FailNextPreKeyUploadResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.FailNextPairPhoneRequest, global::Whatsmeow.IntegrationTests.Fake.FailNextPairPhoneResponse> __Method_FailNextPairPhone = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.FailNextPairPhoneRequest, global::Whatsmeow.IntegrationTests.Fake.FailNextPairPhoneResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "FailNextPairPhone",
+        __Marshaller_whatsmeow_fake_v1_FailNextPairPhoneRequest,
+        __Marshaller_whatsmeow_fake_v1_FailNextPairPhoneResponse);
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.FailNextConnectRequest, global::Whatsmeow.IntegrationTests.Fake.FailNextConnectResponse> __Method_FailNextConnect = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.FailNextConnectRequest, global::Whatsmeow.IntegrationTests.Fake.FailNextConnectResponse>(
@@ -275,9 +335,12 @@ namespace Whatsmeow.IntegrationTests.Fake {
         return CallInvoker.AsyncUnaryCall(__Method_WaitForSent, null, options, request);
       }
       /// <summary>
-      /// LinkDevice makes the phone link the session's device, standing in for pairing until the Pair call exists (#7):
-      /// the client stores the device under jid as whatsmeow does after a pair success (handlePair, pair.go:222-240),
-      /// then dispatches PairSuccess and returns once its event handlers ran.
+      /// LinkDevice makes the phone link the session's device: the client stores the device under jid as whatsmeow does
+      /// after a pair success (handlePair, pair.go:222-240), then dispatches PairSuccess and returns once its event handlers
+      /// ran. Without a Pair call open it is the quick way to a paired session. With one, the client's QR channel then sends
+      /// success and closes, as whatsmeow's does (qrchan.go:189-190), and the client logs in again after WhatsApp's 515
+      /// (connectionevents.go:26-38): off the node queue it uploads its pre-keys, unless FailNextPreKeyUpload, and
+      /// dispatches Connected (connectionevents.go:187-204).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -290,9 +353,12 @@ namespace Whatsmeow.IntegrationTests.Fake {
         return LinkDevice(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
       /// <summary>
-      /// LinkDevice makes the phone link the session's device, standing in for pairing until the Pair call exists (#7):
-      /// the client stores the device under jid as whatsmeow does after a pair success (handlePair, pair.go:222-240),
-      /// then dispatches PairSuccess and returns once its event handlers ran.
+      /// LinkDevice makes the phone link the session's device: the client stores the device under jid as whatsmeow does
+      /// after a pair success (handlePair, pair.go:222-240), then dispatches PairSuccess and returns once its event handlers
+      /// ran. Without a Pair call open it is the quick way to a paired session. With one, the client's QR channel then sends
+      /// success and closes, as whatsmeow's does (qrchan.go:189-190), and the client logs in again after WhatsApp's 515
+      /// (connectionevents.go:26-38): off the node queue it uploads its pre-keys, unless FailNextPreKeyUpload, and
+      /// dispatches Connected (connectionevents.go:187-204).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -303,9 +369,12 @@ namespace Whatsmeow.IntegrationTests.Fake {
         return CallInvoker.BlockingUnaryCall(__Method_LinkDevice, null, options, request);
       }
       /// <summary>
-      /// LinkDevice makes the phone link the session's device, standing in for pairing until the Pair call exists (#7):
-      /// the client stores the device under jid as whatsmeow does after a pair success (handlePair, pair.go:222-240),
-      /// then dispatches PairSuccess and returns once its event handlers ran.
+      /// LinkDevice makes the phone link the session's device: the client stores the device under jid as whatsmeow does
+      /// after a pair success (handlePair, pair.go:222-240), then dispatches PairSuccess and returns once its event handlers
+      /// ran. Without a Pair call open it is the quick way to a paired session. With one, the client's QR channel then sends
+      /// success and closes, as whatsmeow's does (qrchan.go:189-190), and the client logs in again after WhatsApp's 515
+      /// (connectionevents.go:26-38): off the node queue it uploads its pre-keys, unless FailNextPreKeyUpload, and
+      /// dispatches Connected (connectionevents.go:187-204).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -318,9 +387,12 @@ namespace Whatsmeow.IntegrationTests.Fake {
         return LinkDeviceAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
       /// <summary>
-      /// LinkDevice makes the phone link the session's device, standing in for pairing until the Pair call exists (#7):
-      /// the client stores the device under jid as whatsmeow does after a pair success (handlePair, pair.go:222-240),
-      /// then dispatches PairSuccess and returns once its event handlers ran.
+      /// LinkDevice makes the phone link the session's device: the client stores the device under jid as whatsmeow does
+      /// after a pair success (handlePair, pair.go:222-240), then dispatches PairSuccess and returns once its event handlers
+      /// ran. Without a Pair call open it is the quick way to a paired session. With one, the client's QR channel then sends
+      /// success and closes, as whatsmeow's does (qrchan.go:189-190), and the client logs in again after WhatsApp's 515
+      /// (connectionevents.go:26-38): off the node queue it uploads its pre-keys, unless FailNextPreKeyUpload, and
+      /// dispatches Connected (connectionevents.go:187-204).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -329,6 +401,274 @@ namespace Whatsmeow.IntegrationTests.Fake {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.LinkDeviceResponse> LinkDeviceAsync(global::Whatsmeow.IntegrationTests.Fake.LinkDeviceRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_LinkDevice, null, options, request);
+      }
+      /// <summary>
+      /// RotateQrCode makes the session's open QR channel send the next code, as whatsmeow's does when the previous one
+      /// expires (qrchan.go:92-110). The first code comes when the client connects. No QR channel open is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.RotateQrCodeResponse RotateQrCode(global::Whatsmeow.IntegrationTests.Fake.RotateQrCodeRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return RotateQrCode(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// RotateQrCode makes the session's open QR channel send the next code, as whatsmeow's does when the previous one
+      /// expires (qrchan.go:92-110). The first code comes when the client connects. No QR channel open is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.RotateQrCodeResponse RotateQrCode(global::Whatsmeow.IntegrationTests.Fake.RotateQrCodeRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_RotateQrCode, null, options, request);
+      }
+      /// <summary>
+      /// RotateQrCode makes the session's open QR channel send the next code, as whatsmeow's does when the previous one
+      /// expires (qrchan.go:92-110). The first code comes when the client connects. No QR channel open is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.RotateQrCodeResponse> RotateQrCodeAsync(global::Whatsmeow.IntegrationTests.Fake.RotateQrCodeRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return RotateQrCodeAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// RotateQrCode makes the session's open QR channel send the next code, as whatsmeow's does when the previous one
+      /// expires (qrchan.go:92-110). The first code comes when the client connects. No QR channel open is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.RotateQrCodeResponse> RotateQrCodeAsync(global::Whatsmeow.IntegrationTests.Fake.RotateQrCodeRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_RotateQrCode, null, options, request);
+      }
+      /// <summary>
+      /// ExpireQrCodes makes the session's QR codes run out: the QR channel sends timeout and closes, and the client
+      /// disconnects without a Disconnected event, as whatsmeow's does (qrchan.go:77-84). No QR channel open is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.ExpireQrCodesResponse ExpireQrCodes(global::Whatsmeow.IntegrationTests.Fake.ExpireQrCodesRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ExpireQrCodes(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// ExpireQrCodes makes the session's QR codes run out: the QR channel sends timeout and closes, and the client
+      /// disconnects without a Disconnected event, as whatsmeow's does (qrchan.go:77-84). No QR channel open is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.ExpireQrCodesResponse ExpireQrCodes(global::Whatsmeow.IntegrationTests.Fake.ExpireQrCodesRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_ExpireQrCodes, null, options, request);
+      }
+      /// <summary>
+      /// ExpireQrCodes makes the session's QR codes run out: the QR channel sends timeout and closes, and the client
+      /// disconnects without a Disconnected event, as whatsmeow's does (qrchan.go:77-84). No QR channel open is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.ExpireQrCodesResponse> ExpireQrCodesAsync(global::Whatsmeow.IntegrationTests.Fake.ExpireQrCodesRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ExpireQrCodesAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// ExpireQrCodes makes the session's QR codes run out: the QR channel sends timeout and closes, and the client
+      /// disconnects without a Disconnected event, as whatsmeow's does (qrchan.go:77-84). No QR channel open is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.ExpireQrCodesResponse> ExpireQrCodesAsync(global::Whatsmeow.IntegrationTests.Fake.ExpireQrCodesRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_ExpireQrCodes, null, options, request);
+      }
+      /// <summary>
+      /// DropConnection makes the connection of a session that is pairing drop: the client dispatches Disconnected off the
+      /// node queue (client.go:612-622), and its QR channel then sends timeout and closes (qrchan.go:196-197). whatsmeow
+      /// does not reconnect an unpaired client (client.go:648). No QR channel open is an error. It returns before the
+      /// handlers run.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.DropConnectionResponse DropConnection(global::Whatsmeow.IntegrationTests.Fake.DropConnectionRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return DropConnection(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// DropConnection makes the connection of a session that is pairing drop: the client dispatches Disconnected off the
+      /// node queue (client.go:612-622), and its QR channel then sends timeout and closes (qrchan.go:196-197). whatsmeow
+      /// does not reconnect an unpaired client (client.go:648). No QR channel open is an error. It returns before the
+      /// handlers run.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.DropConnectionResponse DropConnection(global::Whatsmeow.IntegrationTests.Fake.DropConnectionRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_DropConnection, null, options, request);
+      }
+      /// <summary>
+      /// DropConnection makes the connection of a session that is pairing drop: the client dispatches Disconnected off the
+      /// node queue (client.go:612-622), and its QR channel then sends timeout and closes (qrchan.go:196-197). whatsmeow
+      /// does not reconnect an unpaired client (client.go:648). No QR channel open is an error. It returns before the
+      /// handlers run.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DropConnectionResponse> DropConnectionAsync(global::Whatsmeow.IntegrationTests.Fake.DropConnectionRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return DropConnectionAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// DropConnection makes the connection of a session that is pairing drop: the client dispatches Disconnected off the
+      /// node queue (client.go:612-622), and its QR channel then sends timeout and closes (qrchan.go:196-197). whatsmeow
+      /// does not reconnect an unpaired client (client.go:648). No QR channel open is an error. It returns before the
+      /// handlers run.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DropConnectionResponse> DropConnectionAsync(global::Whatsmeow.IntegrationTests.Fake.DropConnectionRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_DropConnection, null, options, request);
+      }
+      /// <summary>
+      /// FailNextPreKeyUpload makes the session's next login after a link fail to upload the pre-keys: whatsmeow only logs
+      /// that (prekeys.go:84-87), never sets PreKeysUploaded, and still dispatches Connected (connectionevents.go:187-204).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadResponse FailNextPreKeyUpload(global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return FailNextPreKeyUpload(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// FailNextPreKeyUpload makes the session's next login after a link fail to upload the pre-keys: whatsmeow only logs
+      /// that (prekeys.go:84-87), never sets PreKeysUploaded, and still dispatches Connected (connectionevents.go:187-204).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadResponse FailNextPreKeyUpload(global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_FailNextPreKeyUpload, null, options, request);
+      }
+      /// <summary>
+      /// FailNextPreKeyUpload makes the session's next login after a link fail to upload the pre-keys: whatsmeow only logs
+      /// that (prekeys.go:84-87), never sets PreKeysUploaded, and still dispatches Connected (connectionevents.go:187-204).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadResponse> FailNextPreKeyUploadAsync(global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return FailNextPreKeyUploadAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// FailNextPreKeyUpload makes the session's next login after a link fail to upload the pre-keys: whatsmeow only logs
+      /// that (prekeys.go:84-87), never sets PreKeysUploaded, and still dispatches Connected (connectionevents.go:187-204).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadResponse> FailNextPreKeyUploadAsync(global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_FailNextPreKeyUpload, null, options, request);
+      }
+      /// <summary>
+      /// FailNextPairPhone makes WhatsApp answer the session's next phone pairing request with an IQ error of code
+      /// (pair-code.go:104-127): 429 is whatsmeow's ErrIQRateOverLimit (errors.go:197).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.FailNextPairPhoneResponse FailNextPairPhone(global::Whatsmeow.IntegrationTests.Fake.FailNextPairPhoneRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return FailNextPairPhone(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// FailNextPairPhone makes WhatsApp answer the session's next phone pairing request with an IQ error of code
+      /// (pair-code.go:104-127): 429 is whatsmeow's ErrIQRateOverLimit (errors.go:197).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.FailNextPairPhoneResponse FailNextPairPhone(global::Whatsmeow.IntegrationTests.Fake.FailNextPairPhoneRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_FailNextPairPhone, null, options, request);
+      }
+      /// <summary>
+      /// FailNextPairPhone makes WhatsApp answer the session's next phone pairing request with an IQ error of code
+      /// (pair-code.go:104-127): 429 is whatsmeow's ErrIQRateOverLimit (errors.go:197).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.FailNextPairPhoneResponse> FailNextPairPhoneAsync(global::Whatsmeow.IntegrationTests.Fake.FailNextPairPhoneRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return FailNextPairPhoneAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// FailNextPairPhone makes WhatsApp answer the session's next phone pairing request with an IQ error of code
+      /// (pair-code.go:104-127): 429 is whatsmeow's ErrIQRateOverLimit (errors.go:197).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.FailNextPairPhoneResponse> FailNextPairPhoneAsync(global::Whatsmeow.IntegrationTests.Fake.FailNextPairPhoneRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_FailNextPairPhone, null, options, request);
       }
       /// <summary>
       /// FailNextConnect makes the session's next connect fail with an error whatsmeow does not retry. Without it a

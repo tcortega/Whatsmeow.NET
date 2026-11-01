@@ -77,15 +77,20 @@ internal static class RpcErrors
 			case ErrorReason.OutcomeUnknown:
 				OutcomeUnknownException.Throw(exception);
 				break;
+			case ErrorReason.AlreadyPaired or ErrorReason.PairingInProgress or ErrorReason.PairingTimedOut or ErrorReason.PairingFailed:
+				PairingException.Throw(exception, code);
+				break;
+			case ErrorReason.RateLimited:
+				RateLimitedException.Throw(exception);
+				break;
 			case null or ErrorReason.Unspecified or ErrorReason.Internal or ErrorReason.Unauthenticated or ErrorReason.SidecarShuttingDown
-				or ErrorReason.AlreadyPaired or ErrorReason.PairingInProgress or ErrorReason.PairingTimedOut or ErrorReason.PairingFailed
-				or ErrorReason.ConsumerReplaced or ErrorReason.RecipientNotOnWhatsapp or ErrorReason.RateLimited or ErrorReason.WhatsappError:
+				or ErrorReason.ConsumerReplaced or ErrorReason.RecipientNotOnWhatsapp or ErrorReason.WhatsappError:
 			default:
 				break;
 		}
 
-		// The reasons whose exception comes with a later slice (pairing, sending), and the ones the table maps to the
-		// base type, keep their code here.
+		// The reasons whose exception comes with a later slice (sending), and the ones the table maps to the base type,
+		// keep their code here.
 		WhatsmeowException.ThrowUnmapped(exception, code);
 	}
 

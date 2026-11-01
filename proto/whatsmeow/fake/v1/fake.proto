@@ -21,10 +21,35 @@ service FakeWhatsAppService {
   // so it starts again, at index 1, after a restart.
   rpc WaitForSent(WaitForSentRequest) returns (WaitForSentResponse);
 
-  // LinkDevice makes the phone link the session's device, standing in for pairing until the Pair call exists (#7):
-  // the client stores the device under jid as whatsmeow does after a pair success (handlePair, pair.go:222-240),
-  // then dispatches PairSuccess and returns once its event handlers ran.
+  // LinkDevice makes the phone link the session's device: the client stores the device under jid as whatsmeow does
+  // after a pair success (handlePair, pair.go:222-240), then dispatches PairSuccess and returns once its event handlers
+  // ran. Without a Pair call open it is the quick way to a paired session. With one, the client's QR channel then sends
+  // success and closes, as whatsmeow's does (qrchan.go:189-190), and the client logs in again after WhatsApp's 515
+  // (connectionevents.go:26-38): off the node queue it uploads its pre-keys, unless FailNextPreKeyUpload, and
+  // dispatches Connected (connectionevents.go:187-204).
   rpc LinkDevice(LinkDeviceRequest) returns (LinkDeviceResponse);
+
+  // RotateQrCode makes the session's open QR channel send the next code, as whatsmeow's does when the previous one
+  // expires (qrchan.go:92-110). The first code comes when the client connects. No QR channel open is an error.
+  rpc RotateQrCode(RotateQrCodeRequest) returns (RotateQrCodeResponse);
+
+  // ExpireQrCodes makes the session's QR codes run out: the QR channel sends timeout and closes, and the client
+  // disconnects without a Disconnected event, as whatsmeow's does (qrchan.go:77-84). No QR channel open is an error.
+  rpc ExpireQrCodes(ExpireQrCodesRequest) returns (ExpireQrCodesResponse);
+
+  // DropConnection makes the connection of a session that is pairing drop: the client dispatches Disconnected off the
+  // node queue (client.go:612-622), and its QR channel then sends timeout and closes (qrchan.go:196-197). whatsmeow
+  // does not reconnect an unpaired client (client.go:648). No QR channel open is an error. It returns before the
+  // handlers run.
+  rpc DropConnection(DropConnectionRequest) returns (DropConnectionResponse);
+
+  // FailNextPreKeyUpload makes the session's next login after a link fail to upload the pre-keys: whatsmeow only logs
+  // that (prekeys.go:84-87), never sets PreKeysUploaded, and still dispatches Connected (connectionevents.go:187-204).
+  rpc FailNextPreKeyUpload(FailNextPreKeyUploadRequest) returns (FailNextPreKeyUploadResponse);
+
+  // FailNextPairPhone makes WhatsApp answer the session's next phone pairing request with an IQ error of code
+  // (pair-code.go:104-127): 429 is whatsmeow's ErrIQRateOverLimit (errors.go:197).
+  rpc FailNextPairPhone(FailNextPairPhoneRequest) returns (FailNextPairPhoneResponse);
 
   // FailNextConnect makes the session's next connect fail with an error whatsmeow does not retry. Without it a
   // connect succeeds, and a linked client then gets Connected, as whatsmeow does once WhatsApp accepts the login.
@@ -51,6 +76,53 @@ message LinkDeviceRequest {
 
 // LinkDeviceResponse has no fields.
 message LinkDeviceResponse {}
+
+// RotateQrCodeRequest names the session.
+message RotateQrCodeRequest {
+  // The session whose QR channel sends the next code.
+  string session_id = 1;
+}
+
+// RotateQrCodeResponse has no fields.
+message RotateQrCodeResponse {}
+
+// ExpireQrCodesRequest names the session.
+message ExpireQrCodesRequest {
+  // The session whose QR codes run out.
+  string session_id = 1;
+}
+
+// ExpireQrCodesResponse has no fields.
+message ExpireQrCodesResponse {}
+
+// DropConnectionRequest names the session.
+message DropConnectionRequest {
+  // The session whose connection drops.
+  string session_id = 1;
+}
+
+// DropConnectionResponse has no fields.
+message DropConnectionResponse {}
+
+// FailNextPreKeyUploadRequest names the session.
+message FailNextPreKeyUploadRequest {
+  // The session whose next pre-key upload fails.
+  string session_id = 1;
+}
+
+// FailNextPreKeyUploadResponse has no fields.
+message FailNextPreKeyUploadResponse {}
+
+// FailNextPairPhoneRequest names the session and the error.
+message FailNextPairPhoneRequest {
+  // The session whose next phone pairing request fails.
+  string session_id = 1;
+  // WhatsApp's IQ error code.
+  int32 code = 2;
+}
+
+// FailNextPairPhoneResponse has no fields.
+message FailNextPairPhoneResponse {}
 
 // FailNextConnectRequest names the session.
 message FailNextConnectRequest {

@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using Grpc.Core;
 using Whatsmeow.Core.Errors;
+using Whatsmeow.Pairing;
 using Whatsmeow.Protocol.V1;
 
 namespace Whatsmeow.Sessions;
@@ -38,6 +39,54 @@ internal sealed class SessionClient(WhatsmeowSessions sessions, WhatsmeowSidecar
 		// Forgotten only once it happened: a logout that failed leaves a session the application still connected.
 		_ = await RpcErrors.CallAsync(client.LogoutAsync(new LogoutRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken)).ConfigureAwait(false);
 		sessions.Forget(sessionId);
+	}
+
+	public IAsyncEnumerable<PairingUpdate> PairWithQrCodeAsync(CancellationToken cancellationToken = default) =>
+		PairAsync(new PairRequest { SessionId = sessionId.Value }, cancellationToken);
+
+	public IAsyncEnumerable<PairingUpdate> PairWithPhoneNumberAsync(string phoneNumber, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(phoneNumber);
+		return PairAsync(
+			new PairRequest { SessionId = sessionId.Value, Phone = new PairRequest.Types.Phone { PhoneNumber = phoneNumber } },
+			cancellationToken
+		);
+	}
+
+	private async IAsyncEnumerable<PairingUpdate> PairAsync(PairRequest request, [EnumeratorCancellation] CancellationToken cancellationToken)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		using var call = client.Pair(request, cancellationToken: cancellationToken);
+
+		while (await PairNextAsync(call.ResponseStream, cancellationToken).ConfigureAwait(false))
+		{
+			if (PairingMapping.ToUpdate(call.ResponseStream.Current) is not { } update)
+				continue;
+
+			// Paired and Connected, as after ConnectAsync: a sidecar restart connects it again.
+			if (update is PairingUpdate.Paired)
+				sessions.Remember(sessionId);
+			yield return update;
+		}
+	}
+
+	/// <summary>Reads the next pairing step: false at the end of the stream, otherwise it throws.</summary>
+	private async Task<bool> PairNextAsync(IAsyncStreamReader<PairResponse> stream, CancellationToken cancellationToken)
+	{
+		try
+		{
+			return await stream.MoveNext(cancellationToken).ConfigureAwait(false);
+		}
+		catch (RpcException) when (sidecar.IsDisposed)
+		{
+			ObjectDisposedException.ThrowIf(condition: true, sidecar);
+			throw;
+		}
+		catch (RpcException e)
+		{
+			RpcErrors.Throw(e);
+			throw;
+		}
 	}
 
 	public async IAsyncEnumerable<SessionState> WatchStateAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)

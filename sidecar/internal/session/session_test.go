@@ -51,6 +51,8 @@ type stub struct {
 	connecting func(ctx context.Context)
 	// disconnecting, when set, runs inside Disconnect, without the stub's lock.
 	disconnecting func()
+	// pairing is what the pairing calls see and did (pair_test.go).
+	pairing pairStub
 }
 
 func (s *stub) AddEventHandlerWithSuccessStatus(handler whatsmeow.EventHandlerWithSuccessStatus) uint32 {

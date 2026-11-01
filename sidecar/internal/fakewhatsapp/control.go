@@ -7,12 +7,16 @@ import (
 	"errors"
 	"fmt"
 
+	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/proto/waAdv"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 
 	fakev1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/fake/v1"
 )
+
+// errNoQRChannel is returned by a QR control for a session whose client has no QR channel open.
+var errNoQRChannel = errors.New("no QR channel is open: the client is not pairing")
 
 // Control is the control service: it scripts the fake and reads what the clients sent.
 type Control struct {
@@ -45,7 +49,8 @@ func (c *Control) WaitForSent(ctx context.Context, req *fakev1.WaitForSentReques
 }
 
 // LinkDevice does what whatsmeow does when the phone links the device (handlePair, pair.go:222-240): it stores the
-// device under jid, then dispatches PairSuccess (pair.go:157). It stands in for pairing until #7.
+// device under jid, then dispatches PairSuccess (pair.go:157). While pairing, the QR channel then sends success and
+// closes (qrchan.go:189-190), and the client logs in again after WhatsApp's 515 (connectionevents.go:26-38).
 func (c *Control) LinkDevice(ctx context.Context, req *fakev1.LinkDeviceRequest) (*fakev1.LinkDeviceResponse, error) {
 	client, err := c.whatsApp.client(req.GetSessionId())
 	if err != nil {
@@ -69,7 +74,106 @@ func (c *Control) LinkDevice(ctx context.Context, req *fakev1.LinkDeviceRequest)
 
 	client.dispatch(&events.PairSuccess{ID: jid})
 
+	client.conn.Lock()
+	pairing := client.qr != nil
+	client.endQR(whatsmeow.QRChannelSuccess)
+	client.conn.Unlock()
+
+	if pairing {
+		client.logInAfterLink()
+	}
+
 	return &fakev1.LinkDeviceResponse{}, nil
+}
+
+// pairingClient returns the session's client with its QR channel open, under its conn lock; the caller unlocks.
+func (c *Control) pairingClient(sessionID string) (*Client, error) {
+	client, err := c.whatsApp.client(sessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	client.conn.Lock()
+	if client.qr == nil {
+		client.conn.Unlock()
+
+		return nil, fmt.Errorf("session %q: %w", sessionID, errNoQRChannel)
+	}
+
+	return client, nil
+}
+
+// RotateQrCode makes the session's QR channel send the next code.
+func (c *Control) RotateQrCode(_ context.Context, req *fakev1.RotateQrCodeRequest) (*fakev1.RotateQrCodeResponse, error) {
+	client, err := c.pairingClient(req.GetSessionId())
+	if err != nil {
+		return nil, err
+	}
+	defer client.conn.Unlock()
+
+	client.sendCode()
+
+	return &fakev1.RotateQrCodeResponse{}, nil
+}
+
+// ExpireQrCodes makes the session's QR codes run out: timeout, then a disconnect without an event (qrchan.go:77-84).
+func (c *Control) ExpireQrCodes(_ context.Context, req *fakev1.ExpireQrCodesRequest) (*fakev1.ExpireQrCodesResponse, error) {
+	client, err := c.pairingClient(req.GetSessionId())
+	if err != nil {
+		return nil, err
+	}
+
+	client.endQR(whatsmeow.QRChannelTimeout)
+	client.conn.Unlock()
+	client.Disconnect()
+
+	return &fakev1.ExpireQrCodesResponse{}, nil
+}
+
+// DropConnection drops the connection of a session that is pairing: Disconnected off the node queue, whose handlers
+// run in order, the QR channel's last (client.go:612-622, qrchan.go:196-197).
+func (c *Control) DropConnection(_ context.Context, req *fakev1.DropConnectionRequest) (*fakev1.DropConnectionResponse, error) {
+	client, err := c.pairingClient(req.GetSessionId())
+	if err != nil {
+		return nil, err
+	}
+
+	client.connected = false
+	client.conn.Unlock()
+
+	c.whatsApp.background.Go(func() {
+		client.runHandlers(&events.Disconnected{})
+
+		client.conn.Lock()
+		client.endQR(whatsmeow.QRChannelTimeout)
+		client.conn.Unlock()
+	})
+
+	return &fakev1.DropConnectionResponse{}, nil
+}
+
+// FailNextPreKeyUpload makes the session's next login after a link upload no pre-keys.
+func (c *Control) FailNextPreKeyUpload(_ context.Context, req *fakev1.FailNextPreKeyUploadRequest) (*fakev1.FailNextPreKeyUploadResponse, error) {
+	client, err := c.whatsApp.client(req.GetSessionId())
+	if err != nil {
+		return nil, err
+	}
+
+	c.whatsApp.setScript(client.sessionID, func(s *script) { s.failPreKeyUpload = true })
+
+	return &fakev1.FailNextPreKeyUploadResponse{}, nil
+}
+
+// FailNextPairPhone makes the session's next PairPhone fail with an IQ error of the request's code.
+func (c *Control) FailNextPairPhone(_ context.Context, req *fakev1.FailNextPairPhoneRequest) (*fakev1.FailNextPairPhoneResponse, error) {
+	client, err := c.whatsApp.client(req.GetSessionId())
+	if err != nil {
+		return nil, err
+	}
+
+	c.whatsApp.setScript(client.sessionID, func(s *script) { s.failPairPhone = req.GetCode() })
+
+	return &fakev1.FailNextPairPhoneResponse{}, nil
 }
 
 // FailNextConnect makes the session's next connect fail with an error whatsmeow does not retry.
@@ -79,9 +183,7 @@ func (c *Control) FailNextConnect(_ context.Context, req *fakev1.FailNextConnect
 		return nil, err
 	}
 
-	client.conn.Lock()
-	client.failConnect = true
-	client.conn.Unlock()
+	c.whatsApp.setScript(client.sessionID, func(s *script) { s.failConnect = true })
 
 	return &fakev1.FailNextConnectResponse{}, nil
 }
