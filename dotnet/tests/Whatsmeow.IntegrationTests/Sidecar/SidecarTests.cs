@@ -66,6 +66,20 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 	}
 
 	[Fact(Timeout = Timeout)]
+	public async Task Start_FakeWhatsAppOnAReleaseBuild_FailsWithTheRefusal()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var options = new WhatsmeowSidecarOptions { SidecarPath = binaries.Stage(binaries.Sidecar) };
+
+		// The fake never ships: the release build refuses --fake-whatsapp before it serves anything (ADR 0019).
+		var error = await Assert.ThrowsAsync<SidecarUnavailableException>(() =>
+			WhatsmeowSidecar.StartFakeWhatsAppAsync(options, Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance, ct)
+		);
+
+		Assert.Contains("--fake-whatsapp needs a test build (-tags fakewhatsapp); this build never fakes WhatsApp", error.Message, StringComparison.Ordinal);
+	}
+
+	[Fact(Timeout = Timeout)]
 	public async Task Start_TheSidecarNeverPrintsItsReadyLine_FailsWithTheStderrTailAndLeavesNoProcess()
 	{
 		var ct = TestContext.Current.CancellationToken;

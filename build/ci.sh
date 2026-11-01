@@ -223,6 +223,29 @@ noexec_mount() {
 	echo "noexec tmpfs at $dir"
 }
 
+# The fake WhatsApp control's C# is generated into the integration tests only (ADR 0019): no assembly under
+# dotnet/src, all of which ship, may contain its service type. The test assembly must, or this grep proves nothing.
+shipped_have_no_fake() {
+	local project name dll rc=0
+	if ! grep -q -a FakeWhatsAppService dotnet/artifacts/bin/Whatsmeow.IntegrationTests/release/Whatsmeow.IntegrationTests.dll; then
+		annotate error "fake in a shipped assembly" "Whatsmeow.IntegrationTests.dll has no FakeWhatsAppService either, so this check cannot see one"
+		return 1
+	fi
+	for project in dotnet/src/*/; do
+		name="$(basename "$project")"
+		dll="dotnet/artifacts/bin/$name/release/$name.dll"
+		if [ ! -f "$dll" ]; then
+			annotate error "fake in a shipped assembly" "$dll was not built"
+			rc=1
+		elif grep -q -a FakeWhatsAppService "$dll"; then
+			annotate error "fake in a shipped assembly" "$dll contains the fake WhatsApp control"
+			rc=1
+		fi
+	done
+	[ "$rc" -eq 0 ] && echo "no assembly under dotnet/src contains the fake WhatsApp control"
+	return "$rc"
+}
+
 job_dotnet() {
 	local before
 	before="$(tree_state)"
@@ -231,6 +254,7 @@ job_dotnet() {
 	check "dotnet restore (locked)" dotnet restore dotnet/Whatsmeow.slnx --locked-mode &&
 		check "dotnet build" dotnet build dotnet/Whatsmeow.slnx -c Release --no-restore -p:ContinuousIntegrationBuild=true &&
 		{
+			check "no shipped assembly contains the fake WhatsApp control (ADR 0019)" shipped_have_no_fake
 			check "dotnet test" dotnet test --solution dotnet/Whatsmeow.slnx -c Release --no-build
 			check "AotSmoke publish (zero trim and AOT warnings)" dotnet publish dotnet/tests/AotSmoke/AotSmoke.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true &&
 				check "AotSmoke run" aot_smoke_run

@@ -22,7 +22,8 @@
 	<ItemGroup>
 		<!-- The supervisor's restart and backoff state machine (docs/guidelines/tests.md). -->
 		<InternalsVisibleTo Include="Whatsmeow.Client.Tests" />
-		<!-- Only for the protocol-range seam: the real sidecar cannot be made to report another protocol. -->
+		<!-- Only for two seams the public API cannot reach: the protocol range (the real sidecar cannot be made to report
+		another protocol), and fake WhatsApp mode with its control channel (ADR 0019). -->
 		<InternalsVisibleTo Include="Whatsmeow.IntegrationTests" />
 	</ItemGroup>
 

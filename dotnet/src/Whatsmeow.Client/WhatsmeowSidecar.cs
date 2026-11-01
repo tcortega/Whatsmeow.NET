@@ -24,6 +24,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 	private readonly string? _socketDirectory;
 	private readonly int _minProtocol;
 	private readonly int _maxProtocol;
+	private readonly bool _fakeWhatsApp;
 	private readonly TimeProvider _timeProvider;
 	private readonly ILogger _log;
 	private readonly ILogger _sidecarLog;
@@ -39,6 +40,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		string? socketDirectory,
 		int minProtocol,
 		int maxProtocol,
+		bool fakeWhatsApp,
 		ILoggerFactory loggerFactory,
 		TimeProvider timeProvider
 	)
@@ -48,6 +50,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		_socketDirectory = socketDirectory;
 		_minProtocol = minProtocol;
 		_maxProtocol = maxProtocol;
+		_fakeWhatsApp = fakeWhatsApp;
 		_timeProvider = timeProvider;
 		_log = loggerFactory.CreateLogger(SidecarLog.Category);
 		_sidecarLog = loggerFactory.CreateLogger(SidecarLog.SidecarCategory);
@@ -71,11 +74,28 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		StartAsync(options, loggerFactory, MinProtocol, MaxProtocol, cancellationToken);
 
 	/// <summary>Takes the protocol range the client accepts, so a test can make the real sidecar mismatch.</summary>
-	internal static async Task<WhatsmeowSidecar> StartAsync(
+	internal static Task<WhatsmeowSidecar> StartAsync(
 		WhatsmeowSidecarOptions options,
 		ILoggerFactory loggerFactory,
 		int minProtocol,
 		int maxProtocol,
+		CancellationToken cancellationToken
+	) =>
+		StartCoreAsync(options, loggerFactory, minProtocol, maxProtocol, fakeWhatsApp: false, cancellationToken);
+
+	/// <summary>
+	/// Starts a test build of the sidecar with <c>--fake-whatsapp</c>, for the integration tests' shared fixture
+	/// (ADR 0019). A release build refuses the flag, so this fails with <see cref="SidecarUnavailableException"/> there.
+	/// </summary>
+	internal static Task<WhatsmeowSidecar> StartFakeWhatsAppAsync(WhatsmeowSidecarOptions options, ILoggerFactory loggerFactory, CancellationToken cancellationToken) =>
+		StartCoreAsync(options, loggerFactory, MinProtocol, MaxProtocol, fakeWhatsApp: true, cancellationToken);
+
+	private static async Task<WhatsmeowSidecar> StartCoreAsync(
+		WhatsmeowSidecarOptions options,
+		ILoggerFactory loggerFactory,
+		int minProtocol,
+		int maxProtocol,
+		bool fakeWhatsApp,
 		CancellationToken cancellationToken
 	)
 	{
@@ -95,7 +115,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		var timeProvider = TimeProvider.System;
 #pragma warning restore RS0030
 
-		var sidecar = new WhatsmeowSidecar(effective, binary, socketDirectory, minProtocol, maxProtocol, loggerFactory, timeProvider);
+		var sidecar = new WhatsmeowSidecar(effective, binary, socketDirectory, minProtocol, maxProtocol, fakeWhatsApp, loggerFactory, timeProvider);
 		try
 		{
 			var (processId, exited) = await sidecar.LaunchAsync(cancellationToken).ConfigureAwait(false);
@@ -108,6 +128,12 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 			throw;
 		}
 	}
+
+	/// <summary>
+	/// Every call goes through this invoker, which adds the current launch's token and follows restarts. The
+	/// integration tests reach the fake WhatsApp control through it (ADR 0019).
+	/// </summary>
+	internal CallInvoker CallInvoker => _channel.CallInvoker;
 
 	/// <summary>Reports the running sidecar's versions.</summary>
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached, for example while it restarts.</exception>
@@ -156,7 +182,8 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		using var timeout = new CancellationTokenSource(_options.StartupTimeout, _timeProvider);
 		using var startup = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
 
-		var process = await SidecarProcess.StartAsync(_binary, _options.Transport, _socketDirectory, _options.StartupTimeout, _log, _sidecarLog, startup.Token, cancellationToken)
+		var process = await SidecarProcess
+			.StartAsync(_binary, _options.Transport, _socketDirectory, _fakeWhatsApp, _options.StartupTimeout, _log, _sidecarLog, startup.Token, cancellationToken)
 			.ConfigureAwait(false);
 		_current = process;
 		SidecarLog.SidecarStarted(_log, process.Id, process.Version, process.Endpoint);

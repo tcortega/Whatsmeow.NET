@@ -19,7 +19,7 @@ public sealed partial class SidecarBinaries : IAsyncLifetime
 	/// <summary>The repository root.</summary>
 	public string Root { get; } = FindRoot();
 
-	/// <summary>The real sidecar, at the client's version.</summary>
+	/// <summary>The real sidecar, at the client's version: a release build, without the fake WhatsApp.</summary>
 	public string Sidecar { get; private set; } = "";
 
 	/// <summary>The real sidecar, built with another version.</summary>
@@ -50,11 +50,11 @@ public sealed partial class SidecarBinaries : IAsyncLifetime
 
 		var builds = new[]
 		{
-			BuildAsync("sidecar", "./cmd/whatsmeow-net", $"-X main.version={ClientVersion}", Path.Combine(built, "sidecar"), ct),
-			BuildAsync("sidecar", "./cmd/whatsmeow-net", "-X main.version=0.0.0-other", Path.Combine(built, "other-version"), ct),
-			BuildAsync("tools", "./stub-sidecar", "-X main.mode=hang", Path.Combine(built, "hang"), ct),
-			BuildAsync("tools", "./stub-sidecar", "-X main.mode=wrong-nonce", Path.Combine(built, "wrong-nonce"), ct),
-			BuildAsync("tools", "./stub-sidecar", "-X main.mode=ready", Path.Combine(built, "ready"), ct),
+			BuildAsync("sidecar", "./cmd/whatsmeow-net", $"-X main.version={ClientVersion}", "", Path.Combine(built, "sidecar"), ct),
+			BuildAsync("sidecar", "./cmd/whatsmeow-net", "-X main.version=0.0.0-other", "", Path.Combine(built, "other-version"), ct),
+			BuildAsync("tools", "./stub-sidecar", "-X main.mode=hang", "", Path.Combine(built, "hang"), ct),
+			BuildAsync("tools", "./stub-sidecar", "-X main.mode=wrong-nonce", "", Path.Combine(built, "wrong-nonce"), ct),
+			BuildAsync("tools", "./stub-sidecar", "-X main.mode=ready", "", Path.Combine(built, "ready"), ct),
 		};
 		var paths = await Task.WhenAll(builds).ConfigureAwait(false);
 		(Sidecar, OtherVersionSidecar, HangingStub, WrongNonceStub, ReadyStub) = (paths[0], paths[1], paths[2], paths[3], paths[4]);
@@ -116,10 +116,12 @@ public sealed partial class SidecarBinaries : IAsyncLifetime
 		return await stdout.ConfigureAwait(false);
 	}
 
-	private static async Task<string> BuildAsync(string module, string package, string ldflags, string directory, CancellationToken cancellationToken)
+	/// <summary>Builds a Go program into <paramref name="directory"/> with the build tags <paramref name="tags"/>, and returns its path.</summary>
+	internal static async Task<string> BuildAsync(string module, string package, string ldflags, string tags, string directory, CancellationToken cancellationToken)
 	{
 		var output = Path.Combine(directory, FileName);
-		_ = await RunAsync("go", Path.Combine(FindRoot(), module), ["build", "-ldflags", ldflags, "-o", output, package], cancellationToken).ConfigureAwait(false);
+		_ = await RunAsync("go", Path.Combine(FindRoot(), module), ["build", "-tags", tags, "-ldflags", ldflags, "-o", output, package], cancellationToken)
+			.ConfigureAwait(false);
 		return output;
 	}
 
