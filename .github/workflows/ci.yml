@@ -1,0 +1,239 @@
+name: ci
+
+# Every pushed branch gets CI before a pull request exists. A pull request from this repository runs it twice
+# (push and pull_request); buf breaking runs only in the pull_request run, which knows the base.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+  TESTINGPLATFORM_TELEMETRY_OPTOUT: "true"
+
+jobs:
+  contract:
+    name: contract (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: linux-x64, os: ubuntu-26.04 }
+          - { name: osx-arm64, os: macos-26 }
+          - { name: win-x64, os: windows-2025 }
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # buf breaking reads the base commit, and the gate needs the tags.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: sidecar/go.mod
+          cache-dependency-path: |
+            sidecar/go.*
+            third_party/whatsmeow/VERSION
+
+      # Not a workflow-level env: with GOTOOLCHAIN=local, setup-go installs the go directive instead of the toolchain.
+      - name: use exactly the toolchain in sidecar/go.mod
+        id: toolchain
+        run: |
+          want="$(sed -n 's/^toolchain //p' "$GITHUB_WORKSPACE/sidecar/go.mod")"
+          got="$(GOTOOLCHAIN=local go env GOVERSION)"
+          if [ "$got" != "$want" ]; then
+            echo "::error title=wrong Go toolchain::setup-go installed $got, sidecar/go.mod pins $want"
+            exit 1
+          fi
+          echo "GOTOOLCHAIN=local" >> "$GITHUB_ENV"
+
+      - uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5.2.5
+        with:
+          cache: true
+
+      - name: third_party/whatsmeow matches the pinned module
+        # Every check runs and reports, even after an earlier one failed.
+        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
+        run: go -C sidecar run ./scripts/sync-protos
+
+      - name: buf lint
+        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
+        run: buf lint
+
+      - name: buf breaking (gates from the first published vX.Y.Z tag, ADR 0015)
+        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' && github.event_name == 'pull_request' }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          against=".git#ref=${BASE_SHA}"
+          if git tag --list 'v*' | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            buf breaking --against "$against"
+            exit
+          fi
+          if ! buf breaking --against "$against"; then
+            echo "::warning title=buf breaking (report only)::Breaking changes found. They do not gate until the first published vX.Y.Z tag (ADR 0015)."
+          fi
+
+      - name: buf generate
+        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
+        run: buf generate --template buf.gen.whatsapp.yaml
+
+      - name: generated code is committed unchanged
+        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
+        run: |
+          changes="$(git status --porcelain --untracked-files=all)"
+          if [ -n "$changes" ]; then
+            echo "::error title=generated code differs::buf generate changed the tree. Never edit generated code; run it and commit the result."
+            echo "$changes"
+            git --no-pager diff --stat
+            exit 1
+          fi
+
+  go:
+    name: go (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: linux-x64, os: ubuntu-26.04 }
+          - { name: osx-arm64, os: macos-26 }
+          - { name: win-x64, os: windows-2025 }
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: sidecar
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: sidecar/go.mod
+          cache-dependency-path: |
+            sidecar/go.*
+            third_party/whatsmeow/VERSION
+
+      # Not a workflow-level env: with GOTOOLCHAIN=local, setup-go installs the go directive instead of the toolchain.
+      - name: use exactly the toolchain in sidecar/go.mod
+        id: toolchain
+        run: |
+          want="$(sed -n 's/^toolchain //p' "$GITHUB_WORKSPACE/sidecar/go.mod")"
+          got="$(GOTOOLCHAIN=local go env GOVERSION)"
+          if [ "$got" != "$want" ]; then
+            echo "::error title=wrong Go toolchain::setup-go installed $got, sidecar/go.mod pins $want"
+            exit 1
+          fi
+          echo "GOTOOLCHAIN=local" >> "$GITHUB_ENV"
+
+      - uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5.2.5
+        with:
+          cache: true
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/golangci-lint
+          key: golangci-lint-${{ runner.os }}-${{ hashFiles('mise.toml', 'sidecar/.golangci.yml', 'sidecar/go.*', 'sidecar/**/*.go') }}
+          restore-keys: golangci-lint-${{ runner.os }}-
+
+      - name: go.mod and go.sum are tidy
+        # Every check runs and reports, even after an earlier one failed.
+        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
+        run: go mod tidy -diff
+
+      - name: go build (no cgo)
+        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
+        env:
+          CGO_ENABLED: "0"
+        run: go build ./...
+
+      - name: go test -race
+        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
+        run: go test -race -count=1 ./...
+
+      - name: golangci-lint
+        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
+        env:
+          GOLANGCI_LINT_CACHE: ${{ runner.temp }}/golangci-lint
+        run: golangci-lint run ./...
+
+  dotnet:
+    name: dotnet (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: linux-x64, os: ubuntu-26.04, rid: linux-x64, exe: "" }
+          - { name: osx-arm64, os: macos-26, rid: osx-arm64, exe: "" }
+          - { name: win-x64, os: windows-2025, rid: win-x64, exe: .exe }
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: dotnet
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('global.json', 'dotnet/Directory.Packages.props', 'dotnet/**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: dotnet build
+        run: dotnet build Whatsmeow.slnx -c Release
+
+      - name: dotnet test
+        run: dotnet test --solution Whatsmeow.slnx -c Release --no-build
+
+      - name: AotSmoke publish (zero trim and AOT warnings)
+        run: dotnet publish tests/AotSmoke/AotSmoke.csproj -c Release -r ${{ matrix.rid }}
+
+      - name: AotSmoke run
+        run: ./artifacts/publish/AotSmoke/release_${{ matrix.rid }}/AotSmoke${{ matrix.exe }}
+
+      - name: the build left the tree unchanged
+        run: |
+          changes="$(git status --porcelain --untracked-files=all)"
+          if [ -n "$changes" ]; then
+            echo "::error title=tree changed::the build wrote files outside dotnet/artifacts/"
+            echo "$changes"
+            exit 1
+          fi
+
+  ci:
+    name: ci
+    if: always()
+    needs: [contract, go, dotnet]
+    runs-on: ubuntu-26.04
+    steps:
+      - name: every job passed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "results: $RESULTS"
+          for result in $RESULTS; do
+            if [ "$result" != success ]; then
+              exit 1
+            fi
+          done
