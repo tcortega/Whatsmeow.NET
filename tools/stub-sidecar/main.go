@@ -5,7 +5,8 @@
 //   - wrong-nonce: prints a ready line whose nonce is not the one it was given.
 //
 // Either way it first writes its process id to a file named pid next to the binary, so a test can check that
-// the process is gone, writes one line to stderr, and then never exits on its own: it ignores stdin.
+// the process is gone, and writes one zerolog-shaped warn line to stderr. It ignores stdin and waits for the
+// client to kill it, and exits on its own after two minutes, so a crashed test host never leaks it.
 package main
 
 import (
@@ -19,16 +20,16 @@ import (
 
 var mode string //nolint:gochecknoglobals // set at link time with -ldflags "-X main.mode=<mode>"
 
+// lifetime is longer than any test waits for a stub, and short enough that a leaked one goes away.
+const lifetime = 2 * time.Minute
+
 func main() {
 	if err := run(); err != nil {
 		fmt.Fprintln(os.Stderr, "stub-sidecar:", err)
 		os.Exit(1)
 	}
 
-	// Never exit on its own: the client must kill it.
-	for {
-		time.Sleep(time.Hour)
-	}
+	time.Sleep(lifetime)
 }
 
 func run() error {
@@ -42,7 +43,7 @@ func run() error {
 		return fmt.Errorf("write the pid file: %w", err)
 	}
 
-	fmt.Fprintln(os.Stderr, "stub-sidecar: mode "+mode+", this line is the stderr tail")
+	fmt.Fprintln(os.Stderr, `{"level":"warn","message":"stub-sidecar: mode `+mode+`, this line is the stderr tail"}`)
 
 	switch mode {
 	case "hang":
