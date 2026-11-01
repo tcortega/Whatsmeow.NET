@@ -177,11 +177,15 @@ job_go() {
 	check "the go job left the tree unchanged" tree_unchanged "$before" "the go job"
 }
 
+# AotSmoke starts a real whatsmeow-net under Native AOT, so the sidecar is built here at the client's version.
 aot_smoke_run() {
-	local rid exe=""
+	local rid exe="" version sidecar
 	rid="$(dotnet msbuild dotnet/tests/AotSmoke/AotSmoke.csproj -getProperty:RuntimeIdentifier)" || return
 	case "$rid" in win-*) exe=.exe ;; esac
-	"dotnet/artifacts/publish/AotSmoke/release_$rid/AotSmoke$exe"
+	version="$(dotnet msbuild dotnet/src/Whatsmeow.Client/Whatsmeow.Client.csproj -getProperty:Version)" || return
+	sidecar="dotnet/artifacts/aot-smoke/whatsmeow-net$exe"
+	CGO_ENABLED=0 go -C sidecar build -ldflags "-X main.version=$version" -o "../$sidecar" ./cmd/whatsmeow-net || return
+	"dotnet/artifacts/publish/AotSmoke/release_$rid/AotSmoke$exe" "$sidecar"
 }
 
 # The noexec copy fallback test (ARCHITECTURE §8.5) needs a noexec mount, and only root can make one, so CI makes it
