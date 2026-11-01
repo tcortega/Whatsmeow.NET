@@ -22,3 +22,5 @@ Moved from ARCHITECTURE §6; the contract's policy (independence from whatsmeow,
 - From the first published `vX.Y.Z` tag on, `whatsmeow.v1` never breaks: a break means a new package `whatsmeow.v2` with its own ADR, every additive change increments `protocol`, and `buf breaking` gates `whatsmeow.v1` against `main`.
   Before that tag, `protocol` keeps its initial value, 1, and `buf breaking` only reports ([ADR 0015](../adr/0015-buf-breaking-gates-from-first-published-tag.md)).
   ARCHITECTURE §6, §11, §12 and §13 invariant 5 say the same.
+  CI implements "published" as a tag in the repository matching exactly `^v[0-9]+\.[0-9]+\.[0-9]+$` (no pre-release suffix): with one present, `buf breaking` against the pull request's base fails the build; without one, a break is a CI warning.
+- `buf.yaml` declares the `proto` module with its first file (#3): buf rejects a module with no `.proto` files [observed: buf 1.75.0].

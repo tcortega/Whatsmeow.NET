@@ -7,17 +7,33 @@ Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) before changing the contract, 
 
 This is a library, not a VSA API. No Immediate.Handlers, `[Handler]`, Immediate.Injections, EF, or Refit.
 House rules (bridge, compras, chrominal) win over anything older in this repo, except the exceptions recorded in the ARCHITECTURE Decision log (BCL time, `IWhatsAppClient`).
-Generated code is committed: never hand-edit `sidecar/gen/` or `Whatsmeow.Protocol*`; run `buf generate`.
+Generated code is committed: never hand-edit `sidecar/gen/` or `Whatsmeow.Protocol*`; regenerate it (Commands).
 ARCHITECTURE §13 invariants are wrong to break without an ADR first.
 
 ## Tree
 
 proto/whatsmeow/v1/    our contract, one file per slice
-third_party/whatsmeow/ upstream protos copied from the exact pinned version
+third_party/whatsmeow/ upstream protos copied from the exact pinned version (`VERSION`)
 sidecar/               Go module `github.com/tcortega/Whatsmeow.NET/sidecar`
 dotnet/                `Whatsmeow.slnx` (never a .sln), src/, tests/, samples/
 docs/                  ARCHITECTURE, RESEARCH, guidelines/, adr/
-AGENTS.md              this file (CLAUDE.md is a symlink to it)
+global.json mise.toml  .NET SDK pin; buf, golangci-lint and protoc pins (`mise install`)
+AGENTS.md              this file (CLAUDE.md is a symlink to it; nothing may depend on it)
+
+## Commands
+
+Run from the repo root. CI (`.github/workflows/ci.yml`) runs the same on linux-x64, osx-arm64 and win-x64, with warnings as errors.
+
+```sh
+dotnet build dotnet/Whatsmeow.slnx
+dotnet test --solution dotnet/Whatsmeow.slnx
+dotnet publish dotnet/tests/AotSmoke/AotSmoke.csproj -c Release -r <rid>   # zero trim/AOT warnings
+go -C sidecar build ./... && go -C sidecar test -race ./...
+(cd sidecar && golangci-lint run ./...)
+buf lint
+buf generate --template buf.gen.whatsapp.yaml                             # then commit; CI fails on a diff
+go -C sidecar run ./scripts/sync-protos                                   # third_party matches the pin; -write to update
+```
 
 ## .NET rules
 

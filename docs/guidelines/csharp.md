@@ -137,6 +137,9 @@ Moved from ARCHITECTURE §8.10.
 - Use `System.Threading.Channels` for producer/consumer handoff and `System.Threading.Lock` for short critical sections. Never hold a lock across `await`.
 - Never block on async code (`.Result`, `.Wait()`, `GetAwaiter().GetResult()`). Never write `async void`.
 - `ConfigureAwait(false)` throughout library code. CA2007 is an error here, unlike the house `.editorconfig` (an ASP.NET app has no sync context; a library does not know its caller's).
+  MA0004 is an error too: CA2007 does not flag `await using (existing)`, MA0004 does [observed: scaffold, #2]. Both fire on a plain `await`.
+- Test methods never call `ConfigureAwait` (xUnit1030). xunit.analyzers suppresses CA2007 inside test methods, not in fixtures or helpers, so those still use `ConfigureAwait(false)` [observed: scaffold, #2].
+- No `async void`: MA0155 is an error.
 - Every background loop has an owning `CancellationTokenSource`. It is awaited in `DisposeAsync`, and its exceptions are observed and logged.
 
 ## Reflection
@@ -165,10 +168,22 @@ Enforcement:
 
 Copy from tcortega/bridge when scaffolding `dotnet/`, then apply the deltas listed here.
 
-- `.editorconfig` at the repo root: bridge's VsaTemplate file verbatim (tabs, file-scoped namespaces as error, Style analyzers at warning, `s_` / `_` field prefixes). Delta: `dotnet_diagnostic.CA2007.severity = error`.
-- `Directory.Build.props`: `LangVersion latest`, `Nullable enable` with `WarningsAsErrors Nullable`, `ImplicitUsings`, `AnalysisLevel latest-all`, `EnforceCodeStyleInBuild`, `GenerateDocumentationFile` (the unused-usings analyzer needs it), `TreatWarningsAsErrors` on CI. Delta: `net10.0`, AOT/trim properties on shipped projects.
-- `Directory.Build.targets`: bridge's source-control `AssemblyMetadata` target.
+- `.editorconfig` at the repo root: bridge's VsaTemplate file verbatim (tabs, file-scoped namespaces as error, Style analyzers at warning, `s_` / `_` field prefixes, and its EF Migrations section, kept for parity). Deltas, each an error:
+  - `CA2007` and `MA0004` (ConfigureAwait, see Async and concurrency).
+  - `MA0155` (no `async void` methods).
+  - `RS0030` (banned API), so a banned call fails a local build too, not only CI.
+  - The `[*.{yml,yaml}]` section says `indent_style = space`; bridge's `spaces` is not a valid value, so YAML fell back to tabs.
+- `Directory.Build.props`: `LangVersion latest`, `Nullable enable` with `WarningsAsErrors Nullable`, `ImplicitUsings`, `AnalysisLevel latest-all`, `EnforceCodeStyleInBuild`, `GenerateDocumentationFile` (the unused-usings analyzer needs it), `TreatWarningsAsErrors` on CI. Deltas: `net10.0`; `UseArtifactsOutput` with `ArtifactsPath` pinned to `dotnet/artifacts`; `MSBuildTreatWarningsAsErrors` on CI; bridge's coverlet properties dropped (inert without coverlet.msbuild, and coverage is not a gate here).
+- `src/Directory.Build.props`: `IsAotCompatible` and `IsTrimmable` for every shipped project.
+- `Directory.Build.targets`: bridge's source-control `AssemblyMetadata` target, plus:
+  - `WMN0001`: Grpc.Core or Newtonsoft.Json anywhere in the resolved package graph fails the build.
+  - `WMN0002`: a project named `*Tests` that is not a Microsoft.Testing.Platform app fails the build, because `dotnet test` would skip it.
+  - A test project with no `*.cs` file may report zero tests; once it has one, zero tests fails the run ([tests.md](tests.md)).
+  - A project with no source file of its own still gets the root `.editorconfig` and `dotnet/.globalconfig`. The SDK finds them from the project's Compile items, and otherwise an empty test project's generated xunit entry point was analyzed without them [observed: scaffold, #2].
 - `Directory.Packages.props`: Central Package Management with `CentralPackageTransitivePinningEnabled`; `Meziantou.Analyzer` and `Microsoft.CodeAnalysis.BannedApiAnalyzers` as `GlobalPackageReference`.
+- `dotnet/.globalconfig`: `dotnet_banned_api_analyzer.exclude_generated_code = true`. Generated code cannot be fixed at the call site; protobuf's generated `ToString()` calls the banned `JsonFormatter` [observed: 1942 RS0030 without it]. Trim and AOT analysis still cover generated code through `tests/AotSmoke`.
+- `/global.json` at the repo root: the exact SDK (`rollForward: disable`) and the Microsoft.Testing.Platform runner. The SDK looks for it from the working directory, not the project, so under `dotnet/` it was ignored by commands run from the root [observed: scaffold, #2].
+- `tests/AotSmoke` roots every shipped assembly with `TrimmerRootAssembly`, so all of each one is analyzed, and sets `TreatWarningsAsErrors` itself, so a trim or AOT warning fails the publish locally as well.
 - `.slnx`, never `.sln`.
 
 ```xml
@@ -202,9 +217,13 @@ It must cover:
   T:System.Diagnostics.Stopwatch; Use TimeProvider.GetTimestamp / GetElapsedTime
   ```
 
-- `System.Reflection.*` activation and invocation APIs, `Activator`, `Type.GetType`, `MakeGenericType`.
-- `Newtonsoft.Json`, `Grpc.Core`.
+- `System.Reflection.*` activation and invocation APIs, `Activator`, `Type.GetType`, `MakeGenericType`, assembly loading and scanning, `System.Reflection.Emit`.
+- `Newtonsoft.Json`, `Grpc.Core`. `N:Grpc.Core` would also ban Grpc.Core.Api (`RpcException`, `Status`, `Metadata`), which `Grpc.Net.Client` needs, so only the types in the Grpc.Core package are listed and the package itself is banned by `WMN0001` [observed: scaffold, #2].
 - `DllImportAttribute`.
+- Timers that bypass `TimeProvider` beyond the list above (`System.Threading.Timer`, `System.Timers.Timer`), `Thread.Sleep`, sync-over-async (`Wait`, `Result`, `GetAwaiter().GetResult()`; a compiler-generated `await` is not flagged [observed]), `Environment.Exit` and `FailFast`.
+- `Google.Protobuf.JsonFormatter` and `JsonParser`.
+
+An ID without a parameter list matches only the parameterless overload, so every overload is listed [observed: scaffold, #2].
 
 ## Do not
 

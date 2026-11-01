@@ -41,6 +41,7 @@ Do not start a sidecar per test.
 Do not mock the transport, the dispatcher, or the sidecar.
 
 xUnit v3 on Microsoft.Testing.Platform, not TUnit.
+A test project with no source file yet may report zero tests; once it has a `*.cs` file, zero discovered tests fails the run, and a project named `*Tests` that is not a platform app fails the build (`dotnet/Directory.Build.targets`).
 Do not copy `ClassDataSource` or `[Test]`.
 
 ## FullCycle
