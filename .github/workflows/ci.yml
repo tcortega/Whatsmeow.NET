@@ -94,6 +94,10 @@ jobs:
             echo "::notice title=buf breaking::no base commit to compare with"
             exit 0
           fi
+          if ! git cat-file -e "$base:buf.yaml" 2>/dev/null; then
+            echo "::notice title=buf breaking::the base $base has no buf workspace, so there is nothing to compare with"
+            exit 0
+          fi
 
           # Any published v<semver> tag reachable from the base starts the gate, pre-releases included.
           gate=false
@@ -102,6 +106,9 @@ jobs:
               gate=true
             fi
           done < <(git tag --merged "$base" --list 'v*')
+
+          # buf breaking also exits 100 when this tree does not compile; let that fail here, with buf's own message.
+          buf build
 
           rc=0
           buf breaking --against ".git#ref=$base" || rc=$?
