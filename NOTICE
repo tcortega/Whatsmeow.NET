@@ -1,0 +1,21 @@
+Whatsmeow.NET
+Copyright (c) 2026 Tarcisio Ortega
+
+The Whatsmeow.NET source code and its .NET assemblies are licensed under the Mozilla Public License 2.0 (LICENSE).
+The .NET assemblies are separate programs that talk to whatsmeow-net only through gRPC over a local socket.
+
+whatsmeow-net, the sidecar binary in the Whatsmeow.Sidecar.Native.* packages, statically links go.mau.fi/libsignal, which is licensed under the GNU General Public License version 3.
+Each released whatsmeow-net binary is therefore distributed under GPL-3.0-only as a whole.
+Its Corresponding Source is the source archive attached to the GitHub release whose tag equals the package version, at https://github.com/tcortega/Whatsmeow.NET/releases.
+That archive holds the tagged repository, including sidecar/, its go.mod and go.sum and the build configuration, plus the vendored source of every module the binary links.
+If you redistribute whatsmeow-net, the GPL-3.0 applies to that redistribution.
+
+go.mau.fi/whatsmeow and go.mau.fi/util are licensed under the Mozilla Public License 2.0.
+Their source at the pinned version (third_party/whatsmeow/VERSION) is in the same archive and at https://github.com/tulir/whatsmeow.
+
+Whatsmeow.Protocol.WhatsApp contains files generated from whatsmeow's MPL-2.0 protocol buffer definitions; those files are MPL-2.0.
+Their source is third_party/whatsmeow and dotnet/src/Whatsmeow.Protocol.WhatsApp/Generated in this repository.
+
+Every module linked into whatsmeow-net, and each of its licence files, is listed in sidecar/licenses.allow.
+The full licence texts ship as THIRD-PARTY-NOTICES.txt in each native package.
+The reasons and the evidence are in docs/adr/0016-sidecar-binary-gpl-3-corresponding-source-per-release.md.

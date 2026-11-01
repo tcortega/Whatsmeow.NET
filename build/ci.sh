@@ -167,6 +167,7 @@ job_go() {
 		# With cgo on, so a cgo file is visible (its import "C" is reported as unsafe).
 		check "$module: golangci-lint" bash -c "cd '$module' && CGO_ENABLED=1 golangci-lint run ./..."
 	done
+	check "sidecar: linked modules and licence files match sidecar/licenses.allow (ADR 0016)" go -C tools run ./check-licenses
 	check "the go job left the tree unchanged" tree_unchanged "$before" "the go job"
 }
 
