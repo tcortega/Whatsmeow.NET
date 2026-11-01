@@ -5,6 +5,9 @@
 // code 0. SIGINT is ignored: the sidecar is always tethered, and a terminal Ctrl+C reaches the whole process
 // group, so the client decides when it stops. Once it listens, it prints exactly one JSON ready line on stdout. Logs are JSON lines on
 // stderr.
+//
+// A test build (-tags fakewhatsapp) started with --fake-whatsapp replaces WhatsApp with a scripted fake and serves its
+// control service; a release build refuses the flag (ADR 0019).
 package main
 
 import (
@@ -63,6 +66,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	kind := flags.String("transport", transport.Unix, "unix or pipe (Windows only)")
 	socketDir := flags.String("socket-dir", "", "the directory for the unix socket; the client owns it")
 	nonce := flags.String("nonce", "", "echoed in the ready line")
+	fake := flags.Bool("fake-whatsapp", false, "test builds only (-tags fakewhatsapp): replace WhatsApp with a scripted fake and serve its control")
 
 	if err := flags.Parse(args); err != nil {
 		return exitUsage
@@ -74,6 +78,13 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return exitUsage
 	}
 
+	// The fake never ships: a release build has none, and says so before it reads the token (ADR 0019).
+	if *fake && !fakeBuild {
+		log.Error().Msg("--fake-whatsapp needs a test build (-tags fakewhatsapp); this build never fakes WhatsApp")
+
+		return exitUsage
+	}
+
 	signal.Ignore(os.Interrupt)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM)
@@ -81,7 +92,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 
 	log.Info().Str("version", version).Str("transport", *kind).Msg("starting")
 
-	if err := serve(ctx, log, *kind, *socketDir, *nonce, bufio.NewReader(stdin), stdout); err != nil {
+	if err := serve(ctx, log, *kind, *socketDir, *nonce, *fake, bufio.NewReader(stdin), stdout); err != nil {
 		log.Error().Err(err).Msg("sidecar failed")
 
 		return exitFailed
@@ -90,7 +101,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	return exitStopped
 }
 
-func serve(ctx context.Context, log zerolog.Logger, kind, socketDir, nonce string, stdin *bufio.Reader, stdout io.Writer) error {
+func serve(ctx context.Context, log zerolog.Logger, kind, socketDir, nonce string, fake bool, stdin *bufio.Reader, stdout io.Writer) error {
 	token, err := awaitToken(ctx, stdin)
 	if err != nil {
 		return err
@@ -115,6 +126,10 @@ func serve(ctx context.Context, log zerolog.Logger, kind, socketDir, nonce strin
 	srv := server.New(token, log)
 	svc := sidecar.New(version, build, srv.Shutdown)
 	whatsmeowv1.RegisterSidecarServiceServer(srv, svc)
+
+	if fake {
+		serveFake(srv, log)
+	}
 
 	served := make(chan error, 1)
 

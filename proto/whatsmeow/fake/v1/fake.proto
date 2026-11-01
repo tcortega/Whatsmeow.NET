@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package whatsmeow.fake.v1;
+
+// FakeWhatsAppService scripts the fake WhatsApp of a test build of whatsmeow-net (-tags fakewhatsapp) started with
+// --fake-whatsapp, and records what the sidecar sent to it. It is served next to whatsmeow.v1 on the same socket,
+// with the same token. It is not part of the whatsmeow.v1 contract and never ships (ADR 0019).
+//
+// Each slice adds the controls it needs here. Errors are INTERNAL with a message: the fake adds no ErrorReason.
+service FakeWhatsAppService {
+  // DeliverMessage makes WhatsApp deliver a decrypted message to a session's client, and returns once the client's
+  // event handlers ran. Whether the client acked it shows in WaitForSent. A session without a client is an error:
+  // the fake never acks on behalf of a client the sidecar did not create.
+  rpc DeliverMessage(DeliverMessageRequest) returns (DeliverMessageResponse);
+
+  // WaitForSent returns the first thing the session's client sent to WhatsApp after the entry `after`, and waits
+  // until there is one. Only the call's deadline or cancellation ends the wait. The log lives in the sidecar process,
+  // so it starts again, at index 1, after a restart.
+  rpc WaitForSent(WaitForSentRequest) returns (WaitForSentResponse);
+}
+
+// DeliverMessageRequest is one inbound message.
+message DeliverMessageRequest {
+  // The session whose client receives it.
+  string session_id = 1;
+  // The WhatsApp message id.
+  string id = 2;
+}
+
+// DeliverMessageResponse has no fields.
+message DeliverMessageResponse {}
+
+// WaitForSentRequest selects the next entry of one session.
+message WaitForSentRequest {
+  // The session whose entries count.
+  string session_id = 1;
+  // The index of the last entry already seen; 0 for the first.
+  uint64 after = 2;
+}
+
+// WaitForSentResponse is the entry.
+message WaitForSentResponse {
+  // The entry.
+  Sent sent = 1;
+}
+
+// Sent is one thing a client sent to WhatsApp.
+message Sent {
+  // Its position in the log, from 1, across all sessions.
+  uint64 index = 1;
+  // The session whose client sent it.
+  string session_id = 2;
+  // What was sent.
+  oneof kind {
+    // An ack of a stanza WhatsApp delivered.
+    Ack ack = 3;
+  }
+}
+
+// Ack is the ack whatsmeow sends for a stanza: its class is the stanza's tag, and its id the stanza's id.
+message Ack {
+  // The stanza's tag: "message", "receipt" or "notification".
+  string class = 1;
+  // The stanza's id; for a message, the message id.
+  string id = 2;
+}
