@@ -16,8 +16,10 @@ public sealed class DispatcherTests : IAsyncDisposable
 	private readonly Channel<(ulong Seq, DateTimeOffset At)> _acks = Channel.CreateUnbounded<(ulong, DateTimeOffset)>();
 	private readonly Channel<string> _log = Channel.CreateUnbounded<string>();
 	private readonly Dictionary<ulong, TaskCompletionSource> _release = [];
+	private readonly Channel<Exception> _failedAcks = Channel.CreateUnbounded<Exception>();
 	private readonly Dispatcher _dispatcher;
 	private readonly Logs _logs = new();
+	private int _acksToFail;
 
 	public DispatcherTests()
 	{
@@ -25,6 +27,14 @@ public sealed class DispatcherTests : IAsyncDisposable
 			_input.Reader,
 			(seq, token) =>
 			{
+				if (Interlocked.Decrement(ref _acksToFail) >= 0)
+				{
+					// As a call that the transport ends without a status does.
+					var failure = new OperationCanceledException("the call ended without a status");
+					_ = _failedAcks.Writer.TryWrite(failure);
+					throw failure;
+				}
+
 				_ = _acks.Writer.TryWrite((seq, _time.GetUtcNow()));
 				return Task.CompletedTask;
 			},
@@ -130,6 +140,43 @@ public sealed class DispatcherTests : IAsyncDisposable
 
 		Assert.Equal(1UL, (await _acks.Reader.ReadAsync(ct)).Seq);
 		Assert.False(_acks.Reader.TryRead(out _));
+	}
+
+	[Fact(Timeout = 10_000)]
+	public async Task Ack_ThatFailsWithAnyException_IsTriedAgainOnTheNextTickAndAtTheStop()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		_acksToFail = 1;
+		Post(1, "a");
+		Post(2, "a", blocked: true);
+		Assert.Equal(["start 1", "end 1", "start 2"], await NextAsync(3, ct));
+
+		_time.Advance(Dispatcher.AckInterval);
+		_ = await _failedAcks.Reader.ReadAsync(ct);
+		_time.Advance(Dispatcher.AckInterval);
+		Assert.Equal(1UL, (await _acks.Reader.ReadAsync(ct)).Seq);
+
+		Release(2);
+		Assert.Equal(["end 2"], await NextAsync(1, ct));
+		Post(3, "a", blocked: true);
+		Assert.Equal(["start 3"], await NextAsync(1, ct));
+		await _dispatcher.DisposeAsync();
+		Assert.Equal(2UL, (await _acks.Reader.ReadAsync(ct)).Seq);
+	}
+
+	[Fact(Timeout = 10_000)]
+	public async Task Start_AfterTheStop_StartsNothing()
+	{
+		_ = TestContext.Current.CancellationToken;
+		var time = new CountingTimeProvider();
+		var stopped = new Dispatcher(Channel.CreateUnbounded<Work>().Reader, (_, _) => Task.CompletedTask, time, new FakeLogger(_logs.Collector, "Whatsmeow.Client"));
+		await stopped.DisposeAsync();
+		var before = time.Timers;
+
+		stopped.Start();
+
+		// No ack timer: the stop's own timeout timer is the only one.
+		Assert.Equal(before, time.Timers);
 	}
 
 	[Fact(Timeout = 10_000)]
@@ -284,6 +331,17 @@ public sealed class DispatcherTests : IAsyncDisposable
 					return match;
 				_ = await records.MoveNextAsync().ConfigureAwait(false);
 			}
+		}
+	}
+
+	private sealed class CountingTimeProvider : FakeTimeProvider
+	{
+		public int Timers { get; private set; }
+
+		public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+		{
+			Timers++;
+			return base.CreateTimer(callback, state, dueTime, period);
 		}
 	}
 }

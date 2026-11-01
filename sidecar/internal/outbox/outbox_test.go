@@ -394,7 +394,7 @@ func TestConcurrentRecordsNeverLetAReaderSkipASeq(t *testing.T) {
 	}
 }
 
-func TestARepeatedKeyWithOtherContentIsReportedAndNotOverwritten(t *testing.T) {
+func TestARepeatedKeyWithOtherContentIsReportedAndRecordedBeside(t *testing.T) {
 	t.Parallel()
 
 	o, _, ctx := open(t, "s1")
@@ -407,13 +407,19 @@ func TestARepeatedKeyWithOtherContentIsReportedAndNotOverwritten(t *testing.T) {
 		t.Fatalf("an identical repeat = %v, %v; want false, nil", differs, err)
 	}
 
+	// A duplicate is better than a loss: the other content gets a row of its own, and the first stays as it was.
 	if differs, err := o.Record(ctx, "s1", "k", message("M2")); err != nil || !differs {
 		t.Fatalf("a repeat with other content = %v, %v; want true, nil", differs, err)
 	}
 
+	// A redispatch of that content is byte for byte the same, so it keeps its own row's seq.
+	if _, err := o.Record(ctx, "s1", "k", message("M2")); err != nil {
+		t.Fatalf("its redispatch: %v", err)
+	}
+
 	events, _ := o.Read(ctx, "s1", 0, 10)
-	if len(events) != 1 || events[0].GetMessage().GetInfo().GetId() != "M1" {
-		t.Fatalf("the outbox has %v; want the first M1, not overwritten", events)
+	if len(events) != 2 || events[0].GetMessage().GetInfo().GetId() != "M1" || events[1].GetMessage().GetInfo().GetId() != "M2" {
+		t.Fatalf("the outbox has %v; want M1, then M2 once", events)
 	}
 }
 

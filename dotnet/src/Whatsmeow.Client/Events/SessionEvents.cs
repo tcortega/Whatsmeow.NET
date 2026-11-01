@@ -55,7 +55,7 @@ internal sealed class SessionEvents : IAsyncDisposable
 	/// <summary>Starts reading the session's events; calling it again does nothing.</summary>
 	public void Start()
 	{
-		if (Interlocked.Exchange(ref _started, 1) != 0)
+		if (_disposed != 0 || Interlocked.Exchange(ref _started, 1) != 0)
 			return;
 
 		_dispatcher.Start();
@@ -235,9 +235,11 @@ internal sealed class SessionEvents : IAsyncDisposable
 				}
 				catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
 				{
-					// A call to a sidecar that is gone can end with no status at all [observed: WatchDownTests]; it is
-					// the sidecar going away.
-					await _sidecar.WaitForLaunchAsync(launch, cancellationToken).ConfigureAwait(false);
+					// A call can end with no status at all, as one to a sidecar that is gone does [observed:
+					// WatchDownTests]. The same sidecar may still be up, so it does not wait for a launch: it opens
+					// again, after a pause if none happened since the call opened.
+					if (_sidecar.Launches == launch)
+						await Task.Delay(s_retryDelay, _timeProvider, cancellationToken).ConfigureAwait(false);
 				}
 			}
 		}

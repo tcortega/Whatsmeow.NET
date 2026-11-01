@@ -9,7 +9,9 @@ package outbox
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"sync"
@@ -102,11 +104,14 @@ func (o *Outbox) Delete(sessionID string) {
 }
 
 // Record writes event in one short transaction, together with the writes of with, and wakes the session's streams
-// after the commit. An event whose key the session already has keeps its seq, and nothing new is written; an empty
-// key never matches. differs reports such a repeat whose content is not the recorded one: the recorded row stays, and
-// the caller makes the collision visible.
+// after the commit. An event whose key the session already has with the same content keeps its seq, and nothing new
+// is written; an empty key never matches. differs reports a repeat of the key with other content: it is never
+// overwritten, it is recorded beside, under the key and a hash of its content, because a duplicate is better than a
+// loss, and the caller makes the collision visible. A true redispatch is byte for byte the same, also under the
+// derived key.
 func (o *Outbox) Record(ctx context.Context, sessionID, key string, event *whatsmeowv1.StreamEventsResponse, with ...func(*sql.Tx) error) (differs bool, err error) {
-	payload, err := proto.Marshal(event)
+	// Deterministic, so a map field cannot make a redispatch look different.
+	payload, err := proto.MarshalOptions{Deterministic: true}.Marshal(event)
 	if err != nil {
 		return false, fmt.Errorf("record an event of session %q: %w", sessionID, err)
 	}
@@ -122,32 +127,23 @@ func (o *Outbox) Record(ctx context.Context, sessionID, key string, event *whats
 		}
 	}()
 
-	var seq int64
-
-	inserted := true
-
-	err = tx.QueryRowContext(ctx, `INSERT INTO outbox (session_id, dedupe_key, payload) VALUES (?, ?, ?)
-		ON CONFLICT (session_id, dedupe_key) DO NOTHING RETURNING seq`,
-		sessionID, sql.NullString{String: key, Valid: key != ""}, payload).Scan(&seq)
-
-	switch {
-	case errors.Is(err, sql.ErrNoRows):
-		inserted, err = false, nil
-	case err != nil:
+	inserted, err := insert(ctx, tx, sessionID, key, payload)
+	if err != nil {
 		return false, fmt.Errorf("record an event of session %q: %w", sessionID, err)
 	}
 
-	if inserted {
-		if _, err = tx.ExecContext(ctx, "UPDATE session SET last_seq = ? WHERE id = ?", seq, sessionID); err != nil {
-			return false, fmt.Errorf("record an event of session %q: %w", sessionID, err)
-		}
-	} else {
+	if !inserted {
 		var recorded []byte
 		if err = tx.QueryRowContext(ctx, "SELECT payload FROM outbox WHERE session_id = ? AND dedupe_key = ?", sessionID, key).Scan(&recorded); err != nil {
 			return false, fmt.Errorf("record an event of session %q: %w", sessionID, err)
 		}
 
-		differs = !bytes.Equal(recorded, payload)
+		if differs = !bytes.Equal(recorded, payload); differs {
+			sum := sha256.Sum256(payload)
+			if inserted, err = insert(ctx, tx, sessionID, key+"\x00"+hex.EncodeToString(sum[:]), payload); err != nil {
+				return false, fmt.Errorf("record an event of session %q: %w", sessionID, err)
+			}
+		}
 	}
 
 	for _, write := range with {
@@ -165,6 +161,28 @@ func (o *Outbox) Record(ctx context.Context, sessionID, key string, event *whats
 	}
 
 	return differs, nil
+}
+
+// insert adds one row under key unless the session has the key already, and moves the session's highest seq.
+func insert(ctx context.Context, tx *sql.Tx, sessionID, key string, payload []byte) (bool, error) {
+	var seq int64
+
+	err := tx.QueryRowContext(ctx, `INSERT INTO outbox (session_id, dedupe_key, payload) VALUES (?, ?, ?)
+		ON CONFLICT (session_id, dedupe_key) DO NOTHING RETURNING seq`,
+		sessionID, sql.NullString{String: key, Valid: key != ""}, payload).Scan(&seq)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+
+	if err != nil {
+		return false, fmt.Errorf("insert: %w", err)
+	}
+
+	if _, err := tx.ExecContext(ctx, "UPDATE session SET last_seq = ? WHERE id = ?", seq, sessionID); err != nil {
+		return false, fmt.Errorf("move the highest seq: %w", err)
+	}
+
+	return true, nil
 }
 
 // Read returns at most limit of the session's events after the seq after, in seq order.

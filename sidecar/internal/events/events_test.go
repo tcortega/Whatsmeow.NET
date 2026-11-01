@@ -3,9 +3,11 @@ package events
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -20,6 +22,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
+	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -33,14 +36,31 @@ const token = "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"
 
 // harness is the slice on a real store, served by the real server over an in-memory listener.
 type harness struct {
-	t      *testing.T
-	path   string
-	db     *sidecarstore.Store
-	box    *outbox.Outbox
-	svc    *Service
-	client whatsmeowv1.EventServiceClient
-	ctx    context.Context //nolint:containedctx // the test's call context
-	stop   func()
+	// returned gets what each StreamEvents handler returned, as it returns.
+	returned chan error
+	lis      *bufconn.Listener
+	t        *testing.T
+	path     string
+	db       *sidecarstore.Store
+	box      *outbox.Outbox
+	svc      *Service
+	client   whatsmeowv1.EventServiceClient
+	ctx      context.Context //nolint:containedctx // the test's call context
+	stop     func()
+}
+
+// observed is the slice with each StreamEvents return reported, so a test sees a handler end.
+type observed struct {
+	*Service
+
+	returned chan error
+}
+
+func (o observed) StreamEvents(req *whatsmeowv1.StreamEventsRequest, stream grpc.ServerStreamingServer[whatsmeowv1.StreamEventsResponse]) error {
+	err := o.Service.StreamEvents(req, stream)
+	o.returned <- err
+
+	return err
 }
 
 func start(t *testing.T, sessions ...string) *harness {
@@ -67,9 +87,11 @@ func startOn(t *testing.T, path string, sessions ...string) *harness {
 	h.svc = New(h.box, zerolog.Nop())
 
 	srv := server.New(token, zerolog.Nop())
-	whatsmeowv1.RegisterEventServiceServer(srv, h.svc)
+	h.returned = make(chan error, 16)
+	whatsmeowv1.RegisterEventServiceServer(srv, observed{Service: h.svc, returned: h.returned})
 
 	lis := bufconn.Listen(1 << 20)
+	h.lis = lis
 	served := make(chan error, 1)
 
 	go func() { served <- srv.Serve(lis) }()
@@ -619,5 +641,70 @@ func TestAReplacedStreamStuckInSendEnds(t *testing.T) {
 		}
 	case <-h.ctx.Done():
 		t.Fatal("the replaced stream stayed in Send")
+	}
+}
+
+func TestASenderKeyPartWithMoreThanTheKeyStillLetsTheContentThrough(t *testing.T) {
+	t.Parallel()
+
+	h := start(t, "s1")
+
+	// A field this whatsmeow does not know makes the part more than a sender key, so it is recorded.
+	part := senderKeyOnly("M1")
+	part.Message.ProtoReflect().SetUnknown(protowire.AppendVarint(protowire.AppendTag(nil, 9999, protowire.VarintType), 1))
+	h.mustDeliver("s1", part)
+	h.mustDeliver("s1", messageEvent("M1"))
+	h.mustDeliver("s1", messageEvent("M1"))
+
+	events, err := h.box.Read(h.ctx, "s1", 0, 10)
+	if err != nil || len(events) != 2 || !proto.Equal(events[1].GetMessage().GetMessage(), messageEvent("M1").Message) {
+		t.Fatalf("the outbox has %v, %v; want the sender-key part, then M1's content once", events, err)
+	}
+}
+
+func TestAReplacedStreamWhoseClientStoppedReadingEnds(t *testing.T) {
+	t.Parallel()
+
+	h := start(t, "s1")
+
+	// Far more than grpc-go's 64 KiB stream window: the first stream's handler blocks in Send on flow control.
+	big := strings.Repeat("x", 32<<10)
+	for i := range 64 {
+		evt := messageEvent(fmt.Sprintf("M%d", i))
+		evt.Message.Conversation = proto.String(big)
+		h.mustDeliver("s1", evt)
+	}
+
+	// A fixed 64 KiB window: without one, grpc-go's BDP estimation grows the window of a stream nobody reads.
+	slow, err := grpc.NewClient("passthrough:///bufnet",
+		grpc.WithContextDialer(func(ctx context.Context, _ string) (net.Conn, error) { return h.lis.DialContext(ctx) }),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithInitialWindowSize(64<<10), grpc.WithInitialConnWindowSize(64<<10))
+	if err != nil {
+		t.Fatalf("dial: %v", err)
+	}
+	defer func() { _ = slow.Close() }()
+
+	unread, err := whatsmeowv1.NewEventServiceClient(slow).StreamEvents(h.ctx, &whatsmeowv1.StreamEventsRequest{SessionId: "s1", Consumer: "c1"})
+	if err != nil {
+		t.Fatalf("StreamEvents: %v", err)
+	}
+
+	// The headers come with the first event: the handler is registered and sending, and blocks once the window is full.
+	if _, err := unread.Header(); err != nil {
+		t.Fatalf("the first stream's headers: %v", err)
+	}
+
+	// Not read: the second one replaces it, and the first one's handler must return though its client never reads.
+	second := h.open("s1", "c1", 0)
+	ids(t, second, 1)
+
+	select {
+	case err := <-h.returned:
+		if !errors.Is(err, server.ErrConsumerReplaced) {
+			t.Fatalf("the first handler returned %v, want %v", err, server.ErrConsumerReplaced)
+		}
+	case <-h.ctx.Done():
+		t.Fatal("the replaced handler stayed in Send")
 	}
 }

@@ -111,20 +111,36 @@ public sealed class EventTests(FakeSidecar fixture)
 	}
 
 	[Fact(Timeout = Timeout)]
-	public async Task AnEventTheClientCannotRead_IsSkippedAndTheStreamGoesOn()
+	public async Task AMessageWithATimeDateTimeOffsetCannotHold_ArrivesWithTheTimeClamped()
 	{
 		var ct = TestContext.Current.CancellationToken;
-		var client = await SessionSetup.LinkedAsync(fixture, "events-unreadable", ct);
+		var client = await SessionSetup.LinkedAsync(fixture, "events-far-time", ct);
 		using var received = new Received<MessageReceived>(client);
 		await client.ConnectAsync(ct);
 
 		// Year 11476: a Timestamp the sidecar sends as it gets it, and that .NET's DateTimeOffset cannot hold.
-		var unreadable = Deliveries.Message("events-unreadable", "M1");
-		unreadable.MessageTime = new Timestamp { Seconds = 300_000_000_000 };
-		_ = await fixture.Fake.DeliverMessageAsync(unreadable, cancellationToken: ct);
-		await Deliveries.DeliverAsync(fixture.Fake, "events-unreadable", ct, "M2");
+		var far = Deliveries.Message("events-far-time", "M1");
+		far.MessageTime = new Timestamp { Seconds = 300_000_000_000 };
+		_ = await fixture.Fake.DeliverMessageAsync(far, cancellationToken: ct);
 
-		Assert.Equal(Deliveries.Received("events-unreadable", "M2"), await received.NextAsync(ct));
+		Assert.Equal(Deliveries.Received("events-far-time", "M1") with { Timestamp = DateTimeOffset.MaxValue }, await received.NextAsync(ct));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task AMessageWithoutAChat_IsSkippedAndTheStreamGoesOn()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var client = await SessionSetup.LinkedAsync(fixture, "events-no-chat", ct);
+		using var received = new Received<MessageReceived>(client);
+		await client.ConnectAsync(ct);
+
+		// Unusable: a message must say where it is. Skipped and acked, never the end of the stream.
+		var nowhere = Deliveries.Message("events-no-chat", "M1");
+		nowhere.Chat = "";
+		_ = await fixture.Fake.DeliverMessageAsync(nowhere, cancellationToken: ct);
+		await Deliveries.DeliverAsync(fixture.Fake, "events-no-chat", ct, "M2");
+
+		Assert.Equal(Deliveries.Received("events-no-chat", "M2"), await received.NextAsync(ct));
 	}
 
 	[Fact(Timeout = Timeout)]

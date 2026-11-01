@@ -73,8 +73,8 @@ func (svc *Service) Handler(sessionID string) whatsmeow.EventHandlerWithSuccessS
 		}
 
 		if differs {
-			// Never overwritten: the first is what a consumer may have handled. Visible, so a collision is found.
-			svc.log.Warn().Str("session_id", sessionID).Msgf("a %T repeats a recorded event's key with other content; the recorded one is kept", evt)
+			// Never overwritten: the first is what a consumer may have handled. Recorded beside, and visible.
+			svc.log.Warn().Str("session_id", sessionID).Msgf("a %T repeats a recorded event's key with other content; it is recorded beside it", evt)
 		}
 
 		return true

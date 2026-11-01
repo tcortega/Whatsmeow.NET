@@ -147,10 +147,19 @@ func TestEveryConnectionWritesWithSynchronousFull(t *testing.T) {
 		t.Fatalf("Open: %v", err)
 	}
 
-	// FULL is 2 (sqlite.org/pragma.html#pragma_synchronous): invariant 2 needs the commit to survive power loss.
-	var synchronous int
-	if err := s.DB.QueryRowContext(context.Background(), "PRAGMA synchronous").Scan(&synchronous); err != nil || synchronous != 2 {
-		t.Fatalf("synchronous = %d, %v; want 2 (FULL)", synchronous, err)
+	// FULL is 2 (sqlite.org/pragma.html#pragma_synchronous): invariant 2 needs the commit to survive power loss. The
+	// pragma is per connection, so three are held open at once and each is checked.
+	for i := range 3 {
+		conn, err := s.DB.Conn(context.Background())
+		if err != nil {
+			t.Fatalf("connection %d: %v", i, err)
+		}
+		defer func() { _ = conn.Close() }()
+
+		var synchronous int
+		if err := conn.QueryRowContext(context.Background(), "PRAGMA synchronous").Scan(&synchronous); err != nil || synchronous != 2 {
+			t.Fatalf("connection %d: synchronous = %d, %v; want 2 (FULL)", i, synchronous, err)
+		}
 	}
 }
 

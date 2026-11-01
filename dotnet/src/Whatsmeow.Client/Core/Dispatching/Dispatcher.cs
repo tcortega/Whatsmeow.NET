@@ -30,8 +30,12 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 	/// <summary>How long the last ack may take when the dispatcher stops.</summary>
 	private static readonly TimeSpan s_finalAckTimeout = TimeSpan.FromSeconds(5);
 
-	/// <summary>The lane whose handler is running on this flow, so a stop from inside it does not wait for itself.</summary>
-	private static readonly AsyncLocal<Lane?> s_current = new();
+	/// <summary>
+	/// The event whose handlers run on this flow, so a stop from inside them does not wait for their own lane. It is
+	/// the entry, not the lane: work a handler started and that outlives it carries the same value, and by then its lane
+	/// runs another entry, which that stop waits for.
+	/// </summary>
+	private static readonly AsyncLocal<Entry?> s_current = new();
 
 	// The semaphores and the token source are never disposed: a handler that stopped the dispatcher from inside its
 	// lane still releases them after the stop returned. None holds an unmanaged resource while unused.
@@ -60,6 +64,9 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 	/// <summary>Starts reading <c>input</c> and the ack timer.</summary>
 	public void Start()
 	{
+		if (_disposed != 0)
+			return;
+
 		// Created here, not in the loop, so a tick of the clock from now on is never missed.
 		_timer = new PeriodicTimer(AckInterval, timeProvider);
 		_loop = ReadAsync(_stopping.Token);
@@ -83,7 +90,13 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 				await ackAsync(watermark, cancellationToken).ConfigureAwait(false);
 				_acked = watermark;
 			}
-			catch (WhatsmeowException e)
+			catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+			{
+				throw;
+			}
+#pragma warning disable CA1031 // Justification: whatever the ack call throws, the next tick and the stop try again; a dead ack loop would ack nothing more
+			catch (Exception e)
+#pragma warning restore CA1031
 			{
 				DispatchLog.AckFailed(logger, e, watermark);
 			}
@@ -106,13 +119,23 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 			return;
 
 		await _stopping.CancelAsync().ConfigureAwait(false);
-		await _loop.ConfigureAwait(false);
-		await _ackLoop.ConfigureAwait(false);
+		try
+		{
+			await _loop.ConfigureAwait(false);
+			await _ackLoop.ConfigureAwait(false);
+		}
+		finally
+		{
+			await StopLanesAndFlushAsync().ConfigureAwait(false);
+		}
+	}
 
+	private async Task StopLanesAndFlushAsync()
+	{
 		var own = s_current.Value;
 		Task[] lanes;
 		lock (_lock)
-			lanes = [.. _started.Where(lane => lane != own).Select(lane => lane.Task)];
+			lanes = [.. _started.Where(lane => own is null || lane.Current != own).Select(lane => lane.Task)];
 		await Task.WhenAll(lanes).ConfigureAwait(false);
 
 		using (var last = new CancellationTokenSource(s_finalAckTimeout, timeProvider))
@@ -179,7 +202,6 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 
 	private async Task RunLaneAsync(Lane lane, CancellationToken cancellationToken)
 	{
-		s_current.Value = lane;
 		try
 		{
 			while (true)
@@ -194,8 +216,10 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 					}
 
 					next = lane.Queue.Peek();
+					lane.Current = next;
 				}
 
+				s_current.Value = next;
 				await _running.WaitAsync(cancellationToken).ConfigureAwait(false);
 				try
 				{
@@ -291,6 +315,9 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 
 		/// <summary>Set under the dispatcher's lock as the lane starts.</summary>
 		public Task Task { get; set; } = Task.CompletedTask;
+
+		/// <summary>The entry the lane runs or ran last; guarded by the dispatcher's lock.</summary>
+		public Entry? Current { get; set; }
 	}
 
 	private sealed class Entry(Work work)

@@ -2,7 +2,7 @@ namespace Whatsmeow.Core.Dispatching;
 
 internal static partial class DispatchLog
 {
-	[LoggerMessage(20, LogLevel.Warning, "Acking the events up to {Seq} failed; it is tried again on the next tick")]
+	[LoggerMessage(20, LogLevel.Warning, "Acking the events up to {Seq} failed; it is tried again on the next tick and at the stop")]
 	public static partial void AckFailed(ILogger logger, Exception exception, ulong seq);
 
 	[LoggerMessage(21, LogLevel.Warning, "The last ack did not finish within {Timeout}; the unacked events come again")]

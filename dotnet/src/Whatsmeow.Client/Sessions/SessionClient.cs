@@ -17,6 +17,9 @@ internal sealed class SessionClient(
 	ILogger log
 ) : IWhatsAppClient, IAsyncDisposable
 {
+	/// <summary>How long a watch waits before it opens again after a call that ended without a status.</summary>
+	private static readonly TimeSpan s_retryDelay = TimeSpan.FromSeconds(1);
+
 	private readonly SessionEvents _events = new(sidecar, invoker, sessionId, sidecar.TimeProvider, log);
 
 	public SessionId SessionId => sessionId;
@@ -136,24 +139,41 @@ internal sealed class SessionClient(
 			var launch = sidecar.Launches;
 			using var call = client.WatchSessionState(new WatchSessionStateRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken);
 
-			while (await NextAsync(call.ResponseStream, cancellationToken).ConfigureAwait(false) is { } more)
-			{
-				if (!more)
-					yield break;
+			Next next;
+			while ((next = await NextAsync(call.ResponseStream, launch, cancellationToken).ConfigureAwait(false)) is Next.State)
 				yield return SessionMapping.ToState(call.ResponseStream.Current.State);
-			}
+
+			if (next is Next.End)
+				yield break;
 
 			// The sidecar went away: the stream goes on from the restarted one, whose first state is its current one.
-			await sidecar.WaitForLaunchAsync(launch, cancellationToken).ConfigureAwait(false);
+			if (next is Next.Gone)
+				await sidecar.WaitForLaunchAsync(launch, cancellationToken).ConfigureAwait(false);
 		}
 	}
 
-	/// <summary>Reads the next state: true when there is one, null when the sidecar went away, otherwise it throws.</summary>
-	private async Task<bool?> NextAsync(IAsyncStreamReader<WatchSessionStateResponse> stream, CancellationToken cancellationToken)
+	/// <summary>What reading the next state found.</summary>
+	private enum Next
+	{
+		/// <summary>A state.</summary>
+		State,
+
+		/// <summary>The stream ended.</summary>
+		End,
+
+		/// <summary>The sidecar went away: open again once it is back.</summary>
+		Gone,
+
+		/// <summary>The call ended without a status: open again now.</summary>
+		Again,
+	}
+
+	/// <summary>Reads the next state, or finds why there is none; a failure the watch cannot go on from throws.</summary>
+	private async Task<Next> NextAsync(IAsyncStreamReader<WatchSessionStateResponse> stream, int launch, CancellationToken cancellationToken)
 	{
 		try
 		{
-			return await stream.MoveNext(cancellationToken).ConfigureAwait(false);
+			return await stream.MoveNext(cancellationToken).ConfigureAwait(false) ? Next.State : Next.End;
 		}
 		catch (RpcException) when (sidecar.IsDisposed)
 		{
@@ -162,12 +182,16 @@ internal sealed class SessionClient(
 		}
 		catch (RpcException e) when (RpcErrors.IsUnreachable(e))
 		{
-			return null;
+			return Next.Gone;
 		}
 		catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
 		{
-			// A call to a sidecar that is gone can end with no status at all [observed: WatchDownTests].
-			return null;
+			// A call can end with no status at all, as one to a sidecar that is gone does [observed: WatchDownTests]. The
+			// same sidecar may still be up, so it does not wait for a launch: it opens again, after a pause if none
+			// happened since the call opened.
+			if (sidecar.Launches == launch)
+				await Task.Delay(s_retryDelay, sidecar.TimeProvider, cancellationToken).ConfigureAwait(false);
+			return Next.Again;
 		}
 		catch (RpcException e)
 		{
