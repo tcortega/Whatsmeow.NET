@@ -7,7 +7,3 @@ TestResults/
 
 # macOS
 .DS_Store
-
-# Go: `go build ./...` writes a binary when the module has a single main package
-/sidecar/sync-protos
-/sidecar/sync-protos.exe
