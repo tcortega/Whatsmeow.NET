@@ -383,8 +383,11 @@ dotnet_diagnostic.CS1591.severity = error               # CS1591: Missing XML co
 
 # Tests: names are Behavior_Condition_Result (docs/guidelines/tests.md: FullCycle_..., SendText_NotLoggedIn_Throws),
 # which CA1707 (no underscores in public member names) would reject on every public test method.
+# Test methods never call ConfigureAwait (xUnit1030), but CA2007 still flags some awaits in them (await using), so it is
+# off here; MA0004 skips test methods and still flags fixtures and helpers.
 [dotnet/tests/**.cs]
 dotnet_diagnostic.CA1707.severity = none                # CA1707: Identifiers should not contain underscores
+dotnet_diagnostic.CA2007.severity = none                # CA2007: Consider calling ConfigureAwait on the awaited task
 
 
 # EF Core migrations are generated. Rider and Roslyn should leave them alone.
