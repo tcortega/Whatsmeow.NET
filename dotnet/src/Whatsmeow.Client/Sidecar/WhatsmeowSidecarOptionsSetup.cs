@@ -10,6 +10,9 @@ internal static class WhatsmeowSidecarOptionsSetup
 {
 	public const string SidecarPathVariable = "WHATSMEOW_NET_SIDECAR_PATH";
 
+	/// <summary>The longest start the client waits for; far above any real start, and a value every timer accepts.</summary>
+	public static TimeSpan MaxStartupTimeout { get; } = TimeSpan.FromHours(1);
+
 	/// <summary>Applies the computed defaults; the shape of a <c>PostConfigure</c> step for the hosting package (Phase 3).</summary>
 	public static void Apply(WhatsmeowSidecarOptions options) =>
 		options.SidecarPath ??= Environment.GetEnvironmentVariable(SidecarPathVariable);
@@ -23,8 +26,8 @@ internal static class WhatsmeowSidecarOptionsSetup
 		var failures = new List<string>();
 
 		// Hand-written: [Range(typeof(TimeSpan), ...)] is trim-unsafe (IL2026), so no rule here fits the generator.
-		if (options.StartupTimeout <= TimeSpan.Zero)
-			failures.Add($"{nameof(WhatsmeowSidecarOptions.StartupTimeout)} must be more than zero.");
+		if (options.StartupTimeout <= TimeSpan.Zero || options.StartupTimeout > MaxStartupTimeout)
+			failures.Add($"{nameof(WhatsmeowSidecarOptions.StartupTimeout)} must be more than zero and at most {MaxStartupTimeout}.");
 
 		if (options.SidecarPath is { } path && string.IsNullOrWhiteSpace(path))
 			failures.Add($"{nameof(WhatsmeowSidecarOptions.SidecarPath)} must not be empty or white space.");

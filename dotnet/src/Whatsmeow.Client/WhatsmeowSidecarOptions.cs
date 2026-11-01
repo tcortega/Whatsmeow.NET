@@ -9,7 +9,7 @@ public sealed class WhatsmeowSidecarOptions
 	/// </summary>
 	public string? SidecarPath { get; set; }
 
-	/// <summary>How long the sidecar may take to report ready and answer its first call; more than zero.</summary>
+	/// <summary>How long the sidecar may take to report ready and answer its first call; more than zero and at most one hour.</summary>
 	public TimeSpan StartupTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
 	/// <summary>How the client talks to the sidecar.</summary>
