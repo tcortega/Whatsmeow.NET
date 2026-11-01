@@ -14,6 +14,8 @@ P:System.Environment.TickCount; Use TimeProvider.GetTimestamp / GetElapsedTime
 P:System.Environment.TickCount64; Use TimeProvider.GetTimestamp / GetElapsedTime
 // The one default site (TimeProvider.System when the caller injects none) uses a justified pragma (docs/guidelines/csharp.md Time).
 P:System.TimeProvider.System; Take the injected TimeProvider
+M:System.TimeProvider.GetLocalNow; No local time in this library; use GetUtcNow()
+M:System.DateTimeOffset.ToLocalTime; No local time in this library
 
 // Ways back into DateTime from DateTimeOffset and protobuf Timestamp.
 P:System.DateTimeOffset.DateTime; Stay in DateTimeOffset (UTC)
@@ -45,6 +47,82 @@ M:System.Threading.Tasks.Task`1.WaitAsync(System.TimeSpan); Use WaitAsync(TimeSp
 M:System.Threading.Tasks.Task`1.WaitAsync(System.TimeSpan,System.Threading.CancellationToken); Use WaitAsync(TimeSpan, TimeProvider, CancellationToken)
 M:System.Threading.CancellationTokenSource.CancelAfter(System.TimeSpan); Use new CancellationTokenSource(TimeSpan, TimeProvider)
 M:System.Threading.CancellationTokenSource.CancelAfter(System.Int32); Use new CancellationTokenSource(TimeSpan, TimeProvider)
+
+// Blocking waits and timeouts measured on the wall clock (every TimeSpan or millisecond overload in System.Threading).
+// Wait without a timeout and race the work against Task.Delay(TimeSpan, TimeProvider, CancellationToken), or use a
+// CancellationTokenSource(TimeSpan, TimeProvider).
+M:System.Threading.Barrier.SignalAndWait(System.TimeSpan); Timeouts go through the injected TimeProvider
+M:System.Threading.Barrier.SignalAndWait(System.TimeSpan,System.Threading.CancellationToken); Timeouts go through the injected TimeProvider
+M:System.Threading.Barrier.SignalAndWait(System.Int32); Timeouts go through the injected TimeProvider
+M:System.Threading.Barrier.SignalAndWait(System.Int32,System.Threading.CancellationToken); Timeouts go through the injected TimeProvider
+M:System.Threading.CountdownEvent.Wait(System.TimeSpan); Timeouts go through the injected TimeProvider
+M:System.Threading.CountdownEvent.Wait(System.TimeSpan,System.Threading.CancellationToken); Timeouts go through the injected TimeProvider
+M:System.Threading.CountdownEvent.Wait(System.Int32); Timeouts go through the injected TimeProvider
+M:System.Threading.CountdownEvent.Wait(System.Int32,System.Threading.CancellationToken); Timeouts go through the injected TimeProvider
+M:System.Threading.Lock.TryEnter(System.Int32); Timeouts go through the injected TimeProvider
+M:System.Threading.Lock.TryEnter(System.TimeSpan); Timeouts go through the injected TimeProvider
+M:System.Threading.ManualResetEventSlim.Wait(System.TimeSpan); Timeouts go through the injected TimeProvider
+M:System.Threading.ManualResetEventSlim.Wait(System.TimeSpan,System.Threading.CancellationToken); Timeouts go through the injected TimeProvider
+M:System.Threading.ManualResetEventSlim.Wait(System.Int32); Timeouts go through the injected TimeProvider
+M:System.Threading.ManualResetEventSlim.Wait(System.Int32,System.Threading.CancellationToken); Timeouts go through the injected TimeProvider
+M:System.Threading.Monitor.TryEnter(System.Object,System.Int32); Timeouts go through the injected TimeProvider
+M:System.Threading.Monitor.TryEnter(System.Object,System.Int32,System.Boolean@); Timeouts go through the injected TimeProvider
+M:System.Threading.Monitor.Wait(System.Object,System.Int32); Timeouts go through the injected TimeProvider
+M:System.Threading.Monitor.TryEnter(System.Object,System.TimeSpan); Timeouts go through the injected TimeProvider
+M:System.Threading.Monitor.TryEnter(System.Object,System.TimeSpan,System.Boolean@); Timeouts go through the injected TimeProvider
+M:System.Threading.Monitor.Wait(System.Object,System.TimeSpan); Timeouts go through the injected TimeProvider
+M:System.Threading.Monitor.Wait(System.Object,System.Int32,System.Boolean); Timeouts go through the injected TimeProvider
+M:System.Threading.Monitor.Wait(System.Object,System.TimeSpan,System.Boolean); Timeouts go through the injected TimeProvider
+M:System.Threading.ReaderWriterLock.AcquireReaderLock(System.Int32); Timeouts go through the injected TimeProvider
+M:System.Threading.ReaderWriterLock.AcquireReaderLock(System.TimeSpan); Timeouts go through the injected TimeProvider
+M:System.Threading.ReaderWriterLock.AcquireWriterLock(System.Int32); Timeouts go through the injected TimeProvider
+M:System.Threading.ReaderWriterLock.AcquireWriterLock(System.TimeSpan); Timeouts go through the injected TimeProvider
+M:System.Threading.ReaderWriterLock.UpgradeToWriterLock(System.Int32); Timeouts go through the injected TimeProvider
+M:System.Threading.ReaderWriterLock.UpgradeToWriterLock(System.TimeSpan); Timeouts go through the injected TimeProvider
+M:System.Threading.ReaderWriterLockSlim.TryEnterReadLock(System.TimeSpan); Timeouts go through the injected TimeProvider
+M:System.Threading.ReaderWriterLockSlim.TryEnterReadLock(System.Int32); Timeouts go through the injected TimeProvider
+M:System.Threading.ReaderWriterLockSlim.TryEnterWriteLock(System.TimeSpan); Timeouts go through the injected TimeProvider
+M:System.Threading.ReaderWriterLockSlim.TryEnterWriteLock(System.Int32); Timeouts go through the injected TimeProvider
+M:System.Threading.ReaderWriterLockSlim.TryEnterUpgradeableReadLock(System.TimeSpan); Timeouts go through the injected TimeProvider
+M:System.Threading.ReaderWriterLockSlim.TryEnterUpgradeableReadLock(System.Int32); Timeouts go through the injected TimeProvider
+M:System.Threading.SemaphoreSlim.Wait(System.TimeSpan); Timeouts go through the injected TimeProvider
+M:System.Threading.SemaphoreSlim.Wait(System.TimeSpan,System.Threading.CancellationToken); Timeouts go through the injected TimeProvider
+M:System.Threading.SemaphoreSlim.Wait(System.Int32); Timeouts go through the injected TimeProvider
+M:System.Threading.SemaphoreSlim.Wait(System.Int32,System.Threading.CancellationToken); Timeouts go through the injected TimeProvider
+M:System.Threading.SemaphoreSlim.WaitAsync(System.Int32); Timeouts go through the injected TimeProvider
+M:System.Threading.SemaphoreSlim.WaitAsync(System.TimeSpan); Timeouts go through the injected TimeProvider
+M:System.Threading.SemaphoreSlim.WaitAsync(System.TimeSpan,System.Threading.CancellationToken); Timeouts go through the injected TimeProvider
+M:System.Threading.SemaphoreSlim.WaitAsync(System.Int32,System.Threading.CancellationToken); Timeouts go through the injected TimeProvider
+M:System.Threading.SpinLock.TryEnter(System.TimeSpan,System.Boolean@); Timeouts go through the injected TimeProvider
+M:System.Threading.SpinLock.TryEnter(System.Int32,System.Boolean@); Timeouts go through the injected TimeProvider
+M:System.Threading.SpinWait.SpinUntil(System.Func{System.Boolean},System.TimeSpan); Timeouts go through the injected TimeProvider
+M:System.Threading.SpinWait.SpinUntil(System.Func{System.Boolean},System.Int32); Timeouts go through the injected TimeProvider
+M:System.Threading.SynchronizationContext.Wait(System.IntPtr[],System.Boolean,System.Int32); Timeouts go through the injected TimeProvider
+M:System.Threading.Thread.Join(System.Int32); Timeouts go through the injected TimeProvider
+M:System.Threading.Thread.Join(System.TimeSpan); Timeouts go through the injected TimeProvider
+M:System.Threading.ThreadPool.RegisterWaitForSingleObject(System.Threading.WaitHandle,System.Threading.WaitOrTimerCallback,System.Object,System.UInt32,System.Boolean); Timeouts go through the injected TimeProvider
+M:System.Threading.ThreadPool.UnsafeRegisterWaitForSingleObject(System.Threading.WaitHandle,System.Threading.WaitOrTimerCallback,System.Object,System.UInt32,System.Boolean); Timeouts go through the injected TimeProvider
+M:System.Threading.ThreadPool.RegisterWaitForSingleObject(System.Threading.WaitHandle,System.Threading.WaitOrTimerCallback,System.Object,System.Int32,System.Boolean); Timeouts go through the injected TimeProvider
+M:System.Threading.ThreadPool.UnsafeRegisterWaitForSingleObject(System.Threading.WaitHandle,System.Threading.WaitOrTimerCallback,System.Object,System.Int32,System.Boolean); Timeouts go through the injected TimeProvider
+M:System.Threading.ThreadPool.RegisterWaitForSingleObject(System.Threading.WaitHandle,System.Threading.WaitOrTimerCallback,System.Object,System.Int64,System.Boolean); Timeouts go through the injected TimeProvider
+M:System.Threading.ThreadPool.UnsafeRegisterWaitForSingleObject(System.Threading.WaitHandle,System.Threading.WaitOrTimerCallback,System.Object,System.Int64,System.Boolean); Timeouts go through the injected TimeProvider
+M:System.Threading.ThreadPool.RegisterWaitForSingleObject(System.Threading.WaitHandle,System.Threading.WaitOrTimerCallback,System.Object,System.TimeSpan,System.Boolean); Timeouts go through the injected TimeProvider
+M:System.Threading.ThreadPool.UnsafeRegisterWaitForSingleObject(System.Threading.WaitHandle,System.Threading.WaitOrTimerCallback,System.Object,System.TimeSpan,System.Boolean); Timeouts go through the injected TimeProvider
+M:System.Threading.Timer.Change(System.TimeSpan,System.TimeSpan); Timeouts go through the injected TimeProvider
+M:System.Threading.WaitHandle.WaitOne(System.Int32); Timeouts go through the injected TimeProvider
+M:System.Threading.WaitHandle.WaitOne(System.TimeSpan); Timeouts go through the injected TimeProvider
+M:System.Threading.WaitHandle.WaitOne(System.Int32,System.Boolean); Timeouts go through the injected TimeProvider
+M:System.Threading.WaitHandle.WaitOne(System.TimeSpan,System.Boolean); Timeouts go through the injected TimeProvider
+M:System.Threading.WaitHandle.WaitAll(System.Threading.WaitHandle[],System.Int32); Timeouts go through the injected TimeProvider
+M:System.Threading.WaitHandle.WaitAll(System.Threading.WaitHandle[],System.TimeSpan); Timeouts go through the injected TimeProvider
+M:System.Threading.WaitHandle.WaitAll(System.Threading.WaitHandle[],System.Int32,System.Boolean); Timeouts go through the injected TimeProvider
+M:System.Threading.WaitHandle.WaitAll(System.Threading.WaitHandle[],System.TimeSpan,System.Boolean); Timeouts go through the injected TimeProvider
+M:System.Threading.WaitHandle.WaitAny(System.Threading.WaitHandle[],System.Int32); Timeouts go through the injected TimeProvider
+M:System.Threading.WaitHandle.WaitAny(System.Threading.WaitHandle[],System.TimeSpan); Timeouts go through the injected TimeProvider
+M:System.Threading.WaitHandle.WaitAny(System.Threading.WaitHandle[],System.Int32,System.Boolean); Timeouts go through the injected TimeProvider
+M:System.Threading.WaitHandle.WaitAny(System.Threading.WaitHandle[],System.TimeSpan,System.Boolean); Timeouts go through the injected TimeProvider
+M:System.Threading.WaitHandle.SignalAndWait(System.Threading.WaitHandle,System.Threading.WaitHandle,System.TimeSpan,System.Boolean); Timeouts go through the injected TimeProvider
+M:System.Threading.WaitHandle.SignalAndWait(System.Threading.WaitHandle,System.Threading.WaitHandle,System.Int32,System.Boolean); Timeouts go through the injected TimeProvider
 
 // Blocking: no sleeps and no sync-over-async. An await does not call these; only explicit calls are flagged.
 M:System.Threading.Thread.Sleep(System.Int32); Never block a thread; await Task.Delay(TimeSpan, TimeProvider, CancellationToken)
