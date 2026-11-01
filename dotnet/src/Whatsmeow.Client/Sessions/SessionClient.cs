@@ -1,24 +1,60 @@
 using System.Runtime.CompilerServices;
 using Grpc.Core;
 using Whatsmeow.Core.Errors;
+using Whatsmeow.Events;
 using Whatsmeow.Pairing;
 using Whatsmeow.Protocol.V1;
 
 namespace Whatsmeow.Sessions;
 
 /// <summary>A session's <see cref="IWhatsAppClient"/>: calls on the sidecar's one channel.</summary>
-internal sealed class SessionClient(WhatsmeowSessions sessions, WhatsmeowSidecar sidecar, SessionService.SessionServiceClient client, SessionId sessionId)
-	: IWhatsAppClient
+internal sealed class SessionClient(
+	WhatsmeowSessions sessions,
+	WhatsmeowSidecar sidecar,
+	SessionService.SessionServiceClient client,
+	CallInvoker invoker,
+	SessionId sessionId,
+	ILogger log
+) : IWhatsAppClient, IAsyncDisposable
 {
+	private readonly SessionEvents _events = new(sidecar, invoker, sessionId, sidecar.TimeProvider, log);
+
 	public SessionId SessionId => sessionId;
+
+	public IDisposable On<TEvent>(Func<TEvent, CancellationToken, ValueTask> handler)
+		where TEvent : WhatsAppEvent
+	{
+		ObjectDisposedException.ThrowIf(_events.IsDisposed, this);
+		return _events.On(handler);
+	}
+
+	public Task<TEvent> WaitForAsync<TEvent>(Func<TEvent, bool> predicate, TimeSpan timeout, CancellationToken cancellationToken = default)
+		where TEvent : WhatsAppEvent
+	{
+		ObjectDisposedException.ThrowIf(_events.IsDisposed, this);
+		return _events.WaitForAsync(predicate, timeout, cancellationToken);
+	}
+
+	public IDisposable OnHandlerError(Action<HandlerError> handler)
+	{
+		ObjectDisposedException.ThrowIf(_events.IsDisposed, this);
+		return _events.OnHandlerError(handler);
+	}
+
+	/// <summary>Stops the session's events and acks what was handled.</summary>
+	public ValueTask DisposeAsync() => _events.DisposeAsync();
 
 	public async Task ConnectAsync(CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		ObjectDisposedException.ThrowIf(_events.IsDisposed, this);
 		_ = await RpcErrors
 			.CallAsync(client.ConnectAsync(new ConnectRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken))
 			.ConfigureAwait(false);
 		sessions.Remember(sessionId);
+
+		// Events flow from the first connect in this process (ADR 0022).
+		_events.Start();
 	}
 
 	public async Task DisconnectAsync(CancellationToken cancellationToken = default)
@@ -126,6 +162,11 @@ internal sealed class SessionClient(WhatsmeowSessions sessions, WhatsmeowSidecar
 		}
 		catch (RpcException e) when (RpcErrors.IsUnreachable(e))
 		{
+			return null;
+		}
+		catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+		{
+			// A call to a sidecar that is gone can end with no status at all [observed: WatchDownTests].
 			return null;
 		}
 		catch (RpcException e)

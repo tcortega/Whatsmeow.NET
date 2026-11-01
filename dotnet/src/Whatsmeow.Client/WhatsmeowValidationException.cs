@@ -23,6 +23,9 @@ public sealed class WhatsmeowValidationException : WhatsmeowException
 	}
 
 	[DoesNotReturn]
+	internal static void ThrowInvalid(string message) => throw new WhatsmeowValidationException(message);
+
+	[DoesNotReturn]
 	internal static void Throw(RpcException exception) =>
 		throw new WhatsmeowValidationException($"The request is invalid: {exception.Status.Detail}", exception) { ErrorCode = WhatsmeowErrorCode.InvalidArgument };
 }

@@ -26,9 +26,12 @@ import (
 	"syscall"
 
 	"github.com/rs/zerolog"
+	wastore "go.mau.fi/whatsmeow/store"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	eventsslice "github.com/tcortega/Whatsmeow.NET/sidecar/internal/events"
 	wmlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/outbox"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/session"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/sidecar"
@@ -163,7 +166,11 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 		newClient = serveFake(srv, log)
 	}
 
-	sessions, err := session.New(ctx, db.DB, db.Devices, newClient, log)
+	box := outbox.New(db.DB)
+	events := eventsslice.New(box, log)
+	whatsmeowv1.RegisterEventServiceServer(srv, events)
+
+	sessions, err := session.New(ctx, db.DB, db.Devices, box, recording(newClient, events), log) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
 	if err != nil {
 		_ = lis.Close()
 
@@ -219,6 +226,17 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 	log.Info().Msg("stopped")
 
 	return nil
+}
+
+// recording gives every client the Events slice's handler, first, so each session's events go into the outbox
+// (ARCHITECTURE §7.3); the session slice's own handler comes after it.
+func recording(newClient session.NewClient, events *eventsslice.Service) session.NewClient {
+	return func(sessionID string, device *wastore.Device) session.Client {
+		client := newClient(sessionID, device)
+		client.AddEventHandlerWithSuccessStatus(events.Handler(sessionID))
+
+		return client
+	}
 }
 
 // closeStore closes the store after the sessions disconnected, and releases its lock.

@@ -93,3 +93,16 @@ func TestThePairingReasonsBecomeTheirStatus(t *testing.T) {
 		}
 	}
 }
+
+func TestConsumerReplacedBecomesAborted(t *testing.T) {
+	t.Parallel()
+
+	st, _ := status.FromError(New(token, zerolog.Nop()).toStatus("/test", fmt.Errorf("stream: %w", ErrConsumerReplaced)))
+	if st.Code() != codes.Aborted || len(st.Details()) != 1 {
+		t.Fatalf("status %v, want ABORTED with one ErrorInfo", st)
+	}
+
+	if info, _ := st.Details()[0].(*errdetails.ErrorInfo); info.GetReason() != "CONSUMER_REPLACED" {
+		t.Fatalf("reason %q, want CONSUMER_REPLACED", info.GetReason())
+	}
+}

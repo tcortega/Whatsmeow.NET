@@ -14,6 +14,7 @@ public sealed class WhatsmeowSessions
 {
 	private readonly WhatsmeowSidecar _sidecar;
 	private readonly SessionService.SessionServiceClient _client;
+	private readonly CallInvoker _invoker;
 	private readonly ILogger _log;
 	private readonly ConcurrentDictionary<SessionId, SessionClient> _clients = new();
 
@@ -26,6 +27,7 @@ public sealed class WhatsmeowSessions
 	{
 		_sidecar = sidecar;
 		_client = new SessionService.SessionServiceClient(invoker);
+		_invoker = invoker;
 		_log = log;
 	}
 
@@ -40,7 +42,7 @@ public sealed class WhatsmeowSessions
 		_ = await RpcErrors
 			.CallAsync(_client.CreateSessionAsync(new CreateSessionRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken))
 			.ConfigureAwait(false);
-		return _clients.GetOrAdd(sessionId, static (id, sessions) => new SessionClient(sessions, sessions._sidecar, sessions._client, id), this);
+		return _clients.GetOrAdd(sessionId, static (id, sessions) => sessions.NewClient(id), this);
 	}
 
 	/// <summary>Every session and its state, ordered by id.</summary>
@@ -68,7 +70,29 @@ public sealed class WhatsmeowSessions
 
 		// Forgotten only once it is gone: a delete that failed leaves a session the application still connected.
 		Forget(sessionId);
-		_ = _clients.TryRemove(sessionId, out _);
+		if (_clients.TryRemove(sessionId, out var removed))
+			await removed.DisposeAsync().ConfigureAwait(false);
+	}
+
+	private SessionClient NewClient(SessionId sessionId) => new(this, _sidecar, _client, _invoker, sessionId, _log);
+
+	/// <summary>Stops every session's events and acks what was handled, while the sidecar still runs.</summary>
+	internal async Task StopEventsAsync()
+	{
+		foreach (var client in _clients.Values)
+		{
+			// Each on its own: one client's failure must not leave the others' handlers running and their acks unsent.
+			try
+			{
+				await client.DisposeAsync().ConfigureAwait(false);
+			}
+#pragma warning disable CA1031 // Justification: logged; the sidecar's stop goes on
+			catch (Exception e)
+#pragma warning restore CA1031
+			{
+				SessionLog.StopEventsFailed(_log, e, client.SessionId.Value);
+			}
+		}
 	}
 
 	internal void Remember(SessionId sessionId)

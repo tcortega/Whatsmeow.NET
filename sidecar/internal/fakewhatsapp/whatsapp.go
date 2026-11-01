@@ -97,23 +97,27 @@ func (w *WhatsApp) NewClient(sessionID string) *Client {
 	return c
 }
 
-// deliverMessage dispatches a decrypted message to the session's client and records what whatsmeow answers at the
-// pin: nothing when a handler failed (message.go:459-462), otherwise a receipt (message.go:489-495), of type inactive
-// for a message from someone else while the client sends no active receipts (receipt.go:280-296).
-func (w *WhatsApp) deliverMessage(sessionID string, evt *events.Message) error {
+// deliverMessage dispatches the decrypted parts of one message stanza to the session's client, in order, and records
+// what whatsmeow answers at the pin: nothing when a handler of any part failed (message.go:459-462), otherwise one
+// receipt (message.go:489-495), of type inactive for a message from someone else while the client sends no active
+// receipts (receipt.go:280-296).
+func (w *WhatsApp) deliverMessage(sessionID string, parts ...*events.Message) error {
 	w.mu.Lock()
 	c, ok := w.clients[sessionID]
 	w.mu.Unlock()
 
+	id := parts[len(parts)-1].Info.ID
 	if !ok {
-		return fmt.Errorf("deliver message %q to session %q: %w", evt.Info.ID, sessionID, ErrNoClient)
+		return fmt.Errorf("deliver message %q to session %q: %w", id, sessionID, ErrNoClient)
 	}
 
-	if c.dispatch(evt) {
-		return nil
+	for _, part := range parts {
+		if c.dispatch(part) {
+			return nil
+		}
 	}
 
-	receipt := &fakev1.Receipt{Id: evt.Info.ID, Type: string(types.ReceiptTypeInactive)}
+	receipt := &fakev1.Receipt{Id: id, Type: string(types.ReceiptTypeInactive)}
 	w.append(&fakev1.Sent{SessionId: sessionID, Kind: &fakev1.Sent_Receipt{Receipt: receipt}})
 
 	return nil

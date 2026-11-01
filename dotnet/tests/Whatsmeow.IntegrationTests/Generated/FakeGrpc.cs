@@ -57,6 +57,10 @@ namespace Whatsmeow.IntegrationTests.Fake {
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse> __Marshaller_whatsmeow_fake_v1_DeliverMessageResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageRequest> __Marshaller_whatsmeow_fake_v1_DeliverUndecryptableMessageRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageResponse> __Marshaller_whatsmeow_fake_v1_DeliverUndecryptableMessageResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.WaitForSentRequest> __Marshaller_whatsmeow_fake_v1_WaitForSentRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.WaitForSentRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.WaitForSentResponse> __Marshaller_whatsmeow_fake_v1_WaitForSentResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.WaitForSentResponse.Parser));
@@ -104,6 +108,14 @@ namespace Whatsmeow.IntegrationTests.Fake {
         "DeliverMessage",
         __Marshaller_whatsmeow_fake_v1_DeliverMessageRequest,
         __Marshaller_whatsmeow_fake_v1_DeliverMessageResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageResponse> __Method_DeliverUndecryptableMessage = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "DeliverUndecryptableMessage",
+        __Marshaller_whatsmeow_fake_v1_DeliverUndecryptableMessageRequest,
+        __Marshaller_whatsmeow_fake_v1_DeliverUndecryptableMessageResponse);
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.WaitForSentRequest, global::Whatsmeow.IntegrationTests.Fake.WaitForSentResponse> __Method_WaitForSent = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.WaitForSentRequest, global::Whatsmeow.IntegrationTests.Fake.WaitForSentResponse>(
@@ -277,6 +289,66 @@ namespace Whatsmeow.IntegrationTests.Fake {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse> DeliverMessageAsync(global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_DeliverMessage, null, options, request);
+      }
+      /// <summary>
+      /// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
+      /// the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches
+      /// UndecryptableMessage, whatever the handlers return (message.go:418-437); the fake records neither. A resend that
+      /// decrypts is a DeliverMessage with the same id. A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageResponse DeliverUndecryptableMessage(global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return DeliverUndecryptableMessage(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
+      /// the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches
+      /// UndecryptableMessage, whatever the handlers return (message.go:418-437); the fake records neither. A resend that
+      /// decrypts is a DeliverMessage with the same id. A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageResponse DeliverUndecryptableMessage(global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_DeliverUndecryptableMessage, null, options, request);
+      }
+      /// <summary>
+      /// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
+      /// the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches
+      /// UndecryptableMessage, whatever the handlers return (message.go:418-437); the fake records neither. A resend that
+      /// decrypts is a DeliverMessage with the same id. A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageResponse> DeliverUndecryptableMessageAsync(global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return DeliverUndecryptableMessageAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
+      /// the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches
+      /// UndecryptableMessage, whatever the handlers return (message.go:418-437); the fake records neither. A resend that
+      /// decrypts is a DeliverMessage with the same id. A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageResponse> DeliverUndecryptableMessageAsync(global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_DeliverUndecryptableMessage, null, options, request);
       }
       /// <summary>
       /// WaitForSent returns the first thing the session's client sent to WhatsApp after the entry `after`, and waits

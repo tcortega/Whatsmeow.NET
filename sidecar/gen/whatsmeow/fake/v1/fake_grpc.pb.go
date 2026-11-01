@@ -19,17 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	FakeWhatsAppService_DeliverMessage_FullMethodName           = "/whatsmeow.fake.v1.FakeWhatsAppService/DeliverMessage"
-	FakeWhatsAppService_WaitForSent_FullMethodName              = "/whatsmeow.fake.v1.FakeWhatsAppService/WaitForSent"
-	FakeWhatsAppService_LinkDevice_FullMethodName               = "/whatsmeow.fake.v1.FakeWhatsAppService/LinkDevice"
-	FakeWhatsAppService_RotateQrCode_FullMethodName             = "/whatsmeow.fake.v1.FakeWhatsAppService/RotateQrCode"
-	FakeWhatsAppService_ExpireQrCodes_FullMethodName            = "/whatsmeow.fake.v1.FakeWhatsAppService/ExpireQrCodes"
-	FakeWhatsAppService_DropConnection_FullMethodName           = "/whatsmeow.fake.v1.FakeWhatsAppService/DropConnection"
-	FakeWhatsAppService_FailNextPreKeyUpload_FullMethodName     = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextPreKeyUpload"
-	FakeWhatsAppService_FailNextPairPhone_FullMethodName        = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextPairPhone"
-	FakeWhatsAppService_FailNextConnect_FullMethodName          = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextConnect"
-	FakeWhatsAppService_FailNextLogout_FullMethodName           = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextLogout"
-	FakeWhatsAppService_RaisePermanentDisconnect_FullMethodName = "/whatsmeow.fake.v1.FakeWhatsAppService/RaisePermanentDisconnect"
+	FakeWhatsAppService_DeliverMessage_FullMethodName              = "/whatsmeow.fake.v1.FakeWhatsAppService/DeliverMessage"
+	FakeWhatsAppService_DeliverUndecryptableMessage_FullMethodName = "/whatsmeow.fake.v1.FakeWhatsAppService/DeliverUndecryptableMessage"
+	FakeWhatsAppService_WaitForSent_FullMethodName                 = "/whatsmeow.fake.v1.FakeWhatsAppService/WaitForSent"
+	FakeWhatsAppService_LinkDevice_FullMethodName                  = "/whatsmeow.fake.v1.FakeWhatsAppService/LinkDevice"
+	FakeWhatsAppService_RotateQrCode_FullMethodName                = "/whatsmeow.fake.v1.FakeWhatsAppService/RotateQrCode"
+	FakeWhatsAppService_ExpireQrCodes_FullMethodName               = "/whatsmeow.fake.v1.FakeWhatsAppService/ExpireQrCodes"
+	FakeWhatsAppService_DropConnection_FullMethodName              = "/whatsmeow.fake.v1.FakeWhatsAppService/DropConnection"
+	FakeWhatsAppService_FailNextPreKeyUpload_FullMethodName        = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextPreKeyUpload"
+	FakeWhatsAppService_FailNextPairPhone_FullMethodName           = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextPairPhone"
+	FakeWhatsAppService_FailNextConnect_FullMethodName             = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextConnect"
+	FakeWhatsAppService_FailNextLogout_FullMethodName              = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextLogout"
+	FakeWhatsAppService_RaisePermanentDisconnect_FullMethodName    = "/whatsmeow.fake.v1.FakeWhatsAppService/RaisePermanentDisconnect"
 )
 
 // FakeWhatsAppServiceClient is the client API for FakeWhatsAppService service.
@@ -47,6 +48,11 @@ type FakeWhatsAppServiceClient interface {
 	// succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A session without a client is an error: the
 	// fake never answers on behalf of a client the sidecar did not create.
 	DeliverMessage(ctx context.Context, in *DeliverMessageRequest, opts ...grpc.CallOption) (*DeliverMessageResponse, error)
+	// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
+	// the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches
+	// UndecryptableMessage, whatever the handlers return (message.go:418-437); the fake records neither. A resend that
+	// decrypts is a DeliverMessage with the same id. A session without a client is an error.
+	DeliverUndecryptableMessage(ctx context.Context, in *DeliverUndecryptableMessageRequest, opts ...grpc.CallOption) (*DeliverUndecryptableMessageResponse, error)
 	// WaitForSent returns the first thing the session's client sent to WhatsApp after the entry `after`, and waits
 	// until there is one. Only the call's deadline or cancellation ends the wait. The log lives in the sidecar process,
 	// so it starts again, at index 1, after a restart.
@@ -100,6 +106,16 @@ func (c *fakeWhatsAppServiceClient) DeliverMessage(ctx context.Context, in *Deli
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeliverMessageResponse)
 	err := c.cc.Invoke(ctx, FakeWhatsAppService_DeliverMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) DeliverUndecryptableMessage(ctx context.Context, in *DeliverUndecryptableMessageRequest, opts ...grpc.CallOption) (*DeliverUndecryptableMessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeliverUndecryptableMessageResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_DeliverUndecryptableMessage_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -221,6 +237,11 @@ type FakeWhatsAppServiceServer interface {
 	// succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A session without a client is an error: the
 	// fake never answers on behalf of a client the sidecar did not create.
 	DeliverMessage(context.Context, *DeliverMessageRequest) (*DeliverMessageResponse, error)
+	// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
+	// the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches
+	// UndecryptableMessage, whatever the handlers return (message.go:418-437); the fake records neither. A resend that
+	// decrypts is a DeliverMessage with the same id. A session without a client is an error.
+	DeliverUndecryptableMessage(context.Context, *DeliverUndecryptableMessageRequest) (*DeliverUndecryptableMessageResponse, error)
 	// WaitForSent returns the first thing the session's client sent to WhatsApp after the entry `after`, and waits
 	// until there is one. Only the call's deadline or cancellation ends the wait. The log lives in the sidecar process,
 	// so it starts again, at index 1, after a restart.
@@ -272,6 +293,9 @@ type UnimplementedFakeWhatsAppServiceServer struct{}
 
 func (UnimplementedFakeWhatsAppServiceServer) DeliverMessage(context.Context, *DeliverMessageRequest) (*DeliverMessageResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeliverMessage not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) DeliverUndecryptableMessage(context.Context, *DeliverUndecryptableMessageRequest) (*DeliverUndecryptableMessageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeliverUndecryptableMessage not implemented")
 }
 func (UnimplementedFakeWhatsAppServiceServer) WaitForSent(context.Context, *WaitForSentRequest) (*WaitForSentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method WaitForSent not implemented")
@@ -338,6 +362,24 @@ func _FakeWhatsAppService_DeliverMessage_Handler(srv interface{}, ctx context.Co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FakeWhatsAppServiceServer).DeliverMessage(ctx, req.(*DeliverMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_DeliverUndecryptableMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeliverUndecryptableMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).DeliverUndecryptableMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_DeliverUndecryptableMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).DeliverUndecryptableMessage(ctx, req.(*DeliverUndecryptableMessageRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -532,6 +574,10 @@ var FakeWhatsAppService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeliverMessage",
 			Handler:    _FakeWhatsAppService_DeliverMessage_Handler,
+		},
+		{
+			MethodName: "DeliverUndecryptableMessage",
+			Handler:    _FakeWhatsAppService_DeliverUndecryptableMessage_Handler,
 		},
 		{
 			MethodName: "WaitForSent",

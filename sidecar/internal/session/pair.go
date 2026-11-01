@@ -87,7 +87,7 @@ func (svc *Service) whilePairing(s *session, a *attempt, evt any) bool {
 
 		// A restart now finds a paired session: Disconnected, not Created. The device is saved already
 		// (pair.go:222-226), so this is recorded during a shutdown too.
-		if err := svc.persist(svc.recording, s); err != nil {
+		if err := svc.persist(svc.recording, svc.db, s); err != nil {
 			svc.log.Error().Err(err).Str("session_id", s.id).Msg("recording the linked device failed")
 		}
 	case *events.Disconnected:

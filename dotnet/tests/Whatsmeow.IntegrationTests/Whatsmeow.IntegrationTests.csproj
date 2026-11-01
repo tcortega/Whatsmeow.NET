@@ -6,6 +6,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Diagnostics.Testing" />
+		<PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
 		<PackageReference Include="xunit.v3" />
 	</ItemGroup>
 
@@ -16,7 +17,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="../../src/Whatsmeow.Client/Whatsmeow.Client.csproj" />
-		<!-- Built first, for the kill-parent test. -->
+		<!-- Built first, for the kill-parent test and the kill-the-.NET-side events test. -->
 		<ProjectReference Include="../SidecarHost/SidecarHost.csproj" />
 	</ItemGroup>
 

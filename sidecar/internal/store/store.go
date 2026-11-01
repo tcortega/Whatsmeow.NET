@@ -20,10 +20,15 @@ import (
 
 // pragmas apply to every connection (ARCHITECTURE §5, §14 question 3): whatsmeow's Upgrade refuses to run without
 // foreign keys, and immediate transactions plus the busy timeout keep concurrent writers from SQLITE_BUSY.
-const pragmas = "?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=synchronous(FULL)&_txlock=immediate"
+const pragmas = "?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)&_pragma=busy_timeout(30000)&_pragma=synchronous(FULL)&_txlock=immediate"
 
-// schema is the sidecar's own tables, next to whatsmeow's.
-const schema = `
+// The sidecar's own tables, next to whatsmeow's, as numbered steps: step n brings the database's PRAGMA user_version
+// from n-1 to n. A step is never edited once merged; a schema change is a new step (ADR 0022). whatsmeow keeps its own
+// version in whatsmeow_version and never reads user_version.
+
+// schemaV1 is #6's schema exactly as merged; it ran with IF NOT EXISTS on every open, so a file from then is at
+// version 0 with this table, and the step is a no-op for it.
+const schemaV1 = `
 CREATE TABLE IF NOT EXISTS session (
 	id         TEXT PRIMARY KEY,
 	jid        TEXT,
@@ -31,6 +36,32 @@ CREATE TABLE IF NOT EXISTS session (
 	-- The state the session keeps across a restart; NULL for one that comes back as Created or Disconnected.
 	stop_state BLOB
 )`
+
+// schemaV2 is the outbox (#8). A session's outbox rows and cursors go with it (ON DELETE CASCADE; foreign keys are on,
+// see pragmas).
+const schemaV2 = `
+-- The highest seq recorded for the session, kept after its outbox rows are deleted (events.proto).
+ALTER TABLE session ADD COLUMN last_seq INTEGER NOT NULL DEFAULT 0;
+-- The outbox (ARCHITECTURE §7.3). AUTOINCREMENT: a seq is never reused, also after the newest row was deleted.
+CREATE TABLE outbox (
+	seq        INTEGER PRIMARY KEY AUTOINCREMENT,
+	session_id TEXT NOT NULL REFERENCES session (id) ON DELETE CASCADE,
+	-- The event's natural key, so a repeated event keeps its seq; NULL for an event that is never repeated.
+	dedupe_key TEXT,
+	-- A StreamEventsResponse without its seq.
+	payload    BLOB NOT NULL,
+	UNIQUE (session_id, dedupe_key)
+);
+-- Each consumer's cursor: the highest seq it acked.
+CREATE TABLE outbox_cursor (
+	session_id TEXT NOT NULL REFERENCES session (id) ON DELETE CASCADE,
+	consumer   TEXT NOT NULL,
+	acked      INTEGER NOT NULL,
+	PRIMARY KEY (session_id, consumer)
+)`
+
+// steps is every schema step, in order: steps()[n-1] is version n.
+func steps() []string { return []string{schemaV1, schemaV2} }
 
 // ErrInUse is returned when another whatsmeow-net holds the database.
 var ErrInUse = errors.New("in use by another whatsmeow-net")
@@ -91,13 +122,56 @@ func open(ctx context.Context, path string, log zerolog.Logger) (*Store, error) 
 		return nil, fmt.Errorf("upgrade whatsmeow's store in %s: %w", path, err)
 	}
 
-	if _, err := db.ExecContext(ctx, schema); err != nil {
+	if err := migrate(ctx, db, steps()); err != nil {
 		_ = db.Close()
 
-		return nil, fmt.Errorf("create the sidecar's tables in %s: %w", path, err)
+		return nil, fmt.Errorf("upgrade the sidecar's tables in %s: %w", path, err)
 	}
 
 	return &Store{DB: db, Devices: devices}, nil
+}
+
+// migrate runs the steps after the database's version, and sets the version, in one transaction: a step that fails
+// leaves the database as it was.
+func migrate(ctx context.Context, db *sql.DB, all []string) (err error) {
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin: %w", err)
+	}
+
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
+	var version int
+	if err = tx.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
+		return fmt.Errorf("read the version: %w", err)
+	}
+
+	if version > len(all) {
+		err = fmt.Errorf("the database is at version %d; this whatsmeow-net knows %d", version, len(all))
+
+		return err
+	}
+
+	for n := version + 1; n <= len(all); n++ {
+		if _, err = tx.ExecContext(ctx, all[n-1]); err != nil {
+			return fmt.Errorf("step %d: %w", n, err)
+		}
+	}
+
+	// PRAGMA takes no parameter; the value is a number this code made.
+	if _, err = tx.ExecContext(ctx, fmt.Sprintf("PRAGMA user_version = %d", len(all))); err != nil {
+		return fmt.Errorf("set the version: %w", err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("commit: %w", err)
+	}
+
+	return nil
 }
 
 // Close closes the database, then releases the lock.

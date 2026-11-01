@@ -6,11 +6,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/proto/waAdv"
+	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	fakev1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/fake/v1"
 )
@@ -30,12 +34,88 @@ func NewControl(w *WhatsApp) *Control { return &Control{whatsApp: w} }
 
 // DeliverMessage delivers a decrypted message to the session's client.
 func (c *Control) DeliverMessage(_ context.Context, req *fakev1.DeliverMessageRequest) (*fakev1.DeliverMessageResponse, error) {
-	evt := &events.Message{Info: types.MessageInfo{ID: req.GetId()}}
-	if err := c.whatsApp.deliverMessage(req.GetSessionId(), evt); err != nil {
+	source, err := messageSource(req.GetChat(), req.GetSender(), req.GetSenderAlt(), req.GetRecipientAlt())
+	if err != nil {
+		return nil, fmt.Errorf("deliver message %q: %w", req.GetId(), err)
+	}
+
+	source.IsFromMe = req.GetIsFromMe()
+	evt := &events.Message{
+		Info:    types.MessageInfo{MessageSource: source, ID: req.GetId(), PushName: req.GetPushName(), Timestamp: timeOf(req.GetMessageTime())},
+		Message: &waE2E.Message{Conversation: proto.String(req.GetText())},
+	}
+
+	parts := []*events.Message{evt}
+	if req.GetSenderKey() {
+		senderKey := &events.Message{Info: evt.Info, Message: &waE2E.Message{
+			SenderKeyDistributionMessage: &waE2E.SenderKeyDistributionMessage{GroupID: proto.String(req.GetChat()), AxolotlSenderKeyDistributionMessage: []byte{1}},
+			MessageContextInfo:           &waE2E.MessageContextInfo{},
+		}}
+		parts = []*events.Message{senderKey, evt}
+	}
+
+	if err := c.whatsApp.deliverMessage(req.GetSessionId(), parts...); err != nil {
 		return nil, err
 	}
 
 	return &fakev1.DeliverMessageResponse{}, nil
+}
+
+// DeliverUndecryptableMessage delivers a message that fails to decrypt to the session's client.
+func (c *Control) DeliverUndecryptableMessage(_ context.Context, req *fakev1.DeliverUndecryptableMessageRequest) (*fakev1.DeliverUndecryptableMessageResponse, error) {
+	source, err := messageSource(req.GetChat(), req.GetSender(), "", "")
+	if err != nil {
+		return nil, fmt.Errorf("deliver undecryptable message %q: %w", req.GetId(), err)
+	}
+
+	evt := &events.UndecryptableMessage{Info: types.MessageInfo{MessageSource: source, ID: req.GetId(), Timestamp: timeOf(req.GetMessageTime())}}
+	if req.GetHidePlaceholder() {
+		evt.DecryptFailMode = events.DecryptFailHide
+	}
+
+	client, err := c.whatsApp.client(req.GetSessionId())
+	if err != nil {
+		return nil, fmt.Errorf("deliver undecryptable message %q: %w", req.GetId(), err)
+	}
+
+	// whatsmeow answered it before the dispatch (message.go:418-437), so the handlers' result changes nothing.
+	client.dispatch(evt)
+
+	return &fakev1.DeliverUndecryptableMessageResponse{}, nil
+}
+
+// messageSource parses the JIDs of a delivery; an empty one is none.
+func messageSource(chat, sender, senderAlt, recipientAlt string) (types.MessageSource, error) {
+	var (
+		source types.MessageSource
+		err    error
+	)
+
+	for _, f := range []struct {
+		value string
+		into  *types.JID
+	}{{chat, &source.Chat}, {sender, &source.Sender}, {senderAlt, &source.SenderAlt}, {recipientAlt, &source.RecipientAlt}} {
+		if f.value == "" {
+			continue
+		}
+
+		if *f.into, err = types.ParseJID(f.value); err != nil {
+			return source, fmt.Errorf("jid %q: %w", f.value, err)
+		}
+	}
+
+	source.IsGroup = source.Chat.Server == types.GroupServer
+
+	return source, nil
+}
+
+// timeOf is the timestamp as whatsmeow's time, or the zero time when unset.
+func timeOf(ts *timestamppb.Timestamp) time.Time {
+	if ts == nil {
+		return time.Time{}
+	}
+
+	return ts.AsTime()
 }
 
 // WaitForSent returns the session's first entry after the request's index, waiting for it.
