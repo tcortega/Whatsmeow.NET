@@ -145,7 +145,7 @@ indent_style = space
 indent_size = 2
 
 # XML project files
-[*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj,props,targets,ruleset,config,nuspec,resx,vsixmanifest,vsct}]
+[*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj,props,targets,ruleset,config,nuspec,resx,vsixmanifest,vsct,slnx}]
 indent_size = 2
 
 # Code files
@@ -263,6 +263,7 @@ dotnet_analyzer_diagnostic.category-Globalization.severity = error
 
 # IDE Diagnostics
 dotnet_diagnostic.IDE0005.severity = error              # IDE0005: Using directive is unnecessary
+dotnet_diagnostic.IDE0007.severity = error              # IDE0007: Use 'var' instead of explicit type
 dotnet_diagnostic.IDE0011.severity = silent             # IDE0011: Add braces
 dotnet_diagnostic.IDE0046.severity = silent             # IDE0046: Convert to conditional expression
 dotnet_diagnostic.IDE0043.severity = error              # IDE0043: Format string contains invalid placeholder
@@ -318,7 +319,7 @@ dotnet_diagnostic.CA1828.severity = warning             # CA1828: Do not use Cou
 dotnet_diagnostic.CA1829.severity = warning             # CA1829: Use Length/Count property instead of Enumerable.Count method
 dotnet_diagnostic.CA1841.severity = error               # CA1841: Prefer Dictionary Contains methods
 dotnet_diagnostic.CA1845.severity = warning             # CA1845: Use span-based 'string.Concat'
-dotnet_diagnostic.CA1848.severity = suggestion          # CA1848: Use the LoggerMessage delegates
+dotnet_diagnostic.CA1848.severity = error               # CA1848: Use the LoggerMessage delegates
 dotnet_diagnostic.CA1852.severity = warning             # CA1852: CA1852: Seal internal types
 dotnet_diagnostic.CA1853.severity = warning             # CA1853: Unnecessary call to 'Dictionary.ContainsKey(key)'
 dotnet_diagnostic.CA1854.severity = warning             # CA1854: Prefer the IDictionary.TryGetValue(TKey, out TValue) method
@@ -360,7 +361,8 @@ dotnet_diagnostic.MA0103.severity = error               # MA0103: Use SequenceEq
 dotnet_diagnostic.MA0110.severity = none                # MA0110: Use the Regex source generator
 dotnet_diagnostic.MA0112.severity = none                # MA0112: Use 'Count > 0' instead of 'Any()'
 dotnet_diagnostic.MA0127.severity = none                # MA0127: Use String.Equals instead of is pattern
-dotnet_diagnostic.MA0137.severity = none                # MA0137: Use 'Async' suffix when a method returns an awaitable type
+dotnet_diagnostic.MA0137.severity = error               # MA0137: Use 'Async' suffix when a method returns an awaitable type (test methods are excluded by default)
+dotnet_diagnostic.MA0138.severity = error               # MA0138: Do not use 'Async' suffix when a method does not return an awaitable type
 dotnet_diagnostic.MA0140.severity = error               # MA0140: Both if and else branch have identical code
 dotnet_diagnostic.MA0141.severity = warning             # MA0141: Use pattern matching instead of inequality operators for null check
 dotnet_diagnostic.MA0142.severity = warning             # MA0142: Use pattern matching instead of equality operators for null check
@@ -368,6 +370,15 @@ dotnet_diagnostic.MA0147.severity = error               # MA0147: Avoid async vo
 dotnet_diagnostic.MA0154.severity = warning             # MA0154: Use langword in XML comment
 dotnet_diagnostic.MA0155.severity = error               # MA0155: Do not use async void methods
 dotnet_diagnostic.MA0158.severity = warning             # MA0154: Use System.Threading.Lock
+
+
+# Shipped library code (this repo's delta): trim, AOT and single-file analysis are errors locally too, and
+# public members need XML docs. dotnet/src/Directory.Build.props removes 1591 from NoWarn for the same projects.
+[dotnet/src/**.cs]
+dotnet_analyzer_diagnostic.category-Trimming.severity = error
+dotnet_analyzer_diagnostic.category-AOT.severity = error
+dotnet_analyzer_diagnostic.category-SingleFile.severity = error
+dotnet_diagnostic.CS1591.severity = error               # CS1591: Missing XML comment for publicly visible type or member
 
 
 # EF Core migrations are generated. Rider and Roslyn should leave them alone.
