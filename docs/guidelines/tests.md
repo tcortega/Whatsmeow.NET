@@ -44,7 +44,7 @@ A test that needs a paired session links it with the fake's `LinkDevice` without
 The Pairing tests pair through the public API, with the fake WhatsApp as the phone (`Pairing/PairingTests.cs`).
 A test that starts a sidecar of its own gives it a database of its own (`binaries.NewDatabase()`): one sidecar owns a database file.
 A test that crashes the sidecar calls `fixture.CrashAsync`, which returns once it was restarted, and sits in the `SidecarCrashes` collection, which never runs in parallel; `CrashAsync` throws anywhere else.
-Do not start a sidecar per test; the Sidecar slice's start and stop tests are the exception, because starting and stopping is their behaviour.
+Do not start a sidecar per test; the Sidecar slice's start and stop tests are the exception, because starting and stopping is their behaviour, and so are the delivery tests that stop or kill the .NET side (`Events/EventProcessTests.cs`): they start fake-mode sidecars of their own (`fixture.Binary`, `binaries.NewDatabase()`), and kill the .NET side as a child process, `SidecarHost events`.
 Do not mock the transport, the dispatcher, or the sidecar.
 
 xUnit v3 on Microsoft.Testing.Platform, not TUnit.
@@ -82,6 +82,7 @@ Do not assert gRPC status codes or `RpcException` details; they never reach the 
 The delivery invariants (ARCHITECTURE §13, 1-3) get kill-either-process tests: kill the sidecar or the .NET side mid-stream, restart, and assert that no event is lost at the handler.
 Delivery is at-least-once (ARCHITECTURE §8.4), so a repeat is allowed: assert that it only follows the last acked cursor and carries the same `MessageId` and `SessionId`.
 Wait on a condition (the event arrived, the cursor moved), never a duration.
+To fix when an ack goes out, give the sidecar a `FakeTimeProvider` (`StartFakeWhatsAppAsync`'s internal overload): its timer acks only when the test moves the clock.
 
 ## One method per behavior
 

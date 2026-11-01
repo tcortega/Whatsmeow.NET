@@ -1,3 +1,4 @@
+using Whatsmeow.Events;
 using Whatsmeow.Pairing;
 using Whatsmeow.Sessions;
 
@@ -27,6 +28,7 @@ public interface IWhatsAppClient
 	/// <exception cref="PairingException">The session is being paired (<see cref="WhatsmeowErrorCode.PairingInProgress"/>).</exception>
 	/// <exception cref="NotConnectedException">Opening the connection failed; the session is back in its previous state.</exception>
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached, for example while it restarts.</exception>
+	/// <exception cref="ObjectDisposedException">The session was deleted through this client's <see cref="WhatsmeowSessions"/>, or the sidecar disposed.</exception>
 	Task ConnectAsync(CancellationToken cancellationToken = default);
 
 	/// <summary>
@@ -109,4 +111,45 @@ public interface IWhatsAppClient
 	/// <exception cref="SessionNotFoundException">The session does not exist, or it was deleted while watching.</exception>
 	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
 	IAsyncEnumerable<SessionState> WatchStateAsync(CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Calls <paramref name="handler"/> for every event of the session that is a <typeparamref name="TEvent"/>, until
+	/// the returned registration is disposed. Events flow once the session was connected in this process
+	/// (<see cref="ConnectAsync"/>), starting with the ones not handled before, also by an earlier process: register
+	/// handlers before connecting, because an event dispatched before a handler exists is not repeated for it.
+	/// Events of one chat reach the handlers one at a time, in order; different chats run concurrently. An event's
+	/// handlers run one after the other, and the event is acknowledged to the sidecar only after all of them returned.
+	/// A handler that throws does not stop the stream: the event counts as handled, and <see cref="OnHandlerError"/>
+	/// is raised. Delivery is at least once, so handlers must be idempotent: after a crash of either process an event
+	/// can come again, with the same <see cref="WhatsAppEvent.SessionId"/> and message id, which together are the
+	/// dedupe key. The token is cancelled when the sidecar is disposed or the session deleted; a handler that ends while
+	/// it is cancelled, by returning or by throwing, has not handled the event, which comes again in the next process.
+	/// A handler may delete its own session or dispose the sidecar; that call then does not wait for the handler itself.
+	/// Disposing the registration stops new events from reaching the handler, but an event already being dispatched
+	/// can still reach it once.
+	/// The events end for good, logged as an error, when the session is deleted, or when another client of the same
+	/// sidecar database streams them under the same consumer and replaces this one.
+	/// </summary>
+	/// <exception cref="ObjectDisposedException">The session was deleted, or the sidecar disposed.</exception>
+	IDisposable On<TEvent>(Func<TEvent, CancellationToken, ValueTask> handler)
+		where TEvent : WhatsAppEvent;
+
+	/// <summary>
+	/// Waits for the next event of the session that is a <typeparamref name="TEvent"/> and matches
+	/// <paramref name="predicate"/>. It is a handler like the ones of <see cref="On{TEvent}"/>, in the same dispatcher, so
+	/// it sees events in the same order, and only the ones dispatched after it was called. A predicate that throws is a
+	/// handler error (<see cref="OnHandlerError"/>). Called from a handler and awaited there, it waits for an event of the
+	/// same chat only until it times out: that event runs after the handler that waits for it.
+	/// </summary>
+	/// <exception cref="TimeoutException">No such event came within <paramref name="timeout"/>.</exception>
+	/// <exception cref="ObjectDisposedException">The session was deleted, or the sidecar disposed, before or while it waited.</exception>
+	Task<TEvent> WaitForAsync<TEvent>(Func<TEvent, bool> predicate, TimeSpan timeout, CancellationToken cancellationToken = default)
+		where TEvent : WhatsAppEvent;
+
+	/// <summary>
+	/// Calls <paramref name="handler"/> whenever a handler of the session's events throws, until the returned
+	/// registration is disposed. It runs right after the failure, before the next handler of the same chat.
+	/// </summary>
+	/// <exception cref="ObjectDisposedException">The session was deleted, or the sidecar disposed.</exception>
+	IDisposable OnHandlerError(Action<HandlerError> handler);
 }

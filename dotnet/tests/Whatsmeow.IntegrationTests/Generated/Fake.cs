@@ -25,93 +25,109 @@ namespace Whatsmeow.IntegrationTests.Fake {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "Chx3aGF0c21lb3cvZmFrZS92MS9mYWtlLnByb3RvEhF3aGF0c21lb3cuZmFr",
-            "ZS52MRoeZ29vZ2xlL3Byb3RvYnVmL2R1cmF0aW9uLnByb3RvIkQKEUxpbmtE",
-            "ZXZpY2VSZXF1ZXN0Eh0KCnNlc3Npb25faWQYASABKAlSCXNlc3Npb25JZBIQ",
-            "CgNqaWQYAiABKAlSA2ppZCIUChJMaW5rRGV2aWNlUmVzcG9uc2UiNAoTUm90",
-            "YXRlUXJDb2RlUmVxdWVzdBIdCgpzZXNzaW9uX2lkGAEgASgJUglzZXNzaW9u",
-            "SWQiFgoUUm90YXRlUXJDb2RlUmVzcG9uc2UiNQoURXhwaXJlUXJDb2Rlc1Jl",
-            "cXVlc3QSHQoKc2Vzc2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkIhcKFUV4cGly",
-            "ZVFyQ29kZXNSZXNwb25zZSI2ChVEcm9wQ29ubmVjdGlvblJlcXVlc3QSHQoK",
-            "c2Vzc2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkIhgKFkRyb3BDb25uZWN0aW9u",
-            "UmVzcG9uc2UiPAobRmFpbE5leHRQcmVLZXlVcGxvYWRSZXF1ZXN0Eh0KCnNl",
-            "c3Npb25faWQYASABKAlSCXNlc3Npb25JZCIeChxGYWlsTmV4dFByZUtleVVw",
-            "bG9hZFJlc3BvbnNlIk0KGEZhaWxOZXh0UGFpclBob25lUmVxdWVzdBIdCgpz",
-            "ZXNzaW9uX2lkGAEgASgJUglzZXNzaW9uSWQSEgoEY29kZRgCIAEoBVIEY29k",
-            "ZSIbChlGYWlsTmV4dFBhaXJQaG9uZVJlc3BvbnNlIjcKFkZhaWxOZXh0Q29u",
-            "bmVjdFJlcXVlc3QSHQoKc2Vzc2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkIhkK",
-            "F0ZhaWxOZXh0Q29ubmVjdFJlc3BvbnNlIjYKFUZhaWxOZXh0TG9nb3V0UmVx",
-            "dWVzdBIdCgpzZXNzaW9uX2lkGAEgASgJUglzZXNzaW9uSWQiGAoWRmFpbE5l",
-            "eHRMb2dvdXRSZXNwb25zZSLcBwofUmFpc2VQZXJtYW5lbnREaXNjb25uZWN0",
-            "UmVxdWVzdBIdCgpzZXNzaW9uX2lkGAEgASgJUglzZXNzaW9uSWQSXQoKbG9n",
-            "Z2VkX291dBgCIAEoCzI8LndoYXRzbWVvdy5mYWtlLnYxLlJhaXNlUGVybWFu",
-            "ZW50RGlzY29ubmVjdFJlcXVlc3QuTG9nZ2VkT3V0SABSCWxvZ2dlZE91dBJs",
-            "Cg9zdHJlYW1fcmVwbGFjZWQYAyABKAsyQS53aGF0c21lb3cuZmFrZS52MS5S",
-            "YWlzZVBlcm1hbmVudERpc2Nvbm5lY3RSZXF1ZXN0LlN0cmVhbVJlcGxhY2Vk",
-            "SABSDnN0cmVhbVJlcGxhY2VkEmwKD2NsaWVudF9vdXRkYXRlZBgEIAEoCzJB",
-            "LndoYXRzbWVvdy5mYWtlLnYxLlJhaXNlUGVybWFuZW50RGlzY29ubmVjdFJl",
-            "cXVlc3QuQ2xpZW50T3V0ZGF0ZWRIAFIOY2xpZW50T3V0ZGF0ZWQScAoRY2F0",
-            "X3JlZnJlc2hfZXJyb3IYBSABKAsyQi53aGF0c21lb3cuZmFrZS52MS5SYWlz",
-            "ZVBlcm1hbmVudERpc2Nvbm5lY3RSZXF1ZXN0LkNhdFJlZnJlc2hFcnJvckgA",
-            "Ug9jYXRSZWZyZXNoRXJyb3ISZgoNdGVtcG9yYXJ5X2JhbhgGIAEoCzI/Lndo",
-            "YXRzbWVvdy5mYWtlLnYxLlJhaXNlUGVybWFuZW50RGlzY29ubmVjdFJlcXVl",
-            "c3QuVGVtcG9yYXJ5QmFuSABSDHRlbXBvcmFyeUJhbhJsCg9jb25uZWN0X2Zh",
-            "aWx1cmUYByABKAsyQS53aGF0c21lb3cuZmFrZS52MS5SYWlzZVBlcm1hbmVu",
-            "dERpc2Nvbm5lY3RSZXF1ZXN0LkNvbm5lY3RGYWlsdXJlSABSDmNvbm5lY3RG",
-            "YWlsdXJlGiMKCUxvZ2dlZE91dBIWCgZyZWFzb24YASABKAVSBnJlYXNvbhoQ",
-            "Cg5TdHJlYW1SZXBsYWNlZBoQCg5DbGllbnRPdXRkYXRlZBorCg9DYXRSZWZy",
-            "ZXNoRXJyb3ISGAoHbWVzc2FnZRgBIAEoCVIHbWVzc2FnZRpVCgxUZW1wb3Jh",
-            "cnlCYW4SEgoEY29kZRgBIAEoBVIEY29kZRIxCgZleHBpcmUYAiABKAsyGS5n",
-            "b29nbGUucHJvdG9idWYuRHVyYXRpb25SBmV4cGlyZRpCCg5Db25uZWN0RmFp",
-            "bHVyZRIWCgZyZWFzb24YASABKAVSBnJlYXNvbhIYCgdtZXNzYWdlGAIgASgJ",
-            "UgdtZXNzYWdlQgYKBGtpbmQiIgogUmFpc2VQZXJtYW5lbnREaXNjb25uZWN0",
-            "UmVzcG9uc2UiRgoVRGVsaXZlck1lc3NhZ2VSZXF1ZXN0Eh0KCnNlc3Npb25f",
-            "aWQYASABKAlSCXNlc3Npb25JZBIOCgJpZBgCIAEoCVICaWQiGAoWRGVsaXZl",
-            "ck1lc3NhZ2VSZXNwb25zZSJJChJXYWl0Rm9yU2VudFJlcXVlc3QSHQoKc2Vz",
-            "c2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkEhQKBWFmdGVyGAIgASgEUgVhZnRl",
-            "ciJCChNXYWl0Rm9yU2VudFJlc3BvbnNlEisKBHNlbnQYASABKAsyFy53aGF0",
-            "c21lb3cuZmFrZS52MS5TZW50UgRzZW50IqACCgRTZW50EhQKBWluZGV4GAEg",
-            "ASgEUgVpbmRleBIdCgpzZXNzaW9uX2lkGAIgASgJUglzZXNzaW9uSWQSNgoH",
-            "cmVjZWlwdBgDIAEoCzIaLndoYXRzbWVvdy5mYWtlLnYxLlJlY2VpcHRIAFIH",
-            "cmVjZWlwdBI/CgpkaXNjb25uZWN0GAQgASgLMh0ud2hhdHNtZW93LmZha2Uu",
-            "djEuRGlzY29ubmVjdEgAUgpkaXNjb25uZWN0EmIKF3JlbW92ZV9jb21wYW5p",
-            "b25fZGV2aWNlGAUgASgLMigud2hhdHNtZW93LmZha2UudjEuUmVtb3ZlQ29t",
-            "cGFuaW9uRGV2aWNlSABSFXJlbW92ZUNvbXBhbmlvbkRldmljZUIGCgRraW5k",
-            "IgwKCkRpc2Nvbm5lY3QiFwoVUmVtb3ZlQ29tcGFuaW9uRGV2aWNlIi0KB1Jl",
-            "Y2VpcHQSDgoCaWQYASABKAlSAmlkEhIKBHR5cGUYAiABKAlSBHR5cGUyoQkK",
-            "E0Zha2VXaGF0c0FwcFNlcnZpY2USZQoORGVsaXZlck1lc3NhZ2USKC53aGF0",
-            "c21lb3cuZmFrZS52MS5EZWxpdmVyTWVzc2FnZVJlcXVlc3QaKS53aGF0c21l",
-            "b3cuZmFrZS52MS5EZWxpdmVyTWVzc2FnZVJlc3BvbnNlElwKC1dhaXRGb3JT",
-            "ZW50EiUud2hhdHNtZW93LmZha2UudjEuV2FpdEZvclNlbnRSZXF1ZXN0GiYu",
-            "d2hhdHNtZW93LmZha2UudjEuV2FpdEZvclNlbnRSZXNwb25zZRJZCgpMaW5r",
-            "RGV2aWNlEiQud2hhdHNtZW93LmZha2UudjEuTGlua0RldmljZVJlcXVlc3Qa",
-            "JS53aGF0c21lb3cuZmFrZS52MS5MaW5rRGV2aWNlUmVzcG9uc2USXwoMUm90",
-            "YXRlUXJDb2RlEiYud2hhdHNtZW93LmZha2UudjEuUm90YXRlUXJDb2RlUmVx",
-            "dWVzdBonLndoYXRzbWVvdy5mYWtlLnYxLlJvdGF0ZVFyQ29kZVJlc3BvbnNl",
-            "EmIKDUV4cGlyZVFyQ29kZXMSJy53aGF0c21lb3cuZmFrZS52MS5FeHBpcmVR",
-            "ckNvZGVzUmVxdWVzdBooLndoYXRzbWVvdy5mYWtlLnYxLkV4cGlyZVFyQ29k",
-            "ZXNSZXNwb25zZRJlCg5Ecm9wQ29ubmVjdGlvbhIoLndoYXRzbWVvdy5mYWtl",
-            "LnYxLkRyb3BDb25uZWN0aW9uUmVxdWVzdBopLndoYXRzbWVvdy5mYWtlLnYx",
-            "LkRyb3BDb25uZWN0aW9uUmVzcG9uc2USdwoURmFpbE5leHRQcmVLZXlVcGxv",
-            "YWQSLi53aGF0c21lb3cuZmFrZS52MS5GYWlsTmV4dFByZUtleVVwbG9hZFJl",
-            "cXVlc3QaLy53aGF0c21lb3cuZmFrZS52MS5GYWlsTmV4dFByZUtleVVwbG9h",
-            "ZFJlc3BvbnNlEm4KEUZhaWxOZXh0UGFpclBob25lEisud2hhdHNtZW93LmZh",
-            "a2UudjEuRmFpbE5leHRQYWlyUGhvbmVSZXF1ZXN0Giwud2hhdHNtZW93LmZh",
-            "a2UudjEuRmFpbE5leHRQYWlyUGhvbmVSZXNwb25zZRJoCg9GYWlsTmV4dENv",
-            "bm5lY3QSKS53aGF0c21lb3cuZmFrZS52MS5GYWlsTmV4dENvbm5lY3RSZXF1",
-            "ZXN0Gioud2hhdHNtZW93LmZha2UudjEuRmFpbE5leHRDb25uZWN0UmVzcG9u",
-            "c2USZQoORmFpbE5leHRMb2dvdXQSKC53aGF0c21lb3cuZmFrZS52MS5GYWls",
-            "TmV4dExvZ291dFJlcXVlc3QaKS53aGF0c21lb3cuZmFrZS52MS5GYWlsTmV4",
-            "dExvZ291dFJlc3BvbnNlEoMBChhSYWlzZVBlcm1hbmVudERpc2Nvbm5lY3QS",
-            "Mi53aGF0c21lb3cuZmFrZS52MS5SYWlzZVBlcm1hbmVudERpc2Nvbm5lY3RS",
-            "ZXF1ZXN0GjMud2hhdHNtZW93LmZha2UudjEuUmFpc2VQZXJtYW5lbnREaXNj",
-            "b25uZWN0UmVzcG9uc2VC3gEKFWNvbS53aGF0c21lb3cuZmFrZS52MUIJRmFr",
-            "ZVByb3RvUAFaRmdpdGh1Yi5jb20vdGNvcnRlZ2EvV2hhdHNtZW93Lk5FVC9z",
-            "aWRlY2FyL2dlbi93aGF0c21lb3cvZmFrZS92MTtmYWtldjGiAgNXRliqAh9X",
-            "aGF0c21lb3cuSW50ZWdyYXRpb25UZXN0cy5GYWtlygIRV2hhdHNtZW93XEZh",
-            "a2VcVjHiAh1XaGF0c21lb3dcRmFrZVxWMVxHUEJNZXRhZGF0YeoCE1doYXRz",
-            "bWVvdzo6RmFrZTo6VjFiBnByb3RvMw=="));
+            "ZS52MRoeZ29vZ2xlL3Byb3RvYnVmL2R1cmF0aW9uLnByb3RvGh9nb29nbGUv",
+            "cHJvdG9idWYvdGltZXN0YW1wLnByb3RvIkQKEUxpbmtEZXZpY2VSZXF1ZXN0",
+            "Eh0KCnNlc3Npb25faWQYASABKAlSCXNlc3Npb25JZBIQCgNqaWQYAiABKAlS",
+            "A2ppZCIUChJMaW5rRGV2aWNlUmVzcG9uc2UiNAoTUm90YXRlUXJDb2RlUmVx",
+            "dWVzdBIdCgpzZXNzaW9uX2lkGAEgASgJUglzZXNzaW9uSWQiFgoUUm90YXRl",
+            "UXJDb2RlUmVzcG9uc2UiNQoURXhwaXJlUXJDb2Rlc1JlcXVlc3QSHQoKc2Vz",
+            "c2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkIhcKFUV4cGlyZVFyQ29kZXNSZXNw",
+            "b25zZSI2ChVEcm9wQ29ubmVjdGlvblJlcXVlc3QSHQoKc2Vzc2lvbl9pZBgB",
+            "IAEoCVIJc2Vzc2lvbklkIhgKFkRyb3BDb25uZWN0aW9uUmVzcG9uc2UiPAob",
+            "RmFpbE5leHRQcmVLZXlVcGxvYWRSZXF1ZXN0Eh0KCnNlc3Npb25faWQYASAB",
+            "KAlSCXNlc3Npb25JZCIeChxGYWlsTmV4dFByZUtleVVwbG9hZFJlc3BvbnNl",
+            "Ik0KGEZhaWxOZXh0UGFpclBob25lUmVxdWVzdBIdCgpzZXNzaW9uX2lkGAEg",
+            "ASgJUglzZXNzaW9uSWQSEgoEY29kZRgCIAEoBVIEY29kZSIbChlGYWlsTmV4",
+            "dFBhaXJQaG9uZVJlc3BvbnNlIjcKFkZhaWxOZXh0Q29ubmVjdFJlcXVlc3QS",
+            "HQoKc2Vzc2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkIhkKF0ZhaWxOZXh0Q29u",
+            "bmVjdFJlc3BvbnNlIjYKFUZhaWxOZXh0TG9nb3V0UmVxdWVzdBIdCgpzZXNz",
+            "aW9uX2lkGAEgASgJUglzZXNzaW9uSWQiGAoWRmFpbE5leHRMb2dvdXRSZXNw",
+            "b25zZSLcBwofUmFpc2VQZXJtYW5lbnREaXNjb25uZWN0UmVxdWVzdBIdCgpz",
+            "ZXNzaW9uX2lkGAEgASgJUglzZXNzaW9uSWQSXQoKbG9nZ2VkX291dBgCIAEo",
+            "CzI8LndoYXRzbWVvdy5mYWtlLnYxLlJhaXNlUGVybWFuZW50RGlzY29ubmVj",
+            "dFJlcXVlc3QuTG9nZ2VkT3V0SABSCWxvZ2dlZE91dBJsCg9zdHJlYW1fcmVw",
+            "bGFjZWQYAyABKAsyQS53aGF0c21lb3cuZmFrZS52MS5SYWlzZVBlcm1hbmVu",
+            "dERpc2Nvbm5lY3RSZXF1ZXN0LlN0cmVhbVJlcGxhY2VkSABSDnN0cmVhbVJl",
+            "cGxhY2VkEmwKD2NsaWVudF9vdXRkYXRlZBgEIAEoCzJBLndoYXRzbWVvdy5m",
+            "YWtlLnYxLlJhaXNlUGVybWFuZW50RGlzY29ubmVjdFJlcXVlc3QuQ2xpZW50",
+            "T3V0ZGF0ZWRIAFIOY2xpZW50T3V0ZGF0ZWQScAoRY2F0X3JlZnJlc2hfZXJy",
+            "b3IYBSABKAsyQi53aGF0c21lb3cuZmFrZS52MS5SYWlzZVBlcm1hbmVudERp",
+            "c2Nvbm5lY3RSZXF1ZXN0LkNhdFJlZnJlc2hFcnJvckgAUg9jYXRSZWZyZXNo",
+            "RXJyb3ISZgoNdGVtcG9yYXJ5X2JhbhgGIAEoCzI/LndoYXRzbWVvdy5mYWtl",
+            "LnYxLlJhaXNlUGVybWFuZW50RGlzY29ubmVjdFJlcXVlc3QuVGVtcG9yYXJ5",
+            "QmFuSABSDHRlbXBvcmFyeUJhbhJsCg9jb25uZWN0X2ZhaWx1cmUYByABKAsy",
+            "QS53aGF0c21lb3cuZmFrZS52MS5SYWlzZVBlcm1hbmVudERpc2Nvbm5lY3RS",
+            "ZXF1ZXN0LkNvbm5lY3RGYWlsdXJlSABSDmNvbm5lY3RGYWlsdXJlGiMKCUxv",
+            "Z2dlZE91dBIWCgZyZWFzb24YASABKAVSBnJlYXNvbhoQCg5TdHJlYW1SZXBs",
+            "YWNlZBoQCg5DbGllbnRPdXRkYXRlZBorCg9DYXRSZWZyZXNoRXJyb3ISGAoH",
+            "bWVzc2FnZRgBIAEoCVIHbWVzc2FnZRpVCgxUZW1wb3JhcnlCYW4SEgoEY29k",
+            "ZRgBIAEoBVIEY29kZRIxCgZleHBpcmUYAiABKAsyGS5nb29nbGUucHJvdG9i",
+            "dWYuRHVyYXRpb25SBmV4cGlyZRpCCg5Db25uZWN0RmFpbHVyZRIWCgZyZWFz",
+            "b24YASABKAVSBnJlYXNvbhIYCgdtZXNzYWdlGAIgASgJUgdtZXNzYWdlQgYK",
+            "BGtpbmQiIgogUmFpc2VQZXJtYW5lbnREaXNjb25uZWN0UmVzcG9uc2Ui4wIK",
+            "FURlbGl2ZXJNZXNzYWdlUmVxdWVzdBIdCgpzZXNzaW9uX2lkGAEgASgJUglz",
+            "ZXNzaW9uSWQSDgoCaWQYAiABKAlSAmlkEhIKBGNoYXQYAyABKAlSBGNoYXQS",
+            "FgoGc2VuZGVyGAQgASgJUgZzZW5kZXISEgoEdGV4dBgFIAEoCVIEdGV4dBId",
+            "CgpzZW5kZXJfYWx0GAYgASgJUglzZW5kZXJBbHQSIwoNcmVjaXBpZW50X2Fs",
+            "dBgHIAEoCVIMcmVjaXBpZW50QWx0EhwKCmlzX2Zyb21fbWUYCCABKAhSCGlz",
+            "RnJvbU1lEhsKCXB1c2hfbmFtZRgJIAEoCVIIcHVzaE5hbWUSPQoMbWVzc2Fn",
+            "ZV90aW1lGAogASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcFILbWVz",
+            "c2FnZVRpbWUSHQoKc2VuZGVyX2tleRgLIAEoCFIJc2VuZGVyS2V5IukBCiJE",
+            "ZWxpdmVyVW5kZWNyeXB0YWJsZU1lc3NhZ2VSZXF1ZXN0Eh0KCnNlc3Npb25f",
+            "aWQYASABKAlSCXNlc3Npb25JZBIOCgJpZBgCIAEoCVICaWQSEgoEY2hhdBgD",
+            "IAEoCVIEY2hhdBIWCgZzZW5kZXIYBCABKAlSBnNlbmRlchIpChBoaWRlX3Bs",
+            "YWNlaG9sZGVyGAUgASgIUg9oaWRlUGxhY2Vob2xkZXISPQoMbWVzc2FnZV90",
+            "aW1lGAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcFILbWVzc2Fn",
+            "ZVRpbWUiJQojRGVsaXZlclVuZGVjcnlwdGFibGVNZXNzYWdlUmVzcG9uc2Ui",
+            "GAoWRGVsaXZlck1lc3NhZ2VSZXNwb25zZSJJChJXYWl0Rm9yU2VudFJlcXVl",
+            "c3QSHQoKc2Vzc2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkEhQKBWFmdGVyGAIg",
+            "ASgEUgVhZnRlciJCChNXYWl0Rm9yU2VudFJlc3BvbnNlEisKBHNlbnQYASAB",
+            "KAsyFy53aGF0c21lb3cuZmFrZS52MS5TZW50UgRzZW50IqACCgRTZW50EhQK",
+            "BWluZGV4GAEgASgEUgVpbmRleBIdCgpzZXNzaW9uX2lkGAIgASgJUglzZXNz",
+            "aW9uSWQSNgoHcmVjZWlwdBgDIAEoCzIaLndoYXRzbWVvdy5mYWtlLnYxLlJl",
+            "Y2VpcHRIAFIHcmVjZWlwdBI/CgpkaXNjb25uZWN0GAQgASgLMh0ud2hhdHNt",
+            "ZW93LmZha2UudjEuRGlzY29ubmVjdEgAUgpkaXNjb25uZWN0EmIKF3JlbW92",
+            "ZV9jb21wYW5pb25fZGV2aWNlGAUgASgLMigud2hhdHNtZW93LmZha2UudjEu",
+            "UmVtb3ZlQ29tcGFuaW9uRGV2aWNlSABSFXJlbW92ZUNvbXBhbmlvbkRldmlj",
+            "ZUIGCgRraW5kIgwKCkRpc2Nvbm5lY3QiFwoVUmVtb3ZlQ29tcGFuaW9uRGV2",
+            "aWNlIi0KB1JlY2VpcHQSDgoCaWQYASABKAlSAmlkEhIKBHR5cGUYAiABKAlS",
+            "BHR5cGUysAoKE0Zha2VXaGF0c0FwcFNlcnZpY2USZQoORGVsaXZlck1lc3Nh",
+            "Z2USKC53aGF0c21lb3cuZmFrZS52MS5EZWxpdmVyTWVzc2FnZVJlcXVlc3Qa",
+            "KS53aGF0c21lb3cuZmFrZS52MS5EZWxpdmVyTWVzc2FnZVJlc3BvbnNlEowB",
+            "ChtEZWxpdmVyVW5kZWNyeXB0YWJsZU1lc3NhZ2USNS53aGF0c21lb3cuZmFr",
+            "ZS52MS5EZWxpdmVyVW5kZWNyeXB0YWJsZU1lc3NhZ2VSZXF1ZXN0GjYud2hh",
+            "dHNtZW93LmZha2UudjEuRGVsaXZlclVuZGVjcnlwdGFibGVNZXNzYWdlUmVz",
+            "cG9uc2USXAoLV2FpdEZvclNlbnQSJS53aGF0c21lb3cuZmFrZS52MS5XYWl0",
+            "Rm9yU2VudFJlcXVlc3QaJi53aGF0c21lb3cuZmFrZS52MS5XYWl0Rm9yU2Vu",
+            "dFJlc3BvbnNlElkKCkxpbmtEZXZpY2USJC53aGF0c21lb3cuZmFrZS52MS5M",
+            "aW5rRGV2aWNlUmVxdWVzdBolLndoYXRzbWVvdy5mYWtlLnYxLkxpbmtEZXZp",
+            "Y2VSZXNwb25zZRJfCgxSb3RhdGVRckNvZGUSJi53aGF0c21lb3cuZmFrZS52",
+            "MS5Sb3RhdGVRckNvZGVSZXF1ZXN0Gicud2hhdHNtZW93LmZha2UudjEuUm90",
+            "YXRlUXJDb2RlUmVzcG9uc2USYgoNRXhwaXJlUXJDb2RlcxInLndoYXRzbWVv",
+            "dy5mYWtlLnYxLkV4cGlyZVFyQ29kZXNSZXF1ZXN0Gigud2hhdHNtZW93LmZh",
+            "a2UudjEuRXhwaXJlUXJDb2Rlc1Jlc3BvbnNlEmUKDkRyb3BDb25uZWN0aW9u",
+            "Eigud2hhdHNtZW93LmZha2UudjEuRHJvcENvbm5lY3Rpb25SZXF1ZXN0Giku",
+            "d2hhdHNtZW93LmZha2UudjEuRHJvcENvbm5lY3Rpb25SZXNwb25zZRJ3ChRG",
+            "YWlsTmV4dFByZUtleVVwbG9hZBIuLndoYXRzbWVvdy5mYWtlLnYxLkZhaWxO",
+            "ZXh0UHJlS2V5VXBsb2FkUmVxdWVzdBovLndoYXRzbWVvdy5mYWtlLnYxLkZh",
+            "aWxOZXh0UHJlS2V5VXBsb2FkUmVzcG9uc2USbgoRRmFpbE5leHRQYWlyUGhv",
+            "bmUSKy53aGF0c21lb3cuZmFrZS52MS5GYWlsTmV4dFBhaXJQaG9uZVJlcXVl",
+            "c3QaLC53aGF0c21lb3cuZmFrZS52MS5GYWlsTmV4dFBhaXJQaG9uZVJlc3Bv",
+            "bnNlEmgKD0ZhaWxOZXh0Q29ubmVjdBIpLndoYXRzbWVvdy5mYWtlLnYxLkZh",
+            "aWxOZXh0Q29ubmVjdFJlcXVlc3QaKi53aGF0c21lb3cuZmFrZS52MS5GYWls",
+            "TmV4dENvbm5lY3RSZXNwb25zZRJlCg5GYWlsTmV4dExvZ291dBIoLndoYXRz",
+            "bWVvdy5mYWtlLnYxLkZhaWxOZXh0TG9nb3V0UmVxdWVzdBopLndoYXRzbWVv",
+            "dy5mYWtlLnYxLkZhaWxOZXh0TG9nb3V0UmVzcG9uc2USgwEKGFJhaXNlUGVy",
+            "bWFuZW50RGlzY29ubmVjdBIyLndoYXRzbWVvdy5mYWtlLnYxLlJhaXNlUGVy",
+            "bWFuZW50RGlzY29ubmVjdFJlcXVlc3QaMy53aGF0c21lb3cuZmFrZS52MS5S",
+            "YWlzZVBlcm1hbmVudERpc2Nvbm5lY3RSZXNwb25zZULeAQoVY29tLndoYXRz",
+            "bWVvdy5mYWtlLnYxQglGYWtlUHJvdG9QAVpGZ2l0aHViLmNvbS90Y29ydGVn",
+            "YS9XaGF0c21lb3cuTkVUL3NpZGVjYXIvZ2VuL3doYXRzbWVvdy9mYWtlL3Yx",
+            "O2Zha2V2MaICA1dGWKoCH1doYXRzbWVvdy5JbnRlZ3JhdGlvblRlc3RzLkZh",
+            "a2XKAhFXaGF0c21lb3dcRmFrZVxWMeICHVdoYXRzbWVvd1xGYWtlXFYxXEdQ",
+            "Qk1ldGFkYXRh6gITV2hhdHNtZW93OjpGYWtlOjpWMWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.DurationReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.DurationReflection.Descriptor, global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.IntegrationTests.Fake.LinkDeviceRequest), global::Whatsmeow.IntegrationTests.Fake.LinkDeviceRequest.Parser, new[]{ "SessionId", "Jid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.IntegrationTests.Fake.LinkDeviceResponse), global::Whatsmeow.IntegrationTests.Fake.LinkDeviceResponse.Parser, null, null, null, null, null),
@@ -136,7 +152,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectRequest.Types.TemporaryBan), global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectRequest.Types.TemporaryBan.Parser, new[]{ "Code", "Expire" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectRequest.Types.ConnectFailure), global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectRequest.Types.ConnectFailure.Parser, new[]{ "Reason", "Message" }, null, null, null, null)}),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectResponse), global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectResponse.Parser, null, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest), global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest.Parser, new[]{ "SessionId", "Id" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest), global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest.Parser, new[]{ "SessionId", "Id", "Chat", "Sender", "Text", "SenderAlt", "RecipientAlt", "IsFromMe", "PushName", "MessageTime", "SenderKey" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageRequest), global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageRequest.Parser, new[]{ "SessionId", "Id", "Chat", "Sender", "HidePlaceholder", "MessageTime" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageResponse), global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageResponse.Parser, null, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse), global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse.Parser, null, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.IntegrationTests.Fake.WaitForSentRequest), global::Whatsmeow.IntegrationTests.Fake.WaitForSentRequest.Parser, new[]{ "SessionId", "After" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.IntegrationTests.Fake.WaitForSentResponse), global::Whatsmeow.IntegrationTests.Fake.WaitForSentResponse.Parser, new[]{ "Sent" }, null, null, null, null),
@@ -5147,7 +5165,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
   }
 
   /// <summary>
-  /// DeliverMessageRequest is one inbound message.
+  /// DeliverMessageRequest is one inbound message. A JID is whatsmeow's string form; empty is none.
   /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   internal sealed partial class DeliverMessageRequest : pb::IMessage<DeliverMessageRequest>
@@ -5186,6 +5204,15 @@ namespace Whatsmeow.IntegrationTests.Fake {
     public DeliverMessageRequest(DeliverMessageRequest other) : this() {
       sessionId_ = other.sessionId_;
       id_ = other.id_;
+      chat_ = other.chat_;
+      sender_ = other.sender_;
+      text_ = other.text_;
+      senderAlt_ = other.senderAlt_;
+      recipientAlt_ = other.recipientAlt_;
+      isFromMe_ = other.isFromMe_;
+      pushName_ = other.pushName_;
+      messageTime_ = other.messageTime_ != null ? other.messageTime_.Clone() : null;
+      senderKey_ = other.senderKey_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -5225,6 +5252,143 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
     }
 
+    /// <summary>Field number for the "chat" field.</summary>
+    public const int ChatFieldNumber = 3;
+    private string chat_ = "";
+    /// <summary>
+    /// The chat.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Chat {
+      get { return chat_; }
+      set {
+        chat_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "sender" field.</summary>
+    public const int SenderFieldNumber = 4;
+    private string sender_ = "";
+    /// <summary>
+    /// The sender.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Sender {
+      get { return sender_; }
+      set {
+        sender_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "text" field.</summary>
+    public const int TextFieldNumber = 5;
+    private string text_ = "";
+    /// <summary>
+    /// The text, as a conversation message; empty sends an empty message.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Text {
+      get { return text_; }
+      set {
+        text_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "sender_alt" field.</summary>
+    public const int SenderAltFieldNumber = 6;
+    private string senderAlt_ = "";
+    /// <summary>
+    /// The sender's other address form.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string SenderAlt {
+      get { return senderAlt_; }
+      set {
+        senderAlt_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "recipient_alt" field.</summary>
+    public const int RecipientAltFieldNumber = 7;
+    private string recipientAlt_ = "";
+    /// <summary>
+    /// In a direct chat, the recipient's other address form.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string RecipientAlt {
+      get { return recipientAlt_; }
+      set {
+        recipientAlt_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "is_from_me" field.</summary>
+    public const int IsFromMeFieldNumber = 8;
+    private bool isFromMe_;
+    /// <summary>
+    /// True when another of the account's devices sent it.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool IsFromMe {
+      get { return isFromMe_; }
+      set {
+        isFromMe_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "push_name" field.</summary>
+    public const int PushNameFieldNumber = 9;
+    private string pushName_ = "";
+    /// <summary>
+    /// The sender's push name.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string PushName {
+      get { return pushName_; }
+      set {
+        pushName_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "message_time" field.</summary>
+    public const int MessageTimeFieldNumber = 10;
+    private global::Google.Protobuf.WellKnownTypes.Timestamp messageTime_;
+    /// <summary>
+    /// The message's WhatsApp timestamp; unset is the zero time.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Google.Protobuf.WellKnownTypes.Timestamp MessageTime {
+      get { return messageTime_; }
+      set {
+        messageTime_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "sender_key" field.</summary>
+    public const int SenderKeyFieldNumber = 11;
+    private bool senderKey_;
+    /// <summary>
+    /// True for a group message as whatsmeow sends one with a new sender key (send.go:795-831): the stanza's pkmsg part
+    /// decrypts to only the sender key, and its skmsg part to the content. The client dispatches a Message for each, with
+    /// the same info, in that order (message.go:355-497, 1172-1178), and answers once, after both.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool SenderKey {
+      get { return senderKey_; }
+      set {
+        senderKey_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -5242,6 +5406,15 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       if (SessionId != other.SessionId) return false;
       if (Id != other.Id) return false;
+      if (Chat != other.Chat) return false;
+      if (Sender != other.Sender) return false;
+      if (Text != other.Text) return false;
+      if (SenderAlt != other.SenderAlt) return false;
+      if (RecipientAlt != other.RecipientAlt) return false;
+      if (IsFromMe != other.IsFromMe) return false;
+      if (PushName != other.PushName) return false;
+      if (!object.Equals(MessageTime, other.MessageTime)) return false;
+      if (SenderKey != other.SenderKey) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -5251,6 +5424,15 @@ namespace Whatsmeow.IntegrationTests.Fake {
       int hash = 1;
       if (SessionId.Length != 0) hash ^= SessionId.GetHashCode();
       if (Id.Length != 0) hash ^= Id.GetHashCode();
+      if (Chat.Length != 0) hash ^= Chat.GetHashCode();
+      if (Sender.Length != 0) hash ^= Sender.GetHashCode();
+      if (Text.Length != 0) hash ^= Text.GetHashCode();
+      if (SenderAlt.Length != 0) hash ^= SenderAlt.GetHashCode();
+      if (RecipientAlt.Length != 0) hash ^= RecipientAlt.GetHashCode();
+      if (IsFromMe != false) hash ^= IsFromMe.GetHashCode();
+      if (PushName.Length != 0) hash ^= PushName.GetHashCode();
+      if (messageTime_ != null) hash ^= MessageTime.GetHashCode();
+      if (SenderKey != false) hash ^= SenderKey.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -5277,6 +5459,42 @@ namespace Whatsmeow.IntegrationTests.Fake {
         output.WriteRawTag(18);
         output.WriteString(Id);
       }
+      if (Chat.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Chat);
+      }
+      if (Sender.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Sender);
+      }
+      if (Text.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(Text);
+      }
+      if (SenderAlt.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(SenderAlt);
+      }
+      if (RecipientAlt.Length != 0) {
+        output.WriteRawTag(58);
+        output.WriteString(RecipientAlt);
+      }
+      if (IsFromMe != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(IsFromMe);
+      }
+      if (PushName.Length != 0) {
+        output.WriteRawTag(74);
+        output.WriteString(PushName);
+      }
+      if (messageTime_ != null) {
+        output.WriteRawTag(82);
+        output.WriteMessage(MessageTime);
+      }
+      if (SenderKey != false) {
+        output.WriteRawTag(88);
+        output.WriteBool(SenderKey);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -5295,6 +5513,42 @@ namespace Whatsmeow.IntegrationTests.Fake {
         output.WriteRawTag(18);
         output.WriteString(Id);
       }
+      if (Chat.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Chat);
+      }
+      if (Sender.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Sender);
+      }
+      if (Text.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(Text);
+      }
+      if (SenderAlt.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(SenderAlt);
+      }
+      if (RecipientAlt.Length != 0) {
+        output.WriteRawTag(58);
+        output.WriteString(RecipientAlt);
+      }
+      if (IsFromMe != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(IsFromMe);
+      }
+      if (PushName.Length != 0) {
+        output.WriteRawTag(74);
+        output.WriteString(PushName);
+      }
+      if (messageTime_ != null) {
+        output.WriteRawTag(82);
+        output.WriteMessage(MessageTime);
+      }
+      if (SenderKey != false) {
+        output.WriteRawTag(88);
+        output.WriteBool(SenderKey);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -5310,6 +5564,33 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       if (Id.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Id);
+      }
+      if (Chat.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Chat);
+      }
+      if (Sender.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Sender);
+      }
+      if (Text.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Text);
+      }
+      if (SenderAlt.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(SenderAlt);
+      }
+      if (RecipientAlt.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(RecipientAlt);
+      }
+      if (IsFromMe != false) {
+        size += 1 + 1;
+      }
+      if (PushName.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(PushName);
+      }
+      if (messageTime_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(MessageTime);
+      }
+      if (SenderKey != false) {
+        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -5328,6 +5609,36 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       if (other.Id.Length != 0) {
         Id = other.Id;
+      }
+      if (other.Chat.Length != 0) {
+        Chat = other.Chat;
+      }
+      if (other.Sender.Length != 0) {
+        Sender = other.Sender;
+      }
+      if (other.Text.Length != 0) {
+        Text = other.Text;
+      }
+      if (other.SenderAlt.Length != 0) {
+        SenderAlt = other.SenderAlt;
+      }
+      if (other.RecipientAlt.Length != 0) {
+        RecipientAlt = other.RecipientAlt;
+      }
+      if (other.IsFromMe != false) {
+        IsFromMe = other.IsFromMe;
+      }
+      if (other.PushName.Length != 0) {
+        PushName = other.PushName;
+      }
+      if (other.messageTime_ != null) {
+        if (messageTime_ == null) {
+          MessageTime = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+        }
+        MessageTime.MergeFrom(other.MessageTime);
+      }
+      if (other.SenderKey != false) {
+        SenderKey = other.SenderKey;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -5354,6 +5665,45 @@ namespace Whatsmeow.IntegrationTests.Fake {
           }
           case 18: {
             Id = input.ReadString();
+            break;
+          }
+          case 26: {
+            Chat = input.ReadString();
+            break;
+          }
+          case 34: {
+            Sender = input.ReadString();
+            break;
+          }
+          case 42: {
+            Text = input.ReadString();
+            break;
+          }
+          case 50: {
+            SenderAlt = input.ReadString();
+            break;
+          }
+          case 58: {
+            RecipientAlt = input.ReadString();
+            break;
+          }
+          case 64: {
+            IsFromMe = input.ReadBool();
+            break;
+          }
+          case 74: {
+            PushName = input.ReadString();
+            break;
+          }
+          case 82: {
+            if (messageTime_ == null) {
+              MessageTime = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+            }
+            input.ReadMessage(MessageTime);
+            break;
+          }
+          case 88: {
+            SenderKey = input.ReadBool();
             break;
           }
         }
@@ -5383,6 +5733,622 @@ namespace Whatsmeow.IntegrationTests.Fake {
             Id = input.ReadString();
             break;
           }
+          case 26: {
+            Chat = input.ReadString();
+            break;
+          }
+          case 34: {
+            Sender = input.ReadString();
+            break;
+          }
+          case 42: {
+            Text = input.ReadString();
+            break;
+          }
+          case 50: {
+            SenderAlt = input.ReadString();
+            break;
+          }
+          case 58: {
+            RecipientAlt = input.ReadString();
+            break;
+          }
+          case 64: {
+            IsFromMe = input.ReadBool();
+            break;
+          }
+          case 74: {
+            PushName = input.ReadString();
+            break;
+          }
+          case 82: {
+            if (messageTime_ == null) {
+              MessageTime = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+            }
+            input.ReadMessage(MessageTime);
+            break;
+          }
+          case 88: {
+            SenderKey = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// DeliverUndecryptableMessageRequest is one inbound message that fails to decrypt.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  internal sealed partial class DeliverUndecryptableMessageRequest : pb::IMessage<DeliverUndecryptableMessageRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<DeliverUndecryptableMessageRequest> _parser = new pb::MessageParser<DeliverUndecryptableMessageRequest>(() => new DeliverUndecryptableMessageRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<DeliverUndecryptableMessageRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.IntegrationTests.Fake.FakeReflection.Descriptor.MessageTypes[19]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DeliverUndecryptableMessageRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DeliverUndecryptableMessageRequest(DeliverUndecryptableMessageRequest other) : this() {
+      sessionId_ = other.sessionId_;
+      id_ = other.id_;
+      chat_ = other.chat_;
+      sender_ = other.sender_;
+      hidePlaceholder_ = other.hidePlaceholder_;
+      messageTime_ = other.messageTime_ != null ? other.messageTime_.Clone() : null;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DeliverUndecryptableMessageRequest Clone() {
+      return new DeliverUndecryptableMessageRequest(this);
+    }
+
+    /// <summary>Field number for the "session_id" field.</summary>
+    public const int SessionIdFieldNumber = 1;
+    private string sessionId_ = "";
+    /// <summary>
+    /// The session whose client receives it.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string SessionId {
+      get { return sessionId_; }
+      set {
+        sessionId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "id" field.</summary>
+    public const int IdFieldNumber = 2;
+    private string id_ = "";
+    /// <summary>
+    /// The WhatsApp message id.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Id {
+      get { return id_; }
+      set {
+        id_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "chat" field.</summary>
+    public const int ChatFieldNumber = 3;
+    private string chat_ = "";
+    /// <summary>
+    /// The chat.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Chat {
+      get { return chat_; }
+      set {
+        chat_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "sender" field.</summary>
+    public const int SenderFieldNumber = 4;
+    private string sender_ = "";
+    /// <summary>
+    /// The sender.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Sender {
+      get { return sender_; }
+      set {
+        sender_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "hide_placeholder" field.</summary>
+    public const int HidePlaceholderFieldNumber = 5;
+    private bool hidePlaceholder_;
+    /// <summary>
+    /// True when the sender asked not to show a placeholder (decrypt-fail="hide").
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HidePlaceholder {
+      get { return hidePlaceholder_; }
+      set {
+        hidePlaceholder_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "message_time" field.</summary>
+    public const int MessageTimeFieldNumber = 6;
+    private global::Google.Protobuf.WellKnownTypes.Timestamp messageTime_;
+    /// <summary>
+    /// The message's WhatsApp timestamp; unset is the zero time.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Google.Protobuf.WellKnownTypes.Timestamp MessageTime {
+      get { return messageTime_; }
+      set {
+        messageTime_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as DeliverUndecryptableMessageRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(DeliverUndecryptableMessageRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (SessionId != other.SessionId) return false;
+      if (Id != other.Id) return false;
+      if (Chat != other.Chat) return false;
+      if (Sender != other.Sender) return false;
+      if (HidePlaceholder != other.HidePlaceholder) return false;
+      if (!object.Equals(MessageTime, other.MessageTime)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (SessionId.Length != 0) hash ^= SessionId.GetHashCode();
+      if (Id.Length != 0) hash ^= Id.GetHashCode();
+      if (Chat.Length != 0) hash ^= Chat.GetHashCode();
+      if (Sender.Length != 0) hash ^= Sender.GetHashCode();
+      if (HidePlaceholder != false) hash ^= HidePlaceholder.GetHashCode();
+      if (messageTime_ != null) hash ^= MessageTime.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (SessionId.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(SessionId);
+      }
+      if (Id.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Id);
+      }
+      if (Chat.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Chat);
+      }
+      if (Sender.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Sender);
+      }
+      if (HidePlaceholder != false) {
+        output.WriteRawTag(40);
+        output.WriteBool(HidePlaceholder);
+      }
+      if (messageTime_ != null) {
+        output.WriteRawTag(50);
+        output.WriteMessage(MessageTime);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (SessionId.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(SessionId);
+      }
+      if (Id.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Id);
+      }
+      if (Chat.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Chat);
+      }
+      if (Sender.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Sender);
+      }
+      if (HidePlaceholder != false) {
+        output.WriteRawTag(40);
+        output.WriteBool(HidePlaceholder);
+      }
+      if (messageTime_ != null) {
+        output.WriteRawTag(50);
+        output.WriteMessage(MessageTime);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (SessionId.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(SessionId);
+      }
+      if (Id.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Id);
+      }
+      if (Chat.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Chat);
+      }
+      if (Sender.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Sender);
+      }
+      if (HidePlaceholder != false) {
+        size += 1 + 1;
+      }
+      if (messageTime_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(MessageTime);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(DeliverUndecryptableMessageRequest other) {
+      if (other == null) {
+        return;
+      }
+      if (other.SessionId.Length != 0) {
+        SessionId = other.SessionId;
+      }
+      if (other.Id.Length != 0) {
+        Id = other.Id;
+      }
+      if (other.Chat.Length != 0) {
+        Chat = other.Chat;
+      }
+      if (other.Sender.Length != 0) {
+        Sender = other.Sender;
+      }
+      if (other.HidePlaceholder != false) {
+        HidePlaceholder = other.HidePlaceholder;
+      }
+      if (other.messageTime_ != null) {
+        if (messageTime_ == null) {
+          MessageTime = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+        }
+        MessageTime.MergeFrom(other.MessageTime);
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            SessionId = input.ReadString();
+            break;
+          }
+          case 18: {
+            Id = input.ReadString();
+            break;
+          }
+          case 26: {
+            Chat = input.ReadString();
+            break;
+          }
+          case 34: {
+            Sender = input.ReadString();
+            break;
+          }
+          case 40: {
+            HidePlaceholder = input.ReadBool();
+            break;
+          }
+          case 50: {
+            if (messageTime_ == null) {
+              MessageTime = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+            }
+            input.ReadMessage(MessageTime);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            SessionId = input.ReadString();
+            break;
+          }
+          case 18: {
+            Id = input.ReadString();
+            break;
+          }
+          case 26: {
+            Chat = input.ReadString();
+            break;
+          }
+          case 34: {
+            Sender = input.ReadString();
+            break;
+          }
+          case 40: {
+            HidePlaceholder = input.ReadBool();
+            break;
+          }
+          case 50: {
+            if (messageTime_ == null) {
+              MessageTime = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+            }
+            input.ReadMessage(MessageTime);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// DeliverUndecryptableMessageResponse has no fields.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  internal sealed partial class DeliverUndecryptableMessageResponse : pb::IMessage<DeliverUndecryptableMessageResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<DeliverUndecryptableMessageResponse> _parser = new pb::MessageParser<DeliverUndecryptableMessageResponse>(() => new DeliverUndecryptableMessageResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<DeliverUndecryptableMessageResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.IntegrationTests.Fake.FakeReflection.Descriptor.MessageTypes[20]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DeliverUndecryptableMessageResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DeliverUndecryptableMessageResponse(DeliverUndecryptableMessageResponse other) : this() {
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DeliverUndecryptableMessageResponse Clone() {
+      return new DeliverUndecryptableMessageResponse(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as DeliverUndecryptableMessageResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(DeliverUndecryptableMessageResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(DeliverUndecryptableMessageResponse other) {
+      if (other == null) {
+        return;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
         }
       }
     }
@@ -5408,7 +6374,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.IntegrationTests.Fake.FakeReflection.Descriptor.MessageTypes[19]; }
+      get { return global::Whatsmeow.IntegrationTests.Fake.FakeReflection.Descriptor.MessageTypes[21]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5572,7 +6538,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.IntegrationTests.Fake.FakeReflection.Descriptor.MessageTypes[20]; }
+      get { return global::Whatsmeow.IntegrationTests.Fake.FakeReflection.Descriptor.MessageTypes[22]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5816,7 +6782,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.IntegrationTests.Fake.FakeReflection.Descriptor.MessageTypes[21]; }
+      get { return global::Whatsmeow.IntegrationTests.Fake.FakeReflection.Descriptor.MessageTypes[23]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6029,7 +6995,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.IntegrationTests.Fake.FakeReflection.Descriptor.MessageTypes[22]; }
+      get { return global::Whatsmeow.IntegrationTests.Fake.FakeReflection.Descriptor.MessageTypes[24]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6468,7 +7434,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.IntegrationTests.Fake.FakeReflection.Descriptor.MessageTypes[23]; }
+      get { return global::Whatsmeow.IntegrationTests.Fake.FakeReflection.Descriptor.MessageTypes[25]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6632,7 +7598,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.IntegrationTests.Fake.FakeReflection.Descriptor.MessageTypes[24]; }
+      get { return global::Whatsmeow.IntegrationTests.Fake.FakeReflection.Descriptor.MessageTypes[26]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6797,7 +7763,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.IntegrationTests.Fake.FakeReflection.Descriptor.MessageTypes[25]; }
+      get { return global::Whatsmeow.IntegrationTests.Fake.FakeReflection.Descriptor.MessageTypes[27]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

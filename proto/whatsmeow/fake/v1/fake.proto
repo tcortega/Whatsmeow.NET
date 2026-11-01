@@ -3,6 +3,7 @@ syntax = "proto3";
 package whatsmeow.fake.v1;
 
 import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
 
 // FakeWhatsAppService scripts the fake WhatsApp of a test build of whatsmeow-net (-tags fakewhatsapp) started with
 // --fake-whatsapp, and records what the sidecar sent to it. It is served next to whatsmeow.v1 on the same socket,
@@ -15,6 +16,12 @@ service FakeWhatsAppService {
   // succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A session without a client is an error: the
   // fake never answers on behalf of a client the sidecar did not create.
   rpc DeliverMessage(DeliverMessageRequest) returns (DeliverMessageResponse);
+
+  // DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
+  // the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches
+  // UndecryptableMessage, whatever the handlers return (message.go:418-437); the fake records neither. A resend that
+  // decrypts is a DeliverMessage with the same id. A session without a client is an error.
+  rpc DeliverUndecryptableMessage(DeliverUndecryptableMessageRequest) returns (DeliverUndecryptableMessageResponse);
 
   // WaitForSent returns the first thing the session's client sent to WhatsApp after the entry `after`, and waits
   // until there is one. Only the call's deadline or cancellation ends the wait. The log lives in the sidecar process,
@@ -200,13 +207,52 @@ message RaisePermanentDisconnectRequest {
 // RaisePermanentDisconnectResponse has no fields.
 message RaisePermanentDisconnectResponse {}
 
-// DeliverMessageRequest is one inbound message.
+// DeliverMessageRequest is one inbound message. A JID is whatsmeow's string form; empty is none.
 message DeliverMessageRequest {
   // The session whose client receives it.
   string session_id = 1;
   // The WhatsApp message id.
   string id = 2;
+  // The chat.
+  string chat = 3;
+  // The sender.
+  string sender = 4;
+  // The text, as a conversation message; empty sends an empty message.
+  string text = 5;
+  // The sender's other address form.
+  string sender_alt = 6;
+  // In a direct chat, the recipient's other address form.
+  string recipient_alt = 7;
+  // True when another of the account's devices sent it.
+  bool is_from_me = 8;
+  // The sender's push name.
+  string push_name = 9;
+  // The message's WhatsApp timestamp; unset is the zero time.
+  google.protobuf.Timestamp message_time = 10;
+  // True for a group message as whatsmeow sends one with a new sender key (send.go:795-831): the stanza's pkmsg part
+  // decrypts to only the sender key, and its skmsg part to the content. The client dispatches a Message for each, with
+  // the same info, in that order (message.go:355-497, 1172-1178), and answers once, after both.
+  bool sender_key = 11;
 }
+
+// DeliverUndecryptableMessageRequest is one inbound message that fails to decrypt.
+message DeliverUndecryptableMessageRequest {
+  // The session whose client receives it.
+  string session_id = 1;
+  // The WhatsApp message id.
+  string id = 2;
+  // The chat.
+  string chat = 3;
+  // The sender.
+  string sender = 4;
+  // True when the sender asked not to show a placeholder (decrypt-fail="hide").
+  bool hide_placeholder = 5;
+  // The message's WhatsApp timestamp; unset is the zero time.
+  google.protobuf.Timestamp message_time = 6;
+}
+
+// DeliverUndecryptableMessageResponse has no fields.
+message DeliverUndecryptableMessageResponse {}
 
 // DeliverMessageResponse has no fields.
 message DeliverMessageResponse {}

@@ -274,6 +274,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.Diagnostics.Testing": "[10.11.0, )",
+          "Microsoft.Extensions.TimeProvider.Testing": "[10.11.0, )",
           "Whatsmeow.Client": "[1.0.0, )"
         }
       },
@@ -292,6 +293,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.Diagnostics.Testing": "[10.11.0, )",
+          "Microsoft.Extensions.TimeProvider.Testing": "[10.11.0, )",
           "SidecarHost": "[1.0.0, )",
           "Whatsmeow.Client": "[1.0.0, )",
           "xunit.v3": "[4.0.2, )"
@@ -372,6 +374,12 @@
           "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.14",
           "Microsoft.Extensions.Primitives": "10.0.14"
         }
+      },
+      "Microsoft.Extensions.TimeProvider.Testing": {
+        "type": "CentralTransitive",
+        "requested": "[10.11.0, )",
+        "resolved": "10.11.0",
+        "contentHash": "DTivKZ2Du0dJideTTa6vPj/eXKNRu+RxtjBX7NOOUXHBtHx1ehbE+lM+j3/5M3wU6BqzcZqEEyR4+FnPKs2rTA=="
       },
       "Vogen": {
         "type": "CentralTransitive",

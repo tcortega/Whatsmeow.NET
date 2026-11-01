@@ -18,7 +18,9 @@ namespace Whatsmeow.Protocol.V1 {
   /// creates it; a new consumer gets the events still retained.
   /// An event is deleted only after every consumer of its session acked it; a session with no consumer keeps every
   /// event. The session's highest recorded seq is kept even when its rows are deleted.
-  /// A repeated event has the same seq and content; handlers dedupe on seq.
+  /// A repeated event has the same seq and content while it is retained. One that every consumer acked and that was
+  /// deleted can still be dispatched again by whatsmeow after a crash, and is then recorded again with a new seq;
+  /// handlers dedupe on the session and the WhatsApp message id.
   /// A client skips, but still acks, a payload case it does not know.
   /// </summary>
   internal static partial class EventService

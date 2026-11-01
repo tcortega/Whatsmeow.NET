@@ -1,7 +1,8 @@
 // Package session is the Sessions slice: sessions, their connection, and their state machine (ARCHITECTURE §7.4).
 //
 // Every state change goes through transition, the events whatsmeow dispatches and the ones the sidecar synthesizes
-// for Connect, Disconnect and Logout alike, so the outbox (#8) has one place to record them.
+// for Connect, Disconnect, Logout and a restart alike, so each one is recorded in the outbox as a
+// ConnectionStateEvent, in order with the session's other events.
 package session
 
 import (
@@ -9,7 +10,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"regexp"
 	"slices"
 	"sync"
 	"time"
@@ -24,6 +24,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/outbox"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 )
 
@@ -44,15 +45,13 @@ var _ Client = (*whatsmeow.Client)(nil)
 // NewClient returns the client of one session's device.
 type NewClient func(sessionID string, device *store.Device) Client
 
-// idPattern is the session id rule (session.proto).
-var idPattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`)
-
 // Service implements whatsmeowv1.SessionServiceServer.
 type Service struct {
 	whatsmeowv1.UnimplementedSessionServiceServer
 
 	db        *sql.DB
 	devices   *sqlstore.Container
+	box       *outbox.Outbox
 	newClient NewClient
 	log       zerolog.Logger
 	// lifetime scopes every connection: whatsmeow ties keepalive, the node queue and reconnects to the context
@@ -94,10 +93,10 @@ type session struct {
 }
 
 // New loads every session from the database. It never connects one: the client calls Connect (session.proto).
-func New(ctx context.Context, db *sql.DB, devices *sqlstore.Container, newClient NewClient, log zerolog.Logger) (*Service, error) {
+func New(ctx context.Context, db *sql.DB, devices *sqlstore.Container, box *outbox.Outbox, newClient NewClient, log zerolog.Logger) (*Service, error) {
 	lifetime, end := context.WithCancel(context.Background())
 	svc := &Service{
-		db: db, devices: devices, newClient: newClient, log: log, lifetime: lifetime, end: end, recording: context.WithoutCancel(lifetime),
+		db: db, devices: devices, box: box, newClient: newClient, log: log, lifetime: lifetime, end: end, recording: context.WithoutCancel(lifetime),
 		linkTimeout: linkTimeout,
 		sessions:    map[string]*session{},
 	}
@@ -154,6 +153,9 @@ func (svc *Service) restore(ctx context.Context, id, jid, lid string, stopped []
 	}
 
 	device := svc.devices.NewDevice()
+	// changed is a paired session the restart moves: a live one comes back Disconnected, one without its device
+	// LoggedOut. A never-paired one and a stopped one come back as they were.
+	changed := false
 
 	if jid != "" {
 		paired, err := svc.pairedDevice(ctx, jid)
@@ -162,7 +164,7 @@ func (svc *Service) restore(ctx context.Context, id, jid, lid string, stopped []
 		}
 
 		if stopped == nil {
-			state = disconnected()
+			state, changed = disconnected(), true
 		}
 
 		device = paired
@@ -172,7 +174,7 @@ func (svc *Service) restore(ctx context.Context, id, jid, lid string, stopped []
 		if paired == nil {
 			svc.log.Warn().Str("session_id", id).Msg("the session's device is gone from the store; it is logged out")
 
-			device, state, jid, lid = svc.devices.NewDevice(), loggedOut(0), "", ""
+			device, state, jid, lid, changed = svc.devices.NewDevice(), loggedOut(0), "", "", true
 		}
 	}
 
@@ -182,15 +184,16 @@ func (svc *Service) restore(ctx context.Context, id, jid, lid string, stopped []
 	svc.sessions[id] = s
 	svc.mu.Unlock()
 
-	if jid == "" && stopped == nil {
+	if !changed {
 		return nil
 	}
 
-	// The fallback to LoggedOut is recorded, so the next start finds it as it is.
+	// The restart moved the session: a transition like any other, recorded so the next start finds it as it is and
+	// a consumer of its events sees it (ARCHITECTURE §7.4).
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	return svc.persist(ctx, s)
+	return svc.transition(ctx, s, state)
 }
 
 func (svc *Service) pairedDevice(ctx context.Context, jid string) (*store.Device, error) {
@@ -283,13 +286,20 @@ func (svc *Service) apply(s *session, evt any) {
 	}
 }
 
-// transition is the one place a session's state changes: it records the state a restart keeps (the stopping
-// states), then publishes it to every watcher. s.mu is held. The state is published even when recording fails,
-// because it is what whatsmeow reports. A state that happened is recorded even when the call that caused it was
-// cancelled meanwhile.
+// transition is the one place a session's state changes: in one transaction it records the state a restart keeps
+// (the stopping states) and a ConnectionStateEvent in the outbox, then publishes the state to every watcher. s.mu is
+// held. The state is published even when recording fails, because it is what whatsmeow reports. A state that
+// happened is recorded even when the call that caused it was cancelled meanwhile.
 func (svc *Service) transition(ctx context.Context, s *session, state *whatsmeowv1.SessionState) error {
 	s.state = state
-	err := svc.persist(context.WithoutCancel(ctx), s)
+	ctx = context.WithoutCancel(ctx)
+	event := &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_ConnectionState{
+		ConnectionState: &whatsmeowv1.ConnectionStateEvent{State: state},
+	}}
+	_, err := svc.box.Record(ctx, s.id, "", event, func(tx *sql.Tx) error { return svc.persist(ctx, tx, s) })
+	if err != nil {
+		err = fmt.Errorf("record the state of session %q: %w", s.id, err)
+	}
 
 	for w := range s.watchers {
 		// One slot per watcher: a watcher that falls behind finds only the latest state.
@@ -304,8 +314,13 @@ func (svc *Service) transition(ctx context.Context, s *session, state *whatsmeow
 	return err
 }
 
+// execer is the database or a transaction.
+type execer interface {
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+}
+
 // persist writes what a restart needs: the device's JIDs and a stopping state. s.mu is held.
-func (svc *Service) persist(ctx context.Context, s *session) error {
+func (svc *Service) persist(ctx context.Context, db execer, s *session) error {
 	var stopped []byte
 
 	if kept(s.state) {
@@ -315,7 +330,7 @@ func (svc *Service) persist(ctx context.Context, s *session) error {
 		}
 	}
 
-	if _, err := svc.db.ExecContext(ctx, "UPDATE session SET jid = ?, lid = ?, stop_state = ? WHERE id = ?",
+	if _, err := db.ExecContext(ctx, "UPDATE session SET jid = ?, lid = ?, stop_state = ? WHERE id = ?",
 		nullable(s.jid), nullable(s.lid), stopped, s.id); err != nil {
 		return fmt.Errorf("record session %q: %w", s.id, err)
 	}
@@ -400,8 +415,8 @@ func (svc *Service) get(id string) (*session, error) {
 }
 
 func validate(id string) error {
-	if !idPattern.MatchString(id) {
-		return fmt.Errorf("session id: %w", server.InvalidArgument("session_id", "%q is not 1 to 64 of [A-Za-z0-9._-] starting with a letter or a digit", id))
+	if err := server.CheckID("session_id", id); err != nil {
+		return fmt.Errorf("session id: %w", err)
 	}
 
 	return nil
@@ -468,7 +483,8 @@ func (svc *Service) ListSessions(context.Context, *whatsmeowv1.ListSessionsReque
 	return resp, nil
 }
 
-// DeleteSession disconnects the session if it is connected, deletes its device and its row, and ends its watches.
+// DeleteSession disconnects the session if it is connected, deletes its device and its row, with its outbox events and
+// cursors, and ends its watches and event streams.
 func (svc *Service) DeleteSession(ctx context.Context, req *whatsmeowv1.DeleteSessionRequest) (*whatsmeowv1.DeleteSessionResponse, error) {
 	s, err := svc.get(req.GetSessionId())
 	if err != nil {
@@ -502,6 +518,10 @@ func (svc *Service) DeleteSession(ctx context.Context, req *whatsmeowv1.DeleteSe
 	if _, err := svc.db.ExecContext(ctx, "DELETE FROM session WHERE id = ?", s.id); err != nil {
 		return nil, fmt.Errorf("delete session %q: %w", s.id, err)
 	}
+
+	// Its outbox events and cursors went with the row (ON DELETE CASCADE); its event streams end. Before the session
+	// leaves svc.sessions, so a session created again with this id never gets the old one's ended watch.
+	svc.box.Delete(s.id)
 
 	svc.mu.Lock()
 	delete(svc.sessions, s.id)

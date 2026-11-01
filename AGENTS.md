@@ -77,7 +77,7 @@ Sidecar (#4). Copy it for the next slice; do not invent a second pattern.
 * Go slice: `sidecar/internal/sidecar/` behind `sidecar/internal/server/` (lenient codec, token check, shutdown gate, the one ErrorInfo mapping); its tests run whatsmeow-free over `bufconn`. A slice that fails with a reason wraps `server.Err<Reason>` (`sidecar/internal/session/` is the first); one that talks to whatsmeow declares a small `Client` interface and tests it with a stub on a real store.
 * .NET: the entry point and shared public types at the project root in namespace `Whatsmeow` (`WhatsmeowSidecar.cs`, `WhatsmeowException.cs`, ...); internals in `Sidecar/` (process, supervisor, proto to record mapping) and `Core/<Area>/` (`Core/Errors/RpcErrors.cs` maps every `RpcException`). Namespaces: ADR 0018.
 * Tests: FullCycle `dotnet/tests/Whatsmeow.IntegrationTests/Sidecar/GetInfoTests.cs` on the shared `FakeSidecar` fixture (one fake-mode sidecar for the run, ADR 0019); every later slice's FullCycle uses it. `FakeTimeProvider` unit tests in `dotnet/tests/Whatsmeow.Client.Tests/Sidecar/`.
-* Only start and stop tests (`Sidecar/SidecarTests.cs`, on the `SidecarBinaries` fixture) start a sidecar per test, because that is the behaviour under test.
+* Only start and stop tests (`Sidecar/SidecarTests.cs`, on the `SidecarBinaries` fixture) start a sidecar per test, because that is the behaviour under test; so do the events tests that stop or kill the .NET side (`Events/EventProcessTests.cs`, with the fixture's fake build).
 * Fake controls: an RPC in `proto/whatsmeow/fake/v1/fake.proto`, implemented in `sidecar/internal/fakewhatsapp/` and tested there over `bufconn` through the real `server.Server`.
 
 ## Where does X go
@@ -91,6 +91,7 @@ Sidecar (#4). Copy it for the next slice; do not invent a second pattern.
 | Entry point and public types shared across slices (`WhatsmeowSidecar`, options, `SidecarInfo`, `WhatsmeowException` and subtypes, later `Jid`, ids, `IWhatsAppClient`), namespace `Whatsmeow` | `dotnet/src/Whatsmeow.Client/` (project root) |
 | Slice-only public records, namespace `Whatsmeow.<Slice>`; slice internals and proto ↔ record mapping | `dotnet/src/Whatsmeow.Client/<Slice>/` |
 | Transport, dispatcher, error mapping, telemetry (internal) | `dotnet/src/Whatsmeow.Client/Core/<Area>/` |
+| A schema change to the sidecar's tables | a new numbered step in `sidecar/internal/store/store.go` (`steps()`), never an edit to a merged one (ADR 0022) |
 | New error reason | `ErrorReason` in `proto/whatsmeow/v1/error.proto` + exception subtype (§8.7) |
 | DI, options, hosted supervisor | `dotnet/src/Whatsmeow.Extensions.Hosting/` |
 | Consumer fakes | `dotnet/src/Whatsmeow.Testing/` |

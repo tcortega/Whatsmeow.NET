@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-	<!-- The parent process of the kill-parent integration test; not a test project itself. -->
+	<!-- The parent process of the kill-parent integration test and the process the events kill test kills; not a test project itself. -->
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
 		<IsPackable>false</IsPackable>
@@ -7,6 +7,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Diagnostics.Testing" />
+		<PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
 	</ItemGroup>
 
 	<ItemGroup>

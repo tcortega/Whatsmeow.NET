@@ -26,7 +26,6 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 	private readonly int _minProtocol;
 	private readonly int _maxProtocol;
 	private readonly bool _fakeWhatsApp;
-	private readonly TimeProvider _timeProvider;
 	private readonly ILogger _log;
 	private readonly ILogger _sidecarLog;
 	private readonly LocalChannel _channel;
@@ -56,7 +55,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		_minProtocol = minProtocol;
 		_maxProtocol = maxProtocol;
 		_fakeWhatsApp = fakeWhatsApp;
-		_timeProvider = timeProvider;
+		TimeProvider = timeProvider;
 		_log = loggerFactory.CreateLogger(SidecarLog.Category);
 		_sidecarLog = loggerFactory.CreateLogger(SidecarLog.SidecarCategory);
 		_channel = new LocalChannel(options.Transport is SidecarTransport.NamedPipe, () => _current?.Endpoint, () => _current?.Token ?? "", loggerFactory);
@@ -90,14 +89,23 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		int maxProtocol,
 		CancellationToken cancellationToken
 	) =>
-		StartCoreAsync(options, loggerFactory, minProtocol, maxProtocol, fakeWhatsApp: false, cancellationToken);
+		StartCoreAsync(options, loggerFactory, minProtocol, maxProtocol, fakeWhatsApp: false, timeProvider: null, cancellationToken);
 
 	/// <summary>
 	/// Starts a test build of the sidecar with <c>--fake-whatsapp</c>, for the integration tests' shared fixture
 	/// (ADR 0019). A release build refuses the flag, so this fails with <see cref="SidecarUnavailableException"/> there.
 	/// </summary>
 	internal static Task<WhatsmeowSidecar> StartFakeWhatsAppAsync(WhatsmeowSidecarOptions options, ILoggerFactory loggerFactory, CancellationToken cancellationToken) =>
-		StartCoreAsync(options, loggerFactory, MinProtocol, MaxProtocol, fakeWhatsApp: true, cancellationToken);
+		StartCoreAsync(options, loggerFactory, MinProtocol, MaxProtocol, fakeWhatsApp: true, timeProvider: null, cancellationToken);
+
+	/// <summary>Starts a test build with <c>--fake-whatsapp</c> on <paramref name="timeProvider"/>, so a test can hold the clock still.</summary>
+	internal static Task<WhatsmeowSidecar> StartFakeWhatsAppAsync(
+		WhatsmeowSidecarOptions options,
+		ILoggerFactory loggerFactory,
+		TimeProvider timeProvider,
+		CancellationToken cancellationToken
+	) =>
+		StartCoreAsync(options, loggerFactory, MinProtocol, MaxProtocol, fakeWhatsApp: true, timeProvider, cancellationToken);
 
 	private static async Task<WhatsmeowSidecar> StartCoreAsync(
 		WhatsmeowSidecarOptions options,
@@ -105,6 +113,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		int minProtocol,
 		int maxProtocol,
 		bool fakeWhatsApp,
+		TimeProvider? timeProvider,
 		CancellationToken cancellationToken
 	)
 	{
@@ -127,7 +136,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		var socketDirectory = effective.Transport is SidecarTransport.UnixDomainSocket ? Directory.CreateTempSubdirectory("wmn-").FullName : null;
 
 #pragma warning disable RS0030 // Justification: the default when none is injected (docs/guidelines/csharp.md Time)
-		var timeProvider = TimeProvider.System;
+		timeProvider ??= TimeProvider.System;
 #pragma warning restore RS0030
 
 		var sidecar = new WhatsmeowSidecar(effective, binary, socketDirectory, minProtocol, maxProtocol, fakeWhatsApp, loggerFactory, timeProvider);
@@ -151,6 +160,9 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 	internal CallInvoker CallInvoker => _channel.CallInvoker;
 
 	internal bool IsDisposed => _disposed != 0;
+
+	/// <summary>The clock and timers of everything this sidecar's clients do.</summary>
+	internal TimeProvider TimeProvider { get; }
 
 	/// <summary>How many sidecars started so far, counting the first.</summary>
 	internal int Launches
@@ -204,15 +216,23 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 
 		try
 		{
-			await _disposing.CancelAsync().ConfigureAwait(false);
-			await _supervisor.DisposeAsync().ConfigureAwait(false);
+			try
+			{
+				// While the sidecar still runs: the handlers stop, and what they finished is acked (ARCHITECTURE §8.4).
+				await Sessions.StopEventsAsync().ConfigureAwait(false);
+			}
+			finally
+			{
+				await _disposing.CancelAsync().ConfigureAwait(false);
+				await _supervisor.DisposeAsync().ConfigureAwait(false);
+			}
 		}
 		finally
 		{
 			try
 			{
 				if (_current is { } process)
-					await process.StopAsync(ShutdownAsync, _timeProvider).ConfigureAwait(false);
+					await process.StopAsync(ShutdownAsync, TimeProvider).ConfigureAwait(false);
 			}
 			finally
 			{
@@ -233,9 +253,9 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 	{
 		// A sidecar that exited on its own is released before the next one starts.
 		if (_current is { } previous)
-			await previous.StopAsync(ShutdownAsync, _timeProvider).ConfigureAwait(false);
+			await previous.StopAsync(ShutdownAsync, TimeProvider).ConfigureAwait(false);
 
-		using var timeout = new CancellationTokenSource(_options.StartupTimeout, _timeProvider);
+		using var timeout = new CancellationTokenSource(_options.StartupTimeout, TimeProvider);
 		using var startup = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
 
 		var process = await SidecarProcess
@@ -251,7 +271,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		}
 		catch (Exception e) when (e is WhatsmeowException or OperationCanceledException)
 		{
-			await process.StopAsync(ShutdownAsync, _timeProvider).ConfigureAwait(false);
+			await process.StopAsync(ShutdownAsync, TimeProvider).ConfigureAwait(false);
 			cancellationToken.ThrowIfCancellationRequested();
 			SidecarUnavailableException.ThrowStartFailed($"its first GetInfo call failed: {e.Message}", process.Tail(), e);
 			throw;
@@ -260,7 +280,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		var protocol = (int)info.Protocol;
 		if (info.Version != ClientVersion.Current || protocol < _minProtocol || protocol > _maxProtocol)
 		{
-			await process.StopAsync(ShutdownAsync, _timeProvider).ConfigureAwait(false);
+			await process.StopAsync(ShutdownAsync, TimeProvider).ConfigureAwait(false);
 			SidecarVersionMismatchException.Throw(ClientVersion.Current, info.Version, protocol, _minProtocol, _maxProtocol);
 		}
 

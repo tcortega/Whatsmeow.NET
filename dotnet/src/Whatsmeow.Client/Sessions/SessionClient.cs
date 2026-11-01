@@ -1,24 +1,63 @@
 using System.Runtime.CompilerServices;
 using Grpc.Core;
 using Whatsmeow.Core.Errors;
+using Whatsmeow.Events;
 using Whatsmeow.Pairing;
 using Whatsmeow.Protocol.V1;
 
 namespace Whatsmeow.Sessions;
 
 /// <summary>A session's <see cref="IWhatsAppClient"/>: calls on the sidecar's one channel.</summary>
-internal sealed class SessionClient(WhatsmeowSessions sessions, WhatsmeowSidecar sidecar, SessionService.SessionServiceClient client, SessionId sessionId)
-	: IWhatsAppClient
+internal sealed class SessionClient(
+	WhatsmeowSessions sessions,
+	WhatsmeowSidecar sidecar,
+	SessionService.SessionServiceClient client,
+	CallInvoker invoker,
+	SessionId sessionId,
+	ILogger log
+) : IWhatsAppClient, IAsyncDisposable
 {
+	/// <summary>How long a watch waits before it opens again after a call that ended without a status.</summary>
+	private static readonly TimeSpan s_retryDelay = TimeSpan.FromSeconds(1);
+
+	private readonly SessionEvents _events = new(sidecar, invoker, sessionId, sidecar.TimeProvider, log);
+
 	public SessionId SessionId => sessionId;
+
+	public IDisposable On<TEvent>(Func<TEvent, CancellationToken, ValueTask> handler)
+		where TEvent : WhatsAppEvent
+	{
+		ObjectDisposedException.ThrowIf(_events.IsDisposed, this);
+		return _events.On(handler);
+	}
+
+	public Task<TEvent> WaitForAsync<TEvent>(Func<TEvent, bool> predicate, TimeSpan timeout, CancellationToken cancellationToken = default)
+		where TEvent : WhatsAppEvent
+	{
+		ObjectDisposedException.ThrowIf(_events.IsDisposed, this);
+		return _events.WaitForAsync(predicate, timeout, cancellationToken);
+	}
+
+	public IDisposable OnHandlerError(Action<HandlerError> handler)
+	{
+		ObjectDisposedException.ThrowIf(_events.IsDisposed, this);
+		return _events.OnHandlerError(handler);
+	}
+
+	/// <summary>Stops the session's events and acks what was handled.</summary>
+	public ValueTask DisposeAsync() => _events.DisposeAsync();
 
 	public async Task ConnectAsync(CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		ObjectDisposedException.ThrowIf(_events.IsDisposed, this);
 		_ = await RpcErrors
 			.CallAsync(client.ConnectAsync(new ConnectRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken))
 			.ConfigureAwait(false);
 		sessions.Remember(sessionId);
+
+		// Events flow from the first connect in this process (ADR 0022).
+		_events.Start();
 	}
 
 	public async Task DisconnectAsync(CancellationToken cancellationToken = default)
@@ -100,24 +139,41 @@ internal sealed class SessionClient(WhatsmeowSessions sessions, WhatsmeowSidecar
 			var launch = sidecar.Launches;
 			using var call = client.WatchSessionState(new WatchSessionStateRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken);
 
-			while (await NextAsync(call.ResponseStream, cancellationToken).ConfigureAwait(false) is { } more)
-			{
-				if (!more)
-					yield break;
+			Next next;
+			while ((next = await NextAsync(call.ResponseStream, launch, cancellationToken).ConfigureAwait(false)) is Next.State)
 				yield return SessionMapping.ToState(call.ResponseStream.Current.State);
-			}
+
+			if (next is Next.End)
+				yield break;
 
 			// The sidecar went away: the stream goes on from the restarted one, whose first state is its current one.
-			await sidecar.WaitForLaunchAsync(launch, cancellationToken).ConfigureAwait(false);
+			if (next is Next.Gone)
+				await sidecar.WaitForLaunchAsync(launch, cancellationToken).ConfigureAwait(false);
 		}
 	}
 
-	/// <summary>Reads the next state: true when there is one, null when the sidecar went away, otherwise it throws.</summary>
-	private async Task<bool?> NextAsync(IAsyncStreamReader<WatchSessionStateResponse> stream, CancellationToken cancellationToken)
+	/// <summary>What reading the next state found.</summary>
+	private enum Next
+	{
+		/// <summary>A state.</summary>
+		State,
+
+		/// <summary>The stream ended.</summary>
+		End,
+
+		/// <summary>The sidecar went away: open again once it is back.</summary>
+		Gone,
+
+		/// <summary>The call ended without a status: open again now.</summary>
+		Again,
+	}
+
+	/// <summary>Reads the next state, or finds why there is none; a failure the watch cannot go on from throws.</summary>
+	private async Task<Next> NextAsync(IAsyncStreamReader<WatchSessionStateResponse> stream, int launch, CancellationToken cancellationToken)
 	{
 		try
 		{
-			return await stream.MoveNext(cancellationToken).ConfigureAwait(false);
+			return await stream.MoveNext(cancellationToken).ConfigureAwait(false) ? Next.State : Next.End;
 		}
 		catch (RpcException) when (sidecar.IsDisposed)
 		{
@@ -126,7 +182,16 @@ internal sealed class SessionClient(WhatsmeowSessions sessions, WhatsmeowSidecar
 		}
 		catch (RpcException e) when (RpcErrors.IsUnreachable(e))
 		{
-			return null;
+			return Next.Gone;
+		}
+		catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+		{
+			// A call can end with no status at all, as one to a sidecar that is gone does [observed: WatchDownTests]. The
+			// same sidecar may still be up, so it does not wait for a launch: it opens again, after a pause if none
+			// happened since the call opened.
+			if (sidecar.Launches == launch)
+				await Task.Delay(s_retryDelay, sidecar.TimeProvider, cancellationToken).ConfigureAwait(false);
+			return Next.Again;
 		}
 		catch (RpcException e)
 		{

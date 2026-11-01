@@ -18,6 +18,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/test/bufconn"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	fakev1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/fake/v1"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
@@ -249,4 +250,114 @@ func TestDeliveringToASessionWithoutAClientFails(t *testing.T) {
 	if err == nil || !strings.Contains(err.Error(), ErrNoClient.Error()) {
 		t.Fatalf("DeliverMessage = %v, want %v", err, ErrNoClient)
 	}
+}
+
+func TestDeliverMessageDispatchesItsInfoAndText(t *testing.T) {
+	t.Parallel()
+
+	whatsApp, control, ctx := start(t)
+	handled := make(chan *events.Message, 1)
+	whatsApp.NewClient("s1").AddEventHandlerWithSuccessStatus(func(evt any) bool {
+		handled <- evt.(*events.Message)
+
+		return true
+	})
+
+	at := time.Unix(1_700_000_000, 0)
+	if _, err := control.DeliverMessage(ctx, &fakev1.DeliverMessageRequest{
+		SessionId: "s1", Id: "M1", Chat: "120363000000000000@g.us", Sender: "111@lid", SenderAlt: "5511999999999@s.whatsapp.net",
+		RecipientAlt: "222@lid", IsFromMe: true, PushName: "Ana", Text: "hi", MessageTime: timestamppb.New(at),
+	}); err != nil {
+		t.Fatalf("DeliverMessage: %v", err)
+	}
+
+	var evt *events.Message
+
+	select {
+	case evt = <-handled:
+	case <-ctx.Done():
+		t.Fatal("DeliverMessage dispatched nothing")
+	}
+
+	info := evt.Info
+	if info.Chat.String() != "120363000000000000@g.us" || !info.IsGroup || info.Sender.String() != "111@lid" ||
+		info.SenderAlt.String() != "5511999999999@s.whatsapp.net" || info.RecipientAlt.String() != "222@lid" || !info.IsFromMe ||
+		info.ID != "M1" || info.PushName != "Ana" || !info.Timestamp.Equal(at) || evt.Message.GetConversation() != "hi" {
+		t.Fatalf("dispatched %+v with %v", info, evt.Message)
+	}
+}
+
+func TestDeliverUndecryptableMessageDispatchesItAndRecordsNoReceipt(t *testing.T) {
+	t.Parallel()
+
+	whatsApp, control, ctx := start(t)
+	handled := make(chan any, 2)
+	whatsApp.NewClient("s1").AddEventHandlerWithSuccessStatus(func(evt any) bool {
+		handled <- evt
+
+		return true
+	})
+
+	at := time.Unix(1_700_000_000, 0)
+	if _, err := control.DeliverUndecryptableMessage(ctx, &fakev1.DeliverUndecryptableMessageRequest{
+		SessionId: "s1", Id: "M1", Chat: "111@s.whatsapp.net", Sender: "111@s.whatsapp.net", HidePlaceholder: true, MessageTime: timestamppb.New(at),
+	}); err != nil {
+		t.Fatalf("DeliverUndecryptableMessage: %v", err)
+	}
+
+	var got any
+
+	select {
+	case got = <-handled:
+	case <-ctx.Done():
+		t.Fatal("DeliverUndecryptableMessage dispatched nothing")
+	}
+
+	evt, ok := got.(*events.UndecryptableMessage)
+	if !ok || evt.Info.ID != "M1" || evt.Info.Chat.String() != "111@s.whatsapp.net" || evt.Info.Sender.String() != "111@s.whatsapp.net" ||
+		evt.DecryptFailMode != events.DecryptFailHide || !evt.Info.Timestamp.Equal(at) {
+		t.Fatalf("dispatched %+v", evt)
+	}
+
+	// The resend that decrypts is a normal message: its receipt is the session's first entry.
+	if _, err := control.DeliverMessage(ctx, &fakev1.DeliverMessageRequest{SessionId: "s1", Id: "M1"}); err != nil {
+		t.Fatalf("DeliverMessage: %v", err)
+	}
+
+	wantSent(t, waitForSent(ctx, t, control, "s1", 0), receipt(1, "s1", "M1"))
+}
+
+func TestDeliveringAnUndecryptableMessageToASessionWithoutAClientFails(t *testing.T) {
+	t.Parallel()
+
+	_, control, ctx := start(t)
+	if _, err := control.DeliverUndecryptableMessage(ctx, &fakev1.DeliverUndecryptableMessageRequest{SessionId: "nope", Id: "M1"}); err == nil {
+		t.Fatal("DeliverUndecryptableMessage to a session without a client succeeded")
+	}
+}
+
+func TestASenderKeyDeliveryDispatchesTheSenderKeyThenTheContentAndAnswersOnce(t *testing.T) {
+	t.Parallel()
+
+	whatsApp, control, ctx := start(t)
+	handled := make(chan *events.Message, 2)
+	whatsApp.NewClient("s1").AddEventHandlerWithSuccessStatus(func(evt any) bool {
+		handled <- evt.(*events.Message)
+
+		return true
+	})
+
+	if _, err := control.DeliverMessage(ctx, &fakev1.DeliverMessageRequest{
+		SessionId: "s1", Id: "M1", Chat: "120363000000000000@g.us", Sender: "111@lid", Text: "hi", SenderKey: true,
+	}); err != nil {
+		t.Fatalf("DeliverMessage: %v", err)
+	}
+
+	first, second := <-handled, <-handled
+	if first.Message.GetSenderKeyDistributionMessage() == nil || first.Message.GetConversation() != "" ||
+		second.Message.GetConversation() != "hi" || first.Info.ID != "M1" || second.Info.ID != "M1" {
+		t.Fatalf("dispatched %v then %v; want the sender key, then the content, both M1", first.Message, second.Message)
+	}
+
+	wantSent(t, waitForSent(ctx, t, control, "s1", 0), receipt(1, "s1", "M1"))
 }
