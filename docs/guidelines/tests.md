@@ -121,7 +121,7 @@ Any of these in a diff is a failed slice, green or not:
 * hooks or modules that patch xUnit results
 * overriding `Equals`, `==`, or a comparer on a public record so assertions pass (record structural equality is required, not a cheat)
 * `try/catch` or `if` around an assert so failure is swallowed
-* new `Skip`, `Skip.If`, commented-out facts, or `Assert.True(true)`; the single declared platform condition is `Start_ABinaryOnANoexecMount_RunsACopy`, which needs a `noexec` mount that only root can make: it runs where `WHATSMEOW_NET_TEST_NOEXEC_DIR` names one (`build/ci.sh` provides it on linux-x64 CI), and fails instead of skipping when `CI=true` on linux-x64 and the mount is missing
+* new `Skip`, `Skip.If`, commented-out facts, or `Assert.True(true)`; the single declared platform condition is `NoexecTests` (the copy fallback), which needs a `noexec` mount that only root can make: its tests run where `WHATSMEOW_NET_TEST_NOEXEC_DIR` names one (`build/ci.sh` provides it on linux-x64 CI), and fails instead of skipping when `CI=true` on linux-x64 and the mount is missing
 * weakening `Assert.Equal(expected, actual)` to `NotNull` or dropping fields
 * special-casing chats, ids, or payloads that exist only in the test
 * retries or loops to get past a failure
