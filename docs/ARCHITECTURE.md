@@ -294,15 +294,17 @@ Ephemeral high-volume events (presence, typing) bypass the outbox. They go into 
 
 Every whatsmeow signal maps to exactly one state. Each transition is written to the outbox as a `ConnectionStateEvent` and published to `WatchSessionState`.
 
-`Created → Pairing → Connecting → Connected → CaughtUp`, with transient `Reconnecting`, the idle `Disconnected` (paired but offline, after `Disconnect` or a sidecar restart; the sidecar never connects a session on its own), and the terminal or blocking states `LoggedOut`, `Replaced`, `TempBanned{until}`, `Outdated`, `Error{reason}`.
-whatsmeow's `events.PermanentDisconnect` implementations at the pin are `*LoggedOut`, `*StreamReplaced`, `*ClientOutdated`, `*CATRefreshError`, `*TemporaryBan` and `*ConnectFailure` (`types/events/events.go:118-128`); each maps to one of these states (`CATRefreshError` and `ConnectFailure` to `Error{reason}`).
+`Created → Pairing → Connecting → Connected → CaughtUp`, with transient `Reconnecting`, the idle `Disconnected` (paired but offline, after `Disconnect` or a sidecar restart; the sidecar never connects a session on its own), and the terminal or blocking states `LoggedOut{code}`, `Replaced`, `TempBanned{code, expire_time}`, `Outdated`, `Error{code, message}`.
+After a sidecar restart, a never-paired session is `Created`, a `LoggedOut` one stays `LoggedOut` with its code, and every other paired one is `Disconnected`.
+whatsmeow's `events.PermanentDisconnect` implementations at the pin are `*LoggedOut`, `*StreamReplaced`, `*ClientOutdated`, `*CATRefreshError`, `*TemporaryBan` and `*ConnectFailure` (`types/events/events.go:118-128`); each maps to one of these states (`CATRefreshError` and `ConnectFailure` to `Error`).
 
 Actions the sidecar itself starts (`Disconnect`, `Logout`) produce no whatsmeow events (a self-initiated `Logout()` emits no `LoggedOut`), so the sidecar synthesizes those transitions. On a server-side `LoggedOut`, whatsmeow dispatches the event on a goroutine and deletes the device rows concurrently (`go cli.dispatchEvent(...)` then `cli.Store.Delete(ctx)`, `connectionevents.go:43-44`), so the handler may see the rows before or after deletion. The `LoggedOut` handler must not read or write the device rows and must not delete them itself; it only writes the outbox transition. Each SQLite file has a single owner, enforced with a lock file or lease row.
 
 ### 7.5 Sending
 
-- Per-session FIFO queue with a token bucket and jitter. It pauses on `TempBanned`, backs off on 429, and fails all pending sends on `LoggedOut`.
-- Idempotent sends: .NET supplies `client_message_id`, which is used as the WhatsApp message ID through `SendRequestExtra.ID` and persisted with the result.
+- Per-session FIFO queue with a token bucket and jitter, pacing sends while the session is connected. A WhatsApp 429 is retried with backoff within the call's deadline, then fails with `RATE_LIMITED`.
+- Sends never wait for a connection: a session that is not logged in, not connected or `TempBanned` fails at once (`NOT_LOGGED_IN` or `LOGGED_OUT`, `NOT_CONNECTED`, `TEMPORARILY_BANNED`). Queued sends fail when the session leaves `Connected` (`NOT_CONNECTED`, or `LOGGED_OUT`).
+- Idempotent sends: .NET supplies `client_message_id`, which is used as the WhatsApp message ID through `SendRequestExtra.ID`. The send is recorded before the hand-off to whatsmeow and its result after, so a repeat returns the recorded result; the rules are in `message.proto`.
 - **A send whose outcome is unknown is never automatically replayed.** It surfaces as an error.
 - Responses report `SendResponse.Chat`, because whatsmeow redirects a phone-number user JID to its LID, fetching it with `GetUserInfo` if needed; with no LID it returns `ErrRecipientNotOnWhatsApp` (`send.go:340-363`), which maps to `RECIPIENT_NOT_ON_WHATSAPP`.
 
@@ -405,7 +407,7 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
   - Embedded mode requires `sidecar.version == client.version`.
   - Every mode requires `sidecar.protocol` to be within `[MinProtocol, MaxProtocol]`.
   - A mismatch is a hard `SidecarVersionMismatchException`.
-- After a restart, the event reader resumes from the server-side cursor. Users see a `SidecarRestarted` diagnostic event, not a gap.
+- After a sidecar restart, the supervisor calls `Connect` again for the sessions the application had connected, and the event reader reopens `StreamEvents` with `after_seq` = the highest `seq` it received in this process (0 in a new process, so the server-side cursor decides). Users see a `SidecarRestarted` diagnostic event, not a gap.
 
 ### 8.6 Transport
 
@@ -424,8 +426,27 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
 - Subtypes:
   - `SidecarUnavailableException`, `SidecarVersionMismatchException`
   - `NotLoggedInException`, `SessionLoggedOutException`, `SessionNotFoundException`
-  - `RateLimitedException` (`RetryAfter`, a `TimeSpan`), `TemporarilyBannedException` (`Until`, a `DateTimeOffset`)
+  - `NotConnectedException`, `PairingException`, `OutcomeUnknownException`
+  - `RateLimitedException`, `TemporarilyBannedException` (`Until`, a `DateTimeOffset?`; null when WhatsApp sent no end)
   - `RecipientNotFoundException`, `MediaExpiredException`, `WhatsmeowValidationException`
+- `RateLimitedException` has no `RetryAfter`: whatsmeow's `IQError` has no delay field, only `Code`, `Text` and the raw nodes (`errors.go:179-184`), so there is no source for one; whether the raw node carries one is [unknown].
+- Each `ErrorReason` (`proto/whatsmeow/v1/error.proto`) maps to one exception; a status without `ErrorInfo`, or a reason the client does not know, is a plain `WhatsmeowException`:
+
+| Reason | Exception |
+|---|---|
+| `INTERNAL`, `CONSUMER_REPLACED`, `WHATSAPP_ERROR` | `WhatsmeowException` |
+| `INVALID_ARGUMENT` | `WhatsmeowValidationException` |
+| `UNAUTHENTICATED`, `SIDECAR_SHUTTING_DOWN` | `SidecarUnavailableException` |
+| `SESSION_NOT_FOUND` | `SessionNotFoundException` |
+| `NOT_LOGGED_IN` | `NotLoggedInException` |
+| `LOGGED_OUT` | `SessionLoggedOutException` |
+| `ALREADY_PAIRED`, `PAIRING_IN_PROGRESS`, `PAIRING_TIMED_OUT`, `PAIRING_FAILED` | `PairingException` |
+| `NOT_CONNECTED`, `CONNECTION_FAILED` | `NotConnectedException` |
+| `TEMPORARILY_BANNED` | `TemporarilyBannedException` |
+| `RECIPIENT_NOT_ON_WHATSAPP` | `RecipientNotFoundException` |
+| `RATE_LIMITED` | `RateLimitedException` |
+| `OUTCOME_UNKNOWN` | `OutcomeUnknownException` |
+
 - Cancellation surfaces as `OperationCanceledException`, and deadlines as `TimeoutException`.
 - `RpcException` never escapes the public API. No Result types for I/O failures.
 - Exceptions are raised through per-type static throw helpers, never `throw new` at a call site ([guidelines/csharp.md](guidelines/csharp.md) Control flow). `WhatsmeowValidationException` is also the Vogen `throws:` type.
@@ -458,7 +479,7 @@ Moved to [guidelines/csharp.md](guidelines/csharp.md) Async and concurrency: `Ch
 
 **Pairing:** `Pair` stream opens → sidecar calls `GetQRChannel` and then `Connect` (`GetQRChannel` after connect returns `ErrQRAlreadyConnected`) → QR codes are streamed (or a phone pairing code via `PairPhone` after the first QR event; whatsmeow documents this order but does not enforce it) → `PairSuccess` → the sidecar waits on `Client.PreKeysUploaded` (an `*exsync.Event` field, not an event type; it fires on the first successful pre-key upload, on the connect after pairing) → `success` → session state becomes `Connected`.
 
-**Startup:** locate the binary → chmod → spawn → write the token → ready line → nonce check → health check → `GetInfo` version check → `WatchSessionState` and `StreamEvents(after_seq = cursor)` for each session.
+**Startup:** locate the binary → chmod → spawn → write the token → ready line → nonce check → health check → `GetInfo` version check → `Connect` for the sessions the application had connected → `WatchSessionState` and `StreamEvents(after_seq = the highest seq received in this process, 0 in a new process)` for each session.
 
 ---
 

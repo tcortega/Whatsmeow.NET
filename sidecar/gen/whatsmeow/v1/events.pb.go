@@ -397,7 +397,7 @@ func (x *ReceiptEvent) GetType() ReceiptType {
 	return ReceiptType_RECEIPT_TYPE_UNSPECIFIED
 }
 
-// UndecryptableMessageEvent is a message that failed to decrypt. whatsmeow has asked for a resend, and a resend
+// UndecryptableMessageEvent is a message that failed to decrypt. whatsmeow usually asks for a resend, and a resend
 // that decrypts arrives later as a MessageEvent.
 type UndecryptableMessageEvent struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -569,10 +569,6 @@ type StreamEventsResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The sequence number.
 	Seq uint64 `protobuf:"varint,1,opt,name=seq,proto3" json:"seq,omitempty"`
-	// The session.
-	SessionId string `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	// When the sidecar recorded the event.
-	RecordTime *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=record_time,json=recordTime,proto3" json:"record_time,omitempty"`
 	// The event.
 	//
 	// Types that are valid to be assigned to Payload:
@@ -621,20 +617,6 @@ func (x *StreamEventsResponse) GetSeq() uint64 {
 		return x.Seq
 	}
 	return 0
-}
-
-func (x *StreamEventsResponse) GetSessionId() string {
-	if x != nil {
-		return x.SessionId
-	}
-	return ""
-}
-
-func (x *StreamEventsResponse) GetRecordTime() *timestamppb.Timestamp {
-	if x != nil {
-		return x.RecordTime
-	}
-	return nil
 }
 
 func (x *StreamEventsResponse) GetPayload() isStreamEventsResponse_Payload {
@@ -849,13 +831,9 @@ const file_whatsmeow_v1_events_proto_rawDesc = "" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x1a\n" +
 	"\bconsumer\x18\x02 \x01(\tR\bconsumer\x12\x1b\n" +
-	"\tafter_seq\x18\x03 \x01(\x04R\bafterSeq\"\xb0\x03\n" +
+	"\tafter_seq\x18\x03 \x01(\x04R\bafterSeq\"\xd4\x02\n" +
 	"\x14StreamEventsResponse\x12\x10\n" +
-	"\x03seq\x18\x01 \x01(\x04R\x03seq\x12\x1d\n" +
-	"\n" +
-	"session_id\x18\x02 \x01(\tR\tsessionId\x12;\n" +
-	"\vrecord_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"recordTime\x126\n" +
+	"\x03seq\x18\x01 \x01(\x04R\x03seq\x126\n" +
 	"\amessage\x18\n" +
 	" \x01(\v2\x1a.whatsmeow.v1.MessageEventH\x00R\amessage\x126\n" +
 	"\areceipt\x18\v \x01(\v2\x1a.whatsmeow.v1.ReceiptEventH\x00R\areceipt\x12^\n" +
@@ -927,20 +905,19 @@ var file_whatsmeow_v1_events_proto_depIdxs = []int32{
 	0,  // 6: whatsmeow.v1.ReceiptEvent.type:type_name -> whatsmeow.v1.ReceiptType
 	2,  // 7: whatsmeow.v1.UndecryptableMessageEvent.info:type_name -> whatsmeow.v1.MessageInfo
 	13, // 8: whatsmeow.v1.ConnectionStateEvent.state:type_name -> whatsmeow.v1.SessionState
-	11, // 9: whatsmeow.v1.StreamEventsResponse.record_time:type_name -> google.protobuf.Timestamp
-	3,  // 10: whatsmeow.v1.StreamEventsResponse.message:type_name -> whatsmeow.v1.MessageEvent
-	4,  // 11: whatsmeow.v1.StreamEventsResponse.receipt:type_name -> whatsmeow.v1.ReceiptEvent
-	5,  // 12: whatsmeow.v1.StreamEventsResponse.undecryptable_message:type_name -> whatsmeow.v1.UndecryptableMessageEvent
-	6,  // 13: whatsmeow.v1.StreamEventsResponse.connection_state:type_name -> whatsmeow.v1.ConnectionStateEvent
-	7,  // 14: whatsmeow.v1.EventService.StreamEvents:input_type -> whatsmeow.v1.StreamEventsRequest
-	9,  // 15: whatsmeow.v1.EventService.AckEvents:input_type -> whatsmeow.v1.AckEventsRequest
-	8,  // 16: whatsmeow.v1.EventService.StreamEvents:output_type -> whatsmeow.v1.StreamEventsResponse
-	10, // 17: whatsmeow.v1.EventService.AckEvents:output_type -> whatsmeow.v1.AckEventsResponse
-	16, // [16:18] is the sub-list for method output_type
-	14, // [14:16] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	3,  // 9: whatsmeow.v1.StreamEventsResponse.message:type_name -> whatsmeow.v1.MessageEvent
+	4,  // 10: whatsmeow.v1.StreamEventsResponse.receipt:type_name -> whatsmeow.v1.ReceiptEvent
+	5,  // 11: whatsmeow.v1.StreamEventsResponse.undecryptable_message:type_name -> whatsmeow.v1.UndecryptableMessageEvent
+	6,  // 12: whatsmeow.v1.StreamEventsResponse.connection_state:type_name -> whatsmeow.v1.ConnectionStateEvent
+	7,  // 13: whatsmeow.v1.EventService.StreamEvents:input_type -> whatsmeow.v1.StreamEventsRequest
+	9,  // 14: whatsmeow.v1.EventService.AckEvents:input_type -> whatsmeow.v1.AckEventsRequest
+	8,  // 15: whatsmeow.v1.EventService.StreamEvents:output_type -> whatsmeow.v1.StreamEventsResponse
+	10, // 16: whatsmeow.v1.EventService.AckEvents:output_type -> whatsmeow.v1.AckEventsResponse
+	15, // [15:17] is the sub-list for method output_type
+	13, // [13:15] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_whatsmeow_v1_events_proto_init() }

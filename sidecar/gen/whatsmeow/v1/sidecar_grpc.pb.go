@@ -28,8 +28,6 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
 // SidecarService is the process. grpc.health.v1.Health is served next to it.
-// Every RPC of every service can fail with UNAUTHENTICATED, SIDECAR_SHUTTING_DOWN and INTERNAL; the lists on
-// each RPC omit them.
 type SidecarServiceClient interface {
 	// GetInfo reports the sidecar's versions, for the client's version check after the ready line.
 	GetInfo(ctx context.Context, in *GetInfoRequest, opts ...grpc.CallOption) (*GetInfoResponse, error)
@@ -72,8 +70,6 @@ func (c *sidecarServiceClient) Shutdown(ctx context.Context, in *ShutdownRequest
 // for forward compatibility.
 //
 // SidecarService is the process. grpc.health.v1.Health is served next to it.
-// Every RPC of every service can fail with UNAUTHENTICATED, SIDECAR_SHUTTING_DOWN and INTERNAL; the lists on
-// each RPC omit them.
 type SidecarServiceServer interface {
 	// GetInfo reports the sidecar's versions, for the client's version check after the ready line.
 	GetInfo(context.Context, *GetInfoRequest) (*GetInfoResponse, error)

@@ -13,9 +13,13 @@ namespace Whatsmeow.Protocol.V1 {
   ///
   /// Each recorded event has a seq: greater than 0, unique in the sidecar's database, increasing in recording order,
   /// never reused. Sessions share the sequence, so one session's seqs have gaps.
-  /// The sidecar keeps a cursor per (session, consumer): the highest seq the consumer acked. It never deletes an
-  /// event above a cursor. A consumer is a name the client chooses, with the same rules as a session id.
-  /// A repeated event has the same seq and content; handlers dedupe on seq, or on (session id, message id).
+  /// The sidecar keeps a cursor per (session, consumer): the highest seq the consumer acked. A consumer is a name the
+  /// client chooses, with the same rules as a session id. Its cursor starts at 0, and StreamEvents or AckEvents
+  /// creates it; a new consumer gets the events still retained.
+  /// An event is deleted only after every consumer of its session acked it; a session with no consumer keeps every
+  /// event. The session's highest recorded seq is kept even when its rows are deleted.
+  /// A repeated event has the same seq and content; handlers dedupe on seq.
+  /// A client skips, but still acks, a payload case it does not know.
   /// </summary>
   internal static partial class EventService
   {
@@ -116,7 +120,8 @@ namespace Whatsmeow.Protocol.V1 {
       /// StreamEvents sends the session's events with seq above max(after_seq, cursor), in seq order: the backlog,
       /// then live events as they are recorded. It never ends with OK.
       /// An after_seq above the cursor skips events without acking them, for a client that resumes a dropped stream
-      /// while it still holds the events in between.
+      /// while it still holds the events in between: after_seq is the highest seq it received in this process, 0 in a
+      /// new process.
       /// A newer StreamEvents for the same session and consumer replaces an open one, which ends with
       /// CONSUMER_REPLACED. A client treats that as final and does not reopen.
       /// The stream ends with SESSION_NOT_FOUND when the session is deleted.
@@ -137,7 +142,8 @@ namespace Whatsmeow.Protocol.V1 {
       /// StreamEvents sends the session's events with seq above max(after_seq, cursor), in seq order: the backlog,
       /// then live events as they are recorded. It never ends with OK.
       /// An after_seq above the cursor skips events without acking them, for a client that resumes a dropped stream
-      /// while it still holds the events in between.
+      /// while it still holds the events in between: after_seq is the highest seq it received in this process, 0 in a
+      /// new process.
       /// A newer StreamEvents for the same session and consumer replaces an open one, which ends with
       /// CONSUMER_REPLACED. A client treats that as final and does not reopen.
       /// The stream ends with SESSION_NOT_FOUND when the session is deleted.

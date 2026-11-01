@@ -284,7 +284,7 @@ namespace Whatsmeow.Protocol.V1 {
       }
       /// <summary>
       /// DeleteSession disconnects the session if it is connected, then deletes its local data: device keys, outbox
-      /// events and consumer cursors. Open streams on it end with SESSION_NOT_FOUND.
+      /// events, consumer cursors and send records. Open streams on it end with SESSION_NOT_FOUND.
       /// It does not tell WhatsApp, so a paired device stays linked on the phone; to unlink it, call Logout first.
       /// Errors: SESSION_NOT_FOUND.
       /// </summary>
@@ -300,7 +300,7 @@ namespace Whatsmeow.Protocol.V1 {
       }
       /// <summary>
       /// DeleteSession disconnects the session if it is connected, then deletes its local data: device keys, outbox
-      /// events and consumer cursors. Open streams on it end with SESSION_NOT_FOUND.
+      /// events, consumer cursors and send records. Open streams on it end with SESSION_NOT_FOUND.
       /// It does not tell WhatsApp, so a paired device stays linked on the phone; to unlink it, call Logout first.
       /// Errors: SESSION_NOT_FOUND.
       /// </summary>
@@ -314,7 +314,7 @@ namespace Whatsmeow.Protocol.V1 {
       }
       /// <summary>
       /// DeleteSession disconnects the session if it is connected, then deletes its local data: device keys, outbox
-      /// events and consumer cursors. Open streams on it end with SESSION_NOT_FOUND.
+      /// events, consumer cursors and send records. Open streams on it end with SESSION_NOT_FOUND.
       /// It does not tell WhatsApp, so a paired device stays linked on the phone; to unlink it, call Logout first.
       /// Errors: SESSION_NOT_FOUND.
       /// </summary>
@@ -330,7 +330,7 @@ namespace Whatsmeow.Protocol.V1 {
       }
       /// <summary>
       /// DeleteSession disconnects the session if it is connected, then deletes its local data: device keys, outbox
-      /// events and consumer cursors. Open streams on it end with SESSION_NOT_FOUND.
+      /// events, consumer cursors and send records. Open streams on it end with SESSION_NOT_FOUND.
       /// It does not tell WhatsApp, so a paired device stays linked on the phone; to unlink it, call Logout first.
       /// Errors: SESSION_NOT_FOUND.
       /// </summary>
@@ -343,11 +343,12 @@ namespace Whatsmeow.Protocol.V1 {
         return CallInvoker.AsyncUnaryCall(__Method_DeleteSession, null, options, request);
       }
       /// <summary>
-      /// Connect connects a paired session and returns once the attempt has started (state Connecting).
-      /// A failure whatsmeow retries does not fail the call: the session goes Reconnecting.
-      /// Connecting a session that is connecting or connected succeeds and does nothing.
+      /// Connect connects a paired session. It returns after whatsmeow's connect call: OK once the session is connected
+      /// or retrying (Reconnecting). After CONNECTION_FAILED the session keeps its previous state.
+      /// Connecting a session that is connecting or connected succeeds and does nothing. From TempBanned, Outdated,
+      /// Replaced or Error it is a new attempt.
       /// The sidecar never connects a session on its own, also not after a restart.
-      /// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, CONNECTION_FAILED.
+      /// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -360,11 +361,12 @@ namespace Whatsmeow.Protocol.V1 {
         return Connect(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
       /// <summary>
-      /// Connect connects a paired session and returns once the attempt has started (state Connecting).
-      /// A failure whatsmeow retries does not fail the call: the session goes Reconnecting.
-      /// Connecting a session that is connecting or connected succeeds and does nothing.
+      /// Connect connects a paired session. It returns after whatsmeow's connect call: OK once the session is connected
+      /// or retrying (Reconnecting). After CONNECTION_FAILED the session keeps its previous state.
+      /// Connecting a session that is connecting or connected succeeds and does nothing. From TempBanned, Outdated,
+      /// Replaced or Error it is a new attempt.
       /// The sidecar never connects a session on its own, also not after a restart.
-      /// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, CONNECTION_FAILED.
+      /// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -375,11 +377,12 @@ namespace Whatsmeow.Protocol.V1 {
         return CallInvoker.BlockingUnaryCall(__Method_Connect, null, options, request);
       }
       /// <summary>
-      /// Connect connects a paired session and returns once the attempt has started (state Connecting).
-      /// A failure whatsmeow retries does not fail the call: the session goes Reconnecting.
-      /// Connecting a session that is connecting or connected succeeds and does nothing.
+      /// Connect connects a paired session. It returns after whatsmeow's connect call: OK once the session is connected
+      /// or retrying (Reconnecting). After CONNECTION_FAILED the session keeps its previous state.
+      /// Connecting a session that is connecting or connected succeeds and does nothing. From TempBanned, Outdated,
+      /// Replaced or Error it is a new attempt.
       /// The sidecar never connects a session on its own, also not after a restart.
-      /// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, CONNECTION_FAILED.
+      /// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -392,11 +395,12 @@ namespace Whatsmeow.Protocol.V1 {
         return ConnectAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
       /// <summary>
-      /// Connect connects a paired session and returns once the attempt has started (state Connecting).
-      /// A failure whatsmeow retries does not fail the call: the session goes Reconnecting.
-      /// Connecting a session that is connecting or connected succeeds and does nothing.
+      /// Connect connects a paired session. It returns after whatsmeow's connect call: OK once the session is connected
+      /// or retrying (Reconnecting). After CONNECTION_FAILED the session keeps its previous state.
+      /// Connecting a session that is connecting or connected succeeds and does nothing. From TempBanned, Outdated,
+      /// Replaced or Error it is a new attempt.
       /// The sidecar never connects a session on its own, also not after a restart.
-      /// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, CONNECTION_FAILED.
+      /// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -520,10 +524,12 @@ namespace Whatsmeow.Protocol.V1 {
       }
       /// <summary>
       /// Pair links a session in state Created or LoggedOut to an account. It connects, then streams QR codes, or one
-      /// phone pairing code when phone is set, until the phone links the device. The last item is success, sent once the
-      /// device's pre-keys are uploaded; the stream then ends with OK and the session is Connected.
-      /// The client ends pairing by cancelling the call: the sidecar disconnects, and the session returns to the state it
-      /// had before Pair. After the phone has linked the device, cancelling no longer undoes it.
+      /// phone pairing code when phone is set, until the phone links the device. The last item is success, sent once
+      /// whatsmeow reports Connected after the link and the device's pre-keys are uploaded; the stream then ends with OK
+      /// and the session is Connected. If that fails after the link, the stream ends with PAIRING_FAILED and the session
+      /// is Disconnected (paired; Connect retries).
+      /// Before the link, the client ends pairing by cancelling the call: the sidecar disconnects, and the session returns
+      /// to the state it had before Pair. After the link, a cancel never disconnects.
       /// Pairing a paired session fails with ALREADY_PAIRED, and a second Pair while one is open fails with
       /// PAIRING_IN_PROGRESS: it never starts a second pairing.
       /// Errors: INVALID_ARGUMENT (also a phone number that is too short or not international, field
@@ -542,10 +548,12 @@ namespace Whatsmeow.Protocol.V1 {
       }
       /// <summary>
       /// Pair links a session in state Created or LoggedOut to an account. It connects, then streams QR codes, or one
-      /// phone pairing code when phone is set, until the phone links the device. The last item is success, sent once the
-      /// device's pre-keys are uploaded; the stream then ends with OK and the session is Connected.
-      /// The client ends pairing by cancelling the call: the sidecar disconnects, and the session returns to the state it
-      /// had before Pair. After the phone has linked the device, cancelling no longer undoes it.
+      /// phone pairing code when phone is set, until the phone links the device. The last item is success, sent once
+      /// whatsmeow reports Connected after the link and the device's pre-keys are uploaded; the stream then ends with OK
+      /// and the session is Connected. If that fails after the link, the stream ends with PAIRING_FAILED and the session
+      /// is Disconnected (paired; Connect retries).
+      /// Before the link, the client ends pairing by cancelling the call: the sidecar disconnects, and the session returns
+      /// to the state it had before Pair. After the link, a cancel never disconnects.
       /// Pairing a paired session fails with ALREADY_PAIRED, and a second Pair while one is open fails with
       /// PAIRING_IN_PROGRESS: it never starts a second pairing.
       /// Errors: INVALID_ARGUMENT (also a phone number that is too short or not international, field
@@ -561,8 +569,9 @@ namespace Whatsmeow.Protocol.V1 {
         return CallInvoker.AsyncServerStreamingCall(__Method_Pair, null, options, request);
       }
       /// <summary>
-      /// WatchSessionState sends the current state first, then every later transition in order, until the client cancels.
-      /// The stream ends with SESSION_NOT_FOUND when the session is deleted.
+      /// WatchSessionState sends the current state first, then changes, until the client cancels. A reader that falls
+      /// behind gets the latest state and can miss intermediate ones; every transition is in StreamEvents
+      /// (ConnectionStateEvent). The stream ends with SESSION_NOT_FOUND when the session is deleted.
       /// Errors: SESSION_NOT_FOUND.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -576,8 +585,9 @@ namespace Whatsmeow.Protocol.V1 {
         return WatchSessionState(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
       /// <summary>
-      /// WatchSessionState sends the current state first, then every later transition in order, until the client cancels.
-      /// The stream ends with SESSION_NOT_FOUND when the session is deleted.
+      /// WatchSessionState sends the current state first, then changes, until the client cancels. A reader that falls
+      /// behind gets the latest state and can miss intermediate ones; every transition is in StreamEvents
+      /// (ConnectionStateEvent). The stream ends with SESSION_NOT_FOUND when the session is deleted.
       /// Errors: SESSION_NOT_FOUND.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>

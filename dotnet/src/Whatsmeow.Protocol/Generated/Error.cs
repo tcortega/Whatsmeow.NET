@@ -57,10 +57,13 @@ namespace Whatsmeow.Protocol.V1 {
   /// ErrorReason is the list of google.rpc.ErrorInfo reasons the sidecar returns.
   /// It is never sent as a field; it exists so the list is part of the contract and buf breaking guards it.
   ///
-  /// Every non-OK status from the sidecar carries one google.rpc.ErrorInfo with domain "whatsmeow.net" and reason
-  /// set to a value name below without its ERROR_REASON_ prefix: ERROR_REASON_SESSION_NOT_FOUND travels as
-  /// "SESSION_NOT_FOUND". Clients map on the reason only, never on the status message.
+  /// Every non-OK status a sidecar handler returns carries one google.rpc.ErrorInfo with domain "whatsmeow.net" and
+  /// reason set to a value name below without its ERROR_REASON_ prefix: ERROR_REASON_SESSION_NOT_FOUND travels as
+  /// "SESSION_NOT_FOUND". A status without ErrorInfo is a transport or internal failure.
+  /// Clients map on the reason only, never on the code alone or the status message.
   /// Each value names the gRPC code it travels with, and the ErrorInfo.metadata keys it sets.
+  /// Every RPC can fail with UNAUTHENTICATED, SIDECAR_SHUTTING_DOWN and INTERNAL, and every RPC that names a session
+  /// with INVALID_ARGUMENT for a malformed session id; the lists on each RPC omit them.
   /// </summary>
   internal enum ErrorReason {
     /// <summary>
@@ -104,7 +107,7 @@ namespace Whatsmeow.Protocol.V1 {
     /// </summary>
     [pbr::OriginalName("ERROR_REASON_PAIRING_IN_PROGRESS")] PairingInProgress = 9,
     /// <summary>
-    /// DEADLINE_EXCEEDED. Pairing ended because no code was used in time.
+    /// ABORTED. Pairing ended because no code was used in time.
     /// </summary>
     [pbr::OriginalName("ERROR_REASON_PAIRING_TIMED_OUT")] PairingTimedOut = 10,
     /// <summary>

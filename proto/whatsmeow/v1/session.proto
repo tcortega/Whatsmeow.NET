@@ -18,16 +18,17 @@ service SessionService {
   rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
 
   // DeleteSession disconnects the session if it is connected, then deletes its local data: device keys, outbox
-  // events and consumer cursors. Open streams on it end with SESSION_NOT_FOUND.
+  // events, consumer cursors and send records. Open streams on it end with SESSION_NOT_FOUND.
   // It does not tell WhatsApp, so a paired device stays linked on the phone; to unlink it, call Logout first.
   // Errors: SESSION_NOT_FOUND.
   rpc DeleteSession(DeleteSessionRequest) returns (DeleteSessionResponse);
 
-  // Connect connects a paired session and returns once the attempt has started (state Connecting).
-  // A failure whatsmeow retries does not fail the call: the session goes Reconnecting.
-  // Connecting a session that is connecting or connected succeeds and does nothing.
+  // Connect connects a paired session. It returns after whatsmeow's connect call: OK once the session is connected
+  // or retrying (Reconnecting). After CONNECTION_FAILED the session keeps its previous state.
+  // Connecting a session that is connecting or connected succeeds and does nothing. From TempBanned, Outdated,
+  // Replaced or Error it is a new attempt.
   // The sidecar never connects a session on its own, also not after a restart.
-  // Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, CONNECTION_FAILED.
+  // Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED.
   rpc Connect(ConnectRequest) returns (ConnectResponse);
 
   // Disconnect closes the connection and stops reconnecting; the session stays paired (state Disconnected).
@@ -41,10 +42,12 @@ service SessionService {
   rpc Logout(LogoutRequest) returns (LogoutResponse);
 
   // Pair links a session in state Created or LoggedOut to an account. It connects, then streams QR codes, or one
-  // phone pairing code when phone is set, until the phone links the device. The last item is success, sent once the
-  // device's pre-keys are uploaded; the stream then ends with OK and the session is Connected.
-  // The client ends pairing by cancelling the call: the sidecar disconnects, and the session returns to the state it
-  // had before Pair. After the phone has linked the device, cancelling no longer undoes it.
+  // phone pairing code when phone is set, until the phone links the device. The last item is success, sent once
+  // whatsmeow reports Connected after the link and the device's pre-keys are uploaded; the stream then ends with OK
+  // and the session is Connected. If that fails after the link, the stream ends with PAIRING_FAILED and the session
+  // is Disconnected (paired; Connect retries).
+  // Before the link, the client ends pairing by cancelling the call: the sidecar disconnects, and the session returns
+  // to the state it had before Pair. After the link, a cancel never disconnects.
   // Pairing a paired session fails with ALREADY_PAIRED, and a second Pair while one is open fails with
   // PAIRING_IN_PROGRESS: it never starts a second pairing.
   // Errors: INVALID_ARGUMENT (also a phone number that is too short or not international, field
@@ -52,8 +55,9 @@ service SessionService {
   // PAIRING_FAILED, CONNECTION_FAILED, RATE_LIMITED, WHATSAPP_ERROR.
   rpc Pair(PairRequest) returns (stream PairResponse);
 
-  // WatchSessionState sends the current state first, then every later transition in order, until the client cancels.
-  // The stream ends with SESSION_NOT_FOUND when the session is deleted.
+  // WatchSessionState sends the current state first, then changes, until the client cancels. A reader that falls
+  // behind gets the latest state and can miss intermediate ones; every transition is in StreamEvents
+  // (ConnectionStateEvent). The stream ends with SESSION_NOT_FOUND when the session is deleted.
   // Errors: SESSION_NOT_FOUND.
   rpc WatchSessionState(WatchSessionStateRequest) returns (stream WatchSessionStateResponse);
 }
@@ -71,6 +75,7 @@ message Session {
 }
 
 // SessionState is the session state machine (ARCHITECTURE §7.4); exactly one case is set.
+// A client treats a kind it does not know as unknown.
 message SessionState {
   // Never paired.
   message Created {}
@@ -90,7 +95,9 @@ message SessionState {
   // The connection dropped; whatsmeow is reconnecting.
   message Reconnecting {}
 
-  // Paired, not connected: Disconnect was called, or Connect has not been called since the sidecar started.
+  // Paired, not connected: Disconnect was called, the sidecar restarted, or pairing failed after the link.
+  // After a restart, a never-paired session is Created, a LoggedOut one stays LoggedOut with its code, and every
+  // other paired one is Disconnected.
   message Disconnected {}
 
   // The device was unlinked and its keys deleted.
@@ -113,7 +120,8 @@ message SessionState {
   // WhatsApp rejected this client version.
   message Outdated {}
 
-  // The connection ended for another reason, and whatsmeow does not reconnect on its own.
+  // The connection ended for another reason, and whatsmeow does not reconnect on its own. The session stays paired;
+  // Connect retries. LoggedOut is the only state that needs a new Pair.
   message Error {
     // WhatsApp's failure code, or 0 when there is none.
     int32 code = 1;
@@ -209,12 +217,10 @@ message LogoutResponse {}
 
 // PairRequest starts pairing.
 message PairRequest {
-  // Pair by phone number: the phone shows a prompt for a code, which this stream sends.
+  // Pair by phone number: the phone gets a notification prompting for a code, which this stream sends.
   message Phone {
     // The account's phone number, international format; non-digits are ignored.
     string phone_number = 1;
-    // Whether the phone shows a notification prompting for the code.
-    bool show_push_notification = 2;
   }
 
   // The session id.

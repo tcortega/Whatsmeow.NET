@@ -45,15 +45,16 @@ type SessionServiceClient interface {
 	// ListSessions returns every session, ordered by id.
 	ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error)
 	// DeleteSession disconnects the session if it is connected, then deletes its local data: device keys, outbox
-	// events and consumer cursors. Open streams on it end with SESSION_NOT_FOUND.
+	// events, consumer cursors and send records. Open streams on it end with SESSION_NOT_FOUND.
 	// It does not tell WhatsApp, so a paired device stays linked on the phone; to unlink it, call Logout first.
 	// Errors: SESSION_NOT_FOUND.
 	DeleteSession(ctx context.Context, in *DeleteSessionRequest, opts ...grpc.CallOption) (*DeleteSessionResponse, error)
-	// Connect connects a paired session and returns once the attempt has started (state Connecting).
-	// A failure whatsmeow retries does not fail the call: the session goes Reconnecting.
-	// Connecting a session that is connecting or connected succeeds and does nothing.
+	// Connect connects a paired session. It returns after whatsmeow's connect call: OK once the session is connected
+	// or retrying (Reconnecting). After CONNECTION_FAILED the session keeps its previous state.
+	// Connecting a session that is connecting or connected succeeds and does nothing. From TempBanned, Outdated,
+	// Replaced or Error it is a new attempt.
 	// The sidecar never connects a session on its own, also not after a restart.
-	// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, CONNECTION_FAILED.
+	// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED.
 	Connect(ctx context.Context, in *ConnectRequest, opts ...grpc.CallOption) (*ConnectResponse, error)
 	// Disconnect closes the connection and stops reconnecting; the session stays paired (state Disconnected).
 	// Disconnecting a session that is not connected succeeds and does nothing.
@@ -64,18 +65,21 @@ type SessionServiceClient interface {
 	// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, NOT_CONNECTED, OUTCOME_UNKNOWN, WHATSAPP_ERROR.
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error)
 	// Pair links a session in state Created or LoggedOut to an account. It connects, then streams QR codes, or one
-	// phone pairing code when phone is set, until the phone links the device. The last item is success, sent once the
-	// device's pre-keys are uploaded; the stream then ends with OK and the session is Connected.
-	// The client ends pairing by cancelling the call: the sidecar disconnects, and the session returns to the state it
-	// had before Pair. After the phone has linked the device, cancelling no longer undoes it.
+	// phone pairing code when phone is set, until the phone links the device. The last item is success, sent once
+	// whatsmeow reports Connected after the link and the device's pre-keys are uploaded; the stream then ends with OK
+	// and the session is Connected. If that fails after the link, the stream ends with PAIRING_FAILED and the session
+	// is Disconnected (paired; Connect retries).
+	// Before the link, the client ends pairing by cancelling the call: the sidecar disconnects, and the session returns
+	// to the state it had before Pair. After the link, a cancel never disconnects.
 	// Pairing a paired session fails with ALREADY_PAIRED, and a second Pair while one is open fails with
 	// PAIRING_IN_PROGRESS: it never starts a second pairing.
 	// Errors: INVALID_ARGUMENT (also a phone number that is too short or not international, field
 	// "phone.phone_number"), SESSION_NOT_FOUND, ALREADY_PAIRED, PAIRING_IN_PROGRESS, PAIRING_TIMED_OUT,
 	// PAIRING_FAILED, CONNECTION_FAILED, RATE_LIMITED, WHATSAPP_ERROR.
 	Pair(ctx context.Context, in *PairRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[PairResponse], error)
-	// WatchSessionState sends the current state first, then every later transition in order, until the client cancels.
-	// The stream ends with SESSION_NOT_FOUND when the session is deleted.
+	// WatchSessionState sends the current state first, then changes, until the client cancels. A reader that falls
+	// behind gets the latest state and can miss intermediate ones; every transition is in StreamEvents
+	// (ConnectionStateEvent). The stream ends with SESSION_NOT_FOUND when the session is deleted.
 	// Errors: SESSION_NOT_FOUND.
 	WatchSessionState(ctx context.Context, in *WatchSessionStateRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WatchSessionStateResponse], error)
 }
@@ -202,15 +206,16 @@ type SessionServiceServer interface {
 	// ListSessions returns every session, ordered by id.
 	ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error)
 	// DeleteSession disconnects the session if it is connected, then deletes its local data: device keys, outbox
-	// events and consumer cursors. Open streams on it end with SESSION_NOT_FOUND.
+	// events, consumer cursors and send records. Open streams on it end with SESSION_NOT_FOUND.
 	// It does not tell WhatsApp, so a paired device stays linked on the phone; to unlink it, call Logout first.
 	// Errors: SESSION_NOT_FOUND.
 	DeleteSession(context.Context, *DeleteSessionRequest) (*DeleteSessionResponse, error)
-	// Connect connects a paired session and returns once the attempt has started (state Connecting).
-	// A failure whatsmeow retries does not fail the call: the session goes Reconnecting.
-	// Connecting a session that is connecting or connected succeeds and does nothing.
+	// Connect connects a paired session. It returns after whatsmeow's connect call: OK once the session is connected
+	// or retrying (Reconnecting). After CONNECTION_FAILED the session keeps its previous state.
+	// Connecting a session that is connecting or connected succeeds and does nothing. From TempBanned, Outdated,
+	// Replaced or Error it is a new attempt.
 	// The sidecar never connects a session on its own, also not after a restart.
-	// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, CONNECTION_FAILED.
+	// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED.
 	Connect(context.Context, *ConnectRequest) (*ConnectResponse, error)
 	// Disconnect closes the connection and stops reconnecting; the session stays paired (state Disconnected).
 	// Disconnecting a session that is not connected succeeds and does nothing.
@@ -221,18 +226,21 @@ type SessionServiceServer interface {
 	// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, NOT_CONNECTED, OUTCOME_UNKNOWN, WHATSAPP_ERROR.
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
 	// Pair links a session in state Created or LoggedOut to an account. It connects, then streams QR codes, or one
-	// phone pairing code when phone is set, until the phone links the device. The last item is success, sent once the
-	// device's pre-keys are uploaded; the stream then ends with OK and the session is Connected.
-	// The client ends pairing by cancelling the call: the sidecar disconnects, and the session returns to the state it
-	// had before Pair. After the phone has linked the device, cancelling no longer undoes it.
+	// phone pairing code when phone is set, until the phone links the device. The last item is success, sent once
+	// whatsmeow reports Connected after the link and the device's pre-keys are uploaded; the stream then ends with OK
+	// and the session is Connected. If that fails after the link, the stream ends with PAIRING_FAILED and the session
+	// is Disconnected (paired; Connect retries).
+	// Before the link, the client ends pairing by cancelling the call: the sidecar disconnects, and the session returns
+	// to the state it had before Pair. After the link, a cancel never disconnects.
 	// Pairing a paired session fails with ALREADY_PAIRED, and a second Pair while one is open fails with
 	// PAIRING_IN_PROGRESS: it never starts a second pairing.
 	// Errors: INVALID_ARGUMENT (also a phone number that is too short or not international, field
 	// "phone.phone_number"), SESSION_NOT_FOUND, ALREADY_PAIRED, PAIRING_IN_PROGRESS, PAIRING_TIMED_OUT,
 	// PAIRING_FAILED, CONNECTION_FAILED, RATE_LIMITED, WHATSAPP_ERROR.
 	Pair(*PairRequest, grpc.ServerStreamingServer[PairResponse]) error
-	// WatchSessionState sends the current state first, then every later transition in order, until the client cancels.
-	// The stream ends with SESSION_NOT_FOUND when the session is deleted.
+	// WatchSessionState sends the current state first, then changes, until the client cancels. A reader that falls
+	// behind gets the latest state and can miss intermediate ones; every transition is in StreamEvents
+	// (ConnectionStateEvent). The stream ends with SESSION_NOT_FOUND when the session is deleted.
 	// Errors: SESSION_NOT_FOUND.
 	WatchSessionState(*WatchSessionStateRequest, grpc.ServerStreamingServer[WatchSessionStateResponse]) error
 	mustEmbedUnimplementedSessionServiceServer()

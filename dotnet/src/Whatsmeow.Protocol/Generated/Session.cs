@@ -65,42 +65,40 @@ namespace Whatsmeow.Protocol.V1 {
             "bmVjdFJlc3BvbnNlIjIKEURpc2Nvbm5lY3RSZXF1ZXN0Eh0KCnNlc3Npb25f",
             "aWQYASABKAlSCXNlc3Npb25JZCIUChJEaXNjb25uZWN0UmVzcG9uc2UiLgoN",
             "TG9nb3V0UmVxdWVzdBIdCgpzZXNzaW9uX2lkGAEgASgJUglzZXNzaW9uSWQi",
-            "EAoOTG9nb3V0UmVzcG9uc2UixQEKC1BhaXJSZXF1ZXN0Eh0KCnNlc3Npb25f",
+            "EAoOTG9nb3V0UmVzcG9uc2UijwEKC1BhaXJSZXF1ZXN0Eh0KCnNlc3Npb25f",
             "aWQYASABKAlSCXNlc3Npb25JZBI1CgVwaG9uZRgCIAEoCzIfLndoYXRzbWVv",
-            "dy52MS5QYWlyUmVxdWVzdC5QaG9uZVIFcGhvbmUaYAoFUGhvbmUSIQoMcGhv",
-            "bmVfbnVtYmVyGAEgASgJUgtwaG9uZU51bWJlchI0ChZzaG93X3B1c2hfbm90",
-            "aWZpY2F0aW9uGAIgASgIUhRzaG93UHVzaE5vdGlmaWNhdGlvbiLRAgoMUGFp",
-            "clJlc3BvbnNlEjwKB3FyX2NvZGUYASABKAsyIS53aGF0c21lb3cudjEuUGFp",
-            "clJlc3BvbnNlLlFyQ29kZUgAUgZxckNvZGUSSwoMcGFpcmluZ19jb2RlGAIg",
-            "ASgLMiYud2hhdHNtZW93LnYxLlBhaXJSZXNwb25zZS5QYWlyaW5nQ29kZUgA",
-            "UgtwYWlyaW5nQ29kZRI+CgdzdWNjZXNzGAMgASgLMiIud2hhdHNtZW93LnYx",
-            "LlBhaXJSZXNwb25zZS5TdWNjZXNzSABSB3N1Y2Nlc3MaHAoGUXJDb2RlEhIK",
-            "BGNvZGUYASABKAlSBGNvZGUaIQoLUGFpcmluZ0NvZGUSEgoEY29kZRgBIAEo",
-            "CVIEY29kZRotCgdTdWNjZXNzEhAKA2ppZBgBIAEoCVIDamlkEhAKA2xpZBgC",
-            "IAEoCVIDbGlkQgYKBHN0ZXAiOQoYV2F0Y2hTZXNzaW9uU3RhdGVSZXF1ZXN0",
-            "Eh0KCnNlc3Npb25faWQYASABKAlSCXNlc3Npb25JZCJNChlXYXRjaFNlc3Np",
-            "b25TdGF0ZVJlc3BvbnNlEjAKBXN0YXRlGAEgASgLMhoud2hhdHNtZW93LnYx",
-            "LlNlc3Npb25TdGF0ZVIFc3RhdGUyogUKDlNlc3Npb25TZXJ2aWNlElgKDUNy",
-            "ZWF0ZVNlc3Npb24SIi53aGF0c21lb3cudjEuQ3JlYXRlU2Vzc2lvblJlcXVl",
-            "c3QaIy53aGF0c21lb3cudjEuQ3JlYXRlU2Vzc2lvblJlc3BvbnNlElUKDExp",
-            "c3RTZXNzaW9ucxIhLndoYXRzbWVvdy52MS5MaXN0U2Vzc2lvbnNSZXF1ZXN0",
-            "GiIud2hhdHNtZW93LnYxLkxpc3RTZXNzaW9uc1Jlc3BvbnNlElgKDURlbGV0",
-            "ZVNlc3Npb24SIi53aGF0c21lb3cudjEuRGVsZXRlU2Vzc2lvblJlcXVlc3Qa",
-            "Iy53aGF0c21lb3cudjEuRGVsZXRlU2Vzc2lvblJlc3BvbnNlEkYKB0Nvbm5l",
-            "Y3QSHC53aGF0c21lb3cudjEuQ29ubmVjdFJlcXVlc3QaHS53aGF0c21lb3cu",
-            "djEuQ29ubmVjdFJlc3BvbnNlEk8KCkRpc2Nvbm5lY3QSHy53aGF0c21lb3cu",
-            "djEuRGlzY29ubmVjdFJlcXVlc3QaIC53aGF0c21lb3cudjEuRGlzY29ubmVj",
-            "dFJlc3BvbnNlEkMKBkxvZ291dBIbLndoYXRzbWVvdy52MS5Mb2dvdXRSZXF1",
-            "ZXN0Ghwud2hhdHNtZW93LnYxLkxvZ291dFJlc3BvbnNlEj8KBFBhaXISGS53",
-            "aGF0c21lb3cudjEuUGFpclJlcXVlc3QaGi53aGF0c21lb3cudjEuUGFpclJl",
-            "c3BvbnNlMAESZgoRV2F0Y2hTZXNzaW9uU3RhdGUSJi53aGF0c21lb3cudjEu",
-            "V2F0Y2hTZXNzaW9uU3RhdGVSZXF1ZXN0Gicud2hhdHNtZW93LnYxLldhdGNo",
-            "U2Vzc2lvblN0YXRlUmVzcG9uc2UwAULCAQoQY29tLndoYXRzbWVvdy52MUIM",
-            "U2Vzc2lvblByb3RvUAFaRmdpdGh1Yi5jb20vdGNvcnRlZ2EvV2hhdHNtZW93",
-            "Lk5FVC9zaWRlY2FyL2dlbi93aGF0c21lb3cvdjE7d2hhdHNtZW93djGiAgNX",
-            "WFiqAhVXaGF0c21lb3cuUHJvdG9jb2wuVjHKAgxXaGF0c21lb3dcVjHiAhhX",
-            "aGF0c21lb3dcVjFcR1BCTWV0YWRhdGHqAg1XaGF0c21lb3c6OlYxYgZwcm90",
-            "bzM="));
+            "dy52MS5QYWlyUmVxdWVzdC5QaG9uZVIFcGhvbmUaKgoFUGhvbmUSIQoMcGhv",
+            "bmVfbnVtYmVyGAEgASgJUgtwaG9uZU51bWJlciLRAgoMUGFpclJlc3BvbnNl",
+            "EjwKB3FyX2NvZGUYASABKAsyIS53aGF0c21lb3cudjEuUGFpclJlc3BvbnNl",
+            "LlFyQ29kZUgAUgZxckNvZGUSSwoMcGFpcmluZ19jb2RlGAIgASgLMiYud2hh",
+            "dHNtZW93LnYxLlBhaXJSZXNwb25zZS5QYWlyaW5nQ29kZUgAUgtwYWlyaW5n",
+            "Q29kZRI+CgdzdWNjZXNzGAMgASgLMiIud2hhdHNtZW93LnYxLlBhaXJSZXNw",
+            "b25zZS5TdWNjZXNzSABSB3N1Y2Nlc3MaHAoGUXJDb2RlEhIKBGNvZGUYASAB",
+            "KAlSBGNvZGUaIQoLUGFpcmluZ0NvZGUSEgoEY29kZRgBIAEoCVIEY29kZRot",
+            "CgdTdWNjZXNzEhAKA2ppZBgBIAEoCVIDamlkEhAKA2xpZBgCIAEoCVIDbGlk",
+            "QgYKBHN0ZXAiOQoYV2F0Y2hTZXNzaW9uU3RhdGVSZXF1ZXN0Eh0KCnNlc3Np",
+            "b25faWQYASABKAlSCXNlc3Npb25JZCJNChlXYXRjaFNlc3Npb25TdGF0ZVJl",
+            "c3BvbnNlEjAKBXN0YXRlGAEgASgLMhoud2hhdHNtZW93LnYxLlNlc3Npb25T",
+            "dGF0ZVIFc3RhdGUyogUKDlNlc3Npb25TZXJ2aWNlElgKDUNyZWF0ZVNlc3Np",
+            "b24SIi53aGF0c21lb3cudjEuQ3JlYXRlU2Vzc2lvblJlcXVlc3QaIy53aGF0",
+            "c21lb3cudjEuQ3JlYXRlU2Vzc2lvblJlc3BvbnNlElUKDExpc3RTZXNzaW9u",
+            "cxIhLndoYXRzbWVvdy52MS5MaXN0U2Vzc2lvbnNSZXF1ZXN0GiIud2hhdHNt",
+            "ZW93LnYxLkxpc3RTZXNzaW9uc1Jlc3BvbnNlElgKDURlbGV0ZVNlc3Npb24S",
+            "Ii53aGF0c21lb3cudjEuRGVsZXRlU2Vzc2lvblJlcXVlc3QaIy53aGF0c21l",
+            "b3cudjEuRGVsZXRlU2Vzc2lvblJlc3BvbnNlEkYKB0Nvbm5lY3QSHC53aGF0",
+            "c21lb3cudjEuQ29ubmVjdFJlcXVlc3QaHS53aGF0c21lb3cudjEuQ29ubmVj",
+            "dFJlc3BvbnNlEk8KCkRpc2Nvbm5lY3QSHy53aGF0c21lb3cudjEuRGlzY29u",
+            "bmVjdFJlcXVlc3QaIC53aGF0c21lb3cudjEuRGlzY29ubmVjdFJlc3BvbnNl",
+            "EkMKBkxvZ291dBIbLndoYXRzbWVvdy52MS5Mb2dvdXRSZXF1ZXN0Ghwud2hh",
+            "dHNtZW93LnYxLkxvZ291dFJlc3BvbnNlEj8KBFBhaXISGS53aGF0c21lb3cu",
+            "djEuUGFpclJlcXVlc3QaGi53aGF0c21lb3cudjEuUGFpclJlc3BvbnNlMAES",
+            "ZgoRV2F0Y2hTZXNzaW9uU3RhdGUSJi53aGF0c21lb3cudjEuV2F0Y2hTZXNz",
+            "aW9uU3RhdGVSZXF1ZXN0Gicud2hhdHNtZW93LnYxLldhdGNoU2Vzc2lvblN0",
+            "YXRlUmVzcG9uc2UwAULCAQoQY29tLndoYXRzbWVvdy52MUIMU2Vzc2lvblBy",
+            "b3RvUAFaRmdpdGh1Yi5jb20vdGNvcnRlZ2EvV2hhdHNtZW93Lk5FVC9zaWRl",
+            "Y2FyL2dlbi93aGF0c21lb3cvdjE7d2hhdHNtZW93djGiAgNXWFiqAhVXaGF0",
+            "c21lb3cuUHJvdG9jb2wuVjHKAgxXaGF0c21lb3dcVjHiAhhXaGF0c21lb3dc",
+            "VjFcR1BCTWV0YWRhdGHqAg1XaGF0c21lb3c6OlYxYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -129,7 +127,7 @@ namespace Whatsmeow.Protocol.V1 {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.DisconnectResponse), global::Whatsmeow.Protocol.V1.DisconnectResponse.Parser, null, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.LogoutRequest), global::Whatsmeow.Protocol.V1.LogoutRequest.Parser, new[]{ "SessionId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.LogoutResponse), global::Whatsmeow.Protocol.V1.LogoutResponse.Parser, null, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.PairRequest), global::Whatsmeow.Protocol.V1.PairRequest.Parser, new[]{ "SessionId", "Phone" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.PairRequest.Types.Phone), global::Whatsmeow.Protocol.V1.PairRequest.Types.Phone.Parser, new[]{ "PhoneNumber", "ShowPushNotification" }, null, null, null, null)}),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.PairRequest), global::Whatsmeow.Protocol.V1.PairRequest.Parser, new[]{ "SessionId", "Phone" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.PairRequest.Types.Phone), global::Whatsmeow.Protocol.V1.PairRequest.Types.Phone.Parser, new[]{ "PhoneNumber" }, null, null, null, null)}),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.PairResponse), global::Whatsmeow.Protocol.V1.PairResponse.Parser, new[]{ "QrCode", "PairingCode", "Success" }, new[]{ "Step" }, null, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.PairResponse.Types.QrCode), global::Whatsmeow.Protocol.V1.PairResponse.Types.QrCode.Parser, new[]{ "Code" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.PairResponse.Types.PairingCode), global::Whatsmeow.Protocol.V1.PairResponse.Types.PairingCode.Parser, new[]{ "Code" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.PairResponse.Types.Success), global::Whatsmeow.Protocol.V1.PairResponse.Types.Success.Parser, new[]{ "Jid", "Lid" }, null, null, null, null)}),
@@ -476,6 +474,7 @@ namespace Whatsmeow.Protocol.V1 {
 
   /// <summary>
   /// SessionState is the session state machine (ARCHITECTURE §7.4); exactly one case is set.
+  /// A client treats a kind it does not know as unknown.
   /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   internal sealed partial class SessionState : pb::IMessage<SessionState>
@@ -2325,7 +2324,9 @@ namespace Whatsmeow.Protocol.V1 {
       }
 
       /// <summary>
-      /// Paired, not connected: Disconnect was called, or Connect has not been called since the sidecar started.
+      /// Paired, not connected: Disconnect was called, the sidecar restarted, or pairing failed after the link.
+      /// After a restart, a never-paired session is Created, a LoggedOut one stays LoggedOut with its code, and every
+      /// other paired one is Disconnected.
       /// </summary>
       [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
       internal sealed partial class Disconnected : pb::IMessage<Disconnected>
@@ -3274,7 +3275,8 @@ namespace Whatsmeow.Protocol.V1 {
       }
 
       /// <summary>
-      /// The connection ended for another reason, and whatsmeow does not reconnect on its own.
+      /// The connection ended for another reason, and whatsmeow does not reconnect on its own. The session stays paired;
+      /// Connect retries. LoggedOut is the only state that needs a new Pair.
       /// </summary>
       [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
       internal sealed partial class Error : pb::IMessage<Error>
@@ -6025,7 +6027,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static partial class Types {
       /// <summary>
-      /// Pair by phone number: the phone shows a prompt for a code, which this stream sends.
+      /// Pair by phone number: the phone gets a notification prompting for a code, which this stream sends.
       /// </summary>
       [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
       internal sealed partial class Phone : pb::IMessage<Phone>
@@ -6063,7 +6065,6 @@ namespace Whatsmeow.Protocol.V1 {
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public Phone(Phone other) : this() {
           phoneNumber_ = other.phoneNumber_;
-          showPushNotification_ = other.showPushNotification_;
           _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
         }
 
@@ -6088,21 +6089,6 @@ namespace Whatsmeow.Protocol.V1 {
           }
         }
 
-        /// <summary>Field number for the "show_push_notification" field.</summary>
-        public const int ShowPushNotificationFieldNumber = 2;
-        private bool showPushNotification_;
-        /// <summary>
-        /// Whether the phone shows a notification prompting for the code.
-        /// </summary>
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-        public bool ShowPushNotification {
-          get { return showPushNotification_; }
-          set {
-            showPushNotification_ = value;
-          }
-        }
-
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public override bool Equals(object other) {
@@ -6119,7 +6105,6 @@ namespace Whatsmeow.Protocol.V1 {
             return true;
           }
           if (PhoneNumber != other.PhoneNumber) return false;
-          if (ShowPushNotification != other.ShowPushNotification) return false;
           return Equals(_unknownFields, other._unknownFields);
         }
 
@@ -6128,7 +6113,6 @@ namespace Whatsmeow.Protocol.V1 {
         public override int GetHashCode() {
           int hash = 1;
           if (PhoneNumber.Length != 0) hash ^= PhoneNumber.GetHashCode();
-          if (ShowPushNotification != false) hash ^= ShowPushNotification.GetHashCode();
           if (_unknownFields != null) {
             hash ^= _unknownFields.GetHashCode();
           }
@@ -6151,10 +6135,6 @@ namespace Whatsmeow.Protocol.V1 {
             output.WriteRawTag(10);
             output.WriteString(PhoneNumber);
           }
-          if (ShowPushNotification != false) {
-            output.WriteRawTag(16);
-            output.WriteBool(ShowPushNotification);
-          }
           if (_unknownFields != null) {
             _unknownFields.WriteTo(output);
           }
@@ -6169,10 +6149,6 @@ namespace Whatsmeow.Protocol.V1 {
             output.WriteRawTag(10);
             output.WriteString(PhoneNumber);
           }
-          if (ShowPushNotification != false) {
-            output.WriteRawTag(16);
-            output.WriteBool(ShowPushNotification);
-          }
           if (_unknownFields != null) {
             _unknownFields.WriteTo(ref output);
           }
@@ -6185,9 +6161,6 @@ namespace Whatsmeow.Protocol.V1 {
           int size = 0;
           if (PhoneNumber.Length != 0) {
             size += 1 + pb::CodedOutputStream.ComputeStringSize(PhoneNumber);
-          }
-          if (ShowPushNotification != false) {
-            size += 1 + 1;
           }
           if (_unknownFields != null) {
             size += _unknownFields.CalculateSize();
@@ -6203,9 +6176,6 @@ namespace Whatsmeow.Protocol.V1 {
           }
           if (other.PhoneNumber.Length != 0) {
             PhoneNumber = other.PhoneNumber;
-          }
-          if (other.ShowPushNotification != false) {
-            ShowPushNotification = other.ShowPushNotification;
           }
           _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
         }
@@ -6230,10 +6200,6 @@ namespace Whatsmeow.Protocol.V1 {
                 PhoneNumber = input.ReadString();
                 break;
               }
-              case 16: {
-                ShowPushNotification = input.ReadBool();
-                break;
-              }
             }
           }
         #endif
@@ -6255,10 +6221,6 @@ namespace Whatsmeow.Protocol.V1 {
                 break;
               case 10: {
                 PhoneNumber = input.ReadString();
-                break;
-              }
-              case 16: {
-                ShowPushNotification = input.ReadBool();
                 break;
               }
             }

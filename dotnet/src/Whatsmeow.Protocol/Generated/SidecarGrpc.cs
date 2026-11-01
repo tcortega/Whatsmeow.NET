@@ -10,8 +10,6 @@ using grpc = global::Grpc.Core;
 namespace Whatsmeow.Protocol.V1 {
   /// <summary>
   /// SidecarService is the process. grpc.health.v1.Health is served next to it.
-  /// Every RPC of every service can fail with UNAUTHENTICATED, SIDECAR_SHUTTING_DOWN and INTERNAL; the lists on
-  /// each RPC omit them.
   /// </summary>
   internal static partial class SidecarService
   {

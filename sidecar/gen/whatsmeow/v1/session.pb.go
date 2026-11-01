@@ -96,6 +96,7 @@ func (x *Session) GetLid() string {
 }
 
 // SessionState is the session state machine (ARCHITECTURE §7.4); exactly one case is set.
+// A client treats a kind it does not know as unknown.
 type SessionState struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The state.
@@ -1332,7 +1333,9 @@ func (*SessionState_Reconnecting) Descriptor() ([]byte, []int) {
 	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{1, 5}
 }
 
-// Paired, not connected: Disconnect was called, or Connect has not been called since the sidecar started.
+// Paired, not connected: Disconnect was called, the sidecar restarted, or pairing failed after the link.
+// After a restart, a never-paired session is Created, a LoggedOut one stays LoggedOut with its code, and every
+// other paired one is Disconnected.
 type SessionState_Disconnected struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -1544,7 +1547,8 @@ func (*SessionState_Outdated) Descriptor() ([]byte, []int) {
 	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{1, 10}
 }
 
-// The connection ended for another reason, and whatsmeow does not reconnect on its own.
+// The connection ended for another reason, and whatsmeow does not reconnect on its own. The session stays paired;
+// Connect retries. LoggedOut is the only state that needs a new Pair.
 type SessionState_Error struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// WhatsApp's failure code, or 0 when there is none.
@@ -1599,15 +1603,13 @@ func (x *SessionState_Error) GetMessage() string {
 	return ""
 }
 
-// Pair by phone number: the phone shows a prompt for a code, which this stream sends.
+// Pair by phone number: the phone gets a notification prompting for a code, which this stream sends.
 type PairRequest_Phone struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The account's phone number, international format; non-digits are ignored.
-	PhoneNumber string `protobuf:"bytes,1,opt,name=phone_number,json=phoneNumber,proto3" json:"phone_number,omitempty"`
-	// Whether the phone shows a notification prompting for the code.
-	ShowPushNotification bool `protobuf:"varint,2,opt,name=show_push_notification,json=showPushNotification,proto3" json:"show_push_notification,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	PhoneNumber   string `protobuf:"bytes,1,opt,name=phone_number,json=phoneNumber,proto3" json:"phone_number,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PairRequest_Phone) Reset() {
@@ -1645,13 +1647,6 @@ func (x *PairRequest_Phone) GetPhoneNumber() string {
 		return x.PhoneNumber
 	}
 	return ""
-}
-
-func (x *PairRequest_Phone) GetShowPushNotification() bool {
-	if x != nil {
-		return x.ShowPushNotification
-	}
-	return false
 }
 
 // A QR code to show; it replaces the previous one.
@@ -1876,14 +1871,13 @@ const file_whatsmeow_v1_session_proto_rawDesc = "" +
 	"\rLogoutRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\"\x10\n" +
-	"\x0eLogoutResponse\"\xc5\x01\n" +
+	"\x0eLogoutResponse\"\x8f\x01\n" +
 	"\vPairRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x125\n" +
-	"\x05phone\x18\x02 \x01(\v2\x1f.whatsmeow.v1.PairRequest.PhoneR\x05phone\x1a`\n" +
+	"\x05phone\x18\x02 \x01(\v2\x1f.whatsmeow.v1.PairRequest.PhoneR\x05phone\x1a*\n" +
 	"\x05Phone\x12!\n" +
-	"\fphone_number\x18\x01 \x01(\tR\vphoneNumber\x124\n" +
-	"\x16show_push_notification\x18\x02 \x01(\bR\x14showPushNotification\"\xd1\x02\n" +
+	"\fphone_number\x18\x01 \x01(\tR\vphoneNumber\"\xd1\x02\n" +
 	"\fPairResponse\x12<\n" +
 	"\aqr_code\x18\x01 \x01(\v2!.whatsmeow.v1.PairResponse.QrCodeH\x00R\x06qrCode\x12K\n" +
 	"\fpairing_code\x18\x02 \x01(\v2&.whatsmeow.v1.PairResponse.PairingCodeH\x00R\vpairingCode\x12>\n" +

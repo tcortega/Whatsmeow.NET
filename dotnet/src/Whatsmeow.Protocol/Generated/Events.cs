@@ -48,36 +48,34 @@ namespace Whatsmeow.Protocol.V1 {
             "CgVzdGF0ZRgBIAEoCzIaLndoYXRzbWVvdy52MS5TZXNzaW9uU3RhdGVSBXN0",
             "YXRlIm0KE1N0cmVhbUV2ZW50c1JlcXVlc3QSHQoKc2Vzc2lvbl9pZBgBIAEo",
             "CVIJc2Vzc2lvbklkEhoKCGNvbnN1bWVyGAIgASgJUghjb25zdW1lchIbCglh",
-            "ZnRlcl9zZXEYAyABKARSCGFmdGVyU2VxIrADChRTdHJlYW1FdmVudHNSZXNw",
-            "b25zZRIQCgNzZXEYASABKARSA3NlcRIdCgpzZXNzaW9uX2lkGAIgASgJUglz",
-            "ZXNzaW9uSWQSOwoLcmVjb3JkX3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9i",
-            "dWYuVGltZXN0YW1wUgpyZWNvcmRUaW1lEjYKB21lc3NhZ2UYCiABKAsyGi53",
-            "aGF0c21lb3cudjEuTWVzc2FnZUV2ZW50SABSB21lc3NhZ2USNgoHcmVjZWlw",
-            "dBgLIAEoCzIaLndoYXRzbWVvdy52MS5SZWNlaXB0RXZlbnRIAFIHcmVjZWlw",
-            "dBJeChV1bmRlY3J5cHRhYmxlX21lc3NhZ2UYDCABKAsyJy53aGF0c21lb3cu",
-            "djEuVW5kZWNyeXB0YWJsZU1lc3NhZ2VFdmVudEgAUhR1bmRlY3J5cHRhYmxl",
-            "TWVzc2FnZRJPChBjb25uZWN0aW9uX3N0YXRlGA0gASgLMiIud2hhdHNtZW93",
-            "LnYxLkNvbm5lY3Rpb25TdGF0ZUV2ZW50SABSD2Nvbm5lY3Rpb25TdGF0ZUIJ",
-            "CgdwYXlsb2FkImkKEEFja0V2ZW50c1JlcXVlc3QSHQoKc2Vzc2lvbl9pZBgB",
-            "IAEoCVIJc2Vzc2lvbklkEhoKCGNvbnN1bWVyGAIgASgJUghjb25zdW1lchIa",
-            "Cgl1cF90b19zZXEYAyABKARSB3VwVG9TZXEiEwoRQWNrRXZlbnRzUmVzcG9u",
-            "c2Uq1gIKC1JlY2VpcHRUeXBlEhwKGFJFQ0VJUFRfVFlQRV9VTlNQRUNJRklF",
-            "RBAAEhoKFlJFQ0VJUFRfVFlQRV9ERUxJVkVSRUQQARIXChNSRUNFSVBUX1RZ",
-            "UEVfU0VOREVSEAISFgoSUkVDRUlQVF9UWVBFX1JFVFJZEAMSFQoRUkVDRUlQ",
-            "VF9UWVBFX1JFQUQQBBIaChZSRUNFSVBUX1RZUEVfUkVBRF9TRUxGEAUSFwoT",
-            "UkVDRUlQVF9UWVBFX1BMQVlFRBAGEhwKGFJFQ0VJUFRfVFlQRV9QTEFZRURf",
-            "U0VMRhAHEh0KGVJFQ0VJUFRfVFlQRV9TRVJWRVJfRVJST1IQCBIZChVSRUNF",
-            "SVBUX1RZUEVfSU5BQ1RJVkUQCRIZChVSRUNFSVBUX1RZUEVfUEVFUl9NU0cQ",
-            "ChIdChlSRUNFSVBUX1RZUEVfSElTVE9SWV9TWU5DEAsytQEKDEV2ZW50U2Vy",
-            "dmljZRJXCgxTdHJlYW1FdmVudHMSIS53aGF0c21lb3cudjEuU3RyZWFtRXZl",
-            "bnRzUmVxdWVzdBoiLndoYXRzbWVvdy52MS5TdHJlYW1FdmVudHNSZXNwb25z",
-            "ZTABEkwKCUFja0V2ZW50cxIeLndoYXRzbWVvdy52MS5BY2tFdmVudHNSZXF1",
-            "ZXN0Gh8ud2hhdHNtZW93LnYxLkFja0V2ZW50c1Jlc3BvbnNlQsEBChBjb20u",
-            "d2hhdHNtZW93LnYxQgtFdmVudHNQcm90b1ABWkZnaXRodWIuY29tL3Rjb3J0",
-            "ZWdhL1doYXRzbWVvdy5ORVQvc2lkZWNhci9nZW4vd2hhdHNtZW93L3YxO3do",
-            "YXRzbWVvd3YxogIDV1hYqgIVV2hhdHNtZW93LlByb3RvY29sLlYxygIMV2hh",
-            "dHNtZW93XFYx4gIYV2hhdHNtZW93XFYxXEdQQk1ldGFkYXRh6gINV2hhdHNt",
-            "ZW93OjpWMWIGcHJvdG8z"));
+            "ZnRlcl9zZXEYAyABKARSCGFmdGVyU2VxItQCChRTdHJlYW1FdmVudHNSZXNw",
+            "b25zZRIQCgNzZXEYASABKARSA3NlcRI2CgdtZXNzYWdlGAogASgLMhoud2hh",
+            "dHNtZW93LnYxLk1lc3NhZ2VFdmVudEgAUgdtZXNzYWdlEjYKB3JlY2VpcHQY",
+            "CyABKAsyGi53aGF0c21lb3cudjEuUmVjZWlwdEV2ZW50SABSB3JlY2VpcHQS",
+            "XgoVdW5kZWNyeXB0YWJsZV9tZXNzYWdlGAwgASgLMicud2hhdHNtZW93LnYx",
+            "LlVuZGVjcnlwdGFibGVNZXNzYWdlRXZlbnRIAFIUdW5kZWNyeXB0YWJsZU1l",
+            "c3NhZ2USTwoQY29ubmVjdGlvbl9zdGF0ZRgNIAEoCzIiLndoYXRzbWVvdy52",
+            "MS5Db25uZWN0aW9uU3RhdGVFdmVudEgAUg9jb25uZWN0aW9uU3RhdGVCCQoH",
+            "cGF5bG9hZCJpChBBY2tFdmVudHNSZXF1ZXN0Eh0KCnNlc3Npb25faWQYASAB",
+            "KAlSCXNlc3Npb25JZBIaCghjb25zdW1lchgCIAEoCVIIY29uc3VtZXISGgoJ",
+            "dXBfdG9fc2VxGAMgASgEUgd1cFRvU2VxIhMKEUFja0V2ZW50c1Jlc3BvbnNl",
+            "KtYCCgtSZWNlaXB0VHlwZRIcChhSRUNFSVBUX1RZUEVfVU5TUEVDSUZJRUQQ",
+            "ABIaChZSRUNFSVBUX1RZUEVfREVMSVZFUkVEEAESFwoTUkVDRUlQVF9UWVBF",
+            "X1NFTkRFUhACEhYKElJFQ0VJUFRfVFlQRV9SRVRSWRADEhUKEVJFQ0VJUFRf",
+            "VFlQRV9SRUFEEAQSGgoWUkVDRUlQVF9UWVBFX1JFQURfU0VMRhAFEhcKE1JF",
+            "Q0VJUFRfVFlQRV9QTEFZRUQQBhIcChhSRUNFSVBUX1RZUEVfUExBWUVEX1NF",
+            "TEYQBxIdChlSRUNFSVBUX1RZUEVfU0VSVkVSX0VSUk9SEAgSGQoVUkVDRUlQ",
+            "VF9UWVBFX0lOQUNUSVZFEAkSGQoVUkVDRUlQVF9UWVBFX1BFRVJfTVNHEAoS",
+            "HQoZUkVDRUlQVF9UWVBFX0hJU1RPUllfU1lOQxALMrUBCgxFdmVudFNlcnZp",
+            "Y2USVwoMU3RyZWFtRXZlbnRzEiEud2hhdHNtZW93LnYxLlN0cmVhbUV2ZW50",
+            "c1JlcXVlc3QaIi53aGF0c21lb3cudjEuU3RyZWFtRXZlbnRzUmVzcG9uc2Uw",
+            "ARJMCglBY2tFdmVudHMSHi53aGF0c21lb3cudjEuQWNrRXZlbnRzUmVxdWVz",
+            "dBofLndoYXRzbWVvdy52MS5BY2tFdmVudHNSZXNwb25zZULBAQoQY29tLndo",
+            "YXRzbWVvdy52MUILRXZlbnRzUHJvdG9QAVpGZ2l0aHViLmNvbS90Y29ydGVn",
+            "YS9XaGF0c21lb3cuTkVUL3NpZGVjYXIvZ2VuL3doYXRzbWVvdy92MTt3aGF0",
+            "c21lb3d2MaICA1dYWKoCFVdoYXRzbWVvdy5Qcm90b2NvbC5WMcoCDFdoYXRz",
+            "bWVvd1xWMeICGFdoYXRzbWVvd1xWMVxHUEJNZXRhZGF0YeoCDVdoYXRzbWVv",
+            "dzo6VjFiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, global::Whatsmeow.Proto.WAWebProtobufsE2E.WAWebProtobufsE2EReflection.Descriptor, global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Whatsmeow.Protocol.V1.ReceiptType), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -88,7 +86,7 @@ namespace Whatsmeow.Protocol.V1 {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.UndecryptableMessageEvent), global::Whatsmeow.Protocol.V1.UndecryptableMessageEvent.Parser, new[]{ "Info", "HidePlaceholder" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.ConnectionStateEvent), global::Whatsmeow.Protocol.V1.ConnectionStateEvent.Parser, new[]{ "State" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.StreamEventsRequest), global::Whatsmeow.Protocol.V1.StreamEventsRequest.Parser, new[]{ "SessionId", "Consumer", "AfterSeq" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.StreamEventsResponse), global::Whatsmeow.Protocol.V1.StreamEventsResponse.Parser, new[]{ "Seq", "SessionId", "RecordTime", "Message", "Receipt", "UndecryptableMessage", "ConnectionState" }, new[]{ "Payload" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.StreamEventsResponse), global::Whatsmeow.Protocol.V1.StreamEventsResponse.Parser, new[]{ "Seq", "Message", "Receipt", "UndecryptableMessage", "ConnectionState" }, new[]{ "Payload" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.AckEventsRequest), global::Whatsmeow.Protocol.V1.AckEventsRequest.Parser, new[]{ "SessionId", "Consumer", "UpToSeq" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.AckEventsResponse), global::Whatsmeow.Protocol.V1.AckEventsResponse.Parser, null, null, null, null, null)
           }));
@@ -1456,7 +1454,7 @@ namespace Whatsmeow.Protocol.V1 {
   }
 
   /// <summary>
-  /// UndecryptableMessageEvent is a message that failed to decrypt. whatsmeow has asked for a resend, and a resend
+  /// UndecryptableMessageEvent is a message that failed to decrypt. whatsmeow usually asks for a resend, and a resend
   /// that decrypts arrives later as a MessageEvent.
   /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
@@ -2246,8 +2244,6 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public StreamEventsResponse(StreamEventsResponse other) : this() {
       seq_ = other.seq_;
-      sessionId_ = other.sessionId_;
-      recordTime_ = other.recordTime_ != null ? other.recordTime_.Clone() : null;
       switch (other.PayloadCase) {
         case PayloadOneofCase.Message:
           Message = other.Message.Clone();
@@ -2284,36 +2280,6 @@ namespace Whatsmeow.Protocol.V1 {
       get { return seq_; }
       set {
         seq_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "session_id" field.</summary>
-    public const int SessionIdFieldNumber = 2;
-    private string sessionId_ = "";
-    /// <summary>
-    /// The session.
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string SessionId {
-      get { return sessionId_; }
-      set {
-        sessionId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "record_time" field.</summary>
-    public const int RecordTimeFieldNumber = 3;
-    private global::Google.Protobuf.WellKnownTypes.Timestamp recordTime_;
-    /// <summary>
-    /// When the sidecar recorded the event.
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public global::Google.Protobuf.WellKnownTypes.Timestamp RecordTime {
-      get { return recordTime_; }
-      set {
-        recordTime_ = value;
       }
     }
 
@@ -2416,8 +2382,6 @@ namespace Whatsmeow.Protocol.V1 {
         return true;
       }
       if (Seq != other.Seq) return false;
-      if (SessionId != other.SessionId) return false;
-      if (!object.Equals(RecordTime, other.RecordTime)) return false;
       if (!object.Equals(Message, other.Message)) return false;
       if (!object.Equals(Receipt, other.Receipt)) return false;
       if (!object.Equals(UndecryptableMessage, other.UndecryptableMessage)) return false;
@@ -2431,8 +2395,6 @@ namespace Whatsmeow.Protocol.V1 {
     public override int GetHashCode() {
       int hash = 1;
       if (Seq != 0UL) hash ^= Seq.GetHashCode();
-      if (SessionId.Length != 0) hash ^= SessionId.GetHashCode();
-      if (recordTime_ != null) hash ^= RecordTime.GetHashCode();
       if (payloadCase_ == PayloadOneofCase.Message) hash ^= Message.GetHashCode();
       if (payloadCase_ == PayloadOneofCase.Receipt) hash ^= Receipt.GetHashCode();
       if (payloadCase_ == PayloadOneofCase.UndecryptableMessage) hash ^= UndecryptableMessage.GetHashCode();
@@ -2459,14 +2421,6 @@ namespace Whatsmeow.Protocol.V1 {
       if (Seq != 0UL) {
         output.WriteRawTag(8);
         output.WriteUInt64(Seq);
-      }
-      if (SessionId.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(SessionId);
-      }
-      if (recordTime_ != null) {
-        output.WriteRawTag(26);
-        output.WriteMessage(RecordTime);
       }
       if (payloadCase_ == PayloadOneofCase.Message) {
         output.WriteRawTag(82);
@@ -2498,14 +2452,6 @@ namespace Whatsmeow.Protocol.V1 {
         output.WriteRawTag(8);
         output.WriteUInt64(Seq);
       }
-      if (SessionId.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(SessionId);
-      }
-      if (recordTime_ != null) {
-        output.WriteRawTag(26);
-        output.WriteMessage(RecordTime);
-      }
       if (payloadCase_ == PayloadOneofCase.Message) {
         output.WriteRawTag(82);
         output.WriteMessage(Message);
@@ -2535,12 +2481,6 @@ namespace Whatsmeow.Protocol.V1 {
       if (Seq != 0UL) {
         size += 1 + pb::CodedOutputStream.ComputeUInt64Size(Seq);
       }
-      if (SessionId.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(SessionId);
-      }
-      if (recordTime_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(RecordTime);
-      }
       if (payloadCase_ == PayloadOneofCase.Message) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(Message);
       }
@@ -2567,15 +2507,6 @@ namespace Whatsmeow.Protocol.V1 {
       }
       if (other.Seq != 0UL) {
         Seq = other.Seq;
-      }
-      if (other.SessionId.Length != 0) {
-        SessionId = other.SessionId;
-      }
-      if (other.recordTime_ != null) {
-        if (recordTime_ == null) {
-          RecordTime = new global::Google.Protobuf.WellKnownTypes.Timestamp();
-        }
-        RecordTime.MergeFrom(other.RecordTime);
       }
       switch (other.PayloadCase) {
         case PayloadOneofCase.Message:
@@ -2625,17 +2556,6 @@ namespace Whatsmeow.Protocol.V1 {
             break;
           case 8: {
             Seq = input.ReadUInt64();
-            break;
-          }
-          case 18: {
-            SessionId = input.ReadString();
-            break;
-          }
-          case 26: {
-            if (recordTime_ == null) {
-              RecordTime = new global::Google.Protobuf.WellKnownTypes.Timestamp();
-            }
-            input.ReadMessage(RecordTime);
             break;
           }
           case 82: {
@@ -2695,17 +2615,6 @@ namespace Whatsmeow.Protocol.V1 {
             break;
           case 8: {
             Seq = input.ReadUInt64();
-            break;
-          }
-          case 18: {
-            SessionId = input.ReadString();
-            break;
-          }
-          case 26: {
-            if (recordTime_ == null) {
-              RecordTime = new global::Google.Protobuf.WellKnownTypes.Timestamp();
-            }
-            input.ReadMessage(RecordTime);
             break;
           }
           case 82: {
