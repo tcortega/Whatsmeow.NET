@@ -14,33 +14,28 @@ ARCHITECTURE §13 invariants are wrong to break without an ADR first.
 
 proto/whatsmeow/v1/    our contract, one file per slice (from #3)
 third_party/whatsmeow/ upstream protos copied from the exact pinned version (`VERSION`)
-sidecar/               Go module `github.com/tcortega/Whatsmeow.NET/sidecar`; `scripts/` holds the repo tools
+sidecar/               Go module `github.com/tcortega/Whatsmeow.NET/sidecar`: product code and dependencies only
+tools/                 Go module for repo tools (`check-repo`, `sync-protos`), kept out of the product module
+build/ci.sh            every CI check; the workflow only calls it
 dotnet/                `Whatsmeow.slnx` (never a .sln), src/, tests/; samples/ later (Phase 3)
 docs/                  ARCHITECTURE, RESEARCH, guidelines/, adr/
-global.json mise.toml  .NET SDK pin; Go, buf, golangci-lint and protoc pins
+global.json mise.toml  .NET SDK pin; Go, buf, golangci-lint, protoc and shellcheck pins
 nuget.config           nuget.org only
 AGENTS.md              this file (CLAUDE.md is a symlink to it; nothing may depend on it)
 
 ## Commands
 
-Setup once: the .NET SDK from `global.json` (10.0.403), then `mise trust && mise install` for Go, buf, golangci-lint and protoc.
-Run from the repo root, in a POSIX shell (Git Bash on Windows).
+Setup once: the .NET SDK from `global.json` (10.0.403), then `mise trust && mise install` for Go, buf, golangci-lint, protoc and shellcheck.
 
-Pre-push: exactly what CI (`.github/workflows/ci.yml`) runs on linux-x64, osx-arm64 and win-x64, with warnings as errors.
+Everything CI runs is `build/ci.sh`, one subcommand per CI job, on linux-x64, osx-arm64 and win-x64 (Git Bash on Windows).
+Run it from anywhere before pushing; it runs every check, reports each failure, and fails at the end:
 
 ```sh
-go -C sidecar run ./scripts/check-repo                                   # suppressions, generated markers, analyzer configs
-dotnet restore dotnet/Whatsmeow.slnx --locked-mode
-dotnet build dotnet/Whatsmeow.slnx -c Release --no-restore -p:ContinuousIntegrationBuild=true
-dotnet test --solution dotnet/Whatsmeow.slnx -c Release --no-build
-dotnet publish dotnet/tests/AotSmoke/AotSmoke.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true   # zero trim/AOT warnings, host RID
-(cd sidecar && go mod tidy -diff && CGO_ENABLED=0 go build ./... && go test -race -count=1 ./... && CGO_ENABLED=1 golangci-lint run ./...)
-go -C sidecar run ./scripts/sync-protos                                  # third_party matches the pin; -write to update
-buf lint
-buf generate --template buf.gen.whatsapp.yaml && git status --porcelain   # must print nothing; never edit generated code
+bash build/ci.sh all        # or: setup, contract, go, dotnet
 ```
 
 A package change regenerates `packages.lock.json` with a plain `dotnet restore dotnet/Whatsmeow.slnx`; commit it.
+Update third_party after a pin change with `go -C tools run ./sync-protos -write`, and generated code with `buf generate --template buf.gen.whatsapp.yaml`.
 
 ## .NET rules
 
@@ -68,7 +63,7 @@ Go idioms: [docs/guidelines/go.md](docs/guidelines/go.md).
 
 ## Contract rules
 
-From the first published `v*` tag (pre-releases included), `whatsmeow.v1` never breaks (a break is a new `whatsmeow.v2` with its ADR), every additive change bumps `protocol`, and `buf breaking` gates; before it, `protocol` keeps its initial value, 1, and `buf breaking` only reports (ADR 0015).
+From the first published `v<semver>` tag (pre-releases and build metadata included), `whatsmeow.v1` never breaks (a break is a new `whatsmeow.v2` with its ADR), every additive change bumps `protocol`, and `buf breaking` gates; before it, `protocol` keeps its initial value, 1, and `buf breaking` only reports (ADR 0015).
 Never reuse or renumber a field.
 Proto style: [docs/guidelines/proto.md](docs/guidelines/proto.md).
 

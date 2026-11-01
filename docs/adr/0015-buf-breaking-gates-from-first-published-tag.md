@@ -13,12 +13,12 @@ Phase 1 builds the first slices, and the contract is expected to change while th
 
 ## Decision
 
-- From the first published `v*` tag (pre-releases included) on, `whatsmeow.v1` never breaks: a break means a new package `whatsmeow.v2` with its own ADR, every additive change increments `protocol`, and `buf breaking` gates `whatsmeow.v1` against `main`.
+- From the first published `v<semver>` tag (pre-releases and build metadata included) on, `whatsmeow.v1` never breaks: a break means a new package `whatsmeow.v2` with its own ADR, every additive change increments `protocol`, and `buf breaking` gates `whatsmeow.v1` against `main`.
 - Before that tag, `protocol` keeps its initial value, 1, and `buf breaking` only reports.
 - Upstream whatsmeow protos stay excluded from `buf breaking` either way; their wire changes are reported and never block.
 - The gate timing was chosen by the owner on 2026-10-31 ([issue #1 comment](https://github.com/tcortega/Whatsmeow.NET/issues/1#issuecomment-6551195963)), and it is reversible.
 - The `whatsmeow.v2` rule for breaks after the tag was decided by the orchestrator in the PR #13 review on 2026-10-31, and it is reversible.
-- Amended 2026-11-01 in the PR #15 review (orchestrator decision): any published `v<semver>` tag starts the gate, pre-releases included, because a published release candidate can already be depended on [inferred: a consumer can pin a pre-release package]. CI detects it as a tag reachable from the comparison base that matches `^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$` ([guidelines/proto.md](../guidelines/proto.md)).
+- Amended 2026-10-31 in the review of PR #15 (orchestrator decision): any published `v<semver>` tag starts the gate, pre-releases and build metadata included, because a published release candidate can already be depended on [inferred: a consumer can pin a pre-release package]. The detection lives in `build/ci.sh` (`buf_breaking`), which CI runs.
 
 ## Consequences
 
