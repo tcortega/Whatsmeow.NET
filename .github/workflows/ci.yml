@@ -1,28 +1,30 @@
 name: ci
 
-# Every pushed branch gets CI before a pull request exists. A pull request from this repository runs it twice
-# (push and pull_request); buf breaking runs only in the pull_request run, which knows the base.
 on:
-  push:
-    branches: ["**"]
   pull_request:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.event_name }}-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
   DOTNET_NOLOGO: "true"
   DOTNET_CLI_TELEMETRY_OPTOUT: "true"
   TESTINGPLATFORM_TELEMETRY_OPTOUT: "true"
+  # Use exactly the Go that mise installs from mise.toml; never download another toolchain.
+  GOTOOLCHAIN: local
+  MISE_VERSION: 2026.10.25
 
 jobs:
   contract:
     name: contract (${{ matrix.name }})
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -37,35 +39,37 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # buf breaking reads the base commit, and the gate needs the tags.
+          # buf breaking reads the merge-base with main, and the gate reads the tags.
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version-file: sidecar/go.mod
-          cache-dependency-path: |
-            sidecar/go.*
-            third_party/whatsmeow/VERSION
-
-      # Not a workflow-level env: with GOTOOLCHAIN=local, setup-go installs the go directive instead of the toolchain.
-      - name: use exactly the toolchain in sidecar/go.mod
-        id: toolchain
-        run: |
-          want="$(sed -n 's/^toolchain //p' "$GITHUB_WORKSPACE/sidecar/go.mod")"
-          got="$(GOTOOLCHAIN=local go env GOVERSION)"
-          if [ "$got" != "$want" ]; then
-            echo "::error title=wrong Go toolchain::setup-go installed $got, sidecar/go.mod pins $want"
-            exit 1
-          fi
-          echo "GOTOOLCHAIN=local" >> "$GITHUB_ENV"
-
       - uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5.2.5
         with:
+          version: ${{ env.MISE_VERSION }}
           cache: true
 
+      - name: Go from mise equals the sidecar/go.mod toolchain
+        id: toolchain
+        run: |
+          want="$(sed -n 's/^toolchain //p' sidecar/go.mod)"
+          got="$(go env GOVERSION)"
+          if [ "$got" != "$want" ]; then
+            echo "::error title=wrong Go toolchain::mise installed $got, sidecar/go.mod pins $want; align mise.toml"
+            exit 1
+          fi
+          {
+            echo "GOMODCACHE=$RUNNER_TEMP/go/mod"
+            echo "GOCACHE=$RUNNER_TEMP/go/build"
+          } >> "$GITHUB_ENV"
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/go
+          key: go-contract-${{ runner.os }}-${{ hashFiles('mise.toml', 'sidecar/go.sum', 'third_party/whatsmeow/VERSION') }}
+          restore-keys: go-contract-${{ runner.os }}-
+
+      # Every check runs and reports, even after an earlier one failed.
       - name: third_party/whatsmeow matches the pinned module
-        # Every check runs and reports, even after an earlier one failed.
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
         run: go -C sidecar run ./scripts/sync-protos
 
@@ -73,19 +77,45 @@ jobs:
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
         run: buf lint
 
-      - name: buf breaking (gates from the first published vX.Y.Z tag, ADR 0015)
-        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' && github.event_name == 'pull_request' }}
+      - name: buf breaking (gates from the first published v* tag, ADR 0015)
+        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' && github.event_name != 'workflow_dispatch' }}
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
         run: |
-          against=".git#ref=${BASE_SHA}"
-          if git tag --list 'v*' | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
-            buf breaking --against "$against"
-            exit
+          # A pull request compares with its merge-base with main, never with a stacked base branch.
+          # A push to main compares with the commit main pointed at before.
+          if [ "$EVENT" = pull_request ]; then
+            base="$(git merge-base origin/main HEAD)"
+          else
+            base="$BEFORE"
           fi
-          if ! buf breaking --against "$against"; then
-            echo "::warning title=buf breaking (report only)::Breaking changes found. They do not gate until the first published vX.Y.Z tag (ADR 0015)."
+          if [ -z "$base" ] || [ "$base" = 0000000000000000000000000000000000000000 ]; then
+            echo "::notice title=buf breaking::no base commit to compare with"
+            exit 0
           fi
+
+          # Any published v<semver> tag reachable from the base starts the gate, pre-releases included.
+          gate=false
+          while IFS= read -r tag; do
+            if [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+              gate=true
+            fi
+          done < <(git tag --merged "$base" --list 'v*')
+
+          rc=0
+          buf breaking --against ".git#ref=$base" || rc=$?
+          case "$rc" in
+            0) ;;
+            100)
+              if [ "$gate" = true ]; then
+                echo "::error title=buf breaking::whatsmeow.v1 breaks against $base after the first published tag (ADR 0015)"
+                exit 100
+              fi
+              echo "::warning title=buf breaking (report only)::breaking changes against $base; they gate from the first published v* tag (ADR 0015)"
+              ;;
+            *) exit "$rc" ;;
+          esac
 
       - name: buf generate
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
@@ -104,6 +134,7 @@ jobs:
 
   go:
     name: go (${{ matrix.name }})
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -121,39 +152,54 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version-file: sidecar/go.mod
-          cache-dependency-path: |
-            sidecar/go.*
-            third_party/whatsmeow/VERSION
-
-      # Not a workflow-level env: with GOTOOLCHAIN=local, setup-go installs the go directive instead of the toolchain.
-      - name: use exactly the toolchain in sidecar/go.mod
-        id: toolchain
-        run: |
-          want="$(sed -n 's/^toolchain //p' "$GITHUB_WORKSPACE/sidecar/go.mod")"
-          got="$(GOTOOLCHAIN=local go env GOVERSION)"
-          if [ "$got" != "$want" ]; then
-            echo "::error title=wrong Go toolchain::setup-go installed $got, sidecar/go.mod pins $want"
-            exit 1
-          fi
-          echo "GOTOOLCHAIN=local" >> "$GITHUB_ENV"
-
       - uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5.2.5
         with:
+          version: ${{ env.MISE_VERSION }}
           cache: true
+
+      - name: Go from mise equals the sidecar/go.mod toolchain
+        id: toolchain
+        run: |
+          want="$(sed -n 's/^toolchain //p' go.mod)"
+          got="$(go env GOVERSION)"
+          if [ "$got" != "$want" ]; then
+            echo "::error title=wrong Go toolchain::mise installed $got, sidecar/go.mod pins $want; align mise.toml"
+            exit 1
+          fi
+          {
+            echo "GOMODCACHE=$RUNNER_TEMP/go/mod"
+            echo "GOCACHE=$RUNNER_TEMP/go/build"
+            echo "GOLANGCI_LINT_CACHE=$RUNNER_TEMP/golangci-lint"
+          } >> "$GITHUB_ENV"
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/go
+          key: go-go-${{ runner.os }}-${{ hashFiles('mise.toml', 'sidecar/go.sum') }}
+          restore-keys: go-go-${{ runner.os }}-
 
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/golangci-lint
-          key: golangci-lint-${{ runner.os }}-${{ hashFiles('mise.toml', 'sidecar/.golangci.yml', 'sidecar/go.*', 'sidecar/**/*.go') }}
+          key: golangci-lint-${{ runner.os }}-${{ hashFiles('mise.toml', 'sidecar/.golangci.yml', 'sidecar/go.sum') }}
           restore-keys: golangci-lint-${{ runner.os }}-
 
+      # Every check runs and reports, even after an earlier one failed.
       - name: go.mod and go.sum are tidy
-        # Every check runs and reports, even after an earlier one failed.
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
         run: go mod tidy -diff
+
+      - name: no cgo files
+        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
+        env:
+          CGO_ENABLED: "1"
+        run: |
+          cgo="$(go list -f '{{if .CgoFiles}}{{.ImportPath}} {{.CgoFiles}}{{end}}' ./...)"
+          if [ -n "$cgo" ]; then
+            echo "::error title=cgo::the sidecar is CGO-free (docs/guidelines/go.md)"
+            echo "$cgo"
+            exit 1
+          fi
 
       - name: go build (no cgo)
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
@@ -165,14 +211,15 @@ jobs:
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
         run: go test -race -count=1 ./...
 
-      - name: golangci-lint
+      - name: golangci-lint (with cgo files visible)
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
         env:
-          GOLANGCI_LINT_CACHE: ${{ runner.temp }}/golangci-lint
+          CGO_ENABLED: "1"
         run: golangci-lint run ./...
 
   dotnet:
     name: dotnet (${{ matrix.name }})
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -194,29 +241,72 @@ jobs:
         with:
           global-json-file: global.json
 
+      # Go runs the repository guard (sidecar/scripts/check-repo).
+      - uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5.2.5
+        with:
+          version: ${{ env.MISE_VERSION }}
+          cache: true
+
+      - name: Go from mise equals the sidecar/go.mod toolchain
+        id: toolchain
+        run: |
+          want="$(sed -n 's/^toolchain //p' ../sidecar/go.mod)"
+          got="$(go env GOVERSION)"
+          if [ "$got" != "$want" ]; then
+            echo "::error title=wrong Go toolchain::mise installed $got, sidecar/go.mod pins $want; align mise.toml"
+            exit 1
+          fi
+          {
+            echo "GOMODCACHE=$RUNNER_TEMP/go/mod"
+            echo "GOCACHE=$RUNNER_TEMP/go/build"
+          } >> "$GITHUB_ENV"
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/go
+          key: go-dotnet-${{ runner.os }}-${{ hashFiles('mise.toml', 'sidecar/go.sum') }}
+          restore-keys: go-dotnet-${{ runner.os }}-
+
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.nuget/packages
-          key: nuget-${{ runner.os }}-${{ hashFiles('global.json', 'dotnet/Directory.Packages.props', 'dotnet/**/*.csproj') }}
+          key: nuget-${{ runner.os }}-${{ hashFiles('global.json', 'nuget.config', 'dotnet/**/packages.lock.json') }}
           restore-keys: nuget-${{ runner.os }}-
 
+      # Every check runs and reports, even after an earlier one failed.
+      - name: repository guard (suppressions, generated markers, analyzer configs)
+        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
+        run: go -C ../sidecar run ./scripts/check-repo
+
+      - name: dotnet restore (locked)
+        id: restore
+        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
+        run: dotnet restore Whatsmeow.slnx --locked-mode
+
       - name: dotnet build
-        run: dotnet build Whatsmeow.slnx -c Release
+        id: build
+        if: ${{ !cancelled() && steps.restore.outcome == 'success' }}
+        run: dotnet build Whatsmeow.slnx -c Release --no-restore
 
       - name: dotnet test
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: dotnet test --solution Whatsmeow.slnx -c Release --no-build
 
       - name: AotSmoke publish (zero trim and AOT warnings)
-        run: dotnet publish tests/AotSmoke/AotSmoke.csproj -c Release -r ${{ matrix.rid }}
+        id: publish
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: dotnet publish tests/AotSmoke/AotSmoke.csproj -c Release --no-restore
 
       - name: AotSmoke run
+        if: ${{ !cancelled() && steps.publish.outcome == 'success' }}
         run: ./artifacts/publish/AotSmoke/release_${{ matrix.rid }}/AotSmoke${{ matrix.exe }}
 
       - name: the build left the tree unchanged
+        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
         run: |
           changes="$(git status --porcelain --untracked-files=all)"
           if [ -n "$changes" ]; then
-            echo "::error title=tree changed::the build wrote files outside dotnet/artifacts/"
+            echo "::error title=tree changed::the build wrote files outside dotnet/artifacts/ (a stale packages.lock.json shows up here too)"
             echo "$changes"
             exit 1
           fi
@@ -226,6 +316,7 @@ jobs:
     if: always()
     needs: [contract, go, dotnet]
     runs-on: ubuntu-26.04
+    timeout-minutes: 30
     steps:
       - name: every job passed
         env:
