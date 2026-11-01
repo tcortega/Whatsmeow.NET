@@ -45,27 +45,51 @@
 	</Target>
 
 	<!--
-		Rule switches (WMN0003). The analyzer set, its severities and the suppression baseline come from
-		Directory.Build.props, /.editorconfig and dotnet/.globalconfig only. A project may not turn any of it off.
+		Rule switches (WMN0003): an allowlist. The analyzer set, its severities and the suppression baseline come from
+		Directory.Build.props, /.editorconfig and dotnet/.globalconfig only; a project may not turn any of it off.
+		It runs after CoreCompile, when the SDK and packages have added their analyzer configs.
 		Suppressions are written, justified pragmas, judged in review (docs/guidelines/csharp.md Suppressions).
 	-->
-	<Target Name="_RejectRuleSwitches" BeforeTargets="CoreCompile">
+	<Target Name="_RejectRuleSwitches" AfterTargets="CoreCompile">
+		<PropertyGroup>
+			<_WhatsmeowInSrc>$([System.String]::Copy('$(MSBuildProjectDirectory)/').StartsWith('$(MSBuildThisFileDirectory)src', StringComparison.OrdinalIgnoreCase))</_WhatsmeowInSrc>
+			<!--
+				The literal NoWarn baseline. Roslyn's Microsoft.CSharp.Core.targets adds 1701 and 1702 (assembly unification),
+				8002 (strong naming, ignored on .NET) and, inside Visual Studio, 2008; IL2121 comes with PublishAot; and 1591
+				(missing XML docs) is off outside dotnet/src.
+			-->
+			<_WhatsmeowAllowedNoWarnText>1701;1702;2008;8002;IL2121</_WhatsmeowAllowedNoWarnText>
+			<_WhatsmeowAllowedNoWarnText Condition="'$(_WhatsmeowInSrc)' != 'true'">1591;1701;1702;2008;8002;IL2121</_WhatsmeowAllowedNoWarnText>
+			<_WhatsmeowSdkDirectory>$([System.IO.Path]::GetFullPath('$(NetCoreRoot)sdk/$(NETCoreSdkVersion)/'))</_WhatsmeowSdkDirectory>
+		</PropertyGroup>
+
 		<ItemGroup>
-			<!-- 1701 and 1702 (assembly unification) are the C# SDK defaults; IL2121 is added by the SDK when PublishAot is set. -->
-			<_WhatsmeowAllowedNoWarn Include="$([MSBuild]::Unescape($(WhatsmeowBaselineNoWarn.Replace(',', ';'))));1701;1702;IL2121" />
+			<_WhatsmeowAllowedNoWarn Include="$(_WhatsmeowAllowedNoWarnText)" />
 			<_WhatsmeowExtraNoWarn Include="$([MSBuild]::Unescape($(NoWarn.Replace(',', ';').Replace(' ', ''))))" Exclude="@(_WhatsmeowAllowedNoWarn)" />
 			<_WhatsmeowAnalyzerName Include="@(Analyzer->'%(Filename)')" />
+
+			<!-- Analyzer configs: the two blessed files, this project's generated MSBuild editorconfig, and the SDK's own. -->
+			<_WhatsmeowConfig Include="@(EditorConfigFiles->'%(FullPath)')" Exclude="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../.editorconfig'));$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory).globalconfig'));$([System.IO.Path]::GetFullPath('$(GeneratedMSBuildEditorConfigFile)'))" />
+			<_WhatsmeowConfig Include="@(GlobalAnalyzerConfigFiles->Exists()->'%(FullPath)')" Exclude="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory).globalconfig'))" />
+			<_WhatsmeowConfig Remove="@(_WhatsmeowConfig)" Condition="$([System.String]::Copy('%(Identity)').StartsWith('$(_WhatsmeowSdkDirectory)', StringComparison.OrdinalIgnoreCase))" />
 		</ItemGroup>
 
 		<PropertyGroup>
 			<_WhatsmeowExtraNoWarnText>@(_WhatsmeowExtraNoWarn)</_WhatsmeowExtraNoWarnText>
+			<_WhatsmeowConfigText>@(_WhatsmeowConfig)</_WhatsmeowConfigText>
 		</PropertyGroup>
 
 		<ItemGroup>
 			<_WhatsmeowRuleSwitch Include="NoWarn adds $(_WhatsmeowExtraNoWarnText)" Condition="'$(_WhatsmeowExtraNoWarnText)' != ''" />
+			<_WhatsmeowRuleSwitch Include="analyzer config files other than the blessed ones: $(_WhatsmeowConfigText)" Condition="'$(_WhatsmeowConfigText)' != ''" />
 			<_WhatsmeowRuleSwitch Include="WarningsNotAsErrors is set ($(WarningsNotAsErrors))" Condition="'$(WarningsNotAsErrors)' != ''" />
 			<_WhatsmeowRuleSwitch Include="WarningsAsErrors drops Nullable" Condition="!$(WarningsAsErrors.Contains('Nullable'))" />
 			<_WhatsmeowRuleSwitch Include="TreatWarningsAsErrors is off in a CI build" Condition="('$(GITHUB_ACTIONS)' == 'true' OR '$(ContinuousIntegrationBuild)' == 'true') AND '$(TreatWarningsAsErrors)' != 'true'" />
+			<!-- 10 is the net10.0 default [observed: dotnet msbuild -getProperty:WarningLevel]. -->
+			<_WhatsmeowRuleSwitch Include="WarningLevel is $(WarningLevel), below 10" Condition="'$(WarningLevel)' == '' OR $(WarningLevel) &lt; 10" />
+			<_WhatsmeowRuleSwitch Include="CodeAnalysisRuleSet is set" Condition="'$(CodeAnalysisRuleSet)' != ''" />
+			<_WhatsmeowRuleSwitch Include="EnableNETAnalyzers is not true" Condition="'$(EnableNETAnalyzers)' != 'true'" />
+			<_WhatsmeowRuleSwitch Include="GenerateDocumentationFile is not true" Condition="'$(GenerateDocumentationFile)' != 'true'" />
 			<_WhatsmeowRuleSwitch Include="RunAnalyzers is false" Condition="'$(RunAnalyzers)' == 'false'" />
 			<_WhatsmeowRuleSwitch Include="RunAnalyzersDuringBuild is false" Condition="'$(RunAnalyzersDuringBuild)' == 'false'" />
 			<_WhatsmeowRuleSwitch Include="EnforceCodeStyleInBuild is not true" Condition="'$(EnforceCodeStyleInBuild)' != 'true'" />

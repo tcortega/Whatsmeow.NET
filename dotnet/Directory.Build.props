@@ -28,9 +28,6 @@
 
 		<!-- Restores are reproducible: packages.lock.json is committed, and CI restores with locked mode. -->
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-
-		<!-- The suppression baseline. Directory.Build.targets fails the build (WMN0003) if a project adds to it. -->
-		<WhatsmeowBaselineNoWarn>$(NoWarn)</WhatsmeowBaselineNoWarn>
 	</PropertyGroup>
 
 	<!-- CI, or a local pre-push build with -p:ContinuousIntegrationBuild=true (AGENTS.md Commands). -->

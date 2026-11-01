@@ -8,6 +8,5 @@
 
 		<!-- Library delta: public members of shipped code need XML docs (CS1591 is an error in /.editorconfig for dotnet/src). -->
 		<NoWarn>$(NoWarn.Replace(',1591', ''))</NoWarn>
-		<WhatsmeowBaselineNoWarn>$(NoWarn)</WhatsmeowBaselineNoWarn>
 	</PropertyGroup>
 </Project>
