@@ -71,7 +71,8 @@ Do not assert gRPC status codes or `RpcException` details; they never reach the 
 
 ## Delivery guarantees
 
-The delivery invariants (ARCHITECTURE §13, 1-3) get kill-either-process tests: kill the sidecar or the .NET side mid-stream, restart, and assert no lost and no duplicated events at the handler.
+The delivery invariants (ARCHITECTURE §13, 1-3) get kill-either-process tests: kill the sidecar or the .NET side mid-stream, restart, and assert that no event is lost at the handler.
+Delivery is at-least-once (ARCHITECTURE §8.4), so a repeat is allowed: assert that it only follows the last acked cursor and carries the same `MessageId` and `SessionId`.
 Wait on a condition (the event arrived, the cursor moved), never a duration.
 
 ## One method per behavior

@@ -1,10 +1,16 @@
 # Architecture
 
-> **Status:** v1 design, frozen for implementation. Changes go through an ADR (see [Decision log](#decision-log)).
-> **Name:** Whatsmeow.NET. Identifiers are in [Naming](#naming).
-> **Background:** the full research behind every decision here is in [`RESEARCH.md`](RESEARCH.md). This document states *what we do*. The research explains *why*, with sources.
-> **How to write the code:** [`guidelines/`](guidelines/README.md). Coding rules that used to live here (§6 proto style, §7.9, the idiom half of §8.3, §8.9 table, §8.10, test discipline) moved there; each spot keeps a pointer.
-> **House rules win:** where this document and the house guidelines (shared with bridge, compras, chrominal) disagreed, the house rule was applied, except where a measured reason made this library opt out (BCL time, `IWhatsAppClient`). Both kinds are ADR seeds in the [Decision log](#decision-log).
+> **Status:** v1 design, frozen for implementation.
+> Changes go through an ADR (see [Decision log](#decision-log)).
+> **Name:** Whatsmeow.NET.
+> Identifiers are in [Naming](#naming).
+> **Background:** the full research behind every decision here is in [`RESEARCH.md`](RESEARCH.md).
+> This document states *what we do*.
+> The research explains *why*, with sources.
+> **How to write the code:** [`guidelines/`](guidelines/README.md).
+> Coding rules that used to live here (§6 proto style, §7.9, the idiom half of §8.3, §8.9 table, §8.10, test discipline) moved there; each spot keeps a pointer.
+> **House rules win:** where this document and the house guidelines (shared with bridge, compras, chrominal) disagreed, the house rule was applied, except where a measured reason made this library opt out (BCL time, `IWhatsAppClient`).
+> Both kinds are ADRs in the [Decision log](#decision-log).
 
 Whatsmeow.NET gives .NET applications full access to WhatsApp's multi-device protocol by wrapping the Go library [whatsmeow](https://github.com/tulir/whatsmeow). It has two parts, released together from one repo:
 
@@ -200,7 +206,9 @@ The contract is the most important artifact in the repo. Both sides are generate
 - **Independent of whatsmeow's Go API.** No field mirrors a whatsmeow Go struct by accident. Mapping happens in Go slice code.
 - whatsmeow's own protos (`WAWebProtobufsE2E.Message` etc.) are imported **unmodified** from `third_party/whatsmeow` and embedded as **typed fields**. On the wire, a typed field is identical to a `bytes` field holding the serialized message.
 - The Go server uses a lenient codec (`AllowPartial` both ways) installed with `grpc.ForceServerCodecV2`, never a global `encoding.RegisterCodec`. With grpc-go's default codec, a message missing a proto2 `required` field fails to decode before any interceptor runs, as a bare `Internal` with no `ErrorInfo`; with the lenient codec it reaches the slice, whatsmeow's send-path `proto.Marshal` rejects it, and the slice maps that to `INVALID_ARGUMENT` (§14 question 1).
-- `buf breaking` gates `whatsmeow.v1` only. Upstream wire changes are reported but don't block.
+- From the first published `vX.Y.Z` tag on, `whatsmeow.v1` never breaks: a break means a new package `whatsmeow.v2` with its own ADR, every additive change increments `protocol`, and `buf breaking` gates `whatsmeow.v1` against `main`.
+  Before that tag, `protocol` keeps its initial value, 1, and `buf breaking` only reports ([ADR 0015](adr/0015-buf-breaking-gates-from-first-published-tag.md)).
+  `buf breaking` covers `whatsmeow.v1` only; upstream wire changes are reported but don't block.
 - `GetInfo` reports `version`, `protocol` (an integer contract revision), `whatsmeow_version`, `wa_web_version`, `go_version` and `commit`.
 
 **Service shape** (full outline in the research report):
@@ -382,7 +390,10 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
 ### 8.6 Transport
 
 - `GrpcChannel.ForAddress("http://localhost", new GrpcChannelOptions { HttpHandler = new SocketsHttpHandler { ConnectCallback = … } })`.
-- Unix domain socket by default on every OS, Windows included (§14 question 2: stable, and 2-3x faster than named pipes for large frames and bidi). On Windows the named-pipe transport stays selectable as a fallback; it passed the same soak.
+- Unix domain socket by default on every OS, Windows included (§14 question 2: stable on both transports).
+  AF_UNIX was about 2-4x faster for server streams of 64 KiB messages and about 1.5-3x for bidi.
+  Client-stream upload was comparable, with the named-pipe range equal or higher (328-469 vs 308-390 MiB/s) [inferred: ratios from the range ends across the three hosts, not paired per host].
+  On Windows the named-pipe transport stays selectable as a fallback; it passed the same soak.
 - An auth token is added to every call by an interceptor, together with `ThrowOperationCanceledOnCancellation = true`.
 - `MaxReceiveMessageSize` and `MaxSendMessageSize` are set explicitly to 16 MiB on both sides.
 - Never call `GrpcChannel.ConnectAsync` or read `GrpcChannel.State`; both throw `InvalidOperationException` ("doesn't support client-side load balancing or connectivity state tracking") when `ConnectCallback` is set (§14 transport spike). Readiness comes from the handshake.
@@ -434,7 +445,7 @@ Moved to [guidelines/csharp.md](guidelines/csharp.md) Async and concurrency: `Ch
 ## 10. Security
 
 - The socket lives in a freshly created `0700` directory with a short random name; a stale socket file is removed before `Listen`. Linux abstract sockets are never used.
-- Windows named pipes use a random name, a current-user-only DACL (go-winio `D:P(A;;GA;;;OW)`), and `PipeOptions.CurrentUserOnly` on the client; that combination connected in the soak.
+- Windows named pipes use a random name, a current-user-only DACL (go-winio `D:P(A;;GA;;;OW)`), and `PipeOptions.CurrentUserOnly` on the client; that combination connected in the soak [observed: tag `spike/windows-transport`, `spikes/windows-transport/go/server/pipe_windows.go:16`, `spikes/windows-transport/dotnet/Program.cs:50`; §14 question 2].
 - On Windows, `os.Chmod(dir, 0700)` does not set an ACL. The socket directory's protection comes from the user's `%LOCALAPPDATA%\Temp` ACL [inferred: default per-user ACL, not measured], so the sidecar sets an explicit owner-only DACL on that directory at creation, and the token stays the real gate.
 - A per-launch 32-byte token is delivered on stdin (never argv or environment variables). It is checked in constant time by a gRPC interceptor. A nonce echo guards against connecting to a stale sidecar.
 - The SQLite database holds long-term private keys. It is created `0600`, and the docs recommend disk encryption. Backups use `VACUUM INTO` and must be encrypted by the user.
@@ -453,7 +464,7 @@ How to write each test, what is banned, and the can-it-fail check: [guidelines/t
 |---|---|---|
 | Integration (default) | real `whatsmeow-net` started with `--fake-whatsapp`, a test-only build tag that replaces whatsmeow with a scripted fake and exposes a control service to inject events and failures; one FullCycle per slice through the public API, covering proto ↔ record mapping and error mapping; kill-either-process tests for delivery guarantees | `tests/Whatsmeow.IntegrationTests` |
 | Go unit | every slice, with whatsmeow faked behind the slice's small interface; event-mapping tables covering every event type; outbox replay/ack/crash semantics; `-race` always | `sidecar/internal/**` |
-| Contract | `buf lint`, `buf breaking` against `main`; generated-code diff check | CI |
+| Contract | `buf lint`; `buf breaking`. From the first published `vX.Y.Z` tag on, `whatsmeow.v1` never breaks: a break means a new package `whatsmeow.v2` with its own ADR, every additive change increments `protocol`, and `buf breaking` gates `whatsmeow.v1` against `main`. Before that tag, `protocol` keeps its initial value, 1, and `buf breaking` only reports ([ADR 0015](adr/0015-buf-breaking-gates-from-first-published-tag.md)); generated-code diff check | CI |
 | .NET unit (vital only) | dispatcher per-chat ordering and watermark acking; supervisor restart/backoff state machine with `FakeTimeProvider` | `tests/Whatsmeow.Client.Tests` |
 | Live | real WhatsApp with a dedicated test number; manual pairing; opt-in through environment variables; never in default CI | `tests/Whatsmeow.LiveTests` |
 | Packaging | `dotnet pack` → restore from a local feed → run on win-x64, linux-x64 (glibc and Alpine), osx-arm64 | CI matrix |
@@ -464,7 +475,10 @@ How to write each test, what is banned, and the can-it-fail check: [guidelines/t
 ## 12. Release and upstream tracking
 
 - One git tag (`vX.Y.Z`) drives both GoReleaser (binaries) and `dotnet pack` (MinVer). The versions are always equal.
-- No Developer ID signing, notarization, or Authenticode (§14 questions 2 and 6). A binary restored by `dotnet restore` from nuget.org carries no `com.apple.quarantine` attribute, and an ad-hoc signed one runs even though `spctl` rejects it (§14 question 6) [inferred: Gatekeeper assesses only quarantined launches, which matches what we saw]. Apple Silicon needs arm64 code to be signed at all, and the Go linker ad-hoc signs `darwin/arm64` itself. An app that embeds us and ships as a notarized `.app` signs its embedded binaries as part of its own release [inferred: standard macOS app signing, not our concern].
+- No Developer ID signing, notarization, or Authenticode (§14 questions 2 and 6).
+  A binary restored by `dotnet restore` from nuget.org carries no `com.apple.quarantine` attribute, and an ad-hoc signed one runs even though `spctl` rejects it (§14 question 6) [inferred: Gatekeeper assesses only quarantined launches, which matches what we saw].
+  Apple Silicon needs arm64 code to be signed at all [inferred: Apple platform rule, not measured here], and the Go linker ad-hoc signs `darwin/arm64` itself.
+  An app that embeds us and ships as a notarized `.app` signs its embedded binaries as part of its own release [inferred: standard macOS app signing, not our concern].
 - **Weekly `whatsmeow-bump` workflow:**
   1. Bump the whatsmeow pin.
   2. Copy the protos from the **exact** module directory (`go mod download -json`).
@@ -472,7 +486,9 @@ How to write each test, what is banned, and the can-it-fail check: [guidelines/t
   4. Run all tests.
   5. Post a non-gating upstream wire-diff comment and a parity report.
   6. Open a PR.
-- The whatsmeow pin is an implementation detail; a bump that passes CI is a patch release. A change to `whatsmeow.v1` increments `protocol`.
+- The whatsmeow pin is an implementation detail; a bump that passes CI is a patch release.
+- From the first published `vX.Y.Z` tag on, `whatsmeow.v1` never breaks: a break means a new package `whatsmeow.v2` with its own ADR, every additive change increments `protocol`, and `buf breaking` gates `whatsmeow.v1` against `main`.
+  Before that tag, `protocol` keeps its initial value, 1, and `buf breaking` only reports ([ADR 0015](adr/0015-buf-breaking-gates-from-first-published-tag.md)).
 - `NOTICE` carries the MPL-2.0 source offer for whatsmeow at the pinned commit.
 
 ---
@@ -485,7 +501,8 @@ Any change that violates one of these is wrong unless an ADR changes the invaria
 2. A WhatsApp message of a gated kind (§1) is acked to the server only after it is durably in the outbox. Ungated kinds are acked by whatsmeow regardless; we never claim otherwise.
 3. An event is acked by .NET only after all of its handlers have completed. Acks follow the watermark.
 4. Every whatsmeow `PermanentDisconnect` (six types at the pin, §7.4) maps to an explicit session state and is delivered to .NET. "Silent" sessions are a bug.
-5. `whatsmeow.v1` never breaks without a `protocol` increment, and `buf breaking` enforces this.
+5. From the first published `vX.Y.Z` tag on, `whatsmeow.v1` never breaks: a break means a new package `whatsmeow.v2` with its own ADR, every additive change increments `protocol`, and `buf breaking` gates `whatsmeow.v1` against `main`.
+   Before that tag, `protocol` keeps its initial value, 1, and `buf breaking` only reports ([ADR 0015](adr/0015-buf-breaking-gates-from-first-published-tag.md)).
 6. Generated protobuf types never appear in the stable public C# API.
 7. No runtime reflection, no `async void`, no sync-over-async, no `Grpc.Core`, no `Newtonsoft.Json`, no `DateTime`, no clock or timer that bypasses the injected `TimeProvider`.
 8. No whole-file media in a single gRPC message; use paths or chunks.
@@ -498,18 +515,19 @@ Any change that violates one of these is wrong unless an ADR changes the invaria
 
 ## 14. Open questions (Phase 0 spikes)
 
-These can change the architecture. Resolve them before Phase 1 and record each outcome as an ADR.
+These could change the architecture.
+All eight are answered, and each outcome is recorded in the ADR named in its row.
 
 | # | Question | Decides |
 |---|---|---|
-| 1 | Does grpc-go's codec fail on whatsmeow messages with missing proto2 `required` fields? | **Answered: yes.** Typed fields stay, with a server-only lenient codec (§6) |
-| 2 | Windows: AF_UNIX streaming stability (grpc-go #7039) vs named pipes | **Answered.** Both stable on Go 1.27.3; AF_UNIX is the default, named pipe the fallback (§8.6) |
-| 3 | modernc + sqlstore under contention, and whether `_txlock=immediate` is supported | **Answered.** Supported; final DSN in §5 |
-| 4 | Are any event types still acked before dispatch with `SynchronousAck`? | **Answered: yes, many.** The guarantee is scoped to gated kinds (§1, §13 invariant 2) |
-| 5 | AOT/trim warnings from the large generated WhatsApp types, and from Vogen-generated code with the chosen `conversions:` | **Answered (go), see Spike results.** The AOT claim holds; Vogen uses `Conversions.SystemTextJson` |
-| 6 | Sidecar binary size; Alpine run; macOS signing | **Answered.** No Developer ID signing or notarization needed (§12) |
-| 7 | Can house-rule NodaTime coexist with BCL timers (Polly v8, `Task.Delay`, `PeriodicTimer`, CTS timeouts) and with testable fake time? | **Answered, see Spike results.** It can only with an interop adapter and two fakes; Antonio chose BCL time instead (Decision log 0009) |
-| 8 | Should the delivery guarantee extend to the ungated kinds, via an upstream whatsmeow PR or a fork? | **Answered: no fork.** Follow the maintainer's configuration and fix real gaps upstream. See Spike results |
+| 1 | Does grpc-go's codec fail on whatsmeow messages with missing proto2 `required` fields? | **Answered: yes.** Typed fields stay, with a server-only lenient codec (§6). [ADR 0004](adr/0004-whatsmeow-protos-as-typed-fields-hand-written-records.md) |
+| 2 | Windows: AF_UNIX streaming stability (grpc-go #7039) vs named pipes | **Answered.** Both stable on Go 1.27.3; AF_UNIX is the default, named pipe the fallback (§8.6). [ADR 0014](adr/0014-af-unix-default-on-windows.md) |
+| 3 | modernc + sqlstore under contention, and whether `_txlock=immediate` is supported | **Answered.** Supported; final DSN in §5. [ADR 0003](adr/0003-at-least-once-delivery-synchronousack-sqlite-outbox.md) |
+| 4 | Are any event types still acked before dispatch with `SynchronousAck`? | **Answered: yes, many.** The guarantee is scoped to gated kinds (§1, §13 invariant 2). [ADR 0003](adr/0003-at-least-once-delivery-synchronousack-sqlite-outbox.md) |
+| 5 | AOT/trim warnings from the large generated WhatsApp types, and from Vogen-generated code with the chosen `conversions:` | **Answered (go), see Spike results.** The AOT claim holds; Vogen uses `Conversions.SystemTextJson`. [ADR 0006](adr/0006-no-runtime-reflection.md), [ADR 0010](adr/0010-vogen-ids-hand-written-jid.md) |
+| 6 | Sidecar binary size; Alpine run; macOS signing | **Answered.** No Developer ID signing or notarization needed (§12). [ADR 0007](adr/0007-per-os-native-nuget-packages-exact-pins.md) |
+| 7 | Can house-rule NodaTime coexist with BCL timers (Polly v8, `Task.Delay`, `PeriodicTimer`, CTS timeouts) and with testable fake time? | **Answered, see Spike results.** It can only with an interop adapter and two fakes; Antonio chose BCL time instead. [ADR 0009](adr/0009-bcl-time-over-nodatime.md) |
+| 8 | Should the delivery guarantee extend to the ungated kinds, via an upstream whatsmeow PR or a fork? | **Answered: no fork.** Follow the maintainer's configuration and fix real gaps upstream. See Spike results. [ADR 0013](adr/0013-whatsmeow-config-follows-mautrix-no-fork.md) |
 
 
 ### Spike results (2026-10-31)
@@ -517,6 +535,8 @@ These can change the architecture. Resolve them before Phase 1 and record each o
 Run on macOS arm64, .NET SDK 10.0.400, `dotnet publish -r osx-arm64` with `PublishAot=true`, `TrimmerSingleWarn=false`.
 Packages: Google.Protobuf 3.36.2, Grpc.Tools 2.85.0, NodaTime 3.3.7 and NodaTime.Serialization.Protobuf 2.0.2 (measured, then dropped), Vogen 8.0.7, Polly.Core 8.9.0, Microsoft.Extensions.* 10.0.14, Microsoft.Extensions.TimeProvider.Testing 10.11.0, BannedApiAnalyzers 5.6.0.
 Protos: all 57 `.proto` files from whatsmeow `56e5ad0581cee858000f856b1a98dbd03cc5b14f`, compiled unmodified with `GrpcServices="None"`.
+**The whatsmeow pin** is `56e5ad0581cee858000f856b1a98dbd03cc5b14f`, the merge commit of tulir/whatsmeow#1312 [observed: GitHub API, `repos/tulir/whatsmeow/pulls/1312` `merge_commit_sha`, 2026-10-31].
+"At the pin" in this document means that commit.
 The spikes were throwaway code outside the repo; each result below was observed in their output unless tagged.
 
 **Question 5: answered, go.**
@@ -542,7 +562,8 @@ The spikes were throwaway code outside the repo; each result below was observed 
 - C# Google.Protobuf 3.36.2 is lenient: `ToByteArray()` and `ParseFrom()` accept the partial message; `IsInitialized()` returns false.
 - With `grpc.ForceServerCodecV2(lenient codec)` the partial message reaches the handler. whatsmeow's send path marshals with plain `proto.Marshal` (`send.go:1106`, `:1261`), so the slice gets a "required field not set" error and returns `InvalidArgument`. Complete messages are unaffected.
 
-**Question 2: answered.** GitHub Actions run 41228306743, spike code at commit `0e5774d` under `spikes/windows-transport/` (the `spike/windows-transport` branch was deleted after recording these results): Go 1.27.3 grpc-go 1.85.0 server, .NET 10.0.14 Native AOT client, on Windows Server 2022 (build 20348, x64), Windows Server 2025 (build 26100, x64) and Windows 11 (build 26200, arm64).
+**Question 2: answered.** GitHub Actions run 41228306743, spike code at tag `spike/windows-transport` (commit `0e5774d`) under `spikes/windows-transport/`; the branch was deleted after recording these results, and the tag keeps the commit reachable.
+Setup: Go 1.27.3 grpc-go 1.85.0 server, .NET 10.0.14 Native AOT client, on Windows Server 2022 (build 20348, x64), Windows Server 2025 (build 26100, x64) and Windows 11 (build 26200, arm64).
 
 - The grpc-go #7039 reproducer shape (Go client and server, AF_UNIX, bidi, 500 B messages back to back, 90 s): 15.1-21.5M messages echoed in order, no transport error, on all three. That matches a third-party report on the issue that the corruption was a Go runtime bug, present on Go 1.22.12 and gone on Go 1.26.5.
 - .NET client ↔ Go sidecar, every test passing on both transports and all three hosts, with 60 s or 30 s budgets:
@@ -585,7 +606,10 @@ The spikes were throwaway code outside the repo; each result below was observed 
 
 - Sizes: linux-amd64 22.9 MB, linux-arm64 21.9 MB, darwin-arm64 22.4 MB, darwin-amd64 23.3 MB, windows-amd64 23.2 MB, windows-arm64 21.9 MB.
 - The Linux binaries ran (store upgrade, client, socket, ready line) on `alpine:3` and `debian:stable-slim`, arm64 natively and amd64 under emulation.
-- macOS: the Go linker ad-hoc signs `darwin/arm64`; `darwin/amd64` is unsigned. `spctl` rejects both, but that only applies to quarantined launches. The macOS `protoc` that `dotnet restore` pulled from nuget.org (Grpc.Tools 2.85.0) has no `com.apple.quarantine`, is only ad-hoc signed, and runs. Developer ID signing and notarization are therefore dropped (§12).
+- macOS: the Go linker ad-hoc signs `darwin/arm64`; `darwin/amd64` is unsigned.
+  `spctl` rejects both, but that only applies to quarantined launches [inferred: Gatekeeper assesses only quarantined launches].
+  The macOS `protoc` that `dotnet restore` pulled from nuget.org (Grpc.Tools 2.85.0) has no `com.apple.quarantine`, is only ad-hoc signed, and runs.
+  Developer ID signing and notarization are therefore dropped (§12).
 
 **Transport spike: answered.** Go 1.27.3 grpc-go 1.85.0 server, .NET Grpc.Net.Client 2.85.0 client published with Native AOT (0 IL/AOT warnings), osx-arm64.
 
@@ -596,10 +620,12 @@ The spikes were throwaway code outside the repo; each result below was observed 
 
 **Question 8: answered, follow the maintainer.**
 
-- whatsmeow's maintainer runs whatsmeow in production in mautrix-whatsapp. At `5dd621f` (2026-10-30, whatsmeow `20261026125351-1fbae988179a`) it sets `AddEventHandlerWithSuccessStatus`, `SynchronousAck = true`, `EnableDecryptedEventBuffer` (on when `PortalEventBuffer == 0`, which we take to be the default [inferred]), `ManualHistorySyncDownload = true`, `AutomaticMessageRerequestFromPhone = true`, and `InitialAutoReconnect` (default `true`) (`pkg/connector/client.go:81-93`, `example-config.yaml:66`).
+- whatsmeow's maintainer runs whatsmeow in production in mautrix-whatsapp.
+  At `5dd621f` (2026-10-30; pinned to whatsmeow `20261026125351-1fbae988179a`, which is mautrix's own pin, not ours) it sets `AddEventHandlerWithSuccessStatus`, `SynchronousAck = true`, `EnableDecryptedEventBuffer` (on when `PortalEventBuffer == 0`, which we take to be the default [inferred]), `ManualHistorySyncDownload = true`, `AutomaticMessageRerequestFromPhone = true`, and `InitialAutoReconnect` (default `true`) (`pkg/connector/client.go:81-93`, `example-config.yaml:66`).
 - Its handler returns real success for messages, receipts, undecryptable messages, calls, media retries and group changes, and lets whatsmeow decide which acks that gates (`pkg/connector/handlewhatsapp.go:78-132`). `UndecryptableMessage` becomes a placeholder event (`handlewhatsapp.go:435-458`).
 - The maintainer recommends `SynchronousAck` plus `EnableDecryptedEventBuffer` against losing a decrypted-but-undispatched message (tulir/whatsmeow#1093). His note says hitting that is "very rare unless the program is running on a mobile phone".
-- Gaps get fixed upstream: tulir/whatsmeow#1312 made `server_sync` fetch app state before acking under `SynchronousAck`. It was merged 2026-10-30 19:55:14 UTC, which is our pin.
+- Gaps get fixed upstream: tulir/whatsmeow#1312 made `server_sync` fetch app state before acking under `SynchronousAck`.
+  It was merged 2026-10-30 19:55:14 UTC as `56e5ad0`, which is our pin.
 - So a fork would buy coverage the maintainer considers unnecessary, at the cost of the weekly-bump goal. We take his configuration, and report a gap upstream when a test proves one.
 
 **Question 7: answered; BCL time chosen.**
@@ -617,7 +643,7 @@ The spikes were throwaway code outside the repo; each result below was observed 
 | Phase | Scope | Exit criteria |
 |---|---|---|
 | 0 | Spikes from §14; repository scaffolding and CI | every spike has a written go/no-go ADR |
-| 1 | Sessions, state machine, pairing, outbox and event stream, raw and text send, receipts; .NET supervisor, transport, dispatcher, errors, `Jid`, core events | pair a real phone; kill either process mid-stream; no lost or duplicated messages |
+| 1 | Sessions, state machine, pairing, outbox and event stream, raw and text send, receipts; .NET supervisor, transport, dispatcher, errors, `Jid`, core events | pair a real phone; kill either process mid-stream; no message is lost, and a repeat only follows the last acked cursor and carries the same `MessageId` and `SessionId` (at-least-once, §8.4) |
 | 2 | Media, reactions, edits, revokes, polls, presence, contacts and LID, groups, send pacing | parity report covers messaging, groups and contacts |
 | 3 | History sync, chat state, hosting package, telemetry, `Whatsmeow.Testing` | hosted sample with two sessions; history doesn't delay live traffic |
 | 4 | Native packages, Trusted Publishing, weekly bump, AOT smoke, PublicAPI baseline, External mode, docs | `dotnet add package` works on all target RIDs from nuget.org |
@@ -626,22 +652,27 @@ The spikes were throwaway code outside the repo; each result below was observed 
 
 ## Decision log
 
-Decisions are recorded in `docs/adr/NNNN-title.md` (context, decision, consequences). Seed ADRs to write during Phase 0:
+Decisions are recorded in `docs/adr/NNNN-title.md` (status, context, decision, consequences).
+Phase 0 decisions:
 
-- 0001: Go sidecar over a native C# port or cgo FFI
-- 0002: gRPC over local sockets as the IPC transport
-- 0003: At-least-once delivery through `SynchronousAck` and a SQLite outbox
-- 0004: Reusing whatsmeow protos as typed fields; hand-written public records
-- 0005: Feature-slice organization across proto, Go and .NET
-- 0006: No runtime reflection; source generation and explicit registration
-- 0007: Packaging as per-OS native NuGet packages with exact-version pins
-- 0008: Product name Whatsmeow.NET; identifiers rooted at `Whatsmeow`; sidecar binary `whatsmeow-net`
+- [0001](adr/0001-go-sidecar-over-csharp-port-or-cgo.md): Go sidecar over a native C# port or cgo FFI
+- [0002](adr/0002-grpc-over-local-sockets.md): gRPC over local sockets as the IPC transport
+- [0003](adr/0003-at-least-once-delivery-synchronousack-sqlite-outbox.md): At-least-once delivery through `SynchronousAck` and a SQLite outbox
+- [0004](adr/0004-whatsmeow-protos-as-typed-fields-hand-written-records.md): Reusing whatsmeow protos as typed fields; hand-written public records
+- [0005](adr/0005-feature-slices-across-proto-go-dotnet.md): Feature-slice organization across proto, Go and .NET
+- [0006](adr/0006-no-runtime-reflection.md): No runtime reflection; source generation and explicit registration
+- [0007](adr/0007-per-os-native-nuget-packages-exact-pins.md): Packaging as per-OS native NuGet packages with exact-version pins
+- [0008](adr/0008-product-name-whatsmeow-net.md): Product name Whatsmeow.NET; identifiers rooted at `Whatsmeow`; sidecar binary `whatsmeow-net`
 
 House-rule alignment (applied, or opted out of with a measured reason):
 
-- 0009: BCL time (`DateTimeOffset`/`TimeSpan`, injected `TimeProvider`) instead of the house NodaTime rule, because NodaTime would be forced on consumers and its costs were measured (§14 question 7)
-- 0010: Vogen for primitive ID wrappers; `Jid` stays hand-written; replaces hand-written `readonly record struct` IDs
-- 0011: Integration tests by default, with .NET unit tests only for the dispatcher and supervisor; replaces a broad .NET unit layer
-- 0012: `IWhatsAppClient` kept as the single exception to "no interface just to mock it"
-- 0013: whatsmeow configuration follows the maintainer's production bridge (mautrix-whatsapp); gaps are fixed upstream, never in a fork (§14 question 8)
-- 0014: AF_UNIX as the default transport on Windows too; named pipe as the selectable fallback (§14 question 2)
+- [0009](adr/0009-bcl-time-over-nodatime.md): BCL time (`DateTimeOffset`/`TimeSpan`, injected `TimeProvider`) instead of the house NodaTime rule, because NodaTime would be forced on consumers and its costs were measured (§14 question 7)
+- [0010](adr/0010-vogen-ids-hand-written-jid.md): Vogen for primitive ID wrappers; `Jid` stays hand-written; replaces hand-written `readonly record struct` IDs
+- [0011](adr/0011-integration-tests-by-default.md): Integration tests by default, with .NET unit tests only for the dispatcher and supervisor; replaces a broad .NET unit layer
+- [0012](adr/0012-iwhatsappclient-interface-exception.md): `IWhatsAppClient` kept as the single exception to "no interface just to mock it"
+- [0013](adr/0013-whatsmeow-config-follows-mautrix-no-fork.md): whatsmeow configuration follows the maintainer's production bridge (mautrix-whatsapp); gaps are fixed upstream, never in a fork (§14 question 8)
+- [0014](adr/0014-af-unix-default-on-windows.md): AF_UNIX as the default transport on Windows too; named pipe as the selectable fallback (§14 question 2)
+
+Contract gating:
+
+- [0015](adr/0015-buf-breaking-gates-from-first-published-tag.md): from the first published `vX.Y.Z` tag on, `whatsmeow.v1` never breaks (a break is a new `whatsmeow.v2`), every additive change increments `protocol`, and `buf breaking` gates; before it, `protocol` keeps its initial value, 1, and `buf breaking` only reports
