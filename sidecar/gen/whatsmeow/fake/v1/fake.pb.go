@@ -2792,7 +2792,8 @@ type Receipt struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The message id.
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// The receipt type: "inactive" for a message from someone else while the client sends no active receipts.
+	// The receipt type: "sender" for a message another of the account's devices sent, "inactive" for one from someone else
+	// while the client sends no active receipts (receipt.go:280-289).
 	Type          string `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

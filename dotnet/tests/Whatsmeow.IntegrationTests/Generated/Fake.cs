@@ -13428,7 +13428,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
     public const int TypeFieldNumber = 2;
     private string type_ = "";
     /// <summary>
-    /// The receipt type: "inactive" for a message from someone else while the client sends no active receipts.
+    /// The receipt type: "sender" for a message another of the account's devices sent, "inactive" for one from someone else
+    /// while the client sends no active receipts (receipt.go:280-289).
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
