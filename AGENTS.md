@@ -13,20 +13,20 @@ ARCHITECTURE §13 invariants are wrong to break without an ADR first.
 
 ## Tree
 
-proto/whatsmeow/v1/    our contract, one file per slice (from #3)
+proto/whatsmeow/v1/    our contract, one file per slice, plus error.proto (the ErrorInfo reason list)
 third_party/whatsmeow/ upstream protos copied from the exact pinned version (`VERSION`)
 sidecar/               Go module `github.com/tcortega/Whatsmeow.NET/sidecar`: product code and dependencies only
 tools/                 Go module for repo tools (`check-repo`, `sync-protos`), kept out of the product module
 build/ci.sh            every CI check; the workflow only calls it
 dotnet/                `Whatsmeow.slnx` (never a .sln), src/, tests/; samples/ later (Phase 3)
 docs/                  ARCHITECTURE, RESEARCH, guidelines/, adr/
-global.json mise.toml  .NET SDK pin; Go, buf, golangci-lint, protoc and shellcheck pins
+global.json mise.toml  .NET SDK pin; Go, buf, golangci-lint, protoc, protoc plugins and shellcheck pins
 nuget.config           nuget.org only
 AGENTS.md              this file (CLAUDE.md is a symlink to it; nothing may depend on it)
 
 ## Commands
 
-Setup once: the .NET SDK from `global.json` (10.0.403), then `mise trust && mise install` for Go, buf, golangci-lint, protoc and shellcheck.
+Setup once: the .NET SDK from `global.json` (10.0.403), then `mise trust && mise install` for Go, buf, golangci-lint, protoc, the protoc plugins and shellcheck.
 
 Everything CI runs is `build/ci.sh`, one subcommand per CI job, on linux-x64, osx-arm64 and win-x64 (Git Bash on Windows).
 Run it from anywhere before pushing; it runs every check, reports each failure, and fails at the end:
@@ -36,7 +36,7 @@ bash build/ci.sh all        # or: setup, contract, go, dotnet
 ```
 
 A package change regenerates `packages.lock.json` with a plain `dotnet restore dotnet/Whatsmeow.slnx`; commit it.
-Update third_party after a pin change with `go -C tools run ./sync-protos -write`, and generated code with `buf generate --template buf.gen.whatsapp.yaml`.
+Update third_party after a pin change with `go -C tools run ./sync-protos -write`, and generated code with `buf generate` (whatsmeow.v1) and `buf generate --template buf.gen.whatsapp.yaml` (upstream).
 
 ## .NET rules
 
@@ -84,7 +84,7 @@ Copy it for the next slice. Do not invent a second pattern.
 | Process entry (flags, tether, ready line) | `sidecar/cmd/whatsmeow-net/` |
 | .NET public types + proto ↔ record mapping | `dotnet/src/Whatsmeow.Client/<Slice>/` |
 | `Jid`, ids, `MediaRef`, transport, dispatcher, errors, telemetry | `dotnet/src/Whatsmeow.Client/Core/` |
-| New error reason | `ErrorInfo.reason` list (ARCHITECTURE §6) + exception subtype (§8.7) |
+| New error reason | `ErrorReason` in `proto/whatsmeow/v1/error.proto` + exception subtype (§8.7) |
 | DI, options, hosted supervisor | `dotnet/src/Whatsmeow.Extensions.Hosting/` |
 | Consumer fakes | `dotnet/src/Whatsmeow.Testing/` |
 | Integration test (default) | `dotnet/tests/Whatsmeow.IntegrationTests/` |

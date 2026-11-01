@@ -1,0 +1,269 @@
+syntax = "proto3";
+
+package whatsmeow.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// SessionService manages sessions (one WhatsApp account each), their connection and their pairing.
+//
+// A session id is chosen by the application: 1 to 64 characters of [A-Za-z0-9._-], starting with a letter or a
+// digit, case-sensitive. Any other id is INVALID_ARGUMENT (field "session_id").
+// Every RPC that names a session, except CreateSession, fails with SESSION_NOT_FOUND for an id no session has.
+service SessionService {
+  // CreateSession creates an unpaired session (state Created), or returns the existing one with that id.
+  // Errors: INVALID_ARGUMENT.
+  rpc CreateSession(CreateSessionRequest) returns (CreateSessionResponse);
+
+  // ListSessions returns every session, ordered by id.
+  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
+
+  // DeleteSession disconnects the session if it is connected, then deletes its local data: device keys, outbox
+  // events and consumer cursors. Open streams on it end with SESSION_NOT_FOUND.
+  // It does not tell WhatsApp, so a paired device stays linked on the phone; to unlink it, call Logout first.
+  // Errors: SESSION_NOT_FOUND.
+  rpc DeleteSession(DeleteSessionRequest) returns (DeleteSessionResponse);
+
+  // Connect connects a paired session and returns once the attempt has started (state Connecting).
+  // A failure whatsmeow retries does not fail the call: the session goes Reconnecting.
+  // Connecting a session that is connecting or connected succeeds and does nothing.
+  // The sidecar never connects a session on its own, also not after a restart.
+  // Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, CONNECTION_FAILED.
+  rpc Connect(ConnectRequest) returns (ConnectResponse);
+
+  // Disconnect closes the connection and stops reconnecting; the session stays paired (state Disconnected).
+  // Disconnecting a session that is not connected succeeds and does nothing.
+  // Errors: SESSION_NOT_FOUND, PAIRING_IN_PROGRESS (cancel the Pair call instead).
+  rpc Disconnect(DisconnectRequest) returns (DisconnectResponse);
+
+  // Logout unlinks the device on WhatsApp, then deletes its keys; the session stays, in state LoggedOut, and can be
+  // paired again. WhatsApp is told first, so the session must be connected.
+  // Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, NOT_CONNECTED, OUTCOME_UNKNOWN, WHATSAPP_ERROR.
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
+
+  // Pair links a session in state Created or LoggedOut to an account. It connects, then streams QR codes, or one
+  // phone pairing code when phone is set, until the phone links the device. The last item is success, sent once the
+  // device's pre-keys are uploaded; the stream then ends with OK and the session is Connected.
+  // The client ends pairing by cancelling the call: the sidecar disconnects, and the session returns to the state it
+  // had before Pair. After the phone has linked the device, cancelling no longer undoes it.
+  // Pairing a paired session fails with ALREADY_PAIRED, and a second Pair while one is open fails with
+  // PAIRING_IN_PROGRESS: it never starts a second pairing.
+  // Errors: INVALID_ARGUMENT (also a phone number that is too short or not international, field
+  // "phone.phone_number"), SESSION_NOT_FOUND, ALREADY_PAIRED, PAIRING_IN_PROGRESS, PAIRING_TIMED_OUT,
+  // PAIRING_FAILED, CONNECTION_FAILED, RATE_LIMITED, WHATSAPP_ERROR.
+  rpc Pair(PairRequest) returns (stream PairResponse);
+
+  // WatchSessionState sends the current state first, then every later transition in order, until the client cancels.
+  // The stream ends with SESSION_NOT_FOUND when the session is deleted.
+  // Errors: SESSION_NOT_FOUND.
+  rpc WatchSessionState(WatchSessionStateRequest) returns (stream WatchSessionStateResponse);
+}
+
+// Session is one WhatsApp account.
+message Session {
+  // The application-chosen id.
+  string id = 1;
+  // The current state.
+  SessionState state = 2;
+  // The device's phone-number JID; empty while not paired.
+  string jid = 3;
+  // The device's LID JID; empty while not paired or unknown.
+  string lid = 4;
+}
+
+// SessionState is the session state machine (ARCHITECTURE §7.4); exactly one case is set.
+message SessionState {
+  // Never paired.
+  message Created {}
+
+  // A Pair call is open.
+  message Pairing {}
+
+  // Connect was called; the connection is opening.
+  message Connecting {}
+
+  // Logged in to WhatsApp; the offline backlog may still be arriving.
+  message Connected {}
+
+  // Connected, and the backlog queued while offline has arrived.
+  message CaughtUp {}
+
+  // The connection dropped; whatsmeow is reconnecting.
+  message Reconnecting {}
+
+  // Paired, not connected: Disconnect was called, or Connect has not been called since the sidecar started.
+  message Disconnected {}
+
+  // The device was unlinked and its keys deleted.
+  message LoggedOut {
+    // WhatsApp's logout code (401, 403 or 406 at the pin); 0 when the client called Logout.
+    int32 code = 1;
+  }
+
+  // Another client connected with the same keys, and WhatsApp closed this connection.
+  message Replaced {}
+
+  // The account is temporarily banned.
+  message TempBanned {
+    // WhatsApp's ban code.
+    int32 code = 1;
+    // When the ban ends: the sidecar's receive time plus the remaining time WhatsApp sent; unset when it sent none.
+    google.protobuf.Timestamp expire_time = 2;
+  }
+
+  // WhatsApp rejected this client version.
+  message Outdated {}
+
+  // The connection ended for another reason, and whatsmeow does not reconnect on its own.
+  message Error {
+    // WhatsApp's failure code, or 0 when there is none.
+    int32 code = 1;
+    // A description for logs; never match on it.
+    string message = 2;
+  }
+
+  // The state.
+  oneof kind {
+    // See Created.
+    Created created = 1;
+    // See Pairing.
+    Pairing pairing = 2;
+    // See Connecting.
+    Connecting connecting = 3;
+    // See Connected.
+    Connected connected = 4;
+    // See CaughtUp.
+    CaughtUp caught_up = 5;
+    // See Reconnecting.
+    Reconnecting reconnecting = 6;
+    // See Disconnected.
+    Disconnected disconnected = 7;
+    // See LoggedOut.
+    LoggedOut logged_out = 8;
+    // See Replaced.
+    Replaced replaced = 9;
+    // See TempBanned.
+    TempBanned temp_banned = 10;
+    // See Outdated.
+    Outdated outdated = 11;
+    // See Error.
+    Error error = 12;
+  }
+}
+
+// CreateSessionRequest names the session.
+message CreateSessionRequest {
+  // The session id.
+  string session_id = 1;
+}
+
+// CreateSessionResponse is the created or existing session.
+message CreateSessionResponse {
+  // The session.
+  Session session = 1;
+}
+
+// ListSessionsRequest has no fields.
+message ListSessionsRequest {}
+
+// ListSessionsResponse is every session.
+message ListSessionsResponse {
+  // The sessions, ordered by id.
+  repeated Session sessions = 1;
+}
+
+// DeleteSessionRequest names the session.
+message DeleteSessionRequest {
+  // The session id.
+  string session_id = 1;
+}
+
+// DeleteSessionResponse has no fields.
+message DeleteSessionResponse {}
+
+// ConnectRequest names the session.
+message ConnectRequest {
+  // The session id.
+  string session_id = 1;
+}
+
+// ConnectResponse has no fields.
+message ConnectResponse {}
+
+// DisconnectRequest names the session.
+message DisconnectRequest {
+  // The session id.
+  string session_id = 1;
+}
+
+// DisconnectResponse has no fields.
+message DisconnectResponse {}
+
+// LogoutRequest names the session.
+message LogoutRequest {
+  // The session id.
+  string session_id = 1;
+}
+
+// LogoutResponse has no fields.
+message LogoutResponse {}
+
+// PairRequest starts pairing.
+message PairRequest {
+  // Pair by phone number: the phone shows a prompt for a code, which this stream sends.
+  message Phone {
+    // The account's phone number, international format; non-digits are ignored.
+    string phone_number = 1;
+    // Whether the phone shows a notification prompting for the code.
+    bool show_push_notification = 2;
+  }
+
+  // The session id.
+  string session_id = 1;
+  // Unset: pair with QR codes. Set: pair with a phone code; no QR codes are sent.
+  Phone phone = 2;
+}
+
+// PairResponse is one pairing step.
+message PairResponse {
+  // A QR code to show; it replaces the previous one.
+  message QrCode {
+    // The payload to render as a QR code.
+    string code = 1;
+  }
+
+  // The code to enter on the phone; sent once.
+  message PairingCode {
+    // The code, formatted for display.
+    string code = 1;
+  }
+
+  // The device is linked and ready; the last item.
+  message Success {
+    // The device's phone-number JID.
+    string jid = 1;
+    // The device's LID JID; empty when WhatsApp sent none.
+    string lid = 2;
+  }
+
+  // The step.
+  oneof step {
+    // See QrCode.
+    QrCode qr_code = 1;
+    // See PairingCode.
+    PairingCode pairing_code = 2;
+    // See Success.
+    Success success = 3;
+  }
+}
+
+// WatchSessionStateRequest names the session.
+message WatchSessionStateRequest {
+  // The session id.
+  string session_id = 1;
+}
+
+// WatchSessionStateResponse is the current state.
+message WatchSessionStateResponse {
+  // The state.
+  SessionState state = 1;
+}

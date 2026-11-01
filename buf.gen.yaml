@@ -1,0 +1,36 @@
+# whatsmeow.v1 to Go (sidecar/gen) and C# (Whatsmeow.Protocol, internal types) (ARCHITECTURE §4, §8.1).
+# Only proto/ is generated; upstream protos are imported, never generated here (ARCHITECTURE §13 invariant 11).
+# Every plugin is local and pinned in /mise.toml (protoc, protoc-gen-go, protoc-gen-go-grpc, Grpc.Tools).
+# Run: buf generate
+version: v2
+clean: true
+managed:
+  enabled: true
+  override:
+    # Our files only: upstream files keep their own go_package, so Go imports go.mau.fi/whatsmeow/proto/...
+    - file_option: go_package_prefix
+      path: whatsmeow/v1
+      value: github.com/tcortega/Whatsmeow.NET/sidecar/gen
+    # The same prefix as buf.gen.whatsapp.yaml, so C# references to upstream types resolve to Whatsmeow.Protocol.WhatsApp.
+    - file_option: csharp_namespace_prefix
+      value: Whatsmeow.Proto
+    - file_option: csharp_namespace
+      path: whatsmeow/v1
+      value: Whatsmeow.Protocol.V1
+inputs:
+  - directory: proto
+plugins:
+  - local: protoc-gen-go
+    out: sidecar/gen
+    opt: paths=source_relative
+  - local: protoc-gen-go-grpc
+    out: sidecar/gen
+    opt: paths=source_relative
+  - protoc_builtin: csharp
+    out: dotnet/src/Whatsmeow.Protocol/Generated
+    opt: internal_access
+  - local: grpc_csharp_plugin
+    out: dotnet/src/Whatsmeow.Protocol/Generated
+    opt:
+      - internal_access
+      - no_server

@@ -33,9 +33,14 @@ import (
 const extendAllowlist = "extend the allowlist in tools/check-repo in a reviewed change"
 
 // generatedDirs are the folders a buf template with clean: true writes and CI regenerates and diffs.
-// A folder is blessed only once CI regenerates it (#3 adds dotnet/src/Whatsmeow.Protocol/Generated/ and sidecar/gen/).
+// A folder is blessed only once CI regenerates it. Only sidecar/gen/whatsmeow/v1/ is blessed under sidecar/gen/,
+// so generated Go for upstream protos anywhere else is a finding (ARCHITECTURE §13 invariant 11).
 func generatedDirs() []string {
-	return []string{"dotnet/src/Whatsmeow.Protocol.WhatsApp/Generated/"}
+	return []string{
+		"dotnet/src/Whatsmeow.Protocol.WhatsApp/Generated/",
+		"dotnet/src/Whatsmeow.Protocol/Generated/",
+		"sidecar/gen/whatsmeow/v1/",
+	}
 }
 
 // blessedFiles are the only files of each kind that may exist; any other file with the same name is a finding.

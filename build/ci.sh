@@ -96,6 +96,11 @@ buf_breaking() {
 		annotate notice "buf breaking" "the base $base has no buf workspace, so there is nothing to compare with"
 		return 0
 	fi
+	# buf compares the images module by module, and fails as a tool error when the base has fewer modules.
+	if ! git cat-file -e "$base:proto/whatsmeow/v1" 2>/dev/null; then
+		annotate notice "buf breaking" "the base $base has no whatsmeow.v1 module yet, so there is nothing to compare with"
+		return 0
+	fi
 
 	# buf breaking also exits 100 when either side does not compile; make that an error with buf's own message.
 	buf build || return
@@ -125,6 +130,7 @@ buf_breaking() {
 }
 
 generated_unchanged() { # before-state
+	buf generate || return
 	buf generate --template buf.gen.whatsapp.yaml || return
 	tree_unchanged "$1" "buf generate" || { annotate error "generated code differs" "never edit generated code; run buf generate and commit the result"; return 1; }
 }

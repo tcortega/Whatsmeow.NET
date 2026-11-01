@@ -7,6 +7,8 @@
 	<ItemGroup>
 		<!-- Pairs with protoc in /mise.toml: protoc 36.2 generates the code this runtime reads. -->
 		<PackageVersion Include="Google.Protobuf" Version="3.36.2" />
+		<!-- Pairs with Grpc.Tools in /mise.toml: its grpc_csharp_plugin generates the client stubs this runtime reads. -->
+		<PackageVersion Include="Grpc.Core.Api" Version="2.85.0" />
 		<PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.6.0" />
 		<PackageVersion Include="xunit.v3" Version="4.0.2" />
 	</ItemGroup>

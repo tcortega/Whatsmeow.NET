@@ -6,4 +6,22 @@ go = "1.27.3"
 buf = "1.75.0"
 golangci-lint = "2.15.0"
 protoc = "36.2"
+protoc-gen-go = "1.36.12"
+protoc-gen-go-grpc = "1.6.2"
 shellcheck = "0.11.0"
+
+# grpc_csharp_plugin ships only inside the Grpc.Tools NuGet package; the checksum is the SHA-512 nuget.org publishes.
+# Grpc.Tools 2.85.0 pairs with Grpc.Core.Api 2.85.0 in dotnet/Directory.Packages.props. The zip keeps no exec bit.
+[tools."http:grpc-tools"]
+version = "2.85.0"
+url = "https://api.nuget.org/v3-flatcontainer/grpc.tools/{{ version }}/grpc.tools.{{ version }}.nupkg"
+checksum = "sha512:da32a6d72c75cd7937ed78ebd18e654258d6d0ca26328663c368f669f3a60fcdd6199744e231495962957ccd65769ebb1b1a19f9d7804ef2988696c9056369fa"
+format = "zip"
+postinstall = "{% if os() != \"windows\" %}chmod +x \"$MISE_TOOL_INSTALL_PATH\"/tools/*/grpc_csharp_plugin{% else %}exit 0{% endif %}"
+
+[tools."http:grpc-tools".platforms]
+linux-x64 = { bin_path = "tools/linux_x64" }
+linux-arm64 = { bin_path = "tools/linux_arm64" }
+macos-x64 = { bin_path = "tools/macosx_universal" }
+macos-arm64 = { bin_path = "tools/macosx_universal" }
+windows-x64 = { bin_path = "tools/windows_x64" }

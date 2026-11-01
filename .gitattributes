@@ -4,3 +4,5 @@
 # Copied byte for byte from the pinned module; never convert line endings (sidecar/scripts/sync-protos checks the bytes).
 third_party/whatsmeow/** -text linguist-vendored
 dotnet/src/Whatsmeow.Protocol.WhatsApp/Generated/** linguist-generated
+dotnet/src/Whatsmeow.Protocol/Generated/** linguist-generated
+sidecar/gen/** linguist-generated
