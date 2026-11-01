@@ -10,6 +10,20 @@ T:System.TimeZoneInfo; No zones in this library
 P:System.DateTimeOffset.Now; Use the injected TimeProvider.GetUtcNow()
 P:System.DateTimeOffset.UtcNow; Use the injected TimeProvider.GetUtcNow()
 T:System.Diagnostics.Stopwatch; Use TimeProvider.GetTimestamp / GetElapsedTime
+P:System.Environment.TickCount; Use TimeProvider.GetTimestamp / GetElapsedTime
+P:System.Environment.TickCount64; Use TimeProvider.GetTimestamp / GetElapsedTime
+// The one default site (TimeProvider.System when the caller injects none) uses a justified pragma (docs/guidelines/csharp.md Time).
+P:System.TimeProvider.System; Take the injected TimeProvider
+
+// Ways back into DateTime from DateTimeOffset and protobuf Timestamp.
+P:System.DateTimeOffset.DateTime; Stay in DateTimeOffset (UTC)
+P:System.DateTimeOffset.UtcDateTime; Stay in DateTimeOffset (UTC)
+P:System.DateTimeOffset.LocalDateTime; Stay in DateTimeOffset (UTC); no local time in this library
+M:System.DateTimeOffset.#ctor(System.DateTime); Build DateTimeOffset values from TimeProvider or a Timestamp, never from DateTime
+M:System.DateTimeOffset.#ctor(System.DateTime,System.TimeSpan); Build DateTimeOffset values from TimeProvider or a Timestamp, never from DateTime
+M:System.DateTimeOffset.op_Implicit(System.DateTime); Build DateTimeOffset values from TimeProvider or a Timestamp, never from DateTime
+M:Google.Protobuf.WellKnownTypes.Timestamp.ToDateTime; Use Timestamp.ToDateTimeOffset()
+M:Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(System.DateTime); Use Timestamp.FromDateTimeOffset(DateTimeOffset)
 
 // Timers that bypass the TimeProvider.
 M:System.Threading.Tasks.Task.Delay(System.TimeSpan); Use Task.Delay(TimeSpan, TimeProvider, CancellationToken)
@@ -25,6 +39,12 @@ M:System.Threading.Timer.#ctor(System.Threading.TimerCallback,System.Object,Syst
 M:System.Threading.Timer.#ctor(System.Threading.TimerCallback,System.Object,System.UInt32,System.UInt32); Use TimeProvider.CreateTimer
 M:System.Threading.Timer.#ctor(System.Threading.TimerCallback,System.Object,System.TimeSpan,System.TimeSpan); Use TimeProvider.CreateTimer
 T:System.Timers.Timer; Use TimeProvider.CreateTimer
+M:System.Threading.Tasks.Task.WaitAsync(System.TimeSpan); Use WaitAsync(TimeSpan, TimeProvider, CancellationToken)
+M:System.Threading.Tasks.Task.WaitAsync(System.TimeSpan,System.Threading.CancellationToken); Use WaitAsync(TimeSpan, TimeProvider, CancellationToken)
+M:System.Threading.Tasks.Task`1.WaitAsync(System.TimeSpan); Use WaitAsync(TimeSpan, TimeProvider, CancellationToken)
+M:System.Threading.Tasks.Task`1.WaitAsync(System.TimeSpan,System.Threading.CancellationToken); Use WaitAsync(TimeSpan, TimeProvider, CancellationToken)
+M:System.Threading.CancellationTokenSource.CancelAfter(System.TimeSpan); Use new CancellationTokenSource(TimeSpan, TimeProvider)
+M:System.Threading.CancellationTokenSource.CancelAfter(System.Int32); Use new CancellationTokenSource(TimeSpan, TimeProvider)
 
 // Blocking: no sleeps and no sync-over-async. An await does not call these; only explicit calls are flagged.
 M:System.Threading.Thread.Sleep(System.Int32); Never block a thread; await Task.Delay(TimeSpan, TimeProvider, CancellationToken)
@@ -113,6 +133,12 @@ M:System.AppDomain.CreateInstanceAndUnwrap(System.String,System.String); No runt
 M:System.AppDomain.CreateInstanceAndUnwrap(System.String,System.String,System.Object[]); No runtime reflection
 M:System.AppDomain.CreateInstanceAndUnwrap(System.String,System.String,System.Boolean,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object[],System.Globalization.CultureInfo,System.Object[]); No runtime reflection
 N:System.Reflection.Emit; No runtime code generation
+M:System.Linq.Expressions.LambdaExpression.Compile; No runtime code generation
+M:System.Linq.Expressions.LambdaExpression.Compile(System.Boolean); No runtime code generation
+M:System.Linq.Expressions.LambdaExpression.Compile(System.Runtime.CompilerServices.DebugInfoGenerator); No runtime code generation
+M:System.Linq.Expressions.Expression`1.Compile; No runtime code generation
+M:System.Linq.Expressions.Expression`1.Compile(System.Boolean); No runtime code generation
+M:System.Linq.Expressions.Expression`1.Compile(System.Runtime.CompilerServices.DebugInfoGenerator); No runtime code generation
 
 // Protobuf: generated IBufferMessage code only, never descriptor-driven JSON.
 T:Google.Protobuf.JsonFormatter; No reflection-based protobuf JSON; map to records and use System.Text.Json source generation
