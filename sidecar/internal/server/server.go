@@ -17,8 +17,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/grpc/tap"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
 )
@@ -53,6 +53,8 @@ func New(token string, log zerolog.Logger) *Server {
 		grpc.ForceServerCodecV2(lenientCodec{}),
 		grpc.MaxRecvMsgSize(maxMessageSize),
 		grpc.MaxSendMsgSize(maxMessageSize),
+		// The token is checked from the headers, before a body is read or decoded.
+		grpc.InTapHandle(s.authenticate),
 		grpc.UnaryInterceptor(s.unary),
 		grpc.StreamInterceptor(s.stream),
 	)
@@ -109,7 +111,7 @@ func (s *Server) Stop() {
 }
 
 func (s *Server) unary(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-	if err := s.admit(ctx, info.FullMethod); err != nil {
+	if err := s.admit(info.FullMethod); err != nil {
 		return nil, err
 	}
 
@@ -122,7 +124,7 @@ func (s *Server) unary(ctx context.Context, req any, info *grpc.UnaryServerInfo,
 }
 
 func (s *Server) stream(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-	if err := s.admit(ss.Context(), info.FullMethod); err != nil {
+	if err := s.admit(info.FullMethod); err != nil {
 		return err
 	}
 
@@ -156,16 +158,19 @@ type serverStream struct {
 
 func (s *serverStream) Context() context.Context { return s.ctx }
 
-// admit checks the token in constant time, then the shutdown gate. Shutdown passes the gate, because calling
-// it while shutting down succeeds (sidecar.proto).
-func (s *Server) admit(ctx context.Context, method string) error {
-	md, _ := metadata.FromIncomingContext(ctx)
-
-	values := md.Get("authorization")
+// authenticate checks the token in constant time, for every call, before its body is decoded.
+func (s *Server) authenticate(ctx context.Context, info *tap.Info) (context.Context, error) {
+	values := info.Header.Get("authorization")
 	if len(values) != 1 || subtle.ConstantTimeCompare([]byte(values[0]), s.authorization) != 1 {
-		return errorInfo(codes.Unauthenticated, whatsmeowv1.ErrorReason_ERROR_REASON_UNAUTHENTICATED, "the call does not carry this launch's token")
+		return ctx, errorInfo(codes.Unauthenticated, whatsmeowv1.ErrorReason_ERROR_REASON_UNAUTHENTICATED, "the call does not carry this launch's token")
 	}
 
+	return ctx, nil
+}
+
+// admit is the shutdown gate. Shutdown passes it, because calling it while shutting down succeeds
+// (sidecar.proto).
+func (s *Server) admit(method string) error {
 	select {
 	case <-s.done:
 		if method != whatsmeowv1.SidecarService_Shutdown_FullMethodName {

@@ -281,3 +281,35 @@ func TestStopEndsAStreamThatIgnoresShutdownAfterTheGrace(t *testing.T) {
 		t.Fatalf("serve: %v", err)
 	}
 }
+
+// rawCodec sends the bytes it is given as they are, so a test can send a body that is not a valid message.
+type rawCodec struct{}
+
+func (rawCodec) Marshal(v any) (mem.BufferSlice, error) {
+	return mem.BufferSlice{mem.SliceBuffer(*v.(*[]byte))}, nil
+}
+
+func (rawCodec) Unmarshal(data mem.BufferSlice, v any) error {
+	*v.(*[]byte) = data.Materialize()
+
+	return nil
+}
+
+func (rawCodec) Name() string { return "proto" }
+
+func TestACallWithoutTheTokenIsRejectedBeforeItsBodyIsDecoded(t *testing.T) {
+	t.Parallel()
+
+	_, conn, msgs := start(t, nil)
+	garbage := []byte{0xff, 0xff, 0xff, 0xff}
+	var reply []byte
+
+	err := conn.Invoke(context.Background(), whatsmeowv1.MessageService_SendMessage_FullMethodName, &garbage, &reply, grpc.ForceCodecV2(rawCodec{}))
+	wantErrorInfo(t, err, codes.Unauthenticated, "UNAUTHENTICATED")
+
+	select {
+	case <-msgs.received:
+		t.Fatal("the handler ran")
+	default:
+	}
+}
