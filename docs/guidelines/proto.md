@@ -25,4 +25,5 @@ Moved from ARCHITECTURE §6; the contract's policy (independence from whatsmeow,
   CI treats any tag reachable from the comparison base that matches `^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$` as published, so a published release candidate starts the gate too.
   With one, a break (`buf breaking` exit 100) fails the build; without one, it is a CI warning; any other exit code fails either way.
   A pull request compares with its merge-base with `main`, never with a stacked base branch; a push to `main` compares with the commit `main` pointed at before.
+  The step first runs `buf build`, because `buf breaking` also exits 100 when the tree does not compile, and it skips with a notice when the base has no `buf.yaml` (before #2 merged).
 - `buf.yaml` declares the `proto` module with its first file (#3): buf rejects a module with no `.proto` files [observed: buf 1.75.0].

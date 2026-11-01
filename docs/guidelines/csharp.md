@@ -188,7 +188,8 @@ Copy from tcortega/bridge when scaffolding `dotnet/`, then apply the deltas list
   - `CA2007` and `MA0004` (ConfigureAwait, see Async and concurrency).
   - `MA0155` (no `async void` methods).
   - `RS0030` (banned API), so a banned call fails a local build too, not only CI.
-  - `IDE0007` (`var` everywhere), `MA0137` and `MA0138` (the `Async` suffix), `CA1848` (`[LoggerMessage]` only).
+  - `IDE0007` (`var` everywhere), `MA0137` and `MA0138` (the `Async` suffix), `CA1848` (`[LoggerMessage]` only). For IDE0007 the three `csharp_style_var_*` options also say `:error`: with house `:suggestion` there, `dotnet_diagnostic.IDE0007.severity = error` alone reported nothing in a build [observed: scaffold, #2].
+  - `CA1707` is off for `dotnet/tests` only: test names are `Behavior_Condition_Result` ([tests.md](tests.md)), and CA1707 rejects underscores in every public test method [observed].
   - Library deltas, for `dotnet/src` only: the `Trimming`, `AOT` and `SingleFile` categories and `CS1591` (XML docs on public members). `dotnet/src/Directory.Build.props` removes 1591 from `NoWarn` for the same projects, because `NoWarn` wins over `.editorconfig` [observed: scaffold, #2]. Tests and generated code keep CS1591 off.
   - `.slnx` is in the XML section (tabs, size 2); `dotnet sln` keeps the tabs [observed].
   - The `[*.{yml,yaml}]` section says `indent_style = space`; bridge's `spaces` is not a valid value, so YAML fell back to tabs.
