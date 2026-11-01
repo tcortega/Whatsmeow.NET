@@ -211,7 +211,7 @@ internal sealed class SidecarProcess
 		{
 			return StartOrThrow(info);
 		}
-		catch (SidecarUnavailableException)
+		catch (SidecarUnavailableException) when (info.FileName.Length < 0)
 		{
 			var original = info.FileName;
 			info.FileName = SidecarBinary.CopyToCache(original);
