@@ -80,6 +80,37 @@ public sealed class EventProcessTests(FakeSidecar fixture, SidecarBinaries binar
 	}
 
 	[Fact(Timeout = Timeout)]
+	public async Task Stream_TheSidecarIsKilledWhileTheReaderWaits_EventsFlowAfterTheRestart()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var options = new WhatsmeowSidecarOptions { SidecarPath = fixture.Binary, DatabasePath = binaries.NewDatabase() };
+		await using var sidecar = await WhatsmeowSidecar.StartFakeWhatsAppAsync(options, logs.Factory, ct);
+		var client = await LinkAsync(sidecar, new FakeWhatsAppService.FakeWhatsAppServiceClient(sidecar.CallInvoker), "events-reader-kill", ct);
+		using var received = new Received<MessageReceived>(client);
+		await client.ConnectAsync(ct);
+		await Deliveries.DeliverAsync(new FakeWhatsAppService.FakeWhatsAppServiceClient(sidecar.CallInvoker), "events-reader-kill", ct, "M1");
+		_ = await received.NextAsync(ct);
+
+		// Logged out, then killed: the reader's call then ended with a TaskCanceledException instead of a status
+		// [observed: the restart tests, instrumented].
+		_ = await new FakeWhatsAppService.FakeWhatsAppServiceClient(sidecar.CallInvoker).RaisePermanentDisconnectAsync(
+			new RaisePermanentDisconnectRequest { SessionId = "events-reader-kill", LoggedOut = new RaisePermanentDisconnectRequest.Types.LoggedOut { Reason = 401 } },
+			cancellationToken: ct
+		);
+		for (var kill = 1; kill <= 2; kill++)
+		{
+			var (processId, _) = await logs.StartedAsync(kill, ct);
+			using (var process = Process.GetProcessById(processId))
+				process.Kill();
+			_ = await logs.WaitForAsync(_ => logs.Named("SidecarRestarted").Count == kill, ct);
+		}
+
+		await Deliveries.DeliverAsync(new FakeWhatsAppService.FakeWhatsAppServiceClient(sidecar.CallInvoker), "events-reader-kill", ct, "M2");
+		Assert.Equal(Deliveries.Received("events-reader-kill", "M2"), await received.NextAsync(ct));
+	}
+
+	[Fact(Timeout = Timeout)]
 	public async Task Handler_DisposesTheSidecar_TheDisposeReturns()
 	{
 		var ct = TestContext.Current.CancellationToken;
