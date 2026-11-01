@@ -29,6 +29,15 @@ linters:
               desc: no runtime reflection (docs/guidelines/go.md)
             - pkg: unsafe
               desc: no unsafe and no cgo; cgo imports unsafe (docs/guidelines/go.md)
+        error-mapping:
+          files:
+            - $all
+            - "!**/internal/server/**"
+          deny:
+            - pkg: google.golang.org/grpc/status
+              desc: errors become gRPC statuses in internal/server only; return %w errors (docs/guidelines/go.md)
+            - pkg: google.golang.org/genproto/googleapis/rpc/errdetails
+              desc: ErrorInfo is built in internal/server only (docs/guidelines/go.md)
     forbidigo:
       analyze-types: true
       forbid:
@@ -46,6 +55,12 @@ linters:
       require-specific: true
   exclusions:
     generated: strict
+
+issues:
+  # Report every finding, never a sample of them.
+  uniq-by-line: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
 
 formatters:
   enable:
