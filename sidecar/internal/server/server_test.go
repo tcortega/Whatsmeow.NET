@@ -368,3 +368,17 @@ func TestAnEndedCallKeepsItsContextStatusAndLogsAtDebug(t *testing.T) {
 		}
 	}
 }
+
+// A sidecar stopped right after its ready line can call Stop before its Serve goroutine has started; that is a
+// normal stop, not a failure.
+func TestServeAfterStopReturnsNil(t *testing.T) {
+	t.Parallel()
+
+	srv := New(token, zerolog.Nop())
+	srv.Shutdown()
+	srv.Stop()
+
+	if err := srv.Serve(bufconn.Listen(1 << 20)); err != nil {
+		t.Fatalf("serve after stop = %v, want nil", err)
+	}
+}

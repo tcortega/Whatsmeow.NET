@@ -69,9 +69,9 @@ func (s *Server) RegisterService(desc *grpc.ServiceDesc, impl any) {
 	s.grpc.RegisterService(desc, impl)
 }
 
-// Serve serves lis until Stop.
+// Serve serves lis until Stop. A Stop that comes first, before this goroutine got here, is a normal stop too.
 func (s *Server) Serve(lis net.Listener) error {
-	if err := s.grpc.Serve(lis); err != nil {
+	if err := s.grpc.Serve(lis); err != nil && !errors.Is(err, grpc.ErrServerStopped) {
 		return fmt.Errorf("serve: %w", err)
 	}
 
