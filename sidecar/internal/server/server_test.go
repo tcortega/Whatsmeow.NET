@@ -1,10 +1,13 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"net"
+	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -68,7 +71,13 @@ func (clientCodec) Name() string { return "proto" }
 func start(t *testing.T, handlerErr error) (*Server, *grpc.ClientConn, *messages) {
 	t.Helper()
 
-	srv := New(token, zerolog.Nop())
+	return startLogging(t, handlerErr, zerolog.Nop())
+}
+
+func startLogging(t *testing.T, handlerErr error, log zerolog.Logger) (*Server, *grpc.ClientConn, *messages) {
+	t.Helper()
+
+	srv := New(token, log)
 	msgs := &messages{received: make(chan *whatsmeowv1.SendMessageRequest, 1), err: handlerErr}
 	whatsmeowv1.RegisterMessageServiceServer(srv, msgs)
 	whatsmeowv1.RegisterSidecarServiceServer(srv, whatsmeowv1.UnimplementedSidecarServiceServer{})
@@ -311,5 +320,51 @@ func TestACallWithoutTheTokenIsRejectedBeforeItsBodyIsDecoded(t *testing.T) {
 	case <-msgs.received:
 		t.Fatal("the handler ran")
 	default:
+	}
+}
+
+// syncBuffer is a log sink the server writes from its own goroutines.
+type syncBuffer struct {
+	mu  sync.Mutex
+	buf bytes.Buffer
+}
+
+func (b *syncBuffer) Write(p []byte) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	n, _ := b.buf.Write(p) // bytes.Buffer.Write never returns an error
+
+	return n, nil
+}
+
+func (b *syncBuffer) String() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	return b.buf.String()
+}
+
+func TestAnEndedCallKeepsItsContextStatusAndLogsAtDebug(t *testing.T) {
+	t.Parallel()
+
+	for name, tc := range map[string]struct {
+		err  error
+		code codes.Code
+	}{
+		"cancelled": {fmt.Errorf("send: %w", context.Canceled), codes.Canceled},
+		"expired":   {fmt.Errorf("send: %w", context.DeadlineExceeded), codes.DeadlineExceeded},
+	} {
+		logs := &syncBuffer{}
+		_, conn, _ := startLogging(t, tc.err, zerolog.New(logs))
+
+		_, err := whatsmeowv1.NewMessageServiceClient(conn).SendMessage(withToken("Bearer "+token), &whatsmeowv1.SendMessageRequest{})
+		if status.Code(err) != tc.code {
+			t.Fatalf("%s: code = %v, want %v", name, status.Code(err), tc.code)
+		}
+
+		if got := logs.String(); !strings.Contains(got, `"level":"debug"`) || strings.Contains(got, `"level":"error"`) {
+			t.Fatalf("%s: logs = %s, want one debug line and no error", name, got)
+		}
 	}
 }

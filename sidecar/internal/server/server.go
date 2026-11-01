@@ -5,6 +5,7 @@ package server
 import (
 	"context"
 	"crypto/subtle"
+	"errors"
 	"fmt"
 	"net"
 	"strings"
@@ -183,10 +184,18 @@ func (s *Server) admit(method string) error {
 }
 
 // toStatus maps a slice error to a status with an ErrorInfo. Slices return %w errors and never build a status,
-// so a status here came from grpc-go or this package and passes through. Every other error is INTERNAL.
+// so a status here came from grpc-go or this package and passes through. A context error keeps its own status
+// (CANCELLED, DEADLINE_EXCEEDED); every other error is INTERNAL.
 func (s *Server) toStatus(method string, err error) error {
 	if _, ok := status.FromError(err); ok {
 		return err
+	}
+
+	// The caller cancelled or its deadline passed: nothing failed here, so it is not INTERNAL.
+	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		s.log.Debug().Err(err).Str("method", method).Msg("call ended by its context")
+
+		return status.FromContextError(err).Err() //nolint:wrapcheck // a gRPC status reaches grpc-go unwrapped
 	}
 
 	s.log.Error().Err(err).Str("method", method).Msg("call failed")
