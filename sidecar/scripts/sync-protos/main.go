@@ -6,7 +6,8 @@
 //
 // The module is fetched with `go mod download -json`, so its content is verified against the Go
 // checksum database and against the recorded h1 sum. Every *.proto under the module's proto/
-// directory, and the module LICENSE, must match the copy byte for byte.
+// directory, and the module LICENSE, must match the copy byte for byte, and the copy holds nothing else.
+// Once sidecar/go.mod requires the module, the required version must be the pinned one.
 //
 // By default it only checks, and exits non-zero on any difference. With -write it replaces the copy.
 // Run it from the sidecar module: go -C sidecar run ./scripts/sync-protos [-write].
@@ -28,6 +29,8 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+
+	"golang.org/x/mod/modfile"
 )
 
 const (
@@ -36,15 +39,20 @@ const (
 	protoDir    = "proto"
 )
 
-var errMismatch = errors.New("third_party copy does not match the pinned module")
+var (
+	errMismatch   = errors.New("third_party copy does not match the pinned module")
+	errUnexpected = errors.New("third_party copy holds files that are not upstream protos")
+	errPin        = errors.New("the pin does not match")
+)
 
 func main() {
 	write := flag.Bool("write", false, "replace the copy with the pinned module's files instead of checking it")
 	dir := flag.String("dir", filepath.Join("..", "third_party", "whatsmeow"), "the third_party copy, holding VERSION")
+	goMod := flag.String("gomod", "go.mod", "the sidecar go.mod; its require of the module, once present, must match VERSION")
 	flag.Parse()
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
-	err := run(ctx, *dir, *write, os.Stdout)
+	err := run(ctx, config{dir: *dir, goMod: *goMod, write: *write, out: os.Stdout, download: goModDownload})
 	stop()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "sync-protos:", err)
@@ -52,8 +60,27 @@ func main() {
 	}
 }
 
-func run(ctx context.Context, dir string, write bool, out io.Writer) error {
-	raw, err := fs.ReadFile(os.DirFS(dir), versionFile)
+// module is a downloaded module: what the go command resolved, and its files.
+type module struct {
+	path    string
+	version string
+	sum     string
+	files   fs.FS
+}
+
+// downloader fetches a module version. goModDownload is the real one; tests inject fakes.
+type downloader func(ctx context.Context, path, version string) (module, error)
+
+type config struct {
+	dir      string
+	goMod    string
+	write    bool
+	out      io.Writer
+	download downloader
+}
+
+func run(ctx context.Context, cfg config) error {
+	raw, err := fs.ReadFile(os.DirFS(cfg.dir), versionFile)
 	if err != nil {
 		return fmt.Errorf("read the pin: %w", err)
 	}
@@ -63,53 +90,76 @@ func run(ctx context.Context, dir string, write bool, out io.Writer) error {
 		return err
 	}
 
-	moduleDir, err := download(ctx, p)
+	goMod, err := os.ReadFile(cfg.goMod)
+	if err != nil {
+		return fmt.Errorf("read %s: %w", cfg.goMod, err)
+	}
+
+	err = checkRequire(cfg.goMod, goMod, p)
 	if err != nil {
 		return err
 	}
 
-	want, err := collect(os.DirFS(moduleDir), protoDir)
+	m, err := cfg.download(ctx, p.path, p.version)
+	if err != nil {
+		return err
+	}
+
+	if m.path != p.path || m.version != p.version || m.sum != p.sum {
+		return fmt.Errorf("%w: %s %s %s resolved to %s %s %s", errPin, p.path, p.version, p.sum, m.path, m.version, m.sum)
+	}
+
+	want, _, err := collect(ctx, m.files, protoDir)
 	if err != nil {
 		return fmt.Errorf("read the pinned module: %w", err)
 	}
 
-	have, err := collect(os.DirFS(dir), ".")
+	have, unexpected, err := collect(ctx, os.DirFS(cfg.dir), ".")
 	if err != nil {
 		return fmt.Errorf("read the third_party copy: %w", err)
 	}
 
+	unexpected = slices.DeleteFunc(unexpected, func(name string) bool { return name == versionFile })
+	if len(unexpected) > 0 {
+		return report(cfg.out, prefixed("unexpected: ", unexpected), fmt.Errorf("%w: remove %d files", errUnexpected, len(unexpected)))
+	}
+
 	differences := compare(want, have)
 	if len(differences) == 0 {
-		_, err = fmt.Fprintf(out, "%s matches %s %s (%d files)\n", dir, p.path, p.version, len(want))
-		if err != nil {
-			return fmt.Errorf("report: %w", err)
-		}
-
-		return nil
+		return report(cfg.out, []string{fmt.Sprintf("%s matches %s %s (%d files)", cfg.dir, p.path, p.version, len(want))}, nil)
 	}
 
-	if !write {
-		for _, d := range differences {
-			_, err = fmt.Fprintln(out, d)
-			if err != nil {
-				return fmt.Errorf("report: %w", err)
-			}
-		}
-
-		return fmt.Errorf("%w: %d differences; run go -C sidecar run ./scripts/sync-protos -write", errMismatch, len(differences))
+	if !cfg.write {
+		return report(cfg.out, differences, fmt.Errorf("%w: %d differences; run go -C sidecar run ./scripts/sync-protos -write", errMismatch, len(differences)))
 	}
 
-	err = replace(dir, want, have)
+	err = replace(ctx, cfg.dir, want, have)
 	if err != nil {
 		return err
 	}
 
-	_, err = fmt.Fprintf(out, "%s now matches %s %s (%d files)\n", dir, p.path, p.version, len(want))
-	if err != nil {
-		return fmt.Errorf("report: %w", err)
+	return report(cfg.out, []string{fmt.Sprintf("%s now matches %s %s (%d files)", cfg.dir, p.path, p.version, len(want))}, nil)
+}
+
+// report writes each line, then returns result unless the write itself failed.
+func report(out io.Writer, lines []string, result error) error {
+	for _, line := range lines {
+		_, err := fmt.Fprintln(out, line)
+		if err != nil {
+			return fmt.Errorf("report: %w", err)
+		}
 	}
 
-	return nil
+	return result
+}
+
+func prefixed(prefix string, names []string) []string {
+	lines := make([]string, 0, len(names))
+	for _, name := range names {
+		lines = append(lines, prefix+name)
+	}
+
+	return lines
 }
 
 // pin is one go.sum line: module path, version and h1 hash of the module zip.
@@ -133,12 +183,35 @@ func parsePin(raw []byte) (pin, error) {
 	return pin{path: fields[0], version: fields[1], sum: fields[2]}, nil
 }
 
-// download fetches the pinned module into the module cache and returns its directory.
+// checkRequire passes while go.mod does not require the module (Phase 0). Once it does, the required
+// version must be the pin, and no replace may point the build at other code.
+func checkRequire(name string, goMod []byte, p pin) error {
+	file, err := modfile.Parse(name, goMod, nil)
+	if err != nil {
+		return fmt.Errorf("parse %s: %w", name, err)
+	}
+
+	for _, r := range file.Replace {
+		if r.Old.Path == p.path {
+			return fmt.Errorf("%w: %s replaces %s, so the sidecar would not build the pinned module", errPin, name, p.path)
+		}
+	}
+
+	for _, r := range file.Require {
+		if r.Mod.Path == p.path && r.Mod.Version != p.version {
+			return fmt.Errorf("%w: %s requires %s %s, %s pins %s", errPin, name, p.path, r.Mod.Version, versionFile, p.version)
+		}
+	}
+
+	return nil
+}
+
+// goModDownload fetches the module into the module cache with `go mod download -json`.
 // It runs in an empty temporary directory so it never edits a go.mod or go.sum.
-func download(ctx context.Context, p pin) (moduleDir string, err error) {
+func goModDownload(ctx context.Context, modulePath, version string) (m module, err error) {
 	scratch, err := os.MkdirTemp("", "sync-protos-")
 	if err != nil {
-		return "", fmt.Errorf("create a scratch directory: %w", err)
+		return module{}, fmt.Errorf("create a scratch directory: %w", err)
 	}
 
 	defer func() {
@@ -150,14 +223,12 @@ func download(ctx context.Context, p pin) (moduleDir string, err error) {
 
 	// The module path and version come from the committed VERSION file, and exec passes them as one
 	// argument without a shell, so there is nothing to inject.
-	cmd := exec.CommandContext(ctx, "go", "mod", "download", "-json", p.path+"@"+p.version) //nolint:gosec // G204: argument is the committed pin, no shell
+	cmd := exec.CommandContext(ctx, "go", "mod", "download", "-json", modulePath+"@"+version) //nolint:gosec // G204: argument is the committed pin, no shell
 	cmd.Dir = scratch
 	cmd.Stderr = os.Stderr
 
-	stdout, err := cmd.Output()
-	if err != nil {
-		return "", fmt.Errorf("go mod download %s@%s: %w", p.path, p.version, err)
-	}
+	// On failure the go command still prints the JSON object, with the reason in Error.
+	stdout, runErr := cmd.Output()
 
 	var info struct {
 		Path    string
@@ -167,33 +238,50 @@ func download(ctx context.Context, p pin) (moduleDir string, err error) {
 		Error   string
 	}
 
-	err = json.Unmarshal(stdout, &info)
-	if err != nil {
-		return "", fmt.Errorf("decode go mod download output: %w", err)
+	decodeErr := json.Unmarshal(stdout, &info)
+
+	switch {
+	case decodeErr == nil && info.Error != "":
+		return module{}, fmt.Errorf("go mod download %s@%s: %s", modulePath, version, info.Error)
+	case runErr != nil:
+		return module{}, fmt.Errorf("go mod download %s@%s: %w", modulePath, version, runErr)
+	case decodeErr != nil:
+		return module{}, fmt.Errorf("decode go mod download output: %w", decodeErr)
 	}
 
-	if info.Error != "" {
-		return "", fmt.Errorf("go mod download %s@%s: %s", p.path, p.version, info.Error)
-	}
-
-	if info.Path != p.path || info.Version != p.version || info.Sum != p.sum {
-		return "", fmt.Errorf("pin %s %s %s resolved to %s %s %s", p.path, p.version, p.sum, info.Path, info.Version, info.Sum)
-	}
-
-	return info.Dir, nil
+	return module{path: info.Path, version: info.Version, sum: info.Sum, files: os.DirFS(info.Dir)}, nil
 }
 
 // collect reads every *.proto under root, keyed by its slash path relative to root, plus LICENSE
-// from the top of fsys when present.
-func collect(fsys fs.FS, root string) (map[string][]byte, error) {
+// from the top of fsys when present. It also returns every other file under root, sorted.
+func collect(ctx context.Context, fsys fs.FS, root string) (map[string][]byte, []string, error) {
 	files := map[string][]byte{}
+
+	var others []string
 
 	err := fs.WalkDir(fsys, root, func(name string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
-		if entry.IsDir() || path.Ext(name) != ".proto" {
+		if ctx.Err() != nil {
+			return fmt.Errorf("walk: %w", ctx.Err())
+		}
+
+		if entry.IsDir() {
+			return nil
+		}
+
+		relative := name
+		if root != "." {
+			relative = strings.TrimPrefix(name, root+"/")
+		}
+
+		if path.Ext(name) != ".proto" {
+			if relative != licenseFile || root != "." {
+				others = append(others, relative)
+			}
+
 			return nil
 		}
 
@@ -202,31 +290,28 @@ func collect(fsys fs.FS, root string) (map[string][]byte, error) {
 			return fmt.Errorf("read %s: %w", name, err)
 		}
 
-		relative := name
-		if root != "." {
-			relative = strings.TrimPrefix(name, root+"/")
-		}
-
 		files[relative] = content
 
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("walk %s: %w", root, err)
+		return nil, nil, fmt.Errorf("walk %s: %w", root, err)
 	}
+
+	slices.Sort(others)
 
 	license, err := fs.ReadFile(fsys, licenseFile)
 	if errors.Is(err, fs.ErrNotExist) {
-		return files, nil
+		return files, others, nil
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("read %s: %w", licenseFile, err)
+		return nil, nil, fmt.Errorf("read %s: %w", licenseFile, err)
 	}
 
 	files[licenseFile] = license
 
-	return files, nil
+	return files, others, nil
 }
 
 // compare lists every file that is missing from have, extra in have, or different, sorted by name.
@@ -257,11 +342,15 @@ func compare(want, have map[string][]byte) []string {
 }
 
 // replace makes dir hold exactly want: it deletes files in have that want lacks, writes the rest,
-// and removes directories left empty. VERSION and anything that is not a proto or LICENSE stay.
-func replace(dir string, want, have map[string][]byte) error {
+// and removes directories left empty. VERSION stays.
+func replace(ctx context.Context, dir string, want, have map[string][]byte) error {
 	for name := range have {
 		if _, ok := want[name]; ok {
 			continue
+		}
+
+		if ctx.Err() != nil {
+			return fmt.Errorf("replace: %w", ctx.Err())
 		}
 
 		target := filepath.Join(dir, filepath.FromSlash(name))
@@ -278,6 +367,10 @@ func replace(dir string, want, have map[string][]byte) error {
 	}
 
 	for name, content := range want {
+		if ctx.Err() != nil {
+			return fmt.Errorf("replace: %w", ctx.Err())
+		}
+
 		target := filepath.Join(dir, filepath.FromSlash(name))
 
 		err := os.MkdirAll(filepath.Dir(target), 0o750)
