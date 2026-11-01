@@ -59,6 +59,10 @@ jobs:
           key: go-contract-${{ runner.os }}-${{ hashFiles('mise.toml', 'tools/go.sum', 'sidecar/go.sum', 'third_party/whatsmeow/VERSION') }}
           restore-keys: go-contract-${{ runner.os }}-
 
+      # Throwaway (#3): simulate a published tag at the base, in this runner only; never pushed.
+      - name: simulate a published tag
+        run: git tag v0.0.0-sim 565c2ce9ed546e3d238369c0699cf4808b2051b9
+
       - name: build/ci.sh contract
         env:
           # Throwaway (#3): compare with the contract branch tip, since main has no whatsmeow.v1 module yet.
