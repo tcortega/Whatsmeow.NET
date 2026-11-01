@@ -1,0 +1,15 @@
+<Project>
+	<!--
+		Shipped in each Whatsmeow.Sidecar.Native package as buildTransitive/<id>.targets, so it reaches every consumer of
+		Whatsmeow.Client (ADR 0023). A single-file publish with IncludeNativeLibrariesForSelfExtract would otherwise bundle
+		whatsmeow-net and extract it under ~/.net/<app>/, where the client never looks: it stays beside the app instead.
+		An item element without Include in a target sets the metadata on each item its condition matches.
+	-->
+	<Target Name="_WhatsmeowSidecarBesideTheApp" AfterTargets="ComputeResolvedFilesToPublishList">
+		<ItemGroup>
+			<ResolvedFileToPublish Condition="'%(Filename)%(Extension)' == 'whatsmeow-net' OR '%(Filename)%(Extension)' == 'whatsmeow-net.exe'">
+				<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+			</ResolvedFileToPublish>
+		</ItemGroup>
+	</Target>
+</Project>

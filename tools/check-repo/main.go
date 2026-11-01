@@ -543,13 +543,16 @@ func csprojRules() projectRules {
 			"TreatWarningsAsErrors": func(v string) bool { return strings.TrimSpace(v) == "true" },
 			// [LibraryImport] generates unsafe code and fails without it (SYSLIB1062, ADR 0024).
 			"AllowUnsafeBlocks": func(v string) bool { return strings.TrimSpace(v) == "true" },
+			// The pack-only native packages (ADR 0023).
+			"IncludeBuildOutput":              anyValue,
+			"SuppressDependenciesWhenPacking": anyValue,
 		},
 		items: map[string][]string{
 			"PackageReference":    {"Include", "PrivateAssets"},
-			"ProjectReference":    {"Include"},
+			"ProjectReference":    {"Include", "PackExactVersion"},
 			"Using":               {"Include", "Alias", "Static"},
 			"InternalsVisibleTo":  {"Include"},
-			"None":                {"Include", "Update", "CopyToOutputDirectory"},
+			"None":                {"Include", "Update", "CopyToOutputDirectory", "Pack", "PackagePath"},
 			"Content":             {"Include", "Update", "CopyToOutputDirectory"},
 			"AdditionalFiles":     {"Include"},
 			"TrimmerRootAssembly": {"Include"},

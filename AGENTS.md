@@ -29,11 +29,11 @@ AGENTS.md              this file (CLAUDE.md is a symlink to it; nothing may depe
 
 Setup once: the .NET SDK from `global.json` (10.0.403), then `mise trust && mise install` for Go, buf, golangci-lint, protoc, the protoc plugins and shellcheck.
 
-Everything CI runs is `build/ci.sh`, one subcommand per CI job, on linux-x64, osx-arm64 and win-x64 (Git Bash on Windows).
+Everything CI runs is `build/ci.sh`, one subcommand per CI job, on linux-x64, osx-arm64 and win-x64 (Git Bash on Windows); `package` runs on win-x64 only, and `install` installs its feed on linux-x64 and osx-arm64.
 Run it from anywhere before pushing; it runs every check, reports each failure, and fails at the end:
 
 ```sh
-bash build/ci.sh all        # or: setup, contract, go, dotnet
+bash build/ci.sh all        # or: setup, contract, go, dotnet, package; install <feed> installs a feed built elsewhere
 ```
 
 A package change regenerates `packages.lock.json` with a plain `dotnet restore dotnet/Whatsmeow.slnx`; commit it.

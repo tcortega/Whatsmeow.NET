@@ -28,6 +28,10 @@
 
 		<!-- Restores are reproducible: packages.lock.json is committed, and CI restores with locked mode. -->
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+
+		<!-- MinVer reads the version from v<semver> tags (ADR 0015, ADR 0023). It sets Version in its MinVer target, so a
+		script reads it with -t:MinVer -getProperty:Version, never with -getProperty alone (that returns 1.0.0). -->
+		<MinVerTagPrefix>v</MinVerTagPrefix>
 	</PropertyGroup>
 
 	<!-- CI, or a local pre-push build with -p:ContinuousIntegrationBuild=true (AGENTS.md Commands). -->

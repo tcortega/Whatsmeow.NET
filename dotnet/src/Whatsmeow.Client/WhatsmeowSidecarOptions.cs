@@ -8,6 +8,9 @@ public sealed class WhatsmeowSidecarOptions
 	/// without it the binary next to the application or under <c>runtimes/&lt;rid&gt;/native/</c>. It must be the
 	/// binary itself, not a wrapper script that starts it: on Linux and macOS the sidecar stops when this process is
 	/// not its parent.
+	/// A single-file app published with <c>IncludeAllContentForSelfExtract</c> must set it to the binary beside the app,
+	/// in the directory of <see cref="Environment.ProcessPath"/>, because that mode moves
+	/// <see cref="AppContext.BaseDirectory"/>.
 	/// </summary>
 	public string? SidecarPath { get; set; }
 

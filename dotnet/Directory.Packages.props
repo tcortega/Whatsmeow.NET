@@ -26,6 +26,8 @@
 	<ItemGroup>
 		<GlobalPackageReference Include="Meziantou.Analyzer" Version="3.0.318" />
 		<GlobalPackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="5.6.0" PrivateAssets="all" />
+		<!-- The one version source: a v<semver> tag, or a pre-release from the height above the last one (ADR 0023). -->
+		<GlobalPackageReference Include="MinVer" Version="8.0.0" PrivateAssets="all" />
 		<AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
 	</ItemGroup>
 </Project>

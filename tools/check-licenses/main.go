@@ -13,6 +13,8 @@
 // reviewer, and the parser rejects that placeholder.
 //
 // Findings print as path:line: [rule] message. Run it from the tools module: go -C tools run ./check-licenses.
+// With -targets it only prints the release targets, one GOOS/GOARCH per line: build/ci.sh builds exactly those
+// for the native packages, so the binaries and this check cover the same six (ADR 0023).
 package main
 
 import (
@@ -45,8 +47,8 @@ const (
 	review    = "review the licence text, then edit " + allowFile + " in a reviewed change (ADR 0016)"
 )
 
-// targets are the GOOS/GOARCH pairs the native packages ship (ADR 0007). Once .goreleaser.yaml exists
-// (Phase 4), CI must check that it builds exactly these.
+// targets are the GOOS/GOARCH pairs the native packages ship (ADR 0007). build/ci.sh builds the binaries from this
+// list (-targets) and fails when the packaged binaries are not exactly these (ADR 0023).
 func targets() []string {
 	return []string{"darwin/amd64", "darwin/arm64", "linux/amd64", "linux/arm64", "windows/amd64", "windows/arm64"}
 }
@@ -61,7 +63,16 @@ var errFindings = errors.New("licence check failed")
 
 func main() {
 	root := flag.String("root", "..", "the repository root")
+	printTargets := flag.Bool("targets", false, "print the release targets, one GOOS/GOARCH per line, and exit")
 	flag.Parse()
+
+	if *printTargets {
+		for _, target := range targets() {
+			fmt.Println(target)
+		}
+
+		return
+	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	err := run(ctx, config{root: *root, out: os.Stdout, goCmd: runGo})

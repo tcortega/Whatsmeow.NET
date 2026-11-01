@@ -55,11 +55,13 @@
 			<_WhatsmeowInSrc>$([System.String]::Copy('$(MSBuildProjectDirectory)/').StartsWith('$(MSBuildThisFileDirectory)src', StringComparison.OrdinalIgnoreCase))</_WhatsmeowInSrc>
 			<!--
 				The literal NoWarn baseline. Roslyn's Microsoft.CSharp.Core.targets adds 1701 and 1702 (assembly unification),
-				8002 (strong naming, ignored on .NET) and, inside Visual Studio, 2008; IL2121 comes with PublishAot; and 1591
-				(missing XML docs) is off outside dotnet/src.
+				8002 (strong naming, ignored on .NET) and, inside Visual Studio, 2008; IL2121 comes with PublishAot; NU5105
+				comes with MinVer's build/MinVer.targets (it warns that a SemVer 2.0.0 version may not reach NuGet clients older
+				than 4.3, and MinVer's versions are SemVer 2.0.0 by design, ADR 0023); and 1591 (missing XML docs) is off
+				outside dotnet/src.
 			-->
-			<_WhatsmeowAllowedNoWarnText>1701;1702;2008;8002;IL2121</_WhatsmeowAllowedNoWarnText>
-			<_WhatsmeowAllowedNoWarnText Condition="'$(_WhatsmeowInSrc)' != 'true'">1591;1701;1702;2008;8002;IL2121</_WhatsmeowAllowedNoWarnText>
+			<_WhatsmeowAllowedNoWarnText>1701;1702;2008;8002;IL2121;NU5105</_WhatsmeowAllowedNoWarnText>
+			<_WhatsmeowAllowedNoWarnText Condition="'$(_WhatsmeowInSrc)' != 'true'">1591;1701;1702;2008;8002;IL2121;NU5105</_WhatsmeowAllowedNoWarnText>
 			<_WhatsmeowSdkDirectory>$([System.IO.Path]::GetFullPath('$(NetCoreRoot)sdk/$(NETCoreSdkVersion)/'))</_WhatsmeowSdkDirectory>
 		</PropertyGroup>
 
@@ -118,4 +120,21 @@
 	<PropertyGroup Condition="'$(IsTestingPlatformApplication)' == 'true' AND '$([System.IO.Directory]::GetFiles($(MSBuildProjectDirectory), &quot;*.cs&quot;, System.IO.SearchOption.AllDirectories))' == ''">
 		<TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --ignore-exit-code 8</TestingPlatformCommandLineArguments>
 	</PropertyGroup>
+
+	<!--
+		Exact pins (§13 invariant 12, ADR 0023): pack turns a ProjectReference into a dependency with the range it parses from
+		ProjectVersion on NuGet's internal _ProjectReferencesWithVersions item (PackTaskLogic.cs), which
+		_GetProjectReferenceVersions fills; a plain version means "at least". For a reference marked PackExactVersion it
+		becomes [version]. Item Update does not work inside a target (it changes every item), so this swaps the marked
+		items for rewritten copies. build/ci.sh install fails, naming this target, if a NuGet change breaks it.
+	-->
+	<Target Name="_WhatsmeowExactProjectVersions" AfterTargets="_GetProjectReferenceVersions">
+		<ItemGroup>
+			<_WhatsmeowExactReference Include="@(ProjectReference->'%(FullPath)')" Condition="'%(ProjectReference.PackExactVersion)' == 'true'" />
+			<_WhatsmeowNotExact Include="@(_ProjectReferencesWithVersions)" Exclude="@(_WhatsmeowExactReference)" />
+			<_WhatsmeowExact Include="@(_ProjectReferencesWithVersions)" Exclude="@(_WhatsmeowNotExact)" />
+			<_ProjectReferencesWithVersions Remove="@(_WhatsmeowExact)" />
+			<_ProjectReferencesWithVersions Include="@(_WhatsmeowExact)" ProjectVersion="[%(ProjectVersion)]" />
+		</ItemGroup>
+	</Target>
 </Project>
