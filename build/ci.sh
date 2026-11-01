@@ -249,7 +249,7 @@ shipped_have_no_fake() {
 
 # The live tests (docs/guidelines/tests.md Live WhatsApp) are contained: [LiveFact] appears only in
 # Whatsmeow.LiveTests, Explicit, a declared exception to the banned list, only in its LiveFactAttribute.cs, every
-# test there is a [LiveFact] (no [Fact] or [Theory]), and QRCoder, which it alone uses, is in no shipped project.
+# test there is a [LiveFact] (no [Fact], [FactAttribute], [Xunit.Fact] or [Theory]), and QRCoder, which it alone uses, is in no shipped project.
 # Each grep has a positive control, or it could prove nothing.
 live_tests_contained() {
 	local live=dotnet/tests/Whatsmeow.LiveTests attribute=dotnet/tests/Whatsmeow.LiveTests/LiveFactAttribute.cs
@@ -262,7 +262,7 @@ live_tests_contained() {
 	# Generated/ is buf's output, which nobody writes (docs/guidelines/csharp.md); its protos have Explicit fields.
 	found="$(grep -rnE --include='*.cs' --exclude-dir=artifacts --exclude-dir=Generated "LiveFact|$explicit" dotnet |
 		grep -v "^$live/" ; grep -rnE --include='*.cs' "$explicit" "$live" | grep -v "^$attribute:" ;
-		grep -rnE --include='*.cs' '\[(Fact|Theory)' "$live")"
+		grep -rnE --include='*.cs' '\[(Xunit\.)?(Fact|Theory)' "$live")"
 	if [ -n "$found" ]; then
 		annotate error "live tests" "LiveFact belongs to $live, Explicit to $attribute, and a live test is a [LiveFact] (docs/guidelines/tests.md)"
 		echo "$found"

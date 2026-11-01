@@ -18,7 +18,7 @@ internal sealed class SessionClient(WhatsmeowSessions sessions, WhatsmeowSidecar
 		_ = await RpcErrors
 			.CallAsync(client.ConnectAsync(new ConnectRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken))
 			.ConfigureAwait(false);
-		_ = sessions.Remember(sessionId);
+		sessions.Remember(sessionId);
 	}
 
 	public async Task DisconnectAsync(CancellationToken cancellationToken = default)
@@ -57,23 +57,24 @@ internal sealed class SessionClient(WhatsmeowSessions sessions, WhatsmeowSidecar
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 
-		// Before the call, as ConnectAsync's: a pairing that links the device ends Connected even when the caller
-		// stopped reading, or the sidecar restarted, first.
-		var remembered = sessions.Remember(sessionId);
 		using var call = client.Pair(request, cancellationToken: cancellationToken);
 
-		while (await PairNextAsync(call.ResponseStream, remembered, cancellationToken).ConfigureAwait(false))
+		while (await PairNextAsync(call.ResponseStream, cancellationToken).ConfigureAwait(false))
 		{
-			if (PairingMapping.ToUpdate(call.ResponseStream.Current) is { } update)
-				yield return update;
+			if (PairingMapping.ToUpdate(call.ResponseStream.Current) is not { } update)
+				continue;
+
+			// The first code means pairing started: a pairing that goes on to link the device ends Connected even when
+			// the caller stops reading first, so it is a session the application connected, and a sidecar restart
+			// connects it again. A refused call (paired, invalid, gone) never got this far.
+			if (update is PairingUpdate.QrCode or PairingUpdate.PairingCode)
+				sessions.Remember(sessionId);
+			yield return update;
 		}
 	}
 
-	/// <summary>
-	/// Reads the next pairing step: false at the end of the stream, otherwise it throws. A Pair refused because the
-	/// session is paired changed nothing, so the session is forgotten again when this call is what remembered it.
-	/// </summary>
-	private async Task<bool> PairNextAsync(IAsyncStreamReader<PairResponse> stream, bool remembered, CancellationToken cancellationToken)
+	/// <summary>Reads the next pairing step: false at the end of the stream, otherwise it throws.</summary>
+	private async Task<bool> PairNextAsync(IAsyncStreamReader<PairResponse> stream, CancellationToken cancellationToken)
 	{
 		try
 		{
@@ -86,8 +87,6 @@ internal sealed class SessionClient(WhatsmeowSessions sessions, WhatsmeowSidecar
 		}
 		catch (RpcException e)
 		{
-			if (remembered && RpcErrors.CodeOf(e) is WhatsmeowErrorCode.AlreadyPaired)
-				sessions.Forget(sessionId);
 			RpcErrors.Throw(e);
 			throw;
 		}

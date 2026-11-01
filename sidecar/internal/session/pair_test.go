@@ -86,6 +86,29 @@ func (s *stub) disconnectCount() int {
 	return s.disconnects
 }
 
+// nextDisconnect returns a channel the client's next Disconnect closes.
+func (s *stub) nextDisconnect() <-chan struct{} {
+	done := make(chan struct{})
+	once := sync.Once{}
+
+	s.mu.Lock()
+	s.disconnecting = func() { once.Do(func() { close(done) }) }
+	s.mu.Unlock()
+
+	return done
+}
+
+// await waits for done, at most the test's bound.
+func (h *harness) await(done <-chan struct{}, what string) {
+	h.t.Helper()
+
+	select {
+	case <-done:
+	case <-h.ctx.Done():
+		h.t.Fatalf("%s never happened", what)
+	}
+}
+
 func (s *stub) phoneCalls() []phoneCall {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -408,6 +431,7 @@ func TestCancellingBeforeTheLinkDisconnectsAndRestoresThePreviousState(t *testin
 
 		client.send(code("c1"))
 		wantStep(t, recv(t, stream), qrStep("c1"))
+		disconnected := client.nextDisconnect()
 		cancel()
 
 		if got := status.Code(end(t, stream)); got != codes.Canceled {
@@ -415,14 +439,7 @@ func TestCancellingBeforeTheLinkDisconnectsAndRestoresThePreviousState(t *testin
 		}
 
 		h.awaitState("s1", previous)
-
-		for client.disconnectCount() == 0 {
-			if h.ctx.Err() != nil {
-				t.Fatal("the client was never disconnected")
-			}
-
-			runtime.Gosched()
-		}
+		h.await(disconnected, "the disconnect of the cancelled pairing")
 	}
 }
 
@@ -879,8 +896,11 @@ func TestDisconnectAfterTheLinkEndsTheLoginAndDisconnects(t *testing.T) {
 		t.Fatal("the client was not disconnected")
 	}
 
-	// A login that still comes changes nothing.
+	// whatsmeow's 515 reconnect ignores that Disconnect (connectionevents.go:33-36): the login it still brings is
+	// disconnected again, and the session stays Disconnected.
+	again := client.nextDisconnect()
 	client.logIn(true)
+	h.await(again, "the disconnect of the login after Disconnect")
 	h.wantState("s1", disconnected())
 }
 
@@ -899,7 +919,7 @@ func TestAClientThatReconnectsAfterItsSessionWasDeletedIsDisconnected(t *testing
 	}
 
 	_ = end(t, stream)
-	deleted := client.disconnectCount()
+	again := client.nextDisconnect()
 
 	// whatsmeow's 515 goroutine disconnects, then connects again on its own (connectionevents.go:33-36): its
 	// connect checks only Store.Deleted (client.go:567), which Delete, deleting by the recorded JID, does not set.
@@ -908,12 +928,37 @@ func TestAClientThatReconnectsAfterItsSessionWasDeletedIsDisconnected(t *testing
 	}
 
 	client.logIn(true)
+	h.await(again, "the disconnect of the deleted session's client")
+}
 
-	for client.disconnectCount() == deleted {
-		if h.ctx.Err() != nil {
-			t.Fatal("the deleted session's client stayed connected")
-		}
+func TestDisconnectStopsALinkedLoginThatEndedWithoutPreKeys(t *testing.T) {
+	t.Parallel()
 
-		runtime.Gosched()
+	h := start(t)
+	h.create("s1")
+	_, _ = h.pair("s1", "")
+	client := h.pairing("s1", nil)
+	client.linkAs(t, pairedJID, pairedLID)
+	client.send(whatsmeow.QRChannelSuccess)
+
+	// Holding ops keeps the wait for the login from disconnecting first, as a Disconnect call can get ops first.
+	h.svc.mu.Lock()
+	s := h.svc.sessions["s1"]
+	h.svc.mu.Unlock()
+	s.ops.Lock()
+
+	release := sync.OnceFunc(s.ops.Unlock)
+	t.Cleanup(release)
+
+	client.logIn(false)
+
+	s.mu.Lock()
+	stopped := stopLogin(s)
+	s.mu.Unlock()
+	release()
+
+	// Disconnect would otherwise answer PAIRING_IN_PROGRESS for a pairing that already failed.
+	if !stopped {
+		t.Fatal("Disconnect cannot stop a linked login that ended without the pre-keys")
 	}
 }

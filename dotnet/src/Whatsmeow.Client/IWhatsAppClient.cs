@@ -45,7 +45,10 @@ public interface IWhatsAppClient
 	/// Pairs a session that is <see cref="SessionState.Created"/> or <see cref="SessionState.LoggedOut"/> by QR code: it
 	/// yields each <see cref="PairingUpdate.QrCode"/> as WhatsApp rotates it, then <see cref="PairingUpdate.Paired"/>,
 	/// the last, once the session is usable and <see cref="SessionState.Connected"/>. Each enumeration starts a new
-	/// pairing. The client connects the session again after a sidecar restart, as after <see cref="ConnectAsync"/>.
+	/// pairing. Keep the session connected after <see cref="PairingUpdate.Paired"/> until it is
+	/// <see cref="SessionState.CaughtUp"/>: a device that went offline right after pairing was seen to stay
+	/// "connecting" on the phone. Once the first code came, the client connects the session again after a sidecar
+	/// restart, as after <see cref="ConnectAsync"/>.
 	/// Cancel <paramref name="cancellationToken"/>, or stop enumerating (a <see langword="break"/>, <c>FirstAsync</c>, disposing
 	/// the enumerator), to stop: before the phone linked the device, the session goes back to its state before; after,
 	/// the login goes on without you, and the session ends up <see cref="SessionState.Connected"/>,

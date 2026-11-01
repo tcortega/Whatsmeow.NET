@@ -259,6 +259,12 @@ func (svc *Service) handle(s *session, client Client, evt any) {
 func (svc *Service) apply(s *session, evt any) {
 	state, ok := next(s.state, evt, time.Now())
 	if !ok {
+		// A login the session did not ask for: whatsmeow's 515 reconnect ignores a Disconnect that came before it
+		// (connectionevents.go:33-36), and the device would be online under a state that says it is not.
+		if _, login := evt.(*events.Connected); login && !live(s.state) && !is[*whatsmeowv1.SessionState_Pairing_](s.state) {
+			svc.retire(s.client)
+		}
+
 		return
 	}
 

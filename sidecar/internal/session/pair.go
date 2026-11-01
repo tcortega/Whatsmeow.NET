@@ -129,11 +129,11 @@ func (svc *Service) whilePairing(s *session, a *attempt, evt any) bool {
 	return true
 }
 
-// stopLogin ends a linked pairing's wait for the login, for Disconnect, and reports whether there was one. s.mu is
-// held.
+// stopLogin ends a linked pairing's wait for the login, for Disconnect, and reports whether there was one: also a
+// login that ended without the pre-keys, which the wait has not disconnected yet. s.mu is held.
 func stopLogin(s *session) bool {
 	a := s.pairing
-	if a == nil || !a.linked || a.ended {
+	if a == nil || !a.linked {
 		return false
 	}
 

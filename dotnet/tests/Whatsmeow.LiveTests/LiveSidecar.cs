@@ -14,16 +14,14 @@ namespace Whatsmeow.LiveTests;
 /// live tests are off. The database holds the <see cref="LiveSessionId"/> session, paired once and reused by every
 /// run: it is never logged out, deleted or copied. A throwaway session (<see cref="ThrowawaySessionAsync"/>) is logged
 /// out and deleted at the end, so the phone keeps only the live session's linked device.
-/// What a person must see goes to files in <see cref="OutputDirectory"/>: <c>qr.png</c> and <c>qr.txt</c>, the
-/// current QR code, and <c>pairing-code.txt</c>. The sidecar's log goes to <c>sidecar.log</c> there, with the test
-/// number redacted.
+/// What a person must see goes to files in <see cref="OutputDirectory"/>, deleted at the end: <c>qr.png</c>, the
+/// current QR code, and <c>pairing-code.txt</c>. The sidecar's log goes to <c>sidecar.log</c> there, with phone numbers
+/// redacted.
 /// </summary>
 public sealed class LiveSidecar : IAsyncLifetime
 {
 	/// <summary>The persistent live session's id.</summary>
 	public const string LiveSessionId = "live";
-
-	private const string Redacted = "<redacted phone number>";
 
 	private readonly SemaphoreSlim _starting = new(1, 1);
 	private readonly List<IWhatsAppClient> _throwaway = [];
@@ -72,14 +70,41 @@ public sealed class LiveSidecar : IAsyncLifetime
 		}
 	}
 
-	/// <summary>Shows a QR code: <c>qr.png</c> to scan, and <c>qr.txt</c>, its payload. Each code replaces the previous one.</summary>
+	/// <summary>
+	/// Shows a QR code: <c>qr.png</c> to scan. Each code replaces the previous one. Its payload carries the device's
+	/// ADV secret (pair.go:125-130), so it is never written as text.
+	/// </summary>
 	public async Task ShowQrCodeAsync(string code, CancellationToken cancellationToken)
 	{
 		using var data = QRCodeGenerator.GenerateQrCode(code, QRCodeGenerator.ECCLevel.L);
 		using var renderer = new PngByteQRCode(data);
 		var png = renderer.GetGraphic(10);
 		await File.WriteAllBytesAsync(Path.Combine(OutputDirectory, "qr.png"), png, cancellationToken).ConfigureAwait(false);
-		await File.WriteAllTextAsync(Path.Combine(OutputDirectory, "qr.txt"), code, cancellationToken).ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Keeps the session connected until WhatsApp sent the backlog (CaughtUp), at most two minutes, and returns how long
+	/// that took. A device that went offline about a second after Paired stayed "connecting" on the phone, and one held
+	/// online got CaughtUp 5 s after Connected [observed: the owner's phone, 2026-11-01]; that a new device must stay
+	/// online through its first sync is [inferred].
+	/// </summary>
+	public async Task<TimeSpan> StayUntilCaughtUpAsync(IWhatsAppClient client, CancellationToken cancellationToken)
+	{
+#pragma warning disable RS0030 // Justification: a live test measures and bounds real time; nothing here can be faked.
+		var time = TimeProvider.System;
+#pragma warning restore RS0030
+		var started = time.GetTimestamp();
+		using var bound = new CancellationTokenSource(TimeSpan.FromMinutes(2), time);
+		using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, bound.Token);
+		var watch = StateWatch.Start(client, linked.Token);
+		await using (watch.ConfigureAwait(false))
+			await watch
+				.ReachesAsync(new SessionState.CaughtUp(), new SessionState.Connected(), new SessionState.Connecting(), new SessionState.Reconnecting())
+				.ConfigureAwait(false);
+
+		var elapsed = time.GetElapsedTime(started);
+		WriteLog($"live: CaughtUp {elapsed.TotalSeconds:F1} s after the session was usable");
+		return elapsed;
 	}
 
 	/// <summary>Shows the code to enter on the phone, in <c>pairing-code.txt</c>.</summary>
@@ -99,8 +124,7 @@ public sealed class LiveSidecar : IAsyncLifetime
 				return _sidecar;
 
 			_ = Directory.CreateDirectory(OutputDirectory);
-			foreach (var shown in new[] { "qr.png", "qr.txt", "pairing-code.txt" })
-				File.Delete(Path.Combine(OutputDirectory, shown));
+			DeleteShown();
 
 			// The account's keys: owner-only, outside the repository (the sidecar creates the file 0600).
 			var databaseDirectory = Path.GetDirectoryName(Path.GetFullPath(LiveSettings.Database))!;
@@ -141,19 +165,16 @@ public sealed class LiveSidecar : IAsyncLifetime
 		await _sidecar!.Sessions.DeleteAsync(client.SessionId, cancellationToken).ConfigureAwait(false);
 	}
 
-	/// <summary>
-	/// Writes a log line with the test number redacted: the sidecar logs at info level and above, and whatsmeow's
-	/// error messages can quote the node that carried the number (pair-code.go:103-111).
-	/// </summary>
+	private void DeleteShown()
+	{
+		foreach (var shown in new[] { "qr.png", "pairing-code.txt" })
+			File.Delete(Path.Combine(OutputDirectory, shown));
+	}
+
+	/// <summary>Writes a log line with every JID's user part and the test number redacted (<see cref="LogRedaction"/>).</summary>
 	private void WriteLog(string line)
 	{
-		var redacted = line;
-		var digits = new string([.. LiveSettings.PhoneNumber.Where(char.IsAsciiDigit)]);
-		if (LiveSettings.PhoneNumber.Length > 0)
-			redacted = redacted.Replace(LiveSettings.PhoneNumber, Redacted, StringComparison.Ordinal);
-		if (digits.Length > 0)
-			redacted = redacted.Replace(digits, Redacted, StringComparison.Ordinal);
-
+		var redacted = LogRedaction.Redact(line, LiveSettings.PhoneNumber);
 		lock (_logLock)
 			_log?.WriteLine(redacted);
 	}
@@ -172,9 +193,14 @@ public sealed class LiveSidecar : IAsyncLifetime
 			_log = null;
 		}
 
-		// The build directory only: the live database stays.
+		// The build directory and what was shown only, when this run started anything (xUnit disposes the fixture of
+		// tests it did not run too): the live database stays.
 		if (_directory is not null)
+		{
 			Directory.Delete(_directory, recursive: true);
+			DeleteShown();
+		}
+
 		_starting.Dispose();
 	}
 }

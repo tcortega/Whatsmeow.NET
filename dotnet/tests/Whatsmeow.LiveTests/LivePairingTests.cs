@@ -14,7 +14,8 @@ public sealed class LivePairingTests(LiveSidecar live) : IClassFixture<LiveSidec
 {
 	/// <summary>
 	/// Pairs the persistent live session by QR code the first time, or after the phone logged it out; on every other
-	/// run it connects the session paired before, so nobody scans again.
+	/// run it connects the session paired before, so nobody scans again. Either way it stays connected until CaughtUp,
+	/// so the phone finishes linking the device (<see cref="LiveSidecar.StayUntilCaughtUpAsync"/>).
 	/// </summary>
 	[LiveFact]
 	public async Task Live_PairWithQrCode_YieldsEachCodeThenPaired_AndTheSessionIsConnected()
@@ -25,6 +26,7 @@ public sealed class LivePairingTests(LiveSidecar live) : IClassFixture<LiveSidec
 		if (await SessionSetup.StateAsync(client, ct) is not (SessionState.Created or SessionState.LoggedOut))
 		{
 			PairingChecks.ValidateUsable(await LiveSidecar.ConnectAsync(client, ct));
+			TestContext.Current.TestOutputHelper?.WriteLine($"CaughtUp {(await live.StayUntilCaughtUpAsync(client, ct)).TotalSeconds:F1} s after Connected");
 			return;
 		}
 
@@ -40,6 +42,7 @@ public sealed class LivePairingTests(LiveSidecar live) : IClassFixture<LiveSidec
 		}
 
 		PairingChecks.ValidateQrPairing(updates, await SessionSetup.StateAsync(client, ct));
+		TestContext.Current.TestOutputHelper?.WriteLine($"CaughtUp {(await live.StayUntilCaughtUpAsync(client, ct)).TotalSeconds:F1} s after Paired");
 	}
 
 	/// <summary>Pairs a throwaway session by phone code; it is logged out and deleted at the end.</summary>

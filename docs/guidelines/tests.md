@@ -168,7 +168,8 @@ set -a; source ~/secrets.env; set +a
 dotnet test --project dotnet/tests/Whatsmeow.LiveTests -c Release
 ```
 
-The person watches `dotnet/artifacts/live/`: `qr.png` is the QR code to scan (rewritten on each rotation), only when the live session is not paired yet, and `pairing-code.txt` the code to enter on the phone; `sidecar.log` is the sidecar's log.
+The person watches `dotnet/artifacts/live/`: `qr.png` is the QR code to scan (rewritten on each rotation), only when the live session is not paired yet, and `pairing-code.txt` the code to enter on the phone; both are deleted at the end, and a QR payload is never written as text (it carries the device's ADV secret). `sidecar.log` is the sidecar's log, with every JID's user part and the test number redacted.
+The QR test stays connected until the live session is `CaughtUp`, at most two minutes, and prints how long that took: a device that went offline right after pairing stayed "connecting" on the phone (ADR 0021).
 
 Fake-only seams (injected failures, scripted disconnects) stay on fake-mode fixtures. They are not a live concern.
 
