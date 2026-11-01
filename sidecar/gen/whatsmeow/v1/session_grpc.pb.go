@@ -62,8 +62,10 @@ type SessionServiceClient interface {
 	// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED.
 	Connect(ctx context.Context, in *ConnectRequest, opts ...grpc.CallOption) (*ConnectResponse, error)
 	// Disconnect closes the connection and stops reconnecting; the session stays paired (state Disconnected).
-	// Disconnecting a session that is not connected succeeds and does nothing.
-	// Errors: SESSION_NOT_FOUND, PAIRING_IN_PROGRESS (cancel the Pair call instead).
+	// Disconnecting a session that is not connected succeeds and does nothing. While a Pair call is open and the phone
+	// has not linked the device, it fails with PAIRING_IN_PROGRESS (cancel the Pair call instead); after the link it
+	// stops the login, and the Pair call fails with PAIRING_FAILED.
+	// Errors: SESSION_NOT_FOUND, PAIRING_IN_PROGRESS.
 	Disconnect(ctx context.Context, in *DisconnectRequest, opts ...grpc.CallOption) (*DisconnectResponse, error)
 	// Logout unlinks the device on WhatsApp, then deletes its keys; the session stays, in state LoggedOut, and can be
 	// paired again. WhatsApp is told first, so the session must be connected.
@@ -72,10 +74,12 @@ type SessionServiceClient interface {
 	// Pair links a session in state Created or LoggedOut to an account. It connects, then streams QR codes, or one
 	// phone pairing code when phone is set, until the phone links the device. The last item is success, sent once
 	// whatsmeow reports Connected after the link and the device's pre-keys are uploaded; the stream then ends with OK
-	// and the session is Connected. If that fails after the link, the stream ends with PAIRING_FAILED and the session
-	// is Disconnected (paired; Connect retries).
+	// and the session is Connected. If that fails after the link (the pre-keys were not uploaded, or no login within
+	// 60 seconds), the stream ends with PAIRING_FAILED and the session is Disconnected (paired; Connect retries); if
+	// WhatsApp ends the login with a stopping state (LoggedOut, TempBanned, ...), the session is in that state.
+	// The QR codes, and the phone code with them, run out after about 160 seconds: PAIRING_TIMED_OUT.
 	// Before the link, the client ends pairing by cancelling the call: the sidecar disconnects, and the session returns
-	// to the state it had before Pair. After the link, a cancel never disconnects.
+	// to the state it had before Pair. After the link, a cancel never disconnects; Disconnect does.
 	// Pairing a paired session fails with ALREADY_PAIRED, and a second Pair while one is open fails with
 	// PAIRING_IN_PROGRESS: it never starts a second pairing.
 	// Errors: INVALID_ARGUMENT (also a phone number that is too short or not international, field
@@ -228,8 +232,10 @@ type SessionServiceServer interface {
 	// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED.
 	Connect(context.Context, *ConnectRequest) (*ConnectResponse, error)
 	// Disconnect closes the connection and stops reconnecting; the session stays paired (state Disconnected).
-	// Disconnecting a session that is not connected succeeds and does nothing.
-	// Errors: SESSION_NOT_FOUND, PAIRING_IN_PROGRESS (cancel the Pair call instead).
+	// Disconnecting a session that is not connected succeeds and does nothing. While a Pair call is open and the phone
+	// has not linked the device, it fails with PAIRING_IN_PROGRESS (cancel the Pair call instead); after the link it
+	// stops the login, and the Pair call fails with PAIRING_FAILED.
+	// Errors: SESSION_NOT_FOUND, PAIRING_IN_PROGRESS.
 	Disconnect(context.Context, *DisconnectRequest) (*DisconnectResponse, error)
 	// Logout unlinks the device on WhatsApp, then deletes its keys; the session stays, in state LoggedOut, and can be
 	// paired again. WhatsApp is told first, so the session must be connected.
@@ -238,10 +244,12 @@ type SessionServiceServer interface {
 	// Pair links a session in state Created or LoggedOut to an account. It connects, then streams QR codes, or one
 	// phone pairing code when phone is set, until the phone links the device. The last item is success, sent once
 	// whatsmeow reports Connected after the link and the device's pre-keys are uploaded; the stream then ends with OK
-	// and the session is Connected. If that fails after the link, the stream ends with PAIRING_FAILED and the session
-	// is Disconnected (paired; Connect retries).
+	// and the session is Connected. If that fails after the link (the pre-keys were not uploaded, or no login within
+	// 60 seconds), the stream ends with PAIRING_FAILED and the session is Disconnected (paired; Connect retries); if
+	// WhatsApp ends the login with a stopping state (LoggedOut, TempBanned, ...), the session is in that state.
+	// The QR codes, and the phone code with them, run out after about 160 seconds: PAIRING_TIMED_OUT.
 	// Before the link, the client ends pairing by cancelling the call: the sidecar disconnects, and the session returns
-	// to the state it had before Pair. After the link, a cancel never disconnects.
+	// to the state it had before Pair. After the link, a cancel never disconnects; Disconnect does.
 	// Pairing a paired session fails with ALREADY_PAIRED, and a second Pair while one is open fails with
 	// PAIRING_IN_PROGRESS: it never starts a second pairing.
 	// Errors: INVALID_ARGUMENT (also a phone number that is too short or not international, field

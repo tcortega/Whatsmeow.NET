@@ -16,6 +16,8 @@
 		<PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.14" />
 		<PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.14" />
 		<PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.11.0" />
+		<!-- Whatsmeow.LiveTests only, to render the QR code a person scans; MIT. Never in a shipped project (build/ci.sh). -->
+		<PackageVersion Include="QRCoder" Version="1.8.1" />
 		<!-- A runtime dependency of consumers too (Vogen.SharedTypes): never PrivateAssets (ADR 0010). -->
 		<PackageVersion Include="Vogen" Version="8.0.7" />
 		<PackageVersion Include="xunit.v3" Version="4.0.2" />

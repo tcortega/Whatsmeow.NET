@@ -35,6 +35,8 @@ type Client interface {
 	Disconnect()
 	IsConnected() bool
 	Logout(ctx context.Context) error
+	GetQRChannel(ctx context.Context) (<-chan whatsmeow.QRChannelItem, error)
+	PairPhone(ctx context.Context, phone string, showPushNotification bool, clientType whatsmeow.PairClientType, clientDisplayName string) (string, error)
 }
 
 var _ Client = (*whatsmeow.Client)(nil)
@@ -57,13 +59,25 @@ type Service struct {
 	// ConnectContext gets (client.go:541-599), so it is the sidecar's, never a call's.
 	lifetime context.Context //nolint:containedctx // the sidecar's lifetime, not a request's
 	end      context.CancelFunc
+	// recording is the lifetime without its end, for what an event handler records: a state that happened is
+	// recorded during a shutdown too.
+	recording context.Context //nolint:containedctx // derived from the lifetime, not a request's
+	// linkTimeout bounds the wait for whatsmeow's login after the phone linked a device (pair.go).
+	linkTimeout time.Duration
 
 	mu       sync.Mutex
 	sessions map[string]*session
+
+	// background runs the goroutines the Service owns, the waits for a login after a link (pair.go) and the
+	// disconnects of retired clients; Close waits for them. spawning guards closed, so none starts once Close waits.
+	background sync.WaitGroup
+	spawning   sync.Mutex
+	closed     bool
 }
 
 // session is one session. ops serializes the calls that drive its connection; mu guards the rest and is never
-// held while calling into whatsmeow, whose Disconnect waits for the event handlers (client.go:726-745).
+// held while calling into whatsmeow, whose Disconnect waits for the event handlers (client.go:726-745). device and
+// client change only under both, when a Pair call starts.
 type session struct {
 	id     string
 	device *store.Device
@@ -75,12 +89,18 @@ type session struct {
 	jid, lid string
 	watchers map[chan *whatsmeowv1.SessionState]struct{}
 	deleted  chan struct{}
+	// pairing is the open Pair call's attempt, nil when none is open.
+	pairing *attempt
 }
 
 // New loads every session from the database. It never connects one: the client calls Connect (session.proto).
 func New(ctx context.Context, db *sql.DB, devices *sqlstore.Container, newClient NewClient, log zerolog.Logger) (*Service, error) {
 	lifetime, end := context.WithCancel(context.Background())
-	svc := &Service{db: db, devices: devices, newClient: newClient, log: log, lifetime: lifetime, end: end, sessions: map[string]*session{}}
+	svc := &Service{
+		db: db, devices: devices, newClient: newClient, log: log, lifetime: lifetime, end: end, recording: context.WithoutCancel(lifetime),
+		linkTimeout: linkTimeout,
+		sessions:    map[string]*session{},
+	}
 
 	if err := svc.load(ctx); err != nil {
 		end()
@@ -190,32 +210,61 @@ func (svc *Service) pairedDevice(ctx context.Context, jid string) (*store.Device
 // add creates the session's client and registers its event handler; the caller puts it in svc.sessions.
 func (svc *Service) add(id string, device *store.Device, state *whatsmeowv1.SessionState, jid, lid string) *session {
 	s := &session{
-		id: id, device: device, state: state, jid: jid, lid: lid,
+		id: id, state: state, jid: jid, lid: lid,
 		watchers: map[chan *whatsmeowv1.SessionState]struct{}{}, deleted: make(chan struct{}),
 	}
-	s.client = svc.newClient(id, device)
-	s.client.AddEventHandlerWithSuccessStatus(func(evt any) bool {
-		svc.handle(s, evt)
+	svc.attach(s, device)
+
+	return s
+}
+
+// attach gives the session device and a new client for it, whose events the session handles until the next attach.
+// A new session is not shared yet; otherwise s.ops and s.mu are held.
+func (svc *Service) attach(s *session, device *store.Device) {
+	client := svc.newClient(s.id, device)
+	client.AddEventHandlerWithSuccessStatus(func(evt any) bool {
+		svc.handle(s, client, evt)
 
 		// Connection events are not stanzas: whatsmeow acks nothing on their result.
 		return true
 	})
 
-	return s
+	s.device, s.client = device, client
 }
 
 // handle applies a whatsmeow event. A server-side LoggedOut only records the transition: whatsmeow deletes the
 // device rows itself, concurrently, so the handler never reads, writes or deletes them (ARCHITECTURE §7.4).
-func (svc *Service) handle(s *session, evt any) {
+func (svc *Service) handle(s *session, client Client, evt any) {
 	s.mu.Lock()
+
+	// A client of a deleted session, or one a later Pair call replaced, is about nothing. If it dispatches, it is
+	// alive again: whatsmeow reconnects on its own after WhatsApp's 515 (connectionevents.go:33-36), which Delete
+	// cannot stop, because deleting by the recorded JID leaves the client's Store.Deleted unset (client.go:567).
+	if s.gone() || client != s.client {
+		s.mu.Unlock()
+		svc.retire(client)
+
+		return
+	}
 	defer s.mu.Unlock()
 
-	if s.gone() {
+	if p := s.pairing; p != nil && svc.whilePairing(s, p, evt) {
 		return
 	}
 
+	svc.apply(s, evt)
+}
+
+// apply moves the session to the state evt maps to, if any. s.mu is held.
+func (svc *Service) apply(s *session, evt any) {
 	state, ok := next(s.state, evt, time.Now())
 	if !ok {
+		// A login the session did not ask for: whatsmeow's 515 reconnect ignores a Disconnect that came before it
+		// (connectionevents.go:33-36), and the device would be online under a state that says it is not.
+		if _, login := evt.(*events.Connected); login && !live(s.state) && !is[*whatsmeowv1.SessionState_Pairing_](s.state) {
+			svc.retire(s.client)
+		}
+
 		return
 	}
 
@@ -285,10 +334,34 @@ func (s *session) gone() bool {
 	}
 }
 
+// retire disconnects a client the Service no longer uses. Not on the handler's goroutine: whatsmeow's Disconnect
+// waits for the event handlers (client.go:726-745).
+func (svc *Service) retire(client Client) {
+	svc.spawn(client.Disconnect)
+}
+
+// spawn runs f on a goroutine Close waits for, and reports whether it did: once Close began, it runs nothing.
+func (svc *Service) spawn(f func()) bool {
+	svc.spawning.Lock()
+	defer svc.spawning.Unlock()
+
+	if svc.closed {
+		return false
+	}
+
+	svc.background.Go(f)
+
+	return true
+}
+
 // Close ends the connections' context, which ends a connect in flight, then disconnects every session, before the
 // store closes.
 func (svc *Service) Close() {
 	svc.end()
+
+	svc.spawning.Lock()
+	svc.closed = true
+	svc.spawning.Unlock()
 
 	svc.mu.Lock()
 	all := make([]*session, 0, len(svc.sessions))
@@ -303,6 +376,10 @@ func (svc *Service) Close() {
 		s.client.Disconnect()
 		s.ops.Unlock()
 	}
+
+	// The waits for a login end with the lifetime; they and the retired clients' disconnects must not outlive the
+	// store.
+	svc.background.Wait()
 }
 
 // get returns the session with id, or an error for a malformed or unknown id.
@@ -402,7 +479,7 @@ func (svc *Service) DeleteSession(ctx context.Context, req *whatsmeowv1.DeleteSe
 	defer s.ops.Unlock()
 
 	s.mu.Lock()
-	connected, jid := live(s.state), s.jid
+	connected, jid := live(s.state) || is[*whatsmeowv1.SessionState_Pairing_](s.state), s.jid
 	s.mu.Unlock()
 
 	if connected {
@@ -486,10 +563,12 @@ func (svc *Service) Connect(ctx context.Context, req *whatsmeowv1.ConnectRequest
 	return &whatsmeowv1.ConnectResponse{}, nil
 }
 
-// connectable fails for the states Connect refuses: never paired, logged out, and banned with a known end that
-// has not passed.
+// connectable fails for the states Connect refuses: never paired, logged out, being paired, and banned with a known
+// end that has not passed.
 func connectable(id string, state *whatsmeowv1.SessionState) error {
 	switch kind := state.GetKind().(type) {
+	case *whatsmeowv1.SessionState_Pairing_:
+		return fmt.Errorf("connect session %q: %w", id, server.ErrPairingInProgress)
 	case *whatsmeowv1.SessionState_Created_:
 		return fmt.Errorf("connect session %q: %w", id, server.ErrNotLoggedIn)
 	case *whatsmeowv1.SessionState_LoggedOut_:
@@ -518,8 +597,16 @@ func (svc *Service) Disconnect(ctx context.Context, req *whatsmeowv1.DisconnectR
 	defer s.ops.Unlock()
 
 	s.mu.Lock()
-	connected := live(s.state)
+	connected, pairing := live(s.state), is[*whatsmeowv1.SessionState_Pairing_](s.state)
+	// After the link, the login is the session's to stop, even with the Pair call gone (pair.go).
+	if pairing && stopLogin(s) {
+		connected, pairing = true, false
+	}
 	s.mu.Unlock()
+
+	if pairing {
+		return nil, fmt.Errorf("disconnect session %q: cancel the Pair call instead: %w", s.id, server.ErrPairingInProgress)
+	}
 
 	if !connected {
 		return &whatsmeowv1.DisconnectResponse{}, nil

@@ -62,7 +62,7 @@ func main() {
 }
 
 func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	log := zerolog.New(stderr).With().Timestamp().Logger()
+	log := newLogger(stderr)
 
 	flags := flag.NewFlagSet("whatsmeow-net", flag.ContinueOnError)
 	flags.SetOutput(stderr)
@@ -110,6 +110,14 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	}
 
 	return exitStopped
+}
+
+// newLogger is the sidecar's one logger: JSON lines on stderr, at info level and above. Every component's logger,
+// whatsmeow's and libsignal's included, derives from it, so none logs debug: whatsmeow's debug lines carry every node
+// it sends (client.go:990), phone numbers in them, and each QR code with the device's ADV secret (qrchan.go:97,
+// pair.go:125-130) (ARCHITECTURE §7.8).
+func newLogger(stderr io.Writer) zerolog.Logger {
+	return zerolog.New(stderr).Level(zerolog.InfoLevel).With().Timestamp().Logger()
 }
 
 // options are the flags serve needs.

@@ -3,6 +3,8 @@ Whatsmeow.IWhatsAppClient
 Whatsmeow.IWhatsAppClient.ConnectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Whatsmeow.IWhatsAppClient.DisconnectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Whatsmeow.IWhatsAppClient.LogoutAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.PairWithPhoneNumberAsync(string! phoneNumber, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<Whatsmeow.Pairing.PairingUpdate!>!
+Whatsmeow.IWhatsAppClient.PairWithQrCodeAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<Whatsmeow.Pairing.PairingUpdate!>!
 Whatsmeow.IWhatsAppClient.SessionId.get -> Whatsmeow.SessionId
 Whatsmeow.IWhatsAppClient.WatchStateAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<Whatsmeow.Sessions.SessionState!>!
 Whatsmeow.NotConnectedException
@@ -17,6 +19,29 @@ Whatsmeow.OutcomeUnknownException
 Whatsmeow.OutcomeUnknownException.OutcomeUnknownException() -> void
 Whatsmeow.OutcomeUnknownException.OutcomeUnknownException(string! message) -> void
 Whatsmeow.OutcomeUnknownException.OutcomeUnknownException(string! message, System.Exception? innerException) -> void
+Whatsmeow.Pairing.PairingUpdate
+Whatsmeow.Pairing.PairingUpdate.Paired
+Whatsmeow.Pairing.PairingUpdate.Paired.Equals(Whatsmeow.Pairing.PairingUpdate.Paired? other) -> bool
+Whatsmeow.Pairing.PairingUpdate.Paired.Paired() -> void
+Whatsmeow.Pairing.PairingUpdate.PairingCode
+Whatsmeow.Pairing.PairingUpdate.PairingCode.Code.get -> string!
+Whatsmeow.Pairing.PairingUpdate.PairingCode.Code.init -> void
+Whatsmeow.Pairing.PairingUpdate.PairingCode.Equals(Whatsmeow.Pairing.PairingUpdate.PairingCode? other) -> bool
+Whatsmeow.Pairing.PairingUpdate.PairingCode.PairingCode() -> void
+Whatsmeow.Pairing.PairingUpdate.PairingUpdate(Whatsmeow.Pairing.PairingUpdate! original) -> void
+Whatsmeow.Pairing.PairingUpdate.QrCode
+Whatsmeow.Pairing.PairingUpdate.QrCode.Code.get -> string!
+Whatsmeow.Pairing.PairingUpdate.QrCode.Code.init -> void
+Whatsmeow.Pairing.PairingUpdate.QrCode.Equals(Whatsmeow.Pairing.PairingUpdate.QrCode? other) -> bool
+Whatsmeow.Pairing.PairingUpdate.QrCode.QrCode() -> void
+Whatsmeow.PairingException
+Whatsmeow.PairingException.PairingException() -> void
+Whatsmeow.PairingException.PairingException(string! message) -> void
+Whatsmeow.PairingException.PairingException(string! message, System.Exception? innerException) -> void
+Whatsmeow.RateLimitedException
+Whatsmeow.RateLimitedException.RateLimitedException() -> void
+Whatsmeow.RateLimitedException.RateLimitedException(string! message) -> void
+Whatsmeow.RateLimitedException.RateLimitedException(string! message, System.Exception? innerException) -> void
 Whatsmeow.SessionId
 Whatsmeow.SessionId.CompareTo(Whatsmeow.SessionId other) -> int
 Whatsmeow.SessionId.CompareTo(object? other) -> int
@@ -176,7 +201,23 @@ Whatsmeow.WhatsmeowValidationException
 Whatsmeow.WhatsmeowValidationException.WhatsmeowValidationException() -> void
 Whatsmeow.WhatsmeowValidationException.WhatsmeowValidationException(string! message) -> void
 Whatsmeow.WhatsmeowValidationException.WhatsmeowValidationException(string! message, System.Exception? innerException) -> void
+abstract Whatsmeow.Pairing.PairingUpdate.<Clone>$() -> Whatsmeow.Pairing.PairingUpdate!
 abstract Whatsmeow.Sessions.SessionState.<Clone>$() -> Whatsmeow.Sessions.SessionState!
+override Whatsmeow.Pairing.PairingUpdate.Equals(object? obj) -> bool
+override Whatsmeow.Pairing.PairingUpdate.GetHashCode() -> int
+override Whatsmeow.Pairing.PairingUpdate.Paired.<Clone>$() -> Whatsmeow.Pairing.PairingUpdate.Paired!
+override Whatsmeow.Pairing.PairingUpdate.Paired.Equals(object? obj) -> bool
+override Whatsmeow.Pairing.PairingUpdate.Paired.GetHashCode() -> int
+override Whatsmeow.Pairing.PairingUpdate.Paired.ToString() -> string!
+override Whatsmeow.Pairing.PairingUpdate.PairingCode.<Clone>$() -> Whatsmeow.Pairing.PairingUpdate.PairingCode!
+override Whatsmeow.Pairing.PairingUpdate.PairingCode.Equals(object? obj) -> bool
+override Whatsmeow.Pairing.PairingUpdate.PairingCode.GetHashCode() -> int
+override Whatsmeow.Pairing.PairingUpdate.PairingCode.ToString() -> string!
+override Whatsmeow.Pairing.PairingUpdate.QrCode.<Clone>$() -> Whatsmeow.Pairing.PairingUpdate.QrCode!
+override Whatsmeow.Pairing.PairingUpdate.QrCode.Equals(object? obj) -> bool
+override Whatsmeow.Pairing.PairingUpdate.QrCode.GetHashCode() -> int
+override Whatsmeow.Pairing.PairingUpdate.QrCode.ToString() -> string!
+override Whatsmeow.Pairing.PairingUpdate.ToString() -> string!
 override Whatsmeow.SessionId.Equals(object? obj) -> bool
 override Whatsmeow.SessionId.GetHashCode() -> int
 override Whatsmeow.SessionId.ToString() -> string!
@@ -241,6 +282,9 @@ override Whatsmeow.Sessions.SessionState.Unknown.ToString() -> string!
 override Whatsmeow.SidecarInfo.Equals(object? obj) -> bool
 override Whatsmeow.SidecarInfo.GetHashCode() -> int
 override Whatsmeow.SidecarInfo.ToString() -> string!
+override sealed Whatsmeow.Pairing.PairingUpdate.Paired.Equals(Whatsmeow.Pairing.PairingUpdate? other) -> bool
+override sealed Whatsmeow.Pairing.PairingUpdate.PairingCode.Equals(Whatsmeow.Pairing.PairingUpdate? other) -> bool
+override sealed Whatsmeow.Pairing.PairingUpdate.QrCode.Equals(Whatsmeow.Pairing.PairingUpdate? other) -> bool
 override sealed Whatsmeow.Sessions.SessionState.CaughtUp.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
 override sealed Whatsmeow.Sessions.SessionState.Connected.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
 override sealed Whatsmeow.Sessions.SessionState.Connecting.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
@@ -254,6 +298,14 @@ override sealed Whatsmeow.Sessions.SessionState.Reconnecting.Equals(Whatsmeow.Se
 override sealed Whatsmeow.Sessions.SessionState.Replaced.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
 override sealed Whatsmeow.Sessions.SessionState.TempBanned.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
 override sealed Whatsmeow.Sessions.SessionState.Unknown.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
+static Whatsmeow.Pairing.PairingUpdate.Paired.operator !=(Whatsmeow.Pairing.PairingUpdate.Paired? left, Whatsmeow.Pairing.PairingUpdate.Paired? right) -> bool
+static Whatsmeow.Pairing.PairingUpdate.Paired.operator ==(Whatsmeow.Pairing.PairingUpdate.Paired? left, Whatsmeow.Pairing.PairingUpdate.Paired? right) -> bool
+static Whatsmeow.Pairing.PairingUpdate.PairingCode.operator !=(Whatsmeow.Pairing.PairingUpdate.PairingCode? left, Whatsmeow.Pairing.PairingUpdate.PairingCode? right) -> bool
+static Whatsmeow.Pairing.PairingUpdate.PairingCode.operator ==(Whatsmeow.Pairing.PairingUpdate.PairingCode? left, Whatsmeow.Pairing.PairingUpdate.PairingCode? right) -> bool
+static Whatsmeow.Pairing.PairingUpdate.QrCode.operator !=(Whatsmeow.Pairing.PairingUpdate.QrCode? left, Whatsmeow.Pairing.PairingUpdate.QrCode? right) -> bool
+static Whatsmeow.Pairing.PairingUpdate.QrCode.operator ==(Whatsmeow.Pairing.PairingUpdate.QrCode? left, Whatsmeow.Pairing.PairingUpdate.QrCode? right) -> bool
+static Whatsmeow.Pairing.PairingUpdate.operator !=(Whatsmeow.Pairing.PairingUpdate? left, Whatsmeow.Pairing.PairingUpdate? right) -> bool
+static Whatsmeow.Pairing.PairingUpdate.operator ==(Whatsmeow.Pairing.PairingUpdate? left, Whatsmeow.Pairing.PairingUpdate? right) -> bool
 static Whatsmeow.SessionId.From(string! value) -> Whatsmeow.SessionId
 static Whatsmeow.SessionId.Parse(string! s, System.IFormatProvider? provider) -> Whatsmeow.SessionId
 static Whatsmeow.SessionId.TryFrom(string? value, out Whatsmeow.SessionId vo) -> bool
@@ -300,6 +352,9 @@ static Whatsmeow.SidecarInfo.operator !=(Whatsmeow.SidecarInfo? left, Whatsmeow.
 static Whatsmeow.SidecarInfo.operator ==(Whatsmeow.SidecarInfo? left, Whatsmeow.SidecarInfo? right) -> bool
 static Whatsmeow.WhatsmeowSidecar.StartAsync(Whatsmeow.WhatsmeowSidecarOptions! options, Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Whatsmeow.WhatsmeowSidecar!>!
 static Whatsmeow.WhatsmeowSidecar.StartAsync(Whatsmeow.WhatsmeowSidecarOptions! options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Whatsmeow.WhatsmeowSidecar!>!
+virtual Whatsmeow.Pairing.PairingUpdate.EqualityContract.get -> System.Type!
+virtual Whatsmeow.Pairing.PairingUpdate.Equals(Whatsmeow.Pairing.PairingUpdate? other) -> bool
+virtual Whatsmeow.Pairing.PairingUpdate.PrintMembers(System.Text.StringBuilder! builder) -> bool
 virtual Whatsmeow.Sessions.SessionState.EqualityContract.get -> System.Type!
 virtual Whatsmeow.Sessions.SessionState.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
 virtual Whatsmeow.Sessions.SessionState.PrintMembers(System.Text.StringBuilder! builder) -> bool

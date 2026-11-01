@@ -62,3 +62,34 @@ func TestAContextErrorWithAReasonKeepsTheContextStatus(t *testing.T) {
 		t.Fatalf("code = %v, want %v", st.Code(), codes.Canceled)
 	}
 }
+
+func TestThePairingReasonsBecomeTheirStatus(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		err    error
+		code   codes.Code
+		reason string
+	}{
+		{fmt.Errorf("pair %q: %w", "s1", ErrAlreadyPaired), codes.FailedPrecondition, "ALREADY_PAIRED"},
+		{ErrPairingInProgress, codes.FailedPrecondition, "PAIRING_IN_PROGRESS"},
+		{ErrPairingTimedOut, codes.Aborted, "PAIRING_TIMED_OUT"},
+		{fmt.Errorf("%w: passkey-request", ErrPairingFailed), codes.Aborted, "PAIRING_FAILED"},
+		{ErrRateLimited, codes.ResourceExhausted, "RATE_LIMITED"},
+	}
+
+	srv := New(token, zerolog.Nop())
+
+	for _, c := range cases {
+		st, _ := status.FromError(srv.toStatus("/test", c.err))
+		if st.Code() != c.code || len(st.Details()) != 1 {
+			t.Errorf("%v: status %v, want code %v and one ErrorInfo", c.err, st, c.code)
+
+			continue
+		}
+
+		if info, _ := st.Details()[0].(*errdetails.ErrorInfo); info.GetReason() != c.reason || info.GetDomain() != "whatsmeow.net" {
+			t.Errorf("%v: ErrorInfo %v, want %s", c.err, info, c.reason)
+		}
+	}
+}

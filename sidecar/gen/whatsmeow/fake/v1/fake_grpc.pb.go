@@ -22,6 +22,11 @@ const (
 	FakeWhatsAppService_DeliverMessage_FullMethodName           = "/whatsmeow.fake.v1.FakeWhatsAppService/DeliverMessage"
 	FakeWhatsAppService_WaitForSent_FullMethodName              = "/whatsmeow.fake.v1.FakeWhatsAppService/WaitForSent"
 	FakeWhatsAppService_LinkDevice_FullMethodName               = "/whatsmeow.fake.v1.FakeWhatsAppService/LinkDevice"
+	FakeWhatsAppService_RotateQrCode_FullMethodName             = "/whatsmeow.fake.v1.FakeWhatsAppService/RotateQrCode"
+	FakeWhatsAppService_ExpireQrCodes_FullMethodName            = "/whatsmeow.fake.v1.FakeWhatsAppService/ExpireQrCodes"
+	FakeWhatsAppService_DropConnection_FullMethodName           = "/whatsmeow.fake.v1.FakeWhatsAppService/DropConnection"
+	FakeWhatsAppService_FailNextPreKeyUpload_FullMethodName     = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextPreKeyUpload"
+	FakeWhatsAppService_FailNextPairPhone_FullMethodName        = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextPairPhone"
 	FakeWhatsAppService_FailNextConnect_FullMethodName          = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextConnect"
 	FakeWhatsAppService_FailNextLogout_FullMethodName           = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextLogout"
 	FakeWhatsAppService_RaisePermanentDisconnect_FullMethodName = "/whatsmeow.fake.v1.FakeWhatsAppService/RaisePermanentDisconnect"
@@ -46,10 +51,30 @@ type FakeWhatsAppServiceClient interface {
 	// until there is one. Only the call's deadline or cancellation ends the wait. The log lives in the sidecar process,
 	// so it starts again, at index 1, after a restart.
 	WaitForSent(ctx context.Context, in *WaitForSentRequest, opts ...grpc.CallOption) (*WaitForSentResponse, error)
-	// LinkDevice makes the phone link the session's device, standing in for pairing until the Pair call exists (#7):
-	// the client stores the device under jid as whatsmeow does after a pair success (handlePair, pair.go:222-240),
-	// then dispatches PairSuccess and returns once its event handlers ran.
+	// LinkDevice makes the phone link the session's device: the client stores the device under jid as whatsmeow does
+	// after a pair success (handlePair, pair.go:222-240), then dispatches PairSuccess and returns once its event handlers
+	// ran. Without a Pair call open it is the quick way to a paired session. With one, the client's QR channel then sends
+	// success and closes, as whatsmeow's does (qrchan.go:189-190), and the client logs in again after WhatsApp's 515
+	// (connectionevents.go:26-38): off the node queue it uploads its pre-keys, unless FailNextPreKeyUpload, and
+	// dispatches Connected (connectionevents.go:187-204).
 	LinkDevice(ctx context.Context, in *LinkDeviceRequest, opts ...grpc.CallOption) (*LinkDeviceResponse, error)
+	// RotateQrCode makes the session's open QR channel send the next code, as whatsmeow's does when the previous one
+	// expires (qrchan.go:92-110). The first code comes when the client connects. No QR channel open is an error.
+	RotateQrCode(ctx context.Context, in *RotateQrCodeRequest, opts ...grpc.CallOption) (*RotateQrCodeResponse, error)
+	// ExpireQrCodes makes the session's QR codes run out: the QR channel sends timeout and closes, and the client
+	// disconnects without a Disconnected event, as whatsmeow's does (qrchan.go:77-84). No QR channel open is an error.
+	ExpireQrCodes(ctx context.Context, in *ExpireQrCodesRequest, opts ...grpc.CallOption) (*ExpireQrCodesResponse, error)
+	// DropConnection makes the connection of a session that is pairing drop: the client dispatches Disconnected off the
+	// node queue (client.go:612-622), and its QR channel then sends timeout and closes (qrchan.go:196-197). whatsmeow
+	// does not reconnect an unpaired client (client.go:648). No QR channel open is an error. It returns before the
+	// handlers run.
+	DropConnection(ctx context.Context, in *DropConnectionRequest, opts ...grpc.CallOption) (*DropConnectionResponse, error)
+	// FailNextPreKeyUpload makes the session's next login after a link fail to upload the pre-keys: whatsmeow only logs
+	// that (prekeys.go:84-87), never sets PreKeysUploaded, and still dispatches Connected (connectionevents.go:187-204).
+	FailNextPreKeyUpload(ctx context.Context, in *FailNextPreKeyUploadRequest, opts ...grpc.CallOption) (*FailNextPreKeyUploadResponse, error)
+	// FailNextPairPhone makes WhatsApp answer the session's next phone pairing request with an IQ error of code
+	// (pair-code.go:104-127): 429 is whatsmeow's ErrIQRateOverLimit (errors.go:197).
+	FailNextPairPhone(ctx context.Context, in *FailNextPairPhoneRequest, opts ...grpc.CallOption) (*FailNextPairPhoneResponse, error)
 	// FailNextConnect makes the session's next connect fail with an error whatsmeow does not retry. Without it a
 	// connect succeeds, and a linked client then gets Connected, as whatsmeow does once WhatsApp accepts the login.
 	FailNextConnect(ctx context.Context, in *FailNextConnectRequest, opts ...grpc.CallOption) (*FailNextConnectResponse, error)
@@ -95,6 +120,56 @@ func (c *fakeWhatsAppServiceClient) LinkDevice(ctx context.Context, in *LinkDevi
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(LinkDeviceResponse)
 	err := c.cc.Invoke(ctx, FakeWhatsAppService_LinkDevice_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) RotateQrCode(ctx context.Context, in *RotateQrCodeRequest, opts ...grpc.CallOption) (*RotateQrCodeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RotateQrCodeResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_RotateQrCode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) ExpireQrCodes(ctx context.Context, in *ExpireQrCodesRequest, opts ...grpc.CallOption) (*ExpireQrCodesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ExpireQrCodesResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_ExpireQrCodes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) DropConnection(ctx context.Context, in *DropConnectionRequest, opts ...grpc.CallOption) (*DropConnectionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DropConnectionResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_DropConnection_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) FailNextPreKeyUpload(ctx context.Context, in *FailNextPreKeyUploadRequest, opts ...grpc.CallOption) (*FailNextPreKeyUploadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FailNextPreKeyUploadResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_FailNextPreKeyUpload_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) FailNextPairPhone(ctx context.Context, in *FailNextPairPhoneRequest, opts ...grpc.CallOption) (*FailNextPairPhoneResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FailNextPairPhoneResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_FailNextPairPhone_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -150,10 +225,30 @@ type FakeWhatsAppServiceServer interface {
 	// until there is one. Only the call's deadline or cancellation ends the wait. The log lives in the sidecar process,
 	// so it starts again, at index 1, after a restart.
 	WaitForSent(context.Context, *WaitForSentRequest) (*WaitForSentResponse, error)
-	// LinkDevice makes the phone link the session's device, standing in for pairing until the Pair call exists (#7):
-	// the client stores the device under jid as whatsmeow does after a pair success (handlePair, pair.go:222-240),
-	// then dispatches PairSuccess and returns once its event handlers ran.
+	// LinkDevice makes the phone link the session's device: the client stores the device under jid as whatsmeow does
+	// after a pair success (handlePair, pair.go:222-240), then dispatches PairSuccess and returns once its event handlers
+	// ran. Without a Pair call open it is the quick way to a paired session. With one, the client's QR channel then sends
+	// success and closes, as whatsmeow's does (qrchan.go:189-190), and the client logs in again after WhatsApp's 515
+	// (connectionevents.go:26-38): off the node queue it uploads its pre-keys, unless FailNextPreKeyUpload, and
+	// dispatches Connected (connectionevents.go:187-204).
 	LinkDevice(context.Context, *LinkDeviceRequest) (*LinkDeviceResponse, error)
+	// RotateQrCode makes the session's open QR channel send the next code, as whatsmeow's does when the previous one
+	// expires (qrchan.go:92-110). The first code comes when the client connects. No QR channel open is an error.
+	RotateQrCode(context.Context, *RotateQrCodeRequest) (*RotateQrCodeResponse, error)
+	// ExpireQrCodes makes the session's QR codes run out: the QR channel sends timeout and closes, and the client
+	// disconnects without a Disconnected event, as whatsmeow's does (qrchan.go:77-84). No QR channel open is an error.
+	ExpireQrCodes(context.Context, *ExpireQrCodesRequest) (*ExpireQrCodesResponse, error)
+	// DropConnection makes the connection of a session that is pairing drop: the client dispatches Disconnected off the
+	// node queue (client.go:612-622), and its QR channel then sends timeout and closes (qrchan.go:196-197). whatsmeow
+	// does not reconnect an unpaired client (client.go:648). No QR channel open is an error. It returns before the
+	// handlers run.
+	DropConnection(context.Context, *DropConnectionRequest) (*DropConnectionResponse, error)
+	// FailNextPreKeyUpload makes the session's next login after a link fail to upload the pre-keys: whatsmeow only logs
+	// that (prekeys.go:84-87), never sets PreKeysUploaded, and still dispatches Connected (connectionevents.go:187-204).
+	FailNextPreKeyUpload(context.Context, *FailNextPreKeyUploadRequest) (*FailNextPreKeyUploadResponse, error)
+	// FailNextPairPhone makes WhatsApp answer the session's next phone pairing request with an IQ error of code
+	// (pair-code.go:104-127): 429 is whatsmeow's ErrIQRateOverLimit (errors.go:197).
+	FailNextPairPhone(context.Context, *FailNextPairPhoneRequest) (*FailNextPairPhoneResponse, error)
 	// FailNextConnect makes the session's next connect fail with an error whatsmeow does not retry. Without it a
 	// connect succeeds, and a linked client then gets Connected, as whatsmeow does once WhatsApp accepts the login.
 	FailNextConnect(context.Context, *FailNextConnectRequest) (*FailNextConnectResponse, error)
@@ -183,6 +278,21 @@ func (UnimplementedFakeWhatsAppServiceServer) WaitForSent(context.Context, *Wait
 }
 func (UnimplementedFakeWhatsAppServiceServer) LinkDevice(context.Context, *LinkDeviceRequest) (*LinkDeviceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method LinkDevice not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) RotateQrCode(context.Context, *RotateQrCodeRequest) (*RotateQrCodeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RotateQrCode not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) ExpireQrCodes(context.Context, *ExpireQrCodesRequest) (*ExpireQrCodesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ExpireQrCodes not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) DropConnection(context.Context, *DropConnectionRequest) (*DropConnectionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DropConnection not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) FailNextPreKeyUpload(context.Context, *FailNextPreKeyUploadRequest) (*FailNextPreKeyUploadResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FailNextPreKeyUpload not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) FailNextPairPhone(context.Context, *FailNextPairPhoneRequest) (*FailNextPairPhoneResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FailNextPairPhone not implemented")
 }
 func (UnimplementedFakeWhatsAppServiceServer) FailNextConnect(context.Context, *FailNextConnectRequest) (*FailNextConnectResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method FailNextConnect not implemented")
@@ -268,6 +378,96 @@ func _FakeWhatsAppService_LinkDevice_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FakeWhatsAppService_RotateQrCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RotateQrCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).RotateQrCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_RotateQrCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).RotateQrCode(ctx, req.(*RotateQrCodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_ExpireQrCodes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExpireQrCodesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).ExpireQrCodes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_ExpireQrCodes_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).ExpireQrCodes(ctx, req.(*ExpireQrCodesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_DropConnection_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DropConnectionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).DropConnection(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_DropConnection_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).DropConnection(ctx, req.(*DropConnectionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_FailNextPreKeyUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FailNextPreKeyUploadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).FailNextPreKeyUpload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_FailNextPreKeyUpload_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).FailNextPreKeyUpload(ctx, req.(*FailNextPreKeyUploadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_FailNextPairPhone_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FailNextPairPhoneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).FailNextPairPhone(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_FailNextPairPhone_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).FailNextPairPhone(ctx, req.(*FailNextPairPhoneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FakeWhatsAppService_FailNextConnect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(FailNextConnectRequest)
 	if err := dec(in); err != nil {
@@ -340,6 +540,26 @@ var FakeWhatsAppService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LinkDevice",
 			Handler:    _FakeWhatsAppService_LinkDevice_Handler,
+		},
+		{
+			MethodName: "RotateQrCode",
+			Handler:    _FakeWhatsAppService_RotateQrCode_Handler,
+		},
+		{
+			MethodName: "ExpireQrCodes",
+			Handler:    _FakeWhatsAppService_ExpireQrCodes_Handler,
+		},
+		{
+			MethodName: "DropConnection",
+			Handler:    _FakeWhatsAppService_DropConnection_Handler,
+		},
+		{
+			MethodName: "FailNextPreKeyUpload",
+			Handler:    _FakeWhatsAppService_FailNextPreKeyUpload_Handler,
+		},
+		{
+			MethodName: "FailNextPairPhone",
+			Handler:    _FakeWhatsAppService_FailNextPairPhone_Handler,
 		},
 		{
 			MethodName: "FailNextConnect",

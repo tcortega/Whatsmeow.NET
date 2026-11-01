@@ -37,11 +37,52 @@ type WhatsApp struct {
 	waiting int
 	// background runs the events dispatched off the queue.
 	background sync.WaitGroup
+	// scripts are what the controls scripted for each session's next calls.
+	scripts map[string]*script
+}
+
+// script is what the controls scripted for a session's next calls. It is the session's, not its client's: each Pair
+// call gives the session a new client (ADR 0021), and a script set before it still applies.
+type script struct {
+	failConnect      bool
+	failPreKeyUpload bool
+	// failPairPhone is the IQ error code of the next PairPhone; 0 for none.
+	failPairPhone int32
+}
+
+// setScript changes the session's script.
+func (w *WhatsApp) setScript(sessionID string, set func(*script)) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	s, ok := w.scripts[sessionID]
+	if !ok {
+		s = &script{}
+		w.scripts[sessionID] = s
+	}
+
+	set(s)
+}
+
+// take reports whether the session's script has what scripted says, and if so clears it with reset: a scripted
+// failure applies to the next call only.
+func (w *WhatsApp) take(sessionID string, scripted func(*script) bool, reset func(*script)) bool {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	s, ok := w.scripts[sessionID]
+	if !ok || !scripted(s) {
+		return false
+	}
+
+	reset(s)
+
+	return true
 }
 
 // New returns a fake WhatsApp with no clients and an empty log.
 func New(log zerolog.Logger) *WhatsApp {
-	return &WhatsApp{log: log, clients: map[string]*Client{}, changed: make(chan struct{})}
+	return &WhatsApp{log: log, clients: map[string]*Client{}, changed: make(chan struct{}), scripts: map[string]*script{}}
 }
 
 // NewClient returns a new client for a session, in place of whatsmeow.NewClient; it replaces the session's previous

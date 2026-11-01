@@ -14,6 +14,10 @@ func created() *whatsmeowv1.SessionState {
 	return &whatsmeowv1.SessionState{Kind: &whatsmeowv1.SessionState_Created_{Created: &whatsmeowv1.SessionState_Created{}}}
 }
 
+func pairing() *whatsmeowv1.SessionState {
+	return &whatsmeowv1.SessionState{Kind: &whatsmeowv1.SessionState_Pairing_{Pairing: &whatsmeowv1.SessionState_Pairing{}}}
+}
+
 func connecting() *whatsmeowv1.SessionState {
 	return &whatsmeowv1.SessionState{Kind: &whatsmeowv1.SessionState_Connecting_{Connecting: &whatsmeowv1.SessionState_Connecting{}}}
 }

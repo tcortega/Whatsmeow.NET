@@ -22,6 +22,11 @@ var (
 	ErrTemporarilyBanned = errors.New("the account is temporarily banned")
 	ErrOutcomeUnknown    = errors.New("the outcome is unknown")
 	ErrWhatsAppError     = errors.New("WhatsApp answered with an error")
+	ErrAlreadyPaired     = errors.New("the session is already paired")
+	ErrPairingInProgress = errors.New("the session is being paired")
+	ErrPairingTimedOut   = errors.New("no pairing code was used in time")
+	ErrPairingFailed     = errors.New("pairing failed")
+	ErrRateLimited       = errors.New("WhatsApp rate limited the request")
 )
 
 // reasons is each error's gRPC code and reason, as error.proto lists them.
@@ -39,6 +44,11 @@ var reasons = []struct { //nolint:gochecknoglobals // a read-only table, the one
 	{ErrTemporarilyBanned, codes.FailedPrecondition, whatsmeowv1.ErrorReason_ERROR_REASON_TEMPORARILY_BANNED},
 	{ErrOutcomeUnknown, codes.Unknown, whatsmeowv1.ErrorReason_ERROR_REASON_OUTCOME_UNKNOWN},
 	{ErrWhatsAppError, codes.FailedPrecondition, whatsmeowv1.ErrorReason_ERROR_REASON_WHATSAPP_ERROR},
+	{ErrAlreadyPaired, codes.FailedPrecondition, whatsmeowv1.ErrorReason_ERROR_REASON_ALREADY_PAIRED},
+	{ErrPairingInProgress, codes.FailedPrecondition, whatsmeowv1.ErrorReason_ERROR_REASON_PAIRING_IN_PROGRESS},
+	{ErrPairingTimedOut, codes.Aborted, whatsmeowv1.ErrorReason_ERROR_REASON_PAIRING_TIMED_OUT},
+	{ErrPairingFailed, codes.Aborted, whatsmeowv1.ErrorReason_ERROR_REASON_PAIRING_FAILED},
+	{ErrRateLimited, codes.ResourceExhausted, whatsmeowv1.ErrorReason_ERROR_REASON_RATE_LIMITED},
 }
 
 // metadataError adds one ErrorInfo metadata entry to the error it wraps.
