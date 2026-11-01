@@ -433,7 +433,7 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
   - `RateLimitedException`, `TemporarilyBannedException` (`Until`, a `DateTimeOffset?`; null when WhatsApp sent no end)
   - `RecipientNotFoundException`, `MediaExpiredException`, `WhatsmeowValidationException`
 - `RateLimitedException` has no `RetryAfter`: whatsmeow's `IQError` has no delay field, only `Code`, `Text` and the raw nodes (`errors.go:179-184`), so there is no source for one; whether the raw node carries one is [unknown].
-- Each `ErrorReason` (`proto/whatsmeow/v1/error.proto`) maps to one exception; a status without `ErrorInfo`, or a reason the client does not know, is a plain `WhatsmeowException`:
+- Each `ErrorReason` (`proto/whatsmeow/v1/error.proto`) maps to one exception; a transport failure with no `ErrorInfo` (`UNAVAILABLE`, the socket gone) is `SidecarUnavailableException`; any other status without `ErrorInfo`, or a reason the client does not know, is a plain `WhatsmeowException`:
 
 | Reason | Exception |
 |---|---|
