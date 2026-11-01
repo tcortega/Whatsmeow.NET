@@ -7,8 +7,9 @@ Moved from ARCHITECTURE §7.9 and §11; what the sidecar does is ARCHITECTURE §
 ## Conventions
 
 - `context.Context` is the first parameter of every function that does I/O or may block.
-- Errors are wrapped with `%w`; there are sentinel errors per slice. Errors are mapped to `ErrorInfo` in exactly one place, `internal/server`.
-- No `reflect`, no `unsafe`, no cgo, no package-level mutable state except the startup-only whatsmeow globals (ARCHITECTURE §7.2). Enforced with `golangci-lint` (`sidecar/.golangci.yml`): `depguard` denies `reflect` and `unsafe` (an `import "C"` file is reported as `unsafe` [observed: golangci-lint 2.15.0]), `gochecknoglobals` and `gochecknoinits` reject package state, `forbidigo` rejects `encoding.RegisterCodec(V2)`. Release builds use `CGO_ENABLED=0`.
+- Errors are wrapped with `%w`; there are sentinel errors per slice. Errors are mapped to `ErrorInfo` in exactly one place, `internal/server`: `depguard` denies `google.golang.org/grpc/status` and `google.golang.org/genproto/googleapis/rpc/errdetails` everywhere else.
+- No `reflect`, no `unsafe`, no cgo, no package-level mutable state except the startup-only whatsmeow globals (ARCHITECTURE §7.2). Enforced with `golangci-lint` (`sidecar/.golangci.yml`): `depguard` denies `reflect` and `unsafe`, `gochecknoglobals` and `gochecknoinits` reject package state, `forbidigo` rejects `encoding.RegisterCodec(V2)`.
+- No cgo, checked in CI with cgo turned on, because `CGO_ENABLED=0` excludes cgo files by build constraint and nothing would see them: `go list` with `CGO_ENABLED=1` fails on any package with `CgoFiles`, and golangci-lint runs with `CGO_ENABLED=1`, where a cgo file's `import "C"` is reported as `unsafe` [observed: golangci-lint 2.15.0]. Builds use `CGO_ENABLED=0`.
 - Every error from another package is wrapped before it is returned (`wrapcheck`, `errorlint`).
 - A `//nolint` names the linter and says why (`nolintlint`). No other suppression.
 - Formatting is gofumpt plus goimports with the `github.com/tcortega/Whatsmeow.NET` local prefix (`golangci-lint fmt`).
