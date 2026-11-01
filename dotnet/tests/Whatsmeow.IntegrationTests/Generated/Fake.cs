@@ -30,21 +30,21 @@ namespace Whatsmeow.IntegrationTests.Fake {
             "c2FnZVJlc3BvbnNlIkkKEldhaXRGb3JTZW50UmVxdWVzdBIdCgpzZXNzaW9u",
             "X2lkGAEgASgJUglzZXNzaW9uSWQSFAoFYWZ0ZXIYAiABKARSBWFmdGVyIkIK",
             "E1dhaXRGb3JTZW50UmVzcG9uc2USKwoEc2VudBgBIAEoCzIXLndoYXRzbWVv",
-            "dy5mYWtlLnYxLlNlbnRSBHNlbnQibwoEU2VudBIUCgVpbmRleBgBIAEoBFIF",
-            "aW5kZXgSHQoKc2Vzc2lvbl9pZBgCIAEoCVIJc2Vzc2lvbklkEioKA2FjaxgD",
-            "IAEoCzIWLndoYXRzbWVvdy5mYWtlLnYxLkFja0gAUgNhY2tCBgoEa2luZCIr",
-            "CgNBY2sSFAoFY2xhc3MYASABKAlSBWNsYXNzEg4KAmlkGAIgASgJUgJpZDLa",
-            "AQoTRmFrZVdoYXRzQXBwU2VydmljZRJlCg5EZWxpdmVyTWVzc2FnZRIoLndo",
-            "YXRzbWVvdy5mYWtlLnYxLkRlbGl2ZXJNZXNzYWdlUmVxdWVzdBopLndoYXRz",
-            "bWVvdy5mYWtlLnYxLkRlbGl2ZXJNZXNzYWdlUmVzcG9uc2USXAoLV2FpdEZv",
-            "clNlbnQSJS53aGF0c21lb3cuZmFrZS52MS5XYWl0Rm9yU2VudFJlcXVlc3Qa",
-            "Ji53aGF0c21lb3cuZmFrZS52MS5XYWl0Rm9yU2VudFJlc3BvbnNlQt4BChVj",
-            "b20ud2hhdHNtZW93LmZha2UudjFCCUZha2VQcm90b1ABWkZnaXRodWIuY29t",
-            "L3Rjb3J0ZWdhL1doYXRzbWVvdy5ORVQvc2lkZWNhci9nZW4vd2hhdHNtZW93",
-            "L2Zha2UvdjE7ZmFrZXYxogIDV0ZYqgIfV2hhdHNtZW93LkludGVncmF0aW9u",
-            "VGVzdHMuRmFrZcoCEVdoYXRzbWVvd1xGYWtlXFYx4gIdV2hhdHNtZW93XEZh",
-            "a2VcVjFcR1BCTWV0YWRhdGHqAhNXaGF0c21lb3c6OkZha2U6OlYxYgZwcm90",
-            "bzM="));
+            "dy5mYWtlLnYxLlNlbnRSBHNlbnQiewoEU2VudBIUCgVpbmRleBgBIAEoBFIF",
+            "aW5kZXgSHQoKc2Vzc2lvbl9pZBgCIAEoCVIJc2Vzc2lvbklkEjYKB3JlY2Vp",
+            "cHQYAyABKAsyGi53aGF0c21lb3cuZmFrZS52MS5SZWNlaXB0SABSB3JlY2Vp",
+            "cHRCBgoEa2luZCItCgdSZWNlaXB0Eg4KAmlkGAEgASgJUgJpZBISCgR0eXBl",
+            "GAIgASgJUgR0eXBlMtoBChNGYWtlV2hhdHNBcHBTZXJ2aWNlEmUKDkRlbGl2",
+            "ZXJNZXNzYWdlEigud2hhdHNtZW93LmZha2UudjEuRGVsaXZlck1lc3NhZ2VS",
+            "ZXF1ZXN0Gikud2hhdHNtZW93LmZha2UudjEuRGVsaXZlck1lc3NhZ2VSZXNw",
+            "b25zZRJcCgtXYWl0Rm9yU2VudBIlLndoYXRzbWVvdy5mYWtlLnYxLldhaXRG",
+            "b3JTZW50UmVxdWVzdBomLndoYXRzbWVvdy5mYWtlLnYxLldhaXRGb3JTZW50",
+            "UmVzcG9uc2VC3gEKFWNvbS53aGF0c21lb3cuZmFrZS52MUIJRmFrZVByb3Rv",
+            "UAFaRmdpdGh1Yi5jb20vdGNvcnRlZ2EvV2hhdHNtZW93Lk5FVC9zaWRlY2Fy",
+            "L2dlbi93aGF0c21lb3cvZmFrZS92MTtmYWtldjGiAgNXRliqAh9XaGF0c21l",
+            "b3cuSW50ZWdyYXRpb25UZXN0cy5GYWtlygIRV2hhdHNtZW93XEZha2VcVjHi",
+            "Ah1XaGF0c21lb3dcRmFrZVxWMVxHUEJNZXRhZGF0YeoCE1doYXRzbWVvdzo6",
+            "RmFrZTo6VjFiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -52,8 +52,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse), global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse.Parser, null, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.IntegrationTests.Fake.WaitForSentRequest), global::Whatsmeow.IntegrationTests.Fake.WaitForSentRequest.Parser, new[]{ "SessionId", "After" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.IntegrationTests.Fake.WaitForSentResponse), global::Whatsmeow.IntegrationTests.Fake.WaitForSentResponse.Parser, new[]{ "Sent" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.IntegrationTests.Fake.Sent), global::Whatsmeow.IntegrationTests.Fake.Sent.Parser, new[]{ "Index", "SessionId", "Ack" }, new[]{ "Kind" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.IntegrationTests.Fake.Ack), global::Whatsmeow.IntegrationTests.Fake.Ack.Parser, new[]{ "Class", "Id" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.IntegrationTests.Fake.Sent), global::Whatsmeow.IntegrationTests.Fake.Sent.Parser, new[]{ "Index", "SessionId", "Receipt" }, new[]{ "Kind" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.IntegrationTests.Fake.Receipt), global::Whatsmeow.IntegrationTests.Fake.Receipt.Parser, new[]{ "Id", "Type" }, null, null, null, null)
           }));
     }
     #endregion
@@ -966,8 +966,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       index_ = other.index_;
       sessionId_ = other.sessionId_;
       switch (other.KindCase) {
-        case KindOneofCase.Ack:
-          Ack = other.Ack.Clone();
+        case KindOneofCase.Receipt:
+          Receipt = other.Receipt.Clone();
           break;
       }
 
@@ -1010,18 +1010,18 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
     }
 
-    /// <summary>Field number for the "ack" field.</summary>
-    public const int AckFieldNumber = 3;
+    /// <summary>Field number for the "receipt" field.</summary>
+    public const int ReceiptFieldNumber = 3;
     /// <summary>
-    /// An ack of a stanza WhatsApp delivered.
+    /// The receipt for a message WhatsApp delivered.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public global::Whatsmeow.IntegrationTests.Fake.Ack Ack {
-      get { return kindCase_ == KindOneofCase.Ack ? (global::Whatsmeow.IntegrationTests.Fake.Ack) kind_ : null; }
+    public global::Whatsmeow.IntegrationTests.Fake.Receipt Receipt {
+      get { return kindCase_ == KindOneofCase.Receipt ? (global::Whatsmeow.IntegrationTests.Fake.Receipt) kind_ : null; }
       set {
         kind_ = value;
-        kindCase_ = value == null ? KindOneofCase.None : KindOneofCase.Ack;
+        kindCase_ = value == null ? KindOneofCase.None : KindOneofCase.Receipt;
       }
     }
 
@@ -1029,7 +1029,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
     /// <summary>Enum of possible cases for the "kind" oneof.</summary>
     public enum KindOneofCase {
       None = 0,
-      Ack = 3,
+      Receipt = 3,
     }
     private KindOneofCase kindCase_ = KindOneofCase.None;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1062,7 +1062,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       if (Index != other.Index) return false;
       if (SessionId != other.SessionId) return false;
-      if (!object.Equals(Ack, other.Ack)) return false;
+      if (!object.Equals(Receipt, other.Receipt)) return false;
       if (KindCase != other.KindCase) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -1073,7 +1073,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       int hash = 1;
       if (Index != 0UL) hash ^= Index.GetHashCode();
       if (SessionId.Length != 0) hash ^= SessionId.GetHashCode();
-      if (kindCase_ == KindOneofCase.Ack) hash ^= Ack.GetHashCode();
+      if (kindCase_ == KindOneofCase.Receipt) hash ^= Receipt.GetHashCode();
       hash ^= (int) kindCase_;
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -1101,9 +1101,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
         output.WriteRawTag(18);
         output.WriteString(SessionId);
       }
-      if (kindCase_ == KindOneofCase.Ack) {
+      if (kindCase_ == KindOneofCase.Receipt) {
         output.WriteRawTag(26);
-        output.WriteMessage(Ack);
+        output.WriteMessage(Receipt);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -1123,9 +1123,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
         output.WriteRawTag(18);
         output.WriteString(SessionId);
       }
-      if (kindCase_ == KindOneofCase.Ack) {
+      if (kindCase_ == KindOneofCase.Receipt) {
         output.WriteRawTag(26);
-        output.WriteMessage(Ack);
+        output.WriteMessage(Receipt);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
@@ -1143,8 +1143,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       if (SessionId.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(SessionId);
       }
-      if (kindCase_ == KindOneofCase.Ack) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Ack);
+      if (kindCase_ == KindOneofCase.Receipt) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Receipt);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -1165,11 +1165,11 @@ namespace Whatsmeow.IntegrationTests.Fake {
         SessionId = other.SessionId;
       }
       switch (other.KindCase) {
-        case KindOneofCase.Ack:
-          if (Ack == null) {
-            Ack = new global::Whatsmeow.IntegrationTests.Fake.Ack();
+        case KindOneofCase.Receipt:
+          if (Receipt == null) {
+            Receipt = new global::Whatsmeow.IntegrationTests.Fake.Receipt();
           }
-          Ack.MergeFrom(other.Ack);
+          Receipt.MergeFrom(other.Receipt);
           break;
       }
 
@@ -1201,12 +1201,12 @@ namespace Whatsmeow.IntegrationTests.Fake {
             break;
           }
           case 26: {
-            global::Whatsmeow.IntegrationTests.Fake.Ack subBuilder = new global::Whatsmeow.IntegrationTests.Fake.Ack();
-            if (kindCase_ == KindOneofCase.Ack) {
-              subBuilder.MergeFrom(Ack);
+            global::Whatsmeow.IntegrationTests.Fake.Receipt subBuilder = new global::Whatsmeow.IntegrationTests.Fake.Receipt();
+            if (kindCase_ == KindOneofCase.Receipt) {
+              subBuilder.MergeFrom(Receipt);
             }
             input.ReadMessage(subBuilder);
-            Ack = subBuilder;
+            Receipt = subBuilder;
             break;
           }
         }
@@ -1237,12 +1237,12 @@ namespace Whatsmeow.IntegrationTests.Fake {
             break;
           }
           case 26: {
-            global::Whatsmeow.IntegrationTests.Fake.Ack subBuilder = new global::Whatsmeow.IntegrationTests.Fake.Ack();
-            if (kindCase_ == KindOneofCase.Ack) {
-              subBuilder.MergeFrom(Ack);
+            global::Whatsmeow.IntegrationTests.Fake.Receipt subBuilder = new global::Whatsmeow.IntegrationTests.Fake.Receipt();
+            if (kindCase_ == KindOneofCase.Receipt) {
+              subBuilder.MergeFrom(Receipt);
             }
             input.ReadMessage(subBuilder);
-            Ack = subBuilder;
+            Receipt = subBuilder;
             break;
           }
         }
@@ -1253,19 +1253,20 @@ namespace Whatsmeow.IntegrationTests.Fake {
   }
 
   /// <summary>
-  /// Ack is the ack whatsmeow sends for a stanza: its class is the stanza's tag, and its id the stanza's id.
+  /// Receipt is the &lt;receipt> whatsmeow sends for a decrypted message once its handlers succeeded
+  /// (sendMessageReceipt, receipt.go:280-296).
   /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
-  internal sealed partial class Ack : pb::IMessage<Ack>
+  internal sealed partial class Receipt : pb::IMessage<Receipt>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
   #endif
   {
-    private static readonly pb::MessageParser<Ack> _parser = new pb::MessageParser<Ack>(() => new Ack());
+    private static readonly pb::MessageParser<Receipt> _parser = new pb::MessageParser<Receipt>(() => new Receipt());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public static pb::MessageParser<Ack> Parser { get { return _parser; } }
+    public static pb::MessageParser<Receipt> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -1281,7 +1282,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public Ack() {
+    public Receipt() {
       OnConstruction();
     }
 
@@ -1289,38 +1290,23 @@ namespace Whatsmeow.IntegrationTests.Fake {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public Ack(Ack other) : this() {
-      class_ = other.class_;
+    public Receipt(Receipt other) : this() {
       id_ = other.id_;
+      type_ = other.type_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public Ack Clone() {
-      return new Ack(this);
-    }
-
-    /// <summary>Field number for the "class" field.</summary>
-    public const int ClassFieldNumber = 1;
-    private string class_ = "";
-    /// <summary>
-    /// The stanza's tag: "message", "receipt" or "notification".
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string Class {
-      get { return class_; }
-      set {
-        class_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
+    public Receipt Clone() {
+      return new Receipt(this);
     }
 
     /// <summary>Field number for the "id" field.</summary>
-    public const int IdFieldNumber = 2;
+    public const int IdFieldNumber = 1;
     private string id_ = "";
     /// <summary>
-    /// The stanza's id; for a message, the message id.
+    /// The message id.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -1331,23 +1317,38 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
     }
 
+    /// <summary>Field number for the "type" field.</summary>
+    public const int TypeFieldNumber = 2;
+    private string type_ = "";
+    /// <summary>
+    /// The receipt type: "inactive" for a message from someone else while the client sends no active receipts.
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public override bool Equals(object other) {
-      return Equals(other as Ack);
+    public string Type {
+      get { return type_; }
+      set {
+        type_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool Equals(Ack other) {
+    public override bool Equals(object other) {
+      return Equals(other as Receipt);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(Receipt other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (Class != other.Class) return false;
       if (Id != other.Id) return false;
+      if (Type != other.Type) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -1355,8 +1356,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
-      if (Class.Length != 0) hash ^= Class.GetHashCode();
       if (Id.Length != 0) hash ^= Id.GetHashCode();
+      if (Type.Length != 0) hash ^= Type.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1375,13 +1376,13 @@ namespace Whatsmeow.IntegrationTests.Fake {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (Class.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(Class);
-      }
       if (Id.Length != 0) {
-        output.WriteRawTag(18);
+        output.WriteRawTag(10);
         output.WriteString(Id);
+      }
+      if (Type.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Type);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -1393,13 +1394,13 @@ namespace Whatsmeow.IntegrationTests.Fake {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (Class.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(Class);
-      }
       if (Id.Length != 0) {
-        output.WriteRawTag(18);
+        output.WriteRawTag(10);
         output.WriteString(Id);
+      }
+      if (Type.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Type);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
@@ -1411,11 +1412,11 @@ namespace Whatsmeow.IntegrationTests.Fake {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
-      if (Class.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Class);
-      }
       if (Id.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Id);
+      }
+      if (Type.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Type);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -1425,15 +1426,15 @@ namespace Whatsmeow.IntegrationTests.Fake {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(Ack other) {
+    public void MergeFrom(Receipt other) {
       if (other == null) {
         return;
       }
-      if (other.Class.Length != 0) {
-        Class = other.Class;
-      }
       if (other.Id.Length != 0) {
         Id = other.Id;
+      }
+      if (other.Type.Length != 0) {
+        Type = other.Type;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -1455,11 +1456,11 @@ namespace Whatsmeow.IntegrationTests.Fake {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 10: {
-            Class = input.ReadString();
+            Id = input.ReadString();
             break;
           }
           case 18: {
-            Id = input.ReadString();
+            Type = input.ReadString();
             break;
           }
         }
@@ -1482,11 +1483,11 @@ namespace Whatsmeow.IntegrationTests.Fake {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
           case 10: {
-            Class = input.ReadString();
+            Id = input.ReadString();
             break;
           }
           case 18: {
-            Id = input.ReadString();
+            Type = input.ReadString();
             break;
           }
         }

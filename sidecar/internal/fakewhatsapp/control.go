@@ -24,7 +24,7 @@ func NewControl(w *WhatsApp) *Control { return &Control{whatsApp: w} }
 // DeliverMessage delivers a decrypted message to the session's client.
 func (c *Control) DeliverMessage(_ context.Context, req *fakev1.DeliverMessageRequest) (*fakev1.DeliverMessageResponse, error) {
 	evt := &events.Message{Info: types.MessageInfo{ID: req.GetId()}}
-	if err := c.whatsApp.deliver(req.GetSessionId(), evt, "message", req.GetId()); err != nil {
+	if err := c.whatsApp.deliverMessage(req.GetSessionId(), evt); err != nil {
 		return nil, err
 	}
 

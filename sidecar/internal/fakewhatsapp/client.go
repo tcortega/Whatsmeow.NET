@@ -20,7 +20,8 @@ type Client struct {
 	lastID   uint32
 }
 
-// AddEventHandlerWithSuccessStatus registers a handler; returning false withholds the ack of the stanza.
+// AddEventHandlerWithSuccessStatus registers a handler; returning false withholds the answer to the stanza (for a
+// message, its receipt).
 func (c *Client) AddEventHandlerWithSuccessStatus(handler whatsmeow.EventHandlerWithSuccessStatus) uint32 {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -32,7 +33,8 @@ func (c *Client) AddEventHandlerWithSuccessStatus(handler whatsmeow.EventHandler
 }
 
 // dispatch runs the handlers as whatsmeow's dispatchEvent does at the pin (client.go:999-1013): in order, stopping
-// at the first that returns false, which is a failure; a panic is logged and is not a failure, so the ack goes out.
+// at the first that returns false, which is a failure; a panic is logged and is not a failure, so the answer to the
+// stanza goes out.
 func (c *Client) dispatch(evt any) (handlerFailed bool) {
 	c.queue.Lock()
 	defer c.queue.Unlock()

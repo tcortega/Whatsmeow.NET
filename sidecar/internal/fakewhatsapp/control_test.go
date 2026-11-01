@@ -73,8 +73,10 @@ func start(t *testing.T) (*WhatsApp, fakev1.FakeWhatsAppServiceClient, context.C
 	return whatsApp, fakev1.NewFakeWhatsAppServiceClient(conn), metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
 }
 
-func ack(index uint64, session, id string) *fakev1.Sent {
-	return &fakev1.Sent{Index: index, SessionId: session, Kind: &fakev1.Sent_Ack{Ack: &fakev1.Ack{Class: "message", Id: id}}}
+// receipt is what whatsmeow sends for a message from someone else once its handlers succeeded: a receipt of type
+// inactive, since the client sends no active receipts (receipt.go:280-296).
+func receipt(index uint64, session, id string) *fakev1.Sent {
+	return &fakev1.Sent{Index: index, SessionId: session, Kind: &fakev1.Sent_Receipt{Receipt: &fakev1.Receipt{Id: id, Type: "inactive"}}}
 }
 
 func waitForSent(ctx context.Context, t *testing.T, control fakev1.FakeWhatsAppServiceClient, session string, after uint64) *fakev1.Sent {
@@ -96,7 +98,7 @@ func wantSent(t *testing.T, got, want *fakev1.Sent) {
 	}
 }
 
-func TestADeliveredMessageIsAckedAfterTheHandlersSucceed(t *testing.T) {
+func TestADeliveredMessageGetsAReceiptAfterTheHandlersSucceed(t *testing.T) {
 	t.Parallel()
 
 	whatsApp, control, ctx := start(t)
@@ -121,10 +123,10 @@ func TestADeliveredMessageIsAckedAfterTheHandlersSucceed(t *testing.T) {
 		t.Fatal("DeliverMessage returned before the handler ran")
 	}
 
-	wantSent(t, waitForSent(ctx, t, control, "s1", 0), ack(1, "s1", "M1"))
+	wantSent(t, waitForSent(ctx, t, control, "s1", 0), receipt(1, "s1", "M1"))
 }
 
-func TestAFailedHandlerWithholdsTheAck(t *testing.T) {
+func TestAFailedHandlerWithholdsTheReceipt(t *testing.T) {
 	t.Parallel()
 
 	whatsApp, control, ctx := start(t)
@@ -138,8 +140,8 @@ func TestAFailedHandlerWithholdsTheAck(t *testing.T) {
 		}
 	}
 
-	// M1 went first; the first thing sent being M2's ack shows M1 was never acked, without waiting for its absence.
-	wantSent(t, waitForSent(ctx, t, control, "s1", 0), ack(1, "s1", "M2"))
+	// M1 went first; the first thing sent being M2's receipt shows M1 never got one, without waiting for its absence.
+	wantSent(t, waitForSent(ctx, t, control, "s1", 0), receipt(1, "s1", "M2"))
 }
 
 func TestHandlersRunInOrderAndTheFirstFailureStopsThem(t *testing.T) {
@@ -162,7 +164,7 @@ func TestHandlersRunInOrderAndTheFirstFailureStopsThem(t *testing.T) {
 	}
 }
 
-func TestAPanickingHandlerIsAckedLikeWhatsmeow(t *testing.T) {
+func TestAPanickingHandlerGetsAReceiptLikeWhatsmeow(t *testing.T) {
 	t.Parallel()
 
 	whatsApp, control, ctx := start(t)
@@ -172,8 +174,8 @@ func TestAPanickingHandlerIsAckedLikeWhatsmeow(t *testing.T) {
 		t.Fatalf("DeliverMessage: %v", err)
 	}
 
-	// whatsmeow's dispatchEvent recovers the panic and reports no failure, so the ack goes out (ARCHITECTURE §7.3).
-	wantSent(t, waitForSent(ctx, t, control, "s1", 0), ack(1, "s1", "M1"))
+	// whatsmeow's dispatchEvent recovers the panic and reports no failure, so the receipt goes out (ARCHITECTURE §7.3).
+	wantSent(t, waitForSent(ctx, t, control, "s1", 0), receipt(1, "s1", "M1"))
 }
 
 func TestWaitForSentWaitsForTheNextEntry(t *testing.T) {
@@ -214,7 +216,7 @@ func TestWaitForSentWaitsForTheNextEntry(t *testing.T) {
 
 	select {
 	case sent := <-got:
-		wantSent(t, sent, ack(1, "s1", "M1"))
+		wantSent(t, sent, receipt(1, "s1", "M1"))
 	case err := <-failed:
 		t.Fatalf("WaitForSent: %v", err)
 	}
@@ -234,8 +236,8 @@ func TestWaitForSentReturnsOnlyItsSessionAfterTheCursor(t *testing.T) {
 		}
 	}
 
-	wantSent(t, waitForSent(ctx, t, control, "s2", 0), ack(2, "s2", "M2"))
-	wantSent(t, waitForSent(ctx, t, control, "s1", 1), ack(3, "s1", "M3"))
+	wantSent(t, waitForSent(ctx, t, control, "s2", 0), receipt(2, "s2", "M2"))
+	wantSent(t, waitForSent(ctx, t, control, "s1", 1), receipt(3, "s1", "M3"))
 }
 
 func TestDeliveringToASessionWithoutAClientFails(t *testing.T) {

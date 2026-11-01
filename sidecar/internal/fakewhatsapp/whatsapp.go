@@ -16,11 +16,13 @@ import (
 	"sync"
 
 	"github.com/rs/zerolog"
+	"go.mau.fi/whatsmeow/types"
+	"go.mau.fi/whatsmeow/types/events"
 
 	fakev1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/fake/v1"
 )
 
-// ErrNoClient is returned for a session the sidecar created no client for: the fake never acks on its behalf.
+// ErrNoClient is returned for a session the sidecar created no client for: the fake never answers on its behalf.
 var ErrNoClient = errors.New("the session has no client")
 
 // WhatsApp is the fake server side: the sessions' clients and the log of what they sent.
@@ -52,22 +54,24 @@ func (w *WhatsApp) NewClient(sessionID string) *Client {
 	return c
 }
 
-// deliver dispatches evt to the session's client, as WhatsApp delivering the stanza class/id, and records the ack
-// whatsmeow sends once the handlers succeeded.
-func (w *WhatsApp) deliver(sessionID string, evt any, class, id string) error {
+// deliverMessage dispatches a decrypted message to the session's client and records what whatsmeow answers at the
+// pin: nothing when a handler failed (message.go:459-462), otherwise a receipt (message.go:489-495), of type inactive
+// for a message from someone else while the client sends no active receipts (receipt.go:280-296).
+func (w *WhatsApp) deliverMessage(sessionID string, evt *events.Message) error {
 	w.mu.Lock()
 	c, ok := w.clients[sessionID]
 	w.mu.Unlock()
 
 	if !ok {
-		return fmt.Errorf("deliver %s %q to session %q: %w", class, id, sessionID, ErrNoClient)
+		return fmt.Errorf("deliver message %q to session %q: %w", evt.Info.ID, sessionID, ErrNoClient)
 	}
 
 	if c.dispatch(evt) {
 		return nil
 	}
 
-	w.append(&fakev1.Sent{SessionId: sessionID, Kind: &fakev1.Sent_Ack{Ack: &fakev1.Ack{Class: class, Id: id}}})
+	receipt := &fakev1.Receipt{Id: evt.Info.ID, Type: string(types.ReceiptTypeInactive)}
+	w.append(&fakev1.Sent{SessionId: sessionID, Kind: &fakev1.Sent_Receipt{Receipt: receipt}})
 
 	return nil
 }

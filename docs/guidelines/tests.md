@@ -38,7 +38,7 @@ One shared sidecar fixture: `FakeSidecar`, an xUnit v3 assembly fixture (`dotnet
 It builds `whatsmeow-net` with `-tags fakewhatsapp` and owns one `--fake-whatsapp` process for the run.
 Tests get the public client from `fixture.Sidecar` and talk only the public API.
 They script and observe the fake WhatsApp through `fixture.Fake`, the test-only `whatsmeow.fake.v1` client on the sidecar's own channel.
-Observe with `WaitForSent`, which waits for a condition; show a withheld ack by order (the next stanza's ack comes first), never by waiting.
+Observe with `WaitForSent`, which waits for a condition; show a withheld receipt by order (the next message's receipt comes first), never by waiting.
 The sidecar is shared and tests run in parallel, so each test uses session ids of its own.
 A test that crashes the sidecar calls `fixture.CrashAsync`, which returns once it was restarted, and sits in the `SidecarCrashes` collection, which never runs in parallel.
 Do not start a sidecar per test; the Sidecar slice's start and stop tests are the exception, because starting and stopping is their behaviour.

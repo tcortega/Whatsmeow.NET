@@ -34,8 +34,9 @@ const (
 // Each slice adds the controls it needs here. Errors are INTERNAL with a message: the fake adds no ErrorReason.
 type FakeWhatsAppServiceClient interface {
 	// DeliverMessage makes WhatsApp deliver a decrypted message to a session's client, and returns once the client's
-	// event handlers ran. Whether the client acked it shows in WaitForSent. A session without a client is an error:
-	// the fake never acks on behalf of a client the sidecar did not create.
+	// event handlers ran. As whatsmeow does at the pin, the client answers with a receipt only when every handler
+	// succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A session without a client is an error: the
+	// fake never answers on behalf of a client the sidecar did not create.
 	DeliverMessage(ctx context.Context, in *DeliverMessageRequest, opts ...grpc.CallOption) (*DeliverMessageResponse, error)
 	// WaitForSent returns the first thing the session's client sent to WhatsApp after the entry `after`, and waits
 	// until there is one. Only the call's deadline or cancellation ends the wait. The log lives in the sidecar process,
@@ -82,8 +83,9 @@ func (c *fakeWhatsAppServiceClient) WaitForSent(ctx context.Context, in *WaitFor
 // Each slice adds the controls it needs here. Errors are INTERNAL with a message: the fake adds no ErrorReason.
 type FakeWhatsAppServiceServer interface {
 	// DeliverMessage makes WhatsApp deliver a decrypted message to a session's client, and returns once the client's
-	// event handlers ran. Whether the client acked it shows in WaitForSent. A session without a client is an error:
-	// the fake never acks on behalf of a client the sidecar did not create.
+	// event handlers ran. As whatsmeow does at the pin, the client answers with a receipt only when every handler
+	// succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A session without a client is an error: the
+	// fake never answers on behalf of a client the sidecar did not create.
 	DeliverMessage(context.Context, *DeliverMessageRequest) (*DeliverMessageResponse, error)
 	// WaitForSent returns the first thing the session's client sent to WhatsApp after the entry `after`, and waits
 	// until there is one. Only the call's deadline or cancellation ends the wait. The log lives in the sidecar process,

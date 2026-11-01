@@ -225,7 +225,7 @@ type Sent struct {
 	//
 	// Types that are valid to be assigned to Kind:
 	//
-	//	*Sent_Ack
+	//	*Sent_Receipt
 	Kind          isSent_Kind `protobuf_oneof:"kind"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -282,10 +282,10 @@ func (x *Sent) GetKind() isSent_Kind {
 	return nil
 }
 
-func (x *Sent) GetAck() *Ack {
+func (x *Sent) GetReceipt() *Receipt {
 	if x != nil {
-		if x, ok := x.Kind.(*Sent_Ack); ok {
-			return x.Ack
+		if x, ok := x.Kind.(*Sent_Receipt); ok {
+			return x.Receipt
 		}
 	}
 	return nil
@@ -295,38 +295,39 @@ type isSent_Kind interface {
 	isSent_Kind()
 }
 
-type Sent_Ack struct {
-	// An ack of a stanza WhatsApp delivered.
-	Ack *Ack `protobuf:"bytes,3,opt,name=ack,proto3,oneof"`
+type Sent_Receipt struct {
+	// The receipt for a message WhatsApp delivered.
+	Receipt *Receipt `protobuf:"bytes,3,opt,name=receipt,proto3,oneof"`
 }
 
-func (*Sent_Ack) isSent_Kind() {}
+func (*Sent_Receipt) isSent_Kind() {}
 
-// Ack is the ack whatsmeow sends for a stanza: its class is the stanza's tag, and its id the stanza's id.
-type Ack struct {
+// Receipt is the <receipt> whatsmeow sends for a decrypted message once its handlers succeeded
+// (sendMessageReceipt, receipt.go:280-296).
+type Receipt struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The stanza's tag: "message", "receipt" or "notification".
-	Class string `protobuf:"bytes,1,opt,name=class,proto3" json:"class,omitempty"`
-	// The stanza's id; for a message, the message id.
-	Id            string `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	// The message id.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// The receipt type: "inactive" for a message from someone else while the client sends no active receipts.
+	Type          string `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Ack) Reset() {
-	*x = Ack{}
+func (x *Receipt) Reset() {
+	*x = Receipt{}
 	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Ack) String() string {
+func (x *Receipt) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Ack) ProtoMessage() {}
+func (*Receipt) ProtoMessage() {}
 
-func (x *Ack) ProtoReflect() protoreflect.Message {
+func (x *Receipt) ProtoReflect() protoreflect.Message {
 	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -338,21 +339,21 @@ func (x *Ack) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Ack.ProtoReflect.Descriptor instead.
-func (*Ack) Descriptor() ([]byte, []int) {
+// Deprecated: Use Receipt.ProtoReflect.Descriptor instead.
+func (*Receipt) Descriptor() ([]byte, []int) {
 	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *Ack) GetClass() string {
+func (x *Receipt) GetId() string {
 	if x != nil {
-		return x.Class
+		return x.Id
 	}
 	return ""
 }
 
-func (x *Ack) GetId() string {
+func (x *Receipt) GetType() string {
 	if x != nil {
-		return x.Id
+		return x.Type
 	}
 	return ""
 }
@@ -372,16 +373,16 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
 	"\x05after\x18\x02 \x01(\x04R\x05after\"B\n" +
 	"\x13WaitForSentResponse\x12+\n" +
-	"\x04sent\x18\x01 \x01(\v2\x17.whatsmeow.fake.v1.SentR\x04sent\"o\n" +
+	"\x04sent\x18\x01 \x01(\v2\x17.whatsmeow.fake.v1.SentR\x04sent\"{\n" +
 	"\x04Sent\x12\x14\n" +
 	"\x05index\x18\x01 \x01(\x04R\x05index\x12\x1d\n" +
 	"\n" +
-	"session_id\x18\x02 \x01(\tR\tsessionId\x12*\n" +
-	"\x03ack\x18\x03 \x01(\v2\x16.whatsmeow.fake.v1.AckH\x00R\x03ackB\x06\n" +
-	"\x04kind\"+\n" +
-	"\x03Ack\x12\x14\n" +
-	"\x05class\x18\x01 \x01(\tR\x05class\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\tR\x02id2\xda\x01\n" +
+	"session_id\x18\x02 \x01(\tR\tsessionId\x126\n" +
+	"\areceipt\x18\x03 \x01(\v2\x1a.whatsmeow.fake.v1.ReceiptH\x00R\areceiptB\x06\n" +
+	"\x04kind\"-\n" +
+	"\aReceipt\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04type\x18\x02 \x01(\tR\x04type2\xda\x01\n" +
 	"\x13FakeWhatsAppService\x12e\n" +
 	"\x0eDeliverMessage\x12(.whatsmeow.fake.v1.DeliverMessageRequest\x1a).whatsmeow.fake.v1.DeliverMessageResponse\x12\\\n" +
 	"\vWaitForSent\x12%.whatsmeow.fake.v1.WaitForSentRequest\x1a&.whatsmeow.fake.v1.WaitForSentResponseB\xde\x01\n" +
@@ -406,11 +407,11 @@ var file_whatsmeow_fake_v1_fake_proto_goTypes = []any{
 	(*WaitForSentRequest)(nil),     // 2: whatsmeow.fake.v1.WaitForSentRequest
 	(*WaitForSentResponse)(nil),    // 3: whatsmeow.fake.v1.WaitForSentResponse
 	(*Sent)(nil),                   // 4: whatsmeow.fake.v1.Sent
-	(*Ack)(nil),                    // 5: whatsmeow.fake.v1.Ack
+	(*Receipt)(nil),                // 5: whatsmeow.fake.v1.Receipt
 }
 var file_whatsmeow_fake_v1_fake_proto_depIdxs = []int32{
 	4, // 0: whatsmeow.fake.v1.WaitForSentResponse.sent:type_name -> whatsmeow.fake.v1.Sent
-	5, // 1: whatsmeow.fake.v1.Sent.ack:type_name -> whatsmeow.fake.v1.Ack
+	5, // 1: whatsmeow.fake.v1.Sent.receipt:type_name -> whatsmeow.fake.v1.Receipt
 	0, // 2: whatsmeow.fake.v1.FakeWhatsAppService.DeliverMessage:input_type -> whatsmeow.fake.v1.DeliverMessageRequest
 	2, // 3: whatsmeow.fake.v1.FakeWhatsAppService.WaitForSent:input_type -> whatsmeow.fake.v1.WaitForSentRequest
 	1, // 4: whatsmeow.fake.v1.FakeWhatsAppService.DeliverMessage:output_type -> whatsmeow.fake.v1.DeliverMessageResponse
@@ -428,7 +429,7 @@ func file_whatsmeow_fake_v1_fake_proto_init() {
 		return
 	}
 	file_whatsmeow_fake_v1_fake_proto_msgTypes[4].OneofWrappers = []any{
-		(*Sent_Ack)(nil),
+		(*Sent_Receipt)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

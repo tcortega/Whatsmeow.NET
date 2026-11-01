@@ -9,8 +9,9 @@ package whatsmeow.fake.v1;
 // Each slice adds the controls it needs here. Errors are INTERNAL with a message: the fake adds no ErrorReason.
 service FakeWhatsAppService {
   // DeliverMessage makes WhatsApp deliver a decrypted message to a session's client, and returns once the client's
-  // event handlers ran. Whether the client acked it shows in WaitForSent. A session without a client is an error:
-  // the fake never acks on behalf of a client the sidecar did not create.
+  // event handlers ran. As whatsmeow does at the pin, the client answers with a receipt only when every handler
+  // succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A session without a client is an error: the
+  // fake never answers on behalf of a client the sidecar did not create.
   rpc DeliverMessage(DeliverMessageRequest) returns (DeliverMessageResponse);
 
   // WaitForSent returns the first thing the session's client sent to WhatsApp after the entry `after`, and waits
@@ -52,15 +53,16 @@ message Sent {
   string session_id = 2;
   // What was sent.
   oneof kind {
-    // An ack of a stanza WhatsApp delivered.
-    Ack ack = 3;
+    // The receipt for a message WhatsApp delivered.
+    Receipt receipt = 3;
   }
 }
 
-// Ack is the ack whatsmeow sends for a stanza: its class is the stanza's tag, and its id the stanza's id.
-message Ack {
-  // The stanza's tag: "message", "receipt" or "notification".
-  string class = 1;
-  // The stanza's id; for a message, the message id.
-  string id = 2;
+// Receipt is the <receipt> whatsmeow sends for a decrypted message once its handlers succeeded
+// (sendMessageReceipt, receipt.go:280-296).
+message Receipt {
+  // The message id.
+  string id = 1;
+  // The receipt type: "inactive" for a message from someone else while the client sends no active receipts.
+  string type = 2;
 }

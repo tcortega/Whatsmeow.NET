@@ -112,8 +112,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
 
       /// <summary>
       /// DeliverMessage makes WhatsApp deliver a decrypted message to a session's client, and returns once the client's
-      /// event handlers ran. Whether the client acked it shows in WaitForSent. A session without a client is an error:
-      /// the fake never acks on behalf of a client the sidecar did not create.
+      /// event handlers ran. As whatsmeow does at the pin, the client answers with a receipt only when every handler
+      /// succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A session without a client is an error: the
+      /// fake never answers on behalf of a client the sidecar did not create.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -127,8 +128,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// DeliverMessage makes WhatsApp deliver a decrypted message to a session's client, and returns once the client's
-      /// event handlers ran. Whether the client acked it shows in WaitForSent. A session without a client is an error:
-      /// the fake never acks on behalf of a client the sidecar did not create.
+      /// event handlers ran. As whatsmeow does at the pin, the client answers with a receipt only when every handler
+      /// succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A session without a client is an error: the
+      /// fake never answers on behalf of a client the sidecar did not create.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -140,8 +142,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// DeliverMessage makes WhatsApp deliver a decrypted message to a session's client, and returns once the client's
-      /// event handlers ran. Whether the client acked it shows in WaitForSent. A session without a client is an error:
-      /// the fake never acks on behalf of a client the sidecar did not create.
+      /// event handlers ran. As whatsmeow does at the pin, the client answers with a receipt only when every handler
+      /// succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A session without a client is an error: the
+      /// fake never answers on behalf of a client the sidecar did not create.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -155,8 +158,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// DeliverMessage makes WhatsApp deliver a decrypted message to a session's client, and returns once the client's
-      /// event handlers ran. Whether the client acked it shows in WaitForSent. A session without a client is an error:
-      /// the fake never acks on behalf of a client the sidecar did not create.
+      /// event handlers ran. As whatsmeow does at the pin, the client answers with a receipt only when every handler
+      /// succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A session without a client is an error: the
+      /// fake never answers on behalf of a client the sidecar did not create.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
