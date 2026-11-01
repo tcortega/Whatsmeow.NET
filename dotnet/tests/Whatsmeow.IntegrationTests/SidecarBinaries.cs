@@ -31,6 +31,9 @@ public sealed partial class SidecarBinaries : IAsyncLifetime
 	/// <summary>A stub whose ready line echoes another nonce.</summary>
 	public string WrongNonceStub { get; private set; } = "";
 
+	/// <summary>A stub with a correct ready line whose endpoint serves nothing, and one more stdout line.</summary>
+	public string ReadyStub { get; private set; } = "";
+
 	/// <summary>What <see cref="Sidecar"/> must report.</summary>
 	public SidecarInfo Expected { get; private set; } = null!;
 
@@ -51,9 +54,10 @@ public sealed partial class SidecarBinaries : IAsyncLifetime
 			BuildAsync("sidecar", "./cmd/whatsmeow-net", "-X main.version=0.0.0-other", Path.Combine(built, "other-version"), ct),
 			BuildAsync("tools", "./stub-sidecar", "-X main.mode=hang", Path.Combine(built, "hang"), ct),
 			BuildAsync("tools", "./stub-sidecar", "-X main.mode=wrong-nonce", Path.Combine(built, "wrong-nonce"), ct),
+			BuildAsync("tools", "./stub-sidecar", "-X main.mode=ready", Path.Combine(built, "ready"), ct),
 		};
 		var paths = await Task.WhenAll(builds).ConfigureAwait(false);
-		(Sidecar, OtherVersionSidecar, HangingStub, WrongNonceStub) = (paths[0], paths[1], paths[2], paths[3]);
+		(Sidecar, OtherVersionSidecar, HangingStub, WrongNonceStub, ReadyStub) = (paths[0], paths[1], paths[2], paths[3], paths[4]);
 
 		Expected = new SidecarInfo
 		{

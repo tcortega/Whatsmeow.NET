@@ -62,7 +62,7 @@ internal sealed class SidecarSupervisor(
 						SidecarLog.SidecarRestarted(logger, processId, waited, attempt);
 						break;
 					}
-					catch (Exception e) when (e is not OperationCanceledException)
+					catch (Exception e) when (!cancellationToken.IsCancellationRequested)
 					{
 						SidecarLog.SidecarRestartFailed(logger, e, attempt, delay);
 					}

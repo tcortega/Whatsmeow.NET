@@ -2,14 +2,12 @@ using System.Runtime.InteropServices;
 
 namespace Whatsmeow.IntegrationTests.Sidecar;
 
-[CollectionDefinition(nameof(SidecarPathVariable), DisableParallelization = true)]
-public sealed class SidecarPathVariable;
+/// <summary>Tests that set or need process environment variables; they never run in parallel with anything.</summary>
+[CollectionDefinition(nameof(ProcessEnvironment), DisableParallelization = true)]
+public sealed class ProcessEnvironment;
 
-/// <summary>
-/// Where the client looks for the binary (ARCHITECTURE §8.5). These tests set or need an unset
-/// <c>WHATSMEOW_NET_SIDECAR_PATH</c>, so they never run in parallel with anything.
-/// </summary>
-[Collection(nameof(SidecarPathVariable))]
+/// <summary>Where the client looks for the binary (ARCHITECTURE §8.5), with or without <c>WHATSMEOW_NET_SIDECAR_PATH</c>.</summary>
+[Collection(nameof(ProcessEnvironment))]
 public sealed class LocateTests(SidecarBinaries binaries)
 {
 	private const string Variable = "WHATSMEOW_NET_SIDECAR_PATH";

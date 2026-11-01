@@ -3,6 +3,7 @@
 //
 //   - hang: never prints the ready line.
 //   - wrong-nonce: prints a ready line whose nonce is not the one it was given.
+//   - ready: prints a correct ready line whose endpoint serves nothing, then one more stdout line.
 //
 // Either way it first writes its process id to a file named pid next to the binary, so a test can check that
 // the process is gone, and writes one zerolog-shaped warn line to stderr. It ignores stdin and waits for the
@@ -49,18 +50,43 @@ func run() error {
 	case "hang":
 		return nil
 	case "wrong-nonce":
-		line, err := json.Marshal(map[string]any{"event": "ready", "version": "", "protocol": 1, "whatsmeow": "", "listen": "unused", "nonce": "not-the-nonce"})
-		if err != nil {
-			return fmt.Errorf("marshal the ready line: %w", err)
+		return ready("not-the-nonce")
+	case "ready":
+		if err := ready(nonce()); err != nil {
+			return err
 		}
 
-		_, err = fmt.Println(string(line))
-		if err != nil {
-			return fmt.Errorf("write the ready line: %w", err)
+		if _, err := fmt.Println("stub-sidecar: a stdout line after the ready line"); err != nil {
+			return fmt.Errorf("write stdout: %w", err)
 		}
 
 		return nil
 	default:
 		return fmt.Errorf("unknown mode %q", mode)
 	}
+}
+
+// ready prints a ready line with nonce, whose endpoint serves nothing.
+func ready(nonce string) error {
+	line, err := json.Marshal(map[string]any{"event": "ready", "version": "", "protocol": 1, "whatsmeow": "", "listen": "unused", "nonce": nonce})
+	if err != nil {
+		return fmt.Errorf("marshal the ready line: %w", err)
+	}
+
+	if _, err := fmt.Println(string(line)); err != nil {
+		return fmt.Errorf("write the ready line: %w", err)
+	}
+
+	return nil
+}
+
+// nonce is the --nonce argument the client passed.
+func nonce() string {
+	for i, arg := range os.Args[:len(os.Args)-1] {
+		if arg == "--nonce" {
+			return os.Args[i+1]
+		}
+	}
+
+	return ""
 }

@@ -21,16 +21,17 @@ internal sealed class SidecarProcess
 	private readonly Lock _tailLock = new();
 	private readonly Queue<string> _tail = new();
 	private readonly Task _stderr;
+	private Task _stdout = Task.CompletedTask;
 	private int _stopped;
 
-	private SidecarProcess(Process process, string token, ILogger sidecarLog)
+	private SidecarProcess(Process process, Task<int> exited, string token, ILogger sidecarLog)
 	{
 		_process = process;
 		_sidecarLog = sidecarLog;
 		Id = process.Id;
 		Token = token;
-		_stderr = ForwardStderrAsync();
-		Exited = WaitForExitCodeAsync();
+		Exited = exited;
+		_stderr = ForwardAsync(process.StandardError, stderr: true);
 	}
 
 	public int Id { get; }
@@ -66,7 +67,8 @@ internal sealed class SidecarProcess
 	{
 		var token = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(32));
 		var nonce = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(16));
-		var sidecar = new SidecarProcess(Spawn(StartInfo(binary, transport, socketDirectory, nonce), clientLog), token, sidecarLog);
+		var (process, exited) = Spawn(StartInfo(binary, transport, socketDirectory, nonce), clientLog);
+		var sidecar = new SidecarProcess(process, exited, token, sidecarLog);
 
 		string failure;
 		Exception? cause = null;
@@ -83,6 +85,8 @@ internal sealed class SidecarProcess
 			{
 				sidecar.Endpoint = ready.Listen;
 				sidecar.Version = ready.Version;
+				// The sidecar prints nothing else on stdout; anything it does is logged, so the pipe never fills.
+				sidecar._stdout = sidecar.ForwardAsync(sidecar._process.StandardOutput, stderr: false);
 				return sidecar;
 			}
 
@@ -168,6 +172,7 @@ internal sealed class SidecarProcess
 
 		await _process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
 		await _stderr.ConfigureAwait(false);
+		await _stdout.ConfigureAwait(false);
 	}
 
 	private static ProcessStartInfo StartInfo(string binary, SidecarTransport transport, string? socketDirectory, string nonce)
@@ -201,7 +206,7 @@ internal sealed class SidecarProcess
 	/// Starts the process. On Unix the binary is made executable first; when it still cannot run (it cannot be
 	/// chmodded, or it is on a <c>noexec</c> mount), a cached copy runs instead (ARCHITECTURE §8.5).
 	/// </summary>
-	private static Process Spawn(ProcessStartInfo info, ILogger clientLog)
+	private static (Process Process, Task<int> Exited) Spawn(ProcessStartInfo info, ILogger clientLog)
 	{
 		if (OperatingSystem.IsWindows())
 			return StartOrThrow(info);
@@ -211,51 +216,60 @@ internal sealed class SidecarProcess
 		{
 			return StartOrThrow(info);
 		}
-		catch (SidecarUnavailableException)
+		catch (SidecarUnavailableException inPlace)
 		{
 			var original = info.FileName;
-			info.FileName = SidecarBinary.CopyToCache(original);
+			try
+			{
+				info.FileName = SidecarBinary.CopyToCache(original);
+			}
+			catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+			{
+				SidecarUnavailableException.ThrowStartFailed($"{original} cannot run in place, and copying it to the cache failed ({e.Message})", [], inPlace);
+			}
+
 			SidecarLog.SidecarCopied(clientLog, original, info.FileName);
 			return StartOrThrow(info);
 		}
 	}
 
-	private static Process StartOrThrow(ProcessStartInfo info)
+	/// <summary>Starts the process; its exit code is captured when it exits, so it never depends on a later read.</summary>
+	private static (Process Process, Task<int> Exited) StartOrThrow(ProcessStartInfo info)
 	{
-		var process = new Process { StartInfo = info };
+		var exited = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+		var process = new Process { StartInfo = info, EnableRaisingEvents = true };
+		process.Exited += (_, _) => exited.TrySetResult(process.ExitCode);
 		try
 		{
 			_ = process.Start();
-			return process;
+			return (process, exited.Task);
 		}
 		catch (Win32Exception e)
 		{
 			process.Dispose();
 			SidecarUnavailableException.ThrowStartFailed($"{info.FileName} cannot be executed ({e.Message})", [], e);
-			return null;
+			return default;
 		}
 	}
 
-	private async Task<int> WaitForExitCodeAsync()
-	{
-		await _process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
-		return _process.ExitCode;
-	}
-
-	private async Task ForwardStderrAsync()
+	/// <summary>Logs every line of one of the sidecar's pipes under Whatsmeow.Sidecar; stderr lines also go to the tail.</summary>
+	private async Task ForwardAsync(StreamReader pipe, bool stderr)
 	{
 		try
 		{
-			while (await _process.StandardError.ReadLineAsync().ConfigureAwait(false) is { } line)
+			while (await pipe.ReadLineAsync().ConfigureAwait(false) is { } line)
 			{
-				lock (_tailLock)
+				if (stderr)
 				{
-					if (_tail.Count == TailLines)
-						_ = _tail.Dequeue();
-					_tail.Enqueue(line);
+					lock (_tailLock)
+					{
+						if (_tail.Count == TailLines)
+							_ = _tail.Dequeue();
+						_tail.Enqueue(line);
+					}
 				}
 
-				var level = LevelOf(line);
+				var level = stderr ? LevelOf(line) : LogLevel.Information;
 				SidecarLog.SidecarOutput(_sidecarLog, level, line);
 			}
 		}
@@ -265,7 +279,8 @@ internal sealed class SidecarProcess
 		}
 	}
 
-	private string[] Tail()
+	/// <summary>The last lines the sidecar wrote to stderr.</summary>
+	public string[] Tail()
 	{
 		lock (_tailLock)
 			return [.. _tail];

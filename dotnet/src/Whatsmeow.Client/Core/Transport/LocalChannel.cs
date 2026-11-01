@@ -77,6 +77,9 @@ internal sealed class LocalChannel : IDisposable
 		if (name is null)
 			NotRunning();
 
+		if (!name.StartsWith(PipePrefix, StringComparison.Ordinal))
+			throw new IOException($"The sidecar's pipe name {name} does not start with {PipePrefix}.");
+
 		var pipe = new NamedPipeClientStream(".", name[PipePrefix.Length..], PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
 		try
 		{

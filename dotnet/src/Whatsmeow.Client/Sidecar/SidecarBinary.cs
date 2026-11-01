@@ -38,8 +38,9 @@ internal static class SidecarBinary
 	private static string RuntimeIdentifier()
 	{
 		var os = OperatingSystem.IsWindows() ? "win" : OperatingSystem.IsMacOS() ? "osx" : "linux";
-		var architecture = RuntimeInformation.ProcessArchitecture;
-		var arch = architecture is Architecture.X64 ? "x64" : architecture is Architecture.Arm64 ? "arm64" : $"{architecture}";
+#pragma warning disable CA1308 // Justification: a RID is lowercase ASCII by definition (x64, arm64, riscv64)
+		var arch = RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
+#pragma warning restore CA1308
 		return $"{os}-{arch}";
 	}
 
@@ -66,8 +67,12 @@ internal static class SidecarBinary
 	[UnsupportedOSPlatform("windows")]
 	public static string CopyToCache(string path)
 	{
-		var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create), "whatsmeow-net", ClientVersion.Current);
-		Directory.CreateDirectory(directory);
+		var root = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify);
+		if (string.IsNullOrEmpty(root))
+			throw new IOException("This user has no local application data directory for the copy.");
+
+		var directory = Path.Combine(root, "whatsmeow-net", ClientVersion.Current);
+		_ = Directory.CreateDirectory(directory);
 
 		var copy = Path.Combine(directory, FileName);
 		var temporary = Path.Combine(directory, $"{FileName}.{Guid.NewGuid():N}.tmp");

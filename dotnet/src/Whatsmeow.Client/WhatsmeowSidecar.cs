@@ -123,14 +123,24 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		if (Interlocked.Exchange(ref _disposed, 1) != 0)
 			return;
 
-		await _supervisor.DisposeAsync().ConfigureAwait(false);
-
-		if (_current is { } process)
-			await process.StopAsync(ShutdownAsync, _timeProvider).ConfigureAwait(false);
-		_current = null;
-
-		_channel.Dispose();
-		DeleteSocketDirectory();
+		try
+		{
+			await _supervisor.DisposeAsync().ConfigureAwait(false);
+		}
+		finally
+		{
+			try
+			{
+				if (_current is { } process)
+					await process.StopAsync(ShutdownAsync, _timeProvider).ConfigureAwait(false);
+			}
+			finally
+			{
+				_current = null;
+				_channel.Dispose();
+				DeleteSocketDirectory();
+			}
+		}
 	}
 
 	/// <summary>
@@ -160,7 +170,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		{
 			await process.StopAsync(ShutdownAsync, _timeProvider).ConfigureAwait(false);
 			cancellationToken.ThrowIfCancellationRequested();
-			SidecarUnavailableException.ThrowStartFailed($"its first GetInfo call failed: {e.Message}", [], e);
+			SidecarUnavailableException.ThrowStartFailed($"its first GetInfo call failed: {e.Message}", process.Tail(), e);
 			throw;
 		}
 

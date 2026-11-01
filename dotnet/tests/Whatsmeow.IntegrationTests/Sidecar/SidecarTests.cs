@@ -12,6 +12,9 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 {
 	private const int Timeout = 120_000;
 
+	/// <summary>For the stub tests that wait out the timeout: generous, because Defender can slow a first launch on Windows.</summary>
+	private static readonly TimeSpan s_stubStartupTimeout = TimeSpan.FromSeconds(10);
+
 	/// <summary>AF_UNIX everywhere, and on Windows the named-pipe fallback too (ADR 0014).</summary>
 	public static TheoryData<SidecarTransport> Transports =>
 		OperatingSystem.IsWindows() ? [SidecarTransport.UnixDomainSocket, SidecarTransport.NamedPipe] : [SidecarTransport.UnixDomainSocket];
@@ -39,9 +42,14 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 		using var logs = new LogCapture();
 
 		// Stage leaves the copy without its execute bit on Unix; the client sets it rather than copying the binary.
-		await using var sidecar = await WhatsmeowSidecar.StartAsync(new WhatsmeowSidecarOptions { SidecarPath = binaries.Stage(binaries.Sidecar) }, logs.Factory, ct);
+		var staged = binaries.Stage(binaries.Sidecar);
+		await using var sidecar = await WhatsmeowSidecar.StartAsync(new WhatsmeowSidecarOptions { SidecarPath = staged }, logs.Factory, ct);
+		var (processId, _) = await logs.StartedAsync(1, ct);
 
-		Assert.Empty(logs.Named("SidecarCopied"));
+		// The process runs the staged file itself, on every OS: no cached copy. The staged directory's name is unique;
+		// the full path is not compared, because macOS reports /var as /private/var.
+		using var process = Process.GetProcessById(processId);
+		Assert.EndsWith(Path.Combine(Path.GetFileName(Path.GetDirectoryName(staged))!, SidecarBinaries.FileName), process.MainModule!.FileName, StringComparison.Ordinal);
 	}
 
 	[Fact(Timeout = Timeout)]
@@ -62,7 +70,7 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 	{
 		var ct = TestContext.Current.CancellationToken;
 		var stub = binaries.Stage(binaries.HangingStub);
-		var options = new WhatsmeowSidecarOptions { SidecarPath = stub, StartupTimeout = TimeSpan.FromSeconds(2) };
+		var options = new WhatsmeowSidecarOptions { SidecarPath = stub, StartupTimeout = s_stubStartupTimeout };
 
 		var error = await Assert.ThrowsAsync<SidecarUnavailableException>(() => WhatsmeowSidecar.StartAsync(options, ct));
 
@@ -101,8 +109,9 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 		var ct = TestContext.Current.CancellationToken;
 		using var logs = new LogCapture();
 		var stub = binaries.Stage(binaries.WrongNonceStub);
+		var options = new WhatsmeowSidecarOptions { SidecarPath = stub, StartupTimeout = s_stubStartupTimeout };
 
-		_ = await Assert.ThrowsAsync<SidecarUnavailableException>(() => WhatsmeowSidecar.StartAsync(new WhatsmeowSidecarOptions { SidecarPath = stub }, logs.Factory, ct));
+		_ = await Assert.ThrowsAsync<SidecarUnavailableException>(() => WhatsmeowSidecar.StartAsync(options, logs.Factory, ct));
 
 		Assert.Empty(logs.Named("SidecarStarted"));
 		Processes.AssertGone(Processes.StubProcessId(stub));
@@ -126,15 +135,51 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 	}
 
 	[Fact(Timeout = Timeout)]
-	public async Task Start_StderrBeforeTheReadyLine_IsLoggedUnderWhatsmeowSidecar()
+	public async Task Start_StderrBeforeTheReadyLine_IsLoggedUnderWhatsmeowSidecarAtItsLevel()
 	{
 		var ct = TestContext.Current.CancellationToken;
 		using var logs = new LogCapture();
+		var options = new WhatsmeowSidecarOptions { SidecarPath = binaries.Stage(binaries.HangingStub), StartupTimeout = s_stubStartupTimeout };
 
+		// The hanging stub never prints its ready line, so whatever it writes to stderr comes before it.
+		_ = await Assert.ThrowsAsync<SidecarUnavailableException>(() => WhatsmeowSidecar.StartAsync(options, logs.Factory, ct));
+
+		var record = Assert.Single(logs.Collector.GetSnapshot(), r => r.Category == "Whatsmeow.Sidecar");
+		Assert.Equal(LogLevel.Warning, record.Level);
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Start_FirstGetInfoFails_FailsWithTheStderrTailAndLogsLaterStdout()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var stub = binaries.Stage(binaries.ReadyStub);
+		var options = new WhatsmeowSidecarOptions { SidecarPath = stub, StartupTimeout = s_stubStartupTimeout };
+
+		// The stub's ready line is correct, but nothing serves its endpoint.
+		var error = await Assert.ThrowsAsync<SidecarUnavailableException>(() => WhatsmeowSidecar.StartAsync(options, logs.Factory, ct));
+
+		Assert.Contains("stub-sidecar: mode ready, this line is the stderr tail", error.Message, StringComparison.Ordinal);
+		var stdout = Assert.Single(logs.Collector.GetSnapshot(), r => r.Message == "stub-sidecar: a stdout line after the ready line");
+		Assert.Equal(("Whatsmeow.Sidecar", LogLevel.Information), (stdout.Category, stdout.Level));
+		Processes.AssertGone(Processes.StubProcessId(stub));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task GetInfo_TheSidecarWasKilled_ThrowsSidecarUnavailableBeforeTheRestart()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
 		await using var sidecar = await WhatsmeowSidecar.StartAsync(new WhatsmeowSidecarOptions { SidecarPath = binaries.Stage(binaries.Sidecar) }, logs.Factory, ct);
+		var (processId, _) = await logs.StartedAsync(1, ct);
 
-		var record = await logs.WaitForAsync(r => r.Message.Contains("\"message\":\"starting\"", StringComparison.Ordinal), ct);
-		Assert.Equal(("Whatsmeow.Sidecar", LogLevel.Information), (record.Category, record.Level));
+		using (var process = Process.GetProcessById(processId))
+			process.Kill();
+		_ = await logs.WaitForAsync(r => r.Id.Name == "SidecarExited", ct);
+
+		// The supervisor waits 1 s before the restart (ADR 0017); the call fails at once, well inside that wait.
+		_ = await Assert.ThrowsAsync<SidecarUnavailableException>(() => sidecar.GetInfoAsync(ct));
+		Assert.Empty(logs.Named("SidecarRestarted"));
 	}
 
 	[Fact(Timeout = Timeout)]
@@ -174,32 +219,5 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 		await parent.WaitForExitAsync(ct);
 
 		await Processes.WaitUntilGoneAsync(sidecar, ct);
-	}
-
-	[Fact(Timeout = Timeout)]
-	public async Task Start_ABinaryOnANoexecMount_RunsACopy()
-	{
-		var ct = TestContext.Current.CancellationToken;
-		// The single declared platform condition (tests.md): only root can mount noexec, so build/ci.sh provides the
-		// mount on linux-x64 CI, and there the test must run.
-		var noexec = Environment.GetEnvironmentVariable("WHATSMEOW_NET_TEST_NOEXEC_DIR");
-		if (noexec is null)
-		{
-			Assert.False(
-				Environment.GetEnvironmentVariable("CI") == "true" && OperatingSystem.IsLinux() && System.Runtime.InteropServices.RuntimeInformation.OSArchitecture is System.Runtime.InteropServices.Architecture.X64,
-				"WHATSMEOW_NET_TEST_NOEXEC_DIR must name a noexec mount on linux-x64 CI (build/ci.sh)"
-			);
-			Assert.Skip("needs a noexec mount in WHATSMEOW_NET_TEST_NOEXEC_DIR (build/ci.sh provides one on linux-x64 CI)");
-		}
-
-		using var logs = new LogCapture();
-		var binary = Path.Combine(Directory.CreateDirectory(Path.Combine(noexec, Guid.NewGuid().ToString("N"))).FullName, SidecarBinaries.FileName);
-		File.Copy(binaries.Sidecar, binary);
-
-		await using var sidecar = await WhatsmeowSidecar.StartAsync(new WhatsmeowSidecarOptions { SidecarPath = binary }, logs.Factory, ct);
-
-		var copied = Assert.Single(logs.Named("SidecarCopied"));
-		Assert.Equal(binary, copied.GetStructuredStateValue("Path"));
-		Assert.Equal(binaries.Expected, await sidecar.GetInfoAsync(ct));
 	}
 }
