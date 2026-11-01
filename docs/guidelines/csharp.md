@@ -4,7 +4,7 @@ Read this when writing or changing C# under `dotnet/`.
 The control flow and type rules are the house rules from bridge, compras and chrominal (VsaTemplate lineage).
 This is a library, not a VSA API: no Immediate.Handlers, no `[Handler]`, no Immediate.Injections or Immediate.Validations.
 A slice here is a WhatsApp capability with a feature group on `IWhatsAppClient` (see [ARCHITECTURE.md](../ARCHITECTURE.md) §3).
-No reference slice exists yet; the first complete Phase 1 slice becomes it and is named in `AGENTS.md`.
+The reference slice is named in `AGENTS.md` (Gold-standard slice); copy it.
 
 ## Control flow
 

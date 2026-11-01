@@ -101,7 +101,7 @@ What the sources say:
 - `sidecar/licenses.allow` records every licence file of every linked module and of std, with its sha256 and a reviewed licence.
 - `tools/check-licenses`, run by `build/ci.sh go`, compares it with the `CGO_ENABLED=0 go list -deps` graph of `sidecar/cmd/whatsmeow-net` on the six targets of ADR 0007.
 - It fails on a new module, an added, removed or changed licence file, a module without a licence file, or a module that no longer links.
-- Until #4 adds the main package, CI compares only the std lines; the module lines come from the audit's throwaway build and are not checked in CI until then.
+- #4 added the main package; from then on CI compares every module line, and #4 removed the 14 modules the audit's throwaway build linked but the sidecar does not yet, and added `github.com/Microsoft/go-winio` (MIT) for the Windows named pipe.
 - Legal review is [unknown] and stays open; RESEARCH item 1 asked for it, and nothing above replaces it.
 
 ## Consequences
