@@ -163,7 +163,7 @@ no_cgo() { # module tags
 release_links_no_fake() {
 	local deps fake
 	deps="$(CGO_ENABLED=0 go -C sidecar list -deps -f '{{.ImportPath}}' ./cmd/whatsmeow-net)" || return
-	fake="$(grep -E '/internal/fakewhatsapp$|/gen/whatsmeow/fake/' <<<"$deps")"
+	fake="$(grep -E '/internal/fakewhatsapp(/|$)|/gen/whatsmeow/fake/' <<<"$deps")"
 	if [ -n "$fake" ]; then
 		annotate error "fake in the release build" "whatsmeow-net without -tags fakewhatsapp links $fake"
 		return 1
@@ -224,11 +224,12 @@ noexec_mount() {
 }
 
 # The fake WhatsApp control's C# is generated into the integration tests only (ADR 0019): no assembly under
-# dotnet/src, all of which ship, may contain its service type. The test assembly must, or this grep proves nothing.
+# dotnet/src, all of which ship, may contain a type in its namespace, which buf.gen.yaml gives every generated fake
+# type, messages and service alike. The test assembly must, or this grep proves nothing.
 shipped_have_no_fake() {
-	local project name dll rc=0
-	if ! grep -q -a FakeWhatsAppService dotnet/artifacts/bin/Whatsmeow.IntegrationTests/release/Whatsmeow.IntegrationTests.dll; then
-		annotate error "fake in a shipped assembly" "Whatsmeow.IntegrationTests.dll has no FakeWhatsAppService either, so this check cannot see one"
+	local project name dll rc=0 namespace=Whatsmeow.IntegrationTests.Fake
+	if ! grep -q -a -F "$namespace" dotnet/artifacts/bin/Whatsmeow.IntegrationTests/release/Whatsmeow.IntegrationTests.dll; then
+		annotate error "fake in a shipped assembly" "Whatsmeow.IntegrationTests.dll has no $namespace type either, so this check cannot see one"
 		return 1
 	fi
 	for project in dotnet/src/*/; do
@@ -237,7 +238,7 @@ shipped_have_no_fake() {
 		if [ ! -f "$dll" ]; then
 			annotate error "fake in a shipped assembly" "$dll was not built"
 			rc=1
-		elif grep -q -a FakeWhatsAppService "$dll"; then
+		elif grep -q -a -F "$namespace" "$dll"; then
 			annotate error "fake in a shipped assembly" "$dll contains the fake WhatsApp control"
 			rc=1
 		fi
