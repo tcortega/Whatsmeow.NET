@@ -14,6 +14,7 @@ ARCHITECTURE §13 invariants are wrong to break without an ADR first.
 ## Tree
 
 proto/whatsmeow/v1/    our contract, one file per slice, plus error.proto (the ErrorInfo reason list)
+proto/whatsmeow/fake/  the fake WhatsApp's test-only control, not the contract (ADR 0019)
 third_party/whatsmeow/ upstream protos copied from the exact pinned version (`VERSION`)
 sidecar/               Go module `github.com/tcortega/Whatsmeow.NET/sidecar`: product code and dependencies only
 tools/                 Go module for repo tools (`check-repo`, `sync-protos`, `check-licenses`, the tests' `stub-sidecar`), kept out of the product module
@@ -75,8 +76,9 @@ Sidecar (#4). Copy it for the next slice; do not invent a second pattern.
 * Proto: `proto/whatsmeow/v1/sidecar.proto`.
 * Go slice: `sidecar/internal/sidecar/` behind `sidecar/internal/server/` (lenient codec, token check, shutdown gate, the one ErrorInfo mapping); its tests run whatsmeow-free over `bufconn`.
 * .NET: the entry point and shared public types at the project root in namespace `Whatsmeow` (`WhatsmeowSidecar.cs`, `WhatsmeowException.cs`, ...); internals in `Sidecar/` (process, supervisor, proto to record mapping) and `Core/<Area>/` (`Core/Errors/RpcErrors.cs` maps every `RpcException`). Namespaces: ADR 0018.
-* Tests: FullCycle `dotnet/tests/Whatsmeow.IntegrationTests/Sidecar/SidecarTests.cs` on the `SidecarBinaries` fixture, which builds the real binary; `FakeTimeProvider` unit tests in `dotnet/tests/Whatsmeow.Client.Tests/Sidecar/`.
-* The Sidecar slice's tests start a sidecar per test, because start and stop is the behaviour under test. #5 defines the shared-sidecar fixture that every later slice copies.
+* Tests: FullCycle `dotnet/tests/Whatsmeow.IntegrationTests/Sidecar/GetInfoTests.cs` on the shared `FakeSidecar` fixture (one fake-mode sidecar for the run, ADR 0019); every later slice's FullCycle uses it. `FakeTimeProvider` unit tests in `dotnet/tests/Whatsmeow.Client.Tests/Sidecar/`.
+* Only start and stop tests (`Sidecar/SidecarTests.cs`, on the `SidecarBinaries` fixture) start a sidecar per test, because that is the behaviour under test.
+* Fake controls: an RPC in `proto/whatsmeow/fake/v1/fake.proto`, implemented in `sidecar/internal/fakewhatsapp/` and tested there over `bufconn` through the real `server.Server`.
 
 ## Where does X go
 
@@ -92,7 +94,8 @@ Sidecar (#4). Copy it for the next slice; do not invent a second pattern.
 | New error reason | `ErrorReason` in `proto/whatsmeow/v1/error.proto` + exception subtype (§8.7) |
 | DI, options, hosted supervisor | `dotnet/src/Whatsmeow.Extensions.Hosting/` |
 | Consumer fakes | `dotnet/src/Whatsmeow.Testing/` |
-| Integration test (default) | `dotnet/tests/Whatsmeow.IntegrationTests/` |
+| Integration test (default) | `dotnet/tests/Whatsmeow.IntegrationTests/<Slice>/`, on the `FakeSidecar` fixture |
+| Fake WhatsApp control for a slice | `proto/whatsmeow/fake/v1/fake.proto` + `sidecar/internal/fakewhatsapp/` (ADR 0019) |
 | Dispatcher / supervisor unit test | `dotnet/tests/Whatsmeow.Client.Tests/` |
 | A new module linked into the sidecar | read its licence, then its lines in `sidecar/licenses.allow` (ADR 0016) |
 | Decision | `docs/adr/NNNN-title.md` |

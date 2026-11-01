@@ -4,9 +4,9 @@ using Whatsmeow.IntegrationTests.Support;
 namespace Whatsmeow.IntegrationTests.Sidecar;
 
 /// <summary>
-/// The Sidecar slice through its public API against the real <c>whatsmeow-net</c>, and the stub sidecars for the
-/// startup failures the real one never produces. Each test starts its own sidecar, because starting and stopping
-/// is the behaviour under test.
+/// The Sidecar slice's start and stop through its public API against the real <c>whatsmeow-net</c>, and the stub
+/// sidecars for the startup failures the real one never produces. Each test starts its own sidecar, because starting
+/// and stopping is the behaviour under test; the GetInfo FullCycle runs on the shared fixture (GetInfoTests).
 /// </summary>
 public sealed class SidecarTests(SidecarBinaries binaries)
 {
@@ -21,15 +21,15 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 
 	[Theory(Timeout = Timeout)]
 	[MemberData(nameof(Transports))]
-	public async Task FullCycle_StartGetInfoDispose(SidecarTransport transport)
+	public async Task StartDispose_LeavesNoProcess(SidecarTransport transport)
 	{
 		var ct = TestContext.Current.CancellationToken;
 		using var logs = new LogCapture();
 		var options = new WhatsmeowSidecarOptions { SidecarPath = binaries.Stage(binaries.Sidecar), Transport = transport };
 
+		// The start's own GetInfo and version check go over this transport; the GetInfo FullCycle is GetInfoTests.
 		await using var sidecar = await WhatsmeowSidecar.StartAsync(options, logs.Factory, ct);
 		var (processId, _) = await logs.StartedAsync(1, ct);
-		Assert.Equal(binaries.Expected, await sidecar.GetInfoAsync(ct));
 
 		await sidecar.DisposeAsync();
 		Processes.AssertGone(processId);
@@ -63,6 +63,20 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 		await sidecar.DisposeAsync();
 
 		Assert.False(Directory.Exists(Path.GetDirectoryName(endpoint)));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Start_FakeWhatsAppOnAReleaseBuild_FailsWithTheRefusal()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var options = new WhatsmeowSidecarOptions { SidecarPath = binaries.Stage(binaries.Sidecar) };
+
+		// The fake never ships: the release build refuses --fake-whatsapp before it serves anything (ADR 0019).
+		var error = await Assert.ThrowsAsync<SidecarUnavailableException>(() =>
+			WhatsmeowSidecar.StartFakeWhatsAppAsync(options, Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance, ct)
+		);
+
+		Assert.Contains("--fake-whatsapp needs a test build (-tags fakewhatsapp); this build never fakes WhatsApp", error.Message, StringComparison.Ordinal);
 	}
 
 	[Fact(Timeout = Timeout)]

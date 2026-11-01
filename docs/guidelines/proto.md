@@ -7,6 +7,7 @@ Moved from ARCHITECTURE §6; the contract's policy (independence from whatsmeow,
 
 - proto3, buf STANDARD lint, Google AIP-191 style: one `XxxRequest`/`XxxResponse` per RPC, `_UNSPECIFIED` zero enum values, `Timestamp`/`Duration` well-known types.
 - One file per slice (ARCHITECTURE §3).
+- `proto/whatsmeow/fake/v1/fake.proto` is the fake WhatsApp's control (ADR 0019), not the contract: it is linted, in `breaking.ignore`, adds no `ErrorReason`, never ships, and its C# is generated into the integration tests only.
 - Never reuse or renumber fields. Reserve the number and name of any removed field.
 - Error `reason` values are stable `SCREAMING_SNAKE` codes, and the list of reasons is part of the contract: `enum ErrorReason` in `error.proto`, sent without its `ERROR_REASON_` prefix.
 

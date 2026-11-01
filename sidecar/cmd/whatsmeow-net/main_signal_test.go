@@ -40,7 +40,7 @@ func (s *child) fatalf(t *testing.T, format string, args ...any) {
 	t.Fatalf(format+"\nsidecar stderr:\n%s", append(args, stderr)...)
 }
 
-func startSidecar(t *testing.T) *child {
+func startSidecar(t *testing.T, args ...string) *child {
 	t.Helper()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -53,7 +53,7 @@ func startSidecar(t *testing.T) *child {
 
 	t.Cleanup(func() { _ = os.RemoveAll(dir) })
 
-	cmd := exec.CommandContext(ctx, os.Args[0], "--socket-dir", dir, "--nonce", "n") //nolint:gosec // G204, G702: this test binary itself, with constant arguments
+	cmd := exec.CommandContext(ctx, os.Args[0], append([]string{"--socket-dir", dir, "--nonce", "n"}, args...)...) //nolint:gosec // G204, G702: this test binary itself, with the tests' constant arguments
 	cmd.Env = append(os.Environ(), "WHATSMEOW_NET_TEST_RUN_MAIN=1")
 
 	stdin, err := cmd.StdinPipe()

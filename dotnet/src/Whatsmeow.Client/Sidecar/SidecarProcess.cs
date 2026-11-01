@@ -53,11 +53,13 @@ internal sealed class SidecarProcess
 	/// throws: <see cref="OperationCanceledException"/> when <paramref name="cancellationToken"/> was cancelled,
 	/// <see cref="SidecarUnavailableException"/> with the tail of stderr otherwise.
 	/// </summary>
+	/// <param name="fakeWhatsApp">Pass <c>--fake-whatsapp</c>: only a test build accepts it (ADR 0019).</param>
 	/// <param name="startup">Cancelled by the caller or by the startup timeout.</param>
 	public static async Task<SidecarProcess> StartAsync(
 		string binary,
 		SidecarTransport transport,
 		string? socketDirectory,
+		bool fakeWhatsApp,
 		TimeSpan startupTimeout,
 		ILogger clientLog,
 		ILogger sidecarLog,
@@ -67,7 +69,7 @@ internal sealed class SidecarProcess
 	{
 		var token = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(32));
 		var nonce = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(16));
-		var (process, exited) = Spawn(StartInfo(binary, transport, socketDirectory, nonce), clientLog);
+		var (process, exited) = Spawn(StartInfo(binary, transport, socketDirectory, fakeWhatsApp, nonce), clientLog);
 		var sidecar = new SidecarProcess(process, exited, token, sidecarLog);
 
 		string failure;
@@ -175,7 +177,7 @@ internal sealed class SidecarProcess
 		await _stdout.ConfigureAwait(false);
 	}
 
-	private static ProcessStartInfo StartInfo(string binary, SidecarTransport transport, string? socketDirectory, string nonce)
+	private static ProcessStartInfo StartInfo(string binary, SidecarTransport transport, string? socketDirectory, bool fakeWhatsApp, string nonce)
 	{
 		var info = new ProcessStartInfo(binary)
 		{
@@ -196,6 +198,9 @@ internal sealed class SidecarProcess
 			info.ArgumentList.Add("--socket-dir");
 			info.ArgumentList.Add(socketDirectory);
 		}
+
+		if (fakeWhatsApp)
+			info.ArgumentList.Add("--fake-whatsapp");
 
 		info.ArgumentList.Add("--nonce");
 		info.ArgumentList.Add(nonce);

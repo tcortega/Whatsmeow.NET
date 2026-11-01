@@ -14,3 +14,5 @@ breaking:
     - FILE
   ignore:
     - third_party/whatsmeow
+    # The fake WhatsApp control is test-only and never ships, so it may change freely; lint still applies (ADR 0019).
+    - proto/whatsmeow/fake
