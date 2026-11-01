@@ -21,7 +21,7 @@ public sealed class NoexecTests(SidecarBinaries binaries)
 		using var logs = new LogCapture();
 		var binary = OnNoexecMount();
 
-		await using var sidecar = await WhatsmeowSidecar.StartAsync(new WhatsmeowSidecarOptions { SidecarPath = binary }, logs.Factory, ct);
+		await using var sidecar = await WhatsmeowSidecar.StartAsync(new WhatsmeowSidecarOptions { SidecarPath = binary, DatabasePath = binaries.NewDatabase() }, logs.Factory, ct);
 
 		var copied = Assert.Single(logs.Named("SidecarCopied"));
 		Assert.Equal(binary, copied.GetStructuredStateValue("Path"));

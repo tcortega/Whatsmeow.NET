@@ -1,0 +1,663 @@
+// Package session is the Sessions slice: sessions, their connection, and their state machine (ARCHITECTURE §7.4).
+//
+// Every state change goes through transition, the events whatsmeow dispatches and the ones the sidecar synthesizes
+// for Connect, Disconnect and Logout alike, so the outbox (#8) has one place to record them.
+package session
+
+import (
+	"context"
+	"database/sql"
+	"errors"
+	"fmt"
+	"regexp"
+	"slices"
+	"sync"
+	"time"
+
+	"github.com/rs/zerolog"
+	"go.mau.fi/whatsmeow"
+	"go.mau.fi/whatsmeow/store"
+	"go.mau.fi/whatsmeow/store/sqlstore"
+	"go.mau.fi/whatsmeow/types"
+	"go.mau.fi/whatsmeow/types/events"
+	"google.golang.org/grpc"
+	"google.golang.org/protobuf/proto"
+
+	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
+)
+
+// Client is what the slice needs of a whatsmeow client. *whatsmeow.Client and the fake WhatsApp's client both
+// satisfy it (ADR 0019).
+type Client interface {
+	AddEventHandlerWithSuccessStatus(handler whatsmeow.EventHandlerWithSuccessStatus) uint32
+	ConnectContext(ctx context.Context) error
+	Disconnect()
+	IsConnected() bool
+	Logout(ctx context.Context) error
+}
+
+var _ Client = (*whatsmeow.Client)(nil)
+
+// NewClient returns the client of one session's device.
+type NewClient func(sessionID string, device *store.Device) Client
+
+// idPattern is the session id rule (session.proto).
+var idPattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`)
+
+// Service implements whatsmeowv1.SessionServiceServer.
+type Service struct {
+	whatsmeowv1.UnimplementedSessionServiceServer
+
+	db        *sql.DB
+	devices   *sqlstore.Container
+	newClient NewClient
+	log       zerolog.Logger
+	// lifetime scopes every connection: whatsmeow ties keepalive, the node queue and reconnects to the context
+	// ConnectContext gets (client.go:541-599), so it is the sidecar's, never a call's.
+	lifetime context.Context //nolint:containedctx // the sidecar's lifetime, not a request's
+	end      context.CancelFunc
+
+	mu       sync.Mutex
+	sessions map[string]*session
+}
+
+// session is one session. ops serializes the calls that drive its connection; mu guards the rest and is never
+// held while calling into whatsmeow, whose Disconnect waits for the event handlers (client.go:726-745).
+type session struct {
+	id     string
+	device *store.Device
+	client Client
+	ops    sync.Mutex
+
+	mu       sync.Mutex
+	state    *whatsmeowv1.SessionState
+	jid, lid string
+	watchers map[chan *whatsmeowv1.SessionState]struct{}
+	deleted  chan struct{}
+}
+
+// New loads every session from the database. It never connects one: the client calls Connect (session.proto).
+func New(ctx context.Context, db *sql.DB, devices *sqlstore.Container, newClient NewClient, log zerolog.Logger) (*Service, error) {
+	lifetime, end := context.WithCancel(context.Background())
+	svc := &Service{db: db, devices: devices, newClient: newClient, log: log, lifetime: lifetime, end: end, sessions: map[string]*session{}}
+
+	if err := svc.load(ctx); err != nil {
+		end()
+
+		return nil, err
+	}
+
+	return svc, nil
+}
+
+func (svc *Service) load(ctx context.Context) error {
+	rows, err := svc.db.QueryContext(ctx, "SELECT id, jid, lid, stop_state FROM session")
+	if err != nil {
+		return fmt.Errorf("load the sessions: %w", err)
+	}
+	defer func() { _ = rows.Close() }()
+
+	for rows.Next() {
+		var (
+			id       string
+			jid, lid sql.NullString
+			stopped  []byte
+		)
+
+		if err := rows.Scan(&id, &jid, &lid, &stopped); err != nil {
+			return fmt.Errorf("load the sessions: %w", err)
+		}
+
+		if err := svc.restore(ctx, id, jid.String, lid.String, stopped); err != nil {
+			return err
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("load the sessions: %w", err)
+	}
+
+	return nil
+}
+
+// restore rebuilds one session as a restart leaves it (session.proto Disconnected): never paired is Created, a
+// stopping state comes back as it was, and any other paired one is Disconnected.
+func (svc *Service) restore(ctx context.Context, id, jid, lid string, stopped []byte) error {
+	state := created()
+
+	if stopped != nil {
+		state = &whatsmeowv1.SessionState{}
+		if err := proto.Unmarshal(stopped, state); err != nil {
+			return fmt.Errorf("load session %q: its state: %w", id, err)
+		}
+	}
+
+	device := svc.devices.NewDevice()
+
+	if jid != "" {
+		paired, err := svc.pairedDevice(ctx, jid)
+		if err != nil {
+			return fmt.Errorf("load session %q: %w", id, err)
+		}
+
+		if stopped == nil {
+			state = disconnected()
+		}
+
+		device = paired
+
+		// whatsmeow deletes a logged-out device's rows on its own goroutine (connectionevents.go:37-44), so a crash can
+		// leave the session's jid behind without them.
+		if paired == nil {
+			svc.log.Warn().Str("session_id", id).Msg("the session's device is gone from the store; it is logged out")
+
+			device, state, jid, lid = svc.devices.NewDevice(), loggedOut(0), "", ""
+		}
+	}
+
+	s := svc.add(id, device, state, jid, lid)
+
+	svc.mu.Lock()
+	svc.sessions[id] = s
+	svc.mu.Unlock()
+
+	if jid == "" && stopped == nil {
+		return nil
+	}
+
+	// The fallback to LoggedOut is recorded, so the next start finds it as it is.
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return svc.persist(ctx, s)
+}
+
+func (svc *Service) pairedDevice(ctx context.Context, jid string) (*store.Device, error) {
+	parsed, err := types.ParseJID(jid)
+	if err != nil {
+		return nil, fmt.Errorf("its device JID %q: %w", jid, err)
+	}
+
+	device, err := svc.devices.GetDevice(ctx, parsed)
+	if err != nil {
+		return nil, fmt.Errorf("its device %s: %w", jid, err)
+	}
+
+	return device, nil
+}
+
+// add creates the session's client and registers its event handler; the caller puts it in svc.sessions.
+func (svc *Service) add(id string, device *store.Device, state *whatsmeowv1.SessionState, jid, lid string) *session {
+	s := &session{
+		id: id, device: device, state: state, jid: jid, lid: lid,
+		watchers: map[chan *whatsmeowv1.SessionState]struct{}{}, deleted: make(chan struct{}),
+	}
+	s.client = svc.newClient(id, device)
+	s.client.AddEventHandlerWithSuccessStatus(func(evt any) bool {
+		svc.handle(s, evt)
+
+		// Connection events are not stanzas: whatsmeow acks nothing on their result.
+		return true
+	})
+
+	return s
+}
+
+// handle applies a whatsmeow event. A server-side LoggedOut only records the transition: whatsmeow deletes the
+// device rows itself, concurrently, so the handler never reads, writes or deletes them (ARCHITECTURE §7.4).
+func (svc *Service) handle(s *session, evt any) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.gone() {
+		return
+	}
+
+	state, ok := next(s.state, evt, time.Now())
+	if !ok {
+		return
+	}
+
+	switch e := evt.(type) {
+	case *events.PairSuccess:
+		s.jid, s.lid = e.ID.String(), ""
+		if !e.LID.IsEmpty() {
+			s.lid = e.LID.String()
+		}
+	case *events.LoggedOut:
+		s.jid, s.lid = "", ""
+	}
+
+	if err := svc.transition(svc.lifetime, s, state); err != nil {
+		svc.log.Error().Err(err).Str("session_id", s.id).Msgf("recording the state after a %T failed", evt)
+	}
+}
+
+// transition is the one place a session's state changes: it records the state a restart keeps (the stopping
+// states), then publishes it to every watcher. s.mu is held. The state is published even when recording fails,
+// because it is what whatsmeow reports. A state that happened is recorded even when the call that caused it was
+// cancelled meanwhile.
+func (svc *Service) transition(ctx context.Context, s *session, state *whatsmeowv1.SessionState) error {
+	s.state = state
+	err := svc.persist(context.WithoutCancel(ctx), s)
+
+	for w := range s.watchers {
+		// One slot per watcher: a watcher that falls behind finds only the latest state.
+		select {
+		case <-w:
+		default:
+		}
+
+		w <- state
+	}
+
+	return err
+}
+
+// persist writes what a restart needs: the device's JIDs and a stopping state. s.mu is held.
+func (svc *Service) persist(ctx context.Context, s *session) error {
+	var stopped []byte
+
+	if kept(s.state) {
+		var err error
+		if stopped, err = proto.Marshal(s.state); err != nil {
+			return fmt.Errorf("record session %q: %w", s.id, err)
+		}
+	}
+
+	if _, err := svc.db.ExecContext(ctx, "UPDATE session SET jid = ?, lid = ?, stop_state = ? WHERE id = ?",
+		nullable(s.jid), nullable(s.lid), stopped, s.id); err != nil {
+		return fmt.Errorf("record session %q: %w", s.id, err)
+	}
+
+	return nil
+}
+
+func nullable(s string) sql.NullString { return sql.NullString{String: s, Valid: s != ""} }
+
+func (s *session) gone() bool {
+	select {
+	case <-s.deleted:
+		return true
+	default:
+		return false
+	}
+}
+
+// Close ends the connections' context, which ends a connect in flight, then disconnects every session, before the
+// store closes.
+func (svc *Service) Close() {
+	svc.end()
+
+	svc.mu.Lock()
+	all := make([]*session, 0, len(svc.sessions))
+
+	for _, s := range svc.sessions {
+		all = append(all, s)
+	}
+	svc.mu.Unlock()
+
+	for _, s := range all {
+		s.ops.Lock()
+		s.client.Disconnect()
+		s.ops.Unlock()
+	}
+}
+
+// get returns the session with id, or an error for a malformed or unknown id.
+func (svc *Service) get(id string) (*session, error) {
+	if err := validate(id); err != nil {
+		return nil, err
+	}
+
+	svc.mu.Lock()
+	s, ok := svc.sessions[id]
+	svc.mu.Unlock()
+
+	if !ok {
+		return nil, fmt.Errorf("session %q: %w", id, server.ErrSessionNotFound)
+	}
+
+	return s, nil
+}
+
+func validate(id string) error {
+	if !idPattern.MatchString(id) {
+		return fmt.Errorf("session id: %w", server.InvalidArgument("session_id", "%q is not 1 to 64 of [A-Za-z0-9._-] starting with a letter or a digit", id))
+	}
+
+	return nil
+}
+
+func (s *session) proto() *whatsmeowv1.Session {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return &whatsmeowv1.Session{Id: s.id, State: s.state, Jid: s.jid, Lid: s.lid}
+}
+
+// CreateSession creates an unpaired session, or returns the existing one.
+func (svc *Service) CreateSession(ctx context.Context, req *whatsmeowv1.CreateSessionRequest) (*whatsmeowv1.CreateSessionResponse, error) {
+	id := req.GetSessionId()
+	if err := validate(id); err != nil {
+		return nil, err
+	}
+
+	svc.mu.Lock()
+	defer svc.mu.Unlock()
+
+	if s, ok := svc.sessions[id]; ok {
+		return &whatsmeowv1.CreateSessionResponse{Session: s.proto()}, nil
+	}
+
+	if _, err := svc.db.ExecContext(ctx, "INSERT INTO session (id) VALUES (?)", id); err != nil {
+		return nil, fmt.Errorf("create session %q: %w", id, err)
+	}
+
+	s := svc.add(id, svc.devices.NewDevice(), created(), "", "")
+	svc.sessions[id] = s
+
+	return &whatsmeowv1.CreateSessionResponse{Session: s.proto()}, nil
+}
+
+// ListSessions returns every session, ordered by id.
+func (svc *Service) ListSessions(context.Context, *whatsmeowv1.ListSessionsRequest) (*whatsmeowv1.ListSessionsResponse, error) {
+	svc.mu.Lock()
+	all := make([]*session, 0, len(svc.sessions))
+
+	for _, s := range svc.sessions {
+		all = append(all, s)
+	}
+	svc.mu.Unlock()
+
+	slices.SortFunc(all, func(a, b *session) int {
+		if a.id < b.id {
+			return -1
+		}
+
+		if a.id > b.id {
+			return 1
+		}
+
+		return 0
+	})
+
+	resp := &whatsmeowv1.ListSessionsResponse{Sessions: make([]*whatsmeowv1.Session, 0, len(all))}
+	for _, s := range all {
+		resp.Sessions = append(resp.Sessions, s.proto())
+	}
+
+	return resp, nil
+}
+
+// DeleteSession disconnects the session if it is connected, deletes its device and its row, and ends its watches.
+func (svc *Service) DeleteSession(ctx context.Context, req *whatsmeowv1.DeleteSessionRequest) (*whatsmeowv1.DeleteSessionResponse, error) {
+	s, err := svc.get(req.GetSessionId())
+	if err != nil {
+		return nil, err
+	}
+
+	s.ops.Lock()
+	defer s.ops.Unlock()
+
+	s.mu.Lock()
+	connected, jid := live(s.state), s.jid
+	s.mu.Unlock()
+
+	if connected {
+		s.client.Disconnect()
+	}
+
+	// By the JID the session recorded, not the device's own fields: whatsmeow writes those on its own goroutine on a
+	// server-side logout (store.go:286-297). Deleting rows that whatsmeow already deleted is a no-op.
+	if jid != "" {
+		parsed, err := types.ParseJID(jid)
+		if err != nil {
+			return nil, fmt.Errorf("delete session %q: its device JID %q: %w", s.id, jid, err)
+		}
+
+		if err := svc.devices.DeleteDevice(ctx, &store.Device{ID: &parsed}); err != nil {
+			return nil, fmt.Errorf("delete session %q: its device: %w", s.id, err)
+		}
+	}
+
+	if _, err := svc.db.ExecContext(ctx, "DELETE FROM session WHERE id = ?", s.id); err != nil {
+		return nil, fmt.Errorf("delete session %q: %w", s.id, err)
+	}
+
+	svc.mu.Lock()
+	delete(svc.sessions, s.id)
+	svc.mu.Unlock()
+
+	s.mu.Lock()
+	close(s.deleted)
+	s.mu.Unlock()
+
+	return &whatsmeowv1.DeleteSessionResponse{}, nil
+}
+
+// Connect connects a paired session (session.proto). It is Connecting while whatsmeow's connect call runs, and
+// back in its previous state when that fails.
+func (svc *Service) Connect(ctx context.Context, req *whatsmeowv1.ConnectRequest) (*whatsmeowv1.ConnectResponse, error) {
+	s, err := svc.get(req.GetSessionId())
+	if err != nil {
+		return nil, err
+	}
+
+	s.ops.Lock()
+	defer s.ops.Unlock()
+
+	s.mu.Lock()
+	previous := s.state
+
+	if err := connectable(s.id, previous); err != nil || live(previous) {
+		s.mu.Unlock()
+
+		return &whatsmeowv1.ConnectResponse{}, err
+	}
+
+	if err := svc.transition(ctx, s, connecting()); err != nil {
+		// Not connecting after all: stuck in Connecting, every later Connect would do nothing.
+		if restoreErr := svc.transition(ctx, s, previous); restoreErr != nil {
+			err = errors.Join(err, restoreErr)
+		}
+
+		s.mu.Unlock()
+
+		return nil, err
+	}
+	s.mu.Unlock()
+
+	if err := s.client.ConnectContext(svc.lifetime); err != nil { //nolint:contextcheck // the connection outlives the call (client.go:541-599)
+		s.mu.Lock()
+		defer s.mu.Unlock()
+
+		// An event that came in meanwhile is the newer truth.
+		if is[*whatsmeowv1.SessionState_Connecting_](s.state) {
+			if restoreErr := svc.transition(ctx, s, previous); restoreErr != nil {
+				err = errors.Join(err, restoreErr)
+			}
+		}
+
+		return nil, fmt.Errorf("connect session %q: %w: %w", s.id, server.ErrConnectionFailed, err)
+	}
+
+	return &whatsmeowv1.ConnectResponse{}, nil
+}
+
+// connectable fails for the states Connect refuses: never paired, logged out, and banned with a known end that
+// has not passed.
+func connectable(id string, state *whatsmeowv1.SessionState) error {
+	switch kind := state.GetKind().(type) {
+	case *whatsmeowv1.SessionState_Created_:
+		return fmt.Errorf("connect session %q: %w", id, server.ErrNotLoggedIn)
+	case *whatsmeowv1.SessionState_LoggedOut_:
+		return fmt.Errorf("connect session %q: %w", id, server.ErrLoggedOut)
+	case *whatsmeowv1.SessionState_TempBanned_:
+		expire := kind.TempBanned.GetExpireTime()
+		if expire != nil && expire.AsTime().After(time.Now()) {
+			end := expire.AsTime().UTC().Format(time.RFC3339)
+
+			return fmt.Errorf("connect session %q until %s: %w", id, end, server.WithMetadata(server.ErrTemporarilyBanned, "expireTime", end))
+		}
+	}
+
+	return nil
+}
+
+// Disconnect closes the connection and stops reconnecting; whatsmeow raises no event for it (client.go:695-703),
+// so the sidecar records Disconnected itself.
+func (svc *Service) Disconnect(ctx context.Context, req *whatsmeowv1.DisconnectRequest) (*whatsmeowv1.DisconnectResponse, error) {
+	s, err := svc.get(req.GetSessionId())
+	if err != nil {
+		return nil, err
+	}
+
+	s.ops.Lock()
+	defer s.ops.Unlock()
+
+	s.mu.Lock()
+	connected := live(s.state)
+	s.mu.Unlock()
+
+	if !connected {
+		return &whatsmeowv1.DisconnectResponse{}, nil
+	}
+
+	s.client.Disconnect()
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if err := svc.transition(ctx, s, disconnected()); err != nil {
+		return nil, err
+	}
+
+	return &whatsmeowv1.DisconnectResponse{}, nil
+}
+
+// Logout unlinks the device on WhatsApp; whatsmeow then deletes the device and raises no event
+// (client.go:749-779), so the sidecar records LoggedOut with code 0 itself.
+func (svc *Service) Logout(ctx context.Context, req *whatsmeowv1.LogoutRequest) (*whatsmeowv1.LogoutResponse, error) {
+	s, err := svc.get(req.GetSessionId())
+	if err != nil {
+		return nil, err
+	}
+
+	s.ops.Lock()
+	defer s.ops.Unlock()
+
+	s.mu.Lock()
+	state := s.state
+	s.mu.Unlock()
+
+	switch state.GetKind().(type) {
+	case *whatsmeowv1.SessionState_Created_:
+		return nil, fmt.Errorf("log out session %q: %w", s.id, server.ErrNotLoggedIn)
+	case *whatsmeowv1.SessionState_LoggedOut_:
+		return nil, fmt.Errorf("log out session %q: %w", s.id, server.ErrLoggedOut)
+	case *whatsmeowv1.SessionState_Connected_, *whatsmeowv1.SessionState_CaughtUp_:
+	default:
+		return nil, fmt.Errorf("log out session %q: %w", s.id, server.ErrNotConnected)
+	}
+
+	if err := s.client.Logout(ctx); err != nil {
+		err = fmt.Errorf("log out session %q: %w", s.id, logoutError(err))
+
+		// whatsmeow disconnects only once WhatsApp unlinked the device (client.go:771-772), so an error with no
+		// connection left is a failure after the unlink, deleting the local store: the session is not connected.
+		if !s.client.IsConnected() && !isClassified(err) {
+			s.mu.Lock()
+			defer s.mu.Unlock()
+
+			if recordErr := svc.transition(ctx, s, disconnected()); recordErr != nil {
+				err = errors.Join(err, recordErr)
+			}
+		}
+
+		return nil, err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.jid, s.lid = "", ""
+	if err := svc.transition(ctx, s, loggedOut(0)); err != nil {
+		return nil, err
+	}
+
+	return &whatsmeowv1.LogoutResponse{}, nil
+}
+
+// isClassified is an error logoutError gave a reason, or a context error.
+func isClassified(err error) bool {
+	return errors.Is(err, server.ErrOutcomeUnknown) || errors.Is(err, server.ErrWhatsAppError) || errors.Is(err, server.ErrNotConnected) ||
+		errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)
+}
+
+// logoutError classifies what whatsmeow's unlink request returned (request.go:152-182). A context error stays
+// one, and keeps its own status.
+func logoutError(err error) error {
+	var (
+		disconnected *whatsmeow.DisconnectedError
+		iqErr        *whatsmeow.IQError
+	)
+
+	switch {
+	case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
+		return err
+	case errors.Is(err, whatsmeow.ErrIQTimedOut), errors.As(err, &disconnected):
+		// The request was sent and no answer came: the device may or may not be unlinked.
+		return fmt.Errorf("%w: %w", server.ErrOutcomeUnknown, err)
+	case errors.As(err, &iqErr):
+		return fmt.Errorf("%w: %w", server.WithMetadata(server.ErrWhatsAppError, "code", fmt.Sprint(iqErr.Code)), err)
+	case errors.Is(err, whatsmeow.ErrNotConnected):
+		return fmt.Errorf("%w: %w", server.ErrNotConnected, err)
+	default:
+		return err
+	}
+}
+
+// WatchSessionState sends the current state, then each change, until the client cancels or the session is
+// deleted. A watcher that falls behind finds only the latest state.
+func (svc *Service) WatchSessionState(req *whatsmeowv1.WatchSessionStateRequest, stream grpc.ServerStreamingServer[whatsmeowv1.WatchSessionStateResponse]) error {
+	s, err := svc.get(req.GetSessionId())
+	if err != nil {
+		return err
+	}
+
+	latest := make(chan *whatsmeowv1.SessionState, 1)
+
+	s.mu.Lock()
+	if s.gone() {
+		s.mu.Unlock()
+
+		return fmt.Errorf("session %q: %w", s.id, server.ErrSessionNotFound)
+	}
+
+	latest <- s.state
+	s.watchers[latest] = struct{}{}
+	s.mu.Unlock()
+
+	defer func() {
+		s.mu.Lock()
+		delete(s.watchers, latest)
+		s.mu.Unlock()
+	}()
+
+	ctx := stream.Context()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("watch session %q: %w", s.id, ctx.Err())
+		case <-s.deleted:
+			return fmt.Errorf("session %q was deleted: %w", s.id, server.ErrSessionNotFound)
+		case state := <-latest:
+			if err := stream.Send(&whatsmeowv1.WatchSessionStateResponse{State: state}); err != nil {
+				return fmt.Errorf("watch session %q: %w", s.id, err)
+			}
+		}
+	}
+}

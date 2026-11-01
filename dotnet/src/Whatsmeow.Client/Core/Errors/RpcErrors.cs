@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Globalization;
 using Google.Rpc;
 using Grpc.Core;
 using Whatsmeow.Protocol.V1;
@@ -19,17 +20,111 @@ internal static class RpcErrors
 		.FindTypeByName<Google.Protobuf.Reflection.EnumDescriptor>(nameof(ErrorReason))
 		.Values.ToFrozenDictionary(value => value.Name[Prefix.Length..], value => (ErrorReason)value.Number, StringComparer.Ordinal);
 
+	/// <summary>Awaits a unary call and maps its failure.</summary>
+	public static async Task<T> CallAsync<T>(AsyncUnaryCall<T> call)
+	{
+		using (call)
+		{
+			try
+			{
+				return await call.ResponseAsync.ConfigureAwait(false);
+			}
+			catch (RpcException e)
+			{
+				Throw(e);
+				throw;
+			}
+		}
+	}
+
+	/// <summary>
+	/// The call failed because the sidecar cannot be reached: it is shutting down, the token is no longer its token,
+	/// or the client's own transport failed (Unavailable without an ErrorInfo).
+	/// </summary>
+	public static bool IsUnreachable(RpcException exception) =>
+		Reason(exception, out _) is ErrorReason.Unauthenticated or ErrorReason.SidecarShuttingDown
+		|| (Reason(exception, out _) is null && exception.StatusCode is StatusCode.Unavailable);
+
 	[DoesNotReturn]
 	public static void Throw(RpcException exception)
 	{
-		var reason = exception.GetRpcStatus()?.GetDetail<ErrorInfo>() is { Domain: Domain } info && s_reasons.TryGetValue(info.Reason, out var known)
-			? known
-			: (ErrorReason?)null;
+		var reason = Reason(exception, out var info);
+		var code = ToCode(reason);
 
-		// Without an ErrorInfo, Unavailable comes from the client's own transport: the sidecar is not reachable.
-		if (reason is ErrorReason.Unauthenticated or ErrorReason.SidecarShuttingDown || (reason is null && exception.StatusCode is StatusCode.Unavailable))
-			SidecarUnavailableException.ThrowUnreachable(exception);
+		if (IsUnreachable(exception))
+			SidecarUnavailableException.ThrowUnreachable(exception, code);
 
-		WhatsmeowException.Throw(exception);
+		switch (reason)
+		{
+			case ErrorReason.InvalidArgument:
+				WhatsmeowValidationException.Throw(exception);
+				break;
+			case ErrorReason.SessionNotFound:
+				SessionNotFoundException.Throw(exception);
+				break;
+			case ErrorReason.NotLoggedIn:
+				NotLoggedInException.Throw(exception);
+				break;
+			case ErrorReason.LoggedOut:
+				SessionLoggedOutException.Throw(exception);
+				break;
+			case ErrorReason.NotConnected or ErrorReason.ConnectionFailed:
+				NotConnectedException.Throw(exception, code);
+				break;
+			case ErrorReason.TemporarilyBanned:
+				TemporarilyBannedException.Throw(exception, Until(info!));
+				break;
+			case ErrorReason.OutcomeUnknown:
+				OutcomeUnknownException.Throw(exception);
+				break;
+			case null or ErrorReason.Unspecified or ErrorReason.Internal or ErrorReason.Unauthenticated or ErrorReason.SidecarShuttingDown
+				or ErrorReason.AlreadyPaired or ErrorReason.PairingInProgress or ErrorReason.PairingTimedOut or ErrorReason.PairingFailed
+				or ErrorReason.ConsumerReplaced or ErrorReason.RecipientNotOnWhatsapp or ErrorReason.RateLimited or ErrorReason.WhatsappError:
+			default:
+				break;
+		}
+
+		// The reasons whose exception comes with a later slice (pairing, sending), and the ones the table maps to the
+		// base type, keep their code here.
+		WhatsmeowException.ThrowUnmapped(exception, code);
 	}
+
+	private static ErrorReason? Reason(RpcException exception, out ErrorInfo? info)
+	{
+		info = exception.GetRpcStatus()?.GetDetail<ErrorInfo>();
+		return info is { Domain: Domain } && s_reasons.TryGetValue(info.Reason, out var known) ? known : null;
+	}
+
+	/// <summary>The ban's end from the <c>expireTime</c> metadata, RFC 3339 UTC (error.proto); null when it is unknown.</summary>
+	private static DateTimeOffset? Until(ErrorInfo info) =>
+		info.Metadata.TryGetValue("expireTime", out var value)
+		&& DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var until)
+			? until
+			: null;
+
+	private static WhatsmeowErrorCode ToCode(ErrorReason? reason) =>
+		reason switch
+		{
+			ErrorReason.Internal => WhatsmeowErrorCode.Internal,
+			ErrorReason.InvalidArgument => WhatsmeowErrorCode.InvalidArgument,
+			ErrorReason.Unauthenticated => WhatsmeowErrorCode.Unauthenticated,
+			ErrorReason.SidecarShuttingDown => WhatsmeowErrorCode.SidecarShuttingDown,
+			ErrorReason.SessionNotFound => WhatsmeowErrorCode.SessionNotFound,
+			ErrorReason.NotLoggedIn => WhatsmeowErrorCode.NotLoggedIn,
+			ErrorReason.LoggedOut => WhatsmeowErrorCode.LoggedOut,
+			ErrorReason.AlreadyPaired => WhatsmeowErrorCode.AlreadyPaired,
+			ErrorReason.PairingInProgress => WhatsmeowErrorCode.PairingInProgress,
+			ErrorReason.PairingTimedOut => WhatsmeowErrorCode.PairingTimedOut,
+			ErrorReason.PairingFailed => WhatsmeowErrorCode.PairingFailed,
+			ErrorReason.NotConnected => WhatsmeowErrorCode.NotConnected,
+			ErrorReason.ConnectionFailed => WhatsmeowErrorCode.ConnectionFailed,
+			ErrorReason.TemporarilyBanned => WhatsmeowErrorCode.TemporarilyBanned,
+			ErrorReason.ConsumerReplaced => WhatsmeowErrorCode.ConsumerReplaced,
+			ErrorReason.RecipientNotOnWhatsapp => WhatsmeowErrorCode.RecipientNotOnWhatsApp,
+			ErrorReason.RateLimited => WhatsmeowErrorCode.RateLimited,
+			ErrorReason.OutcomeUnknown => WhatsmeowErrorCode.OutcomeUnknown,
+			ErrorReason.WhatsappError => WhatsmeowErrorCode.WhatsAppError,
+			null or ErrorReason.Unspecified => WhatsmeowErrorCode.Unknown,
+			_ => WhatsmeowErrorCode.Unknown,
+		};
 }

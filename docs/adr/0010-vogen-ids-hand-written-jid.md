@@ -1,6 +1,6 @@
 # 0010. Vogen for primitive ID wrappers; `Jid` stays hand-written
 
-- Status: Accepted
+- Status: Accepted; the `conversions:` line is superseded by [ADR 0020](0020-sessions-and-the-store.md) (`Conversions.None`)
 - Date: 2026-10-31
 - Evidence: [ARCHITECTURE §14](../ARCHITECTURE.md#spike-results-2026-10-31) question 5, "Vogen and options findings"
 

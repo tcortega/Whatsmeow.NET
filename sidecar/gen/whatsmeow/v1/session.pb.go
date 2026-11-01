@@ -1334,8 +1334,9 @@ func (*SessionState_Reconnecting) Descriptor() ([]byte, []int) {
 }
 
 // Paired, not connected: Disconnect was called, the sidecar restarted, or pairing failed after the link.
-// After a restart, a never-paired session is Created, a LoggedOut one stays LoggedOut with its code, and every
-// other paired one is Disconnected.
+// A restart keeps the states that stop a session: a never-paired session is Created, and LoggedOut, Replaced,
+// Outdated, TempBanned and Error come back as they were, with their fields. A session that was Connecting,
+// Connected, CaughtUp, Reconnecting or Disconnected comes back Disconnected.
 type SessionState_Disconnected struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields

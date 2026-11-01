@@ -1,23 +1,105 @@
 #nullable enable
-override Whatsmeow.SidecarInfo.Equals(object? obj) -> bool
-override Whatsmeow.SidecarInfo.GetHashCode() -> int
-override Whatsmeow.SidecarInfo.ToString() -> string!
-static Whatsmeow.SidecarInfo.operator !=(Whatsmeow.SidecarInfo? left, Whatsmeow.SidecarInfo? right) -> bool
-static Whatsmeow.SidecarInfo.operator ==(Whatsmeow.SidecarInfo? left, Whatsmeow.SidecarInfo? right) -> bool
-static Whatsmeow.WhatsmeowSidecar.StartAsync(Whatsmeow.WhatsmeowSidecarOptions! options, Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Whatsmeow.WhatsmeowSidecar!>!
-static Whatsmeow.WhatsmeowSidecar.StartAsync(Whatsmeow.WhatsmeowSidecarOptions! options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Whatsmeow.WhatsmeowSidecar!>!
-Whatsmeow.SidecarUnavailableException
-Whatsmeow.SidecarUnavailableException.SidecarUnavailableException() -> void
-Whatsmeow.SidecarUnavailableException.SidecarUnavailableException(string! message, System.Exception? innerException) -> void
-Whatsmeow.SidecarUnavailableException.SidecarUnavailableException(string! message) -> void
-Whatsmeow.SidecarVersionMismatchException
-Whatsmeow.SidecarVersionMismatchException.SidecarVersionMismatchException() -> void
-Whatsmeow.SidecarVersionMismatchException.SidecarVersionMismatchException(string! message, System.Exception? innerException) -> void
-Whatsmeow.SidecarVersionMismatchException.SidecarVersionMismatchException(string! message) -> void
-Whatsmeow.WhatsmeowException
-Whatsmeow.WhatsmeowException.WhatsmeowException() -> void
-Whatsmeow.WhatsmeowException.WhatsmeowException(string! message, System.Exception? innerException) -> void
-Whatsmeow.WhatsmeowException.WhatsmeowException(string! message) -> void
+Whatsmeow.IWhatsAppClient
+Whatsmeow.IWhatsAppClient.ConnectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.DisconnectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.LogoutAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.SessionId.get -> Whatsmeow.SessionId
+Whatsmeow.IWhatsAppClient.WatchStateAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<Whatsmeow.Sessions.SessionState!>!
+Whatsmeow.NotConnectedException
+Whatsmeow.NotConnectedException.NotConnectedException() -> void
+Whatsmeow.NotConnectedException.NotConnectedException(string! message) -> void
+Whatsmeow.NotConnectedException.NotConnectedException(string! message, System.Exception? innerException) -> void
+Whatsmeow.NotLoggedInException
+Whatsmeow.NotLoggedInException.NotLoggedInException() -> void
+Whatsmeow.NotLoggedInException.NotLoggedInException(string! message) -> void
+Whatsmeow.NotLoggedInException.NotLoggedInException(string! message, System.Exception? innerException) -> void
+Whatsmeow.OutcomeUnknownException
+Whatsmeow.OutcomeUnknownException.OutcomeUnknownException() -> void
+Whatsmeow.OutcomeUnknownException.OutcomeUnknownException(string! message) -> void
+Whatsmeow.OutcomeUnknownException.OutcomeUnknownException(string! message, System.Exception? innerException) -> void
+Whatsmeow.SessionId
+Whatsmeow.SessionId.CompareTo(Whatsmeow.SessionId other) -> int
+Whatsmeow.SessionId.CompareTo(object? other) -> int
+Whatsmeow.SessionId.Equals(Whatsmeow.SessionId other) -> bool
+Whatsmeow.SessionId.Equals(Whatsmeow.SessionId other, System.Collections.Generic.IEqualityComparer<Whatsmeow.SessionId>! comparer) -> bool
+Whatsmeow.SessionId.Equals(string? primitive) -> bool
+Whatsmeow.SessionId.Equals(string? primitive, System.StringComparer! comparer) -> bool
+Whatsmeow.SessionId.GetTypeCode() -> System.TypeCode
+Whatsmeow.SessionId.IsInitialized() -> bool
+Whatsmeow.SessionId.SessionId() -> void
+Whatsmeow.SessionId.ToString(System.IFormatProvider? provider) -> string!
+Whatsmeow.SessionId.Value.get -> string!
+Whatsmeow.SessionLoggedOutException
+Whatsmeow.SessionLoggedOutException.SessionLoggedOutException() -> void
+Whatsmeow.SessionLoggedOutException.SessionLoggedOutException(string! message) -> void
+Whatsmeow.SessionLoggedOutException.SessionLoggedOutException(string! message, System.Exception? innerException) -> void
+Whatsmeow.SessionNotFoundException
+Whatsmeow.SessionNotFoundException.SessionNotFoundException() -> void
+Whatsmeow.SessionNotFoundException.SessionNotFoundException(string! message) -> void
+Whatsmeow.SessionNotFoundException.SessionNotFoundException(string! message, System.Exception? innerException) -> void
+Whatsmeow.Sessions.SessionInfo
+Whatsmeow.Sessions.SessionInfo.<Clone>$() -> Whatsmeow.Sessions.SessionInfo!
+Whatsmeow.Sessions.SessionInfo.Equals(Whatsmeow.Sessions.SessionInfo? other) -> bool
+Whatsmeow.Sessions.SessionInfo.Id.get -> Whatsmeow.SessionId
+Whatsmeow.Sessions.SessionInfo.Id.init -> void
+Whatsmeow.Sessions.SessionInfo.SessionInfo() -> void
+Whatsmeow.Sessions.SessionInfo.State.get -> Whatsmeow.Sessions.SessionState!
+Whatsmeow.Sessions.SessionInfo.State.init -> void
+Whatsmeow.Sessions.SessionState
+Whatsmeow.Sessions.SessionState.CaughtUp
+Whatsmeow.Sessions.SessionState.CaughtUp.CaughtUp() -> void
+Whatsmeow.Sessions.SessionState.CaughtUp.Equals(Whatsmeow.Sessions.SessionState.CaughtUp? other) -> bool
+Whatsmeow.Sessions.SessionState.Connected
+Whatsmeow.Sessions.SessionState.Connected.Connected() -> void
+Whatsmeow.Sessions.SessionState.Connected.Equals(Whatsmeow.Sessions.SessionState.Connected? other) -> bool
+Whatsmeow.Sessions.SessionState.Connecting
+Whatsmeow.Sessions.SessionState.Connecting.Connecting() -> void
+Whatsmeow.Sessions.SessionState.Connecting.Equals(Whatsmeow.Sessions.SessionState.Connecting? other) -> bool
+Whatsmeow.Sessions.SessionState.Created
+Whatsmeow.Sessions.SessionState.Created.Created() -> void
+Whatsmeow.Sessions.SessionState.Created.Equals(Whatsmeow.Sessions.SessionState.Created? other) -> bool
+Whatsmeow.Sessions.SessionState.Disconnected
+Whatsmeow.Sessions.SessionState.Disconnected.Disconnected() -> void
+Whatsmeow.Sessions.SessionState.Disconnected.Equals(Whatsmeow.Sessions.SessionState.Disconnected? other) -> bool
+Whatsmeow.Sessions.SessionState.Error
+Whatsmeow.Sessions.SessionState.Error.Code.get -> int
+Whatsmeow.Sessions.SessionState.Error.Code.init -> void
+Whatsmeow.Sessions.SessionState.Error.Equals(Whatsmeow.Sessions.SessionState.Error? other) -> bool
+Whatsmeow.Sessions.SessionState.Error.Error() -> void
+Whatsmeow.Sessions.SessionState.Error.Message.get -> string!
+Whatsmeow.Sessions.SessionState.Error.Message.init -> void
+Whatsmeow.Sessions.SessionState.LoggedOut
+Whatsmeow.Sessions.SessionState.LoggedOut.Code.get -> int
+Whatsmeow.Sessions.SessionState.LoggedOut.Code.init -> void
+Whatsmeow.Sessions.SessionState.LoggedOut.Equals(Whatsmeow.Sessions.SessionState.LoggedOut? other) -> bool
+Whatsmeow.Sessions.SessionState.LoggedOut.LoggedOut() -> void
+Whatsmeow.Sessions.SessionState.Outdated
+Whatsmeow.Sessions.SessionState.Outdated.Equals(Whatsmeow.Sessions.SessionState.Outdated? other) -> bool
+Whatsmeow.Sessions.SessionState.Outdated.Outdated() -> void
+Whatsmeow.Sessions.SessionState.Pairing
+Whatsmeow.Sessions.SessionState.Pairing.Equals(Whatsmeow.Sessions.SessionState.Pairing? other) -> bool
+Whatsmeow.Sessions.SessionState.Pairing.Pairing() -> void
+Whatsmeow.Sessions.SessionState.Reconnecting
+Whatsmeow.Sessions.SessionState.Reconnecting.Equals(Whatsmeow.Sessions.SessionState.Reconnecting? other) -> bool
+Whatsmeow.Sessions.SessionState.Reconnecting.Reconnecting() -> void
+Whatsmeow.Sessions.SessionState.Replaced
+Whatsmeow.Sessions.SessionState.Replaced.Equals(Whatsmeow.Sessions.SessionState.Replaced? other) -> bool
+Whatsmeow.Sessions.SessionState.Replaced.Replaced() -> void
+Whatsmeow.Sessions.SessionState.SessionState(Whatsmeow.Sessions.SessionState! original) -> void
+Whatsmeow.Sessions.SessionState.TempBanned
+Whatsmeow.Sessions.SessionState.TempBanned.Code.get -> int
+Whatsmeow.Sessions.SessionState.TempBanned.Code.init -> void
+Whatsmeow.Sessions.SessionState.TempBanned.Equals(Whatsmeow.Sessions.SessionState.TempBanned? other) -> bool
+Whatsmeow.Sessions.SessionState.TempBanned.TempBanned() -> void
+Whatsmeow.Sessions.SessionState.TempBanned.Until.get -> System.DateTimeOffset?
+Whatsmeow.Sessions.SessionState.TempBanned.Until.init -> void
+Whatsmeow.Sessions.SessionState.Unknown
+Whatsmeow.Sessions.SessionState.Unknown.Equals(Whatsmeow.Sessions.SessionState.Unknown? other) -> bool
+Whatsmeow.Sessions.SessionState.Unknown.Unknown() -> void
+Whatsmeow.Sessions.WhatsmeowSessions
+Whatsmeow.Sessions.WhatsmeowSessions.DeleteAsync(Whatsmeow.SessionId sessionId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.Sessions.WhatsmeowSessions.GetOrCreateAsync(Whatsmeow.SessionId sessionId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.IWhatsAppClient!>!
+Whatsmeow.Sessions.WhatsmeowSessions.ListAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Whatsmeow.Sessions.SessionInfo!>!>!
 Whatsmeow.SidecarInfo
 Whatsmeow.SidecarInfo.<Clone>$() -> Whatsmeow.SidecarInfo!
 Whatsmeow.SidecarInfo.Commit.get -> string!
@@ -37,10 +119,52 @@ Whatsmeow.SidecarInfo.WhatsmeowVersion.init -> void
 Whatsmeow.SidecarTransport
 Whatsmeow.SidecarTransport.NamedPipe = 1 -> Whatsmeow.SidecarTransport
 Whatsmeow.SidecarTransport.UnixDomainSocket = 0 -> Whatsmeow.SidecarTransport
+Whatsmeow.SidecarUnavailableException
+Whatsmeow.SidecarUnavailableException.SidecarUnavailableException() -> void
+Whatsmeow.SidecarUnavailableException.SidecarUnavailableException(string! message) -> void
+Whatsmeow.SidecarUnavailableException.SidecarUnavailableException(string! message, System.Exception? innerException) -> void
+Whatsmeow.SidecarVersionMismatchException
+Whatsmeow.SidecarVersionMismatchException.SidecarVersionMismatchException() -> void
+Whatsmeow.SidecarVersionMismatchException.SidecarVersionMismatchException(string! message) -> void
+Whatsmeow.SidecarVersionMismatchException.SidecarVersionMismatchException(string! message, System.Exception? innerException) -> void
+Whatsmeow.TemporarilyBannedException
+Whatsmeow.TemporarilyBannedException.TemporarilyBannedException() -> void
+Whatsmeow.TemporarilyBannedException.TemporarilyBannedException(string! message) -> void
+Whatsmeow.TemporarilyBannedException.TemporarilyBannedException(string! message, System.Exception? innerException) -> void
+Whatsmeow.TemporarilyBannedException.Until.get -> System.DateTimeOffset?
+Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.AlreadyPaired = 8 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.ConnectionFailed = 13 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.ConsumerReplaced = 15 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.Internal = 1 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.InvalidArgument = 2 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.LoggedOut = 7 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.NotConnected = 12 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.NotLoggedIn = 6 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.OutcomeUnknown = 18 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.PairingFailed = 11 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.PairingInProgress = 9 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.PairingTimedOut = 10 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.RateLimited = 17 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.RecipientNotOnWhatsApp = 16 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.SessionNotFound = 5 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.SidecarShuttingDown = 4 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.TemporarilyBanned = 14 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.Unauthenticated = 3 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.Unknown = 0 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.WhatsAppError = 19 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowException
+Whatsmeow.WhatsmeowException.ErrorCode.get -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowException.WhatsmeowException() -> void
+Whatsmeow.WhatsmeowException.WhatsmeowException(string! message) -> void
+Whatsmeow.WhatsmeowException.WhatsmeowException(string! message, System.Exception? innerException) -> void
 Whatsmeow.WhatsmeowSidecar
 Whatsmeow.WhatsmeowSidecar.DisposeAsync() -> System.Threading.Tasks.ValueTask
 Whatsmeow.WhatsmeowSidecar.GetInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.SidecarInfo!>!
+Whatsmeow.WhatsmeowSidecar.Sessions.get -> Whatsmeow.Sessions.WhatsmeowSessions!
 Whatsmeow.WhatsmeowSidecarOptions
+Whatsmeow.WhatsmeowSidecarOptions.DatabasePath.get -> string?
+Whatsmeow.WhatsmeowSidecarOptions.DatabasePath.set -> void
 Whatsmeow.WhatsmeowSidecarOptions.SidecarPath.get -> string?
 Whatsmeow.WhatsmeowSidecarOptions.SidecarPath.set -> void
 Whatsmeow.WhatsmeowSidecarOptions.StartupTimeout.get -> System.TimeSpan
@@ -48,3 +172,134 @@ Whatsmeow.WhatsmeowSidecarOptions.StartupTimeout.set -> void
 Whatsmeow.WhatsmeowSidecarOptions.Transport.get -> Whatsmeow.SidecarTransport
 Whatsmeow.WhatsmeowSidecarOptions.Transport.set -> void
 Whatsmeow.WhatsmeowSidecarOptions.WhatsmeowSidecarOptions() -> void
+Whatsmeow.WhatsmeowValidationException
+Whatsmeow.WhatsmeowValidationException.WhatsmeowValidationException() -> void
+Whatsmeow.WhatsmeowValidationException.WhatsmeowValidationException(string! message) -> void
+Whatsmeow.WhatsmeowValidationException.WhatsmeowValidationException(string! message, System.Exception? innerException) -> void
+abstract Whatsmeow.Sessions.SessionState.<Clone>$() -> Whatsmeow.Sessions.SessionState!
+override Whatsmeow.SessionId.Equals(object? obj) -> bool
+override Whatsmeow.SessionId.GetHashCode() -> int
+override Whatsmeow.SessionId.ToString() -> string!
+override Whatsmeow.Sessions.SessionInfo.Equals(object? obj) -> bool
+override Whatsmeow.Sessions.SessionInfo.GetHashCode() -> int
+override Whatsmeow.Sessions.SessionInfo.ToString() -> string!
+override Whatsmeow.Sessions.SessionState.CaughtUp.<Clone>$() -> Whatsmeow.Sessions.SessionState.CaughtUp!
+override Whatsmeow.Sessions.SessionState.CaughtUp.Equals(object? obj) -> bool
+override Whatsmeow.Sessions.SessionState.CaughtUp.GetHashCode() -> int
+override Whatsmeow.Sessions.SessionState.CaughtUp.ToString() -> string!
+override Whatsmeow.Sessions.SessionState.Connected.<Clone>$() -> Whatsmeow.Sessions.SessionState.Connected!
+override Whatsmeow.Sessions.SessionState.Connected.Equals(object? obj) -> bool
+override Whatsmeow.Sessions.SessionState.Connected.GetHashCode() -> int
+override Whatsmeow.Sessions.SessionState.Connected.ToString() -> string!
+override Whatsmeow.Sessions.SessionState.Connecting.<Clone>$() -> Whatsmeow.Sessions.SessionState.Connecting!
+override Whatsmeow.Sessions.SessionState.Connecting.Equals(object? obj) -> bool
+override Whatsmeow.Sessions.SessionState.Connecting.GetHashCode() -> int
+override Whatsmeow.Sessions.SessionState.Connecting.ToString() -> string!
+override Whatsmeow.Sessions.SessionState.Created.<Clone>$() -> Whatsmeow.Sessions.SessionState.Created!
+override Whatsmeow.Sessions.SessionState.Created.Equals(object? obj) -> bool
+override Whatsmeow.Sessions.SessionState.Created.GetHashCode() -> int
+override Whatsmeow.Sessions.SessionState.Created.ToString() -> string!
+override Whatsmeow.Sessions.SessionState.Disconnected.<Clone>$() -> Whatsmeow.Sessions.SessionState.Disconnected!
+override Whatsmeow.Sessions.SessionState.Disconnected.Equals(object? obj) -> bool
+override Whatsmeow.Sessions.SessionState.Disconnected.GetHashCode() -> int
+override Whatsmeow.Sessions.SessionState.Disconnected.ToString() -> string!
+override Whatsmeow.Sessions.SessionState.Equals(object? obj) -> bool
+override Whatsmeow.Sessions.SessionState.Error.<Clone>$() -> Whatsmeow.Sessions.SessionState.Error!
+override Whatsmeow.Sessions.SessionState.Error.Equals(object? obj) -> bool
+override Whatsmeow.Sessions.SessionState.Error.GetHashCode() -> int
+override Whatsmeow.Sessions.SessionState.Error.ToString() -> string!
+override Whatsmeow.Sessions.SessionState.GetHashCode() -> int
+override Whatsmeow.Sessions.SessionState.LoggedOut.<Clone>$() -> Whatsmeow.Sessions.SessionState.LoggedOut!
+override Whatsmeow.Sessions.SessionState.LoggedOut.Equals(object? obj) -> bool
+override Whatsmeow.Sessions.SessionState.LoggedOut.GetHashCode() -> int
+override Whatsmeow.Sessions.SessionState.LoggedOut.ToString() -> string!
+override Whatsmeow.Sessions.SessionState.Outdated.<Clone>$() -> Whatsmeow.Sessions.SessionState.Outdated!
+override Whatsmeow.Sessions.SessionState.Outdated.Equals(object? obj) -> bool
+override Whatsmeow.Sessions.SessionState.Outdated.GetHashCode() -> int
+override Whatsmeow.Sessions.SessionState.Outdated.ToString() -> string!
+override Whatsmeow.Sessions.SessionState.Pairing.<Clone>$() -> Whatsmeow.Sessions.SessionState.Pairing!
+override Whatsmeow.Sessions.SessionState.Pairing.Equals(object? obj) -> bool
+override Whatsmeow.Sessions.SessionState.Pairing.GetHashCode() -> int
+override Whatsmeow.Sessions.SessionState.Pairing.ToString() -> string!
+override Whatsmeow.Sessions.SessionState.Reconnecting.<Clone>$() -> Whatsmeow.Sessions.SessionState.Reconnecting!
+override Whatsmeow.Sessions.SessionState.Reconnecting.Equals(object? obj) -> bool
+override Whatsmeow.Sessions.SessionState.Reconnecting.GetHashCode() -> int
+override Whatsmeow.Sessions.SessionState.Reconnecting.ToString() -> string!
+override Whatsmeow.Sessions.SessionState.Replaced.<Clone>$() -> Whatsmeow.Sessions.SessionState.Replaced!
+override Whatsmeow.Sessions.SessionState.Replaced.Equals(object? obj) -> bool
+override Whatsmeow.Sessions.SessionState.Replaced.GetHashCode() -> int
+override Whatsmeow.Sessions.SessionState.Replaced.ToString() -> string!
+override Whatsmeow.Sessions.SessionState.TempBanned.<Clone>$() -> Whatsmeow.Sessions.SessionState.TempBanned!
+override Whatsmeow.Sessions.SessionState.TempBanned.Equals(object? obj) -> bool
+override Whatsmeow.Sessions.SessionState.TempBanned.GetHashCode() -> int
+override Whatsmeow.Sessions.SessionState.TempBanned.ToString() -> string!
+override Whatsmeow.Sessions.SessionState.ToString() -> string!
+override Whatsmeow.Sessions.SessionState.Unknown.<Clone>$() -> Whatsmeow.Sessions.SessionState.Unknown!
+override Whatsmeow.Sessions.SessionState.Unknown.Equals(object? obj) -> bool
+override Whatsmeow.Sessions.SessionState.Unknown.GetHashCode() -> int
+override Whatsmeow.Sessions.SessionState.Unknown.ToString() -> string!
+override Whatsmeow.SidecarInfo.Equals(object? obj) -> bool
+override Whatsmeow.SidecarInfo.GetHashCode() -> int
+override Whatsmeow.SidecarInfo.ToString() -> string!
+override sealed Whatsmeow.Sessions.SessionState.CaughtUp.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
+override sealed Whatsmeow.Sessions.SessionState.Connected.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
+override sealed Whatsmeow.Sessions.SessionState.Connecting.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
+override sealed Whatsmeow.Sessions.SessionState.Created.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
+override sealed Whatsmeow.Sessions.SessionState.Disconnected.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
+override sealed Whatsmeow.Sessions.SessionState.Error.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
+override sealed Whatsmeow.Sessions.SessionState.LoggedOut.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
+override sealed Whatsmeow.Sessions.SessionState.Outdated.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
+override sealed Whatsmeow.Sessions.SessionState.Pairing.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
+override sealed Whatsmeow.Sessions.SessionState.Reconnecting.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
+override sealed Whatsmeow.Sessions.SessionState.Replaced.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
+override sealed Whatsmeow.Sessions.SessionState.TempBanned.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
+override sealed Whatsmeow.Sessions.SessionState.Unknown.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
+static Whatsmeow.SessionId.From(string! value) -> Whatsmeow.SessionId
+static Whatsmeow.SessionId.Parse(string! s, System.IFormatProvider? provider) -> Whatsmeow.SessionId
+static Whatsmeow.SessionId.TryFrom(string? value, out Whatsmeow.SessionId vo) -> bool
+static Whatsmeow.SessionId.TryParse(string? s, System.IFormatProvider? provider, out Whatsmeow.SessionId result) -> bool
+static Whatsmeow.SessionId.explicit operator Whatsmeow.SessionId(string! value) -> Whatsmeow.SessionId
+static Whatsmeow.SessionId.explicit operator string!(Whatsmeow.SessionId value) -> string!
+static Whatsmeow.SessionId.operator !=(Whatsmeow.SessionId left, Whatsmeow.SessionId right) -> bool
+static Whatsmeow.SessionId.operator !=(Whatsmeow.SessionId left, string? right) -> bool
+static Whatsmeow.SessionId.operator !=(string? left, Whatsmeow.SessionId right) -> bool
+static Whatsmeow.SessionId.operator ==(Whatsmeow.SessionId left, Whatsmeow.SessionId right) -> bool
+static Whatsmeow.SessionId.operator ==(Whatsmeow.SessionId left, string? right) -> bool
+static Whatsmeow.SessionId.operator ==(string? left, Whatsmeow.SessionId right) -> bool
+static Whatsmeow.Sessions.SessionInfo.operator !=(Whatsmeow.Sessions.SessionInfo? left, Whatsmeow.Sessions.SessionInfo? right) -> bool
+static Whatsmeow.Sessions.SessionInfo.operator ==(Whatsmeow.Sessions.SessionInfo? left, Whatsmeow.Sessions.SessionInfo? right) -> bool
+static Whatsmeow.Sessions.SessionState.CaughtUp.operator !=(Whatsmeow.Sessions.SessionState.CaughtUp? left, Whatsmeow.Sessions.SessionState.CaughtUp? right) -> bool
+static Whatsmeow.Sessions.SessionState.CaughtUp.operator ==(Whatsmeow.Sessions.SessionState.CaughtUp? left, Whatsmeow.Sessions.SessionState.CaughtUp? right) -> bool
+static Whatsmeow.Sessions.SessionState.Connected.operator !=(Whatsmeow.Sessions.SessionState.Connected? left, Whatsmeow.Sessions.SessionState.Connected? right) -> bool
+static Whatsmeow.Sessions.SessionState.Connected.operator ==(Whatsmeow.Sessions.SessionState.Connected? left, Whatsmeow.Sessions.SessionState.Connected? right) -> bool
+static Whatsmeow.Sessions.SessionState.Connecting.operator !=(Whatsmeow.Sessions.SessionState.Connecting? left, Whatsmeow.Sessions.SessionState.Connecting? right) -> bool
+static Whatsmeow.Sessions.SessionState.Connecting.operator ==(Whatsmeow.Sessions.SessionState.Connecting? left, Whatsmeow.Sessions.SessionState.Connecting? right) -> bool
+static Whatsmeow.Sessions.SessionState.Created.operator !=(Whatsmeow.Sessions.SessionState.Created? left, Whatsmeow.Sessions.SessionState.Created? right) -> bool
+static Whatsmeow.Sessions.SessionState.Created.operator ==(Whatsmeow.Sessions.SessionState.Created? left, Whatsmeow.Sessions.SessionState.Created? right) -> bool
+static Whatsmeow.Sessions.SessionState.Disconnected.operator !=(Whatsmeow.Sessions.SessionState.Disconnected? left, Whatsmeow.Sessions.SessionState.Disconnected? right) -> bool
+static Whatsmeow.Sessions.SessionState.Disconnected.operator ==(Whatsmeow.Sessions.SessionState.Disconnected? left, Whatsmeow.Sessions.SessionState.Disconnected? right) -> bool
+static Whatsmeow.Sessions.SessionState.Error.operator !=(Whatsmeow.Sessions.SessionState.Error? left, Whatsmeow.Sessions.SessionState.Error? right) -> bool
+static Whatsmeow.Sessions.SessionState.Error.operator ==(Whatsmeow.Sessions.SessionState.Error? left, Whatsmeow.Sessions.SessionState.Error? right) -> bool
+static Whatsmeow.Sessions.SessionState.LoggedOut.operator !=(Whatsmeow.Sessions.SessionState.LoggedOut? left, Whatsmeow.Sessions.SessionState.LoggedOut? right) -> bool
+static Whatsmeow.Sessions.SessionState.LoggedOut.operator ==(Whatsmeow.Sessions.SessionState.LoggedOut? left, Whatsmeow.Sessions.SessionState.LoggedOut? right) -> bool
+static Whatsmeow.Sessions.SessionState.Outdated.operator !=(Whatsmeow.Sessions.SessionState.Outdated? left, Whatsmeow.Sessions.SessionState.Outdated? right) -> bool
+static Whatsmeow.Sessions.SessionState.Outdated.operator ==(Whatsmeow.Sessions.SessionState.Outdated? left, Whatsmeow.Sessions.SessionState.Outdated? right) -> bool
+static Whatsmeow.Sessions.SessionState.Pairing.operator !=(Whatsmeow.Sessions.SessionState.Pairing? left, Whatsmeow.Sessions.SessionState.Pairing? right) -> bool
+static Whatsmeow.Sessions.SessionState.Pairing.operator ==(Whatsmeow.Sessions.SessionState.Pairing? left, Whatsmeow.Sessions.SessionState.Pairing? right) -> bool
+static Whatsmeow.Sessions.SessionState.Reconnecting.operator !=(Whatsmeow.Sessions.SessionState.Reconnecting? left, Whatsmeow.Sessions.SessionState.Reconnecting? right) -> bool
+static Whatsmeow.Sessions.SessionState.Reconnecting.operator ==(Whatsmeow.Sessions.SessionState.Reconnecting? left, Whatsmeow.Sessions.SessionState.Reconnecting? right) -> bool
+static Whatsmeow.Sessions.SessionState.Replaced.operator !=(Whatsmeow.Sessions.SessionState.Replaced? left, Whatsmeow.Sessions.SessionState.Replaced? right) -> bool
+static Whatsmeow.Sessions.SessionState.Replaced.operator ==(Whatsmeow.Sessions.SessionState.Replaced? left, Whatsmeow.Sessions.SessionState.Replaced? right) -> bool
+static Whatsmeow.Sessions.SessionState.TempBanned.operator !=(Whatsmeow.Sessions.SessionState.TempBanned? left, Whatsmeow.Sessions.SessionState.TempBanned? right) -> bool
+static Whatsmeow.Sessions.SessionState.TempBanned.operator ==(Whatsmeow.Sessions.SessionState.TempBanned? left, Whatsmeow.Sessions.SessionState.TempBanned? right) -> bool
+static Whatsmeow.Sessions.SessionState.Unknown.operator !=(Whatsmeow.Sessions.SessionState.Unknown? left, Whatsmeow.Sessions.SessionState.Unknown? right) -> bool
+static Whatsmeow.Sessions.SessionState.Unknown.operator ==(Whatsmeow.Sessions.SessionState.Unknown? left, Whatsmeow.Sessions.SessionState.Unknown? right) -> bool
+static Whatsmeow.Sessions.SessionState.operator !=(Whatsmeow.Sessions.SessionState? left, Whatsmeow.Sessions.SessionState? right) -> bool
+static Whatsmeow.Sessions.SessionState.operator ==(Whatsmeow.Sessions.SessionState? left, Whatsmeow.Sessions.SessionState? right) -> bool
+static Whatsmeow.SidecarInfo.operator !=(Whatsmeow.SidecarInfo? left, Whatsmeow.SidecarInfo? right) -> bool
+static Whatsmeow.SidecarInfo.operator ==(Whatsmeow.SidecarInfo? left, Whatsmeow.SidecarInfo? right) -> bool
+static Whatsmeow.WhatsmeowSidecar.StartAsync(Whatsmeow.WhatsmeowSidecarOptions! options, Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Whatsmeow.WhatsmeowSidecar!>!
+static Whatsmeow.WhatsmeowSidecar.StartAsync(Whatsmeow.WhatsmeowSidecarOptions! options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Whatsmeow.WhatsmeowSidecar!>!
+virtual Whatsmeow.Sessions.SessionState.EqualityContract.get -> System.Type!
+virtual Whatsmeow.Sessions.SessionState.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
+virtual Whatsmeow.Sessions.SessionState.PrintMembers(System.Text.StringBuilder! builder) -> bool

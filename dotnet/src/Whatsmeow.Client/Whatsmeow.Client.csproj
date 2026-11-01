@@ -9,6 +9,7 @@
 		<PackageReference Include="Grpc.StatusProto" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Options" />
+		<PackageReference Include="Vogen" />
 		<ProjectReference Include="../Whatsmeow.Protocol/Whatsmeow.Protocol.csproj" />
 	</ItemGroup>
 

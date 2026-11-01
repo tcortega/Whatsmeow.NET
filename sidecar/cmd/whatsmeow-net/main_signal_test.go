@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"sync"
 	"syscall"
@@ -53,7 +54,7 @@ func startSidecar(t *testing.T, args ...string) *child {
 
 	t.Cleanup(func() { _ = os.RemoveAll(dir) })
 
-	cmd := exec.CommandContext(ctx, os.Args[0], append([]string{"--socket-dir", dir, "--nonce", "n"}, args...)...) //nolint:gosec // G204, G702: this test binary itself, with the tests' constant arguments
+	cmd := exec.CommandContext(ctx, os.Args[0], append([]string{"--socket-dir", dir, "--nonce", "n", "--database", filepath.Join(dir, "whatsmeow-net.db")}, args...)...) //nolint:gosec // G204, G702: this test binary itself, with the tests' constant arguments
 	cmd.Env = append(os.Environ(), "WHATSMEOW_NET_TEST_RUN_MAIN=1")
 
 	stdin, err := cmd.StdinPipe()

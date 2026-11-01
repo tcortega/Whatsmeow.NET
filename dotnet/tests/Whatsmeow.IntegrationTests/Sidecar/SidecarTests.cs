@@ -25,7 +25,7 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 	{
 		var ct = TestContext.Current.CancellationToken;
 		using var logs = new LogCapture();
-		var options = new WhatsmeowSidecarOptions { SidecarPath = binaries.Stage(binaries.Sidecar), Transport = transport };
+		var options = new WhatsmeowSidecarOptions { SidecarPath = binaries.Stage(binaries.Sidecar), Transport = transport, DatabasePath = binaries.NewDatabase() };
 
 		// The start's own GetInfo and version check go over this transport; the GetInfo FullCycle is GetInfoTests.
 		await using var sidecar = await WhatsmeowSidecar.StartAsync(options, logs.Factory, ct);
@@ -43,7 +43,7 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 
 		// Stage leaves the copy without its execute bit on Unix; the client sets it rather than copying the binary.
 		var staged = binaries.Stage(binaries.Sidecar);
-		await using var sidecar = await WhatsmeowSidecar.StartAsync(new WhatsmeowSidecarOptions { SidecarPath = staged }, logs.Factory, ct);
+		await using var sidecar = await WhatsmeowSidecar.StartAsync(new WhatsmeowSidecarOptions { SidecarPath = staged, DatabasePath = binaries.NewDatabase() }, logs.Factory, ct);
 		var (processId, _) = await logs.StartedAsync(1, ct);
 
 		// The process runs the staged file itself, on every OS: no cached copy. The staged directory's name is unique;
@@ -57,7 +57,7 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 	{
 		var ct = TestContext.Current.CancellationToken;
 		using var logs = new LogCapture();
-		var sidecar = await WhatsmeowSidecar.StartAsync(new WhatsmeowSidecarOptions { SidecarPath = binaries.Stage(binaries.Sidecar) }, logs.Factory, ct);
+		var sidecar = await WhatsmeowSidecar.StartAsync(new WhatsmeowSidecarOptions { SidecarPath = binaries.Stage(binaries.Sidecar), DatabasePath = binaries.NewDatabase() }, logs.Factory, ct);
 		var (_, endpoint) = await logs.StartedAsync(1, ct);
 
 		await sidecar.DisposeAsync();
@@ -97,7 +97,7 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 	{
 		var ct = TestContext.Current.CancellationToken;
 		using var logs = new LogCapture();
-		var options = new WhatsmeowSidecarOptions { SidecarPath = binaries.Stage(binaries.OtherVersionSidecar) };
+		var options = new WhatsmeowSidecarOptions { SidecarPath = binaries.Stage(binaries.OtherVersionSidecar), DatabasePath = binaries.NewDatabase() };
 
 		_ = await Assert.ThrowsAsync<SidecarVersionMismatchException>(() => WhatsmeowSidecar.StartAsync(options, logs.Factory, ct));
 
@@ -109,7 +109,7 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 	{
 		var ct = TestContext.Current.CancellationToken;
 		using var logs = new LogCapture();
-		var options = new WhatsmeowSidecarOptions { SidecarPath = binaries.Stage(binaries.Sidecar) };
+		var options = new WhatsmeowSidecarOptions { SidecarPath = binaries.Stage(binaries.Sidecar), DatabasePath = binaries.NewDatabase() };
 
 		// The one internal seam: the real sidecar cannot be made to report another protocol (tests.md).
 		_ = await Assert.ThrowsAsync<SidecarVersionMismatchException>(() => WhatsmeowSidecar.StartAsync(options, logs.Factory, minProtocol: 2, maxProtocol: 3, ct));
@@ -184,7 +184,7 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 	{
 		var ct = TestContext.Current.CancellationToken;
 		using var logs = new LogCapture();
-		await using var sidecar = await WhatsmeowSidecar.StartAsync(new WhatsmeowSidecarOptions { SidecarPath = binaries.Stage(binaries.Sidecar) }, logs.Factory, ct);
+		await using var sidecar = await WhatsmeowSidecar.StartAsync(new WhatsmeowSidecarOptions { SidecarPath = binaries.Stage(binaries.Sidecar), DatabasePath = binaries.NewDatabase() }, logs.Factory, ct);
 		var (processId, _) = await logs.StartedAsync(1, ct);
 
 		using (var process = Process.GetProcessById(processId))
@@ -201,7 +201,7 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 	{
 		var ct = TestContext.Current.CancellationToken;
 		using var logs = new LogCapture();
-		await using var sidecar = await WhatsmeowSidecar.StartAsync(new WhatsmeowSidecarOptions { SidecarPath = binaries.Stage(binaries.Sidecar) }, logs.Factory, ct);
+		await using var sidecar = await WhatsmeowSidecar.StartAsync(new WhatsmeowSidecarOptions { SidecarPath = binaries.Stage(binaries.Sidecar), DatabasePath = binaries.NewDatabase() }, logs.Factory, ct);
 		var (first, _) = await logs.StartedAsync(1, ct);
 
 		using (var process = Process.GetProcessById(first))
@@ -223,6 +223,7 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 		var host = Path.Combine(AppContext.BaseDirectory, OperatingSystem.IsWindows() ? "SidecarHost.exe" : "SidecarHost");
 		var info = new ProcessStartInfo(host) { UseShellExecute = false, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
 		info.ArgumentList.Add(binaries.Stage(binaries.Sidecar));
+		info.ArgumentList.Add(binaries.NewDatabase());
 
 		using var parent = Process.Start(info)!;
 		var line = await parent.StandardOutput.ReadLineAsync(ct);

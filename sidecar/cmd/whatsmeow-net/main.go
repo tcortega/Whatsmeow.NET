@@ -1,6 +1,6 @@
 // Command whatsmeow-net is the sidecar process (ARCHITECTURE §7.8).
 //
-// The client starts it with --transport, --socket-dir and --nonce, writes the per-launch token as the first
+// The client starts it with --database, --transport, --socket-dir and --nonce, writes the per-launch token as the first
 // line of stdin, and keeps stdin open: EOF on stdin, a Shutdown call or SIGTERM stop it gracefully with exit
 // code 0. SIGINT is ignored: the sidecar is always tethered, and a terminal Ctrl+C reaches the whole process
 // group, so the client decides when it stops. Once it listens, it prints exactly one JSON ready line on stdout. Logs are JSON lines on
@@ -28,8 +28,11 @@ import (
 	"github.com/rs/zerolog"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	wmlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/session"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/sidecar"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/transport"
 )
 
@@ -66,6 +69,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	kind := flags.String("transport", transport.Unix, "unix or pipe (Windows only)")
 	socketDir := flags.String("socket-dir", "", "the directory for the unix socket; the client owns it")
 	nonce := flags.String("nonce", "", "echoed in the ready line")
+	database := flags.String("database", "", "the SQLite database file; one whatsmeow-net at a time")
 	fake := flags.Bool("fake-whatsapp", false, "test builds only (-tags fakewhatsapp): replace WhatsApp with a scripted fake and serve its control")
 
 	if err := flags.Parse(args); err != nil {
@@ -85,14 +89,21 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return exitUsage
 	}
 
+	if *database == "" {
+		log.Error().Msg("usage: whatsmeow-net --database <file> is required")
+
+		return exitUsage
+	}
+
 	signal.Ignore(os.Interrupt)
+	wmlog.SetupSignal(log)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM)
 	defer stop()
 
 	log.Info().Str("version", version).Str("transport", *kind).Msg("starting")
 
-	if err := serve(ctx, log, *kind, *socketDir, *nonce, *fake, bufio.NewReader(stdin), stdout); err != nil {
+	if err := serve(ctx, log, options{*kind, *socketDir, *nonce, *database, *fake}, bufio.NewReader(stdin), stdout); err != nil {
 		log.Error().Err(err).Msg("sidecar failed")
 
 		return exitFailed
@@ -101,7 +112,13 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	return exitStopped
 }
 
-func serve(ctx context.Context, log zerolog.Logger, kind, socketDir, nonce string, fake bool, stdin *bufio.Reader, stdout io.Writer) error {
+// options are the flags serve needs.
+type options struct {
+	kind, socketDir, nonce, database string
+	fake                             bool
+}
+
+func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.Reader, stdout io.Writer) error {
 	token, err := awaitToken(ctx, stdin)
 	if err != nil {
 		return err
@@ -118,7 +135,13 @@ func serve(ctx context.Context, log zerolog.Logger, kind, socketDir, nonce strin
 		return errors.New("the binary has no build info")
 	}
 
-	lis, endpoint, err := transport.Listen(ctx, kind, socketDir)
+	db, err := store.Open(ctx, opts.database, log)
+	if err != nil {
+		return fmt.Errorf("open the store: %w", err)
+	}
+	defer closeStore(log, db)
+
+	lis, endpoint, err := transport.Listen(ctx, opts.kind, opts.socketDir)
 	if err != nil {
 		return fmt.Errorf("listen: %w", err)
 	}
@@ -127,9 +150,20 @@ func serve(ctx context.Context, log zerolog.Logger, kind, socketDir, nonce strin
 	svc := sidecar.New(version, build, srv.Shutdown)
 	whatsmeowv1.RegisterSidecarServiceServer(srv, svc)
 
-	if fake {
-		serveFake(srv, log)
+	newClient := session.NewWhatsmeowClient(log)
+	if opts.fake {
+		newClient = serveFake(srv, log)
 	}
+
+	sessions, err := session.New(ctx, db.DB, db.Devices, newClient, log)
+	if err != nil {
+		_ = lis.Close()
+
+		return fmt.Errorf("load the sessions: %w", err)
+	}
+	defer sessions.Close()
+
+	whatsmeowv1.RegisterSessionServiceServer(srv, sessions)
 
 	served := make(chan error, 1)
 
@@ -145,7 +179,7 @@ func serve(ctx context.Context, log zerolog.Logger, kind, socketDir, nonce strin
 	}()
 
 	err = json.NewEncoder(stdout).Encode(readyLine{
-		Event: "ready", Version: version, Protocol: sidecar.Protocol, Whatsmeow: svc.WhatsmeowVersion(), Listen: endpoint, Nonce: nonce,
+		Event: "ready", Version: version, Protocol: sidecar.Protocol, Whatsmeow: svc.WhatsmeowVersion(), Listen: endpoint, Nonce: opts.nonce,
 	})
 	if err != nil {
 		srv.Stop()
@@ -177,6 +211,13 @@ func serve(ctx context.Context, log zerolog.Logger, kind, socketDir, nonce strin
 	log.Info().Msg("stopped")
 
 	return nil
+}
+
+// closeStore closes the store after the sessions disconnected, and releases its lock.
+func closeStore(log zerolog.Logger, db *store.Store) {
+	if err := db.Close(); err != nil {
+		log.Error().Err(err).Msg("closing the store failed")
+	}
 }
 
 // awaitToken reads the token, or returns "" when ctx ends first: SIGTERM stops the sidecar before the token

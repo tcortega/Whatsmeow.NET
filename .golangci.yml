@@ -33,6 +33,8 @@ linters:
           files:
             - $all
             - "!**/internal/server/**"
+            # A test reads the status a call returned, to check its reason; it never builds one.
+            - "!$test"
           deny:
             - pkg: google.golang.org/grpc/status
               desc: errors become gRPC statuses in internal/server only; return %w errors (docs/guidelines/go.md)

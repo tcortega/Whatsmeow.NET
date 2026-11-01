@@ -60,6 +60,22 @@ namespace Whatsmeow.IntegrationTests.Fake {
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.WaitForSentRequest> __Marshaller_whatsmeow_fake_v1_WaitForSentRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.WaitForSentRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.WaitForSentResponse> __Marshaller_whatsmeow_fake_v1_WaitForSentResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.WaitForSentResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.LinkDeviceRequest> __Marshaller_whatsmeow_fake_v1_LinkDeviceRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.LinkDeviceRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.LinkDeviceResponse> __Marshaller_whatsmeow_fake_v1_LinkDeviceResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.LinkDeviceResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextConnectRequest> __Marshaller_whatsmeow_fake_v1_FailNextConnectRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextConnectRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextConnectResponse> __Marshaller_whatsmeow_fake_v1_FailNextConnectResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextConnectResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextLogoutRequest> __Marshaller_whatsmeow_fake_v1_FailNextLogoutRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextLogoutRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextLogoutResponse> __Marshaller_whatsmeow_fake_v1_FailNextLogoutResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextLogoutResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectRequest> __Marshaller_whatsmeow_fake_v1_RaisePermanentDisconnectRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectResponse> __Marshaller_whatsmeow_fake_v1_RaisePermanentDisconnectResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectResponse.Parser));
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse> __Method_DeliverMessage = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse>(
@@ -76,6 +92,38 @@ namespace Whatsmeow.IntegrationTests.Fake {
         "WaitForSent",
         __Marshaller_whatsmeow_fake_v1_WaitForSentRequest,
         __Marshaller_whatsmeow_fake_v1_WaitForSentResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.LinkDeviceRequest, global::Whatsmeow.IntegrationTests.Fake.LinkDeviceResponse> __Method_LinkDevice = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.LinkDeviceRequest, global::Whatsmeow.IntegrationTests.Fake.LinkDeviceResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "LinkDevice",
+        __Marshaller_whatsmeow_fake_v1_LinkDeviceRequest,
+        __Marshaller_whatsmeow_fake_v1_LinkDeviceResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.FailNextConnectRequest, global::Whatsmeow.IntegrationTests.Fake.FailNextConnectResponse> __Method_FailNextConnect = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.FailNextConnectRequest, global::Whatsmeow.IntegrationTests.Fake.FailNextConnectResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "FailNextConnect",
+        __Marshaller_whatsmeow_fake_v1_FailNextConnectRequest,
+        __Marshaller_whatsmeow_fake_v1_FailNextConnectResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.FailNextLogoutRequest, global::Whatsmeow.IntegrationTests.Fake.FailNextLogoutResponse> __Method_FailNextLogout = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.FailNextLogoutRequest, global::Whatsmeow.IntegrationTests.Fake.FailNextLogoutResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "FailNextLogout",
+        __Marshaller_whatsmeow_fake_v1_FailNextLogoutRequest,
+        __Marshaller_whatsmeow_fake_v1_FailNextLogoutResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectRequest, global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectResponse> __Method_RaisePermanentDisconnect = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectRequest, global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "RaisePermanentDisconnect",
+        __Marshaller_whatsmeow_fake_v1_RaisePermanentDisconnectRequest,
+        __Marshaller_whatsmeow_fake_v1_RaisePermanentDisconnectResponse);
 
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
@@ -225,6 +273,226 @@ namespace Whatsmeow.IntegrationTests.Fake {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.WaitForSentResponse> WaitForSentAsync(global::Whatsmeow.IntegrationTests.Fake.WaitForSentRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_WaitForSent, null, options, request);
+      }
+      /// <summary>
+      /// LinkDevice makes the phone link the session's device, standing in for pairing until the Pair call exists (#7):
+      /// the client stores the device under jid as whatsmeow does after a pair success (handlePair, pair.go:222-240),
+      /// then dispatches PairSuccess and returns once its event handlers ran.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.LinkDeviceResponse LinkDevice(global::Whatsmeow.IntegrationTests.Fake.LinkDeviceRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return LinkDevice(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// LinkDevice makes the phone link the session's device, standing in for pairing until the Pair call exists (#7):
+      /// the client stores the device under jid as whatsmeow does after a pair success (handlePair, pair.go:222-240),
+      /// then dispatches PairSuccess and returns once its event handlers ran.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.LinkDeviceResponse LinkDevice(global::Whatsmeow.IntegrationTests.Fake.LinkDeviceRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_LinkDevice, null, options, request);
+      }
+      /// <summary>
+      /// LinkDevice makes the phone link the session's device, standing in for pairing until the Pair call exists (#7):
+      /// the client stores the device under jid as whatsmeow does after a pair success (handlePair, pair.go:222-240),
+      /// then dispatches PairSuccess and returns once its event handlers ran.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.LinkDeviceResponse> LinkDeviceAsync(global::Whatsmeow.IntegrationTests.Fake.LinkDeviceRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return LinkDeviceAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// LinkDevice makes the phone link the session's device, standing in for pairing until the Pair call exists (#7):
+      /// the client stores the device under jid as whatsmeow does after a pair success (handlePair, pair.go:222-240),
+      /// then dispatches PairSuccess and returns once its event handlers ran.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.LinkDeviceResponse> LinkDeviceAsync(global::Whatsmeow.IntegrationTests.Fake.LinkDeviceRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_LinkDevice, null, options, request);
+      }
+      /// <summary>
+      /// FailNextConnect makes the session's next connect fail with an error whatsmeow does not retry. Without it a
+      /// connect succeeds, and a linked client then gets Connected, as whatsmeow does once WhatsApp accepts the login.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.FailNextConnectResponse FailNextConnect(global::Whatsmeow.IntegrationTests.Fake.FailNextConnectRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return FailNextConnect(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// FailNextConnect makes the session's next connect fail with an error whatsmeow does not retry. Without it a
+      /// connect succeeds, and a linked client then gets Connected, as whatsmeow does once WhatsApp accepts the login.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.FailNextConnectResponse FailNextConnect(global::Whatsmeow.IntegrationTests.Fake.FailNextConnectRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_FailNextConnect, null, options, request);
+      }
+      /// <summary>
+      /// FailNextConnect makes the session's next connect fail with an error whatsmeow does not retry. Without it a
+      /// connect succeeds, and a linked client then gets Connected, as whatsmeow does once WhatsApp accepts the login.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.FailNextConnectResponse> FailNextConnectAsync(global::Whatsmeow.IntegrationTests.Fake.FailNextConnectRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return FailNextConnectAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// FailNextConnect makes the session's next connect fail with an error whatsmeow does not retry. Without it a
+      /// connect succeeds, and a linked client then gets Connected, as whatsmeow does once WhatsApp accepts the login.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.FailNextConnectResponse> FailNextConnectAsync(global::Whatsmeow.IntegrationTests.Fake.FailNextConnectRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_FailNextConnect, null, options, request);
+      }
+      /// <summary>
+      /// FailNextLogout makes the session's next logout get no answer from WhatsApp: whatsmeow's unlink request times out
+      /// (ErrIQTimedOut, request.go:180-181), and the client stays connected with its device, as whatsmeow's does.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.FailNextLogoutResponse FailNextLogout(global::Whatsmeow.IntegrationTests.Fake.FailNextLogoutRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return FailNextLogout(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// FailNextLogout makes the session's next logout get no answer from WhatsApp: whatsmeow's unlink request times out
+      /// (ErrIQTimedOut, request.go:180-181), and the client stays connected with its device, as whatsmeow's does.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.FailNextLogoutResponse FailNextLogout(global::Whatsmeow.IntegrationTests.Fake.FailNextLogoutRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_FailNextLogout, null, options, request);
+      }
+      /// <summary>
+      /// FailNextLogout makes the session's next logout get no answer from WhatsApp: whatsmeow's unlink request times out
+      /// (ErrIQTimedOut, request.go:180-181), and the client stays connected with its device, as whatsmeow's does.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.FailNextLogoutResponse> FailNextLogoutAsync(global::Whatsmeow.IntegrationTests.Fake.FailNextLogoutRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return FailNextLogoutAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// FailNextLogout makes the session's next logout get no answer from WhatsApp: whatsmeow's unlink request times out
+      /// (ErrIQTimedOut, request.go:180-181), and the client stays connected with its device, as whatsmeow's does.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.FailNextLogoutResponse> FailNextLogoutAsync(global::Whatsmeow.IntegrationTests.Fake.FailNextLogoutRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_FailNextLogout, null, options, request);
+      }
+      /// <summary>
+      /// RaisePermanentDisconnect makes WhatsApp end the session's connection with one of the six whatsmeow
+      /// PermanentDisconnect events at the pin (types/events/events.go:118-128), dispatched off the node queue as
+      /// whatsmeow does; the client is disconnected and does not reconnect. For logged_out the client also deletes its
+      /// device concurrently, as whatsmeow does (connectionevents.go:37-44, 130-136). It returns before the handlers run.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectResponse RaisePermanentDisconnect(global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return RaisePermanentDisconnect(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// RaisePermanentDisconnect makes WhatsApp end the session's connection with one of the six whatsmeow
+      /// PermanentDisconnect events at the pin (types/events/events.go:118-128), dispatched off the node queue as
+      /// whatsmeow does; the client is disconnected and does not reconnect. For logged_out the client also deletes its
+      /// device concurrently, as whatsmeow does (connectionevents.go:37-44, 130-136). It returns before the handlers run.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectResponse RaisePermanentDisconnect(global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_RaisePermanentDisconnect, null, options, request);
+      }
+      /// <summary>
+      /// RaisePermanentDisconnect makes WhatsApp end the session's connection with one of the six whatsmeow
+      /// PermanentDisconnect events at the pin (types/events/events.go:118-128), dispatched off the node queue as
+      /// whatsmeow does; the client is disconnected and does not reconnect. For logged_out the client also deletes its
+      /// device concurrently, as whatsmeow does (connectionevents.go:37-44, 130-136). It returns before the handlers run.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectResponse> RaisePermanentDisconnectAsync(global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return RaisePermanentDisconnectAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// RaisePermanentDisconnect makes WhatsApp end the session's connection with one of the six whatsmeow
+      /// PermanentDisconnect events at the pin (types/events/events.go:118-128), dispatched off the node queue as
+      /// whatsmeow does; the client is disconnected and does not reconnect. For logged_out the client also deletes its
+      /// device concurrently, as whatsmeow does (connectionevents.go:37-44, 130-136). It returns before the handlers run.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectResponse> RaisePermanentDisconnectAsync(global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_RaisePermanentDisconnect, null, options, request);
       }
       /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
