@@ -12,7 +12,6 @@
 // is a human verdict: for a new or changed file it prints the line to add with <licence> left for the
 // reviewer, and the parser rejects that placeholder.
 //
-// Until the sidecar has its main package (#4) only the std lines are compared; the rest are parsed.
 // Findings print as path:line: [rule] message. Run it from the tools module: go -C tools run ./check-licenses.
 package main
 
@@ -135,13 +134,6 @@ func run(ctx context.Context, cfg config) error {
 	findings = append(findings, compared...)
 	slices.SortStableFunc(findings, func(a, b finding) int { return a.line - b.line })
 
-	if linked == nil {
-		_, err = fmt.Fprintf(cfg.out, "notice: %s/%s does not exist yet (#4): only the %s lines were compared\n", moduleDir, strings.TrimPrefix(mainPkg, "./"), stdModule)
-		if err != nil {
-			return fmt.Errorf("report: %w", err)
-		}
-	}
-
 	for _, f := range findings {
 		_, err = fmt.Fprintln(cfg.out, f)
 		if err != nil {
@@ -231,15 +223,11 @@ type listedPackage struct {
 }
 
 // linkedModules returns every non-main module linked into the main package on any target, keyed by
-// module path. It returns nil while the main package does not exist.
+// module path.
 func linkedModules(ctx context.Context, cfg config) (map[string]*module, error) {
 	dir := filepath.Join(cfg.root, moduleDir)
 
 	_, err := os.Stat(filepath.Join(dir, filepath.FromSlash(mainPkg)))
-	if errors.Is(err, fs.ErrNotExist) {
-		return nil, nil
-	}
-
 	if err != nil {
 		return nil, fmt.Errorf("stat the main package: %w", err)
 	}
@@ -370,14 +358,9 @@ func licenseFiles(fsys fs.FS, root string, recurse bool) (map[string][]byte, err
 	return files, nil
 }
 
-// compare reports every difference between the allowlist and what links. linked is nil before the
-// main package exists; then only std is compared.
+// compare reports every difference between the allowlist and what links.
 func compare(allow map[string]map[string]entry, goroot string, std map[string][]byte, linked map[string]*module) ([]finding, error) {
 	findings := compareFiles(stdModule, goroot, "the Go standard library", allow[stdModule], std)
-
-	if linked == nil {
-		return findings, nil
-	}
 
 	for _, name := range slices.Sorted(maps.Keys(linked)) {
 		m := linked[name]
