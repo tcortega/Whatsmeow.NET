@@ -509,9 +509,14 @@ How to write each test, what is banned, and the can-it-fail check: [guidelines/t
 - The whatsmeow pin is an implementation detail; a bump that passes CI is a patch release.
 - From the first published `v<semver>` tag (pre-releases and build metadata included) on, `whatsmeow.v1` never breaks: a break means a new package `whatsmeow.v2` with its own ADR, every additive change increments `protocol`, and `buf breaking` gates `whatsmeow.v1` against `main`.
   Before that tag, `protocol` keeps its initial value, 1, and `buf breaking` only reports ([ADR 0015](adr/0015-buf-breaking-gates-from-first-published-tag.md)).
-- `whatsmeow-net` statically links `go.mau.fi/libsignal` (GPL-3.0), so each released binary is conveyed under GPL-3.0-only as a whole; the repository and the .NET packages are MPL-2.0 ([ADR 0016](adr/0016-sidecar-binary-gpl-3-corresponding-source-per-release.md)).
-  Every GitHub release attaches the Corresponding Source (the tagged tree plus `go mod vendor`) and is never deleted, and each native package carries `COPYING`, `NOTICE` and `THIRD-PARTY-NOTICES.txt` (Phase 4). `NOTICE` says where the source is.
-- `sidecar/licenses.allow` lists every licence file of every module linked into `whatsmeow-net`, and of the Go standard library, with its sha256 and a reviewed licence. `build/ci.sh go` fails when the linked graph or a licence file differs from it (`tools/check-licenses`), so a bump that adds a module waits for a reviewer to read its licence.
+- `whatsmeow-net` statically links `go.mau.fi/libsignal` (GPL-3.0-or-later), so we convey each released binary under GPL-3.0-only as a whole ([ADR 0016](adr/0016-sidecar-binary-gpl-3-corresponding-source-per-release.md)).
+  The repository and the .NET packages are MPL-2.0.
+  From the first release (Phase 4), each GitHub release attaches the Corresponding Source, `whatsmeow-net_<version>_source.tar.gz` (the whole tagged repository plus `go mod vendor`), and is never deleted.
+  From the first release, each native package carries `COPYING`, `NOTICE` and `THIRD-PARTY-NOTICES.txt`.
+  `NOTICE` says where the source is.
+- `sidecar/licenses.allow` lists every licence file of every module linked into `whatsmeow-net`, and of the Go standard library, with its sha256 and a reviewed licence.
+  `build/ci.sh go` fails when the linked graph or a licence file differs from it (`tools/check-licenses`), so a bump that adds a module waits for a reviewer to read its licence.
+  Until #4 adds `sidecar/cmd/whatsmeow-net`, it compares only the std lines.
 
 ---
 
@@ -550,7 +555,7 @@ All nine are answered, and each outcome is recorded in the ADR named in its row.
 | 6 | Sidecar binary size; Alpine run; macOS signing | **Answered.** No Developer ID signing or notarization needed (§12). [ADR 0007](adr/0007-per-os-native-nuget-packages-exact-pins.md) |
 | 7 | Can house-rule NodaTime coexist with BCL timers (Polly v8, `Task.Delay`, `PeriodicTimer`, CTS timeouts) and with testable fake time? | **Answered, see Spike results.** It can only with an interop adapter and two fakes; Antonio chose BCL time instead. [ADR 0009](adr/0009-bcl-time-over-nodatime.md) |
 | 8 | Should the delivery guarantee extend to the ungated kinds, via an upstream whatsmeow PR or a fork? | **Answered: no fork.** Follow the maintainer's configuration and fix real gaps upstream. See Spike results. [ADR 0013](adr/0013-whatsmeow-config-follows-mautrix-no-fork.md) |
-| 9 | Licences of everything linked into the sidecar (RESEARCH "What still needs proof" item 1) | **Answered: libsignal is GPL-3.0**, util and whatsmeow are MPL-2.0, everything else is permissive. The binary is GPL-3.0-only as a whole. See Licence audit. [ADR 0016](adr/0016-sidecar-binary-gpl-3-corresponding-source-per-release.md) |
+| 9 | Licences of everything linked into the sidecar (RESEARCH "What still needs proof" item 1) | **Answered: libsignal is GPL-3.0-or-later**, util and whatsmeow are MPL-2.0, everything else is permissive. We convey the binary under GPL-3.0-only as a whole. See Licence audit. [ADR 0016](adr/0016-sidecar-binary-gpl-3-corresponding-source-per-release.md) |
 
 
 ### Spike results (2026-10-31)
@@ -666,7 +671,8 @@ Question 9, run outside the repo with Go 1.27.3 on macOS arm64, because `sidecar
 - A throwaway module required the planned graph at the pin (§5 versions) and imported whatsmeow, `sqlstore`, `types`, grpc, grpc health, `status`, `errdetails`, protobuf, the modernc driver and zerolog.
 - `CGO_ENABLED=0` builds for darwin, linux and windows on amd64 and arm64 link 28 modules on linux and 29 on darwin and windows (`github.com/ncruces/go-strftime`) [observed: `go version -m`].
 - `CGO_ENABLED=0 GOOS GOARCH go list -deps` names exactly those modules on all six targets [observed: empty diff]; `tools/check-licenses` relies on that.
-- `go.mau.fi/libsignal v0.2.2` is GPL-3.0: its `LICENSE` is the GPLv3 text, no file says "or later", and GitHub reports GPL-3.0 for it and its origin [observed].
+- `go.mau.fi/libsignal v0.2.2` is GPL-3.0-or-later: its `LICENSE` is the GPLv3 text, and its appendix notice says "either version 3 of the License, or (at your option) any later version" [observed].
+- We convey the combined binary under GPL-3.0-only, which "or later" allows [inferred: GPLv3 §14].
 - `go.mau.fi/util v0.11.0` and whatsmeow are MPL-2.0 without Exhibit B [observed]; every other linked module is BSD, MIT, ISC or Apache-2.0, and SQLite inside modernc is public domain [observed].
 - None of the 56 modules in the graph that never link is GPL, AGPL, LGPL or without a licence [observed].
 - The full table, the sources quoted and what each party owes are in [ADR 0016](adr/0016-sidecar-binary-gpl-3-corresponding-source-per-release.md); legal review is [unknown] and still open.
@@ -698,7 +704,7 @@ Phase 0 decisions:
 - [0006](adr/0006-no-runtime-reflection.md): No runtime reflection; source generation and explicit registration
 - [0007](adr/0007-per-os-native-nuget-packages-exact-pins.md): Packaging as per-OS native NuGet packages with exact-version pins
 - [0008](adr/0008-product-name-whatsmeow-net.md): Product name Whatsmeow.NET; identifiers rooted at `Whatsmeow`; sidecar binary `whatsmeow-net`
-- [0016](adr/0016-sidecar-binary-gpl-3-corresponding-source-per-release.md): The sidecar binary is GPL-3.0-only because it links libsignal; Corresponding Source ships with every release; the repository is MPL-2.0 (§14 question 9)
+- [0016](adr/0016-sidecar-binary-gpl-3-corresponding-source-per-release.md): The sidecar binary is conveyed under GPL-3.0-only because it links libsignal; Corresponding Source ships with every release; the repository is MPL-2.0 (§14 question 9)
 
 House-rule alignment (applied, or opted out of with a measured reason):
 

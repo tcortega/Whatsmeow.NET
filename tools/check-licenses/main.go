@@ -122,12 +122,17 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	std, err := stdModuleFiles(ctx, cfg)
+	goroot, std, err := stdModuleFiles(ctx, cfg)
 	if err != nil {
 		return err
 	}
 
-	findings = append(findings, compare(allow, std, linked)...)
+	compared, err := compare(allow, goroot, std, linked)
+	if err != nil {
+		return err
+	}
+
+	findings = append(findings, compared...)
 	slices.SortStableFunc(findings, func(a, b finding) int { return a.line - b.line })
 
 	if linked == nil {
@@ -222,11 +227,6 @@ type listedPackage struct {
 		Version string
 		Main    bool
 		Dir     string
-		Replace *struct {
-			Path    string
-			Version string
-			Dir     string
-		}
 	}
 }
 
@@ -235,17 +235,13 @@ type listedPackage struct {
 func linkedModules(ctx context.Context, cfg config) (map[string]*module, error) {
 	dir := filepath.Join(cfg.root, moduleDir)
 
-	info, err := os.Stat(filepath.Join(dir, filepath.FromSlash(mainPkg)))
+	_, err := os.Stat(filepath.Join(dir, filepath.FromSlash(mainPkg)))
 	if errors.Is(err, fs.ErrNotExist) {
 		return nil, nil
 	}
 
 	if err != nil {
 		return nil, fmt.Errorf("stat the main package: %w", err)
-	}
-
-	if !info.IsDir() {
-		return nil, fmt.Errorf("%s/%s is not a directory", moduleDir, mainPkg)
 	}
 
 	linked := map[string]*module{}
@@ -287,18 +283,13 @@ func addPackages(linked map[string]*module, stdout []byte, target string) error 
 			continue
 		}
 
-		version, dir := pkg.Module.Version, pkg.Module.Dir
-		if r := pkg.Module.Replace; r != nil {
-			version, dir = pkg.Module.Version+" => "+strings.TrimSpace(r.Path+" "+r.Version), r.Dir
-		}
-
-		if dir == "" {
+		if pkg.Module.Dir == "" {
 			return fmt.Errorf("go list gave no directory for %s (package %s)", pkg.Module.Path, pkg.ImportPath)
 		}
 
 		m := linked[pkg.Module.Path]
 		if m == nil {
-			m = &module{path: pkg.Module.Path, version: version, dir: dir}
+			m = &module{path: pkg.Module.Path, version: pkg.Module.Version, dir: pkg.Module.Dir}
 			linked[pkg.Module.Path] = m
 		}
 
@@ -308,29 +299,31 @@ func addPackages(linked map[string]*module, stdout []byte, target string) error 
 	}
 }
 
-// stdModuleFiles returns the licence files of the standard library: the ones at the top of GOROOT and
-// those of the modules it vendors under src/vendor, which link into std packages.
-func stdModuleFiles(ctx context.Context, cfg config) (map[string][]byte, error) {
-	stdout, err := cfg.goCmd(ctx, cfg.root, nil, "env", "GOROOT")
+// stdModuleFiles returns GOROOT, as the sidecar module's go command sees it, and the licence files of
+// the standard library: the ones at the top of GOROOT and those of the modules it vendors under
+// src/vendor, which link into std packages.
+func stdModuleFiles(ctx context.Context, cfg config) (string, map[string][]byte, error) {
+	stdout, err := cfg.goCmd(ctx, filepath.Join(cfg.root, moduleDir), nil, "env", "GOROOT")
 	if err != nil {
-		return nil, fmt.Errorf("find GOROOT: %w", err)
+		return "", nil, fmt.Errorf("find GOROOT: %w", err)
 	}
 
-	goroot := os.DirFS(strings.TrimSpace(string(stdout)))
+	dir := strings.TrimSpace(string(stdout))
+	goroot := os.DirFS(dir)
 
 	files, err := licenseFiles(goroot, ".", false)
 	if err != nil {
-		return nil, fmt.Errorf("read the GOROOT licence files: %w", err)
+		return "", nil, fmt.Errorf("read the GOROOT licence files: %w", err)
 	}
 
 	vendored, err := licenseFiles(goroot, "src/vendor", true)
 	if err != nil {
-		return nil, fmt.Errorf("read the GOROOT licence files: %w", err)
+		return "", nil, fmt.Errorf("read the GOROOT licence files: %w", err)
 	}
 
 	maps.Copy(files, vendored)
 
-	return files, nil
+	return dir, files, nil
 }
 
 // licenseFiles reads every licence-named file under root in fsys, keyed by its slash path relative to
@@ -379,11 +372,11 @@ func licenseFiles(fsys fs.FS, root string, recurse bool) (map[string][]byte, err
 
 // compare reports every difference between the allowlist and what links. linked is nil before the
 // main package exists; then only std is compared.
-func compare(allow map[string]map[string]entry, std map[string][]byte, linked map[string]*module) []finding {
-	findings := compareFiles(stdModule, "the Go standard library", allow[stdModule], std)
+func compare(allow map[string]map[string]entry, goroot string, std map[string][]byte, linked map[string]*module) ([]finding, error) {
+	findings := compareFiles(stdModule, goroot, "the Go standard library", allow[stdModule], std)
 
 	if linked == nil {
-		return findings
+		return findings, nil
 	}
 
 	for _, name := range slices.Sorted(maps.Keys(linked)) {
@@ -393,9 +386,7 @@ func compare(allow map[string]map[string]entry, std map[string][]byte, linked ma
 
 		files, err := licenseFiles(os.DirFS(m.dir), ".", true)
 		if err != nil {
-			findings = append(findings, finding{0, "unreadable", fmt.Sprintf("%s: %v", what, err)})
-
-			continue
+			return nil, fmt.Errorf("read the licence files of %s: %w", m.path, err)
 		}
 
 		if len(files) == 0 {
@@ -405,12 +396,12 @@ func compare(allow map[string]map[string]entry, std map[string][]byte, linked ma
 		}
 
 		if allow[name] == nil {
-			findings = append(findings, finding{0, "new-module", fmt.Sprintf("%s is not in the allowlist; %s:\n%s", what, review, suggest(name, files))})
+			findings = append(findings, finding{0, "new-module", fmt.Sprintf("%s is not in the allowlist; %s:\n%s", what, review, suggest(name, m.dir, files))})
 
 			continue
 		}
 
-		findings = append(findings, compareFiles(name, what, allow[name], files)...)
+		findings = append(findings, compareFiles(name, m.dir, what, allow[name], files)...)
 	}
 
 	for _, name := range slices.Sorted(maps.Keys(allow)) {
@@ -422,10 +413,10 @@ func compare(allow map[string]map[string]entry, std map[string][]byte, linked ma
 		findings = append(findings, finding{first.line, "stale", name + " no longer links into whatsmeow-net on any target; remove its lines"})
 	}
 
-	return findings
+	return findings, nil
 }
 
-func compareFiles(name, what string, allowed map[string]entry, files map[string][]byte) []finding {
+func compareFiles(name, dir, what string, allowed map[string]entry, files map[string][]byte) []finding {
 	var findings []finding
 
 	for _, file := range slices.Sorted(maps.Keys(files)) {
@@ -434,9 +425,9 @@ func compareFiles(name, what string, allowed map[string]entry, files map[string]
 		e, ok := allowed[file]
 		switch {
 		case !ok:
-			findings = append(findings, finding{0, "licence-added", fmt.Sprintf("%s: %s is not in the allowlist; %s:\n%s", what, file, review, suggestLine(name, file, files[file]))})
+			findings = append(findings, finding{0, "licence-added", fmt.Sprintf("%s: %s is not in the allowlist; %s:\n%s", what, file, review, suggestLine(name, dir, file, files[file]))})
 		case e.sum != sum:
-			findings = append(findings, finding{e.line, "licence-changed", fmt.Sprintf("%s: %s has sha256 %s, the allowlist approved %s as %s; %s:\n%s", what, file, sum, e.sum, e.license, review, suggestLine(name, file, files[file]))})
+			findings = append(findings, finding{e.line, "licence-changed", fmt.Sprintf("%s: %s has sha256 %s, the allowlist approved %s as %s; %s:\n%s", what, file, sum, e.sum, e.license, review, suggestLine(name, dir, file, files[file]))})
 		}
 	}
 
@@ -449,18 +440,19 @@ func compareFiles(name, what string, allowed map[string]entry, files map[string]
 	return findings
 }
 
-func suggest(name string, files map[string][]byte) string {
+func suggest(name, dir string, files map[string][]byte) string {
 	lines := make([]string, 0, len(files))
 	for _, file := range slices.Sorted(maps.Keys(files)) {
-		lines = append(lines, suggestLine(name, file, files[file]))
+		lines = append(lines, suggestLine(name, dir, file, files[file]))
 	}
 
 	return strings.Join(lines, "\n")
 }
 
-// suggestLine is the allowlist line for a file, with <licence> for the reviewer to replace.
-func suggestLine(name, file string, content []byte) string {
-	return fmt.Sprintf("\t%s %s %s <licence>", name, file, digest(content))
+// suggestLine is the path of a licence file to read, as an allowlist comment, and its allowlist line,
+// with <licence> for the reviewer to replace.
+func suggestLine(name, dir, file string, content []byte) string {
+	return fmt.Sprintf("\t# read %s\n\t%s %s %s <licence>", filepath.Join(dir, filepath.FromSlash(file)), name, file, digest(content))
 }
 
 func digest(content []byte) string {

@@ -93,7 +93,11 @@ func (f *fixture) run(t *testing.T, allow string) (string, error) {
 	return out.String(), err
 }
 
-func (f *fixture) goCmd(_ context.Context, _ string, env []string, args ...string) ([]byte, error) {
+func (f *fixture) goCmd(_ context.Context, dir string, env []string, args ...string) ([]byte, error) {
+	if dir != filepath.Join(f.root, moduleDir) {
+		return nil, errors.New("the go command must run in the sidecar module, got " + dir)
+	}
+
 	if args[0] == "env" {
 		return []byte(f.goroot + "\n"), nil
 	}
@@ -232,7 +236,7 @@ func TestRunReportsANewModuleAndLeavesTheVerdictToAReviewer(t *testing.T) {
 		t.Fatalf("output = %q, want it to contain %q", out, want)
 	}
 
-	if !strings.Contains(out, "\t"+depPath+" LICENSE "+sum(t, mitText)+" <licence>") {
+	if !strings.Contains(out, "\t# read "+filepath.Join(f.modules[depPath], "LICENSE")+"\n\t"+depPath+" LICENSE "+sum(t, mitText)+" <licence>") {
 		t.Fatalf("output = %q, want the line to add, with <licence> left to the reviewer", out)
 	}
 
@@ -271,6 +275,40 @@ func TestRunReportsAChangedLicence(t *testing.T) {
 
 	want := allowFile + ":1: [licence-changed] " + depPath + " v1.0.0 (darwin/amd64, darwin/arm64, linux/amd64, linux/arm64, windows/amd64, windows/arm64): LICENSE has sha256 " +
 		sum(t, mitText+"\nAdditional restriction.") + ", the allowlist approved " + sum(t, mitText) + " as MIT"
+	if !strings.Contains(out, want) {
+		t.Fatalf("output = %q, want it to contain %q", out, want)
+	}
+}
+
+func TestRunReportsALicenceFileAddedToAnAllowlistedModule(t *testing.T) {
+	t.Parallel()
+
+	f := newFixture(t, true)
+	f.module(t, depPath, map[string]string{"LICENSE": mitText, "NOTICE": "Copyright 2026 Example"}, targets()...)
+
+	out, err := f.run(t, depLine(t)+stdLines(t))
+	if !errors.Is(err, errFindings) {
+		t.Fatalf("run = %v, want errFindings", err)
+	}
+
+	want := allowFile + ":0: [licence-added] " + depPath + " v1.0.0 (darwin/amd64, darwin/arm64, linux/amd64, linux/arm64, windows/amd64, windows/arm64): NOTICE is not in the allowlist"
+	if !strings.Contains(out, want) {
+		t.Fatalf("output = %q, want it to contain %q", out, want)
+	}
+}
+
+func TestRunReportsAnAllowlistedLicenceFileThatIsGone(t *testing.T) {
+	t.Parallel()
+
+	f := newFixture(t, true)
+	f.module(t, depPath, map[string]string{"LICENSE": mitText}, targets()...)
+
+	out, err := f.run(t, depLine(t)+depPath+" PATENTS "+sum(t, "patent grant")+" LicenseRef-Google-Patents\n"+stdLines(t))
+	if !errors.Is(err, errFindings) {
+		t.Fatalf("run = %v, want errFindings", err)
+	}
+
+	want := allowFile + ":2: [licence-removed] " + depPath + " v1.0.0 (darwin/amd64, darwin/arm64, linux/amd64, linux/arm64, windows/amd64, windows/arm64): PATENTS is gone"
 	if !strings.Contains(out, want) {
 		t.Fatalf("output = %q, want it to contain %q", out, want)
 	}
@@ -339,7 +377,7 @@ func TestLinkedModulesWithTheRealGoCommand(t *testing.T) {
 		t.Fatalf("linked = %v, want only %s", linked, depPath)
 	}
 
-	if m.version != "v0.0.0 => ../dep" || !slices.Equal(m.targets, targets()) {
+	if !slices.Equal(m.targets, targets()) {
 		t.Fatalf("module = %+v", *m)
 	}
 

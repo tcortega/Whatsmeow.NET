@@ -1,4 +1,4 @@
-# 0016. The sidecar binary is GPL-3.0-only because it links libsignal; Corresponding Source ships with every release
+# 0016. The sidecar binary is conveyed under GPL-3.0-only because it links libsignal; Corresponding Source ships with every release
 
 - Status: Accepted (owner, 2026-10-31)
 - Date: 2026-10-31
@@ -35,7 +35,7 @@ Linked modules [observed: the named file under `$GOMODCACHE/<module>@<version>/`
 | github.com/remyoudompheng/bigfft | v0.0.0-20230129092748-24d4a6f8daec | `LICENSE` | BSD-3-Clause |
 | github.com/rs/zerolog | v1.35.1 | `LICENSE`, `hlog/internal/mutil/LICENSE` (package not linked) | MIT |
 | github.com/vektah/gqlparser/v2 | v2.5.27 | `LICENSE`, `validator/imported/LICENSE` (not linked; only `ast` links) | MIT, BSD-3-Clause |
-| **go.mau.fi/libsignal** | v0.2.2 | `LICENSE` | **GPL-3.0-only** |
+| **go.mau.fi/libsignal** | v0.2.2 | `LICENSE` | **GPL-3.0-or-later** |
 | go.mau.fi/util | v0.11.0 | `LICENSE` | MPL-2.0 |
 | go.mau.fi/whatsmeow | the pin | `LICENSE` (byte identical to `third_party/whatsmeow/LICENSE`) | MPL-2.0 |
 | golang.org/x/{crypto, exp, net, sync, sys, text} | v0.58.0, v0.0.0-20261014143641-f0251eb4aa3e, v0.61.0, v0.24.0, v0.49.0, v0.43.0 | `LICENSE`, `PATENTS` | BSD-3-Clause, LicenseRef-Google-Patents |
@@ -69,9 +69,11 @@ The sidecar has no tests yet, so it has no test-only modules of its own [observe
 
 libsignal:
 
-- Its `LICENSE` is the full GPLv3 text, naming "libsignal-protocol-go Copyright (C) 2017 RadicalApp LLC"; no `.go` file carries a licence header [observed: the file; grep].
+- Its `LICENSE` is the full GPLv3 text, and its appendix carries the filled-in notice "libsignal-protocol-go Copyright (C) 2017 RadicalApp LLC" with "either version 3 of the License, or (at your option) any later version" [observed: `LICENSE` lines 634-640].
+- No `.go` file carries a licence header [observed: grep].
+- So libsignal is `GPL-3.0-or-later` [observed: the notice above].
 - GitHub reports GPL-3.0 for tulir/libsignal-protocol-go and for its origin RadicalApp/libsignal-protocol-go [observed: `gh api repos/<repo>`, 2026-10-31].
-- Nothing states "or any later version", so we read it as `GPL-3.0-only`, the stricter reading [inferred]; SPDX marks the bare `GPL-3.0` id deprecated and equal to "v3.0 only" [observed: spdx/license-list-data].
+- GPLv3 §14: when "or any later version" applies, "you have the option of following the terms and conditions either of that numbered version or of any later version" [observed: `LICENSE`].
 
 What the sources say:
 
@@ -80,32 +82,41 @@ What the sources say:
 - GPLv3 §6(d) lets object code on a network server point to Corresponding Source "on a different server", given "clear directions next to the object code", and "you remain obligated to ensure that it is available for as long as needed" [observed: `LICENSE`; FAQ #SourceAndBinaryOnDifferentSites].
 - GPLv3 §1: Corresponding Source is "all the source code needed to generate, install, and (for an executable work) run the object code and to modify the work, including scripts to control those activities" [observed].
 - GPLv3 §0: "Mere interaction with a user through a computer network, with no transfer of a copy, is not conveying" [observed].
-- whatsmeow and util attach no MPL Exhibit B, so MPL-2.0 §3.3 lets them combine with the GPL [observed: grep; MPL §1.5, §3.3; FSF licence list #MPL-2.0].
+- whatsmeow and util attach no MPL Exhibit B [observed: grep; MPL §1.5], and the FSF licence list says of MPL-2.0: "Section 3.3 provides indirect compatibility between this license and the GNU GPL version 2.0, the GNU LGPL version 2.1, the GNU AGPL version 3, and all later versions of those licenses" [observed: gnu.org/licenses/license-list #MPL-2.0].
 - The FSF licence list calls Apache-2.0 "compatible with version 3 of the GNU GPL", and BSD-3-Clause, Expat (MIT) and ISC compatible with the GPL [observed: gnu.org/licenses/license-list].
-- FSF FAQ #MereAggregation: "pipes, sockets and command-line arguments are communication mechanisms normally used between two separate programs", "but if the semantics of the communication are intimate enough, exchanging complex internal data structures, that too could be a basis to consider the two parts as combined into a larger program" [observed].
+- FSF FAQ #MereAggregation: "pipes, sockets and command-line arguments are communication mechanisms normally used between two separate programs", and "But if the semantics of the communication are intimate enough, exchanging complex internal data structures, that too could be a basis to consider the two parts as combined into a larger program" [observed].
 
 ## Decision
 
-- Each released `whatsmeow-net` binary is one combined work and is conveyed under GPL-3.0-only as a whole [inferred: GPLv3 §5(c) and FAQ #GPLStaticVsDynamic, quoted above].
+- Each released `whatsmeow-net` binary is one combined work that the GPL covers as a whole [inferred: GPLv3 §5(c) and FAQ #GPLStaticVsDynamic, quoted above].
+- We convey it under GPL-3.0-only, which libsignal's "or any later version" allows [inferred: GPLv3 §14, quoted above].
 - We comply through GPLv3 §6(d): the object code is on nuget.org, and the Corresponding Source is on the GitHub release of the same tag, with directions in `NOTICE` and in each native package.
 - The .NET assemblies are separate programs that talk to the sidecar only through gRPC over a local socket, so the GPL does not reach them [inferred: FAQ #MereAggregation; the contract carries whatsmeow message types and no libsignal structures, and the contract does not exist yet (#3)].
-- Files generated from `third_party/whatsmeow` protos are MPL-2.0 [inferred: MPL §1.10(b) makes "any new file in Source Code Form that contains any Covered Software" a Modification, and each generated file embeds its whole proto descriptor (observed in `Generated/*.cs`)]. The protos carry no Exhibit A header; the module's `LICENSE`, copied to `third_party/whatsmeow/LICENSE`, is the location Exhibit A allows [observed: zero protos with a header; MPL Exhibit A].
+- Files generated from `third_party/whatsmeow` protos are MPL-2.0 [inferred: MPL §1.10(b) makes "any new file in Source Code Form that contains any Covered Software" a Modification, and each generated file embeds its whole proto descriptor (observed in `Generated/*.cs`)].
+- The protos carry no Exhibit A header; the module's `LICENSE`, copied to `third_party/whatsmeow/LICENSE`, is the location Exhibit A allows [observed: zero protos with a header; MPL Exhibit A].
 - The repository's own licence is MPL-2.0 (option A, chosen by the owner on 2026-10-31), in the root `LICENSE`, the mozilla.org text verbatim:
   - A, chosen: MPL-2.0 matches whatsmeow and util, covers the generated C# with the same licence, is GPL-compatible through §3.3 as long as we never attach Exhibit B, is file-level so proprietary apps can use the .NET packages, and grants patents (§2.1(b)).
   - B, considered: MIT or Apache-2.0 for our code, with MPL-2.0 for the generated C# and GPL-3.0 for the binary: three licences to explain for little gain.
   - C, considered: GPL-3.0 everywhere: an app that loads the .NET assemblies in-process would likely form a combined work with them [inferred], which would block most consumers.
-- `sidecar/licenses.allow` records every licence file of every linked module and of std, with its sha256 and a reviewed licence. `tools/check-licenses`, run by `build/ci.sh go`, compares it with the `CGO_ENABLED=0 go list -deps` graph of `sidecar/cmd/whatsmeow-net` on the six targets of ADR 0007. It fails on a new module, an added, removed or changed licence file, a module without a licence file, or a module that no longer links. Until #4 adds the main package, only the std lines are compared.
+- `sidecar/licenses.allow` records every licence file of every linked module and of std, with its sha256 and a reviewed licence.
+- `tools/check-licenses`, run by `build/ci.sh go`, compares it with the `CGO_ENABLED=0 go list -deps` graph of `sidecar/cmd/whatsmeow-net` on the six targets of ADR 0007.
+- It fails on a new module, an added, removed or changed licence file, a module without a licence file, or a module that no longer links.
+- Until #4 adds the main package, CI compares only the std lines; the module lines come from the audit's throwaway build and are not checked in CI until then.
 - Legal review is [unknown] and stays open; RESEARCH item 1 asked for it, and nothing above replaces it.
 
 ## Consequences
 
 - Phase 4 obligations, before the first public release:
-  - Every GitHub release attaches `whatsmeow-net_<version>_source.tar.gz`: the tagged tree (`sidecar/`, `go.mod`, `go.sum`, the GoReleaser and build scripts) plus `go mod vendor`. The audit's vendored tree was 30 MB gzipped [observed]. Releases are never deleted while their packages are on nuget.org.
+  - Every GitHub release attaches `whatsmeow-net_<version>_source.tar.gz`: the whole tagged repository plus the output of `go mod vendor` for `sidecar/`.
+  - The audit's vendored tree was 30 MB gzipped [observed].
+  - Releases are never deleted while their packages are on nuget.org.
   - Each `Whatsmeow.Sidecar.Native.*` package carries `COPYING` (the GPL-3.0 text), `NOTICE`, and `THIRD-PARTY-NOTICES.txt` holding every file listed in `sidecar/licenses.allow` verbatim, which covers the BSD, MIT, ISC and Apache notice duties and grpc's `NOTICE.txt` (Apache-2.0 §4(d)).
   - `PackageLicenseExpression` is `GPL-3.0-only` on the native packages and `MPL-2.0` on the .NET packages.
   - The package READMEs say that the native packages contain GPL-3.0 object code and what redistributing them owes.
   - `.goreleaser.yaml` builds exactly the targets in `tools/check-licenses`, and CI checks that.
-- Consumers who only run the binary on their own machines or servers owe nothing under the GPL [inferred: GPLv3 §0]. A consumer who redistributes it (an installer, a desktop app, a container image) conveys it and takes on GPLv3 §6 for `whatsmeow-net` [inferred]. Shipping it in a consumer device adds Installation Information (GPLv3 §6 "User Product") [observed: the text].
+- Consumers who only run the binary on their own machines or servers owe nothing under the GPL [inferred: GPLv3 §0].
+- A consumer who redistributes it (an installer, a desktop app, a container image) conveys it and takes on GPLv3 §6 for `whatsmeow-net` [inferred].
+- Shipping it in a consumer device also owes Installation Information [inferred: GPLv3 §6 "User Product"].
 - Whether a consumer can leave the native assets out (for example NuGet `ExcludeAssets`) and run an external sidecar is [unknown]; measure it in Phase 4 if asked.
 - Our own sidecar files stay MPL-2.0 inside the GPL combined work; never attach MPL Exhibit B to any file.
 - [ADR 0007](0007-per-os-native-nuget-packages-exact-pins.md)'s packaging decision is unchanged; this record answers its last two Consequences.

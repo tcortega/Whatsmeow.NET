@@ -21,7 +21,7 @@ github.com/rs/zerolog LICENSE 1b8f6b05dd66f6eec835515706886cb01bf00358cb9312301e
 github.com/rs/zerolog hlog/internal/mutil/LICENSE 8f1b316d0edb822e6231eb77eda9d4135bd78105b13f834952164a0cfc8393d2 MIT
 github.com/vektah/gqlparser/v2 LICENSE c393f603a90a52d71fccd0df5a6b82049b7b8fdf9c120d8972bf41a6f5fb1213 MIT
 github.com/vektah/gqlparser/v2 validator/imported/LICENSE b7433de1a47cb43a83a1f5f6eb4317a4e119300af943bf1ce28ed271feb1efe2 BSD-3-Clause
-go.mau.fi/libsignal LICENSE 09f9333d941468c9d82ac9e2bf6b0b9085c52b50382b9fbb3806f586d502b719 GPL-3.0-only
+go.mau.fi/libsignal LICENSE 09f9333d941468c9d82ac9e2bf6b0b9085c52b50382b9fbb3806f586d502b719 GPL-3.0-or-later
 go.mau.fi/util LICENSE 1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5 MPL-2.0
 go.mau.fi/whatsmeow LICENSE 32ee9dbf6196874fc9d406c54a888a6c4cbb9aa4a7f35b46befeaff43a78fe85 MPL-2.0
 golang.org/x/crypto LICENSE 911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad BSD-3-Clause
