@@ -43,6 +43,7 @@ var (
 	errMismatch   = errors.New("third_party copy does not match the pinned module")
 	errUnexpected = errors.New("third_party copy holds files that are not upstream protos")
 	errPin        = errors.New("the pin does not match")
+	errDownload   = errors.New("download failed")
 )
 
 func main() {
@@ -52,7 +53,7 @@ func main() {
 	flag.Parse()
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
-	err := run(ctx, config{dir: *dir, goMod: *goMod, write: *write, out: os.Stdout, download: goModDownload})
+	err := run(ctx, config{dir: *dir, goMod: *goMod, write: *write, out: os.Stdout, download: goModDownloader(runGo)})
 	stop()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "sync-protos:", err)
@@ -206,50 +207,65 @@ func checkRequire(name string, goMod []byte, p pin) error {
 	return nil
 }
 
-// goModDownload fetches the module into the module cache with `go mod download -json`.
-// It runs in an empty temporary directory so it never edits a go.mod or go.sum.
-func goModDownload(ctx context.Context, modulePath, version string) (m module, err error) {
-	scratch, err := os.MkdirTemp("", "sync-protos-")
-	if err != nil {
-		return module{}, fmt.Errorf("create a scratch directory: %w", err)
-	}
+// runner runs the go command with args in dir and returns its standard output. runGo is the real one;
+// tests inject fakes.
+type runner func(ctx context.Context, dir string, args ...string) ([]byte, error)
 
-	defer func() {
-		removeErr := os.RemoveAll(scratch)
-		if removeErr != nil {
-			err = errors.Join(err, fmt.Errorf("remove %s: %w", scratch, removeErr))
-		}
-	}()
-
-	// The module path and version come from the committed VERSION file, and exec passes them as one
-	// argument without a shell, so there is nothing to inject.
-	cmd := exec.CommandContext(ctx, "go", "mod", "download", "-json", modulePath+"@"+version) //nolint:gosec // G204: argument is the committed pin, no shell
-	cmd.Dir = scratch
+func runGo(ctx context.Context, dir string, args ...string) ([]byte, error) {
+	// The arguments come from the committed VERSION file, and exec passes each one without a shell,
+	// so there is nothing to inject.
+	cmd := exec.CommandContext(ctx, "go", args...) //nolint:gosec // G204: arguments are the committed pin, no shell
+	cmd.Dir = dir
 	cmd.Stderr = os.Stderr
 
-	// On failure the go command still prints the JSON object, with the reason in Error.
-	stdout, runErr := cmd.Output()
-
-	var info struct {
-		Path    string
-		Version string
-		Dir     string
-		Sum     string
-		Error   string
+	stdout, err := cmd.Output()
+	if err != nil {
+		return stdout, fmt.Errorf("go %s: %w", strings.Join(args, " "), err)
 	}
 
-	decodeErr := json.Unmarshal(stdout, &info)
+	return stdout, nil
+}
 
-	switch {
-	case decodeErr == nil && info.Error != "":
-		return module{}, fmt.Errorf("go mod download %s@%s: %s", modulePath, version, info.Error)
-	case runErr != nil:
-		return module{}, fmt.Errorf("go mod download %s@%s: %w", modulePath, version, runErr)
-	case decodeErr != nil:
-		return module{}, fmt.Errorf("decode go mod download output: %w", decodeErr)
+// goModDownloader fetches a module into the module cache with `go mod download -json`.
+// It runs in an empty temporary directory so it never edits a go.mod or go.sum.
+func goModDownloader(run runner) downloader {
+	return func(ctx context.Context, modulePath, version string) (m module, err error) {
+		scratch, err := os.MkdirTemp("", "sync-protos-")
+		if err != nil {
+			return module{}, fmt.Errorf("create a scratch directory: %w", err)
+		}
+
+		defer func() {
+			removeErr := os.RemoveAll(scratch)
+			if removeErr != nil {
+				err = errors.Join(err, fmt.Errorf("remove %s: %w", scratch, removeErr))
+			}
+		}()
+
+		// On failure the go command still prints the JSON object, with the reason in Error.
+		stdout, runErr := run(ctx, scratch, "mod", "download", "-json", modulePath+"@"+version)
+
+		var info struct {
+			Path    string
+			Version string
+			Dir     string
+			Sum     string
+			Error   string
+		}
+
+		decodeErr := json.Unmarshal(stdout, &info)
+
+		switch {
+		case decodeErr == nil && info.Error != "":
+			return module{}, fmt.Errorf("%w: go mod download %s@%s: %s", errDownload, modulePath, version, info.Error)
+		case runErr != nil:
+			return module{}, fmt.Errorf("%w: %w", errDownload, runErr)
+		case decodeErr != nil:
+			return module{}, fmt.Errorf("%w: decode go mod download output: %w", errDownload, decodeErr)
+		}
+
+		return module{path: info.Path, version: info.Version, sum: info.Sum, files: os.DirFS(info.Dir)}, nil
 	}
-
-	return module{path: info.Path, version: info.Version, sum: info.Sum, files: os.DirFS(info.Dir)}, nil
 }
 
 // collect reads every *.proto under root, keyed by its slash path relative to root, plus LICENSE

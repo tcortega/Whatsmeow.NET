@@ -7,6 +7,8 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"testing"
 	"testing/fstest"
 )
@@ -271,3 +273,102 @@ func writeFile(t *testing.T, dir, name, content string) {
 		t.Fatalf("write: %v", err)
 	}
 }
+
+func TestGoModDownloaderReadsTheGoCommandOutput(t *testing.T) {
+	t.Parallel()
+
+	moduleDir := t.TempDir()
+	writeFile(t, moduleDir, "proto/waE2E/E2E.proto", "e2e")
+
+	var gotArgs []string
+
+	fake := func(_ context.Context, dir string, args ...string) ([]byte, error) {
+		if dir == "" {
+			t.Errorf("the go command ran without a scratch directory")
+		}
+
+		gotArgs = args
+
+		return []byte(`{"Path":"` + testPath + `","Version":"` + testVersion + `","Sum":"` + testSum + `","Dir":` + strconv.Quote(moduleDir) + `}`), nil
+	}
+
+	m, err := goModDownloader(fake)(context.Background(), testPath, testVersion)
+	if err != nil {
+		t.Fatalf("download: %v", err)
+	}
+
+	if m.path != testPath || m.version != testVersion || m.sum != testSum {
+		t.Fatalf("download = %+v", m)
+	}
+
+	if want := "mod download -json " + testPath + "@" + testVersion; joinArgs(gotArgs) != want {
+		t.Fatalf("args = %q, want %q", joinArgs(gotArgs), want)
+	}
+
+	content, err := fs.ReadFile(m.files, "proto/waE2E/E2E.proto")
+	if err != nil || string(content) != "e2e" {
+		t.Fatalf("module files = %q, %v", content, err)
+	}
+}
+
+func TestGoModDownloaderReportsFailures(t *testing.T) {
+	t.Parallel()
+
+	exit := errors.New("exit status 1")
+
+	for name, tc := range map[string]struct {
+		stdout string
+		err    error
+		want   string
+	}{
+		"error field on a failed exit": {`{"Path":"x","Error":"unknown revision 000000000000"}`, exit, "unknown revision 000000000000"},
+		"failed exit without json":     {"", exit, "exit status 1"},
+		"malformed output":             {"{", nil, "decode go mod download output"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			fake := func(context.Context, string, ...string) ([]byte, error) { return []byte(tc.stdout), tc.err }
+
+			_, err := goModDownloader(fake)(context.Background(), testPath, testVersion)
+			if !errors.Is(err, errDownload) || !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("download = %v, want errDownload mentioning %q", err, tc.want)
+			}
+		})
+	}
+}
+
+func TestRunStopsWhenCancelled(t *testing.T) {
+	t.Parallel()
+
+	cfg := setup(t, noRequire, matchingCopy())
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	err := run(ctx, cfg)
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("run = %v, want context.Canceled", err)
+	}
+}
+
+func TestReplaceStopsWhenCancelled(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	err := replace(ctx, dir, map[string][]byte{"a/A.proto": []byte("a")}, map[string][]byte{})
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("replace = %v, want context.Canceled", err)
+	}
+
+	_, err = os.Stat(filepath.Join(dir, "a"))
+	if !os.IsNotExist(err) {
+		t.Fatalf("replace wrote after cancellation: %v", err)
+	}
+}
+
+func joinArgs(args []string) string { return strings.Join(args, " ") }
