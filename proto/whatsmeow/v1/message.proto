@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package whatsmeow.v1;
+
+import "google/protobuf/timestamp.proto";
+import "waE2E/WAWebProtobufsE2E.proto";
+
+// MessageService sends messages and read receipts.
+//
+// A send is idempotent per (session, client_message_id), the WhatsApp message id the client chooses:
+// after a success, a repeat returns the recorded result and sends nothing; after an unknown outcome, a repeat
+// fails with OUTCOME_UNKNOWN again and sends nothing (ARCHITECTURE invariant 10); after a failure that sent
+// nothing, a repeat sends; a repeat while the first call is in flight waits for its outcome. A repeat's other
+// fields are ignored.
+// The sidecar records a send before handing it to whatsmeow, so a send interrupted after the hand-off, by a crash
+// or by the client cancelling, reads as OUTCOME_UNKNOWN; one cancelled while still queued sent nothing.
+// A send never waits for a connection: a session that is not logged in, not connected or temporarily banned fails
+// at once. Sends are paced per session while connected; a WhatsApp 429 is retried with backoff within the call's
+// deadline, then fails with RATE_LIMITED. A queued send fails when the session leaves Connected (NOT_CONNECTED, or
+// LOGGED_OUT).
+service MessageService {
+  // SendMessage sends a caller-built message unchanged. A message with an unset proto2 required field is
+  // INVALID_ARGUMENT (field "message").
+  // Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, NOT_CONNECTED, TEMPORARILY_BANNED,
+  // RECIPIENT_NOT_ON_WHATSAPP, RATE_LIMITED, OUTCOME_UNKNOWN, WHATSAPP_ERROR.
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+
+  // SendText sends a text message.
+  // Errors: as SendMessage, and INVALID_ARGUMENT for empty text.
+  rpc SendText(SendTextRequest) returns (SendTextResponse);
+
+  // MarkRead sends a read receipt, timestamped now, for messages of one chat.
+  // Errors: INVALID_ARGUMENT (no message ids; a group chat without sender), SESSION_NOT_FOUND, NOT_LOGGED_IN,
+  // LOGGED_OUT, NOT_CONNECTED, TEMPORARILY_BANNED.
+  rpc MarkRead(MarkReadRequest) returns (MarkReadResponse);
+}
+
+// SendMessageRequest sends a caller-built message.
+message SendMessageRequest {
+  // The session id.
+  string session_id = 1;
+  // The recipient: a user JID without a device, or a group JID.
+  string chat = 2;
+  // The WhatsApp message id to send with; required.
+  string client_message_id = 3;
+  // The message.
+  WAWebProtobufsE2E.Message message = 4;
+}
+
+// SendMessageResponse is a successful send.
+message SendMessageResponse {
+  // The chat it was sent to, which can be the recipient's LID when a phone-number JID was requested.
+  string chat = 1;
+  // The message's WhatsApp timestamp.
+  google.protobuf.Timestamp message_time = 2;
+}
+
+// SendTextRequest sends a text message.
+message SendTextRequest {
+  // The session id.
+  string session_id = 1;
+  // The recipient: a user JID without a device, or a group JID.
+  string chat = 2;
+  // The WhatsApp message id to send with; required.
+  string client_message_id = 3;
+  // The text; not empty.
+  string text = 4;
+}
+
+// SendTextResponse is a successful send.
+message SendTextResponse {
+  // The chat it was sent to, which can be the recipient's LID when a phone-number JID was requested.
+  string chat = 1;
+  // The message's WhatsApp timestamp.
+  google.protobuf.Timestamp message_time = 2;
+}
+
+// MarkReadRequest marks messages of one chat as read.
+message MarkReadRequest {
+  // The session id.
+  string session_id = 1;
+  // The chat, as in MessageSource.chat.
+  string chat = 2;
+  // In a group chat, the messages' sender; empty in a direct chat.
+  string sender = 3;
+  // The messages; at least one.
+  repeated string message_ids = 4;
+}
+
+// MarkReadResponse has no fields.
+message MarkReadResponse {}

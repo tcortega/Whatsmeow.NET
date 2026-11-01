@@ -1,3 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
-	<!-- Generated whatsmeow.v1 messages and client stubs land here with the first contract (#3). -->
+	<!-- Generated/ is written by buf from /buf.gen.yaml (see AGENTS.md). Never edit it by hand. Every type is internal. -->
+	<ItemGroup>
+		<PackageReference Include="Google.Protobuf" />
+		<PackageReference Include="Grpc.Core.Api" />
+		<ProjectReference Include="../Whatsmeow.Protocol.WhatsApp/Whatsmeow.Protocol.WhatsApp.csproj" />
+	</ItemGroup>
 </Project>

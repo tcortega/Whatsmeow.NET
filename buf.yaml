@@ -1,8 +1,8 @@
 # buf v2 workspace. Version pinned in /mise.toml.
-# Our contract module (path: proto) is added with its first file (#3); buf rejects a module with no .proto files.
 # Upstream whatsmeow protos are imported unmodified, so lint and breaking skip them (ARCHITECTURE §6).
 version: v2
 modules:
+  - path: proto
   - path: third_party/whatsmeow
 lint:
   use:

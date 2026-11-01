@@ -30,7 +30,12 @@
         "type": "Project"
       },
       "whatsmeow.protocol": {
-        "type": "Project"
+        "type": "Project",
+        "dependencies": {
+          "Google.Protobuf": "[3.36.2, )",
+          "Grpc.Core.Api": "[2.85.0, )",
+          "Whatsmeow.Protocol.WhatsApp": "[1.0.0, )"
+        }
       },
       "whatsmeow.protocol.whatsapp": {
         "type": "Project",
@@ -43,6 +48,12 @@
         "requested": "[3.36.2, )",
         "resolved": "3.36.2",
         "contentHash": "Ci1q1iJg74qAE5riTA2FbMS0wPbpruPQI/JQ9DrAsRo2VsSxgt1e/pmxGxgrci+pXJEgrSYg2vPl8rrStZkclQ=="
+      },
+      "Grpc.Core.Api": {
+        "type": "CentralTransitive",
+        "requested": "[2.85.0, )",
+        "resolved": "2.85.0",
+        "contentHash": "cpYu/nw/QhwHcRZMJbYD8lEllKrdwYMiDS4U3oH61nhYPUMNkcCcef4ulv11svHvTBThYV+ju332N9bCrfe7cQ=="
       }
     },
     "net10.0/linux-x64": {

@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package whatsmeow.v1;
+
+// SidecarService is the process. grpc.health.v1.Health is served next to it.
+service SidecarService {
+  // GetInfo reports the sidecar's versions, for the client's version check after the ready line.
+  rpc GetInfo(GetInfoRequest) returns (GetInfoResponse);
+
+  // Shutdown starts a graceful stop and returns before the process exits: the sidecar rejects new calls and ends
+  // open streams with SIDECAR_SHUTTING_DOWN, disconnects every session, and exits 0.
+  // Calling it while shutting down succeeds.
+  rpc Shutdown(ShutdownRequest) returns (ShutdownResponse);
+}
+
+// GetInfoRequest has no fields.
+message GetInfoRequest {}
+
+// GetInfoResponse is the sidecar's identity.
+message GetInfoResponse {
+  // The release version, equal to the client version in embedded mode.
+  string version = 1;
+  // The contract revision: 1 until the first published v<semver> tag, then incremented by every additive change
+  // (ADR 0015).
+  uint32 protocol = 2;
+  // The pinned whatsmeow module version.
+  string whatsmeow_version = 3;
+  // The WhatsApp Web version the sidecar announces.
+  string wa_web_version = 4;
+  // The Go toolchain the binary was built with.
+  string go_version = 5;
+  // The git commit the binary was built from.
+  string commit = 6;
+}
+
+// ShutdownRequest has no fields.
+message ShutdownRequest {}
+
+// ShutdownResponse has no fields.
+message ShutdownResponse {}

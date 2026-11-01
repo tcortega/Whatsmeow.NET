@@ -1,0 +1,172 @@
+syntax = "proto3";
+
+package whatsmeow.v1;
+
+import "google/protobuf/timestamp.proto";
+import "waE2E/WAWebProtobufsE2E.proto";
+import "whatsmeow/v1/session.proto";
+
+// EventService delivers each session's events at least once, from the sidecar's durable outbox.
+//
+// Each recorded event has a seq: greater than 0, unique in the sidecar's database, increasing in recording order,
+// never reused. Sessions share the sequence, so one session's seqs have gaps.
+// The sidecar keeps a cursor per (session, consumer): the highest seq the consumer acked. A consumer is a name the
+// client chooses, with the same rules as a session id. Its cursor starts at 0, and StreamEvents or AckEvents
+// creates it; a new consumer gets the events still retained.
+// An event is deleted only after every consumer of its session acked it; a session with no consumer keeps every
+// event. The session's highest recorded seq is kept even when its rows are deleted.
+// A repeated event has the same seq and content; handlers dedupe on seq.
+// A client skips, but still acks, a payload case it does not know.
+service EventService {
+  // StreamEvents sends the session's events with seq above max(after_seq, cursor), in seq order: the backlog,
+  // then live events as they are recorded. It never ends with OK.
+  // An after_seq above the cursor skips events without acking them, for a client that resumes a dropped stream
+  // while it still holds the events in between: after_seq is the highest seq it received in this process, 0 in a
+  // new process.
+  // A newer StreamEvents for the same session and consumer replaces an open one, which ends with
+  // CONSUMER_REPLACED. A client treats that as final and does not reopen.
+  // The stream ends with SESSION_NOT_FOUND when the session is deleted.
+  // Errors: INVALID_ARGUMENT (also an after_seq above the session's highest recorded seq), SESSION_NOT_FOUND,
+  // CONSUMER_REPLACED.
+  rpc StreamEvents(StreamEventsRequest) returns (stream StreamEventsResponse);
+
+  // AckEvents marks every event of the session at or below up_to_seq as handled by the consumer.
+  // At or below the cursor it succeeds and changes nothing: the cursor never moves backwards.
+  // Above the session's highest recorded seq it fails with INVALID_ARGUMENT and changes nothing. The bound is the
+  // recorded seq, not what this process streamed, so an ack sent across a sidecar restart still succeeds.
+  // Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND.
+  rpc AckEvents(AckEventsRequest) returns (AckEventsResponse);
+}
+
+// MessageSource is who a message or receipt is from and in which chat.
+// A JID is whatsmeow's string form, user[.agent][:device]@server; empty means unknown. A user is addressed by
+// phone number (@s.whatsapp.net) or LID (@lid), and an alt field holds the other form when WhatsApp sent it.
+message MessageSource {
+  // The chat: the other user in a direct chat, or the group.
+  string chat = 1;
+  // The sender.
+  string sender = 2;
+  // The sender's other address form.
+  string sender_alt = 3;
+  // In a direct chat, the recipient's other address form.
+  string recipient_alt = 4;
+  // True when the account itself sent it, from another of its devices.
+  bool is_from_me = 5;
+}
+
+// MessageInfo identifies a message.
+message MessageInfo {
+  // Who and where.
+  MessageSource source = 1;
+  // The WhatsApp message id.
+  string id = 2;
+  // The sender's push name, when WhatsApp sent it.
+  string push_name = 3;
+  // The message's WhatsApp timestamp.
+  google.protobuf.Timestamp message_time = 4;
+}
+
+// MessageEvent is a decrypted message.
+message MessageEvent {
+  // The message's identity.
+  MessageInfo info = 1;
+  // The content as whatsmeow unwraps it (device-sent, ephemeral, view-once, edit and similar wrappers removed).
+  WAWebProtobufsE2E.Message message = 2;
+}
+
+// ReceiptEvent is a receipt for one or more messages of a chat.
+message ReceiptEvent {
+  // Who sent the receipt, and in which chat.
+  MessageSource source = 1;
+  // The messages it covers.
+  repeated string message_ids = 2;
+  // The receipt's WhatsApp timestamp.
+  google.protobuf.Timestamp receipt_time = 3;
+  // The kind of receipt.
+  ReceiptType type = 4;
+}
+
+// ReceiptType is the kind of a receipt.
+enum ReceiptType {
+  // A kind this list does not have.
+  RECEIPT_TYPE_UNSPECIFIED = 0;
+  // Delivered to the recipient.
+  RECEIPT_TYPE_DELIVERED = 1;
+  // Delivered to another of the account's devices.
+  RECEIPT_TYPE_SENDER = 2;
+  // The recipient could not decrypt it; whatsmeow resends on its own.
+  RECEIPT_TYPE_RETRY = 3;
+  // Read by the recipient.
+  RECEIPT_TYPE_READ = 4;
+  // Read on another of the account's devices, with read receipts turned off.
+  RECEIPT_TYPE_READ_SELF = 5;
+  // A view-once message was opened.
+  RECEIPT_TYPE_PLAYED = 6;
+  // A view-once message was opened on another of the account's devices.
+  RECEIPT_TYPE_PLAYED_SELF = 7;
+  // The server could not deliver it.
+  RECEIPT_TYPE_SERVER_ERROR = 8;
+  // The recipient's device is inactive.
+  RECEIPT_TYPE_INACTIVE = 9;
+  // A peer message between the account's own devices.
+  RECEIPT_TYPE_PEER_MSG = 10;
+  // A history sync blob was received.
+  RECEIPT_TYPE_HISTORY_SYNC = 11;
+}
+
+// UndecryptableMessageEvent is a message that failed to decrypt. whatsmeow usually asks for a resend, and a resend
+// that decrypts arrives later as a MessageEvent.
+message UndecryptableMessageEvent {
+  // The message's identity.
+  MessageInfo info = 1;
+  // True when the sender asked not to show a "waiting for this message" placeholder.
+  bool hide_placeholder = 2;
+}
+
+// ConnectionStateEvent is a session state transition, in order with the session's other events.
+message ConnectionStateEvent {
+  // The new state.
+  SessionState state = 1;
+}
+
+// StreamEventsRequest opens a session's event stream for a consumer.
+message StreamEventsRequest {
+  // The session id.
+  string session_id = 1;
+  // The consumer name.
+  string consumer = 2;
+  // Skip events at or below this seq; 0 resumes from the cursor.
+  uint64 after_seq = 3;
+}
+
+// StreamEventsResponse is one event.
+// Payload cases are numbered from 10, in the order they are added; 1 to 9 are for the fields every event has.
+message StreamEventsResponse {
+  // The sequence number.
+  uint64 seq = 1;
+
+  // The event.
+  oneof payload {
+    // A message received, or sent from another of the account's devices.
+    MessageEvent message = 10;
+    // A receipt.
+    ReceiptEvent receipt = 11;
+    // A message that could not be decrypted.
+    UndecryptableMessageEvent undecryptable_message = 12;
+    // A session state transition.
+    ConnectionStateEvent connection_state = 13;
+  }
+}
+
+// AckEventsRequest moves a consumer's cursor.
+message AckEventsRequest {
+  // The session id.
+  string session_id = 1;
+  // The consumer name.
+  string consumer = 2;
+  // Every event of the session at or below this seq is handled.
+  uint64 up_to_seq = 3;
+}
+
+// AckEventsResponse has no fields.
+message AckEventsResponse {}

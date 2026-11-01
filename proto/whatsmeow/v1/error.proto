@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package whatsmeow.v1;
+
+// ErrorReason is the list of google.rpc.ErrorInfo reasons the sidecar returns.
+// It is never sent as a field; it exists so the list is part of the contract and buf breaking guards it.
+//
+// Every non-OK status a sidecar handler returns carries one google.rpc.ErrorInfo with domain "whatsmeow.net" and
+// reason set to a value name below without its ERROR_REASON_ prefix: ERROR_REASON_SESSION_NOT_FOUND travels as
+// "SESSION_NOT_FOUND". A status without ErrorInfo is a transport or internal failure.
+// Clients map on the reason only, never on the code alone or the status message.
+// Each value names the gRPC code it travels with, and the ErrorInfo.metadata keys it sets.
+// Every RPC can fail with UNAUTHENTICATED, SIDECAR_SHUTTING_DOWN and INTERNAL, and every RPC that names a session
+// with INVALID_ARGUMENT for a malformed session id; the lists on each RPC omit them.
+enum ErrorReason {
+  // Never sent.
+  ERROR_REASON_UNSPECIFIED = 0;
+  // INTERNAL. An unexpected sidecar failure.
+  ERROR_REASON_INTERNAL = 1;
+  // INVALID_ARGUMENT. The request is malformed. Metadata "field": the request field at fault.
+  ERROR_REASON_INVALID_ARGUMENT = 2;
+  // UNAUTHENTICATED. The call did not carry the per-launch token.
+  ERROR_REASON_UNAUTHENTICATED = 3;
+  // UNAVAILABLE. The sidecar is shutting down: it rejects new calls and ends open streams with this.
+  ERROR_REASON_SIDECAR_SHUTTING_DOWN = 4;
+  // NOT_FOUND. No session has the requested id, or it was deleted while a stream on it was open.
+  ERROR_REASON_SESSION_NOT_FOUND = 5;
+  // FAILED_PRECONDITION. The session has never been paired.
+  ERROR_REASON_NOT_LOGGED_IN = 6;
+  // FAILED_PRECONDITION. The session was logged out; it has no device until it is paired again.
+  ERROR_REASON_LOGGED_OUT = 7;
+  // FAILED_PRECONDITION. Pair was called on a paired session.
+  ERROR_REASON_ALREADY_PAIRED = 8;
+  // FAILED_PRECONDITION. A Pair stream is already open for the session.
+  ERROR_REASON_PAIRING_IN_PROGRESS = 9;
+  // ABORTED. Pairing ended because no code was used in time.
+  ERROR_REASON_PAIRING_TIMED_OUT = 10;
+  // ABORTED. Pairing failed for any other reason.
+  ERROR_REASON_PAIRING_FAILED = 11;
+  // UNAVAILABLE. The session is paired but not logged in to WhatsApp right now; nothing was done.
+  ERROR_REASON_NOT_CONNECTED = 12;
+  // UNAVAILABLE. Opening the WhatsApp connection failed with an error whatsmeow does not retry.
+  ERROR_REASON_CONNECTION_FAILED = 13;
+  // FAILED_PRECONDITION. The account is temporarily banned. Metadata "expireTime": RFC 3339 UTC, when known.
+  ERROR_REASON_TEMPORARILY_BANNED = 14;
+  // ABORTED. A newer StreamEvents call for the same session and consumer replaced this one.
+  ERROR_REASON_CONSUMER_REPLACED = 15;
+  // NOT_FOUND. The recipient is not on WhatsApp; nothing was sent.
+  ERROR_REASON_RECIPIENT_NOT_ON_WHATSAPP = 16;
+  // RESOURCE_EXHAUSTED. WhatsApp rate limited the request; nothing was done.
+  ERROR_REASON_RATE_LIMITED = 17;
+  // UNKNOWN. The request may have reached WhatsApp and no answer came back: it may or may not have taken effect.
+  // Never retried automatically (ARCHITECTURE invariant 10).
+  ERROR_REASON_OUTCOME_UNKNOWN = 18;
+  // FAILED_PRECONDITION. WhatsApp answered with an error no other reason covers; nothing was done.
+  // Metadata "code": WhatsApp's numeric error code.
+  ERROR_REASON_WHATSAPP_ERROR = 19;
+}
