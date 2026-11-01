@@ -34,8 +34,10 @@ internal sealed class SessionClient(WhatsmeowSessions sessions, WhatsmeowSidecar
 	public async Task LogoutAsync(CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
-		sessions.Forget(sessionId);
+
+		// Forgotten only once it happened: a logout that failed leaves a session the application still connected.
 		_ = await RpcErrors.CallAsync(client.LogoutAsync(new LogoutRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		sessions.Forget(sessionId);
 	}
 
 	public async IAsyncEnumerable<SessionState> WatchStateAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)

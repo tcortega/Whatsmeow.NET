@@ -220,3 +220,25 @@ func TestRaisePermanentDisconnectDispatchesEachType(t *testing.T) {
 		})
 	}
 }
+
+func TestFailNextLogoutTimesOutOnlyTheNextLogoutAndStaysConnected(t *testing.T) {
+	t.Parallel()
+
+	_, control, ctx, client, _, _ := linked(t)
+
+	if err := client.ConnectContext(ctx); err != nil {
+		t.Fatalf("ConnectContext: %v", err)
+	}
+
+	if _, err := control.FailNextLogout(ctx, &fakev1.FailNextLogoutRequest{SessionId: "s1"}); err != nil {
+		t.Fatalf("FailNextLogout: %v", err)
+	}
+
+	if err := client.Logout(ctx); !errors.Is(err, whatsmeow.ErrIQTimedOut) || !client.IsConnected() || client.Store.Deleted {
+		t.Fatalf("Logout = %v, connected %v, deleted %v; want %v, still connected, the device kept", err, client.IsConnected(), client.Store.Deleted, whatsmeow.ErrIQTimedOut)
+	}
+
+	if err := client.Logout(ctx); err != nil {
+		t.Fatalf("the logout after = %v, want nil", err)
+	}
+}

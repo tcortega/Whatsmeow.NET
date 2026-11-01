@@ -46,6 +46,11 @@ type stub struct {
 	connectCtxs []context.Context
 	disconnects int
 	logouts     int
+	connected   bool
+	// connecting, when set, runs inside ConnectContext before it returns, without the stub's lock.
+	connecting func(ctx context.Context)
+	// disconnecting, when set, runs inside Disconnect, without the stub's lock.
+	disconnecting func()
 }
 
 func (s *stub) AddEventHandlerWithSuccessStatus(handler whatsmeow.EventHandlerWithSuccessStatus) uint32 {
@@ -59,17 +64,35 @@ func (s *stub) AddEventHandlerWithSuccessStatus(handler whatsmeow.EventHandlerWi
 
 func (s *stub) ConnectContext(ctx context.Context) error {
 	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	s.connectCtxs = append(s.connectCtxs, ctx)
+	connecting, err := s.connecting, s.connectErr
+	s.connected = err == nil
+	s.mu.Unlock()
 
-	return s.connectErr
+	if connecting != nil {
+		connecting(ctx)
+	}
+
+	return err
 }
 
 func (s *stub) Disconnect() {
 	s.mu.Lock()
 	s.disconnects++
+	s.connected = false
+	disconnecting := s.disconnecting
 	s.mu.Unlock()
+
+	if disconnecting != nil {
+		disconnecting()
+	}
+}
+
+func (s *stub) IsConnected() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return s.connected
 }
 
 func (s *stub) Logout(context.Context) error {
@@ -194,6 +217,19 @@ func startOn(t *testing.T, path string) *harness {
 	h.client = whatsmeowv1.NewSessionServiceClient(conn)
 
 	return h
+}
+
+// setState puts the session in state, as if it got there before.
+func (h *harness) setState(id string, state *whatsmeowv1.SessionState) {
+	h.t.Helper()
+
+	h.svc.mu.Lock()
+	s := h.svc.sessions[id]
+	h.svc.mu.Unlock()
+
+	s.mu.Lock()
+	s.state = state
+	s.mu.Unlock()
 }
 
 func (h *harness) stub(id string) *stub {
@@ -917,3 +953,146 @@ func TestTheWhatsmeowClientIsConfiguredAsArchitecture72(t *testing.T) {
 type sqlstoreless struct{}
 
 func (sqlstoreless) device() *store.Device { return &store.Device{} }
+
+func TestDeleteSessionDisconnectsBeforeItDeletesTheDevice(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.connected("s1")
+
+	// The device rows when Delete disconnects: still there, so the connection closed before they went.
+	rowsAtDisconnect := -1
+	s := h.stub("s1")
+	s.disconnecting = func() {
+		if err := h.db.DB.QueryRowContext(context.Background(), "SELECT count(*) FROM whatsmeow_device").Scan(&rowsAtDisconnect); err != nil {
+			t.Errorf("count: %v", err)
+		}
+	}
+
+	if _, err := h.client.DeleteSession(h.ctx, &whatsmeowv1.DeleteSessionRequest{SessionId: "s1"}); err != nil {
+		t.Fatalf("DeleteSession: %v", err)
+	}
+
+	var rows int
+	if err := h.db.DB.QueryRowContext(h.ctx, "SELECT count(*) FROM whatsmeow_device").Scan(&rows); err != nil {
+		t.Fatalf("count: %v", err)
+	}
+
+	if rowsAtDisconnect != 1 || rows != 0 {
+		t.Fatalf("device rows %d when it disconnected and %d after; want 1, then 0", rowsAtDisconnect, rows)
+	}
+}
+
+func TestAConnectingWriteThatFailsLeavesThePreviousState(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.create("s1")
+	h.link("s1", "1555:1@s.whatsapp.net")
+
+	if _, err := h.db.DB.ExecContext(h.ctx, "CREATE TRIGGER fail BEFORE UPDATE ON session BEGIN SELECT RAISE(ABORT, 'disk full'); END"); err != nil {
+		t.Fatalf("trigger: %v", err)
+	}
+
+	_, err := h.client.Connect(h.ctx, &whatsmeowv1.ConnectRequest{SessionId: "s1"})
+	wantReason(t, err, codes.Internal, "INTERNAL", nil)
+	h.wantState("s1", disconnected())
+
+	if _, err := h.db.DB.ExecContext(h.ctx, "DROP TRIGGER fail"); err != nil {
+		t.Fatalf("drop the trigger: %v", err)
+	}
+
+	h.connect("s1")
+
+	if n := h.stub("s1").connects(); n != 1 {
+		t.Fatalf("connects = %d, want 1: the next Connect connects", n)
+	}
+}
+
+func TestAFailedConnectWithACancelledCallKeepsTheStoppingStateAcrossARestart(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.connected("s1")
+	h.stub("s1").emit(&events.StreamReplaced{})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	s := h.stub("s1")
+	s.connectErr = errors.New("websocket: bad handshake")
+	s.connecting = func(context.Context) { cancel() }
+
+	if _, err := h.svc.Connect(ctx, &whatsmeowv1.ConnectRequest{SessionId: "s1"}); err == nil {
+		t.Fatal("Connect succeeded, want CONNECTION_FAILED")
+	}
+
+	h.wantState("s1", replaced())
+	h.stop()
+
+	startOn(t, h.path).wantState("s1", replaced())
+}
+
+func TestLogoutWhoseStoreDeleteFailedAfterTheUnlinkRecordsDisconnected(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.connected("s1")
+
+	// whatsmeow disconnects once WhatsApp unlinked the device, then deleting the store fails (client.go:771-776).
+	s := h.stub("s1")
+	s.logoutErr = errors.New("error deleting data from store: disk full")
+	s.connecting = nil
+	s.mu.Lock()
+	s.connected = false
+	s.mu.Unlock()
+
+	_, err := h.client.Logout(h.ctx, &whatsmeowv1.LogoutRequest{SessionId: "s1"})
+	wantReason(t, err, codes.Internal, "INTERNAL", nil)
+	h.wantState("s1", disconnected())
+}
+
+func TestConnectAfterABanEndedConnects(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.connected("s1")
+	h.setState("s1", tempBanned(101, timestamppb.New(time.Now().Add(-time.Minute))))
+
+	h.connect("s1")
+
+	if n := h.stub("s1").connects(); n != 2 {
+		t.Fatalf("connects = %d, want 2: the ban has ended", n)
+	}
+}
+
+func TestCloseDoesNotWaitForAConnectInFlight(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.create("s1")
+	h.link("s1", "1555:1@s.whatsapp.net")
+
+	entered := make(chan struct{})
+	s := h.stub("s1")
+	s.connecting = func(ctx context.Context) {
+		close(entered)
+		// A dial that ends only with its context, as whatsmeow's does (client.go:589).
+		<-ctx.Done()
+	}
+
+	go func() { _, _ = h.svc.Connect(context.Background(), &whatsmeowv1.ConnectRequest{SessionId: "s1"}) }()
+
+	<-entered
+
+	closed := make(chan struct{})
+
+	go func() {
+		h.svc.Close()
+		close(closed)
+	}()
+
+	select {
+	case <-closed:
+	case <-h.ctx.Done():
+		t.Fatal("Close waited for the connect in flight")
+	}
+}

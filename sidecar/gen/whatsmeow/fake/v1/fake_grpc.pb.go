@@ -23,6 +23,7 @@ const (
 	FakeWhatsAppService_WaitForSent_FullMethodName              = "/whatsmeow.fake.v1.FakeWhatsAppService/WaitForSent"
 	FakeWhatsAppService_LinkDevice_FullMethodName               = "/whatsmeow.fake.v1.FakeWhatsAppService/LinkDevice"
 	FakeWhatsAppService_FailNextConnect_FullMethodName          = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextConnect"
+	FakeWhatsAppService_FailNextLogout_FullMethodName           = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextLogout"
 	FakeWhatsAppService_RaisePermanentDisconnect_FullMethodName = "/whatsmeow.fake.v1.FakeWhatsAppService/RaisePermanentDisconnect"
 )
 
@@ -52,6 +53,9 @@ type FakeWhatsAppServiceClient interface {
 	// FailNextConnect makes the session's next connect fail with an error whatsmeow does not retry. Without it a
 	// connect succeeds, and a linked client then gets Connected, as whatsmeow does once WhatsApp accepts the login.
 	FailNextConnect(ctx context.Context, in *FailNextConnectRequest, opts ...grpc.CallOption) (*FailNextConnectResponse, error)
+	// FailNextLogout makes the session's next logout get no answer from WhatsApp: whatsmeow's unlink request times out
+	// (ErrIQTimedOut, request.go:180-181), and the client stays connected with its device, as whatsmeow's does.
+	FailNextLogout(ctx context.Context, in *FailNextLogoutRequest, opts ...grpc.CallOption) (*FailNextLogoutResponse, error)
 	// RaisePermanentDisconnect makes WhatsApp end the session's connection with one of the six whatsmeow
 	// PermanentDisconnect events at the pin (types/events/events.go:118-128), dispatched off the node queue as
 	// whatsmeow does; the client is disconnected and does not reconnect. For logged_out the client also deletes its
@@ -107,6 +111,16 @@ func (c *fakeWhatsAppServiceClient) FailNextConnect(ctx context.Context, in *Fai
 	return out, nil
 }
 
+func (c *fakeWhatsAppServiceClient) FailNextLogout(ctx context.Context, in *FailNextLogoutRequest, opts ...grpc.CallOption) (*FailNextLogoutResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FailNextLogoutResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_FailNextLogout_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *fakeWhatsAppServiceClient) RaisePermanentDisconnect(ctx context.Context, in *RaisePermanentDisconnectRequest, opts ...grpc.CallOption) (*RaisePermanentDisconnectResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RaisePermanentDisconnectResponse)
@@ -143,6 +157,9 @@ type FakeWhatsAppServiceServer interface {
 	// FailNextConnect makes the session's next connect fail with an error whatsmeow does not retry. Without it a
 	// connect succeeds, and a linked client then gets Connected, as whatsmeow does once WhatsApp accepts the login.
 	FailNextConnect(context.Context, *FailNextConnectRequest) (*FailNextConnectResponse, error)
+	// FailNextLogout makes the session's next logout get no answer from WhatsApp: whatsmeow's unlink request times out
+	// (ErrIQTimedOut, request.go:180-181), and the client stays connected with its device, as whatsmeow's does.
+	FailNextLogout(context.Context, *FailNextLogoutRequest) (*FailNextLogoutResponse, error)
 	// RaisePermanentDisconnect makes WhatsApp end the session's connection with one of the six whatsmeow
 	// PermanentDisconnect events at the pin (types/events/events.go:118-128), dispatched off the node queue as
 	// whatsmeow does; the client is disconnected and does not reconnect. For logged_out the client also deletes its
@@ -169,6 +186,9 @@ func (UnimplementedFakeWhatsAppServiceServer) LinkDevice(context.Context, *LinkD
 }
 func (UnimplementedFakeWhatsAppServiceServer) FailNextConnect(context.Context, *FailNextConnectRequest) (*FailNextConnectResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method FailNextConnect not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) FailNextLogout(context.Context, *FailNextLogoutRequest) (*FailNextLogoutResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FailNextLogout not implemented")
 }
 func (UnimplementedFakeWhatsAppServiceServer) RaisePermanentDisconnect(context.Context, *RaisePermanentDisconnectRequest) (*RaisePermanentDisconnectResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RaisePermanentDisconnect not implemented")
@@ -266,6 +286,24 @@ func _FakeWhatsAppService_FailNextConnect_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FakeWhatsAppService_FailNextLogout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FailNextLogoutRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).FailNextLogout(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_FailNextLogout_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).FailNextLogout(ctx, req.(*FailNextLogoutRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FakeWhatsAppService_RaisePermanentDisconnect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RaisePermanentDisconnectRequest)
 	if err := dec(in); err != nil {
@@ -306,6 +344,10 @@ var FakeWhatsAppService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FailNextConnect",
 			Handler:    _FakeWhatsAppService_FailNextConnect_Handler,
+		},
+		{
+			MethodName: "FailNextLogout",
+			Handler:    _FakeWhatsAppService_FailNextLogout_Handler,
 		},
 		{
 			MethodName: "RaisePermanentDisconnect",

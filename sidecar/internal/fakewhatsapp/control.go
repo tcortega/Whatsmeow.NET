@@ -86,6 +86,20 @@ func (c *Control) FailNextConnect(_ context.Context, req *fakev1.FailNextConnect
 	return &fakev1.FailNextConnectResponse{}, nil
 }
 
+// FailNextLogout makes the session's next logout time out, with the client still connected.
+func (c *Control) FailNextLogout(_ context.Context, req *fakev1.FailNextLogoutRequest) (*fakev1.FailNextLogoutResponse, error) {
+	client, err := c.whatsApp.client(req.GetSessionId())
+	if err != nil {
+		return nil, err
+	}
+
+	client.conn.Lock()
+	client.failLogout = true
+	client.conn.Unlock()
+
+	return &fakev1.FailNextLogoutResponse{}, nil
+}
+
 // RaisePermanentDisconnect ends the session's connection with a PermanentDisconnect event, dispatched off the queue.
 func (c *Control) RaisePermanentDisconnect(ctx context.Context, req *fakev1.RaisePermanentDisconnectRequest) (*fakev1.RaisePermanentDisconnectResponse, error) {
 	client, err := c.whatsApp.client(req.GetSessionId())

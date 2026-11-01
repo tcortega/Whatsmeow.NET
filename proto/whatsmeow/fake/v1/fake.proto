@@ -30,6 +30,10 @@ service FakeWhatsAppService {
   // connect succeeds, and a linked client then gets Connected, as whatsmeow does once WhatsApp accepts the login.
   rpc FailNextConnect(FailNextConnectRequest) returns (FailNextConnectResponse);
 
+  // FailNextLogout makes the session's next logout get no answer from WhatsApp: whatsmeow's unlink request times out
+  // (ErrIQTimedOut, request.go:180-181), and the client stays connected with its device, as whatsmeow's does.
+  rpc FailNextLogout(FailNextLogoutRequest) returns (FailNextLogoutResponse);
+
   // RaisePermanentDisconnect makes WhatsApp end the session's connection with one of the six whatsmeow
   // PermanentDisconnect events at the pin (types/events/events.go:118-128), dispatched off the node queue as
   // whatsmeow does; the client is disconnected and does not reconnect. For logged_out the client also deletes its
@@ -56,6 +60,15 @@ message FailNextConnectRequest {
 
 // FailNextConnectResponse has no fields.
 message FailNextConnectResponse {}
+
+// FailNextLogoutRequest names the session.
+message FailNextLogoutRequest {
+  // The session whose next logout gets no answer.
+  string session_id = 1;
+}
+
+// FailNextLogoutResponse has no fields.
+message FailNextLogoutResponse {}
 
 // RaisePermanentDisconnectRequest is one PermanentDisconnect event.
 message RaisePermanentDisconnectRequest {

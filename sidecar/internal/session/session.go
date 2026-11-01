@@ -33,6 +33,7 @@ type Client interface {
 	AddEventHandlerWithSuccessStatus(handler whatsmeow.EventHandlerWithSuccessStatus) uint32
 	ConnectContext(ctx context.Context) error
 	Disconnect()
+	IsConnected() bool
 	Logout(ctx context.Context) error
 }
 
@@ -235,10 +236,11 @@ func (svc *Service) handle(s *session, evt any) {
 
 // transition is the one place a session's state changes: it records the state a restart keeps (the stopping
 // states), then publishes it to every watcher. s.mu is held. The state is published even when recording fails,
-// because it is what whatsmeow reports.
+// because it is what whatsmeow reports. A state that happened is recorded even when the call that caused it was
+// cancelled meanwhile.
 func (svc *Service) transition(ctx context.Context, s *session, state *whatsmeowv1.SessionState) error {
 	s.state = state
-	err := svc.persist(ctx, s)
+	err := svc.persist(context.WithoutCancel(ctx), s)
 
 	for w := range s.watchers {
 		// One slot per watcher: a watcher that falls behind finds only the latest state.
@@ -283,8 +285,11 @@ func (s *session) gone() bool {
 	}
 }
 
-// Close disconnects every session and ends their connections' context, before the store closes.
+// Close ends the connections' context, which ends a connect in flight, then disconnects every session, before the
+// store closes.
 func (svc *Service) Close() {
+	svc.end()
+
 	svc.mu.Lock()
 	all := make([]*session, 0, len(svc.sessions))
 
@@ -298,8 +303,6 @@ func (svc *Service) Close() {
 		s.client.Disconnect()
 		s.ops.Unlock()
 	}
-
-	svc.end()
 }
 
 // get returns the session with id, or an error for a malformed or unknown id.
@@ -399,15 +402,22 @@ func (svc *Service) DeleteSession(ctx context.Context, req *whatsmeowv1.DeleteSe
 	defer s.ops.Unlock()
 
 	s.mu.Lock()
-	connected := live(s.state)
+	connected, jid := live(s.state), s.jid
 	s.mu.Unlock()
 
 	if connected {
 		s.client.Disconnect()
 	}
 
-	if s.device.ID != nil && !s.device.Deleted {
-		if err := s.device.Delete(ctx); err != nil {
+	// By the JID the session recorded, not the device's own fields: whatsmeow writes those on its own goroutine on a
+	// server-side logout (store.go:286-297). Deleting rows that whatsmeow already deleted is a no-op.
+	if jid != "" {
+		parsed, err := types.ParseJID(jid)
+		if err != nil {
+			return nil, fmt.Errorf("delete session %q: its device JID %q: %w", s.id, jid, err)
+		}
+
+		if err := svc.devices.DeleteDevice(ctx, &store.Device{ID: &parsed}); err != nil {
 			return nil, fmt.Errorf("delete session %q: its device: %w", s.id, err)
 		}
 	}
@@ -447,12 +457,17 @@ func (svc *Service) Connect(ctx context.Context, req *whatsmeowv1.ConnectRequest
 		return &whatsmeowv1.ConnectResponse{}, err
 	}
 
-	err = svc.transition(ctx, s, connecting())
-	s.mu.Unlock()
+	if err := svc.transition(ctx, s, connecting()); err != nil {
+		// Not connecting after all: stuck in Connecting, every later Connect would do nothing.
+		if restoreErr := svc.transition(ctx, s, previous); restoreErr != nil {
+			err = errors.Join(err, restoreErr)
+		}
 
-	if err != nil {
+		s.mu.Unlock()
+
 		return nil, err
 	}
+	s.mu.Unlock()
 
 	if err := s.client.ConnectContext(svc.lifetime); err != nil { //nolint:contextcheck // the connection outlives the call (client.go:541-599)
 		s.mu.Lock()
@@ -548,7 +563,20 @@ func (svc *Service) Logout(ctx context.Context, req *whatsmeowv1.LogoutRequest) 
 	}
 
 	if err := s.client.Logout(ctx); err != nil {
-		return nil, fmt.Errorf("log out session %q: %w", s.id, logoutError(err))
+		err = fmt.Errorf("log out session %q: %w", s.id, logoutError(err))
+
+		// whatsmeow disconnects only once WhatsApp unlinked the device (client.go:771-772), so an error with no
+		// connection left is a failure after the unlink, deleting the local store: the session is not connected.
+		if !s.client.IsConnected() && !isClassified(err) {
+			s.mu.Lock()
+			defer s.mu.Unlock()
+
+			if recordErr := svc.transition(ctx, s, disconnected()); recordErr != nil {
+				err = errors.Join(err, recordErr)
+			}
+		}
+
+		return nil, err
 	}
 
 	s.mu.Lock()
@@ -560,6 +588,12 @@ func (svc *Service) Logout(ctx context.Context, req *whatsmeowv1.LogoutRequest) 
 	}
 
 	return &whatsmeowv1.LogoutResponse{}, nil
+}
+
+// isClassified is an error logoutError gave a reason, or a context error.
+func isClassified(err error) bool {
+	return errors.Is(err, server.ErrOutcomeUnknown) || errors.Is(err, server.ErrWhatsAppError) || errors.Is(err, server.ErrNotConnected) ||
+		errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)
 }
 
 // logoutError classifies what whatsmeow's unlink request returned (request.go:152-182). A context error stays

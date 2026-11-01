@@ -62,10 +62,12 @@ public sealed class WhatsmeowSessions
 	public async Task DeleteAsync(SessionId sessionId, CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(_sidecar.IsDisposed, _sidecar);
-		Forget(sessionId);
 		_ = await RpcErrors
 			.CallAsync(_client.DeleteSessionAsync(new DeleteSessionRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken))
 			.ConfigureAwait(false);
+
+		// Forgotten only once it is gone: a delete that failed leaves a session the application still connected.
+		Forget(sessionId);
 		_ = _clients.TryRemove(sessionId, out _);
 	}
 
@@ -73,6 +75,12 @@ public sealed class WhatsmeowSessions
 	{
 		lock (_lock)
 			_ = _connected.Add(sessionId);
+	}
+
+	private bool IsRemembered(SessionId sessionId)
+	{
+		lock (_lock)
+			return _connected.Contains(sessionId);
 	}
 
 	internal void Forget(SessionId sessionId)
@@ -109,7 +117,8 @@ public sealed class WhatsmeowSessions
 
 		foreach (var session in sessions)
 		{
-			if (session is not { State: SessionState.Disconnected } || !connected.Contains(session.Id))
+			// Checked again now, not only in the snapshot: the application may have disconnected it meanwhile.
+			if (session is not { State: SessionState.Disconnected } || !IsRemembered(session.Id))
 				continue;
 
 			try

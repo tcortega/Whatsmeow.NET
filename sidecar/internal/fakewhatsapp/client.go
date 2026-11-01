@@ -30,6 +30,7 @@ type Client struct {
 	conn        sync.Mutex
 	connected   bool
 	failConnect bool
+	failLogout  bool
 	// queue runs one dispatch at a time, as whatsmeow's per-client node queue does (ARCHITECTURE §7.3).
 	queue    sync.Mutex
 	mu       sync.RWMutex
@@ -88,6 +89,14 @@ func (c *Client) Disconnect() {
 	c.whatsApp.append(&fakev1.Sent{SessionId: c.sessionID, Kind: &fakev1.Sent_Disconnect{Disconnect: &fakev1.Disconnect{}}})
 }
 
+// IsConnected reports whether the connection is open, as whatsmeow's does.
+func (c *Client) IsConnected() bool {
+	c.conn.Lock()
+	defer c.conn.Unlock()
+
+	return c.connected
+}
+
 // Logout sends the unlink request, then disconnects and deletes the device, raising no event, as whatsmeow's does
 // (client.go:749-779).
 func (c *Client) Logout(ctx context.Context) error {
@@ -96,11 +105,16 @@ func (c *Client) Logout(ctx context.Context) error {
 	}
 
 	c.conn.Lock()
-	connected := c.connected
+	connected, fail := c.connected, c.failLogout
+	c.failLogout = false
 	c.conn.Unlock()
 
 	if !connected {
 		return fmt.Errorf("error sending logout request: %w", whatsmeow.ErrNotConnected)
+	}
+
+	if fail {
+		return fmt.Errorf("error sending logout request: %w", whatsmeow.ErrIQTimedOut)
 	}
 
 	c.whatsApp.append(&fakev1.Sent{SessionId: c.sessionID, Kind: &fakev1.Sent_RemoveCompanionDevice{RemoveCompanionDevice: &fakev1.RemoveCompanionDevice{}}})

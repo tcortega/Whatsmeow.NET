@@ -197,6 +197,89 @@ func (*FailNextConnectResponse) Descriptor() ([]byte, []int) {
 	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{3}
 }
 
+// FailNextLogoutRequest names the session.
+type FailNextLogoutRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The session whose next logout gets no answer.
+	SessionId     string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FailNextLogoutRequest) Reset() {
+	*x = FailNextLogoutRequest{}
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FailNextLogoutRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FailNextLogoutRequest) ProtoMessage() {}
+
+func (x *FailNextLogoutRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FailNextLogoutRequest.ProtoReflect.Descriptor instead.
+func (*FailNextLogoutRequest) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *FailNextLogoutRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+// FailNextLogoutResponse has no fields.
+type FailNextLogoutResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FailNextLogoutResponse) Reset() {
+	*x = FailNextLogoutResponse{}
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FailNextLogoutResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FailNextLogoutResponse) ProtoMessage() {}
+
+func (x *FailNextLogoutResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FailNextLogoutResponse.ProtoReflect.Descriptor instead.
+func (*FailNextLogoutResponse) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{5}
+}
+
 // RaisePermanentDisconnectRequest is one PermanentDisconnect event.
 type RaisePermanentDisconnectRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -219,7 +302,7 @@ type RaisePermanentDisconnectRequest struct {
 
 func (x *RaisePermanentDisconnectRequest) Reset() {
 	*x = RaisePermanentDisconnectRequest{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[4]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -231,7 +314,7 @@ func (x *RaisePermanentDisconnectRequest) String() string {
 func (*RaisePermanentDisconnectRequest) ProtoMessage() {}
 
 func (x *RaisePermanentDisconnectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[4]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -244,7 +327,7 @@ func (x *RaisePermanentDisconnectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RaisePermanentDisconnectRequest.ProtoReflect.Descriptor instead.
 func (*RaisePermanentDisconnectRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{4}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *RaisePermanentDisconnectRequest) GetSessionId() string {
@@ -370,7 +453,7 @@ type RaisePermanentDisconnectResponse struct {
 
 func (x *RaisePermanentDisconnectResponse) Reset() {
 	*x = RaisePermanentDisconnectResponse{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[5]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -382,7 +465,7 @@ func (x *RaisePermanentDisconnectResponse) String() string {
 func (*RaisePermanentDisconnectResponse) ProtoMessage() {}
 
 func (x *RaisePermanentDisconnectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[5]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -395,7 +478,7 @@ func (x *RaisePermanentDisconnectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RaisePermanentDisconnectResponse.ProtoReflect.Descriptor instead.
 func (*RaisePermanentDisconnectResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{5}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{7}
 }
 
 // DeliverMessageRequest is one inbound message.
@@ -411,7 +494,7 @@ type DeliverMessageRequest struct {
 
 func (x *DeliverMessageRequest) Reset() {
 	*x = DeliverMessageRequest{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[6]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -423,7 +506,7 @@ func (x *DeliverMessageRequest) String() string {
 func (*DeliverMessageRequest) ProtoMessage() {}
 
 func (x *DeliverMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[6]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -436,7 +519,7 @@ func (x *DeliverMessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeliverMessageRequest.ProtoReflect.Descriptor instead.
 func (*DeliverMessageRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{6}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *DeliverMessageRequest) GetSessionId() string {
@@ -462,7 +545,7 @@ type DeliverMessageResponse struct {
 
 func (x *DeliverMessageResponse) Reset() {
 	*x = DeliverMessageResponse{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[7]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -474,7 +557,7 @@ func (x *DeliverMessageResponse) String() string {
 func (*DeliverMessageResponse) ProtoMessage() {}
 
 func (x *DeliverMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[7]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -487,7 +570,7 @@ func (x *DeliverMessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeliverMessageResponse.ProtoReflect.Descriptor instead.
 func (*DeliverMessageResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{7}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{9}
 }
 
 // WaitForSentRequest selects the next entry of one session.
@@ -503,7 +586,7 @@ type WaitForSentRequest struct {
 
 func (x *WaitForSentRequest) Reset() {
 	*x = WaitForSentRequest{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[8]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -515,7 +598,7 @@ func (x *WaitForSentRequest) String() string {
 func (*WaitForSentRequest) ProtoMessage() {}
 
 func (x *WaitForSentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[8]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -528,7 +611,7 @@ func (x *WaitForSentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WaitForSentRequest.ProtoReflect.Descriptor instead.
 func (*WaitForSentRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{8}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *WaitForSentRequest) GetSessionId() string {
@@ -556,7 +639,7 @@ type WaitForSentResponse struct {
 
 func (x *WaitForSentResponse) Reset() {
 	*x = WaitForSentResponse{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[9]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -568,7 +651,7 @@ func (x *WaitForSentResponse) String() string {
 func (*WaitForSentResponse) ProtoMessage() {}
 
 func (x *WaitForSentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[9]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -581,7 +664,7 @@ func (x *WaitForSentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WaitForSentResponse.ProtoReflect.Descriptor instead.
 func (*WaitForSentResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{9}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *WaitForSentResponse) GetSent() *Sent {
@@ -612,7 +695,7 @@ type Sent struct {
 
 func (x *Sent) Reset() {
 	*x = Sent{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[10]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -624,7 +707,7 @@ func (x *Sent) String() string {
 func (*Sent) ProtoMessage() {}
 
 func (x *Sent) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[10]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -637,7 +720,7 @@ func (x *Sent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sent.ProtoReflect.Descriptor instead.
 func (*Sent) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{10}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *Sent) GetIndex() uint64 {
@@ -722,7 +805,7 @@ type Disconnect struct {
 
 func (x *Disconnect) Reset() {
 	*x = Disconnect{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[11]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -734,7 +817,7 @@ func (x *Disconnect) String() string {
 func (*Disconnect) ProtoMessage() {}
 
 func (x *Disconnect) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[11]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -747,7 +830,7 @@ func (x *Disconnect) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Disconnect.ProtoReflect.Descriptor instead.
 func (*Disconnect) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{11}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{13}
 }
 
 // RemoveCompanionDevice is the remove-companion-device request whatsmeow's Logout sends (client.go:749-779).
@@ -759,7 +842,7 @@ type RemoveCompanionDevice struct {
 
 func (x *RemoveCompanionDevice) Reset() {
 	*x = RemoveCompanionDevice{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[12]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -771,7 +854,7 @@ func (x *RemoveCompanionDevice) String() string {
 func (*RemoveCompanionDevice) ProtoMessage() {}
 
 func (x *RemoveCompanionDevice) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[12]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -784,7 +867,7 @@ func (x *RemoveCompanionDevice) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveCompanionDevice.ProtoReflect.Descriptor instead.
 func (*RemoveCompanionDevice) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{12}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{14}
 }
 
 // Receipt is the <receipt> whatsmeow sends for a decrypted message once its handlers succeeded
@@ -801,7 +884,7 @@ type Receipt struct {
 
 func (x *Receipt) Reset() {
 	*x = Receipt{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[13]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -813,7 +896,7 @@ func (x *Receipt) String() string {
 func (*Receipt) ProtoMessage() {}
 
 func (x *Receipt) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[13]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -826,7 +909,7 @@ func (x *Receipt) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Receipt.ProtoReflect.Descriptor instead.
 func (*Receipt) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{13}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *Receipt) GetId() string {
@@ -854,7 +937,7 @@ type RaisePermanentDisconnectRequest_LoggedOut struct {
 
 func (x *RaisePermanentDisconnectRequest_LoggedOut) Reset() {
 	*x = RaisePermanentDisconnectRequest_LoggedOut{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[14]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -866,7 +949,7 @@ func (x *RaisePermanentDisconnectRequest_LoggedOut) String() string {
 func (*RaisePermanentDisconnectRequest_LoggedOut) ProtoMessage() {}
 
 func (x *RaisePermanentDisconnectRequest_LoggedOut) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[14]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -879,7 +962,7 @@ func (x *RaisePermanentDisconnectRequest_LoggedOut) ProtoReflect() protoreflect.
 
 // Deprecated: Use RaisePermanentDisconnectRequest_LoggedOut.ProtoReflect.Descriptor instead.
 func (*RaisePermanentDisconnectRequest_LoggedOut) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{4, 0}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{6, 0}
 }
 
 func (x *RaisePermanentDisconnectRequest_LoggedOut) GetReason() int32 {
@@ -898,7 +981,7 @@ type RaisePermanentDisconnectRequest_StreamReplaced struct {
 
 func (x *RaisePermanentDisconnectRequest_StreamReplaced) Reset() {
 	*x = RaisePermanentDisconnectRequest_StreamReplaced{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[15]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -910,7 +993,7 @@ func (x *RaisePermanentDisconnectRequest_StreamReplaced) String() string {
 func (*RaisePermanentDisconnectRequest_StreamReplaced) ProtoMessage() {}
 
 func (x *RaisePermanentDisconnectRequest_StreamReplaced) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[15]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -923,7 +1006,7 @@ func (x *RaisePermanentDisconnectRequest_StreamReplaced) ProtoReflect() protoref
 
 // Deprecated: Use RaisePermanentDisconnectRequest_StreamReplaced.ProtoReflect.Descriptor instead.
 func (*RaisePermanentDisconnectRequest_StreamReplaced) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{4, 1}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{6, 1}
 }
 
 // events.ClientOutdated.
@@ -935,7 +1018,7 @@ type RaisePermanentDisconnectRequest_ClientOutdated struct {
 
 func (x *RaisePermanentDisconnectRequest_ClientOutdated) Reset() {
 	*x = RaisePermanentDisconnectRequest_ClientOutdated{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[16]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -947,7 +1030,7 @@ func (x *RaisePermanentDisconnectRequest_ClientOutdated) String() string {
 func (*RaisePermanentDisconnectRequest_ClientOutdated) ProtoMessage() {}
 
 func (x *RaisePermanentDisconnectRequest_ClientOutdated) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[16]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -960,7 +1043,7 @@ func (x *RaisePermanentDisconnectRequest_ClientOutdated) ProtoReflect() protoref
 
 // Deprecated: Use RaisePermanentDisconnectRequest_ClientOutdated.ProtoReflect.Descriptor instead.
 func (*RaisePermanentDisconnectRequest_ClientOutdated) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{4, 2}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{6, 2}
 }
 
 // events.CATRefreshError.
@@ -974,7 +1057,7 @@ type RaisePermanentDisconnectRequest_CatRefreshError struct {
 
 func (x *RaisePermanentDisconnectRequest_CatRefreshError) Reset() {
 	*x = RaisePermanentDisconnectRequest_CatRefreshError{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[17]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -986,7 +1069,7 @@ func (x *RaisePermanentDisconnectRequest_CatRefreshError) String() string {
 func (*RaisePermanentDisconnectRequest_CatRefreshError) ProtoMessage() {}
 
 func (x *RaisePermanentDisconnectRequest_CatRefreshError) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[17]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -999,7 +1082,7 @@ func (x *RaisePermanentDisconnectRequest_CatRefreshError) ProtoReflect() protore
 
 // Deprecated: Use RaisePermanentDisconnectRequest_CatRefreshError.ProtoReflect.Descriptor instead.
 func (*RaisePermanentDisconnectRequest_CatRefreshError) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{4, 3}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{6, 3}
 }
 
 func (x *RaisePermanentDisconnectRequest_CatRefreshError) GetMessage() string {
@@ -1022,7 +1105,7 @@ type RaisePermanentDisconnectRequest_TemporaryBan struct {
 
 func (x *RaisePermanentDisconnectRequest_TemporaryBan) Reset() {
 	*x = RaisePermanentDisconnectRequest_TemporaryBan{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[18]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1034,7 +1117,7 @@ func (x *RaisePermanentDisconnectRequest_TemporaryBan) String() string {
 func (*RaisePermanentDisconnectRequest_TemporaryBan) ProtoMessage() {}
 
 func (x *RaisePermanentDisconnectRequest_TemporaryBan) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[18]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1047,7 +1130,7 @@ func (x *RaisePermanentDisconnectRequest_TemporaryBan) ProtoReflect() protorefle
 
 // Deprecated: Use RaisePermanentDisconnectRequest_TemporaryBan.ProtoReflect.Descriptor instead.
 func (*RaisePermanentDisconnectRequest_TemporaryBan) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{4, 4}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{6, 4}
 }
 
 func (x *RaisePermanentDisconnectRequest_TemporaryBan) GetCode() int32 {
@@ -1077,7 +1160,7 @@ type RaisePermanentDisconnectRequest_ConnectFailure struct {
 
 func (x *RaisePermanentDisconnectRequest_ConnectFailure) Reset() {
 	*x = RaisePermanentDisconnectRequest_ConnectFailure{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[19]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1089,7 +1172,7 @@ func (x *RaisePermanentDisconnectRequest_ConnectFailure) String() string {
 func (*RaisePermanentDisconnectRequest_ConnectFailure) ProtoMessage() {}
 
 func (x *RaisePermanentDisconnectRequest_ConnectFailure) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[19]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1102,7 +1185,7 @@ func (x *RaisePermanentDisconnectRequest_ConnectFailure) ProtoReflect() protoref
 
 // Deprecated: Use RaisePermanentDisconnectRequest_ConnectFailure.ProtoReflect.Descriptor instead.
 func (*RaisePermanentDisconnectRequest_ConnectFailure) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{4, 5}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{6, 5}
 }
 
 func (x *RaisePermanentDisconnectRequest_ConnectFailure) GetReason() int32 {
@@ -1132,7 +1215,11 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"\x16FailNextConnectRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\"\x19\n" +
-	"\x17FailNextConnectResponse\"\xdc\a\n" +
+	"\x17FailNextConnectResponse\"6\n" +
+	"\x15FailNextLogoutRequest\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\"\x18\n" +
+	"\x16FailNextLogoutResponse\"\xdc\a\n" +
 	"\x1fRaisePermanentDisconnectRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12]\n" +
@@ -1183,13 +1270,14 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"\x15RemoveCompanionDevice\"-\n" +
 	"\aReceipt\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04type\x18\x02 \x01(\tR\x04type2\xa5\x04\n" +
+	"\x04type\x18\x02 \x01(\tR\x04type2\x8c\x05\n" +
 	"\x13FakeWhatsAppService\x12e\n" +
 	"\x0eDeliverMessage\x12(.whatsmeow.fake.v1.DeliverMessageRequest\x1a).whatsmeow.fake.v1.DeliverMessageResponse\x12\\\n" +
 	"\vWaitForSent\x12%.whatsmeow.fake.v1.WaitForSentRequest\x1a&.whatsmeow.fake.v1.WaitForSentResponse\x12Y\n" +
 	"\n" +
 	"LinkDevice\x12$.whatsmeow.fake.v1.LinkDeviceRequest\x1a%.whatsmeow.fake.v1.LinkDeviceResponse\x12h\n" +
-	"\x0fFailNextConnect\x12).whatsmeow.fake.v1.FailNextConnectRequest\x1a*.whatsmeow.fake.v1.FailNextConnectResponse\x12\x83\x01\n" +
+	"\x0fFailNextConnect\x12).whatsmeow.fake.v1.FailNextConnectRequest\x1a*.whatsmeow.fake.v1.FailNextConnectResponse\x12e\n" +
+	"\x0eFailNextLogout\x12(.whatsmeow.fake.v1.FailNextLogoutRequest\x1a).whatsmeow.fake.v1.FailNextLogoutResponse\x12\x83\x01\n" +
 	"\x18RaisePermanentDisconnect\x122.whatsmeow.fake.v1.RaisePermanentDisconnectRequest\x1a3.whatsmeow.fake.v1.RaisePermanentDisconnectResponseB\xde\x01\n" +
 	"\x15com.whatsmeow.fake.v1B\tFakeProtoP\x01ZFgithub.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/fake/v1;fakev1\xa2\x02\x03WFX\xaa\x02\x1fWhatsmeow.IntegrationTests.Fake\xca\x02\x11Whatsmeow\\Fake\\V1\xe2\x02\x1dWhatsmeow\\Fake\\V1\\GPBMetadata\xea\x02\x13Whatsmeow::Fake::V1b\x06proto3"
 
@@ -1205,54 +1293,58 @@ func file_whatsmeow_fake_v1_fake_proto_rawDescGZIP() []byte {
 	return file_whatsmeow_fake_v1_fake_proto_rawDescData
 }
 
-var file_whatsmeow_fake_v1_fake_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_whatsmeow_fake_v1_fake_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_whatsmeow_fake_v1_fake_proto_goTypes = []any{
 	(*LinkDeviceRequest)(nil),                               // 0: whatsmeow.fake.v1.LinkDeviceRequest
 	(*LinkDeviceResponse)(nil),                              // 1: whatsmeow.fake.v1.LinkDeviceResponse
 	(*FailNextConnectRequest)(nil),                          // 2: whatsmeow.fake.v1.FailNextConnectRequest
 	(*FailNextConnectResponse)(nil),                         // 3: whatsmeow.fake.v1.FailNextConnectResponse
-	(*RaisePermanentDisconnectRequest)(nil),                 // 4: whatsmeow.fake.v1.RaisePermanentDisconnectRequest
-	(*RaisePermanentDisconnectResponse)(nil),                // 5: whatsmeow.fake.v1.RaisePermanentDisconnectResponse
-	(*DeliverMessageRequest)(nil),                           // 6: whatsmeow.fake.v1.DeliverMessageRequest
-	(*DeliverMessageResponse)(nil),                          // 7: whatsmeow.fake.v1.DeliverMessageResponse
-	(*WaitForSentRequest)(nil),                              // 8: whatsmeow.fake.v1.WaitForSentRequest
-	(*WaitForSentResponse)(nil),                             // 9: whatsmeow.fake.v1.WaitForSentResponse
-	(*Sent)(nil),                                            // 10: whatsmeow.fake.v1.Sent
-	(*Disconnect)(nil),                                      // 11: whatsmeow.fake.v1.Disconnect
-	(*RemoveCompanionDevice)(nil),                           // 12: whatsmeow.fake.v1.RemoveCompanionDevice
-	(*Receipt)(nil),                                         // 13: whatsmeow.fake.v1.Receipt
-	(*RaisePermanentDisconnectRequest_LoggedOut)(nil),       // 14: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.LoggedOut
-	(*RaisePermanentDisconnectRequest_StreamReplaced)(nil),  // 15: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.StreamReplaced
-	(*RaisePermanentDisconnectRequest_ClientOutdated)(nil),  // 16: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ClientOutdated
-	(*RaisePermanentDisconnectRequest_CatRefreshError)(nil), // 17: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.CatRefreshError
-	(*RaisePermanentDisconnectRequest_TemporaryBan)(nil),    // 18: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.TemporaryBan
-	(*RaisePermanentDisconnectRequest_ConnectFailure)(nil),  // 19: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ConnectFailure
-	(*durationpb.Duration)(nil),                             // 20: google.protobuf.Duration
+	(*FailNextLogoutRequest)(nil),                           // 4: whatsmeow.fake.v1.FailNextLogoutRequest
+	(*FailNextLogoutResponse)(nil),                          // 5: whatsmeow.fake.v1.FailNextLogoutResponse
+	(*RaisePermanentDisconnectRequest)(nil),                 // 6: whatsmeow.fake.v1.RaisePermanentDisconnectRequest
+	(*RaisePermanentDisconnectResponse)(nil),                // 7: whatsmeow.fake.v1.RaisePermanentDisconnectResponse
+	(*DeliverMessageRequest)(nil),                           // 8: whatsmeow.fake.v1.DeliverMessageRequest
+	(*DeliverMessageResponse)(nil),                          // 9: whatsmeow.fake.v1.DeliverMessageResponse
+	(*WaitForSentRequest)(nil),                              // 10: whatsmeow.fake.v1.WaitForSentRequest
+	(*WaitForSentResponse)(nil),                             // 11: whatsmeow.fake.v1.WaitForSentResponse
+	(*Sent)(nil),                                            // 12: whatsmeow.fake.v1.Sent
+	(*Disconnect)(nil),                                      // 13: whatsmeow.fake.v1.Disconnect
+	(*RemoveCompanionDevice)(nil),                           // 14: whatsmeow.fake.v1.RemoveCompanionDevice
+	(*Receipt)(nil),                                         // 15: whatsmeow.fake.v1.Receipt
+	(*RaisePermanentDisconnectRequest_LoggedOut)(nil),       // 16: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.LoggedOut
+	(*RaisePermanentDisconnectRequest_StreamReplaced)(nil),  // 17: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.StreamReplaced
+	(*RaisePermanentDisconnectRequest_ClientOutdated)(nil),  // 18: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ClientOutdated
+	(*RaisePermanentDisconnectRequest_CatRefreshError)(nil), // 19: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.CatRefreshError
+	(*RaisePermanentDisconnectRequest_TemporaryBan)(nil),    // 20: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.TemporaryBan
+	(*RaisePermanentDisconnectRequest_ConnectFailure)(nil),  // 21: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ConnectFailure
+	(*durationpb.Duration)(nil),                             // 22: google.protobuf.Duration
 }
 var file_whatsmeow_fake_v1_fake_proto_depIdxs = []int32{
-	14, // 0: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.logged_out:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.LoggedOut
-	15, // 1: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.stream_replaced:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.StreamReplaced
-	16, // 2: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.client_outdated:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ClientOutdated
-	17, // 3: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.cat_refresh_error:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.CatRefreshError
-	18, // 4: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.temporary_ban:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.TemporaryBan
-	19, // 5: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.connect_failure:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ConnectFailure
-	10, // 6: whatsmeow.fake.v1.WaitForSentResponse.sent:type_name -> whatsmeow.fake.v1.Sent
-	13, // 7: whatsmeow.fake.v1.Sent.receipt:type_name -> whatsmeow.fake.v1.Receipt
-	11, // 8: whatsmeow.fake.v1.Sent.disconnect:type_name -> whatsmeow.fake.v1.Disconnect
-	12, // 9: whatsmeow.fake.v1.Sent.remove_companion_device:type_name -> whatsmeow.fake.v1.RemoveCompanionDevice
-	20, // 10: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.TemporaryBan.expire:type_name -> google.protobuf.Duration
-	6,  // 11: whatsmeow.fake.v1.FakeWhatsAppService.DeliverMessage:input_type -> whatsmeow.fake.v1.DeliverMessageRequest
-	8,  // 12: whatsmeow.fake.v1.FakeWhatsAppService.WaitForSent:input_type -> whatsmeow.fake.v1.WaitForSentRequest
+	16, // 0: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.logged_out:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.LoggedOut
+	17, // 1: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.stream_replaced:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.StreamReplaced
+	18, // 2: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.client_outdated:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ClientOutdated
+	19, // 3: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.cat_refresh_error:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.CatRefreshError
+	20, // 4: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.temporary_ban:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.TemporaryBan
+	21, // 5: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.connect_failure:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ConnectFailure
+	12, // 6: whatsmeow.fake.v1.WaitForSentResponse.sent:type_name -> whatsmeow.fake.v1.Sent
+	15, // 7: whatsmeow.fake.v1.Sent.receipt:type_name -> whatsmeow.fake.v1.Receipt
+	13, // 8: whatsmeow.fake.v1.Sent.disconnect:type_name -> whatsmeow.fake.v1.Disconnect
+	14, // 9: whatsmeow.fake.v1.Sent.remove_companion_device:type_name -> whatsmeow.fake.v1.RemoveCompanionDevice
+	22, // 10: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.TemporaryBan.expire:type_name -> google.protobuf.Duration
+	8,  // 11: whatsmeow.fake.v1.FakeWhatsAppService.DeliverMessage:input_type -> whatsmeow.fake.v1.DeliverMessageRequest
+	10, // 12: whatsmeow.fake.v1.FakeWhatsAppService.WaitForSent:input_type -> whatsmeow.fake.v1.WaitForSentRequest
 	0,  // 13: whatsmeow.fake.v1.FakeWhatsAppService.LinkDevice:input_type -> whatsmeow.fake.v1.LinkDeviceRequest
 	2,  // 14: whatsmeow.fake.v1.FakeWhatsAppService.FailNextConnect:input_type -> whatsmeow.fake.v1.FailNextConnectRequest
-	4,  // 15: whatsmeow.fake.v1.FakeWhatsAppService.RaisePermanentDisconnect:input_type -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest
-	7,  // 16: whatsmeow.fake.v1.FakeWhatsAppService.DeliverMessage:output_type -> whatsmeow.fake.v1.DeliverMessageResponse
-	9,  // 17: whatsmeow.fake.v1.FakeWhatsAppService.WaitForSent:output_type -> whatsmeow.fake.v1.WaitForSentResponse
-	1,  // 18: whatsmeow.fake.v1.FakeWhatsAppService.LinkDevice:output_type -> whatsmeow.fake.v1.LinkDeviceResponse
-	3,  // 19: whatsmeow.fake.v1.FakeWhatsAppService.FailNextConnect:output_type -> whatsmeow.fake.v1.FailNextConnectResponse
-	5,  // 20: whatsmeow.fake.v1.FakeWhatsAppService.RaisePermanentDisconnect:output_type -> whatsmeow.fake.v1.RaisePermanentDisconnectResponse
-	16, // [16:21] is the sub-list for method output_type
-	11, // [11:16] is the sub-list for method input_type
+	4,  // 15: whatsmeow.fake.v1.FakeWhatsAppService.FailNextLogout:input_type -> whatsmeow.fake.v1.FailNextLogoutRequest
+	6,  // 16: whatsmeow.fake.v1.FakeWhatsAppService.RaisePermanentDisconnect:input_type -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest
+	9,  // 17: whatsmeow.fake.v1.FakeWhatsAppService.DeliverMessage:output_type -> whatsmeow.fake.v1.DeliverMessageResponse
+	11, // 18: whatsmeow.fake.v1.FakeWhatsAppService.WaitForSent:output_type -> whatsmeow.fake.v1.WaitForSentResponse
+	1,  // 19: whatsmeow.fake.v1.FakeWhatsAppService.LinkDevice:output_type -> whatsmeow.fake.v1.LinkDeviceResponse
+	3,  // 20: whatsmeow.fake.v1.FakeWhatsAppService.FailNextConnect:output_type -> whatsmeow.fake.v1.FailNextConnectResponse
+	5,  // 21: whatsmeow.fake.v1.FakeWhatsAppService.FailNextLogout:output_type -> whatsmeow.fake.v1.FailNextLogoutResponse
+	7,  // 22: whatsmeow.fake.v1.FakeWhatsAppService.RaisePermanentDisconnect:output_type -> whatsmeow.fake.v1.RaisePermanentDisconnectResponse
+	17, // [17:23] is the sub-list for method output_type
+	11, // [11:17] is the sub-list for method input_type
 	11, // [11:11] is the sub-list for extension type_name
 	11, // [11:11] is the sub-list for extension extendee
 	0,  // [0:11] is the sub-list for field type_name
@@ -1263,7 +1355,7 @@ func file_whatsmeow_fake_v1_fake_proto_init() {
 	if File_whatsmeow_fake_v1_fake_proto != nil {
 		return
 	}
-	file_whatsmeow_fake_v1_fake_proto_msgTypes[4].OneofWrappers = []any{
+	file_whatsmeow_fake_v1_fake_proto_msgTypes[6].OneofWrappers = []any{
 		(*RaisePermanentDisconnectRequest_LoggedOut_)(nil),
 		(*RaisePermanentDisconnectRequest_StreamReplaced_)(nil),
 		(*RaisePermanentDisconnectRequest_ClientOutdated_)(nil),
@@ -1271,7 +1363,7 @@ func file_whatsmeow_fake_v1_fake_proto_init() {
 		(*RaisePermanentDisconnectRequest_TemporaryBan_)(nil),
 		(*RaisePermanentDisconnectRequest_ConnectFailure_)(nil),
 	}
-	file_whatsmeow_fake_v1_fake_proto_msgTypes[10].OneofWrappers = []any{
+	file_whatsmeow_fake_v1_fake_proto_msgTypes[12].OneofWrappers = []any{
 		(*Sent_Receipt)(nil),
 		(*Sent_Disconnect)(nil),
 		(*Sent_RemoveCompanionDevice)(nil),
@@ -1282,7 +1374,7 @@ func file_whatsmeow_fake_v1_fake_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_whatsmeow_fake_v1_fake_proto_rawDesc), len(file_whatsmeow_fake_v1_fake_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   20,
+			NumMessages:   22,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

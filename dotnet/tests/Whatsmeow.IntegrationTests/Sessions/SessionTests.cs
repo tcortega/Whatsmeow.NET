@@ -85,7 +85,8 @@ public sealed class SessionTests(FakeSidecar fixture)
 
 		Assert.DoesNotContain(await Sessions.ListAsync(ct), s => s.Id == id);
 
-		// Its device is gone too: the same id is a new, unpaired session.
+		// The same id is a new, unpaired session. That the device rows are deleted is checked in the sidecar's tests
+		// (TestDeleteSessionDisconnectsDeletesTheDeviceAndEndsWatches).
 		var again = await Sessions.GetOrCreateAsync(id, ct);
 		Assert.Equal(new SessionState.Created(), await SessionSetup.StateAsync(again, ct));
 	}

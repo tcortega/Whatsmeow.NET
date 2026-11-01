@@ -1,5 +1,6 @@
 using Whatsmeow.IntegrationTests.Support;
 using Whatsmeow.Sessions;
+using Whatsmeow.IntegrationTests.Fake;
 using Raise = Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectRequest;
 
 namespace Whatsmeow.IntegrationTests.Sessions;
@@ -31,6 +32,23 @@ public sealed class SessionRestartTests(FakeSidecar fixture)
 		Assert.Equal(new SessionState.Replaced(), await SessionSetup.StateAsync(replaced, ct));
 		await using var watch = StateWatch.Start(connected, ct);
 		await watch.ReachesAsync(new SessionState.Connected(), new SessionState.Connecting(), new SessionState.Disconnected());
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task SidecarRestart_AfterALogoutWithNoAnswer_ConnectsTheSessionAgain()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var client = await SessionSetup.ConnectedAsync(fixture, "restart-logout-unknown", ct);
+		_ = await fixture.Fake.FailNextLogoutAsync(new FailNextLogoutRequest { SessionId = "restart-logout-unknown" }, cancellationToken: ct);
+
+		var error = await Assert.ThrowsAsync<OutcomeUnknownException>(() => client.LogoutAsync(ct));
+		Assert.Equal(WhatsmeowErrorCode.OutcomeUnknown, error.ErrorCode);
+
+		await fixture.CrashAsync(ct);
+
+		// The logout did not happen, so the session is still one the application connected.
+		await using var watch = StateWatch.Start(client, ct);
+		await watch.ReachesAsync(new SessionState.Connected(), new SessionState.Connecting());
 	}
 
 	[Fact(Timeout = Timeout)]
