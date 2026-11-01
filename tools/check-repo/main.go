@@ -541,6 +541,8 @@ func csprojRules() projectRules {
 			"RuntimeIdentifiers":    anyValue,
 			"RuntimeIdentifier":     anyValue,
 			"TreatWarningsAsErrors": func(v string) bool { return strings.TrimSpace(v) == "true" },
+			// [LibraryImport] generates unsafe code and fails without it (SYSLIB1062, ADR 0024).
+			"AllowUnsafeBlocks": func(v string) bool { return strings.TrimSpace(v) == "true" },
 		},
 		items: map[string][]string{
 			"PackageReference":    {"Include", "PrivateAssets"},

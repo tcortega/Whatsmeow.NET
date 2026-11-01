@@ -20,14 +20,16 @@ import (
 const testToken = "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"
 
 // child is this test binary re-executed as whatsmeow-net, returned once it has logged "starting". Its whole
-// stderr is kept, and every failure prints it.
+// stderr is kept, and every failure prints it; logged gets a value after each stderr line.
 type child struct {
-	cmd     *exec.Cmd
-	stdin   io.WriteCloser
-	stdout  *bufio.Reader
-	mu      sync.Mutex
-	stderr  strings.Builder
-	drained chan struct{}
+	cmd        *exec.Cmd
+	stdin      io.WriteCloser
+	stdout     *bufio.Reader
+	stderrPipe io.Closer
+	mu         sync.Mutex
+	stderr     strings.Builder
+	logged     chan struct{}
+	drained    chan struct{}
 }
 
 // fatalf fails the test with the child's stderr so far.
@@ -42,6 +44,14 @@ func (s *child) fatalf(t *testing.T, format string, args ...any) {
 }
 
 func startSidecar(t *testing.T, args ...string) *child {
+	t.Helper()
+
+	return startSidecarWith(t, (*exec.Cmd).Start, args...)
+}
+
+// startSidecarWith is startSidecar with the process started by start, for a test that controls how and from which
+// thread it starts.
+func startSidecarWith(t *testing.T, start func(*exec.Cmd) error, args ...string) *child {
 	t.Helper()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -72,13 +82,13 @@ func startSidecar(t *testing.T, args ...string) *child {
 		t.Fatalf("stderr: %v", err)
 	}
 
-	if err := cmd.Start(); err != nil {
+	if err := start(cmd); err != nil {
 		t.Fatalf("start: %v", err)
 	}
 
 	t.Cleanup(func() { _ = cmd.Process.Kill(); _ = cmd.Wait() })
 
-	s := &child{cmd: cmd, stdin: stdin, stdout: bufio.NewReader(stdout), drained: make(chan struct{})}
+	s := &child{cmd: cmd, stdin: stdin, stdout: bufio.NewReader(stdout), stderrPipe: stderr, logged: make(chan struct{}, 1), drained: make(chan struct{})}
 	started := make(chan struct{})
 
 	// "starting" is logged once the signal handling is in place, before the token is read.
@@ -91,16 +101,26 @@ func startSidecar(t *testing.T, args ...string) *child {
 			s.stderr.WriteString(lines.Text() + "\n")
 			s.mu.Unlock()
 
+			select {
+			case s.logged <- struct{}{}:
+			default:
+			}
+
 			if strings.Contains(lines.Text(), `"message":"starting"`) {
 				close(started)
 			}
 		}
 	}()
 
+	// A sidecar that stops right after "starting" has drained too; only one that never logged it failed.
 	select {
 	case <-started:
 	case <-s.drained:
-		s.fatalf(t, "the sidecar exited before it logged starting")
+		select {
+		case <-started:
+		default:
+			s.fatalf(t, "the sidecar exited before it logged starting")
+		}
 	}
 
 	return s

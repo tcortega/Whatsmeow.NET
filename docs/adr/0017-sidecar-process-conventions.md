@@ -29,3 +29,4 @@ ARCHITECTURE §8.5, §9 and §10 described four parts of that before any code ex
 - `tests/Whatsmeow.Client.Tests` asserts exact delays under `FakeTimeProvider`.
 - If the parent .NET process is killed hard, the empty socket directory stays in the temp directory: the sidecar removes its socket on exit, but only the client deletes the directory.
 - The tether backups (`PR_SET_PDEATHSIG`, the macOS parent-PID poll, the Windows Job Object) are not built yet (follow-up issue); the stdin tether alone passes the kill-parent test on Linux, macOS and Windows.
+  Built in #22: [ADR 0024](0024-tether-backups.md).

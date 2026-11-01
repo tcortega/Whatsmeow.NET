@@ -235,4 +235,47 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 
 		await Processes.WaitUntilGoneAsync(sidecar, ct);
 	}
+
+	/// <summary>
+	/// Another process keeps the sidecar's stdin open after the parent dies, so EOF never comes: the backup to the
+	/// tether stops the sidecar (ARCHITECTURE §13 invariant 9). The holder still runs at the end, so it was not its exit
+	/// that closed stdin.
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task ParentKilledHard_StdinHeldOpenElsewhere_SidecarExitsOnItsOwn()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var host = Path.Combine(AppContext.BaseDirectory, OperatingSystem.IsWindows() ? "SidecarHost.exe" : "SidecarHost");
+		var info = new ProcessStartInfo(host) { UseShellExecute = false, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
+		info.ArgumentList.Add("held-tether");
+		info.ArgumentList.Add(binaries.Stage(binaries.Sidecar));
+		info.ArgumentList.Add(binaries.NewDatabase());
+
+		using var parent = Process.Start(info)!;
+		var sidecarLine = await parent.StandardOutput.ReadLineAsync(ct);
+		var holderLine = await parent.StandardOutput.ReadLineAsync(ct);
+
+		// The holder is parsed first and killed in the finally, so no failure below can leak it.
+		using var holder = int.TryParse(holderLine, System.Globalization.CultureInfo.InvariantCulture, out var holderId) ? Process.GetProcessById(holderId) : null;
+		try
+		{
+			if (!int.TryParse(sidecarLine, System.Globalization.CultureInfo.InvariantCulture, out var sidecar) || holder is null)
+			{
+				// The holder keeps the host's stderr open too, so both go before it is read.
+				parent.Kill();
+				holder?.Kill();
+				Assert.Fail($"the host printed no sidecar and holder process ids: {sidecarLine} {holderLine} {await parent.StandardError.ReadToEndAsync(ct)}");
+			}
+
+			parent.Kill();
+			await parent.WaitForExitAsync(ct);
+
+			await Processes.WaitUntilGoneAsync(sidecar, ct);
+			Assert.False(holder.HasExited);
+		}
+		finally
+		{
+			holder?.Kill();
+		}
+	}
 }
