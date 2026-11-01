@@ -72,3 +72,4 @@ message ACP2Setting {
 	optional int64 settingTimestamp = 3;
 	optional bool initiatedByMe = 4;
 }
+ 

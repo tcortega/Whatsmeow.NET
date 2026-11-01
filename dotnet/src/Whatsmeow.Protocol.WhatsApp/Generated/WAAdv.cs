@@ -72,7 +72,7 @@ namespace Whatsmeow.Proto.WAAdv {
 
   #region Messages
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
-  public sealed partial class ADVKeyIndexList : pb::IMessage<ADVKeyIndexList>
+  public sealed partial class /* THROWAWAY hand edit */ ADVKeyIndexList : pb::IMessage<ADVKeyIndexList>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
   #endif
