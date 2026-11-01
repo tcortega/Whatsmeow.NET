@@ -17,7 +17,7 @@ Moved from ARCHITECTURE §7.9 and §11; what the sidecar does is ARCHITECTURE §
 - Formatting is gofumpt plus goimports with the `github.com/tcortega/Whatsmeow.NET` local prefix (`golangci-lint fmt`).
 - Each slice talks to whatsmeow through a **small internal interface** (for example `type sender interface { SendMessage(...) }`), so tests can fake whatsmeow. `*whatsmeow.Client` satisfies it.
 - Import the generated contract as `whatsmeowv1`. Never name that package `whatsmeow`. See ARCHITECTURE [Naming](../ARCHITECTURE.md#naming).
-- Every goroutine has an owner, a cancellation path, and is waited on during shutdown (`errgroup`).
+- Every goroutine has an owner, a cancellation path, and is waited on during shutdown (`errgroup`). The one exception is a goroutine blocked reading stdin (the tether, the token): a stdin read cannot be interrupted portably, so it is left to end with the process.
 - The gRPC server's lenient proto codec is installed with `grpc.ForceServerCodecV2`. Never `encoding.RegisterCodec`/`RegisterCodecV2`: that is package-level mutable state (ARCHITECTURE §6).
 - Never trust a remembered whatsmeow behavior. ARCHITECTURE §14 "Other whatsmeow claims" and question 4 record what the pinned source does; re-check them on every whatsmeow bump.
 - Handlers return in milliseconds: whatsmeow abandons a node after about 5 minutes and moves the queue on (ARCHITECTURE §7.3).

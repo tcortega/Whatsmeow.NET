@@ -3,7 +3,7 @@
 # Run it before pushing: bash build/ci.sh all (or contract, go, dotnet). Works in Git Bash on Windows.
 #
 # Every check runs and reports, even after an earlier one failed; the script fails at the end if any did.
-# A check that only makes sense once something exists (the sidecar has no Go package before #4) says so and passes.
+# A check that only makes sense once something exists (a Go module with no package yet) says so and passes.
 set -uo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -177,16 +177,35 @@ job_go() {
 	check "the go job left the tree unchanged" tree_unchanged "$before" "the go job"
 }
 
+# AotSmoke starts a real whatsmeow-net under Native AOT, so the sidecar is built here at the client's version.
 aot_smoke_run() {
-	local rid exe=""
+	local rid exe="" version sidecar
 	rid="$(dotnet msbuild dotnet/tests/AotSmoke/AotSmoke.csproj -getProperty:RuntimeIdentifier)" || return
 	case "$rid" in win-*) exe=.exe ;; esac
-	"dotnet/artifacts/publish/AotSmoke/release_$rid/AotSmoke$exe"
+	version="$(dotnet msbuild dotnet/src/Whatsmeow.Client/Whatsmeow.Client.csproj -getProperty:Version)" || return
+	sidecar="dotnet/artifacts/aot-smoke/whatsmeow-net$exe"
+	CGO_ENABLED=0 go -C sidecar build -ldflags "-X main.version=$version" -o "../$sidecar" ./cmd/whatsmeow-net || return
+	"dotnet/artifacts/publish/AotSmoke/release_$rid/AotSmoke$exe" "$sidecar"
+}
+
+# The noexec copy fallback test (ARCHITECTURE §8.5) needs a noexec mount, and only root can make one, so CI makes it
+# on Linux; the test fails there without it (docs/guidelines/tests.md). Elsewhere the test is skipped.
+noexec_mount() {
+	if [ "${GITHUB_ACTIONS:-}" != true ] || [ "$(uname -s)" != Linux ]; then
+		echo "not Linux CI: the noexec test is skipped"
+		return 0
+	fi
+	local dir="${RUNNER_TEMP:?}/noexec"
+	mkdir -p "$dir" || return
+	sudo mount -t tmpfs -o noexec,nosuid,nodev,mode=1777,size=256m tmpfs "$dir" || return
+	export WHATSMEOW_NET_TEST_NOEXEC_DIR="$dir"
+	echo "noexec tmpfs at $dir"
 }
 
 job_dotnet() {
 	local before
 	before="$(tree_state)"
+	check "noexec mount for the copy fallback test" noexec_mount
 	check "repository guard (allowlists, suppressions, generated markers)" go -C tools run ./check-repo
 	check "dotnet restore (locked)" dotnet restore dotnet/Whatsmeow.slnx --locked-mode &&
 		check "dotnet build" dotnet build dotnet/Whatsmeow.slnx -c Release --no-restore -p:ContinuousIntegrationBuild=true &&

@@ -1,1 +1,50 @@
 #nullable enable
+override Whatsmeow.SidecarInfo.Equals(object? obj) -> bool
+override Whatsmeow.SidecarInfo.GetHashCode() -> int
+override Whatsmeow.SidecarInfo.ToString() -> string!
+static Whatsmeow.SidecarInfo.operator !=(Whatsmeow.SidecarInfo? left, Whatsmeow.SidecarInfo? right) -> bool
+static Whatsmeow.SidecarInfo.operator ==(Whatsmeow.SidecarInfo? left, Whatsmeow.SidecarInfo? right) -> bool
+static Whatsmeow.WhatsmeowSidecar.StartAsync(Whatsmeow.WhatsmeowSidecarOptions! options, Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Whatsmeow.WhatsmeowSidecar!>!
+static Whatsmeow.WhatsmeowSidecar.StartAsync(Whatsmeow.WhatsmeowSidecarOptions! options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Whatsmeow.WhatsmeowSidecar!>!
+Whatsmeow.SidecarUnavailableException
+Whatsmeow.SidecarUnavailableException.SidecarUnavailableException() -> void
+Whatsmeow.SidecarUnavailableException.SidecarUnavailableException(string! message, System.Exception? innerException) -> void
+Whatsmeow.SidecarUnavailableException.SidecarUnavailableException(string! message) -> void
+Whatsmeow.SidecarVersionMismatchException
+Whatsmeow.SidecarVersionMismatchException.SidecarVersionMismatchException() -> void
+Whatsmeow.SidecarVersionMismatchException.SidecarVersionMismatchException(string! message, System.Exception? innerException) -> void
+Whatsmeow.SidecarVersionMismatchException.SidecarVersionMismatchException(string! message) -> void
+Whatsmeow.WhatsmeowException
+Whatsmeow.WhatsmeowException.WhatsmeowException() -> void
+Whatsmeow.WhatsmeowException.WhatsmeowException(string! message, System.Exception? innerException) -> void
+Whatsmeow.WhatsmeowException.WhatsmeowException(string! message) -> void
+Whatsmeow.SidecarInfo
+Whatsmeow.SidecarInfo.<Clone>$() -> Whatsmeow.SidecarInfo!
+Whatsmeow.SidecarInfo.Commit.get -> string!
+Whatsmeow.SidecarInfo.Commit.init -> void
+Whatsmeow.SidecarInfo.Equals(Whatsmeow.SidecarInfo? other) -> bool
+Whatsmeow.SidecarInfo.GoVersion.get -> string!
+Whatsmeow.SidecarInfo.GoVersion.init -> void
+Whatsmeow.SidecarInfo.Protocol.get -> int
+Whatsmeow.SidecarInfo.Protocol.init -> void
+Whatsmeow.SidecarInfo.SidecarInfo() -> void
+Whatsmeow.SidecarInfo.Version.get -> string!
+Whatsmeow.SidecarInfo.Version.init -> void
+Whatsmeow.SidecarInfo.WhatsAppWebVersion.get -> string!
+Whatsmeow.SidecarInfo.WhatsAppWebVersion.init -> void
+Whatsmeow.SidecarInfo.WhatsmeowVersion.get -> string!
+Whatsmeow.SidecarInfo.WhatsmeowVersion.init -> void
+Whatsmeow.SidecarTransport
+Whatsmeow.SidecarTransport.NamedPipe = 1 -> Whatsmeow.SidecarTransport
+Whatsmeow.SidecarTransport.UnixDomainSocket = 0 -> Whatsmeow.SidecarTransport
+Whatsmeow.WhatsmeowSidecar
+Whatsmeow.WhatsmeowSidecar.DisposeAsync() -> System.Threading.Tasks.ValueTask
+Whatsmeow.WhatsmeowSidecar.GetInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.SidecarInfo!>!
+Whatsmeow.WhatsmeowSidecarOptions
+Whatsmeow.WhatsmeowSidecarOptions.SidecarPath.get -> string?
+Whatsmeow.WhatsmeowSidecarOptions.SidecarPath.set -> void
+Whatsmeow.WhatsmeowSidecarOptions.StartupTimeout.get -> System.TimeSpan
+Whatsmeow.WhatsmeowSidecarOptions.StartupTimeout.set -> void
+Whatsmeow.WhatsmeowSidecarOptions.Transport.get -> Whatsmeow.SidecarTransport
+Whatsmeow.WhatsmeowSidecarOptions.Transport.set -> void
+Whatsmeow.WhatsmeowSidecarOptions.WhatsmeowSidecarOptions() -> void

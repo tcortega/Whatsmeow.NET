@@ -1,8 +1,33 @@
 <Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<!-- C# root per ARCHITECTURE Naming: the entry point and shared public types sit at the root (ADR 0018). -->
+		<RootNamespace>Whatsmeow</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Grpc.Net.Client" />
+		<PackageReference Include="Grpc.StatusProto" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+		<PackageReference Include="Microsoft.Extensions.Options" />
+		<ProjectReference Include="../Whatsmeow.Protocol/Whatsmeow.Protocol.csproj" />
+	</ItemGroup>
+
 	<!-- Stable package: its public API is tracked in PublicAPI.*.txt (RS0016/RS0017 are errors, dotnet/.globalconfig). -->
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all" />
 		<AdditionalFiles Include="PublicAPI.Shipped.txt" />
 		<AdditionalFiles Include="PublicAPI.Unshipped.txt" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- The supervisor's restart and backoff state machine (docs/guidelines/tests.md). -->
+		<InternalsVisibleTo Include="Whatsmeow.Client.Tests" />
+		<!-- Only for the protocol-range seam: the real sidecar cannot be made to report another protocol. -->
+		<InternalsVisibleTo Include="Whatsmeow.IntegrationTests" />
+	</ItemGroup>
+
+	<ItemGroup Label="Usings">
+		<Using Include="System.Diagnostics.CodeAnalysis" />
+		<Using Include="Microsoft.Extensions.Logging" />
 	</ItemGroup>
 </Project>

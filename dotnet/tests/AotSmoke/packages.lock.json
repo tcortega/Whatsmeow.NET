@@ -26,8 +26,41 @@
         "resolved": "10.0.14",
         "contentHash": "YlTamXppEQls6DYWt7RdUuwWDb0lyw/vXCaGeQpLCpsLmfwGuCkOz/vIGgMTV7ECsJcavkCOkxZXv9s8rdAHkQ=="
       },
+      "Google.Api.CommonProtos": {
+        "type": "Transitive",
+        "resolved": "2.17.0",
+        "contentHash": "elfQPknFr495hm7vdy6ZlgyQh6yzZq9TU7sS35L/Fj/fqjM/mUGau9gVJLhvQEtUlPjtR80hpn/m9HvBMyCXIw==",
+        "dependencies": {
+          "Google.Protobuf": "[3.31.1, 4.0.0]"
+        }
+      },
+      "Grpc.Net.Common": {
+        "type": "Transitive",
+        "resolved": "2.85.0",
+        "contentHash": "e+RczhQVHb5MacI1oMTLMK6InZLH22POZcE4gsy5SnolsElLaqhSwEhqm+cF0m4Q1JGmlhjf1nbnKh7sBbjJVg==",
+        "dependencies": {
+          "Grpc.Core.Api": "2.85.0"
+        }
+      },
+      "Microsoft.Extensions.DependencyInjection.Abstractions": {
+        "type": "Transitive",
+        "resolved": "10.0.14",
+        "contentHash": "QtpQzuSZVyTPCuHW058yCs9Nj0394uUkNyFHS813nOmK9UgUdBdaprJ5PPsBgsQIpxADTsTkbaMMonykem6qdw=="
+      },
+      "Microsoft.Extensions.Primitives": {
+        "type": "Transitive",
+        "resolved": "10.0.14",
+        "contentHash": "1bbZqqCJTPba3inTADExbp/9PsGVyvGOX3zr6tFr7ySCgVkX9Lpw7BV0TizktNItd3SsbUu1sQfSAYm1GZMoNw=="
+      },
       "whatsmeow.client": {
-        "type": "Project"
+        "type": "Project",
+        "dependencies": {
+          "Grpc.Net.Client": "[2.85.0, )",
+          "Grpc.StatusProto": "[2.85.0, )",
+          "Microsoft.Extensions.Logging.Abstractions": "[10.0.14, )",
+          "Microsoft.Extensions.Options": "[10.0.14, )",
+          "Whatsmeow.Protocol": "[1.0.0, )"
+        }
       },
       "whatsmeow.protocol": {
         "type": "Project",
@@ -54,6 +87,45 @@
         "requested": "[2.85.0, )",
         "resolved": "2.85.0",
         "contentHash": "cpYu/nw/QhwHcRZMJbYD8lEllKrdwYMiDS4U3oH61nhYPUMNkcCcef4ulv11svHvTBThYV+ju332N9bCrfe7cQ=="
+      },
+      "Grpc.Net.Client": {
+        "type": "CentralTransitive",
+        "requested": "[2.85.0, )",
+        "resolved": "2.85.0",
+        "contentHash": "BPMA5mb96ihVQfXTuIUpC1aie2I0ODBD6QCc0UXYS5zQMK6sJW5yck8NZ2ffvGHfOanWyn2Yg0tJbYY3nV+zIw==",
+        "dependencies": {
+          "Grpc.Net.Common": "2.85.0",
+          "Microsoft.Extensions.Logging.Abstractions": "8.0.1"
+        }
+      },
+      "Grpc.StatusProto": {
+        "type": "CentralTransitive",
+        "requested": "[2.85.0, )",
+        "resolved": "2.85.0",
+        "contentHash": "618VytN2qkPS9Sr1WJR5ovKtobHuYpGx7qXSRPjnJhIzrXkjmWNpJhwIb12daNDVeLabbnGB5+5RH0CsX1KY7A==",
+        "dependencies": {
+          "Google.Api.CommonProtos": "2.17.0",
+          "Grpc.Core.Api": "2.85.0"
+        }
+      },
+      "Microsoft.Extensions.Logging.Abstractions": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.14, )",
+        "resolved": "10.0.14",
+        "contentHash": "SwcbEBtkECq3D2oywvHkm46fyrX9Dd2JPWphDnHUc2+cUWR1Mdo41atAjh/9iZjgQxuvbKfZKXqostT/LZfefA==",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.14"
+        }
+      },
+      "Microsoft.Extensions.Options": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.14, )",
+        "resolved": "10.0.14",
+        "contentHash": "EeN/33S418m9oWEaZY4N5T+BNxtOqNTIFoFbIgBKwylh4OJPKIWFAzbIhpTdNbwUs26MhkmbLCAbdY+YCJ1dIQ==",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.14",
+          "Microsoft.Extensions.Primitives": "10.0.14"
+        }
       }
     },
     "net10.0/linux-x64": {

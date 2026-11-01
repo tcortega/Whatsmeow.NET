@@ -194,29 +194,31 @@ func TestRunPassesWhenTheAllowlistMatches(t *testing.T) {
 	}
 }
 
-func TestRunWithoutTheMainPackageComparesOnlyStd(t *testing.T) {
+func TestRunReportsAChangedStdLicence(t *testing.T) {
 	t.Parallel()
 
-	f := newFixture(t, false)
-
-	out, err := f.run(t, depLine(t)+stdLines(t))
-	if err != nil {
-		t.Fatalf("run: %v\n%s", err, out)
-	}
-
-	if !strings.HasPrefix(out, "notice: sidecar/cmd/whatsmeow-net does not exist yet (#4)") {
-		t.Fatalf("output = %q", out)
-	}
-
+	f := newFixture(t, true)
+	f.module(t, depPath, map[string]string{"LICENSE": mitText}, targets()...)
 	writeFile(t, f.goroot, "LICENSE", stdText+" changed")
 
-	out, err = f.run(t, depLine(t)+stdLines(t))
+	out, err := f.run(t, depLine(t)+stdLines(t))
 	if !errors.Is(err, errFindings) {
 		t.Fatalf("run = %v, want errFindings", err)
 	}
 
 	if !strings.Contains(out, allowFile+":2: [licence-changed] the Go standard library: LICENSE has sha256 ") {
 		t.Fatalf("output = %q", out)
+	}
+}
+
+func TestRunFailsWithoutTheMainPackage(t *testing.T) {
+	t.Parallel()
+
+	f := newFixture(t, false)
+
+	out, err := f.run(t, depLine(t)+stdLines(t))
+	if err == nil || errors.Is(err, errFindings) || !strings.Contains(err.Error(), "stat the main package") {
+		t.Fatalf("run = %v, want the missing main package as an error\n%s", err, out)
 	}
 }
 
