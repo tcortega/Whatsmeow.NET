@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Grpc.Core;
+using Microsoft.Win32.SafeHandles;
 
 namespace Whatsmeow.Sidecar;
 
@@ -17,6 +18,7 @@ internal sealed class SidecarProcess
 	private static readonly UTF8Encoding s_utf8 = new(encoderShouldEmitUTF8Identifier: false);
 
 	private readonly Process _process;
+	private readonly SafeWaitHandle? _job;
 	private readonly ILogger _sidecarLog;
 	private readonly Lock _tailLock = new();
 	private readonly Queue<string> _tail = new();
@@ -24,9 +26,10 @@ internal sealed class SidecarProcess
 	private Task _stdout = Task.CompletedTask;
 	private int _stopped;
 
-	private SidecarProcess(Process process, Task<int> exited, string token, ILogger sidecarLog)
+	private SidecarProcess(Process process, Task<int> exited, SafeWaitHandle? job, string token, ILogger sidecarLog)
 	{
 		_process = process;
+		_job = job;
 		_sidecarLog = sidecarLog;
 		Id = process.Id;
 		Token = token;
@@ -71,8 +74,8 @@ internal sealed class SidecarProcess
 	{
 		var token = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(32));
 		var nonce = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(16));
-		var (process, exited) = Spawn(StartInfo(binary, transport, socketDirectory, database, fakeWhatsApp, nonce), clientLog);
-		var sidecar = new SidecarProcess(process, exited, token, sidecarLog);
+		var (process, exited, job) = Spawn(StartInfo(binary, transport, socketDirectory, database, fakeWhatsApp, nonce), clientLog);
+		var sidecar = new SidecarProcess(process, exited, job, token, sidecarLog);
 
 		string failure;
 		Exception? cause = null;
@@ -162,21 +165,16 @@ internal sealed class SidecarProcess
 		}
 	}
 
-	/// <summary>Kills the process tree if it still runs, and waits until it and its stderr are done.</summary>
+	/// <summary>
+	/// Kills the process tree if it still runs, waits until it and its stderr are done, and closes its job on Windows.
+	/// </summary>
 	public async Task KillAsync()
 	{
-		try
-		{
-			_process.Kill(entireProcessTree: true);
-		}
-		catch (InvalidOperationException)
-		{
-			// It already exited.
-		}
-
+		KillTree(_process);
 		await _process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
 		await _stderr.ConfigureAwait(false);
 		await _stdout.ConfigureAwait(false);
+		_job?.Dispose();
 	}
 
 	private static ProcessStartInfo StartInfo(string binary, SidecarTransport transport, string? socketDirectory, string database, bool fakeWhatsApp, string nonce)
@@ -208,6 +206,9 @@ internal sealed class SidecarProcess
 
 		info.ArgumentList.Add("--nonce");
 		info.ArgumentList.Add(nonce);
+		// The tether backup on Linux and macOS: the sidecar stops once this process is no longer its parent (§7.8).
+		info.ArgumentList.Add("--parent-pid");
+		info.ArgumentList.Add(Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture));
 		return info;
 	}
 
@@ -215,7 +216,7 @@ internal sealed class SidecarProcess
 	/// Starts the process. On Unix the binary is made executable first; when it still cannot run (it cannot be
 	/// chmodded, or it is on a <c>noexec</c> mount), a cached copy runs instead (ARCHITECTURE §8.5).
 	/// </summary>
-	private static (Process Process, Task<int> Exited) Spawn(ProcessStartInfo info, ILogger clientLog)
+	private static (Process Process, Task<int> Exited, SafeWaitHandle? Job) Spawn(ProcessStartInfo info, ILogger clientLog)
 	{
 		if (OperatingSystem.IsWindows())
 			return StartOrThrow(info);
@@ -242,8 +243,12 @@ internal sealed class SidecarProcess
 		}
 	}
 
-	/// <summary>Starts the process; its exit code is captured when it exits, so it never depends on a later read.</summary>
-	private static (Process Process, Task<int> Exited) StartOrThrow(ProcessStartInfo info)
+	/// <summary>
+	/// Starts the process; its exit code is captured when it exits, so it never depends on a later read. On Windows the
+	/// process goes into its kill-on-close job right away (§8.5); if Windows refuses, it is killed and the start fails,
+	/// because without the job it could outlive this process (§13 invariant 9).
+	/// </summary>
+	private static (Process Process, Task<int> Exited, SafeWaitHandle? Job) StartOrThrow(ProcessStartInfo info)
 	{
 		var exited = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
 		var process = new Process { StartInfo = info, EnableRaisingEvents = true };
@@ -251,13 +256,40 @@ internal sealed class SidecarProcess
 		try
 		{
 			_ = process.Start();
-			return (process, exited.Task);
 		}
 		catch (Win32Exception e)
 		{
 			process.Dispose();
 			SidecarUnavailableException.ThrowStartFailed($"{info.FileName} cannot be executed ({e.Message})", [], e);
 			return default;
+		}
+
+		if (!OperatingSystem.IsWindows())
+			return (process, exited.Task, null);
+
+		try
+		{
+			return (process, exited.Task, KillOnCloseJob.Assign(process));
+		}
+		catch (Win32Exception e)
+		{
+			KillTree(process);
+			process.Dispose();
+			SidecarUnavailableException.ThrowStartFailed($"{info.FileName} could not be put in a kill-on-close job ({e.Message})", [], e);
+			return default;
+		}
+	}
+
+	/// <summary>Kills the process tree if it still runs.</summary>
+	private static void KillTree(Process process)
+	{
+		try
+		{
+			process.Kill(entireProcessTree: true);
+		}
+		catch (InvalidOperationException)
+		{
+			// It already exited.
 		}
 	}
 

@@ -2,6 +2,8 @@
 	<PropertyGroup>
 		<!-- C# root per ARCHITECTURE Naming: the entry point and shared public types sit at the root (ADR 0018). -->
 		<RootNamespace>Whatsmeow</RootNamespace>
+		<!-- [LibraryImport] generates unsafe code (SYSLIB1062); only Sidecar/KillOnCloseJob.cs uses it (ADR 0024). -->
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>

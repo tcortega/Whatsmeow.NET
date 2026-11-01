@@ -1,8 +1,9 @@
 // Command whatsmeow-net is the sidecar process (ARCHITECTURE §7.8).
 //
-// The client starts it with --database, --transport, --socket-dir and --nonce, writes the per-launch token as the first
-// line of stdin, and keeps stdin open: EOF on stdin, a Shutdown call or SIGTERM stop it gracefully with exit
-// code 0. SIGINT is ignored: the sidecar is always tethered, and a terminal Ctrl+C reaches the whole process
+// The client starts it with --database, --transport, --socket-dir, --nonce and --parent-pid, writes the per-launch
+// token as the first line of stdin, and keeps stdin open: EOF on stdin, a Shutdown call, SIGTERM or, on Linux and
+// macOS, its parent no longer being --parent-pid (the tether backup, even while another process keeps stdin open)
+// stop it gracefully with exit code 0. SIGINT is ignored: the sidecar is always tethered, and a terminal Ctrl+C reaches the whole process
 // group, so the client decides when it stops. Once it listens, it prints exactly one JSON ready line on stdout. Logs are JSON lines on
 // stderr.
 //
@@ -74,6 +75,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	nonce := flags.String("nonce", "", "echoed in the ready line")
 	database := flags.String("database", "", "the SQLite database file; one whatsmeow-net at a time")
 	fake := flags.Bool("fake-whatsapp", false, "test builds only (-tags fakewhatsapp): replace WhatsApp with a scripted fake and serve its control")
+	parentPID := flags.Int("parent-pid", 0, "the client's process id: the sidecar stops once that is no longer its parent (Linux, macOS; on Windows the client's job object does this; default: its parent at start)")
 
 	if err := flags.Parse(args); err != nil {
 		return exitUsage
@@ -98,11 +100,26 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return exitUsage
 	}
 
-	signal.Ignore(os.Interrupt)
+	// SIGPIPE too: a dead parent takes the read ends of stdout and stderr along, and the graceful stop's first log
+	// line would otherwise kill the sidecar (os/signal SIGPIPE).
+	signal.Ignore(os.Interrupt, syscall.SIGPIPE)
 	wmlog.SetupSignal(log)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM)
 	defer stop()
+
+	parent := *parentPID
+	if parent == 0 {
+		parent = os.Getppid()
+	}
+
+	ctx, untether, err := tetherToParent(ctx, log, parent)
+	if err != nil {
+		log.Error().Err(err).Msg("tether to the parent failed")
+
+		return exitFailed
+	}
+	defer untether()
 
 	log.Info().Str("version", version).Str("transport", *kind).Msg("starting")
 
@@ -206,7 +223,7 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 
 	select {
 	case <-ctx.Done():
-		reason = "signal"
+		reason = context.Cause(ctx).Error()
 	case <-tether:
 		reason = "stdin closed"
 	case <-srv.ShuttingDown():

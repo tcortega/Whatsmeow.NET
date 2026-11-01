@@ -18,6 +18,7 @@ const cleanCsproj = `<Project Sdk="Microsoft.NET.Sdk">
 		<IsPackable>false</IsPackable>
 		<PublishAot>true</PublishAot>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">$(NETCoreSdkRuntimeIdentifier)</RuntimeIdentifier>
 	</PropertyGroup>
 	<ItemGroup Label="Usings">
