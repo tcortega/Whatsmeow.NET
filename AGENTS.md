@@ -45,7 +45,7 @@ Go idioms: [docs/guidelines/go.md](docs/guidelines/go.md).
 
 ## Contract rules
 
-`whatsmeow.v1` never breaks without a `protocol` bump. `buf breaking` gates it.
+`whatsmeow.v1` never breaks without a `protocol` bump, and `buf breaking` gates it, from the first published tag (ADR 0015).
 Never reuse or renumber a field.
 Proto style: [docs/guidelines/proto.md](docs/guidelines/proto.md).
 
