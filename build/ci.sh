@@ -149,17 +149,30 @@ has_packages() { # module
 	[ -n "$(go -C "$1" list ./... 2>/dev/null)" ]
 }
 
-no_cgo() { # module
+no_cgo() { # module tags
 	local cgo
-	cgo="$(CGO_ENABLED=1 go -C "$1" list -f '{{if .CgoFiles}}{{.ImportPath}} {{.CgoFiles}}{{end}}' ./...)" || return
+	cgo="$(CGO_ENABLED=1 go -C "$1" list -tags "$2" -f '{{if .CgoFiles}}{{.ImportPath}} {{.CgoFiles}}{{end}}' ./...)" || return
 	if [ -n "$cgo" ]; then
 		annotate error "cgo" "$1 must be CGO-free (docs/guidelines/go.md): $cgo"
 		return 1
 	fi
 }
 
+# The release build must not link the fake WhatsApp mode (ADR 0019). The fake package is behind the fakewhatsapp
+# tag, but its generated control package is not, so this lists what whatsmeow-net links without the tag.
+release_links_no_fake() {
+	local deps fake
+	deps="$(CGO_ENABLED=0 go -C sidecar list -deps -f '{{.ImportPath}}' ./cmd/whatsmeow-net)" || return
+	fake="$(grep -E '/internal/fakewhatsapp$|/gen/whatsmeow/fake/' <<<"$deps")"
+	if [ -n "$fake" ]; then
+		annotate error "fake in the release build" "whatsmeow-net without -tags fakewhatsapp links $fake"
+		return 1
+	fi
+	echo "whatsmeow-net without -tags fakewhatsapp links no fake package"
+}
+
 job_go() {
-	local before module
+	local before module tags label tagsets
 	before="$(tree_state)"
 	for module in tools sidecar; do
 		check "$module: go.mod and go.sum are tidy" go -C "$module" mod tidy -diff
@@ -167,12 +180,20 @@ job_go() {
 			annotate notice "$module" "no Go packages yet; build, test and lint start with the first one"
 			continue
 		fi
-		check "$module: no cgo files" no_cgo "$module"
-		check "$module: go build (no cgo)" env CGO_ENABLED=0 go -C "$module" build ./...
-		check "$module: go test -race" go -C "$module" test -race -count=1 ./...
-		# With cgo on, so a cgo file is visible (its import "C" is reported as unsafe).
-		check "$module: golangci-lint" bash -c "cd '$module' && CGO_ENABLED=1 golangci-lint run ./..."
+		# A file behind a build tag is invisible to build, test, lint and the cgo check unless the tag is passed, so
+		# sidecar, the only module that may use fakewhatsapp (tools/check-repo), runs them once more with it.
+		tagsets=("")
+		if [ "$module" = sidecar ]; then tagsets+=(fakewhatsapp); fi
+		for tags in "${tagsets[@]}"; do
+			label="$module${tags:+ (-tags $tags)}"
+			check "$label: no cgo files" no_cgo "$module" "$tags"
+			check "$label: go build (no cgo)" env CGO_ENABLED=0 go -C "$module" build -tags "$tags" ./...
+			check "$label: go test -race" go -C "$module" test -race -count=1 -tags "$tags" ./...
+			# With cgo on, so a cgo file is visible (its import "C" is reported as unsafe).
+			check "$label: golangci-lint" bash -c "cd '$module' && CGO_ENABLED=1 golangci-lint run --build-tags '$tags' ./..."
+		done
 	done
+	check "sidecar: the release build links no fake WhatsApp (ADR 0019)" release_links_no_fake
 	check "sidecar: linked modules and licence files match sidecar/licenses.allow (ADR 0016)" go -C tools run ./check-licenses
 	check "the go job left the tree unchanged" tree_unchanged "$before" "the go job"
 }
