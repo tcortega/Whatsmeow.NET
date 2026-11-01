@@ -61,13 +61,13 @@ jobs:
 
       # Throwaway (#3): simulate a published tag at the base, in this runner only; never pushed.
       - name: simulate a published tag
-        run: git tag v0.0.0-sim 565c2ce9ed546e3d238369c0699cf4808b2051b9
+        run: git tag v0.0.0-sim b315904e6864ac40d5cb85a4b7027359d145a9b5
 
       - name: build/ci.sh contract
         env:
           # Throwaway (#3): compare with the contract branch tip, since main has no whatsmeow.v1 module yet.
           CI_EVENT: push
-          CI_BEFORE: 565c2ce9ed546e3d238369c0699cf4808b2051b9
+          CI_BEFORE: b315904e6864ac40d5cb85a4b7027359d145a9b5
         run: bash build/ci.sh contract
 
   go:
