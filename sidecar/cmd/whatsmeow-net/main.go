@@ -1,8 +1,9 @@
 // Command whatsmeow-net is the sidecar process (ARCHITECTURE §7.8).
 //
 // The client starts it with --transport, --socket-dir and --nonce, writes the per-launch token as the first
-// line of stdin, and keeps stdin open: EOF on stdin, a Shutdown call, SIGINT or SIGTERM all stop it gracefully
-// with exit code 0. Once it listens, it prints exactly one JSON ready line on stdout. Logs are JSON lines on
+// line of stdin, and keeps stdin open: EOF on stdin, a Shutdown call or SIGTERM stop it gracefully with exit
+// code 0. SIGINT is ignored: the sidecar is always tethered, and a terminal Ctrl+C reaches the whole process
+// group, so the client decides when it stops. Once it listens, it prints exactly one JSON ready line on stdout. Logs are JSON lines on
 // stderr.
 package main
 
@@ -73,8 +74,12 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return exitUsage
 	}
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	signal.Ignore(os.Interrupt)
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM)
 	defer stop()
+
+	log.Info().Str("version", version).Str("transport", *kind).Msg("starting")
 
 	if err := serve(ctx, log, *kind, *socketDir, *nonce, bufio.NewReader(stdin), stdout); err != nil {
 		log.Error().Err(err).Msg("sidecar failed")
@@ -86,17 +91,21 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 }
 
 func serve(ctx context.Context, log zerolog.Logger, kind, socketDir, nonce string, stdin *bufio.Reader, stdout io.Writer) error {
-	token, err := readToken(stdin)
+	token, err := awaitToken(ctx, stdin)
 	if err != nil {
 		return err
+	}
+
+	if token == "" {
+		log.Info().Msg("stopped before the token arrived")
+
+		return nil
 	}
 
 	build, ok := debug.ReadBuildInfo()
 	if !ok {
 		return errors.New("the binary has no build info")
 	}
-
-	log.Info().Str("version", version).Str("transport", kind).Msg("starting")
 
 	lis, endpoint, err := transport.Listen(ctx, kind, socketDir)
 	if err != nil {
@@ -153,6 +162,29 @@ func serve(ctx context.Context, log zerolog.Logger, kind, socketDir, nonce strin
 	log.Info().Msg("stopped")
 
 	return nil
+}
+
+// awaitToken reads the token, or returns "" when ctx ends first: SIGTERM stops the sidecar before the token
+// arrives too. The read itself cannot be interrupted; its goroutine ends with the process.
+func awaitToken(ctx context.Context, stdin *bufio.Reader) (string, error) {
+	type result struct {
+		token string
+		err   error
+	}
+
+	read := make(chan result, 1)
+
+	go func() {
+		token, err := readToken(stdin)
+		read <- result{token, err}
+	}()
+
+	select {
+	case <-ctx.Done():
+		return "", nil
+	case r := <-read:
+		return r.token, r.err
+	}
 }
 
 // readToken reads the first stdin line: the per-launch token, 32 bytes as hex.
