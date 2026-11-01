@@ -1,2 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
+	<!-- Stable package: its public API is tracked in PublicAPI.*.txt (RS0016/RS0017 are errors, dotnet/.globalconfig). -->
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all" />
+		<AdditionalFiles Include="PublicAPI.Shipped.txt" />
+		<AdditionalFiles Include="PublicAPI.Unshipped.txt" />
+	</ItemGroup>
 </Project>
