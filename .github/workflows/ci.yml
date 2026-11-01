@@ -135,7 +135,7 @@ jobs:
         with:
           global-json-file: global.json
 
-      # Go runs the repository guard (tools/check-repo).
+      # Go runs the repository guard (tools/check-repo), and the integration tests build whatsmeow-net with it.
       - uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5.2.5
         with:
           version: ${{ env.MISE_VERSION }}
@@ -151,7 +151,7 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/go
-          key: go-dotnet-${{ runner.os }}-${{ hashFiles('mise.toml', 'tools/go.sum') }}
+          key: go-dotnet-${{ runner.os }}-${{ hashFiles('mise.toml', 'tools/go.sum', 'sidecar/go.sum') }}
           restore-keys: go-dotnet-${{ runner.os }}-
 
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0

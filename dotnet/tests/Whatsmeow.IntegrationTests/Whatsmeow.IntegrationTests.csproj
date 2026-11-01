@@ -5,14 +5,20 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Diagnostics.Testing" />
 		<PackageReference Include="xunit.v3" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="../../src/Whatsmeow.Client/Whatsmeow.Client.csproj" />
+		<!-- Built first, for the kill-parent test. -->
+		<ProjectReference Include="../SidecarHost/SidecarHost.csproj" />
 	</ItemGroup>
 
 	<ItemGroup Label="Usings">
 		<Using Include="Xunit" />
+		<Using Include="Microsoft.Extensions.Logging" />
+		<Using Include="Whatsmeow.Core" />
+		<Using Include="Whatsmeow.Sidecar" />
 	</ItemGroup>
 </Project>

@@ -6,6 +6,7 @@
 	</Folder>
 	<Folder Name="/tests/">
 		<Project Path="tests/AotSmoke/AotSmoke.csproj" />
+		<Project Path="tests/SidecarHost/SidecarHost.csproj" />
 		<Project Path="tests/Whatsmeow.Client.Tests/Whatsmeow.Client.Tests.csproj" />
 		<Project Path="tests/Whatsmeow.IntegrationTests/Whatsmeow.IntegrationTests.csproj" />
 	</Folder>
