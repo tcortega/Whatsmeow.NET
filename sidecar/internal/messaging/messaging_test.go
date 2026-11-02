@@ -16,6 +16,7 @@ import (
 	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow"
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/proto/waAdv"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
@@ -105,6 +106,14 @@ func (s *stub) BuildRevoke(chat, sender types.JID, id types.MessageID) *waE2E.Me
 
 func (s *stub) BuildEdit(chat types.JID, id types.MessageID, newContent *waE2E.Message) *waE2E.Message {
 	return s.wa.BuildEdit(chat, id, newContent)
+}
+
+func (s *stub) BuildPollCreation(name string, optionNames []string, selectableOptionCount int) *waE2E.Message {
+	return s.wa.BuildPollCreation(name, optionNames, selectableOptionCount)
+}
+
+func (s *stub) BuildPollVote(ctx context.Context, pollInfo *types.MessageInfo, optionNames []string) (*waE2E.Message, error) {
+	return s.wa.BuildPollVote(ctx, pollInfo, optionNames) //nolint:wrapcheck // whatsmeow's own
 }
 
 // GetGroupInfo answers as whatsmeow parses WhatsApp's answer, with only the group's addressing mode (group.go:742-811).
@@ -294,8 +303,19 @@ func start(t *testing.T) *harness {
 		t.Fatalf("create the sessions: %v", err)
 	}
 
+	// A saved device of the store, so whatsmeow's message secrets (MsgSecrets) are real.
+	device := db.Devices.NewDevice()
+	device.ID, device.LID = new(jid(self)), jid(selfLID)
+	device.Account = &waAdv.ADVSignedDeviceIdentity{
+		Details: []byte{}, AccountSignature: make([]byte, 64), AccountSignatureKey: make([]byte, 32), DeviceSignature: make([]byte, 64),
+	}
+
+	if err := device.Save(context.Background()); err != nil {
+		t.Fatalf("save the device: %v", err)
+	}
+
 	h := &harness{
-		t: t, db: db.DB, stub: &stub{got: make(chan call, 64), wa: whatsmeow.NewClient(&store.Device{ID: new(jid(self)), LID: jid(selfLID)}, nil)},
+		t: t, db: db.DB, stub: &stub{got: make(chan call, 64), wa: whatsmeow.NewClient(device, nil)},
 		queued: make(chan struct{}, 64), waiting: make(chan struct{}, 64), logs: &logs{},
 	}
 	// The sidecar logs at info level and above (ARCHITECTURE §7.8).

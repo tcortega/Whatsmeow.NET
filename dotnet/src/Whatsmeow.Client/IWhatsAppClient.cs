@@ -678,6 +678,51 @@ public interface IWhatsAppClient
 	Task<SendResult> RevokeMessageAsync(Jid chat, MessageKey target, MessageId? id = null, CancellationToken cancellationToken = default);
 
 	/// <summary>
+	/// Sends a poll. The poll is a send like a text: queued, paced and at most once per <paramref name="id"/>, the poll's
+	/// own id, as <see cref="SendTextAsync"/> is. It goes with a new message secret, which this device keeps, so it can
+	/// vote on the poll and decrypt the votes on it; the library keeps no polls, so an application that tallies votes keeps
+	/// the poll's options.
+	/// </summary>
+	/// <param name="chat">The recipient.</param>
+	/// <param name="poll">The question, at least two options, none empty or repeated, and a <see cref="Poll.MaxSelectable"/> from 1 to the number of options.</param>
+	/// <param name="id">The poll's own id, in <see cref="MessageId.New"/>'s format; null makes a new one.</param>
+	/// <param name="options">The message it replies to, and the users the question mentions; null for neither.</param>
+	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync"/>.</param>
+	/// <returns>As for <see cref="SendTextAsync"/>, with the poll's id.</returns>
+	/// <exception cref="WhatsmeowValidationException">
+	/// The chat or the id is malformed, the question is empty, there are fewer than two options or one is empty or
+	/// repeated, the maximum is outside 1 to the number of options, or a mention or the quoted message's sender is not a
+	/// user; nothing was sent.
+	/// </exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync"/>, with the same subtypes.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="poll"/> is null.</exception>
+	Task<SendResult> SendPollAsync(Jid chat, Poll poll, MessageId? id = null, SendOptions? options = null, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Votes for options of a poll, replacing the account's earlier vote on it; no options clears the vote. The vote is a
+	/// send like a text: queued, paced and at most once per <paramref name="id"/>, the vote's own id, as
+	/// <see cref="SendTextAsync"/> is. It is encrypted with the poll's message secret, which this device has for a poll it
+	/// sent or received, or one a history sync it processed carried. The library keeps no polls, so the options are never
+	/// checked against the poll.
+	/// </summary>
+	/// <param name="chat">The poll's chat: a user (by phone number or LID, without a device) or a group.</param>
+	/// <param name="poll">
+	/// The poll: no sender, or the account's own, for the account's poll; else its sender as the poll's
+	/// <see cref="Events.MessageReceived.Source"/> named it, since the vote names the account in the same address form.
+	/// </param>
+	/// <param name="selectedOptions">The names of the options selected, as the poll has them, none empty or repeated; empty clears the vote.</param>
+	/// <param name="id">The vote's own id, in <see cref="MessageId.New"/>'s format; null makes a new one.</param>
+	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync"/>.</param>
+	/// <returns>As for <see cref="SendTextAsync"/>, with the vote's id.</returns>
+	/// <exception cref="WhatsmeowValidationException">The chat or the id is malformed, the poll's sender is not a user, or an option is empty or repeated; nothing was sent.</exception>
+	/// <exception cref="WhatsmeowException">
+	/// This device has no secret for the poll, with <see cref="WhatsmeowErrorCode.PollSecretNotFound"/>: nothing was sent.
+	/// Otherwise as for <see cref="SendTextAsync"/>, with the same subtypes.
+	/// </exception>
+	/// <exception cref="ArgumentNullException"><paramref name="poll"/> or <paramref name="selectedOptions"/> is null.</exception>
+	Task<SendResult> SendPollVoteAsync(Jid chat, MessageKey poll, IReadOnlyList<string> selectedOptions, MessageId? id = null, CancellationToken cancellationToken = default);
+
+	/// <summary>
 	/// Sends <paramref name="message"/> exactly as given, as <see cref="SendTextAsync"/> sends a text: once per id, queued,
 	/// never waiting for a connection. The message type is WhatsApp's own protobuf, which changes with every whatsmeow
 	/// version, so this member is experimental (<c>WMN1001</c>): it has no stability promise.

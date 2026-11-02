@@ -25,6 +25,8 @@ const (
 	MessageService_SendReaction_FullMethodName = "/whatsmeow.v1.MessageService/SendReaction"
 	MessageService_SendEdit_FullMethodName     = "/whatsmeow.v1.MessageService/SendEdit"
 	MessageService_SendRevoke_FullMethodName   = "/whatsmeow.v1.MessageService/SendRevoke"
+	MessageService_SendPoll_FullMethodName     = "/whatsmeow.v1.MessageService/SendPoll"
+	MessageService_SendPollVote_FullMethodName = "/whatsmeow.v1.MessageService/SendPollVote"
 	MessageService_MarkRead_FullMethodName     = "/whatsmeow.v1.MessageService/MarkRead"
 )
 
@@ -87,6 +89,20 @@ type MessageServiceClient interface {
 	// client_message_id is the revoke's own id.
 	// Errors: as SendMessage, and INVALID_ARGUMENT for no target_id, or a target_sender that is not a user's JID.
 	SendRevoke(ctx context.Context, in *SendRevokeRequest, opts ...grpc.CallOption) (*SendRevokeResponse, error)
+	// SendPoll sends a poll: a question, its options, and how many of them a voter may select. The sidecar builds it as
+	// whatsmeow does, with a new message secret that whatsmeow stores, so this session can vote on it and decrypt the
+	// votes it gets. Its client_message_id is the poll's own id.
+	// Errors: as SendMessage, and INVALID_ARGUMENT for an empty question (field "question"), fewer than two options, an
+	// empty or a repeated option (field "options"), a max_selectable outside 1 to the number of options (field
+	// "max_selectable"), or a reply_to or mentions that are not valid, as for SendText.
+	SendPoll(ctx context.Context, in *SendPollRequest, opts ...grpc.CallOption) (*SendPollResponse, error)
+	// SendPollVote votes for options of a poll, replacing the account's earlier vote on it; no options clears the vote.
+	// The vote is encrypted with the poll's message secret, which this device has only for a poll it sent or received,
+	// or one a history sync it processed carried. The sidecar keeps no polls, so it never checks the options against the
+	// poll. Its client_message_id is the vote's own id.
+	// Errors: as SendMessage, and INVALID_ARGUMENT for no poll_id, a poll_sender that is not a user's JID, or an empty
+	// or a repeated option (field "options"); POLL_SECRET_NOT_FOUND when this device has no secret for the poll.
+	SendPollVote(ctx context.Context, in *SendPollVoteRequest, opts ...grpc.CallOption) (*SendPollVoteResponse, error)
 	// MarkRead sends a read receipt, timestamped now, for messages of one chat.
 	// Errors: INVALID_ARGUMENT (no message ids; a group chat without sender), SESSION_NOT_FOUND, NOT_LOGGED_IN,
 	// LOGGED_OUT, NOT_CONNECTED, TEMPORARILY_BANNED.
@@ -155,6 +171,26 @@ func (c *messageServiceClient) SendRevoke(ctx context.Context, in *SendRevokeReq
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SendRevokeResponse)
 	err := c.cc.Invoke(ctx, MessageService_SendRevoke_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *messageServiceClient) SendPoll(ctx context.Context, in *SendPollRequest, opts ...grpc.CallOption) (*SendPollResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendPollResponse)
+	err := c.cc.Invoke(ctx, MessageService_SendPoll_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *messageServiceClient) SendPollVote(ctx context.Context, in *SendPollVoteRequest, opts ...grpc.CallOption) (*SendPollVoteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendPollVoteResponse)
+	err := c.cc.Invoke(ctx, MessageService_SendPollVote_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -230,6 +266,20 @@ type MessageServiceServer interface {
 	// client_message_id is the revoke's own id.
 	// Errors: as SendMessage, and INVALID_ARGUMENT for no target_id, or a target_sender that is not a user's JID.
 	SendRevoke(context.Context, *SendRevokeRequest) (*SendRevokeResponse, error)
+	// SendPoll sends a poll: a question, its options, and how many of them a voter may select. The sidecar builds it as
+	// whatsmeow does, with a new message secret that whatsmeow stores, so this session can vote on it and decrypt the
+	// votes it gets. Its client_message_id is the poll's own id.
+	// Errors: as SendMessage, and INVALID_ARGUMENT for an empty question (field "question"), fewer than two options, an
+	// empty or a repeated option (field "options"), a max_selectable outside 1 to the number of options (field
+	// "max_selectable"), or a reply_to or mentions that are not valid, as for SendText.
+	SendPoll(context.Context, *SendPollRequest) (*SendPollResponse, error)
+	// SendPollVote votes for options of a poll, replacing the account's earlier vote on it; no options clears the vote.
+	// The vote is encrypted with the poll's message secret, which this device has only for a poll it sent or received,
+	// or one a history sync it processed carried. The sidecar keeps no polls, so it never checks the options against the
+	// poll. Its client_message_id is the vote's own id.
+	// Errors: as SendMessage, and INVALID_ARGUMENT for no poll_id, a poll_sender that is not a user's JID, or an empty
+	// or a repeated option (field "options"); POLL_SECRET_NOT_FOUND when this device has no secret for the poll.
+	SendPollVote(context.Context, *SendPollVoteRequest) (*SendPollVoteResponse, error)
 	// MarkRead sends a read receipt, timestamped now, for messages of one chat.
 	// Errors: INVALID_ARGUMENT (no message ids; a group chat without sender), SESSION_NOT_FOUND, NOT_LOGGED_IN,
 	// LOGGED_OUT, NOT_CONNECTED, TEMPORARILY_BANNED.
@@ -261,6 +311,12 @@ func (UnimplementedMessageServiceServer) SendEdit(context.Context, *SendEditRequ
 }
 func (UnimplementedMessageServiceServer) SendRevoke(context.Context, *SendRevokeRequest) (*SendRevokeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SendRevoke not implemented")
+}
+func (UnimplementedMessageServiceServer) SendPoll(context.Context, *SendPollRequest) (*SendPollResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendPoll not implemented")
+}
+func (UnimplementedMessageServiceServer) SendPollVote(context.Context, *SendPollVoteRequest) (*SendPollVoteResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendPollVote not implemented")
 }
 func (UnimplementedMessageServiceServer) MarkRead(context.Context, *MarkReadRequest) (*MarkReadResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method MarkRead not implemented")
@@ -394,6 +450,42 @@ func _MessageService_SendRevoke_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MessageService_SendPoll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendPollRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageServiceServer).SendPoll(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MessageService_SendPoll_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageServiceServer).SendPoll(ctx, req.(*SendPollRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MessageService_SendPollVote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendPollVoteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageServiceServer).SendPollVote(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MessageService_SendPollVote_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageServiceServer).SendPollVote(ctx, req.(*SendPollVoteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MessageService_MarkRead_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MarkReadRequest)
 	if err := dec(in); err != nil {
@@ -442,6 +534,14 @@ var MessageService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendRevoke",
 			Handler:    _MessageService_SendRevoke_Handler,
+		},
+		{
+			MethodName: "SendPoll",
+			Handler:    _MessageService_SendPoll_Handler,
+		},
+		{
+			MethodName: "SendPollVote",
+			Handler:    _MessageService_SendPollVote_Handler,
 		},
 		{
 			MethodName: "MarkRead",

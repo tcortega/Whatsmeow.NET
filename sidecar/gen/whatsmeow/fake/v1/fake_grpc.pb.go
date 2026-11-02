@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	FakeWhatsAppService_DeliverMessage_FullMethodName              = "/whatsmeow.fake.v1.FakeWhatsAppService/DeliverMessage"
+	FakeWhatsAppService_DeliverPollVote_FullMethodName             = "/whatsmeow.fake.v1.FakeWhatsAppService/DeliverPollVote"
 	FakeWhatsAppService_DeliverUndecryptableMessage_FullMethodName = "/whatsmeow.fake.v1.FakeWhatsAppService/DeliverUndecryptableMessage"
 	FakeWhatsAppService_WaitForSent_FullMethodName                 = "/whatsmeow.fake.v1.FakeWhatsAppService/WaitForSent"
 	FakeWhatsAppService_LinkDevice_FullMethodName                  = "/whatsmeow.fake.v1.FakeWhatsAppService/LinkDevice"
@@ -79,6 +80,13 @@ type FakeWhatsAppServiceClient interface {
 	// succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A session without a client is an error: the
 	// fake never answers on behalf of a client the sidecar did not create.
 	DeliverMessage(ctx context.Context, in *DeliverMessageRequest, opts ...grpc.CallOption) (*DeliverMessageResponse, error)
+	// DeliverPollVote makes WhatsApp deliver a poll vote from sender to a session's client, as DeliverMessage does. The
+	// fake encrypts it as the voter's device would, with whatsmeow's own message secret code
+	// (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret from the session's store,
+	// and names the poll by a key as the voter sees it (msgsecret.go:130-151): its own when the voter sent the poll,
+	// else the poll's sender as the remote JID in a direct chat and as the participant in a group. A session with no
+	// secret for the poll is an error: such a vote is DeliverMessage's, with a message of its own.
+	DeliverPollVote(ctx context.Context, in *DeliverPollVoteRequest, opts ...grpc.CallOption) (*DeliverPollVoteResponse, error)
 	// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
 	// the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches
 	// UndecryptableMessage, whatever the handlers return (message.go:418-437); the fake records neither. A resend that
@@ -275,6 +283,16 @@ func (c *fakeWhatsAppServiceClient) DeliverMessage(ctx context.Context, in *Deli
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeliverMessageResponse)
 	err := c.cc.Invoke(ctx, FakeWhatsAppService_DeliverMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) DeliverPollVote(ctx context.Context, in *DeliverPollVoteRequest, opts ...grpc.CallOption) (*DeliverPollVoteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeliverPollVoteResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_DeliverPollVote_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -716,6 +734,13 @@ type FakeWhatsAppServiceServer interface {
 	// succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A session without a client is an error: the
 	// fake never answers on behalf of a client the sidecar did not create.
 	DeliverMessage(context.Context, *DeliverMessageRequest) (*DeliverMessageResponse, error)
+	// DeliverPollVote makes WhatsApp deliver a poll vote from sender to a session's client, as DeliverMessage does. The
+	// fake encrypts it as the voter's device would, with whatsmeow's own message secret code
+	// (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret from the session's store,
+	// and names the poll by a key as the voter sees it (msgsecret.go:130-151): its own when the voter sent the poll,
+	// else the poll's sender as the remote JID in a direct chat and as the participant in a group. A session with no
+	// secret for the poll is an error: such a vote is DeliverMessage's, with a message of its own.
+	DeliverPollVote(context.Context, *DeliverPollVoteRequest) (*DeliverPollVoteResponse, error)
 	// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
 	// the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches
 	// UndecryptableMessage, whatever the handlers return (message.go:418-437); the fake records neither. A resend that
@@ -911,6 +936,9 @@ type UnimplementedFakeWhatsAppServiceServer struct{}
 func (UnimplementedFakeWhatsAppServiceServer) DeliverMessage(context.Context, *DeliverMessageRequest) (*DeliverMessageResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeliverMessage not implemented")
 }
+func (UnimplementedFakeWhatsAppServiceServer) DeliverPollVote(context.Context, *DeliverPollVoteRequest) (*DeliverPollVoteResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeliverPollVote not implemented")
+}
 func (UnimplementedFakeWhatsAppServiceServer) DeliverUndecryptableMessage(context.Context, *DeliverUndecryptableMessageRequest) (*DeliverUndecryptableMessageResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeliverUndecryptableMessage not implemented")
 }
@@ -1072,6 +1100,24 @@ func _FakeWhatsAppService_DeliverMessage_Handler(srv interface{}, ctx context.Co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FakeWhatsAppServiceServer).DeliverMessage(ctx, req.(*DeliverMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_DeliverPollVote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeliverPollVoteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).DeliverPollVote(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_DeliverPollVote_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).DeliverPollVote(ctx, req.(*DeliverPollVoteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1842,6 +1888,10 @@ var FakeWhatsAppService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeliverMessage",
 			Handler:    _FakeWhatsAppService_DeliverMessage_Handler,
+		},
+		{
+			MethodName: "DeliverPollVote",
+			Handler:    _FakeWhatsAppService_DeliverPollVote_Handler,
 		},
 		{
 			MethodName: "DeliverUndecryptableMessage",

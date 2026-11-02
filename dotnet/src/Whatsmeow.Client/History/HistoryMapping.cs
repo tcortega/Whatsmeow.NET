@@ -37,7 +37,7 @@ internal static class HistoryMapping
 						Source = source,
 						PushName = EventMapping.NullIfEmpty(message.Info.PushName),
 						Timestamp = EventMapping.ToTime(message.Info.MessageTime),
-						Content = ContentMapping.ToContent(message.Message, message.ViewOnce, message.Target),
+						Content = ContentMapping.ToContent(message.Message, message.ViewOnce, message.Target, message.PollVote),
 					}
 				);
 			}

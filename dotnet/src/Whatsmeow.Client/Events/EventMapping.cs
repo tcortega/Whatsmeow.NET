@@ -155,7 +155,7 @@ internal static class EventMapping
 			Source = source,
 			PushName = NullIfEmpty(message.Info.PushName),
 			Timestamp = ToTime(message.Info.MessageTime),
-			Content = ContentMapping.ToContent(message.Message, message.ViewOnce, message.Target),
+			Content = ContentMapping.ToContent(message.Message, message.ViewOnce, message.Target, message.PollVote),
 			ReplyTo = ContentMapping.ToReplyTo(message.Message, message.ReplyTo),
 			Mentions = ContentMapping.ToMentions(message.Message),
 			IsEphemeral = ContentMapping.IsEphemeral(message.Message, message.Ephemeral),

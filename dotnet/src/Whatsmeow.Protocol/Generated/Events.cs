@@ -37,7 +37,7 @@ namespace Whatsmeow.Protocol.V1 {
             "CgZzb3VyY2UYASABKAsyGy53aGF0c21lb3cudjEuTWVzc2FnZVNvdXJjZVIG",
             "c291cmNlEg4KAmlkGAIgASgJUgJpZBIbCglwdXNoX25hbWUYAyABKAlSCHB1",
             "c2hOYW1lEj0KDG1lc3NhZ2VfdGltZRgEIAEoCzIaLmdvb2dsZS5wcm90b2J1",
-            "Zi5UaW1lc3RhbXBSC21lc3NhZ2VUaW1lIpADCgxNZXNzYWdlRXZlbnQSLQoE",
+            "Zi5UaW1lc3RhbXBSC21lc3NhZ2VUaW1lIsUDCgxNZXNzYWdlRXZlbnQSLQoE",
             "aW5mbxgBIAEoCzIZLndoYXRzbWVvdy52MS5NZXNzYWdlSW5mb1IEaW5mbxI0",
             "CgdtZXNzYWdlGAIgASgLMhouV0FXZWJQcm90b2J1ZnNFMkUuTWVzc2FnZVIH",
             "bWVzc2FnZRIbCgl2aWV3X29uY2UYAyABKAhSCHZpZXdPbmNlEhwKCWVwaGVt",
@@ -46,105 +46,109 @@ namespace Whatsmeow.Protocol.V1 {
             "Z2UYBiABKAsyGi5XQVdlYlByb3RvYnVmc0UyRS5NZXNzYWdlUgpyYXdNZXNz",
             "YWdlEjMKBnRhcmdldBgHIAEoCzIbLndoYXRzbWVvdy52MS5NZXNzYWdlVGFy",
             "Z2V0UgZ0YXJnZXQSNgoIcmVwbHlfdG8YCCABKAsyGy53aGF0c21lb3cudjEu",
-            "TWVzc2FnZVRhcmdldFIHcmVwbHlUbyI3Cg1NZXNzYWdlVGFyZ2V0Eg4KAmlk",
-            "GAEgASgJUgJpZBIWCgZzZW5kZXIYAiABKAlSBnNlbmRlciL5AQoMUmVjZWlw",
-            "dEV2ZW50EjMKBnNvdXJjZRgBIAEoCzIbLndoYXRzbWVvdy52MS5NZXNzYWdl",
-            "U291cmNlUgZzb3VyY2USHwoLbWVzc2FnZV9pZHMYAiADKAlSCm1lc3NhZ2VJ",
-            "ZHMSPQoMcmVjZWlwdF90aW1lGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRp",
-            "bWVzdGFtcFILcmVjZWlwdFRpbWUSLQoEdHlwZRgEIAEoDjIZLndoYXRzbWVv",
-            "dy52MS5SZWNlaXB0VHlwZVIEdHlwZRIlCg5tZXNzYWdlX3NlbmRlchgFIAEo",
-            "CVINbWVzc2FnZVNlbmRlciLhAQoZVW5kZWNyeXB0YWJsZU1lc3NhZ2VFdmVu",
-            "dBItCgRpbmZvGAEgASgLMhkud2hhdHNtZW93LnYxLk1lc3NhZ2VJbmZvUgRp",
-            "bmZvEikKEGhpZGVfcGxhY2Vob2xkZXIYAiABKAhSD2hpZGVQbGFjZWhvbGRl",
-            "chIgCgt1bmF2YWlsYWJsZRgDIAEoCFILdW5hdmFpbGFibGUSSAoQdW5hdmFp",
-            "bGFibGVfdHlwZRgEIAEoDjIdLndoYXRzbWVvdy52MS5VbmF2YWlsYWJsZVR5",
-            "cGVSD3VuYXZhaWxhYmxlVHlwZSJIChRDb25uZWN0aW9uU3RhdGVFdmVudBIw",
-            "CgVzdGF0ZRgBIAEoCzIaLndoYXRzbWVvdy52MS5TZXNzaW9uU3RhdGVSBXN0",
-            "YXRlIm0KE1N0cmVhbUV2ZW50c1JlcXVlc3QSHQoKc2Vzc2lvbl9pZBgBIAEo",
-            "CVIJc2Vzc2lvbklkEhoKCGNvbnN1bWVyGAIgASgJUghjb25zdW1lchIbCglh",
-            "ZnRlcl9zZXEYAyABKARSCGFmdGVyU2VxIuUFChRTdHJlYW1FdmVudHNSZXNw",
-            "b25zZRIQCgNzZXEYASABKARSA3NlcRI2CgdtZXNzYWdlGAogASgLMhoud2hh",
-            "dHNtZW93LnYxLk1lc3NhZ2VFdmVudEgAUgdtZXNzYWdlEjYKB3JlY2VpcHQY",
-            "CyABKAsyGi53aGF0c21lb3cudjEuUmVjZWlwdEV2ZW50SABSB3JlY2VpcHQS",
-            "XgoVdW5kZWNyeXB0YWJsZV9tZXNzYWdlGAwgASgLMicud2hhdHNtZW93LnYx",
-            "LlVuZGVjcnlwdGFibGVNZXNzYWdlRXZlbnRIAFIUdW5kZWNyeXB0YWJsZU1l",
-            "c3NhZ2USTwoQY29ubmVjdGlvbl9zdGF0ZRgNIAEoCzIiLndoYXRzbWVvdy52",
-            "MS5Db25uZWN0aW9uU3RhdGVFdmVudEgAUg9jb25uZWN0aW9uU3RhdGUSNgoH",
-            "Y29udGFjdBgOIAEoCzIaLndoYXRzbWVvdy52MS5Db250YWN0RXZlbnRIAFIH",
-            "Y29udGFjdBJACgttZWRpYV9yZXRyeRgPIAEoCzIdLndoYXRzbWVvdy52MS5N",
-            "ZWRpYVJldHJ5RXZlbnRIAFIKbWVkaWFSZXRyeRIwCgVncm91cBgQIAEoCzIY",
-            "LndoYXRzbWVvdy52MS5Hcm91cEV2ZW50SABSBWdyb3VwEj0KCmNoYXRfc3Rh",
-            "dGUYESABKAsyHC53aGF0c21lb3cudjEuQ2hhdFN0YXRlRXZlbnRIAFIJY2hh",
-            "dFN0YXRlEk8KEGhpc3RvcnlfbWVzc2FnZXMYEiABKAsyIi53aGF0c21lb3cu",
-            "djEuSGlzdG9yeU1lc3NhZ2VzRXZlbnRIAFIPaGlzdG9yeU1lc3NhZ2VzElMK",
-            "EGhpc3RvcnlfcHJvZ3Jlc3MYEyABKAsyJi53aGF0c21lb3cudjEuSGlzdG9y",
-            "eVN5bmNQcm9ncmVzc0V2ZW50SABSD2hpc3RvcnlQcm9ncmVzc0IJCgdwYXls",
-            "b2FkIooBChRIaXN0b3J5TWVzc2FnZXNFdmVudBI6CglzeW5jX3R5cGUYASAB",
-            "KA4yHS53aGF0c21lb3cudjEuSGlzdG9yeVN5bmNUeXBlUghzeW5jVHlwZRI2",
-            "CghtZXNzYWdlcxgCIAMoCzIaLndoYXRzbWVvdy52MS5NZXNzYWdlRXZlbnRS",
-            "CG1lc3NhZ2VzIpkCChhIaXN0b3J5U3luY1Byb2dyZXNzRXZlbnQSOgoJc3lu",
-            "Y190eXBlGAEgASgOMh0ud2hhdHNtZW93LnYxLkhpc3RvcnlTeW5jVHlwZVII",
-            "c3luY1R5cGUSHwoLY2h1bmtfb3JkZXIYAiABKA1SCmNodW5rT3JkZXISGgoI",
-            "cHJvZ3Jlc3MYAyABKA1SCHByb2dyZXNzEiMKDW1lc3NhZ2VfY291bnQYBCAB",
-            "KA1SDG1lc3NhZ2VDb3VudBIjCg1za2lwcGVkX2NvdW50GAUgASgNUgxza2lw",
-            "cGVkQ291bnQSOgoHZmFpbHVyZRgGIAEoDjIgLndoYXRzbWVvdy52MS5IaXN0",
-            "b3J5U3luY0ZhaWx1cmVSB2ZhaWx1cmUiaQoQQWNrRXZlbnRzUmVxdWVzdBId",
-            "CgpzZXNzaW9uX2lkGAEgASgJUglzZXNzaW9uSWQSGgoIY29uc3VtZXIYAiAB",
-            "KAlSCGNvbnN1bWVyEhoKCXVwX3RvX3NlcRgDIAEoBFIHdXBUb1NlcSITChFB",
-            "Y2tFdmVudHNSZXNwb25zZSKPAQoNUHJlc2VuY2VFdmVudBISCgRmcm9tGAEg",
-            "ASgJUgRmcm9tEjEKBXN0YXRlGAIgASgOMhsud2hhdHNtZW93LnYxLlByZXNl",
-            "bmNlU3RhdGVSBXN0YXRlEjcKCWxhc3Rfc2VlbhgDIAEoCzIaLmdvb2dsZS5w",
-            "cm90b2J1Zi5UaW1lc3RhbXBSCGxhc3RTZWVuIn8KEUNoYXRQcmVzZW5jZUV2",
-            "ZW50EjMKBnNvdXJjZRgBIAEoCzIbLndoYXRzbWVvdy52MS5NZXNzYWdlU291",
-            "cmNlUgZzb3VyY2USNQoFc3RhdGUYAiABKA4yHy53aGF0c21lb3cudjEuQ2hh",
-            "dFByZXNlbmNlU3RhdGVSBXN0YXRlIi4KElF1ZXVlT3ZlcmZsb3dFdmVudBIY",
-            "Cgdkcm9wcGVkGAEgASgEUgdkcm9wcGVkIj0KHFN0cmVhbUVwaGVtZXJhbEV2",
-            "ZW50c1JlcXVlc3QSHQoKc2Vzc2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkIvgB",
-            "Ch1TdHJlYW1FcGhlbWVyYWxFdmVudHNSZXNwb25zZRI5CghwcmVzZW5jZRgK",
-            "IAEoCzIbLndoYXRzbWVvdy52MS5QcmVzZW5jZUV2ZW50SABSCHByZXNlbmNl",
-            "EkYKDWNoYXRfcHJlc2VuY2UYCyABKAsyHy53aGF0c21lb3cudjEuQ2hhdFBy",
-            "ZXNlbmNlRXZlbnRIAFIMY2hhdFByZXNlbmNlEkkKDnF1ZXVlX292ZXJmbG93",
-            "GAwgASgLMiAud2hhdHNtZW93LnYxLlF1ZXVlT3ZlcmZsb3dFdmVudEgAUg1x",
-            "dWV1ZU92ZXJmbG93QgkKB3BheWxvYWQq1gIKC1JlY2VpcHRUeXBlEhwKGFJF",
-            "Q0VJUFRfVFlQRV9VTlNQRUNJRklFRBAAEhoKFlJFQ0VJUFRfVFlQRV9ERUxJ",
-            "VkVSRUQQARIXChNSRUNFSVBUX1RZUEVfU0VOREVSEAISFgoSUkVDRUlQVF9U",
-            "WVBFX1JFVFJZEAMSFQoRUkVDRUlQVF9UWVBFX1JFQUQQBBIaChZSRUNFSVBU",
-            "X1RZUEVfUkVBRF9TRUxGEAUSFwoTUkVDRUlQVF9UWVBFX1BMQVlFRBAGEhwK",
-            "GFJFQ0VJUFRfVFlQRV9QTEFZRURfU0VMRhAHEh0KGVJFQ0VJUFRfVFlQRV9T",
-            "RVJWRVJfRVJST1IQCBIZChVSRUNFSVBUX1RZUEVfSU5BQ1RJVkUQCRIZChVS",
-            "RUNFSVBUX1RZUEVfUEVFUl9NU0cQChIdChlSRUNFSVBUX1RZUEVfSElTVE9S",
-            "WV9TWU5DEAsqUwoPVW5hdmFpbGFibGVUeXBlEiAKHFVOQVZBSUxBQkxFX1RZ",
-            "UEVfVU5TUEVDSUZJRUQQABIeChpVTkFWQUlMQUJMRV9UWVBFX1ZJRVdfT05D",
-            "RRABKvoCCg9IaXN0b3J5U3luY1R5cGUSIQodSElTVE9SWV9TWU5DX1RZUEVf",
-            "VU5TUEVDSUZJRUQQABInCiNISVNUT1JZX1NZTkNfVFlQRV9JTklUSUFMX0JP",
-            "T1RTVFJBUBABEicKI0hJU1RPUllfU1lOQ19UWVBFX0lOSVRJQUxfU1RBVFVT",
-            "X1YzEAISGgoWSElTVE9SWV9TWU5DX1RZUEVfRlVMTBADEhwKGEhJU1RPUllf",
-            "U1lOQ19UWVBFX1JFQ0VOVBAEEh8KG0hJU1RPUllfU1lOQ19UWVBFX1BVU0hf",
-            "TkFNRRAFEicKI0hJU1RPUllfU1lOQ19UWVBFX05PTl9CTE9DS0lOR19EQVRB",
-            "EAYSHwobSElTVE9SWV9TWU5DX1RZUEVfT05fREVNQU5EEAcSIAocSElTVE9S",
-            "WV9TWU5DX1RZUEVfTk9fSElTVE9SWRAIEisKJ0hJU1RPUllfU1lOQ19UWVBF",
-            "X01FU1NBR0VfQUNDRVNTX1NUQVRVUxAJKqQBChJIaXN0b3J5U3luY0ZhaWx1",
-            "cmUSJAogSElTVE9SWV9TWU5DX0ZBSUxVUkVfVU5TUEVDSUZJRUQQABIgChxI",
-            "SVNUT1JZX1NZTkNfRkFJTFVSRV9FWFBJUkVEEAESIAocSElTVE9SWV9TWU5D",
-            "X0ZBSUxVUkVfSU5WQUxJRBACEiQKIEhJU1RPUllfU1lOQ19GQUlMVVJFX1VO",
-            "QVZBSUxBQkxFEAMyqQIKDEV2ZW50U2VydmljZRJXCgxTdHJlYW1FdmVudHMS",
-            "IS53aGF0c21lb3cudjEuU3RyZWFtRXZlbnRzUmVxdWVzdBoiLndoYXRzbWVv",
-            "dy52MS5TdHJlYW1FdmVudHNSZXNwb25zZTABEkwKCUFja0V2ZW50cxIeLndo",
-            "YXRzbWVvdy52MS5BY2tFdmVudHNSZXF1ZXN0Gh8ud2hhdHNtZW93LnYxLkFj",
-            "a0V2ZW50c1Jlc3BvbnNlEnIKFVN0cmVhbUVwaGVtZXJhbEV2ZW50cxIqLndo",
-            "YXRzbWVvdy52MS5TdHJlYW1FcGhlbWVyYWxFdmVudHNSZXF1ZXN0Gisud2hh",
-            "dHNtZW93LnYxLlN0cmVhbUVwaGVtZXJhbEV2ZW50c1Jlc3BvbnNlMAFCwQEK",
-            "EGNvbS53aGF0c21lb3cudjFCC0V2ZW50c1Byb3RvUAFaRmdpdGh1Yi5jb20v",
-            "dGNvcnRlZ2EvV2hhdHNtZW93Lk5FVC9zaWRlY2FyL2dlbi93aGF0c21lb3cv",
-            "djE7d2hhdHNtZW93djGiAgNXWFiqAhVXaGF0c21lb3cuUHJvdG9jb2wuVjHK",
-            "AgxXaGF0c21lb3dcVjHiAhhXaGF0c21lb3dcVjFcR1BCTWV0YWRhdGHqAg1X",
-            "aGF0c21lb3c6OlYxYgZwcm90bzM="));
+            "TWVzc2FnZVRhcmdldFIHcmVwbHlUbxIzCglwb2xsX3ZvdGUYCSABKAsyFi53",
+            "aGF0c21lb3cudjEuUG9sbFZvdGVSCHBvbGxWb3RlImYKCFBvbGxWb3RlEjQK",
+            "FnNlbGVjdGVkX29wdGlvbl9oYXNoZXMYASADKAxSFHNlbGVjdGVkT3B0aW9u",
+            "SGFzaGVzEiQKDXVuZGVjcnlwdGFibGUYAiABKAhSDXVuZGVjcnlwdGFibGUi",
+            "NwoNTWVzc2FnZVRhcmdldBIOCgJpZBgBIAEoCVICaWQSFgoGc2VuZGVyGAIg",
+            "ASgJUgZzZW5kZXIi+QEKDFJlY2VpcHRFdmVudBIzCgZzb3VyY2UYASABKAsy",
+            "Gy53aGF0c21lb3cudjEuTWVzc2FnZVNvdXJjZVIGc291cmNlEh8KC21lc3Nh",
+            "Z2VfaWRzGAIgAygJUgptZXNzYWdlSWRzEj0KDHJlY2VpcHRfdGltZRgDIAEo",
+            "CzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBSC3JlY2VpcHRUaW1lEi0K",
+            "BHR5cGUYBCABKA4yGS53aGF0c21lb3cudjEuUmVjZWlwdFR5cGVSBHR5cGUS",
+            "JQoObWVzc2FnZV9zZW5kZXIYBSABKAlSDW1lc3NhZ2VTZW5kZXIi4QEKGVVu",
+            "ZGVjcnlwdGFibGVNZXNzYWdlRXZlbnQSLQoEaW5mbxgBIAEoCzIZLndoYXRz",
+            "bWVvdy52MS5NZXNzYWdlSW5mb1IEaW5mbxIpChBoaWRlX3BsYWNlaG9sZGVy",
+            "GAIgASgIUg9oaWRlUGxhY2Vob2xkZXISIAoLdW5hdmFpbGFibGUYAyABKAhS",
+            "C3VuYXZhaWxhYmxlEkgKEHVuYXZhaWxhYmxlX3R5cGUYBCABKA4yHS53aGF0",
+            "c21lb3cudjEuVW5hdmFpbGFibGVUeXBlUg91bmF2YWlsYWJsZVR5cGUiSAoU",
+            "Q29ubmVjdGlvblN0YXRlRXZlbnQSMAoFc3RhdGUYASABKAsyGi53aGF0c21l",
+            "b3cudjEuU2Vzc2lvblN0YXRlUgVzdGF0ZSJtChNTdHJlYW1FdmVudHNSZXF1",
+            "ZXN0Eh0KCnNlc3Npb25faWQYASABKAlSCXNlc3Npb25JZBIaCghjb25zdW1l",
+            "chgCIAEoCVIIY29uc3VtZXISGwoJYWZ0ZXJfc2VxGAMgASgEUghhZnRlclNl",
+            "cSLlBQoUU3RyZWFtRXZlbnRzUmVzcG9uc2USEAoDc2VxGAEgASgEUgNzZXES",
+            "NgoHbWVzc2FnZRgKIAEoCzIaLndoYXRzbWVvdy52MS5NZXNzYWdlRXZlbnRI",
+            "AFIHbWVzc2FnZRI2CgdyZWNlaXB0GAsgASgLMhoud2hhdHNtZW93LnYxLlJl",
+            "Y2VpcHRFdmVudEgAUgdyZWNlaXB0El4KFXVuZGVjcnlwdGFibGVfbWVzc2Fn",
+            "ZRgMIAEoCzInLndoYXRzbWVvdy52MS5VbmRlY3J5cHRhYmxlTWVzc2FnZUV2",
+            "ZW50SABSFHVuZGVjcnlwdGFibGVNZXNzYWdlEk8KEGNvbm5lY3Rpb25fc3Rh",
+            "dGUYDSABKAsyIi53aGF0c21lb3cudjEuQ29ubmVjdGlvblN0YXRlRXZlbnRI",
+            "AFIPY29ubmVjdGlvblN0YXRlEjYKB2NvbnRhY3QYDiABKAsyGi53aGF0c21l",
+            "b3cudjEuQ29udGFjdEV2ZW50SABSB2NvbnRhY3QSQAoLbWVkaWFfcmV0cnkY",
+            "DyABKAsyHS53aGF0c21lb3cudjEuTWVkaWFSZXRyeUV2ZW50SABSCm1lZGlh",
+            "UmV0cnkSMAoFZ3JvdXAYECABKAsyGC53aGF0c21lb3cudjEuR3JvdXBFdmVu",
+            "dEgAUgVncm91cBI9CgpjaGF0X3N0YXRlGBEgASgLMhwud2hhdHNtZW93LnYx",
+            "LkNoYXRTdGF0ZUV2ZW50SABSCWNoYXRTdGF0ZRJPChBoaXN0b3J5X21lc3Nh",
+            "Z2VzGBIgASgLMiIud2hhdHNtZW93LnYxLkhpc3RvcnlNZXNzYWdlc0V2ZW50",
+            "SABSD2hpc3RvcnlNZXNzYWdlcxJTChBoaXN0b3J5X3Byb2dyZXNzGBMgASgL",
+            "MiYud2hhdHNtZW93LnYxLkhpc3RvcnlTeW5jUHJvZ3Jlc3NFdmVudEgAUg9o",
+            "aXN0b3J5UHJvZ3Jlc3NCCQoHcGF5bG9hZCKKAQoUSGlzdG9yeU1lc3NhZ2Vz",
+            "RXZlbnQSOgoJc3luY190eXBlGAEgASgOMh0ud2hhdHNtZW93LnYxLkhpc3Rv",
+            "cnlTeW5jVHlwZVIIc3luY1R5cGUSNgoIbWVzc2FnZXMYAiADKAsyGi53aGF0",
+            "c21lb3cudjEuTWVzc2FnZUV2ZW50UghtZXNzYWdlcyKZAgoYSGlzdG9yeVN5",
+            "bmNQcm9ncmVzc0V2ZW50EjoKCXN5bmNfdHlwZRgBIAEoDjIdLndoYXRzbWVv",
+            "dy52MS5IaXN0b3J5U3luY1R5cGVSCHN5bmNUeXBlEh8KC2NodW5rX29yZGVy",
+            "GAIgASgNUgpjaHVua09yZGVyEhoKCHByb2dyZXNzGAMgASgNUghwcm9ncmVz",
+            "cxIjCg1tZXNzYWdlX2NvdW50GAQgASgNUgxtZXNzYWdlQ291bnQSIwoNc2tp",
+            "cHBlZF9jb3VudBgFIAEoDVIMc2tpcHBlZENvdW50EjoKB2ZhaWx1cmUYBiAB",
+            "KA4yIC53aGF0c21lb3cudjEuSGlzdG9yeVN5bmNGYWlsdXJlUgdmYWlsdXJl",
+            "ImkKEEFja0V2ZW50c1JlcXVlc3QSHQoKc2Vzc2lvbl9pZBgBIAEoCVIJc2Vz",
+            "c2lvbklkEhoKCGNvbnN1bWVyGAIgASgJUghjb25zdW1lchIaCgl1cF90b19z",
+            "ZXEYAyABKARSB3VwVG9TZXEiEwoRQWNrRXZlbnRzUmVzcG9uc2UijwEKDVBy",
+            "ZXNlbmNlRXZlbnQSEgoEZnJvbRgBIAEoCVIEZnJvbRIxCgVzdGF0ZRgCIAEo",
+            "DjIbLndoYXRzbWVvdy52MS5QcmVzZW5jZVN0YXRlUgVzdGF0ZRI3CglsYXN0",
+            "X3NlZW4YAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wUghsYXN0",
+            "U2VlbiJ/ChFDaGF0UHJlc2VuY2VFdmVudBIzCgZzb3VyY2UYASABKAsyGy53",
+            "aGF0c21lb3cudjEuTWVzc2FnZVNvdXJjZVIGc291cmNlEjUKBXN0YXRlGAIg",
+            "ASgOMh8ud2hhdHNtZW93LnYxLkNoYXRQcmVzZW5jZVN0YXRlUgVzdGF0ZSIu",
+            "ChJRdWV1ZU92ZXJmbG93RXZlbnQSGAoHZHJvcHBlZBgBIAEoBFIHZHJvcHBl",
+            "ZCI9ChxTdHJlYW1FcGhlbWVyYWxFdmVudHNSZXF1ZXN0Eh0KCnNlc3Npb25f",
+            "aWQYASABKAlSCXNlc3Npb25JZCL4AQodU3RyZWFtRXBoZW1lcmFsRXZlbnRz",
+            "UmVzcG9uc2USOQoIcHJlc2VuY2UYCiABKAsyGy53aGF0c21lb3cudjEuUHJl",
+            "c2VuY2VFdmVudEgAUghwcmVzZW5jZRJGCg1jaGF0X3ByZXNlbmNlGAsgASgL",
+            "Mh8ud2hhdHNtZW93LnYxLkNoYXRQcmVzZW5jZUV2ZW50SABSDGNoYXRQcmVz",
+            "ZW5jZRJJCg5xdWV1ZV9vdmVyZmxvdxgMIAEoCzIgLndoYXRzbWVvdy52MS5R",
+            "dWV1ZU92ZXJmbG93RXZlbnRIAFINcXVldWVPdmVyZmxvd0IJCgdwYXlsb2Fk",
+            "KtYCCgtSZWNlaXB0VHlwZRIcChhSRUNFSVBUX1RZUEVfVU5TUEVDSUZJRUQQ",
+            "ABIaChZSRUNFSVBUX1RZUEVfREVMSVZFUkVEEAESFwoTUkVDRUlQVF9UWVBF",
+            "X1NFTkRFUhACEhYKElJFQ0VJUFRfVFlQRV9SRVRSWRADEhUKEVJFQ0VJUFRf",
+            "VFlQRV9SRUFEEAQSGgoWUkVDRUlQVF9UWVBFX1JFQURfU0VMRhAFEhcKE1JF",
+            "Q0VJUFRfVFlQRV9QTEFZRUQQBhIcChhSRUNFSVBUX1RZUEVfUExBWUVEX1NF",
+            "TEYQBxIdChlSRUNFSVBUX1RZUEVfU0VSVkVSX0VSUk9SEAgSGQoVUkVDRUlQ",
+            "VF9UWVBFX0lOQUNUSVZFEAkSGQoVUkVDRUlQVF9UWVBFX1BFRVJfTVNHEAoS",
+            "HQoZUkVDRUlQVF9UWVBFX0hJU1RPUllfU1lOQxALKlMKD1VuYXZhaWxhYmxl",
+            "VHlwZRIgChxVTkFWQUlMQUJMRV9UWVBFX1VOU1BFQ0lGSUVEEAASHgoaVU5B",
+            "VkFJTEFCTEVfVFlQRV9WSUVXX09OQ0UQASr6AgoPSGlzdG9yeVN5bmNUeXBl",
+            "EiEKHUhJU1RPUllfU1lOQ19UWVBFX1VOU1BFQ0lGSUVEEAASJwojSElTVE9S",
+            "WV9TWU5DX1RZUEVfSU5JVElBTF9CT09UU1RSQVAQARInCiNISVNUT1JZX1NZ",
+            "TkNfVFlQRV9JTklUSUFMX1NUQVRVU19WMxACEhoKFkhJU1RPUllfU1lOQ19U",
+            "WVBFX0ZVTEwQAxIcChhISVNUT1JZX1NZTkNfVFlQRV9SRUNFTlQQBBIfChtI",
+            "SVNUT1JZX1NZTkNfVFlQRV9QVVNIX05BTUUQBRInCiNISVNUT1JZX1NZTkNf",
+            "VFlQRV9OT05fQkxPQ0tJTkdfREFUQRAGEh8KG0hJU1RPUllfU1lOQ19UWVBF",
+            "X09OX0RFTUFORBAHEiAKHEhJU1RPUllfU1lOQ19UWVBFX05PX0hJU1RPUlkQ",
+            "CBIrCidISVNUT1JZX1NZTkNfVFlQRV9NRVNTQUdFX0FDQ0VTU19TVEFUVVMQ",
+            "CSqkAQoSSGlzdG9yeVN5bmNGYWlsdXJlEiQKIEhJU1RPUllfU1lOQ19GQUlM",
+            "VVJFX1VOU1BFQ0lGSUVEEAASIAocSElTVE9SWV9TWU5DX0ZBSUxVUkVfRVhQ",
+            "SVJFRBABEiAKHEhJU1RPUllfU1lOQ19GQUlMVVJFX0lOVkFMSUQQAhIkCiBI",
+            "SVNUT1JZX1NZTkNfRkFJTFVSRV9VTkFWQUlMQUJMRRADMqkCCgxFdmVudFNl",
+            "cnZpY2USVwoMU3RyZWFtRXZlbnRzEiEud2hhdHNtZW93LnYxLlN0cmVhbUV2",
+            "ZW50c1JlcXVlc3QaIi53aGF0c21lb3cudjEuU3RyZWFtRXZlbnRzUmVzcG9u",
+            "c2UwARJMCglBY2tFdmVudHMSHi53aGF0c21lb3cudjEuQWNrRXZlbnRzUmVx",
+            "dWVzdBofLndoYXRzbWVvdy52MS5BY2tFdmVudHNSZXNwb25zZRJyChVTdHJl",
+            "YW1FcGhlbWVyYWxFdmVudHMSKi53aGF0c21lb3cudjEuU3RyZWFtRXBoZW1l",
+            "cmFsRXZlbnRzUmVxdWVzdBorLndoYXRzbWVvdy52MS5TdHJlYW1FcGhlbWVy",
+            "YWxFdmVudHNSZXNwb25zZTABQsEBChBjb20ud2hhdHNtZW93LnYxQgtFdmVu",
+            "dHNQcm90b1ABWkZnaXRodWIuY29tL3Rjb3J0ZWdhL1doYXRzbWVvdy5ORVQv",
+            "c2lkZWNhci9nZW4vd2hhdHNtZW93L3YxO3doYXRzbWVvd3YxogIDV1hYqgIV",
+            "V2hhdHNtZW93LlByb3RvY29sLlYxygIMV2hhdHNtZW93XFYx4gIYV2hhdHNt",
+            "ZW93XFYxXEdQQk1ldGFkYXRh6gINV2hhdHNtZW93OjpWMWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, global::Whatsmeow.Proto.WAWebProtobufsE2E.WAWebProtobufsE2EReflection.Descriptor, global::Whatsmeow.Protocol.V1.ChatstateReflection.Descriptor, global::Whatsmeow.Protocol.V1.ContactReflection.Descriptor, global::Whatsmeow.Protocol.V1.MediaReflection.Descriptor, global::Whatsmeow.Protocol.V1.PresenceReflection.Descriptor, global::Whatsmeow.Protocol.V1.GroupReflection.Descriptor, global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Whatsmeow.Protocol.V1.ReceiptType), typeof(global::Whatsmeow.Protocol.V1.UnavailableType), typeof(global::Whatsmeow.Protocol.V1.HistorySyncType), typeof(global::Whatsmeow.Protocol.V1.HistorySyncFailure), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.MessageSource), global::Whatsmeow.Protocol.V1.MessageSource.Parser, new[]{ "Chat", "Sender", "SenderAlt", "RecipientAlt", "IsFromMe" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.MessageInfo), global::Whatsmeow.Protocol.V1.MessageInfo.Parser, new[]{ "Source", "Id", "PushName", "MessageTime" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.MessageEvent), global::Whatsmeow.Protocol.V1.MessageEvent.Parser, new[]{ "Info", "Message", "ViewOnce", "Ephemeral", "DeviceSentDestination", "RawMessage", "Target", "ReplyTo" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.MessageEvent), global::Whatsmeow.Protocol.V1.MessageEvent.Parser, new[]{ "Info", "Message", "ViewOnce", "Ephemeral", "DeviceSentDestination", "RawMessage", "Target", "ReplyTo", "PollVote" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.PollVote), global::Whatsmeow.Protocol.V1.PollVote.Parser, new[]{ "SelectedOptionHashes", "Undecryptable" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.MessageTarget), global::Whatsmeow.Protocol.V1.MessageTarget.Parser, new[]{ "Id", "Sender" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.ReceiptEvent), global::Whatsmeow.Protocol.V1.ReceiptEvent.Parser, new[]{ "Source", "MessageIds", "ReceiptTime", "Type", "MessageSender" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.UndecryptableMessageEvent), global::Whatsmeow.Protocol.V1.UndecryptableMessageEvent.Parser, new[]{ "Info", "HidePlaceholder", "Unavailable", "UnavailableType" }, null, null, null, null),
@@ -1060,6 +1064,7 @@ namespace Whatsmeow.Protocol.V1 {
       rawMessage_ = other.rawMessage_ != null ? other.rawMessage_.Clone() : null;
       target_ = other.target_ != null ? other.target_.Clone() : null;
       replyTo_ = other.replyTo_ != null ? other.replyTo_.Clone() : null;
+      pollVote_ = other.pollVote_ != null ? other.pollVote_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -1165,9 +1170,9 @@ namespace Whatsmeow.Protocol.V1 {
     public const int TargetFieldNumber = 7;
     private global::Whatsmeow.Protocol.V1.MessageTarget target_;
     /// <summary>
-    /// For a reaction, an edit or a revoke, the message its key names; unset for every other message, and for a key
-    /// that names none: one without an id, one whose participant is not a JID, or, outside a direct chat, one that is
-    /// not the actor's and names no participant.
+    /// For a reaction, an edit, a revoke or a poll vote, the message its key names; unset for every other message, and
+    /// for a key that names none: one without an id, one whose participant is not a JID, or, outside a direct chat, one
+    /// that is not the actor's and names no participant.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -1195,6 +1200,22 @@ namespace Whatsmeow.Protocol.V1 {
       }
     }
 
+    /// <summary>Field number for the "poll_vote" field.</summary>
+    public const int PollVoteFieldNumber = 9;
+    private global::Whatsmeow.Protocol.V1.PollVote pollVote_;
+    /// <summary>
+    /// For a poll vote, what it selected, decrypted with the poll's message secret; its poll is the target. Unset for
+    /// every other message.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Protocol.V1.PollVote PollVote {
+      get { return pollVote_; }
+      set {
+        pollVote_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -1218,6 +1239,7 @@ namespace Whatsmeow.Protocol.V1 {
       if (!object.Equals(RawMessage, other.RawMessage)) return false;
       if (!object.Equals(Target, other.Target)) return false;
       if (!object.Equals(ReplyTo, other.ReplyTo)) return false;
+      if (!object.Equals(PollVote, other.PollVote)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -1233,6 +1255,7 @@ namespace Whatsmeow.Protocol.V1 {
       if (rawMessage_ != null) hash ^= RawMessage.GetHashCode();
       if (target_ != null) hash ^= Target.GetHashCode();
       if (replyTo_ != null) hash ^= ReplyTo.GetHashCode();
+      if (pollVote_ != null) hash ^= PollVote.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1283,6 +1306,10 @@ namespace Whatsmeow.Protocol.V1 {
         output.WriteRawTag(66);
         output.WriteMessage(ReplyTo);
       }
+      if (pollVote_ != null) {
+        output.WriteRawTag(74);
+        output.WriteMessage(PollVote);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -1325,6 +1352,10 @@ namespace Whatsmeow.Protocol.V1 {
         output.WriteRawTag(66);
         output.WriteMessage(ReplyTo);
       }
+      if (pollVote_ != null) {
+        output.WriteRawTag(74);
+        output.WriteMessage(PollVote);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -1358,6 +1389,9 @@ namespace Whatsmeow.Protocol.V1 {
       }
       if (replyTo_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(ReplyTo);
+      }
+      if (pollVote_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(PollVote);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -1409,6 +1443,12 @@ namespace Whatsmeow.Protocol.V1 {
           ReplyTo = new global::Whatsmeow.Protocol.V1.MessageTarget();
         }
         ReplyTo.MergeFrom(other.ReplyTo);
+      }
+      if (other.pollVote_ != null) {
+        if (pollVote_ == null) {
+          PollVote = new global::Whatsmeow.Protocol.V1.PollVote();
+        }
+        PollVote.MergeFrom(other.PollVote);
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -1474,6 +1514,13 @@ namespace Whatsmeow.Protocol.V1 {
               ReplyTo = new global::Whatsmeow.Protocol.V1.MessageTarget();
             }
             input.ReadMessage(ReplyTo);
+            break;
+          }
+          case 74: {
+            if (pollVote_ == null) {
+              PollVote = new global::Whatsmeow.Protocol.V1.PollVote();
+            }
+            input.ReadMessage(PollVote);
             break;
           }
         }
@@ -1542,6 +1589,248 @@ namespace Whatsmeow.Protocol.V1 {
             input.ReadMessage(ReplyTo);
             break;
           }
+          case 74: {
+            if (pollVote_ == null) {
+              PollVote = new global::Whatsmeow.Protocol.V1.PollVote();
+            }
+            input.ReadMessage(PollVote);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// PollVote is a poll vote as the sidecar decrypted it.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  internal sealed partial class PollVote : pb::IMessage<PollVote>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<PollVote> _parser = new pb::MessageParser<PollVote>(() => new PollVote());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<PollVote> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[3]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public PollVote() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public PollVote(PollVote other) : this() {
+      selectedOptionHashes_ = other.selectedOptionHashes_.Clone();
+      undecryptable_ = other.undecryptable_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public PollVote Clone() {
+      return new PollVote(this);
+    }
+
+    /// <summary>Field number for the "selected_option_hashes" field.</summary>
+    public const int SelectedOptionHashesFieldNumber = 1;
+    private static readonly pb::FieldCodec<pb::ByteString> _repeated_selectedOptionHashes_codec
+        = pb::FieldCodec.ForBytes(10);
+    private readonly pbc::RepeatedField<pb::ByteString> selectedOptionHashes_ = new pbc::RepeatedField<pb::ByteString>();
+    /// <summary>
+    /// The selected options, each the SHA-256 of an option's UTF-8 name; empty when the voter cleared their vote, and
+    /// when the vote is undecryptable.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<pb::ByteString> SelectedOptionHashes {
+      get { return selectedOptionHashes_; }
+    }
+
+    /// <summary>Field number for the "undecryptable" field.</summary>
+    public const int UndecryptableFieldNumber = 2;
+    private bool undecryptable_;
+    /// <summary>
+    /// True when the sidecar could not decrypt the vote: this device has no secret for its poll (a poll that predates
+    /// this device and that no history sync it processed carried), or the vote does not decrypt with it.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Undecryptable {
+      get { return undecryptable_; }
+      set {
+        undecryptable_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as PollVote);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(PollVote other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!selectedOptionHashes_.Equals(other.selectedOptionHashes_)) return false;
+      if (Undecryptable != other.Undecryptable) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= selectedOptionHashes_.GetHashCode();
+      if (Undecryptable != false) hash ^= Undecryptable.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      selectedOptionHashes_.WriteTo(output, _repeated_selectedOptionHashes_codec);
+      if (Undecryptable != false) {
+        output.WriteRawTag(16);
+        output.WriteBool(Undecryptable);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      selectedOptionHashes_.WriteTo(ref output, _repeated_selectedOptionHashes_codec);
+      if (Undecryptable != false) {
+        output.WriteRawTag(16);
+        output.WriteBool(Undecryptable);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += selectedOptionHashes_.CalculateSize(_repeated_selectedOptionHashes_codec);
+      if (Undecryptable != false) {
+        size += 1 + 1;
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(PollVote other) {
+      if (other == null) {
+        return;
+      }
+      selectedOptionHashes_.Add(other.selectedOptionHashes_);
+      if (other.Undecryptable != false) {
+        Undecryptable = other.Undecryptable;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            selectedOptionHashes_.AddEntriesFrom(input, _repeated_selectedOptionHashes_codec);
+            break;
+          }
+          case 16: {
+            Undecryptable = input.ReadBool();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            selectedOptionHashes_.AddEntriesFrom(ref input, _repeated_selectedOptionHashes_codec);
+            break;
+          }
+          case 16: {
+            Undecryptable = input.ReadBool();
+            break;
+          }
         }
       }
     }
@@ -1567,7 +1856,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[3]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[4]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1815,7 +2104,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[4]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[5]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2189,7 +2478,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[5]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[6]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2523,7 +2812,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[6]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[7]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2736,7 +3025,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[7]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[8]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3021,7 +3310,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[8]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[9]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3815,7 +4104,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[9]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[10]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4049,7 +4338,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[10]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[11]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4454,7 +4743,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[11]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[12]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4738,7 +5027,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[12]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[13]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4902,7 +5191,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[13]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[14]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5195,7 +5484,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[14]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[15]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5448,7 +5737,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[15]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[16]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5652,7 +5941,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[16]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[17]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5857,7 +6146,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[17]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[18]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

@@ -1,6 +1,7 @@
 package events
 
 import (
+	"context"
 	"strings"
 
 	"go.mau.fi/whatsmeow/proto/waCommon"
@@ -17,11 +18,13 @@ import (
 
 // toEvent maps a whatsmeow event to the outbox event it records and that event's natural key, or false for an
 // event this slice does not record. Connection events are not here: the session slice records them as it changes
-// state (session.(*Service).transition). It is pure: no I/O. account is the session's device, which names the account.
+// state (session.(*Service).transition). It is pure but for a poll vote's decryption (pollVote), which reads the
+// poll's secret from whatsmeow's store. account is the session's device, which names the account, and votes decrypts
+// a vote with its message secrets.
 //
 // The key ties a repeated event to its first recording, so it keeps its seq: whatsmeow dispatches a message again
 // from its decrypted-event buffer after a crash between our commit and its buffer clear (message.go:459-477).
-func toEvent(evt any, account *store.Device) (string, *whatsmeowv1.StreamEventsResponse, bool) {
+func toEvent(evt any, account *store.Device, votes voteDecrypter) (string, *whatsmeowv1.StreamEventsResponse, bool) {
 	switch e := evt.(type) {
 	case *waevents.Message:
 		// A history sync notification is the History slice's (internal/history): never a live message.
@@ -29,8 +32,11 @@ func toEvent(evt any, account *store.Device) (string, *whatsmeowv1.StreamEventsR
 			return "", nil, false
 		}
 
+		event := MessageEvent(e, account)
+		event.PollVote = pollVote(e, votes)
+
 		return key("m", &e.Info), &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_Message{
-			Message: MessageEvent(e, account),
+			Message: event,
 		}}, true
 	case *waevents.UndecryptableMessage:
 		return key("u", &e.Info), &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_UndecryptableMessage{
@@ -44,6 +50,34 @@ func toEvent(evt any, account *store.Device) (string, *whatsmeowv1.StreamEventsR
 	default:
 		return "", nil, false
 	}
+}
+
+// voteDecrypter decrypts a poll vote with the poll's message secret from the session's store: whatsmeow's own
+// DecryptPollVote (msgsecret.go:305-320).
+type voteDecrypter interface {
+	DecryptPollVote(ctx context.Context, vote *waevents.Message) (*waE2E.PollVoteMessage, error)
+}
+
+// pollVote is a poll vote's selection, decrypted with votes; nil for every other message. A vote that does not decrypt
+// (no secret for its poll here, one that fails its check, or no decrypter) is marked undecryptable and still recorded,
+// so it is answered and delivered (events.proto PollVote). whatsmeow's error is dropped: the event says the vote is
+// undecryptable, and the error's text names the voter and the poll's sender (msgsecret.go:191).
+func pollVote(e *waevents.Message, votes voteDecrypter) *whatsmeowv1.PollVote {
+	if e.Message.GetPollUpdateMessage() == nil {
+		return nil
+	}
+
+	if votes == nil {
+		return &whatsmeowv1.PollVote{Undecryptable: true}
+	}
+
+	// No caller's context: whatsmeow gives the handler none. SQLite's busy_timeout bounds the read.
+	vote, err := votes.DecryptPollVote(context.Background(), e)
+	if err != nil {
+		return &whatsmeowv1.PollVote{Undecryptable: true}
+	}
+
+	return &whatsmeowv1.PollVote{SelectedOptionHashes: vote.GetSelectedOptions()}
 }
 
 // unavailableType is why WhatsApp sent no ciphertext, as events.proto has it; unspecified for none and for a type
@@ -177,6 +211,7 @@ func contextOf(m *waE2E.Message) *waE2E.ContextInfo {
 		m.GetAudioMessage().GetContextInfo(),
 		m.GetDocumentMessage().GetContextInfo(),
 		m.GetStickerMessage().GetContextInfo(),
+		pollCreation(m).GetContextInfo(),
 	} {
 		if c != nil {
 			return c
@@ -186,12 +221,31 @@ func contextOf(m *waE2E.Message) *waE2E.ContextInfo {
 	return nil
 }
 
-// actionKey is the key of a reaction, a revoke or an edit, which whatsmeow unwrapped from its EditedMessage
+// pollCreation is a poll of any version the client maps, in the client's order (ContentMapping.PollOf): V1, V2, V3,
+// V5 and V6 are one type (WAWebProtobufsE2E.proto); V4 is a FutureProofMessage, which mautrix does not map either
+// (pkg/msgconv/from-whatsapp.go:174-185 at 5dd621f). nil for every other message.
+func pollCreation(m *waE2E.Message) *waE2E.PollCreationMessage {
+	for _, p := range []*waE2E.PollCreationMessage{
+		m.GetPollCreationMessage(), m.GetPollCreationMessageV2(), m.GetPollCreationMessageV3(), m.GetPollCreationMessageV5(), m.GetPollCreationMessageV6(),
+	} {
+		if p != nil {
+			return p
+		}
+	}
+
+	return nil
+}
+
+// actionKey is the key of a reaction, a revoke, an edit or a poll vote, which whatsmeow unwrapped from its EditedMessage
 // (types/events/events.go:377-425); nil for every other message. A protocol message is a revoke only when its type is
 // set: REVOKE is the type's zero value.
 func actionKey(m *waE2E.Message) *waCommon.MessageKey {
 	if r := m.GetReactionMessage(); r != nil {
 		return r.GetKey()
+	}
+
+	if v := m.GetPollUpdateMessage(); v != nil {
+		return v.GetPollCreationMessageKey()
 	}
 
 	p := m.GetProtocolMessage()

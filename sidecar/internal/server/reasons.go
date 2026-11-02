@@ -39,6 +39,8 @@ var (
 	ErrMediaExpired = errors.New("WhatsApp no longer has the media")
 	// ErrInviteLinkInvalid is a group invite link WhatsApp does not accept: malformed, unknown or reset.
 	ErrInviteLinkInvalid = errors.New("the group invite link is not valid")
+	// ErrPollSecretNotFound is a vote on a poll whose message secret this device does not have: nothing was sent.
+	ErrPollSecretNotFound = errors.New("this device has no secret for the poll")
 )
 
 // reasons is each error's gRPC code and reason, as error.proto lists them.
@@ -67,6 +69,7 @@ var reasons = []struct { //nolint:gochecknoglobals // a read-only table, the one
 	{ErrNoPushName, codes.FailedPrecondition, whatsmeowv1.ErrorReason_ERROR_REASON_NO_PUSH_NAME},
 	{ErrMediaExpired, codes.NotFound, whatsmeowv1.ErrorReason_ERROR_REASON_MEDIA_EXPIRED},
 	{ErrInviteLinkInvalid, codes.NotFound, whatsmeowv1.ErrorReason_ERROR_REASON_INVITE_LINK_INVALID},
+	{ErrPollSecretNotFound, codes.FailedPrecondition, whatsmeowv1.ErrorReason_ERROR_REASON_POLL_SECRET_NOT_FOUND},
 }
 
 // metadataError adds one ErrorInfo metadata entry to the error it wraps.

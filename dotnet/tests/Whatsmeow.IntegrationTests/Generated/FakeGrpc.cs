@@ -57,6 +57,10 @@ namespace Whatsmeow.IntegrationTests.Fake {
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse> __Marshaller_whatsmeow_fake_v1_DeliverMessageResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DeliverPollVoteRequest> __Marshaller_whatsmeow_fake_v1_DeliverPollVoteRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DeliverPollVoteRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DeliverPollVoteResponse> __Marshaller_whatsmeow_fake_v1_DeliverPollVoteResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DeliverPollVoteResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageRequest> __Marshaller_whatsmeow_fake_v1_DeliverUndecryptableMessageRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageResponse> __Marshaller_whatsmeow_fake_v1_DeliverUndecryptableMessageResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageResponse.Parser));
@@ -232,6 +236,14 @@ namespace Whatsmeow.IntegrationTests.Fake {
         "DeliverMessage",
         __Marshaller_whatsmeow_fake_v1_DeliverMessageRequest,
         __Marshaller_whatsmeow_fake_v1_DeliverMessageResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverPollVoteRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverPollVoteResponse> __Method_DeliverPollVote = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverPollVoteRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverPollVoteResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "DeliverPollVote",
+        __Marshaller_whatsmeow_fake_v1_DeliverPollVoteRequest,
+        __Marshaller_whatsmeow_fake_v1_DeliverPollVoteResponse);
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageResponse> __Method_DeliverUndecryptableMessage = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverUndecryptableMessageResponse>(
@@ -661,6 +673,74 @@ namespace Whatsmeow.IntegrationTests.Fake {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse> DeliverMessageAsync(global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_DeliverMessage, null, options, request);
+      }
+      /// <summary>
+      /// DeliverPollVote makes WhatsApp deliver a poll vote from sender to a session's client, as DeliverMessage does. The
+      /// fake encrypts it as the voter's device would, with whatsmeow's own message secret code
+      /// (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret from the session's store,
+      /// and names the poll by a key as the voter sees it (msgsecret.go:130-151): its own when the voter sent the poll,
+      /// else the poll's sender as the remote JID in a direct chat and as the participant in a group. A session with no
+      /// secret for the poll is an error: such a vote is DeliverMessage's, with a message of its own.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.DeliverPollVoteResponse DeliverPollVote(global::Whatsmeow.IntegrationTests.Fake.DeliverPollVoteRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return DeliverPollVote(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// DeliverPollVote makes WhatsApp deliver a poll vote from sender to a session's client, as DeliverMessage does. The
+      /// fake encrypts it as the voter's device would, with whatsmeow's own message secret code
+      /// (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret from the session's store,
+      /// and names the poll by a key as the voter sees it (msgsecret.go:130-151): its own when the voter sent the poll,
+      /// else the poll's sender as the remote JID in a direct chat and as the participant in a group. A session with no
+      /// secret for the poll is an error: such a vote is DeliverMessage's, with a message of its own.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.DeliverPollVoteResponse DeliverPollVote(global::Whatsmeow.IntegrationTests.Fake.DeliverPollVoteRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_DeliverPollVote, null, options, request);
+      }
+      /// <summary>
+      /// DeliverPollVote makes WhatsApp deliver a poll vote from sender to a session's client, as DeliverMessage does. The
+      /// fake encrypts it as the voter's device would, with whatsmeow's own message secret code
+      /// (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret from the session's store,
+      /// and names the poll by a key as the voter sees it (msgsecret.go:130-151): its own when the voter sent the poll,
+      /// else the poll's sender as the remote JID in a direct chat and as the participant in a group. A session with no
+      /// secret for the poll is an error: such a vote is DeliverMessage's, with a message of its own.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DeliverPollVoteResponse> DeliverPollVoteAsync(global::Whatsmeow.IntegrationTests.Fake.DeliverPollVoteRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return DeliverPollVoteAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// DeliverPollVote makes WhatsApp deliver a poll vote from sender to a session's client, as DeliverMessage does. The
+      /// fake encrypts it as the voter's device would, with whatsmeow's own message secret code
+      /// (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret from the session's store,
+      /// and names the poll by a key as the voter sees it (msgsecret.go:130-151): its own when the voter sent the poll,
+      /// else the poll's sender as the remote JID in a direct chat and as the participant in a group. A session with no
+      /// secret for the poll is an error: such a vote is DeliverMessage's, with a message of its own.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DeliverPollVoteResponse> DeliverPollVoteAsync(global::Whatsmeow.IntegrationTests.Fake.DeliverPollVoteRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_DeliverPollVote, null, options, request);
       }
       /// <summary>
       /// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once

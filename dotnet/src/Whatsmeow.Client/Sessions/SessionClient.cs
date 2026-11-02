@@ -363,6 +363,47 @@ internal sealed class SessionClient(
 			.ConfigureAwait(false);
 	}
 
+	public async Task<SendResult> SendPollAsync(Jid chat, Poll poll, MessageId? id = null, SendOptions? options = null, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(poll);
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var messageId = id ?? MessageId.New();
+		var request = new SendPollRequest
+		{
+			SessionId = sessionId.Value,
+			Chat = chat.ToString(),
+			ClientMessageId = messageId.Value,
+			Question = poll.Question,
+			// A negative limit goes as 0, which the sidecar refuses as it refuses every limit below 1.
+			MaxSelectable = (uint)Math.Max(poll.MaxSelectable, 0),
+			ReplyTo = MessagingMapping.ToProto(options?.ReplyTo),
+		};
+		if (!poll.Options.IsDefault)
+			request.Options.Add(poll.Options);
+		request.Mentions.Add(MessagingMapping.ToMentions(options));
+		var response = await RpcErrors.CallAsync(_messages.SendPollAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+	}
+
+	public async Task<SendResult> SendPollVoteAsync(Jid chat, MessageKey poll, IReadOnlyList<string> selectedOptions, MessageId? id = null, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(poll);
+		ArgumentNullException.ThrowIfNull(selectedOptions);
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var messageId = id ?? MessageId.New();
+		var request = new SendPollVoteRequest
+		{
+			SessionId = sessionId.Value,
+			Chat = chat.ToString(),
+			ClientMessageId = messageId.Value,
+			PollId = poll.Id.Value,
+			PollSender = poll.Sender?.ToString() ?? "",
+		};
+		request.Options.Add(selectedOptions);
+		var response = await RpcErrors.CallAsync(_messages.SendPollVoteAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+	}
+
 	public async Task<SendResult> SendRawAsync(Jid chat, E2E.Message message, MessageId? id = null, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(message);

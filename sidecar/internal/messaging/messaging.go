@@ -37,6 +37,10 @@ type whatsApp interface {
 	BuildReaction(chat, sender types.JID, id types.MessageID, reaction string) *waE2E.Message
 	BuildRevoke(chat, sender types.JID, id types.MessageID) *waE2E.Message
 	BuildEdit(chat types.JID, id types.MessageID, newContent *waE2E.Message) *waE2E.Message
+	// whatsmeow's builders of a poll, with a new message secret, and of a vote, encrypted with the poll's secret from
+	// the device's store (msgsecret.go:391-445).
+	BuildPollCreation(name string, optionNames []string, selectableOptionCount int) *waE2E.Message
+	BuildPollVote(ctx context.Context, pollInfo *types.MessageInfo, optionNames []string) (*waE2E.Message, error)
 	// A group's info, whose addressing mode says how whatsmeow names the account in it (send.go:307-323).
 	GetGroupInfo(ctx context.Context, jid types.JID) (*types.GroupInfo, error)
 }

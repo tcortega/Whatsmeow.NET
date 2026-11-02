@@ -86,6 +86,8 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 		nameof(SendReactionAsync),
 		nameof(EditMessageAsync),
 		nameof(RevokeMessageAsync),
+		nameof(SendPollAsync),
+		nameof(SendPollVoteAsync),
 		nameof(MarkReadAsync),
 		nameof(GetGroupsAsync),
 		nameof(GetGroupInfoAsync),
@@ -525,6 +527,22 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 	{
 		ArgumentNullException.ThrowIfNull(target);
 		return SendAsync(nameof(RevokeMessageAsync), [(nameof(chat), chat), (nameof(target), target), (nameof(id), id)], chat, id, cancellationToken);
+	}
+
+	/// <inheritdoc/>
+	public Task<SendResult> SendPollAsync(Jid chat, Poll poll, MessageId? id = null, SendOptions? options = null, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(poll);
+		return SendAsync(nameof(SendPollAsync), [(nameof(chat), chat), (nameof(poll), poll), (nameof(id), id), (nameof(options), options)], chat, id, cancellationToken);
+	}
+
+	/// <inheritdoc/>
+	public Task<SendResult> SendPollVoteAsync(Jid chat, MessageKey poll, IReadOnlyList<string> selectedOptions, MessageId? id = null, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(poll);
+		ArgumentNullException.ThrowIfNull(selectedOptions);
+		ImmutableArray<string> copy = [.. selectedOptions];
+		return SendAsync(nameof(SendPollVoteAsync), [(nameof(chat), chat), (nameof(poll), poll), (nameof(selectedOptions), copy), (nameof(id), id)], chat, id, cancellationToken);
 	}
 
 	/// <inheritdoc/>

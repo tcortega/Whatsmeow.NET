@@ -87,6 +87,9 @@ const (
 	ErrorReason_ERROR_REASON_MEDIA_EXPIRED ErrorReason = 22
 	// NOT_FOUND. The group invite link is malformed, unknown or was reset; nothing was done.
 	ErrorReason_ERROR_REASON_INVITE_LINK_INVALID ErrorReason = 23
+	// FAILED_PRECONDITION. This device has no message secret for the poll, which a vote is encrypted with: it neither
+	// sent nor received the poll, and no history sync it processed carried it. Nothing was sent.
+	ErrorReason_ERROR_REASON_POLL_SECRET_NOT_FOUND ErrorReason = 24
 )
 
 // Enum value maps for ErrorReason.
@@ -116,6 +119,7 @@ var (
 		21: "ERROR_REASON_NO_PUSH_NAME",
 		22: "ERROR_REASON_MEDIA_EXPIRED",
 		23: "ERROR_REASON_INVITE_LINK_INVALID",
+		24: "ERROR_REASON_POLL_SECRET_NOT_FOUND",
 	}
 	ErrorReason_value = map[string]int32{
 		"ERROR_REASON_UNSPECIFIED":               0,
@@ -142,6 +146,7 @@ var (
 		"ERROR_REASON_NO_PUSH_NAME":              21,
 		"ERROR_REASON_MEDIA_EXPIRED":             22,
 		"ERROR_REASON_INVITE_LINK_INVALID":       23,
+		"ERROR_REASON_POLL_SECRET_NOT_FOUND":     24,
 	}
 )
 
@@ -176,7 +181,7 @@ var File_whatsmeow_v1_error_proto protoreflect.FileDescriptor
 
 const file_whatsmeow_v1_error_proto_rawDesc = "" +
 	"\n" +
-	"\x18whatsmeow/v1/error.proto\x12\fwhatsmeow.v1*\xc5\x06\n" +
+	"\x18whatsmeow/v1/error.proto\x12\fwhatsmeow.v1*\xed\x06\n" +
 	"\vErrorReason\x12\x1c\n" +
 	"\x18ERROR_REASON_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15ERROR_REASON_INTERNAL\x10\x01\x12!\n" +
@@ -202,7 +207,8 @@ const file_whatsmeow_v1_error_proto_rawDesc = "" +
 	"\x1fERROR_REASON_WHATSAPP_TIMED_OUT\x10\x14\x12\x1d\n" +
 	"\x19ERROR_REASON_NO_PUSH_NAME\x10\x15\x12\x1e\n" +
 	"\x1aERROR_REASON_MEDIA_EXPIRED\x10\x16\x12$\n" +
-	" ERROR_REASON_INVITE_LINK_INVALID\x10\x17B\xc0\x01\n" +
+	" ERROR_REASON_INVITE_LINK_INVALID\x10\x17\x12&\n" +
+	"\"ERROR_REASON_POLL_SECRET_NOT_FOUND\x10\x18B\xc0\x01\n" +
 	"\x10com.whatsmeow.v1B\n" +
 	"ErrorProtoP\x01ZFgithub.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1;whatsmeowv1\xa2\x02\x03WXX\xaa\x02\x15Whatsmeow.Protocol.V1\xca\x02\fWhatsmeow\\V1\xe2\x02\x18Whatsmeow\\V1\\GPBMetadata\xea\x02\rWhatsmeow::V1b\x06proto3"
 

@@ -297,7 +297,7 @@ func TestEveryWhatsmeowEventMapsToOneOutboxEventOrNone(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		key, got, ok := toEvent(c.evt, nil)
+		key, got, ok := toEvent(c.evt, nil, nil)
 		if ok != (c.want != nil) || key != c.key || !proto.Equal(got, c.want) {
 			t.Errorf("%T: key %q, %v, %v; want %q, %v", c.evt, key, got, ok, c.key, c.want)
 		}
@@ -810,7 +810,7 @@ func TestAViewOnceMessageAndAnUnavailableOneSayWhatTheyAre(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		if _, got, ok := toEvent(c.evt, nil); !ok || !proto.Equal(got, c.want) {
+		if _, got, ok := toEvent(c.evt, nil, nil); !ok || !proto.Equal(got, c.want) {
 			t.Errorf("%+v: %v, %v; want %v", c.evt, got, ok, c.want)
 		}
 	}
@@ -850,7 +850,7 @@ func TestAMessagesWrappersSayWhatTheyWere_AndTheRawMessageIsKeptWhenUnwrapped(t 
 	}
 
 	for _, c := range cases {
-		if _, got, ok := toEvent(c.evt, nil); !ok || !proto.Equal(got, c.want) {
+		if _, got, ok := toEvent(c.evt, nil, nil); !ok || !proto.Equal(got, c.want) {
 			t.Errorf("%v: %v, %v; want %v", c.evt.RawMessage, got, ok, c.want)
 		}
 	}
@@ -961,6 +961,8 @@ func TestAQuoteIsNamedAsATargetIs_AndTheAccountsOwnMessageHasNoSender(t *testing
 	edit := &waE2E.Message{ProtocolMessage: &waE2E.ProtocolMessage{
 		Type: waE2E.ProtocolMessage_MESSAGE_EDIT.Enum(), Key: &waCommon.MessageKey{FromMe: proto.Bool(true), ID: proto.String("T1")}, EditedMessage: text("Q1", "333@lid"),
 	}}
+	poll := &waE2E.Message{PollCreationMessage: &waE2E.PollCreationMessage{ContextInfo: text("Q1", "333:2@lid").GetExtendedTextMessage().GetContextInfo()}}
+	pollV3 := &waE2E.Message{PollCreationMessageV3: poll.GetPollCreationMessage()}
 
 	cases := []struct {
 		name    string
@@ -977,6 +979,8 @@ func TestAQuoteIsNamedAsATargetIs_AndTheAccountsOwnMessageHasNoSender(t *testing
 		{"the account's, by its legacy phone number", text("Q1", "5511900000001@c.us"), quote("")},
 		{"on a media message", image, quote("333@lid")},
 		{"in an edit's new content", edit, quote("333@lid")},
+		{"on a poll", poll, quote("333@lid")},
+		{"on a poll of another version", pollV3, quote("333@lid")},
 		{"a quote without a participant", text("Q1", ""), nil},
 		{"a participant without a server", text("Q1", "333@"), nil},
 		{"a group as the participant", text("Q1", "120363000000000000@g.us"), nil},

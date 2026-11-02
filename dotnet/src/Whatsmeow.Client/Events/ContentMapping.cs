@@ -3,6 +3,7 @@ using Google.Protobuf;
 using Whatsmeow.Core.Errors;
 using Whatsmeow.Messaging;
 using MessageTarget = Whatsmeow.Protocol.V1.MessageTarget;
+using PollVote = Whatsmeow.Protocol.V1.PollVote;
 using E2E = Whatsmeow.Proto.WAWebProtobufsE2E;
 using ProtocolType = Whatsmeow.Proto.WAWebProtobufsE2E.ProtocolMessage.Types.Type;
 
@@ -21,7 +22,11 @@ internal static class ContentMapping
 	/// for a key that names none, which makes the action malformed: unknown content, as is a target whose sender is not
 	/// a JID, since no sender is the account's.
 	/// </param>
-	public static MessageContent ToContent(E2E.Message? message, bool viewOnce, MessageTarget? target) =>
+	/// <param name="pollVote">
+	/// A poll vote as the sidecar decrypted it; null for every other message, and for a vote the sidecar did not decrypt,
+	/// as a history message's, which is undecryptable.
+	/// </param>
+	public static MessageContent ToContent(E2E.Message? message, bool viewOnce, MessageTarget? target, PollVote? pollVote) =>
 		(message, ToKey(target)) switch
 		{
 			// REVOKE is the type's zero value (WAWebProtobufsE2E.proto), so only a set type is one.
@@ -30,7 +35,13 @@ internal static class ContentMapping
 			({ ProtocolMessage: { HasType: true, Type: ProtocolType.MessageEdit, EditedMessage: { } edited } }, { } key) => new EditContent
 			{
 				Target = key,
-				Content = ToContent(edited, viewOnce: false, target: null),
+				Content = ToContent(edited, viewOnce: false, target: null, pollVote: null),
+			},
+			({ PollUpdateMessage: not null }, { } key) => new PollVoteContent
+			{
+				Poll = key,
+				SelectedOptionHashes = pollVote is null ? [] : [.. pollVote.SelectedOptionHashes.Select(static hash => ImmutableArray.Create(hash.Span))],
+				IsUndecryptable = pollVote is null or { Undecryptable: true },
 			},
 			({ HasConversation: true }, _) => new TextContent { Text = message.Conversation },
 			({ ExtendedTextMessage.HasText: true }, _) => new TextContent { Text = message.ExtendedTextMessage.Text },
@@ -39,7 +50,28 @@ internal static class ContentMapping
 			({ AudioMessage: { } audio }, _) => ToAudio(audio, viewOnce),
 			({ DocumentMessage: { } document }, _) => ToDocument(document),
 			({ StickerMessage: { } sticker }, _) => ToSticker(sticker),
+			_ when PollOf(message) is { PollType: E2E.PollType.Poll } poll => ToPoll(poll),
 			_ => new UnknownContent(),
+		};
+
+	/// <summary>
+	/// A poll of any version this client maps, in the sidecar's order (events.pollCreation): V1, V2, V3, V5 and V6 are one
+	/// type; V4 is a <c>FutureProofMessage</c>, which mautrix does not map either. Null for every other message.
+	/// </summary>
+	private static E2E.PollCreationMessage? PollOf(E2E.Message? message) =>
+		message?.PollCreationMessage ?? message?.PollCreationMessageV2 ?? message?.PollCreationMessageV3 ?? message?.PollCreationMessageV5 ?? message?.PollCreationMessageV6;
+
+	// A poll that sets no limit (0) lets a voter select every option, as mautrix reads it (pkg/msgconv/wa-poll.go:57-60 at
+	// 5dd621f).
+	private static PollContent ToPoll(E2E.PollCreationMessage poll) =>
+		new()
+		{
+			Poll = new Poll
+			{
+				Question = poll.Name,
+				Options = [.. poll.Options.Select(static option => option.OptionName)],
+				MaxSelectable = poll.SelectableOptionsCount is > 0 and <= int.MaxValue ? (int)poll.SelectableOptionsCount : poll.Options.Count,
+			},
 		};
 
 	// A view-once message says so in its wrapper, which whatsmeow removed, or in its own flag; mautrix reads both
@@ -172,7 +204,7 @@ internal static class ContentMapping
 			{
 				Id = quoted.Id,
 				Sender = quoted.Sender,
-				Content = ContextOf(message)?.QuotedMessage is { } content ? ToContent(content, viewOnce: false, target: null) : null,
+				Content = ContextOf(message)?.QuotedMessage is { } content ? ToContent(content, viewOnce: false, target: null, pollVote: null) : null,
 			}
 			: null;
 
@@ -197,6 +229,7 @@ internal static class ContentMapping
 			{ AudioMessage.ContextInfo: { } context } => context,
 			{ DocumentMessage.ContextInfo: { } context } => context,
 			{ StickerMessage.ContextInfo: { } context } => context,
+			_ when PollOf(message)?.ContextInfo is { } context => context,
 			_ => null,
 		};
 

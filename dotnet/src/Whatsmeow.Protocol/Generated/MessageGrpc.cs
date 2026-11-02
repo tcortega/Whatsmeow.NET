@@ -92,6 +92,14 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SendRevokeResponse> __Marshaller_whatsmeow_v1_SendRevokeResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SendRevokeResponse.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SendPollRequest> __Marshaller_whatsmeow_v1_SendPollRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SendPollRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SendPollResponse> __Marshaller_whatsmeow_v1_SendPollResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SendPollResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SendPollVoteRequest> __Marshaller_whatsmeow_v1_SendPollVoteRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SendPollVoteRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SendPollVoteResponse> __Marshaller_whatsmeow_v1_SendPollVoteResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SendPollVoteResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.MarkReadRequest> __Marshaller_whatsmeow_v1_MarkReadRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.MarkReadRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.MarkReadResponse> __Marshaller_whatsmeow_v1_MarkReadResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.MarkReadResponse.Parser));
@@ -143,6 +151,22 @@ namespace Whatsmeow.Protocol.V1 {
         "SendRevoke",
         __Marshaller_whatsmeow_v1_SendRevokeRequest,
         __Marshaller_whatsmeow_v1_SendRevokeResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.Protocol.V1.SendPollRequest, global::Whatsmeow.Protocol.V1.SendPollResponse> __Method_SendPoll = new grpc::Method<global::Whatsmeow.Protocol.V1.SendPollRequest, global::Whatsmeow.Protocol.V1.SendPollResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "SendPoll",
+        __Marshaller_whatsmeow_v1_SendPollRequest,
+        __Marshaller_whatsmeow_v1_SendPollResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.Protocol.V1.SendPollVoteRequest, global::Whatsmeow.Protocol.V1.SendPollVoteResponse> __Method_SendPollVote = new grpc::Method<global::Whatsmeow.Protocol.V1.SendPollVoteRequest, global::Whatsmeow.Protocol.V1.SendPollVoteResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "SendPollVote",
+        __Marshaller_whatsmeow_v1_SendPollVoteRequest,
+        __Marshaller_whatsmeow_v1_SendPollVoteResponse);
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.Protocol.V1.MarkReadRequest, global::Whatsmeow.Protocol.V1.MarkReadResponse> __Method_MarkRead = new grpc::Method<global::Whatsmeow.Protocol.V1.MarkReadRequest, global::Whatsmeow.Protocol.V1.MarkReadResponse>(
@@ -560,6 +584,142 @@ namespace Whatsmeow.Protocol.V1 {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SendRevokeResponse> SendRevokeAsync(global::Whatsmeow.Protocol.V1.SendRevokeRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_SendRevoke, null, options, request);
+      }
+      /// <summary>
+      /// SendPoll sends a poll: a question, its options, and how many of them a voter may select. The sidecar builds it as
+      /// whatsmeow does, with a new message secret that whatsmeow stores, so this session can vote on it and decrypt the
+      /// votes it gets. Its client_message_id is the poll's own id.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for an empty question (field "question"), fewer than two options, an
+      /// empty or a repeated option (field "options"), a max_selectable outside 1 to the number of options (field
+      /// "max_selectable"), or a reply_to or mentions that are not valid, as for SendText.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.SendPollResponse SendPoll(global::Whatsmeow.Protocol.V1.SendPollRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SendPoll(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SendPoll sends a poll: a question, its options, and how many of them a voter may select. The sidecar builds it as
+      /// whatsmeow does, with a new message secret that whatsmeow stores, so this session can vote on it and decrypt the
+      /// votes it gets. Its client_message_id is the poll's own id.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for an empty question (field "question"), fewer than two options, an
+      /// empty or a repeated option (field "options"), a max_selectable outside 1 to the number of options (field
+      /// "max_selectable"), or a reply_to or mentions that are not valid, as for SendText.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.SendPollResponse SendPoll(global::Whatsmeow.Protocol.V1.SendPollRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_SendPoll, null, options, request);
+      }
+      /// <summary>
+      /// SendPoll sends a poll: a question, its options, and how many of them a voter may select. The sidecar builds it as
+      /// whatsmeow does, with a new message secret that whatsmeow stores, so this session can vote on it and decrypt the
+      /// votes it gets. Its client_message_id is the poll's own id.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for an empty question (field "question"), fewer than two options, an
+      /// empty or a repeated option (field "options"), a max_selectable outside 1 to the number of options (field
+      /// "max_selectable"), or a reply_to or mentions that are not valid, as for SendText.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SendPollResponse> SendPollAsync(global::Whatsmeow.Protocol.V1.SendPollRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SendPollAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SendPoll sends a poll: a question, its options, and how many of them a voter may select. The sidecar builds it as
+      /// whatsmeow does, with a new message secret that whatsmeow stores, so this session can vote on it and decrypt the
+      /// votes it gets. Its client_message_id is the poll's own id.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for an empty question (field "question"), fewer than two options, an
+      /// empty or a repeated option (field "options"), a max_selectable outside 1 to the number of options (field
+      /// "max_selectable"), or a reply_to or mentions that are not valid, as for SendText.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SendPollResponse> SendPollAsync(global::Whatsmeow.Protocol.V1.SendPollRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_SendPoll, null, options, request);
+      }
+      /// <summary>
+      /// SendPollVote votes for options of a poll, replacing the account's earlier vote on it; no options clears the vote.
+      /// The vote is encrypted with the poll's message secret, which this device has only for a poll it sent or received,
+      /// or one a history sync it processed carried. The sidecar keeps no polls, so it never checks the options against the
+      /// poll. Its client_message_id is the vote's own id.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for no poll_id, a poll_sender that is not a user's JID, or an empty
+      /// or a repeated option (field "options"); POLL_SECRET_NOT_FOUND when this device has no secret for the poll.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.SendPollVoteResponse SendPollVote(global::Whatsmeow.Protocol.V1.SendPollVoteRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SendPollVote(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SendPollVote votes for options of a poll, replacing the account's earlier vote on it; no options clears the vote.
+      /// The vote is encrypted with the poll's message secret, which this device has only for a poll it sent or received,
+      /// or one a history sync it processed carried. The sidecar keeps no polls, so it never checks the options against the
+      /// poll. Its client_message_id is the vote's own id.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for no poll_id, a poll_sender that is not a user's JID, or an empty
+      /// or a repeated option (field "options"); POLL_SECRET_NOT_FOUND when this device has no secret for the poll.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.SendPollVoteResponse SendPollVote(global::Whatsmeow.Protocol.V1.SendPollVoteRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_SendPollVote, null, options, request);
+      }
+      /// <summary>
+      /// SendPollVote votes for options of a poll, replacing the account's earlier vote on it; no options clears the vote.
+      /// The vote is encrypted with the poll's message secret, which this device has only for a poll it sent or received,
+      /// or one a history sync it processed carried. The sidecar keeps no polls, so it never checks the options against the
+      /// poll. Its client_message_id is the vote's own id.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for no poll_id, a poll_sender that is not a user's JID, or an empty
+      /// or a repeated option (field "options"); POLL_SECRET_NOT_FOUND when this device has no secret for the poll.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SendPollVoteResponse> SendPollVoteAsync(global::Whatsmeow.Protocol.V1.SendPollVoteRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SendPollVoteAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SendPollVote votes for options of a poll, replacing the account's earlier vote on it; no options clears the vote.
+      /// The vote is encrypted with the poll's message secret, which this device has only for a poll it sent or received,
+      /// or one a history sync it processed carried. The sidecar keeps no polls, so it never checks the options against the
+      /// poll. Its client_message_id is the vote's own id.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for no poll_id, a poll_sender that is not a user's JID, or an empty
+      /// or a repeated option (field "options"); POLL_SECRET_NOT_FOUND when this device has no secret for the poll.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SendPollVoteResponse> SendPollVoteAsync(global::Whatsmeow.Protocol.V1.SendPollVoteRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_SendPollVote, null, options, request);
       }
       /// <summary>
       /// MarkRead sends a read receipt, timestamped now, for messages of one chat.
