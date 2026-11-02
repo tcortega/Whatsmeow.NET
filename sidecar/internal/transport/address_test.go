@@ -157,3 +157,90 @@ func TestTheUnixSocketIsForItsOwnerAndGroupOnly(t *testing.T) {
 		t.Fatalf("mode = %v, want a socket with 0660", info.Mode())
 	}
 }
+
+// Two sidecars started on one path: the second must not take the live one's socket over, or the first one's clients
+// would reach a sidecar that does not own their sessions.
+func TestListenAddressRefusesASocketALiveSidecarServes(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(socketDir(t), "s")
+
+	live, _, err := ListenAddress(context.Background(), "unix:"+path)
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+
+	defer func() { _ = live.Close() }()
+
+	if second, _, err := ListenAddress(context.Background(), "unix:"+path); err == nil {
+		_ = second.Close()
+		t.Fatal("a second listen took over the live socket")
+	}
+
+	dial(t, live, "unix", path)
+}
+
+// A sidecar that exits removes its socket only while the path is still its own: an operator, or another sidecar after
+// it, may have put a new one there.
+func TestClosingLeavesASocketThatReplacedItsOwnAlone(t *testing.T) {
+	t.Parallel()
+
+	dir := socketDir(t)
+	path := filepath.Join(dir, "s")
+
+	first, _, err := ListenAddress(context.Background(), "unix:"+path)
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+
+	replacement, err := (&net.ListenConfig{}).Listen(context.Background(), "unix", filepath.Join(dir, "next"))
+	if err != nil {
+		t.Fatalf("listen the replacement: %v", err)
+	}
+
+	defer func() { _ = replacement.Close() }()
+
+	if err := os.Rename(filepath.Join(dir, "next"), path); err != nil {
+		t.Fatalf("rename: %v", err)
+	}
+
+	_ = first.Close()
+
+	dial(t, replacement, "unix", path)
+}
+
+// The socket is bound in a private directory and moved into place with its mode, so nobody connects while it has the
+// umask's: nothing of that directory is left beside it.
+func TestListenAddressLeavesNothingButTheSocket(t *testing.T) {
+	t.Parallel()
+
+	dir := socketDir(t)
+
+	lis, _, err := ListenAddress(context.Background(), "unix:"+filepath.Join(dir, "s"))
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+
+	defer func() { _ = lis.Close() }()
+
+	entries, err := os.ReadDir(dir)
+	if err != nil || len(entries) != 1 || entries[0].Name() != "s" {
+		t.Fatalf("the directory holds %v, %v; want only the socket", entries, err)
+	}
+}
+
+func TestParseAddressChecksTheFormOnly(t *testing.T) {
+	t.Parallel()
+
+	for _, address := range []string{"unix:/abs/s", "tcp:127.0.0.1:0", "tcp:sidecar:7000", "tcp:[::1]:7000"} {
+		if _, err := ParseAddress(address); err != nil {
+			t.Errorf("parse %q: %v", address, err)
+		}
+	}
+
+	for _, address := range []string{"", "unix:", "unix:relative/s", "tcp:", "tcp:no-port", "pipe:x", "/abs/s", "127.0.0.1:7000"} {
+		if _, err := ParseAddress(address); err == nil {
+			t.Errorf("parse %q succeeded", address)
+		}
+	}
+}

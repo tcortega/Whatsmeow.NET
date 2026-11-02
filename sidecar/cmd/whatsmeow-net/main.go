@@ -114,6 +114,12 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return exitUsage
 	}
 
+	if _, err := transport.ParseAddress(*listen); standalone && err != nil {
+		log.Error().Err(err).Msg("usage: --listen is unix:<absolute path> or tcp:<host>:<port>")
+
+		return exitUsage
+	}
+
 	// The fake never ships: a release build has none, and says so before it reads the token (ADR 0019).
 	if *fake && !fakeBuild {
 		log.Error().Msg("--fake-whatsapp needs a test build (-tags fakewhatsapp); this build never fakes WhatsApp")
@@ -243,6 +249,11 @@ func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, op
 	}
 
 	srv := server.New(token, log, redactor)
+	if standalone {
+		// A rotated secret is followed without a restart: a refused token makes it read the file again (ADR 0046).
+		srv.ReloadToken(func() (string, error) { return readTokenFile(opts.tokenFile) })
+	}
+
 	svc := sidecar.New(version, build, srv.Shutdown)
 	whatsmeowv1.RegisterSidecarServiceServer(srv, svc)
 

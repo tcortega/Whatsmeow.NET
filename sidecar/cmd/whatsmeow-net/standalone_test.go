@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -141,14 +142,19 @@ func startStandaloneCommand(t *testing.T, cmd *exec.Cmd) *standalone {
 func (s *standalone) getInfo(t *testing.T, token string) error {
 	t.Helper()
 
-	target := "passthrough:///" + s.ready.Listen
+	// A dialer of its own: a unix target URL cannot carry a Windows path.
+	network := "tcp"
 	if filepath.IsAbs(s.ready.Listen) {
-		target = "unix://" + s.ready.Listen
+		network = "unix"
 	}
 
-	conn, err := grpc.NewClient(target, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("passthrough:///sidecar",
+		grpc.WithContextDialer(func(ctx context.Context, _ string) (net.Conn, error) {
+			return (&net.Dialer{}).DialContext(ctx, network, s.ready.Listen)
+		}),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		s.fatalf(t, "dial %s: %v", target, err)
+		s.fatalf(t, "dial %s: %v", s.ready.Listen, err)
 	}
 
 	defer func() { _ = conn.Close() }()
@@ -247,12 +253,12 @@ func TestAMissingTokenFileFailsTheStart(t *testing.T) {
 	}
 }
 
-// The standalone flags and the embedded ones are two modes: a mix is refused before anything starts.
-func TestStandaloneRefusesTheEmbeddedFlags(t *testing.T) {
+// The standalone flags and the embedded ones are two modes: a mix, or a --listen that is not an address, is refused
+// before anything starts, the database included.
+func TestStandaloneRefusesTheEmbeddedFlagsAndAMalformedAddress(t *testing.T) {
 	t.Parallel()
 
 	token := tokenFile(t, standaloneToken)
-	database := filepath.Join(shortDir(t), "whatsmeow-net.db")
 
 	for _, args := range [][]string{
 		{"--listen", "tcp:127.0.0.1:0"},
@@ -261,10 +267,43 @@ func TestStandaloneRefusesTheEmbeddedFlags(t *testing.T) {
 		{"--listen", "tcp:127.0.0.1:0", "--token-file", token, "--socket-dir", os.TempDir()},
 		{"--listen", "tcp:127.0.0.1:0", "--token-file", token, "--transport", "unix"},
 		{"--listen", "tcp:127.0.0.1:0", "--token-file", token, "--parent-pid", "1"},
+		{"--listen", "tcp:no-port", "--token-file", token},
+		{"--listen", "unix:relative/s", "--token-file", token},
 	} {
+		database := filepath.Join(shortDir(t), "whatsmeow-net.db")
+		cmd := command(t, append([]string{"--database", database}, args...)...)
+
 		var stderr bytes.Buffer
-		if code := run(append([]string{"--database", database}, args...), strings.NewReader(""), io.Discard, &stderr); code != exitUsage {
-			t.Fatalf("%v: exit code = %d, want %d\n%s", args, code, exitUsage, stderr.String())
+		cmd.Stderr = &stderr
+
+		var exit *exec.ExitError
+		if err := cmd.Run(); !errors.As(err, &exit) || exit.ExitCode() != exitUsage {
+			t.Fatalf("%v: exit = %v, want %d\n%s", args, err, exitUsage, stderr.String())
 		}
+
+		if _, err := os.Stat(database); !errors.Is(err, os.ErrNotExist) {
+			t.Fatalf("%v: the database was created: %v", args, err)
+		}
+	}
+}
+
+// An orchestrator rotates the secret while the sidecar runs: the file's new token is accepted, the old one no longer.
+func TestStandaloneFollowsARotatedTokenFile(t *testing.T) {
+	t.Parallel()
+
+	path := tokenFile(t, standaloneToken+"\n")
+	s := startStandaloneCommand(t, command(t, "--listen", "tcp:127.0.0.1:0", "--token-file", path))
+
+	next := strings.Repeat("ab", len(standaloneToken)/2)
+	if err := os.WriteFile(path, []byte(next+"\n"), 0o600); err != nil {
+		t.Fatalf("rotate: %v", err)
+	}
+
+	if err := s.getInfo(t, next); err != nil {
+		s.fatalf(t, "GetInfo with the rotated token: %v", err)
+	}
+
+	if err := s.getInfo(t, standaloneToken); status.Code(err) != codes.Unauthenticated {
+		s.fatalf(t, "GetInfo with the old token = %v, want Unauthenticated", err)
 	}
 }

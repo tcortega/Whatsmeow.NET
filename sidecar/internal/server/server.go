@@ -10,6 +10,7 @@ import (
 	"net"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -38,8 +39,9 @@ const (
 
 // Server is the sidecar's gRPC server.
 type Server struct {
-	grpc          *grpc.Server
-	authorization []byte
+	grpc *grpc.Server
+	// authorization is "Bearer <token>"; a standalone sidecar swaps it when its token file changes (ReloadToken).
+	authorization atomic.Pointer[[]byte]
 	log           zerolog.Logger
 	// redactor takes the numbers out of a status message and its error line (toStatus).
 	redactor *sidecarlog.Redactor
@@ -50,13 +52,31 @@ type Server struct {
 	lifetime  context.Context //nolint:containedctx // the server's own lifetime, not a request's
 	end       context.CancelFunc
 	stopGrace time.Duration
+	// reload reads the token file again; nil for a token from stdin, which never changes. reloadMu serializes the
+	// reads, and reloaded is when the last one was.
+	reload   func() (string, error)
+	reloadMu sync.Mutex
+	reloaded time.Time
+	now      func() time.Time
+}
+
+// tokenReload is how often a refused token may make the server read its token file again: a flood of wrong tokens
+// reads it once a second at most.
+const tokenReload = time.Second
+
+// ReloadToken makes a refused call read the token from read again, at most once per tokenReload, and accept the
+// token read from then on, so a standalone sidecar follows a rotated secret without a restart (ADR 0046). Call it
+// before Serve.
+func (s *Server) ReloadToken(read func() (string, error)) {
+	s.reload = read
 }
 
 // New returns a server that accepts only calls whose authorization metadata is "Bearer <token>". The redactor is
 // the process's, the one its log writer has, so a status message and a log line give a user the same token.
 func New(token string, log zerolog.Logger, redactor *sidecarlog.Redactor) *Server {
 	lifetime, end := context.WithCancel(context.Background())
-	s := &Server{authorization: []byte("Bearer " + token), log: log, redactor: redactor, done: make(chan struct{}), lifetime: lifetime, end: end, stopGrace: stopGrace}
+	s := &Server{log: log, redactor: redactor, done: make(chan struct{}), lifetime: lifetime, end: end, stopGrace: stopGrace, now: time.Now}
+	s.setToken(token)
 	s.grpc = grpc.NewServer(
 		grpc.ForceServerCodecV2(lenientCodec{}),
 		grpc.MaxRecvMsgSize(maxMessageSize),
@@ -171,11 +191,50 @@ func (s *serverStream) Context() context.Context { return s.ctx }
 // authenticate checks the token in constant time, for every call, before its body is decoded.
 func (s *Server) authenticate(ctx context.Context, info *tap.Info) (context.Context, error) {
 	values := info.Header.Get("authorization")
-	if len(values) != 1 || subtle.ConstantTimeCompare([]byte(values[0]), s.authorization) != 1 {
-		return ctx, errorInfo(codes.Unauthenticated, whatsmeowv1.ErrorReason_ERROR_REASON_UNAUTHENTICATED, "the call does not carry this launch's token")
+	if len(values) == 1 && (s.carries(values[0]) || (s.reloadToken() && s.carries(values[0]))) {
+		return ctx, nil
 	}
 
-	return ctx, nil
+	return ctx, errorInfo(codes.Unauthenticated, whatsmeowv1.ErrorReason_ERROR_REASON_UNAUTHENTICATED, "the call does not carry this launch's token")
+}
+
+func (s *Server) carries(value string) bool {
+	return subtle.ConstantTimeCompare([]byte(value), *s.authorization.Load()) == 1
+}
+
+func (s *Server) setToken(token string) {
+	authorization := []byte("Bearer " + token)
+	s.authorization.Store(&authorization)
+}
+
+// reloadToken reads the token file again unless that happened less than tokenReload ago, and reports whether it took
+// a token from it. A file that cannot be read, or holds no token, keeps the current one: the next refused call after
+// the interval tries again.
+func (s *Server) reloadToken() bool {
+	if s.reload == nil {
+		return false
+	}
+
+	s.reloadMu.Lock()
+	defer s.reloadMu.Unlock()
+
+	now := s.now()
+	if !s.reloaded.IsZero() && now.Sub(s.reloaded) < tokenReload {
+		return false
+	}
+
+	s.reloaded = now
+
+	token, err := s.reload()
+	if err != nil {
+		s.log.Warn().Err(err).Msg("reading the token file again failed; the current token stays")
+
+		return false
+	}
+
+	s.setToken(token)
+
+	return true
 }
 
 // admit is the shutdown gate. Shutdown passes it, because calling it while shutting down succeeds
