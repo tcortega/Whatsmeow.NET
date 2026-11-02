@@ -765,6 +765,10 @@ override Whatsmeow.Sessions.SessionInfo.Equals(object? obj) -> bool
 override Whatsmeow.Sessions.SessionInfo.GetHashCode() -> int
 Whatsmeow.Sessions.SessionInfo.Id.get -> Whatsmeow.SessionId
 Whatsmeow.Sessions.SessionInfo.Id.init -> void
+Whatsmeow.Sessions.SessionInfo.Jid.get -> Whatsmeow.Jid?
+Whatsmeow.Sessions.SessionInfo.Jid.init -> void
+Whatsmeow.Sessions.SessionInfo.Lid.get -> Whatsmeow.Jid?
+Whatsmeow.Sessions.SessionInfo.Lid.init -> void
 Whatsmeow.Sessions.SessionInfo.SessionInfo() -> void
 Whatsmeow.Sessions.SessionInfo.State.get -> Whatsmeow.Sessions.SessionState!
 Whatsmeow.Sessions.SessionInfo.State.init -> void

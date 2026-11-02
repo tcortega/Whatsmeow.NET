@@ -7,7 +7,16 @@ namespace Whatsmeow.Sessions;
 internal static class SessionMapping
 {
 	public static SessionInfo ToInfo(Session session) =>
-		new() { Id = SessionId.From(session.Id), State = ToState(session.State) };
+		new()
+		{
+			Id = SessionId.From(session.Id),
+			State = ToState(session.State),
+			Jid = ToJid(session.Jid),
+			Lid = ToJid(session.Lid),
+		};
+
+	/// <summary>An informational JID: empty or malformed is null, so a bad value never fails a call that lists sessions.</summary>
+	private static Jid? ToJid(string value) => Jid.TryParse(value, out var jid) ? jid : null;
 
 	public static SessionState ToState(ProtoState? state) =>
 		state?.KindCase switch

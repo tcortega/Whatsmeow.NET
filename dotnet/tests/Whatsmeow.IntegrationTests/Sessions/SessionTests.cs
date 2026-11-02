@@ -21,8 +21,24 @@ public sealed class SessionTests(FakeSidecar fixture)
 		await using var watch = StateWatch.Start(client, ct);
 		Assert.Equal(new SessionState.Created(), await watch.NextAsync());
 
-		_ = await fixture.Fake.LinkDeviceAsync(new LinkDeviceRequest { SessionId = "fullcycle", Jid = SessionSetup.Jid("fullcycle") }, cancellationToken: ct);
+		_ = await fixture.Fake.LinkDeviceAsync(
+			new LinkDeviceRequest { SessionId = "fullcycle", Jid = SessionSetup.Jid("fullcycle"), Lid = "fullcycle:1@lid" },
+			cancellationToken: ct
+		);
 		Assert.Equal(new SessionState.Disconnected(), await watch.NextAsync());
+
+		// This device's JIDs, with the device part, as WhatsApp assigned them at the link.
+		var paired = Assert.Single(await Sessions.ListAsync(ct), s => s.Id == id);
+		Assert.Equal(
+			new SessionInfo
+			{
+				Id = id,
+				State = new SessionState.Disconnected(),
+				Jid = Jid.Parse("fullcycle:1@s.whatsapp.net"),
+				Lid = Jid.Parse("fullcycle:1@lid"),
+			},
+			paired
+		);
 
 		await client.ConnectAsync(ct);
 		await watch.ReachesAsync(new SessionState.Connected(), new SessionState.Connecting());
@@ -66,7 +82,7 @@ public sealed class SessionTests(FakeSidecar fixture)
 
 		Assert.Equal(
 			[
-				new SessionInfo { Id = SessionId.From("list-a"), State = new SessionState.Disconnected() },
+				new SessionInfo { Id = SessionId.From("list-a"), State = new SessionState.Disconnected(), Jid = Jid.Parse(SessionSetup.Jid("list-a")) },
 				new SessionInfo { Id = SessionId.From("list-b"), State = new SessionState.Created() },
 				new SessionInfo { Id = SessionId.From("list-c"), State = new SessionState.Created() },
 			],

@@ -552,8 +552,10 @@ type LinkDeviceRequest struct {
 	// True to keep the app state key from the device. Otherwise the phone shares one as the device is linked, as it
 	// does once after pairing (message.go:827-861), and the device can write app state.
 	WithoutAppStateKey bool `protobuf:"varint,3,opt,name=without_app_state_key,json=withoutAppStateKey,proto3" json:"without_app_state_key,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// The device's LID WhatsApp assigns with the link, user:device@lid (pair.go:157, 223); empty for none.
+	Lid           string `protobuf:"bytes,4,opt,name=lid,proto3" json:"lid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *LinkDeviceRequest) Reset() {
@@ -605,6 +607,13 @@ func (x *LinkDeviceRequest) GetWithoutAppStateKey() bool {
 		return x.WithoutAppStateKey
 	}
 	return false
+}
+
+func (x *LinkDeviceRequest) GetLid() string {
+	if x != nil {
+		return x.Lid
+	}
+	return ""
 }
 
 // LinkDeviceResponse has no fields.
@@ -6710,12 +6719,13 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"\vanswer_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"answerTimeB\b\n" +
 	"\x06answer\"\x1a\n" +
-	"\x18AnswerMediaRetryResponse\"w\n" +
+	"\x18AnswerMediaRetryResponse\"\x89\x01\n" +
 	"\x11LinkDeviceRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x10\n" +
 	"\x03jid\x18\x02 \x01(\tR\x03jid\x121\n" +
-	"\x15without_app_state_key\x18\x03 \x01(\bR\x12withoutAppStateKey\"\x14\n" +
+	"\x15without_app_state_key\x18\x03 \x01(\bR\x12withoutAppStateKey\x12\x10\n" +
+	"\x03lid\x18\x04 \x01(\tR\x03lid\"\x14\n" +
 	"\x12LinkDeviceResponse\"4\n" +
 	"\x13RotateQrCodeRequest\x12\x1d\n" +
 	"\n" +
