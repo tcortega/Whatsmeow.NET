@@ -352,6 +352,8 @@ job_dotnet() {
 # The integration suite once more, its shared fixture's sidecar standalone over TCP, as an orchestrator runs it
 # (External mode, ADR 0046): every slice's FullCycle against an external sidecar. Its own CI job, on linux-x64.
 job_external() {
+	# The noexec tests run in this pass too, and fail on linux-x64 CI without the mount.
+	check "noexec mount for the copy fallback test" noexec_mount
 	check "dotnet restore (locked)" dotnet restore dotnet/Whatsmeow.slnx --locked-mode &&
 		check "dotnet build" dotnet build dotnet/tests/Whatsmeow.IntegrationTests -c Release --no-restore -p:ContinuousIntegrationBuild=true &&
 		check "dotnet test, External mode" env -u WHATSMEOW_LIVE_DATABASE -u WHATSMEOW_LIVE_PHONE_NUMBER -u WHATSMEOW_LIVE_PEER_DATABASE -u WHATSMEOW_LIVE_OWNER \
