@@ -139,7 +139,7 @@ generated_unchanged() { # before-state
 job_contract() {
 	local before
 	before="$(tree_state)"
-	check "shellcheck build/ci.sh" shellcheck build/ci.sh
+	check "shellcheck build/ci.sh build/bump.sh" shellcheck build/ci.sh build/bump.sh
 	check "third_party/whatsmeow matches the pinned module" go -C tools run ./sync-protos
 	check "buf lint" buf lint
 	check "buf breaking (gates from the first published v<semver> tag, ADR 0015)" buf_breaking
