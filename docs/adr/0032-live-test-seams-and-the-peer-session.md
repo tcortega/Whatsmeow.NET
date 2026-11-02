@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-11-02
 - Evidence: issue #10, its plan and the coordinator's rulings, whatsmeow at the pin, and the tests named below
-- Amends: [ADR 0021](0021-pairing.md) (the phone keeps only the live session's device), [ADR 0025](0025-messaging-and-receipts.md) (the strict id rule, in the live build only), docs/guidelines/tests.md ("fake-only seams stay on fake-mode fixtures")
+- Amends: [ADR 0019](0019-fake-whatsapp-mode.md) (a slice is the same code in every build: the events and messaging slices differ in the live build, only in their `livetest_*` files), [ADR 0021](0021-pairing.md) (the phone keeps only the live session's device), [ADR 0025](0025-messaging-and-receipts.md) (the strict id rule, in the live build only), docs/guidelines/tests.md ("fake-only seams stay on fake-mode fixtures")
 
 ## Context
 
@@ -13,7 +13,7 @@ The live tests need things that real WhatsApp alone does not give:
 - Incoming messages at a chosen moment, with ids the test knows. The live session's own send to its own chat produces no event on that companion: whatsmeow encrypts a message for every device of the account but the sending one (send.go:889, 1314-1316) [observed: source at the pin].
 - A message whose answer is withheld while the session stays connected, as a failed outbox write withholds it (ARCHITECTURE §7.3), to measure when WhatsApp delivers it again [unknown].
 - A send with an id whatsmeow would not make, which the sidecar refuses (`^3EB0[0-9A-F]{18}$`, ADR 0025), to measure whether WhatsApp takes it [unknown].
-- A .NET process that acks exactly once, at a known point, so "only messages after the last acked cursor repeat" is checked exactly.
+- A .NET process that acks every event before a known point and none after it, so "only messages after the last acked cursor repeat" is checked exactly. It moves a held clock one ack interval at a time until the acks settle, since other lanes can hold the watermark back for a tick; the settled seq is the one it prints.
 
 ## Decision
 
@@ -26,6 +26,7 @@ The live tests need things that real WhatsApp alone does not give:
 - **The account's own JID from `SessionInfo`.** `SessionInfo.Jid` and `.Lid` report this device's JIDs (the PR before #10's); a test takes the account's chat as that JID with device 0.
 - **The owner's ping, for the phone-only tests.** A test about the phone itself (its own message to "Message yourself", sent from device 0, and its id format) needs the owner to send `wmn ping` from the phone; its chat is the own JID (message.go:143-156) [observed: source], and its id is a sample of the phone's id format. Those tests are `[LiveFact(NeedsOwner = true)]`, on only with `WHATSMEOW_LIVE_OWNER` set, and their ping wait has a bound of its own on top of the test's timeout.
 - **This amends the first plan**, a throwaway second companion of the same account paired by QR code each run: it needed a scan and a ping per run, and could not show receipts or traffic from another account.
+- **A backup per run.** Before the run's first start of the live and peer sidecars, each fixture copies its database, with its `-wal` and `-shm`, under the store's lock into `~/.whatsmeow-net-live/backup/<name>-<UTC time>/` (0700, the files 0600) (`StoreBackup`). It is the one sanctioned copy of the keys, and it lets a run that breaks a session be undone.
 - **The .NET kill** runs `SidecarHost events-live`, the fake-mode host's code on a release build, on a held clock (an internal `WhatsmeowSidecar.StartAsync` with a `TimeProvider`).
 - **Shared checks.** `IntegrationTests/Events/DeliveryChecks.cs` is called by the fake-mode kill tests and the live ones alike.
 
