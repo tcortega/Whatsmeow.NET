@@ -80,6 +80,18 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SendMediaResponse> __Marshaller_whatsmeow_v1_SendMediaResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SendMediaResponse.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SendReactionRequest> __Marshaller_whatsmeow_v1_SendReactionRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SendReactionRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SendReactionResponse> __Marshaller_whatsmeow_v1_SendReactionResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SendReactionResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SendEditRequest> __Marshaller_whatsmeow_v1_SendEditRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SendEditRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SendEditResponse> __Marshaller_whatsmeow_v1_SendEditResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SendEditResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SendRevokeRequest> __Marshaller_whatsmeow_v1_SendRevokeRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SendRevokeRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SendRevokeResponse> __Marshaller_whatsmeow_v1_SendRevokeResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SendRevokeResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.MarkReadRequest> __Marshaller_whatsmeow_v1_MarkReadRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.MarkReadRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.MarkReadResponse> __Marshaller_whatsmeow_v1_MarkReadResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.MarkReadResponse.Parser));
@@ -107,6 +119,30 @@ namespace Whatsmeow.Protocol.V1 {
         "SendMedia",
         __Marshaller_whatsmeow_v1_SendMediaRequest,
         __Marshaller_whatsmeow_v1_SendMediaResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.Protocol.V1.SendReactionRequest, global::Whatsmeow.Protocol.V1.SendReactionResponse> __Method_SendReaction = new grpc::Method<global::Whatsmeow.Protocol.V1.SendReactionRequest, global::Whatsmeow.Protocol.V1.SendReactionResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "SendReaction",
+        __Marshaller_whatsmeow_v1_SendReactionRequest,
+        __Marshaller_whatsmeow_v1_SendReactionResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.Protocol.V1.SendEditRequest, global::Whatsmeow.Protocol.V1.SendEditResponse> __Method_SendEdit = new grpc::Method<global::Whatsmeow.Protocol.V1.SendEditRequest, global::Whatsmeow.Protocol.V1.SendEditResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "SendEdit",
+        __Marshaller_whatsmeow_v1_SendEditRequest,
+        __Marshaller_whatsmeow_v1_SendEditResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.Protocol.V1.SendRevokeRequest, global::Whatsmeow.Protocol.V1.SendRevokeResponse> __Method_SendRevoke = new grpc::Method<global::Whatsmeow.Protocol.V1.SendRevokeRequest, global::Whatsmeow.Protocol.V1.SendRevokeResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "SendRevoke",
+        __Marshaller_whatsmeow_v1_SendRevokeRequest,
+        __Marshaller_whatsmeow_v1_SendRevokeResponse);
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.Protocol.V1.MarkReadRequest, global::Whatsmeow.Protocol.V1.MarkReadResponse> __Method_MarkRead = new grpc::Method<global::Whatsmeow.Protocol.V1.MarkReadRequest, global::Whatsmeow.Protocol.V1.MarkReadResponse>(
@@ -210,8 +246,10 @@ namespace Whatsmeow.Protocol.V1 {
         return CallInvoker.AsyncUnaryCall(__Method_SendMessage, null, options, request);
       }
       /// <summary>
-      /// SendText sends a text message.
-      /// Errors: as SendMessage, and INVALID_ARGUMENT for empty text.
+      /// SendText sends a text message. With a reply_to or mentions it goes as an extended text message carrying them;
+      /// without, as a plain conversation.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for empty text, or a reply_to or mentions that are not valid (see
+      /// MessageReply and the mentions field).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -224,8 +262,10 @@ namespace Whatsmeow.Protocol.V1 {
         return SendText(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
       /// <summary>
-      /// SendText sends a text message.
-      /// Errors: as SendMessage, and INVALID_ARGUMENT for empty text.
+      /// SendText sends a text message. With a reply_to or mentions it goes as an extended text message carrying them;
+      /// without, as a plain conversation.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for empty text, or a reply_to or mentions that are not valid (see
+      /// MessageReply and the mentions field).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -236,8 +276,10 @@ namespace Whatsmeow.Protocol.V1 {
         return CallInvoker.BlockingUnaryCall(__Method_SendText, null, options, request);
       }
       /// <summary>
-      /// SendText sends a text message.
-      /// Errors: as SendMessage, and INVALID_ARGUMENT for empty text.
+      /// SendText sends a text message. With a reply_to or mentions it goes as an extended text message carrying them;
+      /// without, as a plain conversation.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for empty text, or a reply_to or mentions that are not valid (see
+      /// MessageReply and the mentions field).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -250,8 +292,10 @@ namespace Whatsmeow.Protocol.V1 {
         return SendTextAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
       /// <summary>
-      /// SendText sends a text message.
-      /// Errors: as SendMessage, and INVALID_ARGUMENT for empty text.
+      /// SendText sends a text message. With a reply_to or mentions it goes as an extended text message carrying them;
+      /// without, as a plain conversation.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for empty text, or a reply_to or mentions that are not valid (see
+      /// MessageReply and the mentions field).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -270,7 +314,8 @@ namespace Whatsmeow.Protocol.V1 {
       /// Errors: as SendMessage, and INVALID_ARGUMENT for no or an incomplete media (field "media": a direct path that does
       /// not start with "/", a media key or a hash that is not 32 bytes), a media type the kind does not take (field
       /// "media.media_type": IMAGE for an image or a sticker, VIDEO, AUDIO, DOCUMENT for the others), no metadata (field
-      /// "metadata"), or a duration that is negative or over 2^32-1 seconds (field "&lt;kind>.duration").
+      /// "metadata"), a duration that is negative or over 2^32-1 seconds (field "&lt;kind>.duration"), or a reply_to or
+      /// mentions that are not valid, as for SendText.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -291,7 +336,8 @@ namespace Whatsmeow.Protocol.V1 {
       /// Errors: as SendMessage, and INVALID_ARGUMENT for no or an incomplete media (field "media": a direct path that does
       /// not start with "/", a media key or a hash that is not 32 bytes), a media type the kind does not take (field
       /// "media.media_type": IMAGE for an image or a sticker, VIDEO, AUDIO, DOCUMENT for the others), no metadata (field
-      /// "metadata"), or a duration that is negative or over 2^32-1 seconds (field "&lt;kind>.duration").
+      /// "metadata"), a duration that is negative or over 2^32-1 seconds (field "&lt;kind>.duration"), or a reply_to or
+      /// mentions that are not valid, as for SendText.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -310,7 +356,8 @@ namespace Whatsmeow.Protocol.V1 {
       /// Errors: as SendMessage, and INVALID_ARGUMENT for no or an incomplete media (field "media": a direct path that does
       /// not start with "/", a media key or a hash that is not 32 bytes), a media type the kind does not take (field
       /// "media.media_type": IMAGE for an image or a sticker, VIDEO, AUDIO, DOCUMENT for the others), no metadata (field
-      /// "metadata"), or a duration that is negative or over 2^32-1 seconds (field "&lt;kind>.duration").
+      /// "metadata"), a duration that is negative or over 2^32-1 seconds (field "&lt;kind>.duration"), or a reply_to or
+      /// mentions that are not valid, as for SendText.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -331,7 +378,8 @@ namespace Whatsmeow.Protocol.V1 {
       /// Errors: as SendMessage, and INVALID_ARGUMENT for no or an incomplete media (field "media": a direct path that does
       /// not start with "/", a media key or a hash that is not 32 bytes), a media type the kind does not take (field
       /// "media.media_type": IMAGE for an image or a sticker, VIDEO, AUDIO, DOCUMENT for the others), no metadata (field
-      /// "metadata"), or a duration that is negative or over 2^32-1 seconds (field "&lt;kind>.duration").
+      /// "metadata"), a duration that is negative or over 2^32-1 seconds (field "&lt;kind>.duration"), or a reply_to or
+      /// mentions that are not valid, as for SendText.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -340,6 +388,178 @@ namespace Whatsmeow.Protocol.V1 {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SendMediaResponse> SendMediaAsync(global::Whatsmeow.Protocol.V1.SendMediaRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_SendMedia, null, options, request);
+      }
+      /// <summary>
+      /// SendReaction reacts to a message with an emoji, or removes the account's reaction to it with an empty emoji. It is
+      /// a send like the others: its client_message_id is the reaction's own id, with the same rules.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for no target_id, or a target_sender that is not a user's JID.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.SendReactionResponse SendReaction(global::Whatsmeow.Protocol.V1.SendReactionRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SendReaction(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SendReaction reacts to a message with an emoji, or removes the account's reaction to it with an empty emoji. It is
+      /// a send like the others: its client_message_id is the reaction's own id, with the same rules.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for no target_id, or a target_sender that is not a user's JID.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.SendReactionResponse SendReaction(global::Whatsmeow.Protocol.V1.SendReactionRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_SendReaction, null, options, request);
+      }
+      /// <summary>
+      /// SendReaction reacts to a message with an emoji, or removes the account's reaction to it with an empty emoji. It is
+      /// a send like the others: its client_message_id is the reaction's own id, with the same rules.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for no target_id, or a target_sender that is not a user's JID.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SendReactionResponse> SendReactionAsync(global::Whatsmeow.Protocol.V1.SendReactionRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SendReactionAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SendReaction reacts to a message with an emoji, or removes the account's reaction to it with an empty emoji. It is
+      /// a send like the others: its client_message_id is the reaction's own id, with the same rules.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for no target_id, or a target_sender that is not a user's JID.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SendReactionResponse> SendReactionAsync(global::Whatsmeow.Protocol.V1.SendReactionRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_SendReaction, null, options, request);
+      }
+      /// <summary>
+      /// SendEdit replaces the text of a message the account sent. The sidecar keeps no messages, so it checks no edit
+      /// window: whether WhatsApp refuses or drops a late edit is unknown. Its client_message_id is the edit's own id.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for no target_id or empty text.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.SendEditResponse SendEdit(global::Whatsmeow.Protocol.V1.SendEditRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SendEdit(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SendEdit replaces the text of a message the account sent. The sidecar keeps no messages, so it checks no edit
+      /// window: whether WhatsApp refuses or drops a late edit is unknown. Its client_message_id is the edit's own id.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for no target_id or empty text.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.SendEditResponse SendEdit(global::Whatsmeow.Protocol.V1.SendEditRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_SendEdit, null, options, request);
+      }
+      /// <summary>
+      /// SendEdit replaces the text of a message the account sent. The sidecar keeps no messages, so it checks no edit
+      /// window: whether WhatsApp refuses or drops a late edit is unknown. Its client_message_id is the edit's own id.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for no target_id or empty text.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SendEditResponse> SendEditAsync(global::Whatsmeow.Protocol.V1.SendEditRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SendEditAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SendEdit replaces the text of a message the account sent. The sidecar keeps no messages, so it checks no edit
+      /// window: whether WhatsApp refuses or drops a late edit is unknown. Its client_message_id is the edit's own id.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for no target_id or empty text.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SendEditResponse> SendEditAsync(global::Whatsmeow.Protocol.V1.SendEditRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_SendEdit, null, options, request);
+      }
+      /// <summary>
+      /// SendRevoke deletes a message for everyone: the account's own (no target_sender, or the account's own JID), or, as
+      /// a group admin, another member's. WhatsApp's refusal of an admin revoke is WHATSAPP_ERROR with its code. Its
+      /// client_message_id is the revoke's own id.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for no target_id, or a target_sender that is not a user's JID.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.SendRevokeResponse SendRevoke(global::Whatsmeow.Protocol.V1.SendRevokeRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SendRevoke(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SendRevoke deletes a message for everyone: the account's own (no target_sender, or the account's own JID), or, as
+      /// a group admin, another member's. WhatsApp's refusal of an admin revoke is WHATSAPP_ERROR with its code. Its
+      /// client_message_id is the revoke's own id.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for no target_id, or a target_sender that is not a user's JID.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.SendRevokeResponse SendRevoke(global::Whatsmeow.Protocol.V1.SendRevokeRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_SendRevoke, null, options, request);
+      }
+      /// <summary>
+      /// SendRevoke deletes a message for everyone: the account's own (no target_sender, or the account's own JID), or, as
+      /// a group admin, another member's. WhatsApp's refusal of an admin revoke is WHATSAPP_ERROR with its code. Its
+      /// client_message_id is the revoke's own id.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for no target_id, or a target_sender that is not a user's JID.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SendRevokeResponse> SendRevokeAsync(global::Whatsmeow.Protocol.V1.SendRevokeRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SendRevokeAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SendRevoke deletes a message for everyone: the account's own (no target_sender, or the account's own JID), or, as
+      /// a group admin, another member's. WhatsApp's refusal of an admin revoke is WHATSAPP_ERROR with its code. Its
+      /// client_message_id is the revoke's own id.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for no target_id, or a target_sender that is not a user's JID.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SendRevokeResponse> SendRevokeAsync(global::Whatsmeow.Protocol.V1.SendRevokeRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_SendRevoke, null, options, request);
       }
       /// <summary>
       /// MarkRead sends a read receipt, timestamped now, for messages of one chat.

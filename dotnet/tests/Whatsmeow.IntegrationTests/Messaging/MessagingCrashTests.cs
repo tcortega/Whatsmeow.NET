@@ -27,7 +27,7 @@ public sealed class MessagingCrashTests(FakeSidecar fixture)
 		var id = MessageId.New();
 		_ = await fixture.Fake.HoldNextSendAsync(new HoldNextSendRequest { SessionId = Session }, cancellationToken: ct);
 
-		var held = client.SendTextAsync(to, "maybe", id, ct);
+		var held = client.SendTextAsync(to, "maybe", id, cancellationToken: ct);
 		Assert.Equal(id.Value, (await SentAsync(Session, ct)).Message.Id);
 		await fixture.CrashAsync(ct);
 
@@ -38,7 +38,7 @@ public sealed class MessagingCrashTests(FakeSidecar fixture)
 			await watch.ReachesAsync(new SessionState.Connected(), new SessionState.Disconnected(), new SessionState.Connecting());
 
 		// It was recorded before the hand-off, so the restarted sidecar knows its outcome is unknown, and never sends it again.
-		_ = await Assert.ThrowsAsync<OutcomeUnknownException>(() => client.SendTextAsync(to, "maybe", id, ct));
+		_ = await Assert.ThrowsAsync<OutcomeUnknownException>(() => client.SendTextAsync(to, "maybe", id, cancellationToken: ct));
 		var next = await client.SendTextAsync(to, "next", cancellationToken: ct);
 		Assert.Equal(next.Id.Value, (await SentAsync(Session, ct)).Message.Id);
 	}

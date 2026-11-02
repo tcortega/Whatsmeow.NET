@@ -93,6 +93,34 @@ message MessageEvent {
   WAWebProtobufsE2E.Message message = 2;
   // True when whatsmeow unwrapped the content from a view-once wrapper (ViewOnceMessage, V2 or V2Extension).
   bool view_once = 3;
+  // True when whatsmeow unwrapped the content from an ephemeral wrapper (EphemeralMessage): a disappearing message.
+  bool ephemeral = 4;
+  // For a message the account sent from another of its devices to a user, the chat it went to, as that device said in
+  // its DeviceSentMessage wrapper; empty for every other message.
+  string device_sent_destination = 5;
+  // The message as received, wrappers included, when whatsmeow unwrapped any; unset when it unwrapped none, as the
+  // message is then what was received.
+  WAWebProtobufsE2E.Message raw_message = 6;
+  // For a reaction, an edit or a revoke, the message its key names; unset for every other message, and for a key
+  // that names none: one without an id, one whose participant is not a JID, or, outside a direct chat, one that is
+  // not the actor's and names no participant.
+  MessageTarget target = 7;
+  // For a reply, the message it quotes, as the context of its content names it (an edit's is its new content's): its
+  // id and sender, read as a target's sender is. Unset for every other message, and for a quote that names no sender
+  // the sidecar can tell: one whose participant is missing or is not a user's JID.
+  MessageTarget reply_to = 8;
+}
+
+// MessageTarget is the message a reaction, an edit or a revoke names by its key.
+message MessageTarget {
+  // The message's WhatsApp id.
+  string id = 1;
+  // Its sender, a user's JID without a device. For an action, as mautrix reads a key (pkg/msgconv/wa-poll.go:97-132
+  // at 5dd621f): the actor when the key says the actor sent it, else the key's participant, else, in a direct chat,
+  // the other side: the chat when the account acted, else the account. For a quote, the context's participant. A
+  // participant's c.us reads as s.whatsapp.net. Empty for the account's own message, by its phone number or LID and
+  // from any device, so empty always means the account's.
+  string sender = 2;
 }
 
 // ReceiptEvent is a receipt for one or more messages of a chat.
@@ -105,6 +133,10 @@ message ReceiptEvent {
   google.protobuf.Timestamp receipt_time = 3;
   // The kind of receipt.
   ReceiptType type = 4;
+  // The sender of the messages it covers, when WhatsApp said: in a group, for a receipt from another of the account's
+  // devices (READ_SELF, PLAYED_SELF), the member whose messages were read; for a receipt from another user, usually
+  // the account itself. Empty when WhatsApp did not say.
+  string message_sender = 5;
 }
 
 // ReceiptType is the kind of a receipt.

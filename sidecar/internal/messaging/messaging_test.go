@@ -17,6 +17,7 @@ import (
 	"go.mau.fi/whatsmeow"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waE2E"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc"
@@ -80,6 +81,48 @@ type stub struct {
 	readErr error
 	// got gets each call as it starts.
 	got chan call
+	// wa is a real whatsmeow client of self's device, never connected: the builders are whatsmeow's own.
+	wa *whatsmeow.Client
+	// groupErr is what GetGroupInfo answers when set; otherwise lidGroup is LID-addressed and every other group is not.
+	groupErr error
+	// groupInfos counts the GetGroupInfo calls, each a request to WhatsApp.
+	groupInfos int
+}
+
+// The account the stub's device is: its device JID and LID, as WhatsApp assigns them.
+const (
+	self    = "5511900000001:3@s.whatsapp.net"
+	selfLID = "900000001:3@lid"
+)
+
+func (s *stub) BuildReaction(chat, sender types.JID, id types.MessageID, reaction string) *waE2E.Message {
+	return s.wa.BuildReaction(chat, sender, id, reaction)
+}
+
+func (s *stub) BuildRevoke(chat, sender types.JID, id types.MessageID) *waE2E.Message {
+	return s.wa.BuildRevoke(chat, sender, id)
+}
+
+func (s *stub) BuildEdit(chat types.JID, id types.MessageID, newContent *waE2E.Message) *waE2E.Message {
+	return s.wa.BuildEdit(chat, id, newContent)
+}
+
+// GetGroupInfo answers as whatsmeow parses WhatsApp's answer, with only the group's addressing mode (group.go:742-811).
+func (s *stub) GetGroupInfo(_ context.Context, jid types.JID) (*types.GroupInfo, error) {
+	s.mu.Lock()
+	s.groupInfos++
+	s.mu.Unlock()
+
+	if s.groupErr != nil {
+		return nil, s.groupErr
+	}
+
+	info := &types.GroupInfo{JID: jid, AddressingMode: types.AddressingModePN}
+	if jid.String() == lidGroup {
+		info.AddressingMode = types.AddressingModeLID
+	}
+
+	return info, nil
 }
 
 func (s *stub) SendMessage(ctx context.Context, to types.JID, message *waE2E.Message, extra ...whatsmeow.SendRequestExtra) (whatsmeow.SendResponse, error) {
@@ -106,6 +149,13 @@ func (s *stub) MarkRead(_ context.Context, ids []types.MessageID, timestamp time
 	s.reads = append(s.reads, read{ids: ids, at: timestamp, chat: chat, sender: sender})
 
 	return s.readErr
+}
+
+func (s *stub) groupInfoCalls() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return s.groupInfos
 }
 
 func (s *stub) sent() []call {
@@ -149,6 +199,22 @@ func (s *sessions) Online(id string) (session.Client, <-chan struct{}, error) {
 	}
 
 	return s.client, s.left, nil
+}
+
+// Device is the device of s1 and s3, the stub's, until s1 leaves; another session is not found.
+func (s *sessions) Device(id string) (*store.Device, error) {
+	if id != "s1" && id != "s3" {
+		return nil, fmt.Errorf("session %q: %w", id, server.ErrSessionNotFound)
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if id == "s1" && s.why != nil {
+		return nil, s.why
+	}
+
+	return s.client.wa.Store, nil
 }
 
 // leave makes s1 stop being online, for the reason why.
@@ -229,7 +295,7 @@ func start(t *testing.T) *harness {
 	}
 
 	h := &harness{
-		t: t, db: db.DB, stub: &stub{got: make(chan call, 64)},
+		t: t, db: db.DB, stub: &stub{got: make(chan call, 64), wa: whatsmeow.NewClient(&store.Device{ID: new(jid(self)), LID: jid(selfLID)}, nil)},
 		queued: make(chan struct{}, 64), waiting: make(chan struct{}, 64), logs: &logs{},
 	}
 	// The sidecar logs at info level and above (ARCHITECTURE §7.8).

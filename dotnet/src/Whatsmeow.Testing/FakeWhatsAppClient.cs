@@ -80,6 +80,9 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 		nameof(SendDocumentAsync),
 		nameof(SendStickerAsync),
 		nameof(SendRawAsync),
+		nameof(SendReactionAsync),
+		nameof(EditMessageAsync),
+		nameof(RevokeMessageAsync),
 		nameof(MarkReadAsync),
 		nameof(GetGroupsAsync),
 		nameof(GetGroupInfoAsync),
@@ -442,62 +445,82 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 	public Task UnblockAsync(Jid user, CancellationToken cancellationToken = default) => CallAsync(nameof(UnblockAsync), [(nameof(user), user)], cancellationToken);
 
 	/// <inheritdoc/>
-	public Task<SendResult> SendTextAsync(Jid chat, string text, MessageId? id = null, CancellationToken cancellationToken = default)
+	public Task<SendResult> SendTextAsync(Jid chat, string text, MessageId? id = null, SendOptions? options = null, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		return SendAsync(nameof(SendTextAsync), [(nameof(chat), chat), (nameof(text), text), (nameof(id), id)], chat, id, cancellationToken);
+		return SendAsync(nameof(SendTextAsync), [(nameof(chat), chat), (nameof(text), text), (nameof(id), id), (nameof(options), options)], chat, id, cancellationToken);
 	}
 
 	/// <inheritdoc/>
-	public Task<SendResult> SendImageAsync(Jid chat, MediaRef image, ImageMetadata metadata, MessageId? id = null, CancellationToken cancellationToken = default)
+	public Task<SendResult> SendImageAsync(
+		Jid chat,
+		MediaRef image,
+		ImageMetadata metadata,
+		MessageId? id = null,
+		SendOptions? options = null,
+		CancellationToken cancellationToken = default
+	) => SendMediaAsync(nameof(SendImageAsync), chat, (nameof(image), image), metadata, id, options, cancellationToken);
+
+	/// <inheritdoc/>
+	public Task<SendResult> SendVideoAsync(
+		Jid chat,
+		MediaRef video,
+		VideoMetadata metadata,
+		MessageId? id = null,
+		SendOptions? options = null,
+		CancellationToken cancellationToken = default
+	) => SendMediaAsync(nameof(SendVideoAsync), chat, (nameof(video), video), metadata, id, options, cancellationToken);
+
+	/// <inheritdoc/>
+	public Task<SendResult> SendAudioAsync(
+		Jid chat,
+		MediaRef audio,
+		AudioMetadata metadata,
+		MessageId? id = null,
+		SendOptions? options = null,
+		CancellationToken cancellationToken = default
+	) => SendMediaAsync(nameof(SendAudioAsync), chat, (nameof(audio), audio), metadata, id, options, cancellationToken);
+
+	/// <inheritdoc/>
+	public Task<SendResult> SendDocumentAsync(
+		Jid chat,
+		MediaRef document,
+		DocumentMetadata metadata,
+		MessageId? id = null,
+		SendOptions? options = null,
+		CancellationToken cancellationToken = default
+	) => SendMediaAsync(nameof(SendDocumentAsync), chat, (nameof(document), document), metadata, id, options, cancellationToken);
+
+	/// <inheritdoc/>
+	public Task<SendResult> SendStickerAsync(
+		Jid chat,
+		MediaRef sticker,
+		StickerMetadata metadata,
+		MessageId? id = null,
+		SendOptions? options = null,
+		CancellationToken cancellationToken = default
+	) => SendMediaAsync(nameof(SendStickerAsync), chat, (nameof(sticker), sticker), metadata, id, options, cancellationToken);
+
+	/// <inheritdoc/>
+	public Task<SendResult> SendReactionAsync(Jid chat, MessageKey target, string emoji, MessageId? id = null, CancellationToken cancellationToken = default)
 	{
-		ArgumentNullException.ThrowIfNull(image);
-		ArgumentNullException.ThrowIfNull(metadata);
-		return SendAsync(nameof(SendImageAsync), [(nameof(chat), chat), (nameof(image), image), (nameof(metadata), metadata), (nameof(id), id)], chat, id, cancellationToken);
+		ArgumentNullException.ThrowIfNull(target);
+		ArgumentNullException.ThrowIfNull(emoji);
+		return SendAsync(nameof(SendReactionAsync), [(nameof(chat), chat), (nameof(target), target), (nameof(emoji), emoji), (nameof(id), id)], chat, id, cancellationToken);
 	}
 
 	/// <inheritdoc/>
-	public Task<SendResult> SendVideoAsync(Jid chat, MediaRef video, VideoMetadata metadata, MessageId? id = null, CancellationToken cancellationToken = default)
+	public Task<SendResult> EditMessageAsync(Jid chat, MessageId target, string text, MessageId? id = null, CancellationToken cancellationToken = default)
 	{
-		ArgumentNullException.ThrowIfNull(video);
-		ArgumentNullException.ThrowIfNull(metadata);
-		return SendAsync(nameof(SendVideoAsync), [(nameof(chat), chat), (nameof(video), video), (nameof(metadata), metadata), (nameof(id), id)], chat, id, cancellationToken);
+		ArgumentNullException.ThrowIfNull(text);
+		return SendAsync(nameof(EditMessageAsync), [(nameof(chat), chat), (nameof(target), target), (nameof(text), text), (nameof(id), id)], chat, id, cancellationToken);
 	}
 
 	/// <inheritdoc/>
-	public Task<SendResult> SendAudioAsync(Jid chat, MediaRef audio, AudioMetadata metadata, MessageId? id = null, CancellationToken cancellationToken = default)
+	public Task<SendResult> RevokeMessageAsync(Jid chat, MessageKey target, MessageId? id = null, CancellationToken cancellationToken = default)
 	{
-		ArgumentNullException.ThrowIfNull(audio);
-		ArgumentNullException.ThrowIfNull(metadata);
-		return SendAsync(nameof(SendAudioAsync), [(nameof(chat), chat), (nameof(audio), audio), (nameof(metadata), metadata), (nameof(id), id)], chat, id, cancellationToken);
-	}
-
-	/// <inheritdoc/>
-	public Task<SendResult> SendDocumentAsync(Jid chat, MediaRef document, DocumentMetadata metadata, MessageId? id = null, CancellationToken cancellationToken = default)
-	{
-		ArgumentNullException.ThrowIfNull(document);
-		ArgumentNullException.ThrowIfNull(metadata);
-		return SendAsync(
-			nameof(SendDocumentAsync),
-			[(nameof(chat), chat), (nameof(document), document), (nameof(metadata), metadata), (nameof(id), id)],
-			chat,
-			id,
-			cancellationToken
-		);
-	}
-
-	/// <inheritdoc/>
-	public Task<SendResult> SendStickerAsync(Jid chat, MediaRef sticker, StickerMetadata metadata, MessageId? id = null, CancellationToken cancellationToken = default)
-	{
-		ArgumentNullException.ThrowIfNull(sticker);
-		ArgumentNullException.ThrowIfNull(metadata);
-		return SendAsync(
-			nameof(SendStickerAsync),
-			[(nameof(chat), chat), (nameof(sticker), sticker), (nameof(metadata), metadata), (nameof(id), id)],
-			chat,
-			id,
-			cancellationToken
-		);
+		ArgumentNullException.ThrowIfNull(target);
+		return SendAsync(nameof(RevokeMessageAsync), [(nameof(chat), chat), (nameof(target), target), (nameof(id), id)], chat, id, cancellationToken);
 	}
 
 	/// <inheritdoc/>
@@ -720,6 +743,22 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 			},
 			cancellationToken
 		);
+
+	/// <summary>A media send, recorded with its arguments in their order.</summary>
+	private Task<SendResult> SendMediaAsync(
+		string member,
+		Jid chat,
+		(string Name, MediaRef? Value) media,
+		object? metadata,
+		MessageId? id,
+		SendOptions? options,
+		CancellationToken cancellationToken
+	)
+	{
+		ArgumentNullException.ThrowIfNull(media.Value, media.Name);
+		ArgumentNullException.ThrowIfNull(metadata);
+		return SendAsync(member, [(nameof(chat), chat), (media.Name, media.Value), (nameof(metadata), metadata), (nameof(id), id), (nameof(options), options)], chat, id, cancellationToken);
+	}
 
 	private Task<ImmutableArray<ParticipantResult>> ParticipantsAsync(string member, Jid group, IReadOnlyList<Jid> users, CancellationToken cancellationToken)
 	{

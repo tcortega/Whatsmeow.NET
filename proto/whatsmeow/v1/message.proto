@@ -34,8 +34,10 @@ service MessageService {
   // RECIPIENT_NOT_ON_WHATSAPP, RATE_LIMITED, OUTCOME_UNKNOWN, WHATSAPP_ERROR.
   rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
 
-  // SendText sends a text message.
-  // Errors: as SendMessage, and INVALID_ARGUMENT for empty text.
+  // SendText sends a text message. With a reply_to or mentions it goes as an extended text message carrying them;
+  // without, as a plain conversation.
+  // Errors: as SendMessage, and INVALID_ARGUMENT for empty text, or a reply_to or mentions that are not valid (see
+  // MessageReply and the mentions field).
   rpc SendText(SendTextRequest) returns (SendTextResponse);
 
   // SendMedia sends an image, video, audio file or voice note, document or sticker message of an uploaded or received
@@ -46,8 +48,25 @@ service MessageService {
   // Errors: as SendMessage, and INVALID_ARGUMENT for no or an incomplete media (field "media": a direct path that does
   // not start with "/", a media key or a hash that is not 32 bytes), a media type the kind does not take (field
   // "media.media_type": IMAGE for an image or a sticker, VIDEO, AUDIO, DOCUMENT for the others), no metadata (field
-  // "metadata"), or a duration that is negative or over 2^32-1 seconds (field "<kind>.duration").
+  // "metadata"), a duration that is negative or over 2^32-1 seconds (field "<kind>.duration"), or a reply_to or
+  // mentions that are not valid, as for SendText.
   rpc SendMedia(SendMediaRequest) returns (SendMediaResponse);
+
+  // SendReaction reacts to a message with an emoji, or removes the account's reaction to it with an empty emoji. It is
+  // a send like the others: its client_message_id is the reaction's own id, with the same rules.
+  // Errors: as SendMessage, and INVALID_ARGUMENT for no target_id, or a target_sender that is not a user's JID.
+  rpc SendReaction(SendReactionRequest) returns (SendReactionResponse);
+
+  // SendEdit replaces the text of a message the account sent. The sidecar keeps no messages, so it checks no edit
+  // window: whether WhatsApp refuses or drops a late edit is unknown. Its client_message_id is the edit's own id.
+  // Errors: as SendMessage, and INVALID_ARGUMENT for no target_id or empty text.
+  rpc SendEdit(SendEditRequest) returns (SendEditResponse);
+
+  // SendRevoke deletes a message for everyone: the account's own (no target_sender, or the account's own JID), or, as
+  // a group admin, another member's. WhatsApp's refusal of an admin revoke is WHATSAPP_ERROR with its code. Its
+  // client_message_id is the revoke's own id.
+  // Errors: as SendMessage, and INVALID_ARGUMENT for no target_id, or a target_sender that is not a user's JID.
+  rpc SendRevoke(SendRevokeRequest) returns (SendRevokeResponse);
 
   // MarkRead sends a read receipt, timestamped now, for messages of one chat.
   // Errors: INVALID_ARGUMENT (no message ids; a group chat without sender), SESSION_NOT_FOUND, NOT_LOGGED_IN,
@@ -85,6 +104,24 @@ message SendTextRequest {
   string client_message_id = 3;
   // The text; not empty.
   string text = 4;
+  // The message this one replies to, which the recipient sees quoted.
+  MessageReply reply_to = 5;
+  // The users mentioned, by phone-number JID or LID; a device is dropped. The text names each as "@" and the JID's
+  // user part, which is how WhatsApp shows a mention; the sidecar does not change the text. One that is not a user's
+  // JID is INVALID_ARGUMENT (field "mentions").
+  repeated string mentions = 6;
+}
+
+// MessageReply is the message a reply quotes. Which address form a LID-addressed group needs is unknown.
+message MessageReply {
+  // The quoted message's WhatsApp id; required (field "reply_to.id").
+  string id = 1;
+  // The quoted message's sender, a user's JID; a device is dropped. Empty is the account itself: the sidecar names
+  // its own JID. Whether WhatsApp needs the sender is unknown. One that is not a user's JID is INVALID_ARGUMENT
+  // (field "reply_to.sender").
+  string sender = 2;
+  // The text the quote shows; empty shows none. The recipient's phone may show its own copy of the message instead.
+  string quoted_text = 3;
 }
 
 // SendTextResponse is a successful send.
@@ -119,6 +156,11 @@ message SendMediaRequest {
     // A sticker.
     StickerMetadata sticker = 9;
   }
+
+  // The message this one replies to, as for SendTextRequest.reply_to.
+  MessageReply reply_to = 10;
+  // The users mentioned in the caption, as for SendTextRequest.mentions.
+  repeated string mentions = 11;
 }
 
 // SendMediaResponse is a successful send.
@@ -126,6 +168,76 @@ message SendMediaResponse {
   // The chat it was sent to, which can be the recipient's LID when a phone-number JID was requested.
   string chat = 1;
   // The message's WhatsApp timestamp.
+  google.protobuf.Timestamp message_time = 2;
+}
+
+// SendReactionRequest reacts to a message.
+message SendReactionRequest {
+  // The session id.
+  string session_id = 1;
+  // The chat of the message: a user JID without a device, or a group JID.
+  string chat = 2;
+  // The WhatsApp id of the reaction itself; required.
+  string client_message_id = 3;
+  // The message reacted to; required.
+  string target_id = 4;
+  // That message's sender, a user's JID; empty, or the account's own JID, for a message the account sent. In a group
+  // a message from someone else needs it.
+  string target_sender = 5;
+  // The emoji; empty removes the account's reaction.
+  string emoji = 6;
+}
+
+// SendReactionResponse is a successful send.
+message SendReactionResponse {
+  // The chat it was sent to, which can be the recipient's LID when a phone-number JID was requested.
+  string chat = 1;
+  // The reaction's WhatsApp timestamp.
+  google.protobuf.Timestamp message_time = 2;
+}
+
+// SendEditRequest replaces the text of a message the account sent.
+message SendEditRequest {
+  // The session id.
+  string session_id = 1;
+  // The chat of the message: a user JID without a device, or a group JID.
+  string chat = 2;
+  // The WhatsApp id of the edit itself; required.
+  string client_message_id = 3;
+  // The message edited; required.
+  string target_id = 4;
+  // The new text; not empty.
+  string text = 5;
+}
+
+// SendEditResponse is a successful send.
+message SendEditResponse {
+  // The chat it was sent to, which can be the recipient's LID when a phone-number JID was requested.
+  string chat = 1;
+  // The edit's WhatsApp timestamp.
+  google.protobuf.Timestamp message_time = 2;
+}
+
+// SendRevokeRequest deletes a message for everyone.
+message SendRevokeRequest {
+  // The session id.
+  string session_id = 1;
+  // The chat of the message: a user JID without a device, or a group JID.
+  string chat = 2;
+  // The WhatsApp id of the revoke itself; required.
+  string client_message_id = 3;
+  // The message deleted; required.
+  string target_id = 4;
+  // That message's sender, a user's JID: empty, or the account's own JID, for a message the account sent; another
+  // member's for an admin revoke in a group.
+  string target_sender = 5;
+}
+
+// SendRevokeResponse is a successful send.
+message SendRevokeResponse {
+  // The chat it was sent to, which can be the recipient's LID when a phone-number JID was requested.
+  string chat = 1;
+  // The revoke's WhatsApp timestamp.
   google.protobuf.Timestamp message_time = 2;
 }
 

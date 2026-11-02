@@ -291,7 +291,7 @@ func TestALateEventOfADeletedSessionsClientNeverReachesTheNextSessionOfItsID(t *
 	t.Parallel()
 
 	h := start(t, "s1")
-	old := h.svc.Handler("s1")
+	old := h.svc.Handler("s1", nil)
 
 	// As the session slice's DeleteSession does, then CreateSession with the same id and a client of its own.
 	if _, err := h.db.DB.ExecContext(h.ctx, "DELETE FROM session WHERE id = 's1'"); err != nil {
@@ -304,7 +304,7 @@ func TestALateEventOfADeletedSessionsClientNeverReachesTheNextSessionOfItsID(t *
 		t.Fatalf("create the session again: %v", err)
 	}
 
-	next := h.svc.Handler("s1")
+	next := h.svc.Handler("s1", nil)
 
 	// The deleted session's client is still disconnecting, and its handler runs once more.
 	if !old(presence(1)) {

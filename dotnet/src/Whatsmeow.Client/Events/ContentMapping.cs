@@ -1,6 +1,9 @@
+using System.Collections.Immutable;
 using Google.Protobuf;
 using Whatsmeow.Messaging;
+using MessageTarget = Whatsmeow.Protocol.V1.MessageTarget;
 using E2E = Whatsmeow.Proto.WAWebProtobufsE2E;
+using ProtocolType = Whatsmeow.Proto.WAWebProtobufsE2E.ProtocolMessage.Types.Type;
 
 namespace Whatsmeow.Events;
 
@@ -12,16 +15,29 @@ internal static class ContentMapping
 {
 	/// <param name="message">The message as whatsmeow unwrapped it.</param>
 	/// <param name="viewOnce">True when whatsmeow unwrapped it from a view-once wrapper.</param>
-	public static MessageContent ToContent(E2E.Message? message, bool viewOnce) =>
-		message switch
+	/// <param name="target">
+	/// The message a reaction, an edit or a revoke names, as the sidecar read its key; null for every other message, and
+	/// for a key that names none, which makes the action malformed: unknown content, as is a target whose sender is not
+	/// a JID, since no sender is the account's.
+	/// </param>
+	public static MessageContent ToContent(E2E.Message? message, bool viewOnce, MessageTarget? target) =>
+		(message, ToKey(target)) switch
 		{
-			{ HasConversation: true } => new TextContent { Text = message.Conversation },
-			{ ExtendedTextMessage.HasText: true } => new TextContent { Text = message.ExtendedTextMessage.Text },
-			{ ImageMessage: { } image } => ToImage(image, viewOnce),
-			{ VideoMessage: { } video } => ToVideo(video, viewOnce),
-			{ AudioMessage: { } audio } => ToAudio(audio, viewOnce),
-			{ DocumentMessage: { } document } => ToDocument(document),
-			{ StickerMessage: { } sticker } => ToSticker(sticker),
+			// REVOKE is the type's zero value (WAWebProtobufsE2E.proto), so only a set type is one.
+			({ ReactionMessage: { } reaction }, { } key) => new ReactionContent { Target = key, Emoji = reaction.Text },
+			({ ProtocolMessage: { HasType: true, Type: ProtocolType.Revoke } }, { } key) => new RevokeContent { Target = key },
+			({ ProtocolMessage: { HasType: true, Type: ProtocolType.MessageEdit, EditedMessage: { } edited } }, { } key) => new EditContent
+			{
+				Target = key,
+				Content = ToContent(edited, viewOnce: false, target: null),
+			},
+			({ HasConversation: true }, _) => new TextContent { Text = message.Conversation },
+			({ ExtendedTextMessage.HasText: true }, _) => new TextContent { Text = message.ExtendedTextMessage.Text },
+			({ ImageMessage: { } image }, _) => ToImage(image, viewOnce),
+			({ VideoMessage: { } video }, _) => ToVideo(video, viewOnce),
+			({ AudioMessage: { } audio }, _) => ToAudio(audio, viewOnce),
+			({ DocumentMessage: { } document }, _) => ToDocument(document),
+			({ StickerMessage: { } sticker }, _) => ToSticker(sticker),
 			_ => new UnknownContent(),
 		};
 
@@ -128,6 +144,59 @@ internal static class ContentMapping
 			FileEncSha256 = [.. fileEncSha256.Span],
 			FileLength = (long)Math.Min(fileLength, long.MaxValue),
 			StreamingSidecar = [.. streamingSidecar.Span],
+		};
+
+	/// <summary>
+	/// The message a reaction, an edit or a revoke names, or a reply quotes; an empty sender is the account's own message.
+	/// Null for none, and for a sender that is not a JID: no sender would read as the account's.
+	/// </summary>
+	private static MessageKey? ToKey(MessageTarget? target) =>
+		target switch
+		{
+			null => null,
+			{ Sender.Length: 0 } => new MessageKey { Id = MessageId.From(target.Id) },
+			_ when Jid.TryParse(target.Sender, out var sender) => new MessageKey { Id = MessageId.From(target.Id), Sender = sender },
+			_ => null,
+		};
+
+	/// <summary>
+	/// The message a received one replies to: the quote the sidecar named, with the quoted content from the content's
+	/// context; null for no reply, and for a quote that names no sender the client can tell.
+	/// </summary>
+	/// <param name="message">The message as whatsmeow unwrapped it.</param>
+	/// <param name="replyTo">The quote as the sidecar named it, whose empty sender is the account's own message.</param>
+	public static QuotedMessage? ToReplyTo(E2E.Message? message, MessageTarget? replyTo) =>
+		ToKey(replyTo) is { } quoted
+			? new QuotedMessage
+			{
+				Id = quoted.Id,
+				Sender = quoted.Sender,
+				Content = ContextOf(message)?.QuotedMessage is { } content ? ToContent(content, viewOnce: false, target: null) : null,
+			}
+			: null;
+
+	/// <summary>The users a received message mentions, from its content's context; one that does not parse is left out.</summary>
+	public static ImmutableArray<Jid> ToMentions(E2E.Message? message) =>
+		ContextOf(message) is { } context ? [.. context.MentionedJID.Select(m => Jid.TryParse(m, out var jid) ? (Jid?)jid : null).OfType<Jid>()] : [];
+
+	/// <summary>
+	/// True for a disappearing message: one whatsmeow unwrapped from an ephemeral wrapper, or whose context sets an
+	/// expiration, as mautrix reads it (pkg/msgconv/from-whatsapp.go:257-260 at 5dd621f).
+	/// </summary>
+	public static bool IsEphemeral(E2E.Message? message, bool unwrapped) => unwrapped || ContextOf(message) is { Expiration: > 0 };
+
+	/// <summary>The context of the content kinds this client maps; an edit's is its new content's.</summary>
+	private static E2E.ContextInfo? ContextOf(E2E.Message? message) =>
+		message switch
+		{
+			{ ProtocolMessage: { HasType: true, Type: ProtocolType.MessageEdit, EditedMessage: { } edited } } => ContextOf(edited),
+			{ ExtendedTextMessage.ContextInfo: { } context } => context,
+			{ ImageMessage.ContextInfo: { } context } => context,
+			{ VideoMessage.ContextInfo: { } context } => context,
+			{ AudioMessage.ContextInfo: { } context } => context,
+			{ DocumentMessage.ContextInfo: { } context } => context,
+			{ StickerMessage.ContextInfo: { } context } => context,
+			_ => null,
 		};
 
 	/// <summary>Pixels as an <see cref="int"/>, clamped: WhatsApp's are unsigned.</summary>

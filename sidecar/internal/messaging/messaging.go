@@ -17,6 +17,7 @@ import (
 	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/proto/waE2E"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -31,13 +32,21 @@ import (
 type whatsApp interface {
 	SendMessage(ctx context.Context, to types.JID, message *waE2E.Message, extra ...whatsmeow.SendRequestExtra) (whatsmeow.SendResponse, error)
 	MarkRead(ctx context.Context, ids []types.MessageID, timestamp time.Time, chat, sender types.JID, receiptTypeExtra ...types.ReceiptType) error
+	// whatsmeow's builders of a reaction, a revoke and an edit, which name the account through its device (send.go:511-635).
+	BuildReaction(chat, sender types.JID, id types.MessageID, reaction string) *waE2E.Message
+	BuildRevoke(chat, sender types.JID, id types.MessageID) *waE2E.Message
+	BuildEdit(chat types.JID, id types.MessageID, newContent *waE2E.Message) *waE2E.Message
+	// A group's info, whose addressing mode says how whatsmeow names the account in it (send.go:307-323).
+	GetGroupInfo(ctx context.Context, jid types.JID) (*types.GroupInfo, error)
 }
 
 var _ whatsApp = (*whatsmeow.Client)(nil)
 
-// Sessions finds the client of a session that is online: session.(*Service).Online.
+// Sessions finds the client of a session that is online, and a paired session's device: session.(*Service).Online
+// and Device.
 type Sessions interface {
 	Online(id string) (session.Client, <-chan struct{}, error)
+	Device(id string) (*store.Device, error)
 }
 
 // The pacing of a session's sends: a burst of up to burst, then one every pace (ADR 0025). Tuning it is Phase 2.
@@ -107,7 +116,18 @@ func (svc *Service) SendText(ctx context.Context, req *whatsmeowv1.SendTextReque
 		return nil, invalid("text", "the text is empty")
 	}
 
-	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), &waE2E.Message{Conversation: proto.String(req.GetText())})
+	reply, err := newReplyContext(req.GetReplyTo(), req.GetMentions())
+	if err != nil {
+		return nil, err
+	}
+
+	message := &waE2E.Message{Conversation: proto.String(req.GetText())}
+	if reply.info != nil {
+		// A conversation carries no context; an extended text does, as mautrix sends it (from-matrix.go:358-375).
+		message = &waE2E.Message{ExtendedTextMessage: &waE2E.ExtendedTextMessage{Text: proto.String(req.GetText()), ContextInfo: reply.info}}
+	}
+
+	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), svc.named(req.GetSessionId(), reply, message))
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +148,7 @@ func (svc *Service) SendMessage(ctx context.Context, req *whatsmeowv1.SendMessag
 		return nil, invalid("message", "%v", err)
 	}
 
-	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), message)
+	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), as(message))
 	if err != nil {
 		return nil, err
 	}
@@ -205,22 +225,23 @@ func validateSession(id string) error {
 }
 
 // recipient is a chat to send to, as message.proto says: a user without a device (by phone number or LID), or a
-// group. whatsmeow refuses a device (send.go:203-206); newsletters and broadcast lists are not in v1.
+// group. whatsmeow refuses a device (send.go:203-206); newsletters and broadcast lists are not in v1. Its texts name
+// the field, never the JID, which names a person.
 func recipient(field, chat string) (types.JID, error) {
 	to, err := types.ParseJID(chat)
 	if chat == "" || err != nil || to.User == "" {
-		return types.JID{}, invalid(field, "%q is not a JID", chat)
+		return types.JID{}, invalid(field, "not a JID")
 	}
 
 	if to.Device != 0 {
-		return types.JID{}, invalid(field, "%q names a device; send to the user", chat)
+		return types.JID{}, invalid(field, "names a device; send to the user")
 	}
 
 	switch to.Server {
 	case types.DefaultUserServer, types.HiddenUserServer, types.GroupServer:
 		return to, nil
 	default:
-		return types.JID{}, invalid(field, "%q is not a user or a group", chat)
+		return types.JID{}, invalid(field, "not a user or a group")
 	}
 }
 
@@ -228,7 +249,7 @@ func recipient(field, chat string) (types.JID, error) {
 func user(field, value string) (types.JID, error) {
 	j, err := types.ParseJID(value)
 	if err != nil || j.User == "" || (j.Server != types.DefaultUserServer && j.Server != types.HiddenUserServer) {
-		return types.JID{}, invalid(field, "%q is not a user's JID", value)
+		return types.JID{}, invalid(field, "not a user's JID")
 	}
 
 	return j, nil

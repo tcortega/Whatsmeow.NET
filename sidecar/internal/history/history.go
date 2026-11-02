@@ -109,9 +109,9 @@ type Sessions interface {
 	Device(id string) (*store.Device, error)
 }
 
-// MessageEvent maps a whatsmeow message to the contract's MessageEvent: the Events slice's mapping of a live one
-// (events.MessageEvent), so a history message carries what a live one does.
-type MessageEvent func(*waevents.Message) *whatsmeowv1.MessageEvent
+// MessageEvent maps a whatsmeow message of the session whose device is account to the contract's MessageEvent: the
+// Events slice's mapping of a live one (events.MessageEvent), so a history message carries what a live one does.
+type MessageEvent func(e *waevents.Message, account *store.Device) *whatsmeowv1.MessageEvent
 
 // Service implements whatsmeowv1.HistoryServiceServer, the whatsmeow event handler that queues notifications, and the
 // sessions' workers.
@@ -653,8 +653,14 @@ func (svc *Service) fetch(ctx context.Context, sessionID string, client Client, 
 		return delivery{}, fmt.Errorf("download a history sync blob: %w", err)
 	}
 
+	// The device names the account in the messages' targets, as in a live message's.
+	account, err := svc.sessions.Device(sessionID)
+	if err != nil {
+		return delivery{}, fmt.Errorf("the account's device: %w", err)
+	}
+
 	st := syncType(int32(blob.GetSyncType()))
-	messages, skipped := svc.parse(client, blob)
+	messages, skipped := svc.parse(client, account, blob)
 	batches, delivered, oversized := batch(st, messages, q.messagesDone)
 
 	return delivery{
@@ -801,7 +807,7 @@ func (svc *Service) finish(ctx context.Context, sessionID string, client Client,
 // as the Events slice maps a live one, nil for one that does not parse or whose parse panics, and how many more are skipped: the messages of
 // a conversation whose JID does not parse, which hold their places as nil, and every status update, which history
 // never delivers (ARCHITECTURE §1). Stub messages, without content, are delivered as they are.
-func (svc *Service) parse(client Client, blob *waHistorySync.HistorySync) ([]*whatsmeowv1.MessageEvent, int) {
+func (svc *Service) parse(client Client, account *store.Device, blob *waHistorySync.HistorySync) ([]*whatsmeowv1.MessageEvent, int) {
 	var messages []*whatsmeowv1.MessageEvent
 
 	for _, conv := range blob.GetConversations() {
@@ -813,7 +819,7 @@ func (svc *Service) parse(client Client, blob *waHistorySync.HistorySync) ([]*wh
 		}
 
 		for _, m := range conv.GetMessages() {
-			messages = append(messages, svc.parseOne(client, chat, m.GetMessage()))
+			messages = append(messages, svc.parseOne(client, account, chat, m.GetMessage()))
 		}
 	}
 
@@ -822,7 +828,7 @@ func (svc *Service) parse(client Client, blob *waHistorySync.HistorySync) ([]*wh
 
 // parseOne is one message parsed and mapped, or nil when it does not parse or its parse panics: one bad message is
 // skipped, never its blob. The deliver's own recover stays the guard of everything else.
-func (svc *Service) parseOne(client Client, chat types.JID, m *waWeb.WebMessageInfo) (event *whatsmeowv1.MessageEvent) {
+func (svc *Service) parseOne(client Client, account *store.Device, chat types.JID, m *waWeb.WebMessageInfo) (event *whatsmeowv1.MessageEvent) {
 	defer func() {
 		if recover() != nil {
 			event = nil
@@ -834,7 +840,7 @@ func (svc *Service) parseOne(client Client, chat types.JID, m *waWeb.WebMessageI
 		return nil
 	}
 
-	return svc.toEvent(evt)
+	return svc.toEvent(evt, account)
 }
 
 // batched is one batch, and the blob indexes of its first message and of the one after its last.

@@ -14,6 +14,26 @@ internal static class MessagingMapping
 			Timestamp = messageTime.ToDateTimeOffset(),
 		};
 
+	public static Protocol.V1.MessageReply? ToProto(MessageReply? reply) =>
+		reply is null
+			? null
+			: new()
+			{
+				Id = reply.Id.Value,
+				Sender = reply.Sender?.ToString() ?? "",
+				QuotedText = reply.QuotedText ?? "",
+			};
+
+	/// <summary>The users <paramref name="options"/> mentions, as JIDs' text: none for no options, and for mentions left default.</summary>
+	public static string[] ToMentions(SendOptions? options)
+	{
+		var mentions = options is null ? [] : options.Mentions.AsSpan();
+		var texts = new string[mentions.Length];
+		for (var i = 0; i < mentions.Length; i++)
+			texts[i] = mentions[i].ToString();
+		return texts;
+	}
+
 	public static MarkReadRequest ToMarkRead(SessionId sessionId, Jid chat, IReadOnlyCollection<MessageId> messageIds, Jid? sender)
 	{
 		var request = new MarkReadRequest

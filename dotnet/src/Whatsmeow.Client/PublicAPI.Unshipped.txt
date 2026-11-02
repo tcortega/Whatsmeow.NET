@@ -1240,7 +1240,7 @@ Whatsmeow.Events.ReceiptType.Sender = 2 -> Whatsmeow.Events.ReceiptType
 Whatsmeow.Events.ReceiptType.ServerError = 8 -> Whatsmeow.Events.ReceiptType
 Whatsmeow.Events.ReceiptType.Unknown = 0 -> Whatsmeow.Events.ReceiptType
 Whatsmeow.IWhatsAppClient.MarkReadAsync(Whatsmeow.Jid chat, System.Collections.Generic.IReadOnlyCollection<Whatsmeow.MessageId>! messageIds, Whatsmeow.Jid? sender = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
-Whatsmeow.IWhatsAppClient.SendTextAsync(Whatsmeow.Jid chat, string! text, Whatsmeow.MessageId? id = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
+Whatsmeow.IWhatsAppClient.SendTextAsync(Whatsmeow.Jid chat, string! text, Whatsmeow.MessageId? id = null, Whatsmeow.Messaging.SendOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
 Whatsmeow.Messaging.SendResult
 Whatsmeow.Messaging.SendResult.<Clone>$() -> Whatsmeow.Messaging.SendResult!
 Whatsmeow.Messaging.SendResult.Chat.get -> Whatsmeow.Jid
@@ -1464,11 +1464,11 @@ Whatsmeow.Events.VideoContent.Media.init -> void
 Whatsmeow.Events.VideoContent.Metadata.get -> Whatsmeow.Messaging.VideoMetadata!
 Whatsmeow.Events.VideoContent.Metadata.init -> void
 Whatsmeow.Events.VideoContent.VideoContent() -> void
-Whatsmeow.IWhatsAppClient.SendAudioAsync(Whatsmeow.Jid chat, Whatsmeow.MediaRef! audio, Whatsmeow.Messaging.AudioMetadata! metadata, Whatsmeow.MessageId? id = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
-Whatsmeow.IWhatsAppClient.SendDocumentAsync(Whatsmeow.Jid chat, Whatsmeow.MediaRef! document, Whatsmeow.Messaging.DocumentMetadata! metadata, Whatsmeow.MessageId? id = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
-Whatsmeow.IWhatsAppClient.SendImageAsync(Whatsmeow.Jid chat, Whatsmeow.MediaRef! image, Whatsmeow.Messaging.ImageMetadata! metadata, Whatsmeow.MessageId? id = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
-Whatsmeow.IWhatsAppClient.SendStickerAsync(Whatsmeow.Jid chat, Whatsmeow.MediaRef! sticker, Whatsmeow.Messaging.StickerMetadata! metadata, Whatsmeow.MessageId? id = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
-Whatsmeow.IWhatsAppClient.SendVideoAsync(Whatsmeow.Jid chat, Whatsmeow.MediaRef! video, Whatsmeow.Messaging.VideoMetadata! metadata, Whatsmeow.MessageId? id = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
+Whatsmeow.IWhatsAppClient.SendAudioAsync(Whatsmeow.Jid chat, Whatsmeow.MediaRef! audio, Whatsmeow.Messaging.AudioMetadata! metadata, Whatsmeow.MessageId? id = null, Whatsmeow.Messaging.SendOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
+Whatsmeow.IWhatsAppClient.SendDocumentAsync(Whatsmeow.Jid chat, Whatsmeow.MediaRef! document, Whatsmeow.Messaging.DocumentMetadata! metadata, Whatsmeow.MessageId? id = null, Whatsmeow.Messaging.SendOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
+Whatsmeow.IWhatsAppClient.SendImageAsync(Whatsmeow.Jid chat, Whatsmeow.MediaRef! image, Whatsmeow.Messaging.ImageMetadata! metadata, Whatsmeow.MessageId? id = null, Whatsmeow.Messaging.SendOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
+Whatsmeow.IWhatsAppClient.SendStickerAsync(Whatsmeow.Jid chat, Whatsmeow.MediaRef! sticker, Whatsmeow.Messaging.StickerMetadata! metadata, Whatsmeow.MessageId? id = null, Whatsmeow.Messaging.SendOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
+Whatsmeow.IWhatsAppClient.SendVideoAsync(Whatsmeow.Jid chat, Whatsmeow.MediaRef! video, Whatsmeow.Messaging.VideoMetadata! metadata, Whatsmeow.MessageId? id = null, Whatsmeow.Messaging.SendOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
 Whatsmeow.Messaging.AudioMetadata
 Whatsmeow.Messaging.AudioMetadata.<Clone>$() -> Whatsmeow.Messaging.AudioMetadata!
 Whatsmeow.Messaging.AudioMetadata.AudioMetadata() -> void
@@ -1619,3 +1619,114 @@ Whatsmeow.History.HistorySyncType.Unknown = 0 -> Whatsmeow.History.HistorySyncTy
 Whatsmeow.IWhatsAppClient.RequestHistoryAsync(Whatsmeow.MessageId oldest, Whatsmeow.Events.MessageSource! source, System.DateTimeOffset oldestTimestamp, int count = 50, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Whatsmeow.WhatsmeowSidecarOptions.History.get -> Whatsmeow.History.HistorySyncOptions!
 Whatsmeow.WhatsmeowSidecarOptions.History.set -> void
+[WMN1001]Whatsmeow.Events.MessageReceived.Raw.get -> Whatsmeow.Proto.WAWebProtobufsE2E.Message?
+[WMN1001]Whatsmeow.Events.MessageReceived.Raw.init -> void
+override sealed Whatsmeow.Events.EditContent.Equals(Whatsmeow.Events.MessageContent? other) -> bool
+override sealed Whatsmeow.Events.ReactionContent.Equals(Whatsmeow.Events.MessageContent? other) -> bool
+override sealed Whatsmeow.Events.RevokeContent.Equals(Whatsmeow.Events.MessageContent? other) -> bool
+override Whatsmeow.Events.EditContent.<Clone>$() -> Whatsmeow.Events.EditContent!
+override Whatsmeow.Events.EditContent.Equals(object? obj) -> bool
+override Whatsmeow.Events.EditContent.GetHashCode() -> int
+override Whatsmeow.Events.EditContent.ToString() -> string!
+override Whatsmeow.Events.QuotedMessage.Equals(object? obj) -> bool
+override Whatsmeow.Events.QuotedMessage.GetHashCode() -> int
+override Whatsmeow.Events.QuotedMessage.ToString() -> string!
+override Whatsmeow.Events.ReactionContent.<Clone>$() -> Whatsmeow.Events.ReactionContent!
+override Whatsmeow.Events.ReactionContent.Equals(object? obj) -> bool
+override Whatsmeow.Events.ReactionContent.GetHashCode() -> int
+override Whatsmeow.Events.ReactionContent.ToString() -> string!
+override Whatsmeow.Events.RevokeContent.<Clone>$() -> Whatsmeow.Events.RevokeContent!
+override Whatsmeow.Events.RevokeContent.Equals(object? obj) -> bool
+override Whatsmeow.Events.RevokeContent.GetHashCode() -> int
+override Whatsmeow.Events.RevokeContent.ToString() -> string!
+override Whatsmeow.Messaging.MessageKey.Equals(object? obj) -> bool
+override Whatsmeow.Messaging.MessageKey.GetHashCode() -> int
+override Whatsmeow.Messaging.MessageKey.ToString() -> string!
+override Whatsmeow.Messaging.MessageReply.Equals(object? obj) -> bool
+override Whatsmeow.Messaging.MessageReply.GetHashCode() -> int
+override Whatsmeow.Messaging.MessageReply.ToString() -> string!
+override Whatsmeow.Messaging.SendOptions.Equals(object? obj) -> bool
+override Whatsmeow.Messaging.SendOptions.GetHashCode() -> int
+override Whatsmeow.Messaging.SendOptions.ToString() -> string!
+static Whatsmeow.Events.EditContent.operator !=(Whatsmeow.Events.EditContent? left, Whatsmeow.Events.EditContent? right) -> bool
+static Whatsmeow.Events.EditContent.operator ==(Whatsmeow.Events.EditContent? left, Whatsmeow.Events.EditContent? right) -> bool
+static Whatsmeow.Events.QuotedMessage.operator !=(Whatsmeow.Events.QuotedMessage? left, Whatsmeow.Events.QuotedMessage? right) -> bool
+static Whatsmeow.Events.QuotedMessage.operator ==(Whatsmeow.Events.QuotedMessage? left, Whatsmeow.Events.QuotedMessage? right) -> bool
+static Whatsmeow.Events.ReactionContent.operator !=(Whatsmeow.Events.ReactionContent? left, Whatsmeow.Events.ReactionContent? right) -> bool
+static Whatsmeow.Events.ReactionContent.operator ==(Whatsmeow.Events.ReactionContent? left, Whatsmeow.Events.ReactionContent? right) -> bool
+static Whatsmeow.Events.RevokeContent.operator !=(Whatsmeow.Events.RevokeContent? left, Whatsmeow.Events.RevokeContent? right) -> bool
+static Whatsmeow.Events.RevokeContent.operator ==(Whatsmeow.Events.RevokeContent? left, Whatsmeow.Events.RevokeContent? right) -> bool
+static Whatsmeow.Messaging.MessageKey.operator !=(Whatsmeow.Messaging.MessageKey? left, Whatsmeow.Messaging.MessageKey? right) -> bool
+static Whatsmeow.Messaging.MessageKey.operator ==(Whatsmeow.Messaging.MessageKey? left, Whatsmeow.Messaging.MessageKey? right) -> bool
+static Whatsmeow.Messaging.MessageReply.operator !=(Whatsmeow.Messaging.MessageReply? left, Whatsmeow.Messaging.MessageReply? right) -> bool
+static Whatsmeow.Messaging.MessageReply.operator ==(Whatsmeow.Messaging.MessageReply? left, Whatsmeow.Messaging.MessageReply? right) -> bool
+static Whatsmeow.Messaging.SendOptions.operator !=(Whatsmeow.Messaging.SendOptions? left, Whatsmeow.Messaging.SendOptions? right) -> bool
+static Whatsmeow.Messaging.SendOptions.operator ==(Whatsmeow.Messaging.SendOptions? left, Whatsmeow.Messaging.SendOptions? right) -> bool
+Whatsmeow.Events.EditContent
+Whatsmeow.Events.EditContent.Content.get -> Whatsmeow.Events.MessageContent!
+Whatsmeow.Events.EditContent.Content.init -> void
+Whatsmeow.Events.EditContent.EditContent() -> void
+Whatsmeow.Events.EditContent.Equals(Whatsmeow.Events.EditContent? other) -> bool
+Whatsmeow.Events.EditContent.Target.get -> Whatsmeow.Messaging.MessageKey!
+Whatsmeow.Events.EditContent.Target.init -> void
+Whatsmeow.Events.MessageReceived.DestinationChat.get -> Whatsmeow.Jid?
+Whatsmeow.Events.MessageReceived.DestinationChat.init -> void
+Whatsmeow.Events.MessageReceived.IsEphemeral.get -> bool
+Whatsmeow.Events.MessageReceived.IsEphemeral.init -> void
+Whatsmeow.Events.MessageReceived.Mentions.get -> System.Collections.Immutable.ImmutableArray<Whatsmeow.Jid>
+Whatsmeow.Events.MessageReceived.Mentions.init -> void
+Whatsmeow.Events.MessageReceived.ReplyTo.get -> Whatsmeow.Events.QuotedMessage?
+Whatsmeow.Events.MessageReceived.ReplyTo.init -> void
+Whatsmeow.Events.QuotedMessage
+Whatsmeow.Events.QuotedMessage.<Clone>$() -> Whatsmeow.Events.QuotedMessage!
+Whatsmeow.Events.QuotedMessage.Content.get -> Whatsmeow.Events.MessageContent?
+Whatsmeow.Events.QuotedMessage.Content.init -> void
+Whatsmeow.Events.QuotedMessage.Equals(Whatsmeow.Events.QuotedMessage? other) -> bool
+Whatsmeow.Events.QuotedMessage.Id.get -> Whatsmeow.MessageId
+Whatsmeow.Events.QuotedMessage.Id.init -> void
+Whatsmeow.Events.QuotedMessage.QuotedMessage() -> void
+Whatsmeow.Events.QuotedMessage.Sender.get -> Whatsmeow.Jid?
+Whatsmeow.Events.QuotedMessage.Sender.init -> void
+Whatsmeow.Events.ReactionContent
+Whatsmeow.Events.ReactionContent.Emoji.get -> string!
+Whatsmeow.Events.ReactionContent.Emoji.init -> void
+Whatsmeow.Events.ReactionContent.Equals(Whatsmeow.Events.ReactionContent? other) -> bool
+Whatsmeow.Events.ReactionContent.ReactionContent() -> void
+Whatsmeow.Events.ReactionContent.Target.get -> Whatsmeow.Messaging.MessageKey!
+Whatsmeow.Events.ReactionContent.Target.init -> void
+Whatsmeow.Events.ReceiptReceived.MessageSender.get -> Whatsmeow.Jid?
+Whatsmeow.Events.ReceiptReceived.MessageSender.init -> void
+Whatsmeow.Events.RevokeContent
+Whatsmeow.Events.RevokeContent.Equals(Whatsmeow.Events.RevokeContent? other) -> bool
+Whatsmeow.Events.RevokeContent.RevokeContent() -> void
+Whatsmeow.Events.RevokeContent.Target.get -> Whatsmeow.Messaging.MessageKey!
+Whatsmeow.Events.RevokeContent.Target.init -> void
+Whatsmeow.IWhatsAppClient.EditMessageAsync(Whatsmeow.Jid chat, Whatsmeow.MessageId target, string! text, Whatsmeow.MessageId? id = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
+Whatsmeow.IWhatsAppClient.RevokeMessageAsync(Whatsmeow.Jid chat, Whatsmeow.Messaging.MessageKey! target, Whatsmeow.MessageId? id = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
+Whatsmeow.IWhatsAppClient.SendReactionAsync(Whatsmeow.Jid chat, Whatsmeow.Messaging.MessageKey! target, string! emoji, Whatsmeow.MessageId? id = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
+Whatsmeow.Messaging.MessageKey
+Whatsmeow.Messaging.MessageKey.<Clone>$() -> Whatsmeow.Messaging.MessageKey!
+Whatsmeow.Messaging.MessageKey.Equals(Whatsmeow.Messaging.MessageKey? other) -> bool
+Whatsmeow.Messaging.MessageKey.Id.get -> Whatsmeow.MessageId
+Whatsmeow.Messaging.MessageKey.Id.init -> void
+Whatsmeow.Messaging.MessageKey.MessageKey() -> void
+Whatsmeow.Messaging.MessageKey.Sender.get -> Whatsmeow.Jid?
+Whatsmeow.Messaging.MessageKey.Sender.init -> void
+Whatsmeow.Messaging.MessageReply
+Whatsmeow.Messaging.MessageReply.<Clone>$() -> Whatsmeow.Messaging.MessageReply!
+Whatsmeow.Messaging.MessageReply.Equals(Whatsmeow.Messaging.MessageReply? other) -> bool
+Whatsmeow.Messaging.MessageReply.Id.get -> Whatsmeow.MessageId
+Whatsmeow.Messaging.MessageReply.Id.init -> void
+Whatsmeow.Messaging.MessageReply.MessageReply() -> void
+Whatsmeow.Messaging.MessageReply.QuotedText.get -> string?
+Whatsmeow.Messaging.MessageReply.QuotedText.init -> void
+Whatsmeow.Messaging.MessageReply.Sender.get -> Whatsmeow.Jid?
+Whatsmeow.Messaging.MessageReply.Sender.init -> void
+Whatsmeow.Messaging.SendOptions
+Whatsmeow.Messaging.SendOptions.<Clone>$() -> Whatsmeow.Messaging.SendOptions!
+Whatsmeow.Messaging.SendOptions.Equals(Whatsmeow.Messaging.SendOptions? other) -> bool
+Whatsmeow.Messaging.SendOptions.Mentions.get -> System.Collections.Immutable.ImmutableArray<Whatsmeow.Jid>
+Whatsmeow.Messaging.SendOptions.Mentions.init -> void
+Whatsmeow.Messaging.SendOptions.ReplyTo.get -> Whatsmeow.Messaging.MessageReply?
+Whatsmeow.Messaging.SendOptions.ReplyTo.init -> void
+Whatsmeow.Messaging.SendOptions.SendOptions() -> void

@@ -19,10 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MessageService_SendMessage_FullMethodName = "/whatsmeow.v1.MessageService/SendMessage"
-	MessageService_SendText_FullMethodName    = "/whatsmeow.v1.MessageService/SendText"
-	MessageService_SendMedia_FullMethodName   = "/whatsmeow.v1.MessageService/SendMedia"
-	MessageService_MarkRead_FullMethodName    = "/whatsmeow.v1.MessageService/MarkRead"
+	MessageService_SendMessage_FullMethodName  = "/whatsmeow.v1.MessageService/SendMessage"
+	MessageService_SendText_FullMethodName     = "/whatsmeow.v1.MessageService/SendText"
+	MessageService_SendMedia_FullMethodName    = "/whatsmeow.v1.MessageService/SendMedia"
+	MessageService_SendReaction_FullMethodName = "/whatsmeow.v1.MessageService/SendReaction"
+	MessageService_SendEdit_FullMethodName     = "/whatsmeow.v1.MessageService/SendEdit"
+	MessageService_SendRevoke_FullMethodName   = "/whatsmeow.v1.MessageService/SendRevoke"
+	MessageService_MarkRead_FullMethodName     = "/whatsmeow.v1.MessageService/MarkRead"
 )
 
 // MessageServiceClient is the client API for MessageService service.
@@ -55,8 +58,10 @@ type MessageServiceClient interface {
 	// Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, NOT_CONNECTED, TEMPORARILY_BANNED,
 	// RECIPIENT_NOT_ON_WHATSAPP, RATE_LIMITED, OUTCOME_UNKNOWN, WHATSAPP_ERROR.
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error)
-	// SendText sends a text message.
-	// Errors: as SendMessage, and INVALID_ARGUMENT for empty text.
+	// SendText sends a text message. With a reply_to or mentions it goes as an extended text message carrying them;
+	// without, as a plain conversation.
+	// Errors: as SendMessage, and INVALID_ARGUMENT for empty text, or a reply_to or mentions that are not valid (see
+	// MessageReply and the mentions field).
 	SendText(ctx context.Context, in *SendTextRequest, opts ...grpc.CallOption) (*SendTextResponse, error)
 	// SendMedia sends an image, video, audio file or voice note, document or sticker message of an uploaded or received
 	// MediaRef, so re-sending a MediaRef uploads nothing. The metadata is sent as given: the sidecar never decodes the
@@ -66,8 +71,22 @@ type MessageServiceClient interface {
 	// Errors: as SendMessage, and INVALID_ARGUMENT for no or an incomplete media (field "media": a direct path that does
 	// not start with "/", a media key or a hash that is not 32 bytes), a media type the kind does not take (field
 	// "media.media_type": IMAGE for an image or a sticker, VIDEO, AUDIO, DOCUMENT for the others), no metadata (field
-	// "metadata"), or a duration that is negative or over 2^32-1 seconds (field "<kind>.duration").
+	// "metadata"), a duration that is negative or over 2^32-1 seconds (field "<kind>.duration"), or a reply_to or
+	// mentions that are not valid, as for SendText.
 	SendMedia(ctx context.Context, in *SendMediaRequest, opts ...grpc.CallOption) (*SendMediaResponse, error)
+	// SendReaction reacts to a message with an emoji, or removes the account's reaction to it with an empty emoji. It is
+	// a send like the others: its client_message_id is the reaction's own id, with the same rules.
+	// Errors: as SendMessage, and INVALID_ARGUMENT for no target_id, or a target_sender that is not a user's JID.
+	SendReaction(ctx context.Context, in *SendReactionRequest, opts ...grpc.CallOption) (*SendReactionResponse, error)
+	// SendEdit replaces the text of a message the account sent. The sidecar keeps no messages, so it checks no edit
+	// window: whether WhatsApp refuses or drops a late edit is unknown. Its client_message_id is the edit's own id.
+	// Errors: as SendMessage, and INVALID_ARGUMENT for no target_id or empty text.
+	SendEdit(ctx context.Context, in *SendEditRequest, opts ...grpc.CallOption) (*SendEditResponse, error)
+	// SendRevoke deletes a message for everyone: the account's own (no target_sender, or the account's own JID), or, as
+	// a group admin, another member's. WhatsApp's refusal of an admin revoke is WHATSAPP_ERROR with its code. Its
+	// client_message_id is the revoke's own id.
+	// Errors: as SendMessage, and INVALID_ARGUMENT for no target_id, or a target_sender that is not a user's JID.
+	SendRevoke(ctx context.Context, in *SendRevokeRequest, opts ...grpc.CallOption) (*SendRevokeResponse, error)
 	// MarkRead sends a read receipt, timestamped now, for messages of one chat.
 	// Errors: INVALID_ARGUMENT (no message ids; a group chat without sender), SESSION_NOT_FOUND, NOT_LOGGED_IN,
 	// LOGGED_OUT, NOT_CONNECTED, TEMPORARILY_BANNED.
@@ -106,6 +125,36 @@ func (c *messageServiceClient) SendMedia(ctx context.Context, in *SendMediaReque
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SendMediaResponse)
 	err := c.cc.Invoke(ctx, MessageService_SendMedia_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *messageServiceClient) SendReaction(ctx context.Context, in *SendReactionRequest, opts ...grpc.CallOption) (*SendReactionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendReactionResponse)
+	err := c.cc.Invoke(ctx, MessageService_SendReaction_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *messageServiceClient) SendEdit(ctx context.Context, in *SendEditRequest, opts ...grpc.CallOption) (*SendEditResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendEditResponse)
+	err := c.cc.Invoke(ctx, MessageService_SendEdit_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *messageServiceClient) SendRevoke(ctx context.Context, in *SendRevokeRequest, opts ...grpc.CallOption) (*SendRevokeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendRevokeResponse)
+	err := c.cc.Invoke(ctx, MessageService_SendRevoke_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -152,8 +201,10 @@ type MessageServiceServer interface {
 	// Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, NOT_CONNECTED, TEMPORARILY_BANNED,
 	// RECIPIENT_NOT_ON_WHATSAPP, RATE_LIMITED, OUTCOME_UNKNOWN, WHATSAPP_ERROR.
 	SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error)
-	// SendText sends a text message.
-	// Errors: as SendMessage, and INVALID_ARGUMENT for empty text.
+	// SendText sends a text message. With a reply_to or mentions it goes as an extended text message carrying them;
+	// without, as a plain conversation.
+	// Errors: as SendMessage, and INVALID_ARGUMENT for empty text, or a reply_to or mentions that are not valid (see
+	// MessageReply and the mentions field).
 	SendText(context.Context, *SendTextRequest) (*SendTextResponse, error)
 	// SendMedia sends an image, video, audio file or voice note, document or sticker message of an uploaded or received
 	// MediaRef, so re-sending a MediaRef uploads nothing. The metadata is sent as given: the sidecar never decodes the
@@ -163,8 +214,22 @@ type MessageServiceServer interface {
 	// Errors: as SendMessage, and INVALID_ARGUMENT for no or an incomplete media (field "media": a direct path that does
 	// not start with "/", a media key or a hash that is not 32 bytes), a media type the kind does not take (field
 	// "media.media_type": IMAGE for an image or a sticker, VIDEO, AUDIO, DOCUMENT for the others), no metadata (field
-	// "metadata"), or a duration that is negative or over 2^32-1 seconds (field "<kind>.duration").
+	// "metadata"), a duration that is negative or over 2^32-1 seconds (field "<kind>.duration"), or a reply_to or
+	// mentions that are not valid, as for SendText.
 	SendMedia(context.Context, *SendMediaRequest) (*SendMediaResponse, error)
+	// SendReaction reacts to a message with an emoji, or removes the account's reaction to it with an empty emoji. It is
+	// a send like the others: its client_message_id is the reaction's own id, with the same rules.
+	// Errors: as SendMessage, and INVALID_ARGUMENT for no target_id, or a target_sender that is not a user's JID.
+	SendReaction(context.Context, *SendReactionRequest) (*SendReactionResponse, error)
+	// SendEdit replaces the text of a message the account sent. The sidecar keeps no messages, so it checks no edit
+	// window: whether WhatsApp refuses or drops a late edit is unknown. Its client_message_id is the edit's own id.
+	// Errors: as SendMessage, and INVALID_ARGUMENT for no target_id or empty text.
+	SendEdit(context.Context, *SendEditRequest) (*SendEditResponse, error)
+	// SendRevoke deletes a message for everyone: the account's own (no target_sender, or the account's own JID), or, as
+	// a group admin, another member's. WhatsApp's refusal of an admin revoke is WHATSAPP_ERROR with its code. Its
+	// client_message_id is the revoke's own id.
+	// Errors: as SendMessage, and INVALID_ARGUMENT for no target_id, or a target_sender that is not a user's JID.
+	SendRevoke(context.Context, *SendRevokeRequest) (*SendRevokeResponse, error)
 	// MarkRead sends a read receipt, timestamped now, for messages of one chat.
 	// Errors: INVALID_ARGUMENT (no message ids; a group chat without sender), SESSION_NOT_FOUND, NOT_LOGGED_IN,
 	// LOGGED_OUT, NOT_CONNECTED, TEMPORARILY_BANNED.
@@ -187,6 +252,15 @@ func (UnimplementedMessageServiceServer) SendText(context.Context, *SendTextRequ
 }
 func (UnimplementedMessageServiceServer) SendMedia(context.Context, *SendMediaRequest) (*SendMediaResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SendMedia not implemented")
+}
+func (UnimplementedMessageServiceServer) SendReaction(context.Context, *SendReactionRequest) (*SendReactionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendReaction not implemented")
+}
+func (UnimplementedMessageServiceServer) SendEdit(context.Context, *SendEditRequest) (*SendEditResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendEdit not implemented")
+}
+func (UnimplementedMessageServiceServer) SendRevoke(context.Context, *SendRevokeRequest) (*SendRevokeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendRevoke not implemented")
 }
 func (UnimplementedMessageServiceServer) MarkRead(context.Context, *MarkReadRequest) (*MarkReadResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method MarkRead not implemented")
@@ -266,6 +340,60 @@ func _MessageService_SendMedia_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MessageService_SendReaction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendReactionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageServiceServer).SendReaction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MessageService_SendReaction_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageServiceServer).SendReaction(ctx, req.(*SendReactionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MessageService_SendEdit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendEditRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageServiceServer).SendEdit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MessageService_SendEdit_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageServiceServer).SendEdit(ctx, req.(*SendEditRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MessageService_SendRevoke_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendRevokeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageServiceServer).SendRevoke(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MessageService_SendRevoke_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageServiceServer).SendRevoke(ctx, req.(*SendRevokeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MessageService_MarkRead_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MarkReadRequest)
 	if err := dec(in); err != nil {
@@ -302,6 +430,18 @@ var MessageService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendMedia",
 			Handler:    _MessageService_SendMedia_Handler,
+		},
+		{
+			MethodName: "SendReaction",
+			Handler:    _MessageService_SendReaction_Handler,
+		},
+		{
+			MethodName: "SendEdit",
+			Handler:    _MessageService_SendEdit_Handler,
+		},
+		{
+			MethodName: "SendRevoke",
+			Handler:    _MessageService_SendRevoke_Handler,
 		},
 		{
 			MethodName: "MarkRead",

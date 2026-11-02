@@ -105,47 +105,70 @@ internal sealed class SessionClient(
 	/// <summary>Stops the session's events for the sidecar's stop; see <see cref="SessionEvents.StopAsync"/>.</summary>
 	internal Task StopEventsAsync(CancellationToken stopWaiting) => _events.StopAsync(stopWaiting);
 
-	public async Task<SendResult> SendTextAsync(Jid chat, string text, MessageId? id = null, CancellationToken cancellationToken = default)
+	public async Task<SendResult> SendTextAsync(Jid chat, string text, MessageId? id = null, SendOptions? options = null, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(text);
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var messageId = id ?? MessageId.New();
-		var response = await RpcErrors
-			.CallAsync(
-				_messages.SendTextAsync(
-					new SendTextRequest { SessionId = sessionId.Value, Chat = chat.ToString(), ClientMessageId = messageId.Value, Text = text },
-					cancellationToken: cancellationToken
-				)
-			)
-			.ConfigureAwait(false);
+		var request = new SendTextRequest
+		{
+			SessionId = sessionId.Value,
+			Chat = chat.ToString(),
+			ClientMessageId = messageId.Value,
+			Text = text,
+			ReplyTo = MessagingMapping.ToProto(options?.ReplyTo),
+		};
+		request.Mentions.Add(MessagingMapping.ToMentions(options));
+		var response = await RpcErrors.CallAsync(_messages.SendTextAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
 		return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
 	}
 
-	public async Task<SendResult> SendImageAsync(Jid chat, MediaRef image, Messaging.ImageMetadata metadata, MessageId? id = null, CancellationToken cancellationToken = default)
+	public async Task<SendResult> SendImageAsync(
+		Jid chat,
+		MediaRef image,
+		Messaging.ImageMetadata metadata,
+		MessageId? id = null,
+		SendOptions? options = null,
+		CancellationToken cancellationToken = default
+	)
 	{
 		ArgumentNullException.ThrowIfNull(image);
 		ArgumentNullException.ThrowIfNull(metadata);
 		var request = MediaMessageMapping.ToRequest(sessionId, chat, id ?? MessageId.New(), image, nameof(image));
 		request.Image = MediaMessageMapping.ToProto(metadata);
-		return await SendMediaAsync(request, cancellationToken).ConfigureAwait(false);
+		return await SendMediaAsync(request, options, cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task<SendResult> SendVideoAsync(Jid chat, MediaRef video, Messaging.VideoMetadata metadata, MessageId? id = null, CancellationToken cancellationToken = default)
+	public async Task<SendResult> SendVideoAsync(
+		Jid chat,
+		MediaRef video,
+		Messaging.VideoMetadata metadata,
+		MessageId? id = null,
+		SendOptions? options = null,
+		CancellationToken cancellationToken = default
+	)
 	{
 		ArgumentNullException.ThrowIfNull(video);
 		ArgumentNullException.ThrowIfNull(metadata);
 		var request = MediaMessageMapping.ToRequest(sessionId, chat, id ?? MessageId.New(), video, nameof(video));
 		request.Video = MediaMessageMapping.ToProto(metadata);
-		return await SendMediaAsync(request, cancellationToken).ConfigureAwait(false);
+		return await SendMediaAsync(request, options, cancellationToken).ConfigureAwait(false);
 	}
 
-	public async Task<SendResult> SendAudioAsync(Jid chat, MediaRef audio, Messaging.AudioMetadata metadata, MessageId? id = null, CancellationToken cancellationToken = default)
+	public async Task<SendResult> SendAudioAsync(
+		Jid chat,
+		MediaRef audio,
+		Messaging.AudioMetadata metadata,
+		MessageId? id = null,
+		SendOptions? options = null,
+		CancellationToken cancellationToken = default
+	)
 	{
 		ArgumentNullException.ThrowIfNull(audio);
 		ArgumentNullException.ThrowIfNull(metadata);
 		var request = MediaMessageMapping.ToRequest(sessionId, chat, id ?? MessageId.New(), audio, nameof(audio));
 		request.Audio = MediaMessageMapping.ToProto(metadata);
-		return await SendMediaAsync(request, cancellationToken).ConfigureAwait(false);
+		return await SendMediaAsync(request, options, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<SendResult> SendDocumentAsync(
@@ -153,6 +176,7 @@ internal sealed class SessionClient(
 		MediaRef document,
 		Messaging.DocumentMetadata metadata,
 		MessageId? id = null,
+		SendOptions? options = null,
 		CancellationToken cancellationToken = default
 	)
 	{
@@ -160,7 +184,7 @@ internal sealed class SessionClient(
 		ArgumentNullException.ThrowIfNull(metadata);
 		var request = MediaMessageMapping.ToRequest(sessionId, chat, id ?? MessageId.New(), document, nameof(document));
 		request.Document = MediaMessageMapping.ToProto(metadata);
-		return await SendMediaAsync(request, cancellationToken).ConfigureAwait(false);
+		return await SendMediaAsync(request, options, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<SendResult> SendStickerAsync(
@@ -168,6 +192,7 @@ internal sealed class SessionClient(
 		MediaRef sticker,
 		Messaging.StickerMetadata metadata,
 		MessageId? id = null,
+		SendOptions? options = null,
 		CancellationToken cancellationToken = default
 	)
 	{
@@ -175,14 +200,87 @@ internal sealed class SessionClient(
 		ArgumentNullException.ThrowIfNull(metadata);
 		var request = MediaMessageMapping.ToRequest(sessionId, chat, id ?? MessageId.New(), sticker, nameof(sticker));
 		request.Sticker = MediaMessageMapping.ToProto(metadata);
-		return await SendMediaAsync(request, cancellationToken).ConfigureAwait(false);
+		return await SendMediaAsync(request, options, cancellationToken).ConfigureAwait(false);
 	}
 
-	private async Task<SendResult> SendMediaAsync(SendMediaRequest request, CancellationToken cancellationToken)
+	private async Task<SendResult> SendMediaAsync(SendMediaRequest request, SendOptions? options, CancellationToken cancellationToken)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		request.ReplyTo = MessagingMapping.ToProto(options?.ReplyTo);
+		request.Mentions.Add(MessagingMapping.ToMentions(options));
 		var response = await RpcErrors.CallAsync(_messages.SendMediaAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
 		return MessagingMapping.ToResult(MessageId.From(request.ClientMessageId), response.Chat, response.MessageTime);
+	}
+
+	public async Task<SendResult> SendReactionAsync(Jid chat, MessageKey target, string emoji, MessageId? id = null, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(target);
+		ArgumentNullException.ThrowIfNull(emoji);
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var messageId = id ?? MessageId.New();
+		var response = await RpcErrors
+			.CallAsync(
+				_messages.SendReactionAsync(
+					new SendReactionRequest
+					{
+						SessionId = sessionId.Value,
+						Chat = chat.ToString(),
+						ClientMessageId = messageId.Value,
+						TargetId = target.Id.Value,
+						TargetSender = target.Sender?.ToString() ?? "",
+						Emoji = emoji,
+					},
+					cancellationToken: cancellationToken
+				)
+			)
+			.ConfigureAwait(false);
+		return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+	}
+
+	public async Task<SendResult> EditMessageAsync(Jid chat, MessageId target, string text, MessageId? id = null, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(text);
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var messageId = id ?? MessageId.New();
+		var response = await RpcErrors
+			.CallAsync(
+				_messages.SendEditAsync(
+					new SendEditRequest
+					{
+						SessionId = sessionId.Value,
+						Chat = chat.ToString(),
+						ClientMessageId = messageId.Value,
+						TargetId = target.Value,
+						Text = text,
+					},
+					cancellationToken: cancellationToken
+				)
+			)
+			.ConfigureAwait(false);
+		return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+	}
+
+	public async Task<SendResult> RevokeMessageAsync(Jid chat, MessageKey target, MessageId? id = null, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(target);
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var messageId = id ?? MessageId.New();
+		var response = await RpcErrors
+			.CallAsync(
+				_messages.SendRevokeAsync(
+					new SendRevokeRequest
+					{
+						SessionId = sessionId.Value,
+						Chat = chat.ToString(),
+						ClientMessageId = messageId.Value,
+						TargetId = target.Id.Value,
+						TargetSender = target.Sender?.ToString() ?? "",
+					},
+					cancellationToken: cancellationToken
+				)
+			)
+			.ConfigureAwait(false);
+		return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
 	}
 
 	public async Task<SendResult> SendRawAsync(Jid chat, E2E.Message message, MessageId? id = null, CancellationToken cancellationToken = default)

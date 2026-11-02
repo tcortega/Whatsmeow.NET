@@ -28,14 +28,15 @@ internal static class HistoryMapping
 		{
 			try
 			{
+				var source = EventMapping.ToSource(message.Info.Source);
 				messages.Add(
 					new HistoryMessage
 					{
 						Id = MessageId.From(message.Info.Id),
-						Source = EventMapping.ToSource(message.Info.Source),
+						Source = source,
 						PushName = EventMapping.NullIfEmpty(message.Info.PushName),
 						Timestamp = EventMapping.ToTime(message.Info.MessageTime),
-						Content = ContentMapping.ToContent(message.Message, message.ViewOnce),
+						Content = ContentMapping.ToContent(message.Message, message.ViewOnce, message.Target),
 					}
 				);
 			}

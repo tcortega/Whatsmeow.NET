@@ -196,7 +196,7 @@ public sealed class LiveDeliveryTests(LiveSidecar live, LivePeer peer)
 				return ValueTask.CompletedTask;
 			}
 		);
-		var sent = await from.SendTextAsync(account, text, id, ct);
+		var sent = await from.SendTextAsync(account, text, id, cancellationToken: ct);
 
 		var withheld = await live.Logs.WaitForAsync(r => r.Message.Contains(WithheldLine, StringComparison.Ordinal) && r.Message.Contains($"\"message_id\":\"{id}\"", StringComparison.Ordinal), ct)
 			.WaitAsync(TimeSpan.FromMinutes(2), LiveClock.Time, ct);

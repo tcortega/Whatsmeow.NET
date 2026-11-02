@@ -92,3 +92,20 @@ func TestOnlyAReceiptWithMessagesIsMapped(t *testing.T) {
 		}
 	}
 }
+
+func TestAReceiptCarriesTheSenderOfItsMessages(t *testing.T) {
+	t.Parallel()
+
+	// The receipt's recipient attribute (receipt.go:77): in a group, the member whose messages another of the
+	// account's devices read.
+	e := receiptEvent(types.ReceiptTypeReadSelf, "M1")
+	e.MessageSender = jid("5511900000002@s.whatsapp.net")
+
+	if _, got, ok := Receipt("s1", e); !ok || got.GetReceipt().GetMessageSender() != "5511900000002@s.whatsapp.net" {
+		t.Fatalf("Receipt = %v, %v; want the messages' sender", got, ok)
+	}
+
+	if _, got, _ := Receipt("s1", receiptEvent(types.ReceiptTypeRead, "M1")); got.GetReceipt().GetMessageSender() != "" {
+		t.Fatalf("a receipt without one carries %q", got.GetReceipt().GetMessageSender())
+	}
+}

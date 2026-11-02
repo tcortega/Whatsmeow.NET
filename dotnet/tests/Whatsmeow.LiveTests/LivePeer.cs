@@ -109,7 +109,7 @@ public sealed class LivePeer : IAsyncLifetime
 	{
 		var results = new List<(SendResult, long)>();
 		foreach (var (text, id) in messages)
-			results.Add((await sender.SendTextAsync(chat, text, id, cancellationToken).ConfigureAwait(false), LiveClock.Time.GetTimestamp()));
+			results.Add((await sender.SendTextAsync(chat, text, id, cancellationToken: cancellationToken).ConfigureAwait(false), LiveClock.Time.GetTimestamp()));
 		return results;
 	}
 

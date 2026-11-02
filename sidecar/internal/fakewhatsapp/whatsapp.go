@@ -71,6 +71,8 @@ type script struct {
 	// holdSend holds the next send; held is the answer of the send being held, closed by ReleaseSend.
 	holdSend bool
 	held     chan struct{}
+	// refuseSend is the error code WhatsApp answers the next message node with; 0 for none.
+	refuseSend int32
 	// failGroupQuery is the IQ error code of the next group call; 0 for none.
 	failGroupQuery int32
 }
