@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"slices"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -156,6 +157,20 @@ func TestRecordAllRecordsEachEntryAsRecordDoesInOrder(t *testing.T) {
 	case <-wake:
 	default:
 		t.Fatal("RecordAll did not wake the streams of s2")
+	}
+}
+
+func TestARecordThatCannotBeginNamesItsSession(t *testing.T) {
+	t.Parallel()
+
+	o, _, ctx := open(t, "s1")
+
+	cancelled, cancel := context.WithCancel(ctx)
+	cancel()
+
+	_, err := o.Record(cancelled, "s1", "M1", message("M1"))
+	if prefix := `record an event of session "s1": `; !errors.Is(err, context.Canceled) || !strings.HasPrefix(err.Error(), prefix) {
+		t.Fatalf("Record = %v, want context.Canceled after %s", err, prefix)
 	}
 }
 
