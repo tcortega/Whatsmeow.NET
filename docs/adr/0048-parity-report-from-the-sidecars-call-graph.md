@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-11-02
-- Evidence: issue #36, its plan review and the PR 107 review; `tools/parity-report` tests and their mutations; the report at whatsmeow `56e5ad0581ce`; a prototype that compared CHA and VTA call graphs over the sidecar
+- Evidence: issue #36, its plan review and the PR 107 reviews; `tools/parity-report` tests and their mutations; the report at whatsmeow `56e5ad0581ce`; a prototype that compared CHA and VTA call graphs over the sidecar
 - Amends: ARCHITECTURE §4 (`tools/parity-report`, Phase 2, not `check-parity` in Phase 4), §11 and §12
 
 ## Context
@@ -20,17 +20,22 @@ What there is to work with:
   - An RTA graph from `main` and the package inits finds the same 43 methods [observed: the PR 107 review].
   - CHA (`golang.org/x/tools/go/callgraph/cha`) gives no edges out of a method of an unexported type it does not see as a runtime type: it takes its functions from `ssautil.AllFunctions`, which visits methods of exported types only [observed: x/tools v0.52.0, `ssautil/visit.go`; a test's unexported server type had no edges].
   - The fake WhatsApp (`internal/fakewhatsapp`, behind `fakewhatsapp`) calls `ParseWebMessage` for real (fakewhatsapp/history.go:104), and tests call whatsmeow too: neither is the release build [observed: source].
+  - A job an RPC waits for and a callback that outlives it look the same in the code: messaging's send queue runs each send on a worker it starts with `errgroup.Go`, and the session's redelivery runs on a goroutine `svc.spawn` starts with `errgroup.Go` too; the RPC that waits is known only from a channel it reads [observed: messaging/send.go:211-228, session/session.go:235, 432-444].
   - Loading and analysing the sidecar takes about 3 seconds.
 
 ## Decision
 
-- **`tools/parity-report`** loads the sidecar's packages as the release build links them, without build tags and without tests, as SSA.
-  It walks from each method that implements an RPC of a generated `whatsmeow.v1` interface, named `whatsmeow.v1.<Service>/<Method>`, then from each `main` function, for what no RPC reaches; code `main` never reaches, such as a package nothing links, credits nothing.
-  From a reached function of the sidecar module it follows each function it calls statically or takes as a value (a closure it makes, a method value it hands on, since what it hands over is called later), and each interface call to every type the sidecar declares that implements the interface, as CHA would, with no CHA: it stops at whatsmeow's code.
-  A `*whatsmeow.Client` method it calls, takes as a value, or reaches through an interface the `Client` implements, is covered.
-  A call through a function value is not followed: it would reach every function of that signature, crediting every closure to every RPC; the function that took the closure is credited instead.
+- **`tools/parity-report`** loads the sidecar's packages as the release build links them, without build tags and without tests, as SSA, generics instantiated.
+  The build is the packages a `main` imports, directly or not; a package nothing links credits nothing.
+  An interface call can reach only a type the program converts to an interface (`Program.RuntimeTypes`, generic instances included), so the walk resolves each interface call to those of the build's types that implement it, and to whatsmeow's Client when it does; it stops at whatsmeow's code.
+- **The RPC paths.** It walks from each method that implements an RPC of a generated `whatsmeow.v1` interface, on such a type (registering a service converts it), named `whatsmeow.v1.<Service>/<Method>`.
+  It follows the functions a reached function calls, in its goroutine (a call or a defer), and the closures the RPC's method itself makes, at any depth, since they are that call's code.
+  A `*whatsmeow.Client` method it calls, or reaches through an interface the Client implements, is covered by that RPC.
+- **The paths no RPC is on.** A function a reached function takes as a value otherwise (an event handler it registers, a worker it starts, a method value it hands on, a goroutine) runs later on its own, so it starts a path of its own, as each `main` function does.
+  A Client method on such a path is covered by the function that calls it, named `no RPC: <function>`; a call in a synthetic wrapper, such as a method value of an interface's method, is named by the function that reached the wrapper.
+  A call through a function value is not followed on any path: it would reach every function of that signature.
 - **Each method is covered, excluded or missing.**
-  Covered names the RPCs that reach it, or, when none does, the sidecar function that calls it, such as `history.(*Service).fetch`.
+  Covered names the RPCs that reach it, then the functions that call it on a path no RPC is on, such as `history.(*Service).fetch`.
   Excluded gives the reason `sidecar/parity.excluded` records, one `Name: reason` per line, reviewed like `licenses.allow`.
   Missing is neither, so a method a bump adds is missing without an edit anywhere.
   An exclusion of a method that is covered, or that whatsmeow no longer has, is listed for removal.
@@ -45,6 +50,7 @@ What there is to work with:
 
 - A method reached only through a function stored in a struct field or a global, never taken as a value by reached code, shows as missing, the safe direction; it is then covered or excluded with its reason.
 - Taking a function as a value counts as reaching it, as a closure made but never called would; over-crediting there needs code that makes a closure for nothing.
+- A send's own call of `SendMessage`, and the account lookup with `GetGroupInfo` before it, run on the send queue's worker, so they are named `no RPC: messaging.(*Service).run` and `messaging.(*Service).account`, not by `SendText` and the other sends, which reach their builders only: the worker and the redelivery goroutine cannot be told apart in the code (Context), and the event handler and the redelivery are not their RPC's.
 - An interface call reaches every sidecar type that implements the interface: an interface with two sidecar implementations credits an RPC with both.
   No interface the RPCs call has a second sidecar implementation in the release build, where the fake WhatsApp is not linked [inferred: from the slices' interfaces; the report would show an unexpected RPC].
 - A method covered by an event path names a Go function, not an RPC: the .NET side receives its result through `EventService/StreamEvents`.
