@@ -888,6 +888,7 @@ func TestConnectFromEachState(t *testing.T) {
 		{"never paired", func(*harness) {}, "NOT_LOGGED_IN", nil, 0},
 		{"logged out", func(h *harness) { h.stub("s1").emit(&events.LoggedOut{Reason: events.ConnectFailureLoggedOut}) }, "LOGGED_OUT", nil, 1},
 		{"connected", func(*harness) {}, "", nil, 1},
+		{"reconnecting", func(h *harness) { h.stub("s1").emit(&events.Disconnected{}) }, "", nil, 1},
 		{"disconnected", func(h *harness) { _, _ = h.svc.Disconnect(h.ctx, &whatsmeowv1.DisconnectRequest{SessionId: "s1"}) }, "", nil, 2},
 		{"banned until later", func(h *harness) {
 			h.stub("s1").emit(&events.TemporaryBan{Code: 101, Expire: time.Until(future) + time.Second})

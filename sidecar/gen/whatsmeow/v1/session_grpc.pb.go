@@ -54,10 +54,10 @@ type SessionServiceClient interface {
 	// then becomes Connected) or whatsmeow is retrying (Reconnecting). A login WhatsApp refuses (a logout, a ban,
 	// an outdated client) arrives later as the session's state. After CONNECTION_FAILED the session is back in its
 	// previous state.
-	// Connecting a session that is connecting or connected succeeds and does nothing. From Outdated, Replaced or
-	// Error, and from TempBanned once the ban has ended or has no known end, it is a new attempt. While a ban with a
-	// known end lasts, it fails with TEMPORARILY_BANNED. LOGGED_OUT and NOT_LOGGED_IN are the session's state, not
-	// WhatsApp's answer.
+	// Connecting a session that is connecting, connected or reconnecting succeeds and does nothing. From Outdated,
+	// Replaced or Error, and from TempBanned once the ban has ended or has no known end, it is a new attempt. While a
+	// ban with a known end lasts, it fails with TEMPORARILY_BANNED. LOGGED_OUT and NOT_LOGGED_IN are the session's
+	// state, not WhatsApp's answer.
 	// The sidecar never connects a session on its own, also not after a restart.
 	// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED.
 	Connect(ctx context.Context, in *ConnectRequest, opts ...grpc.CallOption) (*ConnectResponse, error)
@@ -224,10 +224,10 @@ type SessionServiceServer interface {
 	// then becomes Connected) or whatsmeow is retrying (Reconnecting). A login WhatsApp refuses (a logout, a ban,
 	// an outdated client) arrives later as the session's state. After CONNECTION_FAILED the session is back in its
 	// previous state.
-	// Connecting a session that is connecting or connected succeeds and does nothing. From Outdated, Replaced or
-	// Error, and from TempBanned once the ban has ended or has no known end, it is a new attempt. While a ban with a
-	// known end lasts, it fails with TEMPORARILY_BANNED. LOGGED_OUT and NOT_LOGGED_IN are the session's state, not
-	// WhatsApp's answer.
+	// Connecting a session that is connecting, connected or reconnecting succeeds and does nothing. From Outdated,
+	// Replaced or Error, and from TempBanned once the ban has ended or has no known end, it is a new attempt. While a
+	// ban with a known end lasts, it fails with TEMPORARILY_BANNED. LOGGED_OUT and NOT_LOGGED_IN are the session's
+	// state, not WhatsApp's answer.
 	// The sidecar never connects a session on its own, also not after a restart.
 	// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED.
 	Connect(context.Context, *ConnectRequest) (*ConnectResponse, error)
