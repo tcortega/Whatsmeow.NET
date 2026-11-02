@@ -74,6 +74,46 @@ func TestLinkDeviceSavesTheDeviceThenDispatchesPairSuccess(t *testing.T) {
 	}
 }
 
+func TestLinkDeviceWithALidSavesItThenDispatchesItInPairSuccess(t *testing.T) {
+	t.Parallel()
+
+	whatsApp, control, ctx := start(t)
+	db, err := sidecarstore.Open(context.Background(), filepath.Join(t.TempDir(), "whatsmeow-net.db"), zerolog.Nop())
+	if err != nil {
+		t.Fatalf("open the store: %v", err)
+	}
+
+	t.Cleanup(func() {
+		whatsApp.Wait()
+		_ = db.Close()
+	})
+
+	got := make(chan any, 8)
+	client := whatsApp.NewClient("s1")
+	client.Store = db.Devices.NewDevice()
+	client.AddEventHandlerWithSuccessStatus(func(evt any) bool {
+		got <- evt
+
+		return true
+	})
+
+	if _, err := control.LinkDevice(ctx, &fakev1.LinkDeviceRequest{SessionId: "s1", Jid: jid, Lid: "2666:1@lid"}); err != nil {
+		t.Fatalf("LinkDevice: %v", err)
+	}
+
+	want := types.NewADJID("2666", 0, 1)
+	want.Server = types.HiddenUserServer
+
+	if evt, ok := (<-got).(*events.PairSuccess); !ok || evt.LID != want {
+		t.Fatalf("event = %v, want PairSuccess with LID %s", evt, want)
+	}
+
+	device, err := db.Devices.GetDevice(ctx, types.NewADJID("1555", 0, 1))
+	if err != nil || device == nil || device.LID != want {
+		t.Fatalf("GetDevice = %v, %v; want the saved device with LID %s", device, err, want)
+	}
+}
+
 func TestConnectOpensTheConnectionThenWhatsAppAcceptsTheLogin(t *testing.T) {
 	t.Parallel()
 

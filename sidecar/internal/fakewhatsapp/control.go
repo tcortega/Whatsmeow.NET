@@ -139,8 +139,9 @@ func (c *Control) WaitForSent(ctx context.Context, req *fakev1.WaitForSentReques
 }
 
 // LinkDevice does what whatsmeow does when the phone links the device (handlePair, pair.go:222-240): it stores the
-// device under jid, then dispatches PairSuccess (pair.go:157). While pairing, the QR channel then sends success and
-// closes (qrchan.go:189-190), and the client logs in again after WhatsApp's 515 (connectionevents.go:26-38).
+// device under jid, with lid when set, then dispatches PairSuccess with both (pair.go:157). While pairing, the QR
+// channel then sends success and closes (qrchan.go:189-190), and the client logs in again after WhatsApp's 515
+// (connectionevents.go:26-38).
 func (c *Control) LinkDevice(ctx context.Context, req *fakev1.LinkDeviceRequest) (*fakev1.LinkDeviceResponse, error) {
 	client, err := c.whatsApp.client(req.GetSessionId())
 	if err != nil {
@@ -152,7 +153,15 @@ func (c *Control) LinkDevice(ctx context.Context, req *fakev1.LinkDeviceRequest)
 		return nil, fmt.Errorf("link session %q: jid %q: %w", req.GetSessionId(), req.GetJid(), err)
 	}
 
+	var lid types.JID
+	if req.GetLid() != "" {
+		if lid, err = types.ParseJID(req.GetLid()); err != nil {
+			return nil, fmt.Errorf("link session %q: lid %q: %w", req.GetSessionId(), req.GetLid(), err)
+		}
+	}
+
 	client.Store.ID = &jid
+	client.Store.LID = lid
 	// The ADV identity WhatsApp signs; the schema checks only the lengths (00-latest-schema.sql).
 	client.Store.Account = &waAdv.ADVSignedDeviceIdentity{
 		Details: []byte{}, AccountSignature: make([]byte, 64), AccountSignatureKey: make([]byte, 32), DeviceSignature: make([]byte, 64),
@@ -173,7 +182,7 @@ func (c *Control) LinkDevice(ctx context.Context, req *fakev1.LinkDeviceRequest)
 	c.whatsApp.pairingProps[req.GetSessionId()] = proto.CloneOf(store.DeviceProps)
 	c.whatsApp.mu.Unlock()
 
-	client.dispatch(&events.PairSuccess{ID: jid})
+	client.dispatch(&events.PairSuccess{ID: jid, LID: lid})
 
 	client.conn.Lock()
 	pairing := client.qr != nil

@@ -300,6 +300,8 @@ message LinkDeviceRequest {
   // True to keep the app state key from the device. Otherwise the phone shares one as the device is linked, as it
   // does once after pairing (message.go:827-861), and the device can write app state.
   bool without_app_state_key = 3;
+  // The device's LID WhatsApp assigns with the link, user:device@lid (pair.go:157, 223); empty for none.
+  string lid = 4;
 }
 
 // LinkDeviceResponse has no fields.

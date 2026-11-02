@@ -7,7 +7,13 @@ namespace Whatsmeow.Sessions;
 internal static class SessionMapping
 {
 	public static SessionInfo ToInfo(Session session) =>
-		new() { Id = SessionId.From(session.Id), State = ToState(session.State) };
+		new()
+		{
+			Id = SessionId.From(session.Id),
+			State = ToState(session.State),
+			Jid = session.Jid.Length > 0 ? Jid.Parse(session.Jid) : null,
+			Lid = session.Lid.Length > 0 ? Jid.Parse(session.Lid) : null,
+		};
 
 	public static SessionState ToState(ProtoState? state) =>
 		state?.KindCase switch
