@@ -480,6 +480,11 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
   On Windows the named-pipe transport stays selectable as a fallback; it passed the same soak.
 - An auth token is added to every call by an interceptor, together with `ThrowOperationCanceledOnCancellation = true`.
 - `MaxReceiveMessageSize` and `MaxSendMessageSize` are set explicitly to 16 MiB on both sides.
+- The `SocketsHttpHandler` sits behind `RequestBodyFence` (`Core/Transport/`), which ends a request body only once no write is in flight on it (#71).
+  When a call ends, grpc-dotnet 2.85.0 ends a client stream's request content without waiting for the write in flight (`GrpcCall.Cleanup` and `CancelCall` cancel `CompleteTcs`), and SocketsHttpHandler then completes the HTTP/2 stream under that write: in .NET 10.0.14 `Http2Stream.Complete` clears `_creditWaiter` under the credit lock, and `SendDataAsync`, out of credit, reads it again after leaving that lock [observed: both sources at those tags].
+  An upload the sidecar refused mid-stream threw a `NullReferenceException` from `SendDataAsync` [observed: GitHub Actions job 125158865294, linux-x64] or never returned [observed: 7 test timeouts in 500 local runs without the fence, macOS under load].
+  In 100 of those runs, 75 of 2,000 uploads ended with a write in flight, and in both timed-out runs that write never returned [observed: an observe-only fence]; that it waits on a credit waiter created after `Complete` is [inferred: from the source].
+  With the fence the write in flight is cancelled and awaited first, and a later write throws `ObjectDisposedException`, which the upload already reads as "the call ended" (`MediaTransfer`).
 - Never call `GrpcChannel.ConnectAsync` or read `GrpcChannel.State`; both throw `InvalidOperationException` ("doesn't support client-side load balancing or connectivity state tracking") when `ConnectCallback` is set (§14 transport spike). Readiness comes from the handshake.
 
 ### 8.7 Errors

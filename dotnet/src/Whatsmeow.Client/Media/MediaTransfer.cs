@@ -158,7 +158,8 @@ internal sealed class MediaTransfer(MediaService.MediaServiceClient client, Sess
 		catch (Exception e) when (e is RpcException or InvalidOperationException or OperationCanceledException && !cancellationToken.IsCancellationRequested)
 		{
 			// The sidecar ended the call while chunks were still going out, which cuts the write short with any of these
-			// (an OperationCanceledException when the HTTP/2 stream was reset under it): its status says why.
+			// (an OperationCanceledException when the write in flight was cancelled, an ObjectDisposedException when it
+			// came after the request body ended; RequestBodyFence): its status says why.
 			_ = await ResponseAsync(call).ConfigureAwait(false);
 			throw;
 		}
