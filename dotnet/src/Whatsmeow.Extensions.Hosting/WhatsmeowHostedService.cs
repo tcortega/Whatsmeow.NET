@@ -11,8 +11,9 @@ namespace Whatsmeow.Extensions.Hosting;
 /// finds both, whatever the registration order. <see cref="StartedAsync"/>, after every <c>StartAsync</c> succeeded,
 /// connects the paired ones, so a host that fails to start had no events flowing into handlers whose container it then
 /// disposes, unless a service connected or paired a session in its own <c>StartAsync</c>, or a later service's
-/// <c>StartedAsync</c> failed (ADR 0034, ADR 0052). <see cref="StoppedAsync"/>, after every service stopped using it, stops it. Crashes in between are the
-/// supervisor's: it restarts the sidecar with its backoff and never throws (ARCHITECTURE §8.5).
+/// <c>StartedAsync</c> failed (ADR 0034, ADR 0052). <see cref="StoppedAsync"/>, after every service stopped using it,
+/// stops it. Crashes in between are the supervisor's: it restarts the sidecar with its backoff and never throws
+/// (ARCHITECTURE §8.5).
 /// A host whose sessions a test replaced with fakes (<see cref="ReplacedSession"/>, ADR 0036) starts no sidecar and
 /// creates or connects nothing: the handlers go on the fakes in <see cref="StartedAsync"/>, and come off them in
 /// <see cref="StoppedAsync"/>, which first stops the ones running.
