@@ -50,8 +50,11 @@ type stub struct {
 	disconnects int
 	logouts     int
 	connected   bool
-	// resetAt is when each ResetConnection came.
-	resetAt []time.Time
+	// resetAt is when each ResetConnection came. Like whatsmeow's, a reset dispatches Disconnected and then the
+	// login's Connected after it returned, on a goroutine of its own (client.go:612-631, 712-724), unless holdReset,
+	// when it dispatches nothing.
+	resetAt   []time.Time
+	holdReset bool
 	// connecting, when set, runs inside ConnectContext before it returns, without the stub's lock.
 	connecting func(ctx context.Context)
 	// disconnecting, when set, runs inside Disconnect, without the stub's lock.
@@ -100,6 +103,14 @@ func (s *stub) ResetConnection() {
 	defer s.mu.Unlock()
 
 	s.resetAt = append(s.resetAt, time.Now())
+	if s.holdReset {
+		return
+	}
+
+	go func() {
+		s.emit(&events.Disconnected{})
+		s.emit(&events.Connected{})
+	}()
 }
 
 func (s *stub) IsConnected() bool {

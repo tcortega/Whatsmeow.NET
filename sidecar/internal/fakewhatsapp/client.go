@@ -47,7 +47,8 @@ type Client struct {
 	// activeReceipts is whatsmeow's sendActiveReceipts (client.go:95), which SendPresence turns on and off.
 	activeReceipts bool
 	// reconnect is set by ResetConnection until its reconnect, and cleared by Disconnect, which cancels it, as
-	// whatsmeow's expected disconnect does (client.go:647-660).
+	// whatsmeow's expected disconnect does during autoReconnect's wait (client.go:657-659). whatsmeow does not cancel
+	// a reconnect whose wait already ended (client.go:571); the fake does not model that window.
 	reconnect bool
 	// unanswered are the message stanzas the client left unanswered, each its decrypted parts, which WhatsApp
 	// delivers again at the device's next login and never while the connection stays up (ARCHITECTURE §14, #10).
@@ -210,8 +211,8 @@ func (c *Client) Disconnect() {
 
 // ResetConnection closes an open connection and reconnects at once, as whatsmeow's does after a login: Disconnected
 // off the node queue, then a reconnect with no delay, whose login WhatsApp accepts (client.go:612-631, 653-660,
-// 712-724; connectionevents.go:165). A Disconnect before the reconnect cancels it. Without a connection it does
-// nothing.
+// 712-724; connectionevents.go:165). A Disconnect while its Disconnected handlers run cancels the reconnect, as one
+// during whatsmeow's reconnect wait does (client.go:657-659). Without a connection it does nothing.
 func (c *Client) ResetConnection() {
 	c.conn.Lock()
 	defer c.conn.Unlock()

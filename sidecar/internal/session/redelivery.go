@@ -14,6 +14,9 @@ const (
 	// up to maxCoolDown, so a failure that never clears resets rarely, and is back to coolDown after one with none.
 	coolDown    = time.Minute
 	maxCoolDown = 30 * time.Minute
+	// resetWait bounds how long a reset holds the session for whatsmeow's Disconnected; it comes as soon as the
+	// stopped socket's read loop ends [inferred: client.go:612-631, unmeasured].
+	resetWait = 10 * time.Second
 )
 
 // withheld wakes the session's redelivery, without waiting: an event handler of its client withheld an answer to
@@ -88,8 +91,10 @@ func (svc *Service) sleep(s *session, d time.Duration) bool {
 
 // reset resets the connection of a session logged in to WhatsApp, Connected or CaughtUp, and reports whether it did.
 // A session in any other state is not: one Connecting or Reconnecting logs in soon, and WhatsApp delivers again then;
-// one disconnected does at its next Connect. It holds s.ops, so no Connect, Disconnect, Logout, Pair or delete runs
-// meanwhile.
+// one disconnected does at its next Connect. It holds s.ops until the session left Connected and CaughtUp, at most
+// resetWait: ResetConnection returns once it stopped the socket, and whatsmeow clears the socket and dispatches
+// Disconnected later, on its own goroutine (client.go:612-631, 712-724), so a Logout that ran in between would send
+// its unlink on the stopped socket. After it, a call finds the session Reconnecting.
 func (svc *Service) reset(s *session) bool {
 	if err := s.lock(); err != nil {
 		return false
@@ -98,6 +103,13 @@ func (svc *Service) reset(s *session) bool {
 
 	s.mu.Lock()
 	client, online := s.client, up(s.state)
+
+	// Closed once the session leaves Connected and CaughtUp (track).
+	if online && s.online == nil {
+		s.online = make(chan struct{})
+	}
+
+	left := s.online
 	s.mu.Unlock()
 
 	if !online || svc.lifetime.Err() != nil {
@@ -106,6 +118,16 @@ func (svc *Service) reset(s *session) bool {
 
 	svc.log.Warn().Str("session_id", s.id).Msg("an answer to WhatsApp was withheld; resetting the connection, so WhatsApp delivers it again at the login")
 	client.ResetConnection()
+
+	timer := time.NewTimer(resetWait)
+	defer timer.Stop()
+
+	select {
+	case <-left:
+	case <-svc.lifetime.Done():
+	case <-timer.C:
+		svc.log.Warn().Str("session_id", s.id).Msgf("no Disconnected came within %s of the reset; the session's calls go on", resetWait)
+	}
 
 	return true
 }

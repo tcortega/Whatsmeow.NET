@@ -215,8 +215,8 @@ func TestResetConnectionDoesNothingWithoutAConnectionAndADisconnectStopsItsRecon
 	default:
 	}
 
-	// Connected again, then reset and disconnected at once: whatsmeow's Disconnect cancels its reconnect
-	// (client.go:647-660).
+	// Connected again, then reset and disconnected while the reset's Disconnected handlers run: a Disconnect during
+	// whatsmeow's reconnect wait cancels the reconnect (client.go:657-659).
 	if err := client.ConnectContext(ctx); err != nil {
 		t.Fatalf("ConnectContext: %v", err)
 	}

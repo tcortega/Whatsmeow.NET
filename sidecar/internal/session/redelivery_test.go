@@ -2,6 +2,7 @@ package session
 
 import (
 	"context"
+	"errors"
 	"path/filepath"
 	"sync"
 	"testing"
@@ -10,9 +11,11 @@ import (
 
 	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow/store"
+	"go.mau.fi/whatsmeow/types/events"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/outbox"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 	sidecarstore "github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
 )
 
@@ -262,6 +265,94 @@ func TestWithheldNeverWaitsForTheRedelivery(t *testing.T) {
 			if waited := time.Since(before); waited != 0 {
 				t.Fatalf("withheld waited %v for the redelivery", waited)
 			}
+		}
+	})
+}
+
+// session is s1.
+func (r *redelivery) session() *session {
+	r.svc.mu.Lock()
+	defer r.svc.mu.Unlock()
+
+	return r.svc.sessions["s1"]
+}
+
+func TestAResetHoldsTheSessionUntilItIsRecordedReconnecting(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		r := startRedelivery(t)
+		s := r.session()
+		done := make(chan bool, 1)
+
+		r.client.mu.Lock()
+		r.client.holdReset = true
+		r.client.mu.Unlock()
+
+		// whatsmeow's ResetConnection returns once it stopped the socket; its onDisconnect clears the socket and
+		// dispatches Disconnected later, on a goroutine of its own (client.go:612-631, 712-724). The stub holds it
+		// until the test dispatches it.
+		go func() { done <- r.svc.reset(s) }()
+
+		synctest.Wait()
+
+		if len(r.resets()) != 1 {
+			t.Fatalf("resets at %v, want one", r.resets())
+		}
+
+		// A Logout queued behind the reset would send its unlink on the stopped socket.
+		if s.ops.TryLock() {
+			s.ops.Unlock()
+			t.Fatal("the reset let go of the session before it was recorded Reconnecting")
+		}
+
+		r.client.emit(&events.Disconnected{})
+		synctest.Wait()
+
+		if reset := <-done; !reset {
+			t.Fatal("reset = false, want true")
+		}
+
+		// The Logout after it sees a session that is reconnecting, and sends nothing.
+		_, err := r.svc.Logout(context.Background(), &whatsmeowv1.LogoutRequest{SessionId: "s1"})
+
+		r.client.mu.Lock()
+		unlinks := r.client.logouts
+		r.client.mu.Unlock()
+
+		if !errors.Is(err, server.ErrNotConnected) || unlinks != 0 {
+			t.Fatalf("Logout after the reset = %v with %d unlinks sent, want NOT_CONNECTED and none", err, unlinks)
+		}
+	})
+}
+
+func TestAResetWhoseDisconnectedNeverComesLetsTheSessionGoAfterItsBound(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		r := startRedelivery(t)
+		s := r.session()
+		done := make(chan struct{})
+
+		r.client.mu.Lock()
+		r.client.holdReset = true
+		r.client.mu.Unlock()
+
+		go func() {
+			r.svc.reset(s)
+			close(done)
+		}()
+
+		after(resetWait - time.Millisecond)
+
+		select {
+		case <-done:
+			t.Fatalf("the reset let go of the session before its bound %v", resetWait)
+		default:
+		}
+
+		after(time.Millisecond)
+
+		select {
+		case <-done:
+		default:
+			t.Fatalf("the reset still holds the session after its bound %v", resetWait)
 		}
 	})
 }

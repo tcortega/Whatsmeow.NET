@@ -29,10 +29,13 @@ public sealed class WithheldRedeliveryTests(FakeSidecar fixture)
 	{
 		var ct = TestContext.Current.CancellationToken;
 		const string Session = "events-withheld";
-		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
+		var client = await SessionSetup.LinkedAsync(fixture, Session, ct);
 		using var received = new Received<MessageReceived>(client);
-		await using var watch = StateWatch.Start(client, ct);
-		Assert.Equal(new SessionState.Connected(), await watch.NextAsync());
+		// From the outbox, so every state comes, in order; the state watch keeps only the latest (IWhatsAppClient).
+		using var states = new Received<ConnectionStateChanged>(client);
+		await client.ConnectAsync(ct);
+		for (var state = (await states.NextAsync(ct)).State; state != new SessionState.Connected(); state = (await states.NextAsync(ct)).State)
+			Assert.True(state is SessionState.Disconnected or SessionState.Connecting, $"state {state} before Connected");
 
 		var withheld = Deliveries.Message(Session, "M1");
 		withheld.WithholdFirstAnswer = true;
@@ -42,8 +45,8 @@ public sealed class WithheldRedeliveryTests(FakeSidecar fixture)
 
 		// M2 was recorded on the same connection; M1 only once the sidecar reset it and WhatsApp delivered it again.
 		Assert.Equal(Deliveries.Received(Session, "M2"), await received.NextAsync(ct));
-		await watch.ReachesAsync(new SessionState.Reconnecting()).WaitAsync(s_bound, s_wallClock, ct);
-		await watch.ReachesAsync(new SessionState.Connected());
+		Assert.Equal(new SessionState.Reconnecting(), (await states.NextAsync(ct).WaitAsync(s_bound, s_wallClock, ct)).State);
+		Assert.Equal(new SessionState.Connected(), (await states.NextAsync(ct)).State);
 		Assert.Equal(Deliveries.Received(Session, "M1"), await received.NextAsync(ct).WaitAsync(s_bound, s_wallClock, ct));
 		Assert.True(s_wallClock.GetElapsedTime(start) < s_bound, $"M1 came again after {s_wallClock.GetElapsedTime(start)}");
 
