@@ -18,6 +18,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/tap"
 
@@ -31,6 +32,8 @@ const (
 	errorDomain    = "whatsmeow.net"
 	// stopGrace bounds the graceful stop, below the client's own 5 s grace (ADR 0017).
 	stopGrace = 3 * time.Second
+	// keepaliveMinTime is the shortest ping interval the server accepts, far below the External-mode client's (ADR 0046).
+	keepaliveMinTime = time.Second
 )
 
 // Server is the sidecar's gRPC server.
@@ -58,6 +61,8 @@ func New(token string, log zerolog.Logger, redactor *sidecarlog.Redactor) *Serve
 		grpc.ForceServerCodecV2(lenientCodec{}),
 		grpc.MaxRecvMsgSize(maxMessageSize),
 		grpc.MaxSendMsgSize(maxMessageSize),
+		// An External-mode client pings to notice a sidecar that is gone, also between calls (ADR 0046).
+		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{MinTime: keepaliveMinTime, PermitWithoutStream: true}),
 		// The token is checked from the headers, before a body is read or decoded.
 		grpc.InTapHandle(s.authenticate),
 		grpc.UnaryInterceptor(s.unary),
