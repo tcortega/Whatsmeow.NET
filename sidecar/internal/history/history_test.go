@@ -3,6 +3,7 @@ package history
 import (
 	"compress/zlib"
 	"context"
+	"database/sql"
 	"fmt"
 	"path/filepath"
 	"slices"
@@ -26,6 +27,7 @@ import (
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
 	eventsslice "github.com/tcortega/Whatsmeow.NET/sidecar/internal/events"
+	sidecarstore "github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
 )
 
 func TestANotificationIsQueuedAndWaitsForTheOfflineSync(t *testing.T) {
@@ -66,6 +68,64 @@ func TestANotificationThatIsNotTheAccountsOwnIsNotQueued(t *testing.T) {
 
 	if got := h.queueRows("s1"); len(got) != 0 {
 		t.Fatalf("queue %v, want nothing: whatsmeow ignores a notification from anyone else (message.go:888-890)", got)
+	}
+}
+
+func TestAQueueWriteStuckBehindTheGatePastItsDeadlineGivesUpAndWithholds(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.svc.queueTimeout = 100 * time.Millisecond
+
+	// Another write holds the gate, as one stuck behind whatsmeow's own writes would.
+	holding, release := make(chan struct{}), make(chan struct{})
+	held := make(chan error, 1)
+
+	go func() {
+		held <- h.db.Writer.Tx(h.ctx, func(context.Context, *sql.Tx) error {
+			close(holding)
+			<-release
+
+			return nil
+		})
+	}()
+
+	<-holding
+
+	// The holder lets go once the handler returned, or at the test's bound for a handler that waits for it.
+	returned := make(chan struct{})
+
+	go func() {
+		select {
+		case <-returned:
+		case <-h.ctx.Done():
+		}
+
+		close(release)
+	}()
+
+	evt := notification("N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT))
+	answered := h.handle("s1", evt)
+	close(returned)
+
+	if answered {
+		t.Fatal("the handler waited for the gate past its deadline and answered")
+	}
+
+	if err := <-held; err != nil {
+		t.Fatalf("the holding write: %v", err)
+	}
+
+	if got := h.queueRows("s1"); len(got) != 0 {
+		t.Fatalf("queue %v, want nothing: the write gave up", got)
+	}
+
+	// Its redelivery is queued once the gate is free, with the real deadline: only the stuck write was meant to run
+	// out of its 100 ms, not a commit on a slow disk.
+	h.svc.queueTimeout = sidecarstore.BusyTimeout
+
+	if !h.handle("s1", evt) {
+		t.Fatal("the handler withheld the redelivery")
 	}
 }
 

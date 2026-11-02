@@ -158,7 +158,7 @@ func TestEveryAnswerMapsToTheNewRefOrItsFailure(t *testing.T) {
 	}
 
 	h := start(t)
-	mapper := Mapper(h.db.DB, zerolog.Nop())
+	mapper := Mapper(h.db.DB, h.db.Writer, zerolog.Nop())
 
 	for name, c := range cases {
 		// A final answer settles its request: ask again for each.
@@ -198,7 +198,7 @@ func TestAnAnswerKeepsItsKeyAndANewAnswerGetsAnother(t *testing.T) {
 	h := start(t)
 	media := expiredRef()
 	h.requestRetry(media)
-	mapper := Mapper(h.db.DB, zerolog.Nop())
+	mapper := Mapper(h.db.DB, h.db.Writer, zerolog.Nop())
 
 	// A general error does not settle the request, so the phone's later answers find it too.
 	general := &waMmsRetry.MediaRetryNotification{StanzaID: proto.String("M1"), Result: waMmsRetry.MediaRetryNotification_GENERAL_ERROR.Enum()}
@@ -217,7 +217,7 @@ func TestAnAnswerToNoRequestIsNotMapped(t *testing.T) {
 
 	h := start(t)
 	h.requestRetry(expiredRef())
-	mapper := Mapper(h.db.DB, zerolog.Nop())
+	mapper := Mapper(h.db.DB, h.db.Writer, zerolog.Nop())
 
 	other := plainError(2, time.Unix(1_700_000_000, 0))
 	other.MessageID = "M2"
@@ -254,7 +254,7 @@ func TestARequestIsAnsweredAfterARestart(t *testing.T) {
 
 	t.Cleanup(func() { _ = db.Close() })
 
-	if _, event, ok := Mapper(db.DB, zerolog.Nop())("s1", plainError(2, time.Unix(1_700_000_000, 0))); !ok || event.GetMediaRetry().GetFailure() != whatsmeowv1.MediaRetryFailure_MEDIA_RETRY_FAILURE_NOT_ON_PHONE {
+	if _, event, ok := Mapper(db.DB, db.Writer, zerolog.Nop())("s1", plainError(2, time.Unix(1_700_000_000, 0))); !ok || event.GetMediaRetry().GetFailure() != whatsmeowv1.MediaRetryFailure_MEDIA_RETRY_FAILURE_NOT_ON_PHONE {
 		t.Fatalf("after a restart the answer mapped to %v, %v", event, ok)
 	}
 }
@@ -296,7 +296,7 @@ func TestAFinalAnswerSettlesItsRequestAndAnyOtherKeepsIt(t *testing.T) {
 	}
 
 	h := start(t)
-	mapper := Mapper(h.db.DB, zerolog.Nop())
+	mapper := Mapper(h.db.DB, h.db.Writer, zerolog.Nop())
 
 	for name, c := range cases {
 		h.requestRetry(media)
@@ -315,7 +315,7 @@ func TestAnAnswerFindsItsRequestByMessageAndPrefersTheSameChat(t *testing.T) {
 	t.Parallel()
 
 	h := start(t)
-	mapper := Mapper(h.db.DB, zerolog.Nop())
+	mapper := Mapper(h.db.DB, h.db.Writer, zerolog.Nop())
 	byPhone, inGroup := expiredRef(), expiredRef()
 
 	for _, r := range []struct {

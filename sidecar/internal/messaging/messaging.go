@@ -25,6 +25,7 @@ import (
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/session"
+	sidecarstore "github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
 )
 
 // whatsApp is what the slice needs of a session's whatsmeow client. *whatsmeow.Client and the fake WhatsApp's client
@@ -73,6 +74,7 @@ type Service struct {
 	whatsmeowv1.UnimplementedMessageServiceServer
 
 	db       *sql.DB
+	w        *sidecarstore.Writer
 	sessions Sessions
 	log      zerolog.Logger
 	// lifetime ends with Close, which fails every send still waiting.
@@ -93,12 +95,12 @@ type Service struct {
 	workers sync.WaitGroup
 }
 
-// New returns the slice on the database's send records and the sessions' clients.
-func New(db *sql.DB, sessions Sessions, log zerolog.Logger) *Service {
+// New returns the slice on the database's send records, which it writes through w, and the sessions' clients.
+func New(db *sql.DB, w *sidecarstore.Writer, sessions Sessions, log zerolog.Logger) *Service {
 	lifetime, end := context.WithCancel(context.Background())
 
 	return &Service{
-		db: db, sessions: sessions, log: log, lifetime: lifetime, end: end,
+		db: db, w: w, sessions: sessions, log: log, lifetime: lifetime, end: end,
 		pace: pace, burst: burst, backoff: backoff(), margin: tryMargin,
 		flights: map[flightKey]*flight{}, queues: map[string]*queue{},
 	}

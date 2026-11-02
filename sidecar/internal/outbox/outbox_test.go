@@ -40,7 +40,7 @@ func open(t *testing.T, ids ...string) (*Outbox, *sql.DB, context.Context) {
 		}
 	}
 
-	return New(db.DB), db.DB, ctx
+	return New(db.DB, db.Writer), db.DB, ctx
 }
 
 // state is a ConnectionStateEvent, an event without a natural key.
@@ -197,7 +197,7 @@ func TestRecordWithRunsInTheSameTransaction(t *testing.T) {
 	o, db, ctx := open(t, "s1")
 	failed := errors.New("the other write failed")
 
-	_, err := o.Record(ctx, "s1", "", state(), func(tx *sql.Tx) error {
+	_, err := o.Record(ctx, "s1", "", state(), func(ctx context.Context, tx *sql.Tx) error {
 		if _, err := tx.ExecContext(ctx, "UPDATE session SET jid = 'x' WHERE id = 's1'"); err != nil {
 			return fmt.Errorf("update: %w", err)
 		}
@@ -339,7 +339,10 @@ func TestRecordWakesTheWatchAndDeleteEndsIt(t *testing.T) {
 func TestConcurrentRecordsNeverLetAReaderSkipASeq(t *testing.T) {
 	t.Parallel()
 
-	const writers, each = 4, 50
+	// 40 commits: 200 took up to 27 s of the 30 s bound on a loaded Windows disk (#89, ADR 0040). It still kills the
+	// mutation it is for, a seq taken from a counter in memory before the transaction instead of from SQLite inside
+	// it, in 9 of 20 runs (macOS arm64; 19 of 30 at either size before the write gate).
+	const writers, each = 4, 10
 
 	o, _, ctx := open(t, "s1")
 	w, _, err := o.Watch(ctx, "s1")

@@ -46,6 +46,11 @@ linters:
         - pattern: ^encoding\.RegisterCodec(V2)?$
           pkg: ^google\.golang\.org/grpc/encoding$
           msg: package-level mutable state; install the lenient codec with grpc.ForceServerCodecV2 (docs/guidelines/go.md)
+        # Reads stay on the *sql.DB (WAL readers never wait for the writer), so a query that writes still gets past
+        # this; it is a backstop (docs/guidelines/go.md).
+        - pattern: ^sql\.DB\.(Exec|ExecContext|Begin|BeginTx|Conn|Prepare|PrepareContext)$
+          pkg: ^database/sql$
+          msg: the sidecar writes through store.Writer, the fair write gate (ADR 0040)
     importas:
       no-unaliased: true
       alias:
@@ -57,6 +62,11 @@ linters:
       require-specific: true
   exclusions:
     generated: strict
+    rules:
+      # The gate itself, the migration that runs before the store is handed out, and tests' own setup writes.
+      - path: (^|/)internal/store/|_test\.go$
+        linters: [forbidigo]
+        text: store\.Writer
 
 issues:
   # Report every finding, never a sample of them.

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow"
@@ -16,6 +17,7 @@ import (
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/outbox"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
+	sidecarstore "github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
 )
 
 // batch is how many events a stream reads from the outbox at a time.
@@ -39,6 +41,8 @@ type Service struct {
 	// held is the live tests' seam, which withholds the first answer to a marked message; a release build's never
 	// does (livetest_off.go, ADR 0032).
 	held withheld
+	// recordTimeout bounds the handler's write (Handler).
+	recordTimeout time.Duration
 }
 
 type consumer struct{ session, name string }
@@ -54,7 +58,10 @@ type Mapper func(sessionID string, evt any) (key string, event *whatsmeowv1.Stre
 // New returns the slice on box. Each mapper is a slice's: the handler records what the first that maps an event
 // returns, after the events this slice maps itself.
 func New(box *outbox.Outbox, log zerolog.Logger, mappers ...Mapper) *Service {
-	return &Service{box: box, log: log, mappers: mappers, streams: map[consumer]*registration{}, rings: map[string]*ring{}}
+	return &Service{
+		box: box, log: log, mappers: mappers, streams: map[consumer]*registration{}, rings: map[string]*ring{},
+		recordTimeout: sidecarstore.BusyTimeout,
+	}
 }
 
 // Handler is the whatsmeow event handler of one session's client (ARCHITECTURE §7.3). It maps the event, records it
@@ -93,8 +100,13 @@ func (svc *Service) Handler(sessionID string, account *store.Device) whatsmeow.E
 			return true
 		}
 
-		// No caller's context: whatsmeow gives the handler none. SQLite's busy_timeout bounds the write.
-		differs, err := svc.box.Record(context.Background(), sessionID, key, event)
+		// whatsmeow gives the handler no context. The write waits for the writes ahead of it at the gate, each for
+		// whatsmeow's own writes and its commit, so it gives up after the busy_timeout: then the answer is withheld,
+		// and WhatsApp redelivers the stanza at the next login (ADR 0040, #91).
+		ctx, cancel := context.WithTimeout(context.Background(), svc.recordTimeout)
+		defer cancel()
+
+		differs, err := svc.box.Record(ctx, sessionID, key, event)
 		if err != nil {
 			svc.log.Error().Err(err).Str("session_id", sessionID).Msgf("recording a %T failed; its answer is withheld", evt)
 

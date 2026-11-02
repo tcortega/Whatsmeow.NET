@@ -47,6 +47,7 @@ import (
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/outbox"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/session"
+	sidecarstore "github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
 )
 
 const (
@@ -118,11 +119,14 @@ type MessageEvent func(e *waevents.Message, account *store.Device) *whatsmeowv1.
 type Service struct {
 	whatsmeowv1.UnimplementedHistoryServiceServer
 
-	db       *sql.DB
-	box      *outbox.Outbox
-	log      zerolog.Logger
-	toEvent  MessageEvent
-	sessions Sessions
+	db *sql.DB
+	w  *sidecarstore.Writer
+	// queueTimeout bounds the handler's writes (Handler).
+	queueTimeout time.Duration
+	box          *outbox.Outbox
+	log          zerolog.Logger
+	toEvent      MessageEvent
+	sessions     Sessions
 	// download lets one download, parse and cut into batches run at a time across the sessions: a blob is held whole
 	// in memory (DownloadHistorySync, message.go:783-825).
 	download chan struct{}
@@ -153,13 +157,13 @@ type worker struct {
 	ended  bool
 }
 
-// New returns the slice on the database and the outbox. toEvent is the Events slice's message mapping. Use gives it
-// the sessions before any client connects.
-func New(db *sql.DB, box *outbox.Outbox, toEvent MessageEvent, log zerolog.Logger) *Service {
+// New returns the slice on the database, which it writes through w, and the outbox. toEvent is the Events slice's
+// message mapping. Use gives it the sessions before any client connects.
+func New(db *sql.DB, w *sidecarstore.Writer, box *outbox.Outbox, toEvent MessageEvent, log zerolog.Logger) *Service {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	return &Service{
-		db: db, box: box, log: log, toEvent: toEvent, download: make(chan struct{}, 1), after: time.After, downloadTimeout: downloadTimeout,
+		db: db, w: w, queueTimeout: sidecarstore.BusyTimeout, box: box, log: log, toEvent: toEvent, download: make(chan struct{}, 1), after: time.After, downloadTimeout: downloadTimeout,
 		onWait: func(string) {}, onQueue: func(string) {}, onIdle: func(string) {}, onOffline: func(string) {},
 		ctx: ctx, cancel: cancel, workers: map[string]*worker{},
 	}
@@ -234,8 +238,12 @@ func (svc *Service) queue(sessionID, messageID string, notif *waE2E.HistorySyncN
 		return fmt.Errorf("queue a notification: %w", err)
 	}
 
-	// No caller's context: whatsmeow gives the handler none. SQLite's busy_timeout bounds the write.
-	if _, err := svc.db.ExecContext(context.Background(), `INSERT INTO history_blob (session_id, message_id, notification) VALUES (?, ?, ?)
+	// whatsmeow gives the handler no context. The write gives up after the busy_timeout, as the Events slice's does,
+	// and the answer is withheld (ADR 0040).
+	ctx, cancel := context.WithTimeout(context.Background(), svc.queueTimeout)
+	defer cancel()
+
+	if _, err := svc.w.Exec(ctx, `INSERT INTO history_blob (session_id, message_id, notification) VALUES (?, ?, ?)
 		ON CONFLICT (session_id, message_id) DO NOTHING`, sessionID, messageID, data); err != nil {
 		return fmt.Errorf("queue a notification: %w", err)
 	}
@@ -245,7 +253,10 @@ func (svc *Service) queue(sessionID, messageID string, notif *waE2E.HistorySyncN
 
 // clear takes the session's queue, in one short transaction.
 func (svc *Service) clear(sessionID string) error {
-	if _, err := svc.db.ExecContext(context.Background(), "DELETE FROM history_blob WHERE session_id = ?", sessionID); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), svc.queueTimeout)
+	defer cancel()
+
+	if _, err := svc.w.Exec(ctx, "DELETE FROM history_blob WHERE session_id = ?", sessionID); err != nil {
 		return fmt.Errorf("clear the queue: %w", err)
 	}
 
@@ -602,7 +613,7 @@ func blobless(notif *waE2E.HistorySyncNotification) bool {
 // progress event is recorded already only leaves the queue.
 func (svc *Service) drop(ctx context.Context, sessionID string, q *queued, failure whatsmeowv1.HistorySyncFailure) error {
 	if q.recorded {
-		if _, err := svc.db.ExecContext(ctx, "DELETE FROM history_blob WHERE seq = ?", q.seq); err != nil {
+		if _, err := svc.w.Exec(ctx, "DELETE FROM history_blob WHERE seq = ?", q.seq); err != nil {
 			return fmt.Errorf("take a blob from the queue: %w", err)
 		}
 
@@ -683,7 +694,7 @@ func (svc *Service) failed(ctx context.Context, sessionID string, client Client,
 	case ctx.Err() != nil || errors.Is(err, whatsmeow.ErrNotConnected) || closed(online) || !client.IsConnected():
 		return errOffline
 	case failure == whatsmeowv1.HistorySyncFailure_HISTORY_SYNC_FAILURE_UNSPECIFIED && q.tries+1 < attempts:
-		if _, err := svc.db.ExecContext(ctx, "UPDATE history_blob SET attempts = attempts + 1 WHERE seq = ?", q.seq); err != nil {
+		if _, err := svc.w.Exec(ctx, "UPDATE history_blob SET attempts = attempts + 1 WHERE seq = ?", q.seq); err != nil {
 			return fmt.Errorf("count a failed download: %w", err)
 		}
 
@@ -735,7 +746,7 @@ func (svc *Service) record(ctx context.Context, sessionID, key string, event *wh
 		return err
 	}
 
-	differs, err := svc.box.Record(ctx, sessionID, key, event, func(tx *sql.Tx) error {
+	differs, err := svc.box.Record(ctx, sessionID, key, event, func(ctx context.Context, tx *sql.Tx) error {
 		result, err := tx.ExecContext(ctx, update, args...)
 		if err != nil {
 			return fmt.Errorf("update the queue: %w", err)
@@ -796,7 +807,7 @@ func (svc *Service) finish(ctx context.Context, sessionID string, client Client,
 		svc.log.Warn().Str("session_id", sessionID).Msg("deleting a delivered history sync blob from WhatsApp's server failed; it is not tried again")
 	}
 
-	if _, err := svc.db.ExecContext(ctx, "DELETE FROM history_blob WHERE seq = ?", q.seq); err != nil {
+	if _, err := svc.w.Exec(ctx, "DELETE FROM history_blob WHERE seq = ?", q.seq); err != nil {
 		return fmt.Errorf("take a delivered blob from the queue: %w", err)
 	}
 
