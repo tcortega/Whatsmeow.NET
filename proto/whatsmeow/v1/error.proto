@@ -64,4 +64,6 @@ enum ErrorReason {
   // NOT_FOUND. WhatsApp no longer has the media (it answered 403, 404 or 410); RequestMediaRetry can ask the phone to
   // upload it again.
   ERROR_REASON_MEDIA_EXPIRED = 22;
+  // NOT_FOUND. The group invite link is malformed, unknown or was reset; nothing was done.
+  ERROR_REASON_INVITE_LINK_INVALID = 23;
 }

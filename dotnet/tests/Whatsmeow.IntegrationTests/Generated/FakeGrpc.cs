@@ -168,6 +168,22 @@ namespace Whatsmeow.IntegrationTests.Fake {
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.ReleaseSendRequest> __Marshaller_whatsmeow_fake_v1_ReleaseSendRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.ReleaseSendRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.ReleaseSendResponse> __Marshaller_whatsmeow_fake_v1_ReleaseSendResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.ReleaseSendResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.AddGroupRequest> __Marshaller_whatsmeow_fake_v1_AddGroupRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.AddGroupRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.AddGroupResponse> __Marshaller_whatsmeow_fake_v1_AddGroupResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.AddGroupResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DeliverGroupNotificationRequest> __Marshaller_whatsmeow_fake_v1_DeliverGroupNotificationRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DeliverGroupNotificationRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DeliverGroupNotificationResponse> __Marshaller_whatsmeow_fake_v1_DeliverGroupNotificationResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DeliverGroupNotificationResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.RefuseGroupAddRequest> __Marshaller_whatsmeow_fake_v1_RefuseGroupAddRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.RefuseGroupAddRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.RefuseGroupAddResponse> __Marshaller_whatsmeow_fake_v1_RefuseGroupAddResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.RefuseGroupAddResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryRequest> __Marshaller_whatsmeow_fake_v1_FailNextGroupQueryRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryResponse> __Marshaller_whatsmeow_fake_v1_FailNextGroupQueryResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryResponse.Parser));
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse> __Method_DeliverMessage = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse>(
@@ -400,6 +416,38 @@ namespace Whatsmeow.IntegrationTests.Fake {
         "ReleaseSend",
         __Marshaller_whatsmeow_fake_v1_ReleaseSendRequest,
         __Marshaller_whatsmeow_fake_v1_ReleaseSendResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.AddGroupRequest, global::Whatsmeow.IntegrationTests.Fake.AddGroupResponse> __Method_AddGroup = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.AddGroupRequest, global::Whatsmeow.IntegrationTests.Fake.AddGroupResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "AddGroup",
+        __Marshaller_whatsmeow_fake_v1_AddGroupRequest,
+        __Marshaller_whatsmeow_fake_v1_AddGroupResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverGroupNotificationRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverGroupNotificationResponse> __Method_DeliverGroupNotification = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverGroupNotificationRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverGroupNotificationResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "DeliverGroupNotification",
+        __Marshaller_whatsmeow_fake_v1_DeliverGroupNotificationRequest,
+        __Marshaller_whatsmeow_fake_v1_DeliverGroupNotificationResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.RefuseGroupAddRequest, global::Whatsmeow.IntegrationTests.Fake.RefuseGroupAddResponse> __Method_RefuseGroupAdd = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.RefuseGroupAddRequest, global::Whatsmeow.IntegrationTests.Fake.RefuseGroupAddResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "RefuseGroupAdd",
+        __Marshaller_whatsmeow_fake_v1_RefuseGroupAddRequest,
+        __Marshaller_whatsmeow_fake_v1_RefuseGroupAddResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryRequest, global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryResponse> __Method_FailNextGroupQuery = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryRequest, global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "FailNextGroupQuery",
+        __Marshaller_whatsmeow_fake_v1_FailNextGroupQueryRequest,
+        __Marshaller_whatsmeow_fake_v1_FailNextGroupQueryResponse);
 
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
@@ -2041,6 +2089,278 @@ namespace Whatsmeow.IntegrationTests.Fake {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.ReleaseSendResponse> ReleaseSendAsync(global::Whatsmeow.IntegrationTests.Fake.ReleaseSendRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_ReleaseSend, null, options, request);
+      }
+      /// <summary>
+      /// AddGroup puts a group on WhatsApp's side, which every session's group calls read and change. Its members are
+      /// phone-number JIDs; in a LID-addressed group WhatsApp answers each by the LID RegisterUser gave it, with the phone
+      /// number beside it, and by the phone number when it has none. Adding a jid again replaces the group.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.AddGroupResponse AddGroup(global::Whatsmeow.IntegrationTests.Fake.AddGroupRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return AddGroup(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// AddGroup puts a group on WhatsApp's side, which every session's group calls read and change. Its members are
+      /// phone-number JIDs; in a LID-addressed group WhatsApp answers each by the LID RegisterUser gave it, with the phone
+      /// number beside it, and by the phone number when it has none. Adding a jid again replaces the group.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.AddGroupResponse AddGroup(global::Whatsmeow.IntegrationTests.Fake.AddGroupRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_AddGroup, null, options, request);
+      }
+      /// <summary>
+      /// AddGroup puts a group on WhatsApp's side, which every session's group calls read and change. Its members are
+      /// phone-number JIDs; in a LID-addressed group WhatsApp answers each by the LID RegisterUser gave it, with the phone
+      /// number beside it, and by the phone number when it has none. Adding a jid again replaces the group.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.AddGroupResponse> AddGroupAsync(global::Whatsmeow.IntegrationTests.Fake.AddGroupRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return AddGroupAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// AddGroup puts a group on WhatsApp's side, which every session's group calls read and change. Its members are
+      /// phone-number JIDs; in a LID-addressed group WhatsApp answers each by the LID RegisterUser gave it, with the phone
+      /// number beside it, and by the phone number when it has none. Adding a jid again replaces the group.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.AddGroupResponse> AddGroupAsync(global::Whatsmeow.IntegrationTests.Fake.AddGroupRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_AddGroup, null, options, request);
+      }
+      /// <summary>
+      /// DeliverGroupNotification makes WhatsApp send the session's client a w:gp2 notification of a change to a group,
+      /// which need not be on WhatsApp's side. The client dispatches GroupInfo on its node queue, and returns once the
+      /// handlers ran; as whatsmeow does, it acks the notification only when every handler succeeded
+      /// (notification.go:493-506, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
+      /// request's id and type "w:gp2", shows in WaitForSent. The group calls' notifications are acked the same way. A
+      /// session without a client is an error.
+      ///
+      /// The group calls themselves notify the members as WhatsApp would, the member who made the change included
+      /// [inferred: whatsmeow's own note that the server echoes a change, send.go:665]: a member added, or one that joins by
+      /// link, gets a create notification (JoinedGroup), and every other member a change. WhatsApp's codes are [inferred]:
+      /// a non-admin's change to a locked group's info, to its settings or to its participants is 403, and to its invite
+      /// link 401 (whatsmeow's ErrGroupInviteLinkUnauthorized, group.go:432); a group the session is not in is 403 and an
+      /// unknown one 404 (group.go:674-678); adding a member is 409, and removing, promoting or demoting a non-member 404,
+      /// for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519); the creator gets no
+      /// JoinedGroup for its own group; the create answer lists a participant WhatsApp refused, with its error. WhatsApp's
+      /// time on these calls is fixed, 2026-11-01T12:00:00Z, so a test knows each time they answer and notify; an invite
+      /// RefuseGroupAdd offers expires 72 hours after it.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.DeliverGroupNotificationResponse DeliverGroupNotification(global::Whatsmeow.IntegrationTests.Fake.DeliverGroupNotificationRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return DeliverGroupNotification(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// DeliverGroupNotification makes WhatsApp send the session's client a w:gp2 notification of a change to a group,
+      /// which need not be on WhatsApp's side. The client dispatches GroupInfo on its node queue, and returns once the
+      /// handlers ran; as whatsmeow does, it acks the notification only when every handler succeeded
+      /// (notification.go:493-506, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
+      /// request's id and type "w:gp2", shows in WaitForSent. The group calls' notifications are acked the same way. A
+      /// session without a client is an error.
+      ///
+      /// The group calls themselves notify the members as WhatsApp would, the member who made the change included
+      /// [inferred: whatsmeow's own note that the server echoes a change, send.go:665]: a member added, or one that joins by
+      /// link, gets a create notification (JoinedGroup), and every other member a change. WhatsApp's codes are [inferred]:
+      /// a non-admin's change to a locked group's info, to its settings or to its participants is 403, and to its invite
+      /// link 401 (whatsmeow's ErrGroupInviteLinkUnauthorized, group.go:432); a group the session is not in is 403 and an
+      /// unknown one 404 (group.go:674-678); adding a member is 409, and removing, promoting or demoting a non-member 404,
+      /// for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519); the creator gets no
+      /// JoinedGroup for its own group; the create answer lists a participant WhatsApp refused, with its error. WhatsApp's
+      /// time on these calls is fixed, 2026-11-01T12:00:00Z, so a test knows each time they answer and notify; an invite
+      /// RefuseGroupAdd offers expires 72 hours after it.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.DeliverGroupNotificationResponse DeliverGroupNotification(global::Whatsmeow.IntegrationTests.Fake.DeliverGroupNotificationRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_DeliverGroupNotification, null, options, request);
+      }
+      /// <summary>
+      /// DeliverGroupNotification makes WhatsApp send the session's client a w:gp2 notification of a change to a group,
+      /// which need not be on WhatsApp's side. The client dispatches GroupInfo on its node queue, and returns once the
+      /// handlers ran; as whatsmeow does, it acks the notification only when every handler succeeded
+      /// (notification.go:493-506, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
+      /// request's id and type "w:gp2", shows in WaitForSent. The group calls' notifications are acked the same way. A
+      /// session without a client is an error.
+      ///
+      /// The group calls themselves notify the members as WhatsApp would, the member who made the change included
+      /// [inferred: whatsmeow's own note that the server echoes a change, send.go:665]: a member added, or one that joins by
+      /// link, gets a create notification (JoinedGroup), and every other member a change. WhatsApp's codes are [inferred]:
+      /// a non-admin's change to a locked group's info, to its settings or to its participants is 403, and to its invite
+      /// link 401 (whatsmeow's ErrGroupInviteLinkUnauthorized, group.go:432); a group the session is not in is 403 and an
+      /// unknown one 404 (group.go:674-678); adding a member is 409, and removing, promoting or demoting a non-member 404,
+      /// for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519); the creator gets no
+      /// JoinedGroup for its own group; the create answer lists a participant WhatsApp refused, with its error. WhatsApp's
+      /// time on these calls is fixed, 2026-11-01T12:00:00Z, so a test knows each time they answer and notify; an invite
+      /// RefuseGroupAdd offers expires 72 hours after it.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DeliverGroupNotificationResponse> DeliverGroupNotificationAsync(global::Whatsmeow.IntegrationTests.Fake.DeliverGroupNotificationRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return DeliverGroupNotificationAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// DeliverGroupNotification makes WhatsApp send the session's client a w:gp2 notification of a change to a group,
+      /// which need not be on WhatsApp's side. The client dispatches GroupInfo on its node queue, and returns once the
+      /// handlers ran; as whatsmeow does, it acks the notification only when every handler succeeded
+      /// (notification.go:493-506, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
+      /// request's id and type "w:gp2", shows in WaitForSent. The group calls' notifications are acked the same way. A
+      /// session without a client is an error.
+      ///
+      /// The group calls themselves notify the members as WhatsApp would, the member who made the change included
+      /// [inferred: whatsmeow's own note that the server echoes a change, send.go:665]: a member added, or one that joins by
+      /// link, gets a create notification (JoinedGroup), and every other member a change. WhatsApp's codes are [inferred]:
+      /// a non-admin's change to a locked group's info, to its settings or to its participants is 403, and to its invite
+      /// link 401 (whatsmeow's ErrGroupInviteLinkUnauthorized, group.go:432); a group the session is not in is 403 and an
+      /// unknown one 404 (group.go:674-678); adding a member is 409, and removing, promoting or demoting a non-member 404,
+      /// for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519); the creator gets no
+      /// JoinedGroup for its own group; the create answer lists a participant WhatsApp refused, with its error. WhatsApp's
+      /// time on these calls is fixed, 2026-11-01T12:00:00Z, so a test knows each time they answer and notify; an invite
+      /// RefuseGroupAdd offers expires 72 hours after it.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DeliverGroupNotificationResponse> DeliverGroupNotificationAsync(global::Whatsmeow.IntegrationTests.Fake.DeliverGroupNotificationRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_DeliverGroupNotification, null, options, request);
+      }
+      /// <summary>
+      /// RefuseGroupAdd makes WhatsApp refuse to add a user to any group, by CreateGroup or by adding them, with code; with
+      /// invite, WhatsApp offers an invite instead, as for a user whose privacy settings ask for one (group.go:729-739).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.RefuseGroupAddResponse RefuseGroupAdd(global::Whatsmeow.IntegrationTests.Fake.RefuseGroupAddRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return RefuseGroupAdd(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// RefuseGroupAdd makes WhatsApp refuse to add a user to any group, by CreateGroup or by adding them, with code; with
+      /// invite, WhatsApp offers an invite instead, as for a user whose privacy settings ask for one (group.go:729-739).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.RefuseGroupAddResponse RefuseGroupAdd(global::Whatsmeow.IntegrationTests.Fake.RefuseGroupAddRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_RefuseGroupAdd, null, options, request);
+      }
+      /// <summary>
+      /// RefuseGroupAdd makes WhatsApp refuse to add a user to any group, by CreateGroup or by adding them, with code; with
+      /// invite, WhatsApp offers an invite instead, as for a user whose privacy settings ask for one (group.go:729-739).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.RefuseGroupAddResponse> RefuseGroupAddAsync(global::Whatsmeow.IntegrationTests.Fake.RefuseGroupAddRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return RefuseGroupAddAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// RefuseGroupAdd makes WhatsApp refuse to add a user to any group, by CreateGroup or by adding them, with code; with
+      /// invite, WhatsApp offers an invite instead, as for a user whose privacy settings ask for one (group.go:729-739).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.RefuseGroupAddResponse> RefuseGroupAddAsync(global::Whatsmeow.IntegrationTests.Fake.RefuseGroupAddRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_RefuseGroupAdd, null, options, request);
+      }
+      /// <summary>
+      /// FailNextGroupQuery makes WhatsApp answer the session's next group call with an IQ error of code: 429 is
+      /// whatsmeow's ErrIQRateOverLimit (errors.go:197).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryResponse FailNextGroupQuery(global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return FailNextGroupQuery(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// FailNextGroupQuery makes WhatsApp answer the session's next group call with an IQ error of code: 429 is
+      /// whatsmeow's ErrIQRateOverLimit (errors.go:197).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryResponse FailNextGroupQuery(global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_FailNextGroupQuery, null, options, request);
+      }
+      /// <summary>
+      /// FailNextGroupQuery makes WhatsApp answer the session's next group call with an IQ error of code: 429 is
+      /// whatsmeow's ErrIQRateOverLimit (errors.go:197).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryResponse> FailNextGroupQueryAsync(global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return FailNextGroupQueryAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// FailNextGroupQuery makes WhatsApp answer the session's next group call with an IQ error of code: 429 is
+      /// whatsmeow's ErrIQRateOverLimit (errors.go:197).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryResponse> FailNextGroupQueryAsync(global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_FailNextGroupQuery, null, options, request);
       }
       /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]

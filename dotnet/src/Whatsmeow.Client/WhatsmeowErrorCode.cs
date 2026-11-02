@@ -74,4 +74,7 @@ public enum WhatsmeowErrorCode
 
 	/// <summary>WhatsApp no longer has the media; the account's phone can be asked to upload it again.</summary>
 	MediaExpired,
+
+	/// <summary>The group invite link is malformed, unknown or was reset; nothing was done.</summary>
+	InviteLinkInvalid,
 }

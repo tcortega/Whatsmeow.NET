@@ -37,6 +37,8 @@ var (
 	ErrNoPushName = errors.New("the account has no push name yet")
 	// ErrMediaExpired is media WhatsApp no longer has (403, 404 or 410 on a download).
 	ErrMediaExpired = errors.New("WhatsApp no longer has the media")
+	// ErrInviteLinkInvalid is a group invite link WhatsApp does not accept: malformed, unknown or reset.
+	ErrInviteLinkInvalid = errors.New("the group invite link is not valid")
 )
 
 // reasons is each error's gRPC code and reason, as error.proto lists them.
@@ -64,6 +66,7 @@ var reasons = []struct { //nolint:gochecknoglobals // a read-only table, the one
 	{ErrWhatsAppTimedOut, codes.Unavailable, whatsmeowv1.ErrorReason_ERROR_REASON_WHATSAPP_TIMED_OUT},
 	{ErrNoPushName, codes.FailedPrecondition, whatsmeowv1.ErrorReason_ERROR_REASON_NO_PUSH_NAME},
 	{ErrMediaExpired, codes.NotFound, whatsmeowv1.ErrorReason_ERROR_REASON_MEDIA_EXPIRED},
+	{ErrInviteLinkInvalid, codes.NotFound, whatsmeowv1.ErrorReason_ERROR_REASON_INVITE_LINK_INVALID},
 }
 
 // metadataError adds one ErrorInfo metadata entry to the error it wraps.

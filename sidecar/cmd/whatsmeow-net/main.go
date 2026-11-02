@@ -32,6 +32,7 @@ import (
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/contacts"
 	eventsslice "github.com/tcortega/Whatsmeow.NET/sidecar/internal/events"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/groups"
 	wmlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/media"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/messaging"
@@ -190,7 +191,7 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 
 	box := outbox.New(db.DB)
 	// Each slice that records whatsmeow events in the outbox passes its mapper (eventsslice.Mapper).
-	events := eventsslice.New(box, log, contacts.Event, media.Mapper(db.DB, log), messaging.Receipt) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
+	events := eventsslice.New(box, log, contacts.Event, groups.Event, media.Mapper(db.DB, log), messaging.Receipt) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
 	whatsmeowv1.RegisterEventServiceServer(srv, events)
 
 	sessions, err := session.New(ctx, db.DB, db.Devices, box, recording(newClient, events), log) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
@@ -204,6 +205,7 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 	whatsmeowv1.RegisterSessionServiceServer(srv, sessions)
 	whatsmeowv1.RegisterContactServiceServer(srv, contacts.New(sessions))
 	whatsmeowv1.RegisterPresenceServiceServer(srv, presence.New(sessions))
+	whatsmeowv1.RegisterGroupServiceServer(srv, groups.New(sessions))
 
 	// The sidecar's own temporary media files go next to the database it owns, not to a tmpfs /tmp (ARCHITECTURE §7.6).
 	mediaSlice, err := media.New(sessions, db.DB, opts.mediaRoot, opts.database+".tmp", log)

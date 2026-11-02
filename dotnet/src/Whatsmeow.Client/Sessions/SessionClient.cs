@@ -6,6 +6,7 @@ using Whatsmeow.Core.Errors;
 using Whatsmeow.Events;
 using Whatsmeow.Media;
 using Whatsmeow.Messaging;
+using Whatsmeow.Groups;
 using Whatsmeow.Pairing;
 using Whatsmeow.Presence;
 using ChatPresenceState = Whatsmeow.Presence.ChatPresenceState;
@@ -13,6 +14,8 @@ using PresenceState = Whatsmeow.Presence.PresenceState;
 using Whatsmeow.Protocol.V1;
 using BlockedUser = Whatsmeow.Contacts.BlockedUser;
 using Contact = Whatsmeow.Contacts.Contact;
+using GroupInfo = Whatsmeow.Groups.GroupInfo;
+using ParticipantResult = Whatsmeow.Groups.ParticipantResult;
 using PhoneNumberCheck = Whatsmeow.Contacts.PhoneNumberCheck;
 using ResolvedJid = Whatsmeow.Contacts.ResolvedJid;
 using UserInfo = Whatsmeow.Contacts.UserInfo;
@@ -38,6 +41,7 @@ internal sealed class SessionClient(
 	private readonly PresenceService.PresenceServiceClient _presence = new(invoker);
 	private readonly MediaTransfer _media = new(new MediaService.MediaServiceClient(invoker), sessionId, sidecar.MediaRoot, log);
 	private readonly MessageService.MessageServiceClient _messages = new(invoker);
+	private readonly GroupService.GroupServiceClient _groups = new(invoker);
 
 	public SessionId SessionId => sessionId;
 
@@ -378,5 +382,115 @@ internal sealed class SessionClient(
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new UpdateBlocklistRequest { SessionId = sessionId.Value, Jid = user.ToString(), Action = action };
 		_ = await RpcErrors.CallAsync(_contacts.UpdateBlocklistAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+	}
+
+	public async Task<ImmutableArray<GroupInfo>> GetGroupsAsync(CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new ListGroupsRequest { SessionId = sessionId.Value };
+		return GroupMapping.ToGroups(await RpcErrors.CallAsync(_groups.ListGroupsAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false));
+	}
+
+	public async Task<GroupInfo> GetGroupInfoAsync(Jid group, CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new GetGroupRequest { SessionId = sessionId.Value, Group = group.ToString() };
+		return GroupMapping.ToGroup((await RpcErrors.CallAsync(_groups.GetGroupAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false)).Group);
+	}
+
+	public async Task<CreatedGroup> CreateGroupAsync(string name, IReadOnlyList<Jid> participants, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(name);
+		ArgumentNullException.ThrowIfNull(participants);
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new CreateGroupRequest { SessionId = sessionId.Value, Name = name, Participants = { participants.Select(jid => jid.ToString()) } };
+		return GroupMapping.ToCreated(await RpcErrors.CallAsync(_groups.CreateGroupAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false));
+	}
+
+	public Task<ImmutableArray<ParticipantResult>> AddParticipantsAsync(Jid group, IReadOnlyList<Jid> users, CancellationToken cancellationToken = default) =>
+		UpdateParticipantsAsync(group, users, ParticipantAction.Add, cancellationToken);
+
+	public Task<ImmutableArray<ParticipantResult>> RemoveParticipantsAsync(Jid group, IReadOnlyList<Jid> users, CancellationToken cancellationToken = default) =>
+		UpdateParticipantsAsync(group, users, ParticipantAction.Remove, cancellationToken);
+
+	public Task<ImmutableArray<ParticipantResult>> PromoteParticipantsAsync(Jid group, IReadOnlyList<Jid> users, CancellationToken cancellationToken = default) =>
+		UpdateParticipantsAsync(group, users, ParticipantAction.Promote, cancellationToken);
+
+	public Task<ImmutableArray<ParticipantResult>> DemoteParticipantsAsync(Jid group, IReadOnlyList<Jid> users, CancellationToken cancellationToken = default) =>
+		UpdateParticipantsAsync(group, users, ParticipantAction.Demote, cancellationToken);
+
+	private async Task<ImmutableArray<ParticipantResult>> UpdateParticipantsAsync(Jid group, IReadOnlyList<Jid> users, ParticipantAction action, CancellationToken cancellationToken)
+	{
+		ArgumentNullException.ThrowIfNull(users);
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new UpdateParticipantsRequest
+		{
+			SessionId = sessionId.Value,
+			Group = group.ToString(),
+			Participants = { users.Select(jid => jid.ToString()) },
+			Action = action,
+		};
+		var response = await RpcErrors.CallAsync(_groups.UpdateParticipantsAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		return GroupMapping.ToResults(response.Participants);
+	}
+
+	public async Task SetGroupNameAsync(Jid group, string name, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(name);
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new SetGroupNameRequest { SessionId = sessionId.Value, Group = group.ToString(), Name = name };
+		_ = await RpcErrors.CallAsync(_groups.SetGroupNameAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+	}
+
+	public async Task SetGroupTopicAsync(Jid group, string? topic, CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new SetGroupTopicRequest { SessionId = sessionId.Value, Group = group.ToString(), Topic = topic ?? "" };
+		_ = await RpcErrors.CallAsync(_groups.SetGroupTopicAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+	}
+
+	public async Task SetGroupAnnounceAsync(Jid group, bool announce, CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new SetGroupAnnounceRequest { SessionId = sessionId.Value, Group = group.ToString(), Announce = announce };
+		_ = await RpcErrors.CallAsync(_groups.SetGroupAnnounceAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+	}
+
+	public async Task SetGroupLockedAsync(Jid group, bool locked, CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new SetGroupLockedRequest { SessionId = sessionId.Value, Group = group.ToString(), Locked = locked };
+		_ = await RpcErrors.CallAsync(_groups.SetGroupLockedAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+	}
+
+	public async Task<Uri> GetGroupInviteLinkAsync(Jid group, CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new GetInviteLinkRequest { SessionId = sessionId.Value, Group = group.ToString() };
+		var response = await RpcErrors.CallAsync(_groups.GetInviteLinkAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		return new Uri(response.Link, UriKind.RelativeOrAbsolute);
+	}
+
+	public async Task<Uri> ResetGroupInviteLinkAsync(Jid group, CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new ResetInviteLinkRequest { SessionId = sessionId.Value, Group = group.ToString() };
+		var response = await RpcErrors.CallAsync(_groups.ResetInviteLinkAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		return new Uri(response.Link, UriKind.RelativeOrAbsolute);
+	}
+
+	public async Task<Jid> JoinGroupWithLinkAsync(Uri link, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(link);
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new JoinGroupWithLinkRequest { SessionId = sessionId.Value, Link = link.OriginalString };
+		return Jid.Parse((await RpcErrors.CallAsync(_groups.JoinGroupWithLinkAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false)).Group);
+	}
+
+	public async Task LeaveGroupAsync(Jid group, CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new LeaveGroupRequest { SessionId = sessionId.Value, Group = group.ToString() };
+		_ = await RpcErrors.CallAsync(_groups.LeaveGroupAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
 	}
 }

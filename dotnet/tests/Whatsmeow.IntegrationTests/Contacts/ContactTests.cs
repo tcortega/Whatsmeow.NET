@@ -312,6 +312,17 @@ public sealed class ContactTests(FakeSidecar fixture)
 	}
 
 	[Fact(Timeout = Timeout)]
+	public async Task IsOnWhatsApp_WhatsAppRefuses_ThrowsWhatsAppErrorWithItsCode()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var client = await SessionSetup.ConnectedAsync(fixture, "contacts-refused", ct);
+		_ = await fixture.Fake.FailNextContactQueryAsync(new FailNextContactQueryRequest { SessionId = "contacts-refused", Code = 500 }, cancellationToken: ct);
+
+		var thrown = await Assert.ThrowsAsync<WhatsAppErrorException>(() => client.IsOnWhatsAppAsync(["+5511991000001"], ct));
+		Assert.Equal((WhatsmeowErrorCode.WhatsAppError, 500), (thrown.ErrorCode, thrown.Code));
+	}
+
+	[Fact(Timeout = Timeout)]
 	public async Task Lookups_SessionNotOnline_FailAtOnceAndStoreReadsNeedAPairedSession()
 	{
 		var ct = TestContext.Current.CancellationToken;

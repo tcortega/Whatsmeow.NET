@@ -85,6 +85,8 @@ const (
 	// NOT_FOUND. WhatsApp no longer has the media (it answered 403, 404 or 410); RequestMediaRetry can ask the phone to
 	// upload it again.
 	ErrorReason_ERROR_REASON_MEDIA_EXPIRED ErrorReason = 22
+	// NOT_FOUND. The group invite link is malformed, unknown or was reset; nothing was done.
+	ErrorReason_ERROR_REASON_INVITE_LINK_INVALID ErrorReason = 23
 )
 
 // Enum value maps for ErrorReason.
@@ -113,6 +115,7 @@ var (
 		20: "ERROR_REASON_WHATSAPP_TIMED_OUT",
 		21: "ERROR_REASON_NO_PUSH_NAME",
 		22: "ERROR_REASON_MEDIA_EXPIRED",
+		23: "ERROR_REASON_INVITE_LINK_INVALID",
 	}
 	ErrorReason_value = map[string]int32{
 		"ERROR_REASON_UNSPECIFIED":               0,
@@ -138,6 +141,7 @@ var (
 		"ERROR_REASON_WHATSAPP_TIMED_OUT":        20,
 		"ERROR_REASON_NO_PUSH_NAME":              21,
 		"ERROR_REASON_MEDIA_EXPIRED":             22,
+		"ERROR_REASON_INVITE_LINK_INVALID":       23,
 	}
 )
 
@@ -172,7 +176,7 @@ var File_whatsmeow_v1_error_proto protoreflect.FileDescriptor
 
 const file_whatsmeow_v1_error_proto_rawDesc = "" +
 	"\n" +
-	"\x18whatsmeow/v1/error.proto\x12\fwhatsmeow.v1*\x9f\x06\n" +
+	"\x18whatsmeow/v1/error.proto\x12\fwhatsmeow.v1*\xc5\x06\n" +
 	"\vErrorReason\x12\x1c\n" +
 	"\x18ERROR_REASON_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15ERROR_REASON_INTERNAL\x10\x01\x12!\n" +
@@ -197,7 +201,8 @@ const file_whatsmeow_v1_error_proto_rawDesc = "" +
 	"\x1bERROR_REASON_WHATSAPP_ERROR\x10\x13\x12#\n" +
 	"\x1fERROR_REASON_WHATSAPP_TIMED_OUT\x10\x14\x12\x1d\n" +
 	"\x19ERROR_REASON_NO_PUSH_NAME\x10\x15\x12\x1e\n" +
-	"\x1aERROR_REASON_MEDIA_EXPIRED\x10\x16B\xc0\x01\n" +
+	"\x1aERROR_REASON_MEDIA_EXPIRED\x10\x16\x12$\n" +
+	" ERROR_REASON_INVITE_LINK_INVALID\x10\x17B\xc0\x01\n" +
 	"\x10com.whatsmeow.v1B\n" +
 	"ErrorProtoP\x01ZFgithub.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1;whatsmeowv1\xa2\x02\x03WXX\xaa\x02\x15Whatsmeow.Protocol.V1\xca\x02\fWhatsmeow\\V1\xe2\x02\x18Whatsmeow\\V1\\GPBMetadata\xea\x02\rWhatsmeow::V1b\x06proto3"
 

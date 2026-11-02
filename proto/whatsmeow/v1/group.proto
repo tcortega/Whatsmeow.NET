@@ -1,0 +1,417 @@
+syntax = "proto3";
+
+package whatsmeow.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// GroupService lists, inspects, creates and manages the session's groups: their participants, settings and invite
+// links (ARCHITECTURE §3, Groups). Communities and join-request approval are not here.
+//
+// A JID is whatsmeow's string form, user[.agent][:device]@server. A group is addressed by its @g.us JID; a participant
+// is a user, by phone number (@s.whatsapp.net) or by LID (@lid), and a device in it is ignored. A group JID with an
+// agent or a device is not a group. A JID argument that does
+// not parse, or that is not a group or a user where one is required, is INVALID_ARGUMENT (field: the request field at
+// fault).
+// Every RPC asks WhatsApp, so it needs the session logged in to WhatsApp right now: it fails at once with NOT_LOGGED_IN,
+// LOGGED_OUT, TEMPORARILY_BANNED or NOT_CONNECTED otherwise, and with SESSION_NOT_FOUND for an id no session has.
+// WhatsApp's refusals are RATE_LIMITED, or WHATSAPP_ERROR with WhatsApp's code: a session that is not an admin, or not
+// in the group, or a group that does not exist, gets one of those, and no reason of its own.
+// A read that WhatsApp does not answer in time is WHATSAPP_TIMED_OUT; a write is OUTCOME_UNKNOWN instead, since it
+// may have taken effect, and so is a write whose answer lacks what it should carry (a created group, the participants'
+// results, a joined group's JID).
+service GroupService {
+  // ListGroups lists the groups the session is in, ordered by JID.
+  // Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, TEMPORARILY_BANNED, NOT_CONNECTED, RATE_LIMITED,
+  // WHATSAPP_ERROR, WHATSAPP_TIMED_OUT.
+  rpc ListGroups(ListGroupsRequest) returns (ListGroupsResponse);
+
+  // GetGroup reads one group.
+  // Errors: as ListGroups; INVALID_ARGUMENT (field "group").
+  rpc GetGroup(GetGroupRequest) returns (GetGroupResponse);
+
+  // CreateGroup creates a group with the session as its owner and the participants. WhatsApp may refuse some of them
+  // and still create the group, and the call never fails for that: the response has a result per participant WhatsApp
+  // answered for. Whether it answers for one it refused, or omits it, is [unknown].
+  // Errors: as ListGroups but WHATSAPP_TIMED_OUT; INVALID_ARGUMENT (field "name" for an empty one, "participants"),
+  // OUTCOME_UNKNOWN.
+  rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse);
+
+  // UpdateParticipants adds, removes, promotes or demotes participants. WhatsApp answers for each one: the call fails
+  // only when the whole request does. An empty list returns an empty list without asking WhatsApp.
+  // Errors: as CreateGroup; INVALID_ARGUMENT (field "group", "participants", or "action" for an unspecified one).
+  rpc UpdateParticipants(UpdateParticipantsRequest) returns (UpdateParticipantsResponse);
+
+  // SetGroupName renames the group; members get a GroupEvent with the change.
+  // Errors: as CreateGroup; INVALID_ARGUMENT (field "group", or "name" for an empty one).
+  rpc SetGroupName(SetGroupNameRequest) returns (SetGroupNameResponse);
+
+  // SetGroupTopic sets the group's topic (its description); an empty topic removes it. It reads the group first, for
+  // the topic it replaces, so a read that times out is WHATSAPP_TIMED_OUT: nothing was changed. A group with no topic
+  // yet has nothing to replace, so whatsmeow reads it a second time itself and wraps that read's error with %v, which
+  // keeps no type: its timeout, refusal or cancel is INTERNAL, and nothing was changed either [observed: whatsmeow
+  // group.go:370-376, internal/groups TestAFirstTopicCostsWhatsmeowASecondReadWhoseFailureIsInternal].
+  // Errors: as CreateGroup; INVALID_ARGUMENT (field "group"), WHATSAPP_TIMED_OUT, INTERNAL.
+  rpc SetGroupTopic(SetGroupTopicRequest) returns (SetGroupTopicResponse);
+
+  // SetGroupAnnounce sets whether only admins can send messages.
+  // Errors: as CreateGroup; INVALID_ARGUMENT (field "group").
+  rpc SetGroupAnnounce(SetGroupAnnounceRequest) returns (SetGroupAnnounceResponse);
+
+  // SetGroupLocked sets whether only admins can change the group's info.
+  // Errors: as CreateGroup; INVALID_ARGUMENT (field "group").
+  rpc SetGroupLocked(SetGroupLockedRequest) returns (SetGroupLockedResponse);
+
+  // GetInviteLink reads the group's invite link.
+  // Errors: as GetGroup.
+  rpc GetInviteLink(GetInviteLinkRequest) returns (GetInviteLinkResponse);
+
+  // ResetInviteLink replaces the group's invite link with a new one; the old one stops working.
+  // Errors: as CreateGroup; INVALID_ARGUMENT (field "group").
+  rpc ResetInviteLink(ResetInviteLinkRequest) returns (ResetInviteLinkResponse);
+
+  // JoinGroupWithLink joins the group of an invite link. For a group that approves new members, WhatsApp answers with
+  // the group too, while the session only asked to join and is not a member yet.
+  // Errors: as CreateGroup; INVALID_ARGUMENT (field "link" for an empty one), INVITE_LINK_INVALID.
+  rpc JoinGroupWithLink(JoinGroupWithLinkRequest) returns (JoinGroupWithLinkResponse);
+
+  // LeaveGroup leaves the group.
+  // Errors: as CreateGroup; INVALID_ARGUMENT (field "group").
+  rpc LeaveGroup(LeaveGroupRequest) returns (LeaveGroupResponse);
+}
+
+// Group is one group as WhatsApp answered. An empty field is one WhatsApp did not send.
+message Group {
+  // The group's JID.
+  string jid = 1;
+  // The name (subject).
+  string name = 2;
+  // The topic (description).
+  string topic = 3;
+  // The user who created the group.
+  string owner = 4;
+  // The owner's phone number when the owner is a LID.
+  string owner_alt = 5;
+  // When the group was created; unset when WhatsApp did not say.
+  google.protobuf.Timestamp create_time = 6;
+  // Only admins can send messages.
+  bool announce = 7;
+  // Only admins can change the group's info.
+  bool locked = 8;
+  // The participants, in WhatsApp's order.
+  repeated GroupParticipant participants = 9;
+}
+
+// GroupParticipant is one participant of a group.
+message GroupParticipant {
+  // The participant: their LID in a LID-addressed group, else their phone number.
+  string jid = 1;
+  // The participant's other address form, when WhatsApp sent it.
+  string jid_alt = 2;
+  // The participant's role.
+  GroupRole role = 3;
+}
+
+// GroupRole is a participant's role.
+enum GroupRole {
+  // Never sent.
+  GROUP_ROLE_UNSPECIFIED = 0;
+  // A member.
+  GROUP_ROLE_MEMBER = 1;
+  // An admin.
+  GROUP_ROLE_ADMIN = 2;
+  // The super admin: the group's creator, unless WhatsApp moved it.
+  GROUP_ROLE_SUPER_ADMIN = 3;
+}
+
+// ParticipantResult is what WhatsApp answered for one participant of a CreateGroup or an UpdateParticipants.
+message ParticipantResult {
+  // The participant, as WhatsApp answered.
+  string jid = 1;
+  // The participant's other address form, when WhatsApp sent it.
+  string jid_alt = 2;
+  // 0 when the change was made; otherwise WhatsApp's code for why not.
+  int32 error_code = 3;
+  // When WhatsApp refused to add the participant directly, as their privacy settings ask, the invite it offers
+  // instead; unset otherwise.
+  AddInvite invite = 4;
+}
+
+// AddInvite is the invite WhatsApp offers for a participant it would not add directly.
+message AddInvite {
+  // The invite's code.
+  string code = 1;
+  // When the invite expires.
+  google.protobuf.Timestamp expire_time = 2;
+}
+
+// ListGroupsRequest names the session.
+message ListGroupsRequest {
+  // The session id.
+  string session_id = 1;
+}
+
+// ListGroupsResponse is the session's groups.
+message ListGroupsResponse {
+  // The groups, ordered by JID.
+  repeated Group groups = 1;
+}
+
+// GetGroupRequest names the group.
+message GetGroupRequest {
+  // The session id.
+  string session_id = 1;
+  // The group's JID.
+  string group = 2;
+}
+
+// GetGroupResponse is the group.
+message GetGroupResponse {
+  // The group.
+  Group group = 1;
+}
+
+// CreateGroupRequest is the new group.
+message CreateGroupRequest {
+  // The session id.
+  string session_id = 1;
+  // The group's name; WhatsApp limits its length.
+  string name = 2;
+  // The users to add besides the session, by phone number or LID.
+  repeated string participants = 3;
+}
+
+// CreateGroupResponse is the created group and what WhatsApp answered for each participant.
+message CreateGroupResponse {
+  // The group, with the participants WhatsApp added.
+  Group group = 1;
+  // One result per participant WhatsApp answered for, in its order.
+  repeated ParticipantResult participants = 2;
+}
+
+// UpdateParticipantsRequest is one change to some participants.
+message UpdateParticipantsRequest {
+  // The session id.
+  string session_id = 1;
+  // The group's JID.
+  string group = 2;
+  // The users, by phone number or LID.
+  repeated string participants = 3;
+  // What to do.
+  ParticipantAction action = 4;
+}
+
+// ParticipantAction is a change to participants.
+enum ParticipantAction {
+  // Never sent; INVALID_ARGUMENT.
+  PARTICIPANT_ACTION_UNSPECIFIED = 0;
+  // Add them to the group.
+  PARTICIPANT_ACTION_ADD = 1;
+  // Remove them from the group.
+  PARTICIPANT_ACTION_REMOVE = 2;
+  // Make them admins.
+  PARTICIPANT_ACTION_PROMOTE = 3;
+  // Make them members again.
+  PARTICIPANT_ACTION_DEMOTE = 4;
+}
+
+// UpdateParticipantsResponse is what WhatsApp answered for each participant.
+message UpdateParticipantsResponse {
+  // One result per participant WhatsApp answered for, in its order.
+  repeated ParticipantResult participants = 1;
+}
+
+// SetGroupNameRequest is the group's new name.
+message SetGroupNameRequest {
+  // The session id.
+  string session_id = 1;
+  // The group's JID.
+  string group = 2;
+  // The new name; WhatsApp limits its length.
+  string name = 3;
+}
+
+// SetGroupNameResponse has no fields.
+message SetGroupNameResponse {}
+
+// SetGroupTopicRequest is the group's new topic.
+message SetGroupTopicRequest {
+  // The session id.
+  string session_id = 1;
+  // The group's JID.
+  string group = 2;
+  // The new topic; empty removes it.
+  string topic = 3;
+}
+
+// SetGroupTopicResponse has no fields.
+message SetGroupTopicResponse {}
+
+// SetGroupAnnounceRequest is the group's announce setting.
+message SetGroupAnnounceRequest {
+  // The session id.
+  string session_id = 1;
+  // The group's JID.
+  string group = 2;
+  // True to let only admins send messages.
+  bool announce = 3;
+}
+
+// SetGroupAnnounceResponse has no fields.
+message SetGroupAnnounceResponse {}
+
+// SetGroupLockedRequest is the group's locked setting.
+message SetGroupLockedRequest {
+  // The session id.
+  string session_id = 1;
+  // The group's JID.
+  string group = 2;
+  // True to let only admins change the group's info.
+  bool locked = 3;
+}
+
+// SetGroupLockedResponse has no fields.
+message SetGroupLockedResponse {}
+
+// GetInviteLinkRequest names the group.
+message GetInviteLinkRequest {
+  // The session id.
+  string session_id = 1;
+  // The group's JID.
+  string group = 2;
+}
+
+// GetInviteLinkResponse is the invite link.
+message GetInviteLinkResponse {
+  // The link, https://chat.whatsapp.com/<code>.
+  string link = 1;
+}
+
+// ResetInviteLinkRequest names the group.
+message ResetInviteLinkRequest {
+  // The session id.
+  string session_id = 1;
+  // The group's JID.
+  string group = 2;
+}
+
+// ResetInviteLinkResponse is the new invite link.
+message ResetInviteLinkResponse {
+  // The new link, https://chat.whatsapp.com/<code>.
+  string link = 1;
+}
+
+// JoinGroupWithLinkRequest is the invite link.
+message JoinGroupWithLinkRequest {
+  // The session id.
+  string session_id = 1;
+  // The link, or its code alone.
+  string link = 2;
+}
+
+// JoinGroupWithLinkResponse is the joined group.
+message JoinGroupWithLinkResponse {
+  // The group's JID.
+  string group = 1;
+}
+
+// LeaveGroupRequest names the group.
+message LeaveGroupRequest {
+  // The session id.
+  string session_id = 1;
+  // The group's JID.
+  string group = 2;
+}
+
+// LeaveGroupResponse has no fields.
+message LeaveGroupResponse {}
+
+// GroupEvent is a group notification WhatsApp sent the session: a change to a group it is in, or its joining one.
+// whatsmeow acknowledges these to WhatsApp only after the sidecar recorded them (ARCHITECTURE §1, w:gp2 notifications),
+// so they are at least once, and have no id: one can arrive again with the same content. WhatsApp sends again one the
+// sidecar did not record, and when that comes, relative to later changes, is [unknown] (#10 measures it): when the
+// sidecar fails to record one while connected, it acks and records the later ones, so the redelivery can come after
+// them [inferred]. Order a group's changes by their time, not by their arrival.
+message GroupEvent {
+  // A change to the group.
+  message Changed {
+    // What changed, never empty: renamed, topic, announce, locked, joined, left, promoted, demoted, each at most once
+    // and in that order. A participant in these lists is addressed as in the group's participants; the store learned
+    // their other form with the notification (ResolveJids).
+    repeated GroupChange changes = 1;
+  }
+
+  // The session joined the group, or was added to it.
+  message Joined {
+    // The group as WhatsApp sent it.
+    Group group = 1;
+  }
+
+  // The group's JID.
+  string group = 1;
+  // Who made the change; empty when WhatsApp did not say.
+  string sender = 2;
+  // The sender's phone number when the sender is a LID.
+  string sender_alt = 3;
+  // When WhatsApp says it happened; unset for a join it gave no time for.
+  google.protobuf.Timestamp time = 4;
+  // What happened.
+  oneof kind {
+    // See Changed.
+    Changed changed = 5;
+    // See Joined.
+    Joined joined = 6;
+  }
+}
+
+// GroupChange is one change to a group.
+message GroupChange {
+  // The group was renamed.
+  message Renamed {
+    // The new name.
+    string name = 1;
+  }
+
+  // The topic changed.
+  message TopicChanged {
+    // The new topic; empty when it was removed.
+    string topic = 1;
+  }
+
+  // Who can send messages changed.
+  message AnnounceChanged {
+    // True when only admins can.
+    bool announce = 1;
+  }
+
+  // Who can change the group's info changed.
+  message LockedChanged {
+    // True when only admins can.
+    bool locked = 1;
+  }
+
+  // Users whose membership or role changed.
+  message Participants {
+    // The users.
+    repeated string jids = 1;
+  }
+
+  // What changed.
+  oneof change {
+    // See Renamed.
+    Renamed renamed = 1;
+    // See TopicChanged.
+    TopicChanged topic_changed = 2;
+    // See AnnounceChanged.
+    AnnounceChanged announce_changed = 3;
+    // See LockedChanged.
+    LockedChanged locked_changed = 4;
+    // Users who joined or were added.
+    Participants joined = 5;
+    // Users who left or were removed.
+    Participants left = 6;
+    // Users who became admins.
+    Participants promoted = 7;
+    // Users who stopped being admins.
+    Participants demoted = 8;
+  }
+}

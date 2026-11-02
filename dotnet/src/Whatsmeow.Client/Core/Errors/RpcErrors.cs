@@ -92,8 +92,11 @@ internal static class RpcErrors
 			case ErrorReason.MediaExpired:
 				MediaExpiredException.Throw(exception);
 				break;
+			case ErrorReason.WhatsappError:
+				WhatsAppErrorException.Throw(exception, WhatsAppCode(info!));
+				break;
 			case null or ErrorReason.Unspecified or ErrorReason.Internal or ErrorReason.Unauthenticated or ErrorReason.SidecarShuttingDown
-				or ErrorReason.ConsumerReplaced or ErrorReason.WhatsappError or ErrorReason.WhatsappTimedOut or ErrorReason.NoPushName:
+				or ErrorReason.ConsumerReplaced or ErrorReason.WhatsappTimedOut or ErrorReason.NoPushName or ErrorReason.InviteLinkInvalid:
 			default:
 				break;
 		}
@@ -114,6 +117,10 @@ internal static class RpcErrors
 		&& DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var until)
 			? until
 			: null;
+
+	/// <summary>WhatsApp's numeric error code from the <c>code</c> metadata (error.proto); 0 when it is missing or malformed.</summary>
+	private static int WhatsAppCode(ErrorInfo info) =>
+		info.Metadata.TryGetValue("code", out var value) && int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var code) ? code : 0;
 
 	private static WhatsmeowErrorCode ToCode(ErrorReason? reason) =>
 		reason switch
@@ -140,6 +147,7 @@ internal static class RpcErrors
 			ErrorReason.WhatsappTimedOut => WhatsmeowErrorCode.WhatsAppTimedOut,
 			ErrorReason.NoPushName => WhatsmeowErrorCode.NoPushName,
 			ErrorReason.MediaExpired => WhatsmeowErrorCode.MediaExpired,
+			ErrorReason.InviteLinkInvalid => WhatsmeowErrorCode.InviteLinkInvalid,
 			null or ErrorReason.Unspecified => WhatsmeowErrorCode.Unknown,
 			_ => WhatsmeowErrorCode.Unknown,
 		};

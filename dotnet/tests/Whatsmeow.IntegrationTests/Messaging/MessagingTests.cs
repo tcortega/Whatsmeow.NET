@@ -32,12 +32,6 @@ public sealed class MessagingTests(FakeSidecar fixture)
 	private async Task RegisterAsync(string phoneNumberJid, string lid, CancellationToken ct) =>
 		_ = await fixture.Fake.RegisterUserAsync(new RegisterUserRequest { PhoneJid = phoneNumberJid, Lid = lid }, cancellationToken: ct).ConfigureAwait(false);
 
-	private static void ValidateReceipt(ReceiptReceived expected, ReceiptReceived actual)
-	{
-		Assert.Equal(expected, actual with { MessageIds = expected.MessageIds });
-		Assert.Equal(expected.MessageIds, actual.MessageIds);
-	}
-
 	[Fact(Timeout = Timeout)]
 	public async Task FullCycle_SendTextToAPhoneNumber_GoesToItsLid_AndItsReceiptsArrive()
 	{
@@ -110,8 +104,8 @@ public sealed class MessagingTests(FakeSidecar fixture)
 			Type = ReceiptType.Delivered,
 		};
 		var got = await receipts.NextAsync(2, ct);
-		ValidateReceipt(delivered, got[0]);
-		ValidateReceipt(delivered with { Type = ReceiptType.Read }, got[1]);
+		Assert.Equal(delivered, got[0]);
+		Assert.Equal(delivered with { Type = ReceiptType.Read }, got[1]);
 
 		// Each was acked to WhatsApp once it was recorded (invariant 2).
 		var firstAck = await SentAsync(Session, ct, sent.Index);

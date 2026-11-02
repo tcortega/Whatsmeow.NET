@@ -3,14 +3,15 @@ using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Time.Testing;
 using Whatsmeow;
 using Whatsmeow.Events;
+using Whatsmeow.Groups;
 using Whatsmeow.Sessions;
 
 namespace SidecarHost;
 
 /// <summary>
 /// The process the events kill test kills: it starts the fake-mode sidecar on the database, prints the sidecar's
-/// process id, connects the session and prints "session id" as each message handler starts. In the handler of
-/// <c>blockOn</c> it waits until the session's state lane handled <see cref="SessionState.Connected"/>, moves its clock
+/// process id, connects the session and prints "session id" as each message handler starts, and "session name" as each
+/// handler of a group rename to name does. In the handler of <c>blockOn</c>, a message id or a name, it waits until the session's state lane handled <see cref="SessionState.Connected"/>, moves its clock
 /// one ack interval, waits until the ack went out, prints "acked", and never returns; the test kills this process
 /// there. Its clock moves only then, so that is the one ack, and it covers exactly the events before <c>blockOn</c>.
 /// </summary>
@@ -47,19 +48,25 @@ internal static class EventsHost
 					return ValueTask.CompletedTask;
 				}
 			);
-			using var handler = client.On<MessageReceived>(
-				async (e, _) =>
-				{
-					await PrintAsync($"{e.SessionId} {e.Id}").ConfigureAwait(false);
-					if (e.Id != MessageId.From(blockOn))
-						return;
+			async Task HandleAsync(string label, bool block)
+			{
+				await PrintAsync(label).ConfigureAwait(false);
+				if (!block)
+					return;
 
-					await connected.Task.ConfigureAwait(false);
-					time.Advance(TimeSpan.FromSeconds(1));
-					await AckedAsync(logs).ConfigureAwait(false);
-					await PrintAsync("acked").ConfigureAwait(false);
-					await stuck.Task.ConfigureAwait(false);
-				}
+				await connected.Task.ConfigureAwait(false);
+				time.Advance(TimeSpan.FromSeconds(1));
+				await AckedAsync(logs).ConfigureAwait(false);
+				await PrintAsync("acked").ConfigureAwait(false);
+				await stuck.Task.ConfigureAwait(false);
+			}
+
+			using var handler = client.On<MessageReceived>((e, _) => new ValueTask(HandleAsync($"{e.SessionId} {e.Id}", e.Id == MessageId.From(blockOn))));
+			using var renames = client.On<GroupInfoChanged>(
+				(e, _) =>
+					e.Changes is [GroupChange.Renamed { Name: var name }]
+						? new ValueTask(HandleAsync($"{e.SessionId} {name}", name == blockOn))
+						: ValueTask.CompletedTask
 			);
 			await client.ConnectAsync(CancellationToken.None).ConfigureAwait(false);
 			_ = await Console.In.ReadLineAsync().ConfigureAwait(false);
