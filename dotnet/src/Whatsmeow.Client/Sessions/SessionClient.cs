@@ -271,23 +271,32 @@ internal sealed class SessionClient(
 		ArgumentNullException.ThrowIfNull(emoji);
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var messageId = id ?? MessageId.New();
-		var response = await RpcErrors
-			.CallAsync(
-				_messages.SendReactionAsync(
-					new SendReactionRequest
-					{
-						SessionId = sessionId.Value,
-						Chat = chat.ToString(),
-						ClientMessageId = messageId.Value,
-						TargetId = target.Id.Value,
-						TargetSender = target.Sender?.ToString() ?? "",
-						Emoji = emoji,
-					},
-					cancellationToken: cancellationToken
-				)
+		return await SendTracedAsync(
+				"reaction",
+				messageId,
+				async () =>
+				{
+					var response = await RpcErrors
+						.CallAsync(
+							_messages.SendReactionAsync(
+								new SendReactionRequest
+								{
+									SessionId = sessionId.Value,
+									Chat = chat.ToString(),
+									ClientMessageId = messageId.Value,
+									TargetId = target.Id.Value,
+									TargetSender = target.Sender?.ToString() ?? "",
+									Emoji = emoji,
+								},
+								cancellationToken: cancellationToken
+							)
+						)
+						.ConfigureAwait(false);
+					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+				},
+				cancellationToken
 			)
 			.ConfigureAwait(false);
-		return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
 	}
 
 	public async Task<SendResult> EditMessageAsync(Jid chat, MessageId target, string text, MessageId? id = null, CancellationToken cancellationToken = default)
@@ -295,22 +304,31 @@ internal sealed class SessionClient(
 		ArgumentNullException.ThrowIfNull(text);
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var messageId = id ?? MessageId.New();
-		var response = await RpcErrors
-			.CallAsync(
-				_messages.SendEditAsync(
-					new SendEditRequest
-					{
-						SessionId = sessionId.Value,
-						Chat = chat.ToString(),
-						ClientMessageId = messageId.Value,
-						TargetId = target.Value,
-						Text = text,
-					},
-					cancellationToken: cancellationToken
-				)
+		return await SendTracedAsync(
+				"edit",
+				messageId,
+				async () =>
+				{
+					var response = await RpcErrors
+						.CallAsync(
+							_messages.SendEditAsync(
+								new SendEditRequest
+								{
+									SessionId = sessionId.Value,
+									Chat = chat.ToString(),
+									ClientMessageId = messageId.Value,
+									TargetId = target.Value,
+									Text = text,
+								},
+								cancellationToken: cancellationToken
+							)
+						)
+						.ConfigureAwait(false);
+					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+				},
+				cancellationToken
 			)
 			.ConfigureAwait(false);
-		return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
 	}
 
 	public async Task<SendResult> RevokeMessageAsync(Jid chat, MessageKey target, MessageId? id = null, CancellationToken cancellationToken = default)
@@ -318,22 +336,31 @@ internal sealed class SessionClient(
 		ArgumentNullException.ThrowIfNull(target);
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var messageId = id ?? MessageId.New();
-		var response = await RpcErrors
-			.CallAsync(
-				_messages.SendRevokeAsync(
-					new SendRevokeRequest
-					{
-						SessionId = sessionId.Value,
-						Chat = chat.ToString(),
-						ClientMessageId = messageId.Value,
-						TargetId = target.Id.Value,
-						TargetSender = target.Sender?.ToString() ?? "",
-					},
-					cancellationToken: cancellationToken
-				)
+		return await SendTracedAsync(
+				"revoke",
+				messageId,
+				async () =>
+				{
+					var response = await RpcErrors
+						.CallAsync(
+							_messages.SendRevokeAsync(
+								new SendRevokeRequest
+								{
+									SessionId = sessionId.Value,
+									Chat = chat.ToString(),
+									ClientMessageId = messageId.Value,
+									TargetId = target.Id.Value,
+									TargetSender = target.Sender?.ToString() ?? "",
+								},
+								cancellationToken: cancellationToken
+							)
+						)
+						.ConfigureAwait(false);
+					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+				},
+				cancellationToken
 			)
 			.ConfigureAwait(false);
-		return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
 	}
 
 	public async Task<SendResult> SendRawAsync(Jid chat, E2E.Message message, MessageId? id = null, CancellationToken cancellationToken = default)

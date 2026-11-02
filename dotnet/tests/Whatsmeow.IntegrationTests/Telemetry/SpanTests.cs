@@ -34,12 +34,15 @@ public sealed class SpanTests(FakeSidecar fixture, SidecarBinaries binaries)
 	[InlineData("document")]
 	[InlineData("sticker")]
 	[InlineData("raw")]
-	public async Task Send_WithAListener_ASpanCoversEachOfTheSevenSends_AndEachIsCounted(string type)
+	[InlineData("reaction")]
+	[InlineData("edit")]
+	[InlineData("revoke")]
+	public async Task Send_WithAListener_ASpanCoversEachOfTheTenSends_AndEachIsCounted(string type)
 	{
 		var ct = TestContext.Current.CancellationToken;
 		var session = $"telemetry-send-{type}";
 		var client = await SessionSetup.ConnectedAsync(fixture, session, ct);
-		var media = type is "text" or "raw" ? null : await UploadAsync(client, type, ct);
+		var media = type is "text" or "raw" or "reaction" or "edit" or "revoke" ? null : await UploadAsync(client, type, ct);
 		using var sent = new MetricCollector<long>(fixture.MeterFactory, WhatsmeowTelemetry.MeterName, "whatsmeow.messages.sent");
 		using var spans = new Spans();
 		var id = MessageId.New();
@@ -512,7 +515,7 @@ public sealed class SpanTests(FakeSidecar fixture, SidecarBinaries binaries)
 	private static Task<SendResult> SendAsync(IWhatsAppClient client, string type, MediaRef? media, MessageId id, CancellationToken ct)
 	{
 		var to = Jid.Parse(Peer);
-#pragma warning disable WMN1001 // Justification: the raw send is one of the seven sends under test
+#pragma warning disable WMN1001 // Justification: the raw send is one of the ten sends under test
 		return type switch
 		{
 			"text" => client.SendTextAsync(to, "hello", id, cancellationToken: ct),
@@ -521,6 +524,9 @@ public sealed class SpanTests(FakeSidecar fixture, SidecarBinaries binaries)
 			"audio" => client.SendAudioAsync(to, media!, new AudioMetadata(), id, cancellationToken: ct),
 			"document" => client.SendDocumentAsync(to, media!, new DocumentMetadata(), id, cancellationToken: ct),
 			"sticker" => client.SendStickerAsync(to, media!, new StickerMetadata(), id, cancellationToken: ct),
+			"reaction" => client.SendReactionAsync(to, new MessageKey { Id = MessageId.From("T1") }, "👍", id, ct),
+			"edit" => client.EditMessageAsync(to, MessageId.From("T1"), "fixed", id, ct),
+			"revoke" => client.RevokeMessageAsync(to, new MessageKey { Id = MessageId.From("T1") }, id, ct),
 			_ => client.SendRawAsync(to, new E2E.Message { Conversation = "hello" }, id, ct),
 		};
 #pragma warning restore WMN1001

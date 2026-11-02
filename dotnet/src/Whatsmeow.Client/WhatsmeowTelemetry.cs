@@ -19,7 +19,7 @@ namespace Whatsmeow;
 /// <para>
 /// Spans, created only while something listens:
 /// <list type="bullet">
-/// <item><c>whatsmeow.send</c> (client): one message send; <c>whatsmeow.session.id</c>, <c>whatsmeow.message.id</c>, <c>whatsmeow.message.type</c> (<c>text</c>, <c>image</c>, <c>video</c>, <c>audio</c>, <c>document</c>, <c>sticker</c> or <c>raw</c>), and on failure <c>error.type</c> and the error status.</item>
+/// <item><c>whatsmeow.send</c> (client): one message send; <c>whatsmeow.session.id</c>, <c>whatsmeow.message.id</c>, <c>whatsmeow.message.type</c> (<c>text</c>, <c>image</c>, <c>video</c>, <c>audio</c>, <c>document</c>, <c>sticker</c>, <c>reaction</c>, <c>edit</c>, <c>revoke</c> or <c>raw</c>), and on failure <c>error.type</c> and the error status.</item>
 /// <item><c>whatsmeow.media.upload</c> and <c>whatsmeow.media.download</c> (client): one media transfer; <c>whatsmeow.session.id</c>, <c>whatsmeow.media.type</c> (<c>image</c>, <c>video</c>, <c>audio</c> or <c>document</c>), <c>whatsmeow.media.size</c> (the plaintext's length in bytes, on an upload once it succeeded), and on failure <c>error.type</c> and the error status.</item>
 /// <item><c>whatsmeow.process</c> (consumer): the handlers of one event, each running inside it, so a handler's own spans are its children; started with the first handler that takes the event, so an event no handler takes has none; a root, since no context crosses the socket and the event loops run with none of the application's; <c>whatsmeow.session.id</c>, <c>whatsmeow.event.type</c> (the event record's type name, such as <c>MessageReceived</c>), and when a handler threw, <c>error.type</c> and the error status.</item>
 /// </list>
