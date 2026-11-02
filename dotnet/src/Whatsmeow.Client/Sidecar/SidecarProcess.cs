@@ -6,6 +6,7 @@ using System.Text.Json;
 using Grpc.Core;
 using Microsoft.Win32.SafeHandles;
 using Whatsmeow.History;
+using Whatsmeow.Messaging;
 
 namespace Whatsmeow.Sidecar;
 
@@ -60,6 +61,7 @@ internal sealed class SidecarProcess
 	/// <param name="database">The SQLite database file, passed with <c>--database</c>.</param>
 	/// <param name="mediaRoot">The media root, passed with <c>--media-root</c>; null for none.</param>
 	/// <param name="history">The process-wide history options, passed as the <c>--history-*</c> flags.</param>
+	/// <param name="sendPacing">Every session's send pacing, passed as <c>--send-burst</c> and <c>--send-interval</c>.</param>
 	/// <param name="fakeWhatsApp">Pass <c>--fake-whatsapp</c>: only a test build accepts it (ADR 0019).</param>
 	/// <param name="startup">Cancelled by the caller or by the startup timeout.</param>
 	public static async Task<SidecarProcess> StartAsync(
@@ -69,6 +71,7 @@ internal sealed class SidecarProcess
 		string database,
 		string? mediaRoot,
 		HistorySyncOptions history,
+		SendPacingOptions sendPacing,
 		bool fakeWhatsApp,
 		TimeSpan startupTimeout,
 		ILogger clientLog,
@@ -79,7 +82,7 @@ internal sealed class SidecarProcess
 	{
 		var token = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(32));
 		var nonce = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(16));
-		var (process, exited, job) = Spawn(StartInfo(binary, transport, socketDirectory, database, mediaRoot, history, fakeWhatsApp, nonce), clientLog);
+		var (process, exited, job) = Spawn(StartInfo(binary, transport, socketDirectory, database, mediaRoot, history, sendPacing, fakeWhatsApp, nonce), clientLog);
 		var sidecar = new SidecarProcess(process, exited, job, token, sidecarLog);
 
 		string failure;
@@ -189,6 +192,7 @@ internal sealed class SidecarProcess
 		string database,
 		string? mediaRoot,
 		HistorySyncOptions history,
+		SendPacingOptions sendPacing,
 		bool fakeWhatsApp,
 		string nonce
 	)
@@ -227,6 +231,12 @@ internal sealed class SidecarProcess
 		AddLimit(info, "--history-days-limit", history.FullSyncDaysLimit);
 		AddLimit(info, "--history-size-limit-mb", history.FullSyncSizeLimitMegabytes);
 		AddLimit(info, "--history-storage-quota-mb", history.StorageQuotaMegabytes);
+
+		// Go's duration in nanoseconds: an interval the options allow, at most an hour, fits.
+		info.ArgumentList.Add("--send-burst");
+		info.ArgumentList.Add(sendPacing.Burst.ToString(System.Globalization.CultureInfo.InvariantCulture));
+		info.ArgumentList.Add("--send-interval");
+		info.ArgumentList.Add(string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{sendPacing.Interval.Ticks * TimeSpan.NanosecondsPerTick}ns"));
 
 		if (fakeWhatsApp)
 			info.ArgumentList.Add("--fake-whatsapp");

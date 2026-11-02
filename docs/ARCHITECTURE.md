@@ -341,8 +341,9 @@ Each SQLite file has a single owner, enforced with an OS lock on `<database>.loc
 
 The design is [ADR 0025](adr/0025-messaging-and-receipts.md); the whatsmeow facts are in §14 "Measured for Messaging (#9)".
 
-- Per-session FIFO queue, one send in flight, paced by a token bucket (a burst of 5, then one per second; tuning and jitter are Phase 2).
-  An IQ 429 before the write is tried again after 1 s, 2 s and 4 s while the wait and one second more for the try fit the call's deadline, then fails with `RATE_LIMITED`.
+- Per-session FIFO queue, one send in flight, paced by a token bucket: by default a burst of 5, then one per second, set by `WhatsmeowSidecarOptions.SendPacing` (`--send-burst`, `--send-interval`) for every session alike, each with a budget of its own, which every kind of send takes from ([ADR 0042](adr/0042-send-pacing-options-and-jitter.md)).
+  A send that has to wait for its turn waits a random part of half an interval more, so sends do not leave on a fixed beat; the jitter only delays, so the bucket is never exceeded. Safe rates are [unknown] (RESEARCH item 18), so the defaults are a conservative guess.
+  An IQ 429 before the write is tried again after 1 s, 2 s and 4 s while the wait and one second more for the try fit the call's deadline, then fails with `RATE_LIMITED`; the sends queued behind it wait meanwhile. Each 429 logs the names of its error node's attributes, never their values.
 - Sends never wait for a connection: a session that is not logged in, not connected or `TempBanned` fails at once (`NOT_LOGGED_IN` or `LOGGED_OUT`, `NOT_CONNECTED`, `TEMPORARILY_BANNED`), through `session.(*Service).Online`.
   Queued sends fail when the session stops being `Connected` or `CaughtUp` (`NOT_CONNECTED`, `LOGGED_OUT`, or `TEMPORARILY_BANNED`), having sent nothing.
 - Idempotent sends: .NET supplies `client_message_id` (`3EB0` and 18 uppercase hex digits, the format whatsmeow makes; `MessageId.New()`), which is used as the WhatsApp message ID through `SendRequestExtra.ID`.
@@ -409,6 +410,7 @@ The design is [ADR 0025](adr/0025-messaging-and-receipts.md); the whatsmeow fact
   - macOS: the parent check right away and every second.
   - Windows: nothing in the sidecar; the client's Job Object (§8.5).
   - The stop cause is logged at info with `parent_pid`.
+- `--send-burst`, `--send-interval`: every session's send pacing (§7.5); the client always passes them. A burst outside 1 to 1000, or an interval not more than zero or above an hour, exits with code 2 ([ADR 0042](adr/0042-send-pacing-options-and-jitter.md)).
 - SIGPIPE is ignored: a dead parent takes the read ends of stdout and stderr along, and the graceful stop's first log line would otherwise kill the sidecar.
 
 ### 7.9 Go code conventions
@@ -536,7 +538,7 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
   - `RateLimitedException`, `TemporarilyBannedException` (`Until`, a `DateTimeOffset?`; null when WhatsApp sent no end)
   - `RecipientNotFoundException`, `MediaExpiredException`, `WhatsmeowValidationException`
   - `WhatsAppErrorException` (`Code`, WhatsApp's numeric error code; 0 when it sent none)
-- `RateLimitedException` has no `RetryAfter`: whatsmeow's `IQError` has no delay field, only `Code`, `Text` and the raw nodes (`errors.go:179-184`), so there is no source for one; whether the raw node carries one is [unknown].
+- `RateLimitedException` has no `RetryAfter`: whatsmeow's `IQError` has no delay field, only `Code`, `Text` and the raw nodes (`errors.go:179-184`), `parseIQError` reads only the error child's `code` and `text` (`errors.go:203-214`), and nothing at the pin reads a delay [observed: #35, a search of the pin], so there is no source for one; whether the raw node carries one is [unknown], and a 429 logs its error node's attribute names so a live one shows it ([ADR 0042](adr/0042-send-pacing-options-and-jitter.md)).
 - Each `ErrorReason` (`proto/whatsmeow/v1/error.proto`) maps to one exception; a transport failure with no `ErrorInfo` (`UNAVAILABLE`, the socket gone) is `SidecarUnavailableException`; any other status without `ErrorInfo`, or a reason the client does not know, is a plain `WhatsmeowException`:
 
 | Reason | Exception |
@@ -557,7 +559,7 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
 | `OUTCOME_UNKNOWN` | `OutcomeUnknownException` |
 
 - The message is the status message, which `server.toStatus` makes without a phone number, a JID's user part or a URL's query, whatever a slice wrapped into the error; the reason and its metadata are untouched ([ADR 0039](adr/0039-pii-redaction-of-stderr-and-status-messages.md)). `Jid.Parse` throws without the text it refused.
-- Cancellation surfaces as `OperationCanceledException`, and deadlines as `TimeoutException`.
+- Cancellation surfaces as `OperationCanceledException`, and deadlines as `TimeoutException`. No send has a deadline: the client sets none, so a send ends only by its token (ADR 0042).
 - `RpcException` never escapes the public API. No Result types for I/O failures.
 - Exceptions are raised through per-type static throw helpers, never `throw new` at a call site ([guidelines/csharp.md](guidelines/csharp.md) Control flow). `WhatsmeowValidationException` is also the Vogen `throws:` type.
 
@@ -1002,6 +1004,7 @@ Phase 0 decisions:
 - [0038](adr/0038-message-actions-replies-mentions-and-unwrap-flags.md): Message actions: reactions, edits and revokes as whatsmeow-built sends on the one queue, replies and mentions as send options with the account named for its own quoted message, received actions as content cases, the ephemeral, device-sent destination, raw-message and target fields, the account's own target as no sender, one typed-send method with optional options, and `Raw` outside `MessageReceived`'s equality and printing (#30)
 - [0039](adr/0039-pii-redaction-of-stderr-and-status-messages.md): PII redaction: every run of seven or more digits a per-process keyed token in stderr lines of info and above (one `LevelWriter`, JSON strings only, the session id as given) and in status messages, the account's own JID included, debug kept, `Jid.Parse` without the text it refused (#62)
 - [0040](adr/0040-a-fair-write-gate-for-the-sidecars-writes.md): Writes: every write of the sidecar goes through one fair, cancellable gate owned by the store, `store.Writer`, held from `BEGIN` to `COMMIT` or `ROLLBACK`, in arrival order, a write inside a write fails at once, whatsmeow's own store writes stay on SQLite's `busy_timeout`, `forbidigo` rejects a write on a `*sql.DB` outside `internal/store` (#89)
+- [0042](adr/0042-send-pacing-options-and-jitter.md): Send pacing: `SendPacing` options (a burst of 5, then one a second, by default) for every session alike, a budget each, checked at start and by the sidecar's flags; jitter of up to half an interval that only delays a send that waits; the queue's clock a field the tests fake; no `RetryAfter`, a 429's attribute names logged; a message node answered 429 stays `WHATSAPP_ERROR`; no deadline on sends (#35)
 
 House-rule alignment (applied, or opted out of with a measured reason):
 

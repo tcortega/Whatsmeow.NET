@@ -421,6 +421,40 @@ public sealed class HostingTests(FakeSidecar fixture, SidecarBinaries binaries)
 		Assert.Empty(logs.Named("SidecarStarted"));
 	}
 
+	[Fact]
+	public void SendPacing_FromConfiguration_IsBound()
+	{
+		using var logs = new LogCapture();
+		var builder = Hosts.Builder(
+			logs,
+			new(StringComparer.Ordinal) { ["Whatsmeow:SendPacing:Burst"] = "3", ["Whatsmeow:SendPacing:Interval"] = "00:00:02.5" },
+			binaries.NewDirectory()
+		);
+		_ = builder.Services.AddWhatsmeow();
+		using var host = builder.Build();
+
+		var pacing = host.Services.GetRequiredService<IOptions<WhatsmeowSidecarOptions>>().Value.SendPacing;
+
+		Assert.Equal((3, TimeSpan.FromSeconds(2.5)), (pacing.Burst, pacing.Interval));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task SendPacing_FromConfiguration_ABurstOfZeroFailsValidation_AndNoSidecarStarts()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var settings = Hosts.Settings(fixture.Binary, binaries.NewDatabase());
+		settings["Whatsmeow:SendPacing:Burst"] = "0";
+		var builder = Hosts.Builder(logs, settings);
+		_ = builder.Services.AddWhatsmeow().UseFakeWhatsApp();
+		using var host = builder.Build();
+
+		var error = await Assert.ThrowsAsync<OptionsValidationException>(() => host.StartAsync(ct));
+
+		Assert.Equal(["SendPacing.Burst 0 must be 1 to 1000."], error.Failures, StringComparer.Ordinal);
+		Assert.Empty(logs.Named("SidecarStarted"));
+	}
+
 	[Fact(Timeout = Timeout)]
 	public async Task Transport_FromConfiguration_ANumberNoTransportHasFailsValidation()
 	{

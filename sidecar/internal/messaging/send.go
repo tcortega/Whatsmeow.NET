@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"maps"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -234,7 +236,7 @@ func (svc *Service) enqueue(j *job) {
 // sweep drops the idle queues whose pacing ran out: such a queue paces as a new one does (due, spend), so nothing is
 // lost, and a deleted session's queue goes too. svc.mu is held.
 func (svc *Service) sweep() {
-	now := time.Now()
+	now := svc.now()
 
 	for session, q := range svc.queues {
 		if !q.running && len(q.jobs) == 0 && !q.tat.After(now) {
@@ -336,7 +338,7 @@ func (svc *Service) work(q *queue) {
 
 // run paces j, builds its message, records it, hands it to whatsmeow, and records what came back.
 func (svc *Service) run(q *queue, j *job) outcome {
-	if err := svc.sleep(j, svc.due(q)); err != nil {
+	if err := svc.sleep(j, svc.turn(q)); err != nil {
 		return outcome{err: fmt.Errorf("send: %w", err), sentNothing: true}
 	}
 
@@ -363,6 +365,9 @@ func (svc *Service) run(q *queue, j *job) outcome {
 
 		switch class, reason := classify(err); class {
 		case rateLimited:
+			svc.log.Warn().Strs("error_attributes", errorAttributes(err)).Int("try", try+1).Str("session_id", j.session).Str("client_message_id", j.id).
+				Msg("WhatsApp rate limited a send")
+
 			if try < len(svc.backoff) && fits(j.ctx, svc.backoff[try], svc.margin) {
 				if err := svc.sleep(j, svc.backoff[try]); err == nil {
 					continue
@@ -410,34 +415,16 @@ func (svc *Service) write(j *job, query string, args ...any) {
 	}
 }
 
-// due is how long the next send of q has to wait for its turn.
-func (svc *Service) due(q *queue) time.Duration {
-	svc.mu.Lock()
-	defer svc.mu.Unlock()
-
-	return max(0, time.Until(q.tat.Add(-time.Duration(svc.burst-1)*svc.pace)))
-}
-
-// spend takes the send's turn, now.
-func (svc *Service) spend(q *queue) {
-	svc.mu.Lock()
-	defer svc.mu.Unlock()
-
-	now := time.Now()
-	if q.tat.Before(now) {
-		q.tat = now
-	}
-
-	q.tat = q.tat.Add(svc.pace)
-}
-
 // sleep waits d, or fails when j's call ends, its session stops being online, or the slice closes first.
 func (svc *Service) sleep(j *job, d time.Duration) error {
-	timer := time.NewTimer(d)
-	defer timer.Stop()
+	// No wait asks the clock for none.
+	elapsed := passed()
+	if d > 0 {
+		elapsed = svc.after(d)
+	}
 
 	select {
-	case <-timer.C:
+	case <-elapsed:
 		return nil
 	case <-j.ctx.Done():
 		return fmt.Errorf("while waiting its turn: %w", j.ctx.Err())
@@ -446,6 +433,14 @@ func (svc *Service) sleep(j *job, d time.Duration) error {
 	case <-svc.lifetime.Done():
 		return fmt.Errorf("the sidecar is stopping: %w", server.ErrNotConnected)
 	}
+}
+
+// passed is a wait that is over.
+func passed() <-chan time.Time {
+	over := make(chan time.Time)
+	close(over)
+
+	return over
 }
 
 // fits is a wait of d, then a try of at least margin, that ends before ctx's deadline.
@@ -506,6 +501,18 @@ func classify(err error) (class, error) {
 	default:
 		return unknown, cause(err)
 	}
+}
+
+// errorAttributes are the names of the attributes of an IQ error's error node, sorted, never their values. Whether
+// WhatsApp says in them how long to wait after a 429 is unknown: whatsmeow reads only the code and the text
+// (errors.go:203-214), and nothing at the pin reads a delay, so the names are what a live 429 records (ADR 0042).
+func errorAttributes(err error) []string {
+	var iq *whatsmeow.IQError
+	if !errors.As(err, &iq) || iq.ErrorNode == nil {
+		return []string{}
+	}
+
+	return slices.Sorted(maps.Keys(iq.ErrorNode.Attrs))
 }
 
 // serverErrorCode is the code of whatsmeow's ErrServerReturnedError, which carries it only in its text,

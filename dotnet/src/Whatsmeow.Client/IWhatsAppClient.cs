@@ -457,7 +457,9 @@ public interface IWhatsAppClient
 
 	/// <summary>
 	/// Sends a text message to <paramref name="chat"/>, a user (by phone number or LID, without a device) or a group, once
-	/// the sends of this session queued before it went out; the session's sends are paced. It never waits for a
+	/// the sends of this session queued before it went out; the session's sends are paced
+	/// (<see cref="WhatsmeowSidecarOptions.SendPacing"/>), and one waiting for its turn still ends at once when the call
+	/// is cancelled, having sent nothing. It never waits for a
 	/// connection: the session must be connected. WhatsApp rate limiting is waited out a few times, a few seconds in all,
 	/// while the wait and a second for the try fit the call's deadline, before it throws.
 	/// A send is at most once per <paramref name="id"/>: a repeat of a sent message returns its first result and sends
