@@ -197,6 +197,7 @@ A session's own JID comes from `SessionInfo.Jid` (this device's JID; the account
 Only the `NeedsOwner` tests need the owner's ping: `wmn ping` sent from the phone to "Message yourself", before the run or within five minutes of the first such test, a wait bounded apart from the test's own work.
 The kill tests call the fake-mode kill tests' checks (`Whatsmeow.IntegrationTests/Events/DeliveryChecks.cs`); the .NET kill runs `SidecarHost events-live` on the live database, so the live sidecar stops first and starts again after it.
 Every measurement goes to `sidecar.log` and the test output, redacted, for ARCHITECTURE §14; the peer's log goes to `peer.log`, and the .NET kill's host log to `host.log`.
+A sidecar exit the client did not ask for adds a `live: UNEXPECTED SIDECAR EXIT` line with its exit code and UTC time, in the log and the test output; one outside a kill test's own kill means something else killed it, and the run's results around it are not evidence.
 Each run backs up the live and peer databases before their first start, while no sidecar holds them (`StoreBackup`, under the store's lock): `~/.whatsmeow-net-live/backup/live-<yyyyMMddHHmmss>/` and `peer-<...>/`, the directories 0700 and the files 0600, the database with its `-wal` and `-shm` as they are.
 These are the only copies of the keys; delete old ones by hand.
 To restore one, stop every sidecar on that database and copy its files back.
