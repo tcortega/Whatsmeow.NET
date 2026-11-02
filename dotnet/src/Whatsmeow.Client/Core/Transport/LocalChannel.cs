@@ -30,6 +30,7 @@ internal sealed class LocalChannel : IDisposable
 	private static readonly TimeSpan s_connectTimeout = TimeSpan.FromSeconds(2);
 
 	private readonly GrpcChannel _channel;
+	private readonly CancellationTokenSource? _refused;
 
 	/// <param name="namedPipe">Connect to a named pipe instead of a Unix domain socket.</param>
 	/// <param name="endpoint">The launch's socket path or pipe name; null for a channel that never connects.</param>
@@ -37,7 +38,7 @@ internal sealed class LocalChannel : IDisposable
 	/// <param name="loggerFactory">For gRPC's own logs.</param>
 	/// <param name="timeProvider">Bounds a pipe connect.</param>
 	public LocalChannel(bool namedPipe, string? endpoint, string token, ILoggerFactory loggerFactory, TimeProvider timeProvider)
-		: this(namedPipe ? ct => ConnectPipeAsync(endpoint, timeProvider, ct) : ct => ConnectSocketAsync(endpoint, ct), token, keepAlive: null, loggerFactory)
+		: this(namedPipe ? ct => ConnectPipeAsync(endpoint, timeProvider, ct) : ct => ConnectSocketAsync(endpoint, ct), token, keepAlive: null, refused: null, loggerFactory)
 	{
 	}
 
@@ -47,9 +48,11 @@ internal sealed class LocalChannel : IDisposable
 	/// For an external sidecar: ping a connection silent this long, and drop it when the answer takes as long, so a peer
 	/// that vanished without closing its end fails the calls on it. Null for none: a local child's socket closes with it.
 	/// </param>
+	/// <param name="refused">Cancelled when a call is refused <c>Unauthenticated</c>, for an external sidecar's epoch; null for none.</param>
 	/// <param name="loggerFactory">For gRPC's own logs.</param>
-	private LocalChannel(Func<CancellationToken, ValueTask<Stream>> connect, string token, TimeSpan? keepAlive, ILoggerFactory loggerFactory)
+	private LocalChannel(Func<CancellationToken, ValueTask<Stream>> connect, string token, TimeSpan? keepAlive, CancellationTokenSource? refused, ILoggerFactory loggerFactory)
 	{
+		_refused = refused;
 		var sockets = new SocketsHttpHandler { ConnectCallback = (_, ct) => connect(ct) };
 		if (keepAlive is { } delay)
 		{
@@ -71,29 +74,42 @@ internal sealed class LocalChannel : IDisposable
 		});
 
 		var authorization = "Bearer " + token;
-		CallInvoker = _channel.Intercept(metadata =>
+		var invoker = _channel.Intercept(metadata =>
 		{
 			metadata.Add("authorization", authorization);
 			return metadata;
 		});
+		CallInvoker = refused is null ? invoker : invoker.Intercept(new TokenRefusal(refused));
 	}
 
 	/// <summary>
 	/// One connect epoch's channel to an external sidecar (ADR 0046): its address is the same for every epoch, its token
-	/// the one the token file held when the epoch began, so a call never carries another epoch's token.
+	/// the one the token file held when the epoch began, so a call never carries another epoch's token. A call it
+	/// refuses <c>Unauthenticated</c> cancels <see cref="Refused"/>.
 	/// </summary>
 	public static LocalChannel ToExternal(SidecarAddress address, string token, TimeSpan keepAlive, ILoggerFactory loggerFactory, TimeProvider timeProvider) =>
 		new(
 			address.Path is { } path ? ct => ConnectSocketAsync(path, ct) : ct => ConnectTcpAsync(address.Host!, address.Port, timeProvider, ct),
 			token,
 			keepAlive,
+			new CancellationTokenSource(),
 			loggerFactory
 		);
 
 	/// <summary>This launch's calls go through this invoker, which adds its token.</summary>
 	public CallInvoker CallInvoker { get; }
 
-	public void Dispose() => _channel.Dispose();
+	/// <summary>
+	/// Cancelled once the external sidecar refused one of this channel's calls <c>Unauthenticated</c>: it no longer takes
+	/// this epoch's token. Never cancelled for an embedded launch, whose token never changes.
+	/// </summary>
+	public CancellationToken Refused => _refused?.Token ?? CancellationToken.None;
+
+	public void Dispose()
+	{
+		_channel.Dispose();
+		_refused?.Dispose();
+	}
 
 	private static async ValueTask<Stream> ConnectSocketAsync(string? path, CancellationToken cancellationToken)
 	{

@@ -37,6 +37,9 @@ internal static partial class SidecarLog
 	[LoggerMessage(13, LogLevel.Debug, "The health watch on the external sidecar ended")]
 	public static partial void ExternalWatchEnded(ILogger logger, Exception exception);
 
+	[LoggerMessage(14, LogLevel.Warning, "The sidecar at {Address} refused this client's token, as after a rotation; connecting again with the token its file holds")]
+	public static partial void ExternalTokenRefused(ILogger logger, string address);
+
 	/// <summary>One sidecar stderr line, at the level it reports.</summary>
 	[LoggerMessage(EventId = 7, Message = "{Line}")]
 	public static partial void SidecarOutput(ILogger logger, LogLevel level, string line);

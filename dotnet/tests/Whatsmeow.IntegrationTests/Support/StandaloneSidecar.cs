@@ -50,6 +50,13 @@ public sealed class StandaloneSidecar : IAsyncDisposable
 		return path;
 	}
 
+	/// <summary>A copy of the token file at <paramref name="path"/> in <paramref name="copy"/>: the same secret mounted for another side.</summary>
+	public static string CopyToken(string path, string copy)
+	{
+		File.Copy(path, copy, overwrite: true);
+		return copy;
+	}
+
 	/// <summary>Writes a new random token to <paramref name="path"/>, as a rotated secret would be.</summary>
 	public static void WriteToken(string path)
 	{
@@ -105,6 +112,16 @@ public sealed class StandaloneSidecar : IAsyncDisposable
 
 		using var ready = JsonDocument.Parse(line);
 		return new StandaloneSidecar(process, ready.RootElement.GetProperty("listen").GetString()!);
+	}
+
+	/// <summary>
+	/// Kills the process hard and returns once it is gone, without awaiting: for a caller that must not go on before,
+	/// such as a log sink that runs inside the client's call.
+	/// </summary>
+	public void KillAndWait()
+	{
+		_process.Kill(entireProcessTree: true);
+		_process.WaitForExit();
 	}
 
 	/// <summary>Kills the process hard, as a crashed container, and waits until it is gone.</summary>

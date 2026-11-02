@@ -187,6 +187,102 @@ public sealed class ExternalTests(FakeSidecar fixture, SidecarBinaries binaries)
 	}
 
 	[Fact(Timeout = Timeout)]
+	public async Task Connect_TheSidecarDiesBeforeTheWatchAnswers_ConnectsToItsNextStartWithinTheStartupTimeout()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var token = StandaloneSidecar.NewTokenFile(binaries.NewDirectory());
+		var database = binaries.NewDatabase();
+		var listen = "unix:" + StandaloneSidecar.NewSocketPath();
+		var dying = await StandaloneSidecar.StartAsync(binaries.Sidecar, database, listen, token, [], ct);
+		await using var dispose = dying;
+		var killed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+		var watches = 0;
+
+		// gRPC logs each call as it starts, before it sends it (Grpc.Net.Client's StartingCall). At the first watch's
+		// line the sidecar dies: GetInfo was answered, and the watch's first message fails Unavailable.
+		using var logs = new LogCapture(line =>
+		{
+			if (!line.Contains("grpc.health.v1.Health/Watch", StringComparison.Ordinal) || Interlocked.Increment(ref watches) != 1)
+				return;
+			dying.KillAndWait();
+			killed.SetResult();
+		});
+		var connecting = WhatsmeowSidecar.StartAsync(Options(dying, token), logs.Factory, ct);
+		await killed.Task.WaitAsync(ct);
+
+		// The orchestrator starts it again: within the startup timeout, the client connects to that one.
+		await using var standalone = await StandaloneSidecar.StartAsync(binaries.Sidecar, database, listen, token, [], ct);
+		await using var sidecar = await connecting;
+
+		Assert.Equal(SidecarBinaries.ClientVersion, (await sidecar.GetInfoAsync(ct)).Version);
+		Assert.True(watches >= 2, $"{watches} watches");
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Rotate_AnotherClientMovesTheSidecarToTheNewToken_TheFirstFollowsItByItselfAndGetsItsEvents()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var directory = binaries.NewDirectory();
+		var token = StandaloneSidecar.NewTokenFile(directory);
+		var firstToken = StandaloneSidecar.CopyToken(token, Path.Combine(directory, "first"));
+		await using var standalone = await StartFakeAsync("unix:" + StandaloneSidecar.NewSocketPath(), token, ct);
+		await using var first = await WhatsmeowSidecar.StartAsync(Options(standalone, firstToken, "first"), ct);
+		var client = await LinkAsync(first, new FakeWhatsAppService.FakeWhatsAppServiceClient(first.CallInvoker), "external-rotate", ct);
+		using var received = new Received<MessageReceived>(client);
+		await client.ConnectAsync(ct);
+
+		// The orchestrator rotates the secret in every side's file. The second client's first call moves the sidecar onto
+		// the new token, and from then on the old one is refused.
+		StandaloneSidecar.WriteToken(token);
+		_ = StandaloneSidecar.CopyToken(token, firstToken);
+		await using var second = await WhatsmeowSidecar.StartAsync(Options(standalone, StandaloneSidecar.CopyToken(token, Path.Combine(directory, "second")), "second"), ct);
+
+		// The first client still calls with the old token. The stream it opens now is refused, so it connects again by
+		// itself, with the token its file holds now, and the stream goes on there.
+		await using (var watch = StateWatch.Start(client, ct))
+			await watch.ReachesAsync(new SessionState.Connected(), new SessionState.Connecting());
+		await Deliveries.DeliverAsync(new FakeWhatsAppService.FakeWhatsAppServiceClient(second.CallInvoker), "external-rotate", ct, "M1");
+
+		Assert.Equal(Deliveries.Received("external-rotate", "M1"), await received.NextAsync(ct));
+		Assert.Equal(SidecarBinaries.ClientVersion, (await first.GetInfoAsync(ct)).Version);
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Rotate_TheClientsFileStillHoldsTheOldToken_ItTriesAgainWithTheRestartBackoff()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var time = new TimerObservingTimeProvider();
+		var directory = binaries.NewDirectory();
+		var token = StandaloneSidecar.NewTokenFile(directory);
+		var firstToken = StandaloneSidecar.CopyToken(token, Path.Combine(directory, "first"));
+		await using var standalone = await StandaloneSidecar.StartAsync(binaries.Sidecar, binaries.NewDatabase(), "unix:" + StandaloneSidecar.NewSocketPath(), token, [], ct);
+		await using var first = await WhatsmeowSidecar.StartAsync(Options(standalone, firstToken), NullLoggerFactory.Instance, time, ct);
+		Assert.Equal(TimeSpan.FromSeconds(30), await time.Timers.Reader.ReadAsync(ct));
+
+		StandaloneSidecar.WriteToken(token);
+		await using var second = await WhatsmeowSidecar.StartAsync(Options(standalone, StandaloneSidecar.CopyToken(token, Path.Combine(directory, "second")), "second"), ct);
+		var refused = await Assert.ThrowsAsync<SidecarUnavailableException>(() => first.GetInfoAsync(ct));
+		Assert.Equal(WhatsmeowErrorCode.Unauthenticated, refused.ErrorCode);
+
+		// The refused call ends the connect epoch. The first client's file still holds the old token, so each connect is
+		// refused, and the next one waits longer, as after a sidecar restart (ADR 0017): never a loop of refused calls.
+		foreach (var seconds in (int[])[1, 2, 4])
+		{
+			Assert.Equal(TimeSpan.FromSeconds(seconds), await time.Timers.Reader.ReadAsync(ct));
+			time.Advance(TimeSpan.FromSeconds(seconds));
+			Assert.Equal(TimeSpan.FromSeconds(30), await time.Timers.Reader.ReadAsync(ct));
+		}
+
+		// Its file gets the new token: the next connect is accepted.
+		_ = StandaloneSidecar.CopyToken(token, firstToken);
+		Assert.Equal(TimeSpan.FromSeconds(8), await time.Timers.Reader.ReadAsync(ct));
+		time.Advance(TimeSpan.FromSeconds(8));
+		await first.WaitForLaunchAsync(1, ct);
+
+		Assert.Equal(SidecarBinaries.ClientVersion, (await first.GetInfoAsync(ct)).Version);
+	}
+
+	[Fact(Timeout = Timeout)]
 	public async Task Dispose_TheExternalSidecarKeepsRunning()
 	{
 		var ct = TestContext.Current.CancellationToken;

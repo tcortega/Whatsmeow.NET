@@ -471,10 +471,11 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 	/// <summary>
 	/// Connects to an external sidecar (ADR 0046), for the first start and after it went away: one connect epoch, an
 	/// External-mode launch. Each attempt reads the token file again and publishes a channel of its own with that token,
-	/// so a rotated secret is followed and no call of an older epoch reaches this one (ADR 0045). GetInfo until the
-	/// sidecar answers within the startup timeout, the protocol check, then the health watch on this epoch's channel,
-	/// whose end says the sidecar is gone, then Connect again for the sessions the application had connected. Its
-	/// process id is 0: the process is not the client's.
+	/// so a rotated secret is followed and no call of an older epoch reaches this one (ADR 0045). GetInfo and the
+	/// protocol check, then the health watch on this epoch's channel, until the sidecar answers both within the startup
+	/// timeout; then Connect again for the sessions the application had connected. The epoch ends when the watch does,
+	/// or when the sidecar refuses one of its calls <c>Unauthenticated</c>, as after a rotation. Its process id is 0: the
+	/// process is not the client's.
 	/// </summary>
 	private async Task<(int ProcessId, Task<int> Exited)> ConnectAsync(CancellationToken cancellationToken)
 	{
@@ -482,37 +483,40 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		using var startup = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
 		var address = _external!.ToString();
 
-		SidecarUnavailableException? unreachable = null;
+		Exception? unreachable = null;
 		try
 		{
 			GetInfoResponse info;
-			LocalChannel channel;
+			Task<int> watching;
 			while (true)
 			{
-				channel = LocalChannel.ToExternal(_external, ExternalToken.Read(_options.External!.TokenPath!), _options.External.KeepAlive, _loggerFactory, TimeProvider);
+				var channel = LocalChannel.ToExternal(_external, ExternalToken.Read(_options.External!.TokenPath!), _options.External.KeepAlive, _loggerFactory, TimeProvider);
 				Publish(channel);
 				try
 				{
 					info = await GetInfoCoreAsync(startup.Token).ConfigureAwait(false);
+					var protocol = (int)info.Protocol;
+					if (protocol < _minProtocol || protocol > _maxProtocol)
+						SidecarVersionMismatchException.ThrowProtocol(info.Version, protocol, _minProtocol, _maxProtocol);
+
+					watching = await WatchAsync(channel, address, startup.Token).ConfigureAwait(false);
 					break;
 				}
 				catch (SidecarUnavailableException e) when (e.ErrorCode is WhatsmeowErrorCode.Unauthenticated)
 				{
+					// After a rotation, a reconnect waits for the token file with the supervisor's backoff.
 					SidecarUnavailableException.ThrowTokenRefused(address, e);
 				}
-				catch (SidecarUnavailableException e)
+				catch (Exception e) when (e is SidecarUnavailableException || (e is OperationCanceledException && !startup.IsCancellationRequested))
 				{
-					// Not listening yet, or restarting: an orchestrator may start the two in any order.
+					// Not listening yet, or restarting: an orchestrator may start the two in any order. A call to a sidecar
+					// that went away mid-connect, the watch's first read included, may also end with no status at all, as a
+					// cancellation the caller did not ask for [observed: the sidecar killed before the watch, macOS].
 					unreachable = e;
 					await Task.Delay(s_connectRetry, TimeProvider, startup.Token).ConfigureAwait(false);
 				}
 			}
 
-			var protocol = (int)info.Protocol;
-			if (protocol < _minProtocol || protocol > _maxProtocol)
-				SidecarVersionMismatchException.ThrowProtocol(info.Version, protocol, _minProtocol, _maxProtocol);
-
-			var watching = await WatchAsync(channel, startup.Token).ConfigureAwait(false);
 			_watching = watching;
 			SidecarLog.ExternalSidecarConnected(_log, address, info.Version);
 			await Sessions.ReconnectAsync(cancellationToken).ConfigureAwait(false);
@@ -522,44 +526,55 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		}
 		catch (OperationCanceledException e) when (timeout.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
 		{
-			SidecarUnavailableException.ThrowNotAnswering(address, _options.StartupTimeout, unreachable ?? (Exception)e);
+			SidecarUnavailableException.ThrowNotAnswering(address, _options.StartupTimeout, unreachable ?? e);
 			throw;
 		}
 	}
 
 	/// <summary>
 	/// Opens the health watch on <paramref name="channel"/>, this epoch's, and waits for its first status, which proves the
-	/// stream reaches the sidecar. The task it returns completes once the watch ends, however: the sidecar stopped,
-	/// restarted, or its connection failed, a silent one included, which the keepalive pings drop. Disposing the client
-	/// ends it too.
+	/// stream reaches the sidecar. The task it returns completes once the epoch ends: the watch ended, however (the
+	/// sidecar stopped, restarted, or its connection failed, a silent one included, which the keepalive pings drop), or
+	/// the sidecar refused one of the channel's calls. Disposing the client ends it too.
 	/// </summary>
-	private async Task<Task<int>> WatchAsync(LocalChannel channel, CancellationToken startup)
+	private async Task<Task<int>> WatchAsync(LocalChannel channel, string address, CancellationToken startup)
 	{
-		var call = new Health.HealthClient(channel.CallInvoker).Watch(new HealthCheckRequest(), cancellationToken: _disposing.Token);
+		var ending = CancellationTokenSource.CreateLinkedTokenSource(_disposing.Token, channel.Refused);
+		AsyncServerStreamingCall<HealthCheckResponse>? call = null;
 		try
 		{
+			call = new Health.HealthClient(channel.CallInvoker).Watch(new HealthCheckRequest(), cancellationToken: ending.Token);
 			if (!await call.ResponseStream.MoveNext(startup).ConfigureAwait(false))
-				SidecarUnavailableException.ThrowNotAnswering(_external!.ToString(), _options.StartupTimeout, innerException: null);
+				SidecarUnavailableException.ThrowNotAnswering(address, _options.StartupTimeout, innerException: null);
 		}
 		catch (RpcException e)
 		{
-			call.Dispose();
+			call?.Dispose();
+			ending.Dispose();
 			RpcErrors.Throw(e);
 		}
 		catch
 		{
-			call.Dispose();
+			call?.Dispose();
+			ending.Dispose();
 			throw;
 		}
 
-#pragma warning disable CA2025 // Justification: the returned task owns the call, and disposes it when the watch ends
-		return WatchUntilItEndsAsync(call, _log);
+#pragma warning disable CA2025 // Justification: the returned task owns the call and its token source, and disposes them when the epoch ends
+		return WatchUntilItEndsAsync(call, ending, address, _log, channel.Refused);
 #pragma warning restore CA2025
 	}
 
-	/// <summary>Completes when the watch ends, whatever ends it: any end or fault is the sidecar lost, never a fault of this task.</summary>
-	private static async Task<int> WatchUntilItEndsAsync(AsyncServerStreamingCall<HealthCheckResponse> call, ILogger log)
+	/// <summary>Completes when the watch ends, whatever ends it: any end or fault is the epoch's end, never a fault of this task.</summary>
+	private static async Task<int> WatchUntilItEndsAsync(
+		AsyncServerStreamingCall<HealthCheckResponse> call,
+		CancellationTokenSource ending,
+		string address,
+		ILogger log,
+		CancellationToken refused
+	)
 	{
+		using (ending)
 		using (call)
 		{
 			try
@@ -573,7 +588,10 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 			catch (Exception e)
 #pragma warning restore CA1031
 			{
-				SidecarLog.ExternalWatchEnded(log, e);
+				if (refused.IsCancellationRequested)
+					SidecarLog.ExternalTokenRefused(log, address);
+				if (!refused.IsCancellationRequested)
+					SidecarLog.ExternalWatchEnded(log, e);
 			}
 		}
 
