@@ -157,7 +157,7 @@ func startOn(t *testing.T, path string) *harness {
 
 	h.db = db
 
-	svc, err := New(context.Background(), db.DB, db.Devices, outbox.New(db.DB), func(id string, device *store.Device) Client {
+	svc, err := New(context.Background(), db.DB, db.Writer, db.Devices, outbox.New(db.DB, db.Writer), func(id string, device *store.Device) Client {
 		s := &stub{device: device}
 
 		h.mu.Lock()

@@ -25,6 +25,7 @@ import (
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/session"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
 )
 
 // chunkSize is the most bytes one chunk carries, both ways (media.proto).
@@ -52,6 +53,7 @@ type Service struct {
 
 	sessions Sessions
 	db       *sql.DB
+	w        *store.Writer
 	// root confines every path the sidecar reads or writes for a client; nil when no media root is configured.
 	root     *os.Root
 	rootPath string
@@ -64,8 +66,8 @@ type Service struct {
 
 // New returns the slice. mediaRoot is the absolute directory paths are confined to, "" for none. temp is emptied and
 // made owner-only: one sidecar owns the database, and so the directory next to it; what a crash left there goes.
-func New(sessions Sessions, db *sql.DB, mediaRoot, temp string, log zerolog.Logger) (*Service, error) {
-	svc := &Service{sessions: sessions, db: db, temp: temp, log: log, backoff: []time.Duration{time.Second, 2 * time.Second}}
+func New(sessions Sessions, db *sql.DB, w *store.Writer, mediaRoot, temp string, log zerolog.Logger) (*Service, error) {
+	svc := &Service{sessions: sessions, db: db, w: w, temp: temp, log: log, backoff: []time.Duration{time.Second, 2 * time.Second}}
 
 	if err := os.RemoveAll(temp); err != nil {
 		return nil, fmt.Errorf("empty the temporary directory %s: %w", temp, err)

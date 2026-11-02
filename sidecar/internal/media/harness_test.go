@@ -317,7 +317,7 @@ func startWith(t *testing.T, client session.Client, withRoot bool) *harness {
 		root = h.root
 	}
 
-	h.svc, err = New(sessions{client: client, offline: map[string]error{"offline": fmt.Errorf("offline: %w", server.ErrNotConnected)}}, db.DB, root, h.temp, log)
+	h.svc, err = New(sessions{client: client, offline: map[string]error{"offline": fmt.Errorf("offline: %w", server.ErrNotConnected)}}, db.DB, db.Writer, root, h.temp, log)
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}

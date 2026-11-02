@@ -196,9 +196,9 @@ func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, op
 		newClient = serveFake(srv, log, opts.database)
 	}
 
-	box := outbox.New(db.DB)
+	box := outbox.New(db.DB, db.Writer)
 	// Each slice that records whatsmeow events in the outbox passes its mapper (eventsslice.Mapper).
-	events := eventsslice.New(box, log, contacts.Event, chatstate.Event, groups.Event, media.Mapper(db.DB, log), messaging.Receipt) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
+	events := eventsslice.New(box, log, contacts.Event, chatstate.Event, groups.Event, media.Mapper(db.DB, db.Writer, log), messaging.Receipt) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
 	whatsmeowv1.RegisterEventServiceServer(srv, events)
 
 	// Closed after the sessions: its recoveries end with their sessions' clients.
@@ -206,10 +206,10 @@ func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, op
 	defer chats.Close()
 
 	// Closed after the sessions too: its workers end with their sessions' clients.
-	histories := historyslice.New(db.DB, box, eventsslice.MessageEvent, log)
+	histories := historyslice.New(db.DB, db.Writer, box, eventsslice.MessageEvent, log)
 	defer histories.Close()
 
-	sessions, err := session.New(ctx, db.DB, db.Devices, box, recording(newClient, events, chats, histories), log) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
+	sessions, err := session.New(ctx, db.DB, db.Writer, db.Devices, box, recording(newClient, events, chats, histories), log) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
 	if err != nil {
 		_ = lis.Close()
 
@@ -223,7 +223,7 @@ func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, op
 	whatsmeowv1.RegisterGroupServiceServer(srv, groups.New(sessions))
 
 	// The sidecar's own temporary media files go next to the database it owns, not to a tmpfs /tmp (ARCHITECTURE §7.6).
-	mediaSlice, err := media.New(sessions, db.DB, opts.mediaRoot, opts.database+".tmp", log)
+	mediaSlice, err := media.New(sessions, db.DB, db.Writer, opts.mediaRoot, opts.database+".tmp", log)
 	if err != nil {
 		_ = lis.Close()
 
@@ -238,7 +238,7 @@ func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, op
 	// server.go:1738-1744, internal/transport/http2_server.go:1300-1321), so a send still queued fails having sent
 	// nothing, and the one handed to whatsmeow ends as its context says. Close waits for that one, so its outcome is
 	// recorded before the sessions disconnect and the store closes.
-	messages := messaging.New(db.DB, sessions, log)
+	messages := messaging.New(db.DB, db.Writer, sessions, log)
 	defer messages.Close()
 
 	whatsmeowv1.RegisterMessageServiceServer(srv, messages)

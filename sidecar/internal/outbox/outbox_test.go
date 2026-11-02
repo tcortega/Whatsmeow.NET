@@ -40,7 +40,7 @@ func open(t *testing.T, ids ...string) (*Outbox, *sql.DB, context.Context) {
 		}
 	}
 
-	return New(db.DB), db.DB, ctx
+	return New(db.DB, db.Writer), db.DB, ctx
 }
 
 // state is a ConnectionStateEvent, an event without a natural key.
@@ -197,7 +197,7 @@ func TestRecordWithRunsInTheSameTransaction(t *testing.T) {
 	o, db, ctx := open(t, "s1")
 	failed := errors.New("the other write failed")
 
-	_, err := o.Record(ctx, "s1", "", state(), func(tx *sql.Tx) error {
+	_, err := o.Record(ctx, "s1", "", state(), func(ctx context.Context, tx *sql.Tx) error {
 		if _, err := tx.ExecContext(ctx, "UPDATE session SET jid = 'x' WHERE id = 's1'"); err != nil {
 			return fmt.Errorf("update: %w", err)
 		}

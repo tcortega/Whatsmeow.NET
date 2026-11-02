@@ -20,11 +20,13 @@ import (
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
 )
 
 // Outbox is the event log of every session in one database.
 type Outbox struct {
 	db    *sql.DB
+	w     *store.Writer
 	mu    sync.Mutex
 	feeds map[string]*feed
 }
@@ -37,8 +39,10 @@ type feed struct {
 	deleted chan struct{}
 }
 
-// New returns the outbox of db.
-func New(db *sql.DB) *Outbox { return &Outbox{db: db, feeds: map[string]*feed{}} }
+// New returns the outbox of db, which writes through w.
+func New(db *sql.DB, w *store.Writer) *Outbox {
+	return &Outbox{db: db, w: w, feeds: map[string]*feed{}}
+}
 
 // Watch is one session's wake-up, taken before a read so a record in between is never missed.
 type Watch struct {
@@ -113,56 +117,50 @@ func (o *Outbox) Delete(sessionID string) {
 	}
 }
 
-// Record writes event in one short transaction, together with the writes of with, and wakes the session's streams
-// after the commit. An event whose key the session already has with the same content keeps its seq, and nothing new
-// is written; an empty key never matches. differs reports a repeat of the key with other content: it is never
-// overwritten, it is recorded beside, under the key and a hash of its content, because a duplicate is better than a
-// loss, and the caller makes the collision visible. A true redispatch is byte for byte the same, also under the
-// derived key.
-func (o *Outbox) Record(ctx context.Context, sessionID, key string, event *whatsmeowv1.StreamEventsResponse, with ...func(*sql.Tx) error) (differs bool, err error) {
+// Record writes event in one short transaction on the write gate, together with the writes of with, which get the
+// transaction's context, and wakes the session's streams after the commit. An event whose key the session already has
+// with the same content keeps its seq, and nothing new is written; an empty key never matches. differs reports a repeat
+// of the key with other content: it is never overwritten, it is recorded beside, under the key and a hash of its
+// content, because a duplicate is better than a loss, and the caller makes the collision visible. A true redispatch is
+// byte for byte the same, also under the derived key.
+func (o *Outbox) Record(ctx context.Context, sessionID, key string, event *whatsmeowv1.StreamEventsResponse, with ...func(context.Context, *sql.Tx) error) (differs bool, err error) {
 	// Deterministic, so a map field cannot make a redispatch look different.
 	payload, err := proto.MarshalOptions{Deterministic: true}.Marshal(event)
 	if err != nil {
 		return false, fmt.Errorf("record an event of session %q: %w", sessionID, err)
 	}
 
-	tx, err := o.db.BeginTx(ctx, nil)
-	if err != nil {
-		return false, fmt.Errorf("record an event of session %q: %w", sessionID, err)
-	}
+	var inserted bool
 
-	defer func() {
-		if err != nil {
-			_ = tx.Rollback()
-		}
-	}()
-
-	inserted, err := insert(ctx, tx, sessionID, key, payload)
-	if err != nil {
-		return false, fmt.Errorf("record an event of session %q: %w", sessionID, err)
-	}
-
-	if !inserted {
-		var recorded []byte
-		if err = tx.QueryRowContext(ctx, "SELECT payload FROM outbox WHERE session_id = ? AND dedupe_key = ?", sessionID, key).Scan(&recorded); err != nil {
-			return false, fmt.Errorf("record an event of session %q: %w", sessionID, err)
+	err = o.w.Tx(ctx, func(ctx context.Context, tx *sql.Tx) error {
+		var err error
+		if inserted, err = insert(ctx, tx, sessionID, key, payload); err != nil {
+			return err
 		}
 
-		if differs = !bytes.Equal(recorded, payload); differs {
-			sum := sha256.Sum256(payload)
-			if inserted, err = insert(ctx, tx, sessionID, key+"\x00"+hex.EncodeToString(sum[:]), payload); err != nil {
-				return false, fmt.Errorf("record an event of session %q: %w", sessionID, err)
+		if !inserted {
+			var recorded []byte
+			if err := tx.QueryRowContext(ctx, "SELECT payload FROM outbox WHERE session_id = ? AND dedupe_key = ?", sessionID, key).Scan(&recorded); err != nil {
+				return fmt.Errorf("read the recorded event: %w", err)
+			}
+
+			if differs = !bytes.Equal(recorded, payload); differs {
+				sum := sha256.Sum256(payload)
+				if inserted, err = insert(ctx, tx, sessionID, key+"\x00"+hex.EncodeToString(sum[:]), payload); err != nil {
+					return err
+				}
 			}
 		}
-	}
 
-	for _, write := range with {
-		if err = write(tx); err != nil {
-			return false, err
+		for _, write := range with {
+			if err := write(ctx, tx); err != nil {
+				return err
+			}
 		}
-	}
 
-	if err = tx.Commit(); err != nil {
+		return nil
+	})
+	if err != nil {
 		return false, fmt.Errorf("record an event of session %q: %w", sessionID, err)
 	}
 
@@ -258,7 +256,7 @@ func lastSeq(ctx context.Context, q querier, sessionID string) (uint64, error) {
 
 // Cursor is the highest seq the consumer acked, creating its cursor at 0. The session must exist.
 func (o *Outbox) Cursor(ctx context.Context, sessionID, consumer string) (uint64, error) {
-	if _, err := o.db.ExecContext(ctx, "INSERT INTO outbox_cursor (session_id, consumer, acked) VALUES (?, ?, 0) ON CONFLICT DO NOTHING",
+	if _, err := o.w.Exec(ctx, "INSERT INTO outbox_cursor (session_id, consumer, acked) VALUES (?, ?, 0) ON CONFLICT DO NOTHING",
 		sessionID, consumer); err != nil {
 		return 0, fmt.Errorf("the cursor of %q on session %q: %w", consumer, sessionID, err)
 	}
@@ -273,38 +271,30 @@ func (o *Outbox) Cursor(ctx context.Context, sessionID, consumer string) (uint64
 
 // Ack moves the consumer's cursor to upTo, never backwards, and deletes the session's events that every one of its
 // consumers acked. upTo above the session's highest recorded seq is an invalid argument and changes nothing.
-func (o *Outbox) Ack(ctx context.Context, sessionID, consumer string, upTo uint64) (err error) {
-	tx, err := o.db.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("ack session %q: %w", sessionID, err)
-	}
-
-	defer func() {
+func (o *Outbox) Ack(ctx context.Context, sessionID, consumer string, upTo uint64) error {
+	err := o.w.Tx(ctx, func(ctx context.Context, tx *sql.Tx) error {
+		recorded, err := lastSeq(ctx, tx, sessionID)
 		if err != nil {
-			_ = tx.Rollback()
+			return err
 		}
-	}()
 
-	recorded, err := lastSeq(ctx, tx, sessionID)
+		if upTo > recorded {
+			return server.InvalidArgument("up_to_seq", "%d is above the session's highest recorded seq %d", upTo, recorded)
+		}
+
+		if _, err := tx.ExecContext(ctx, `INSERT INTO outbox_cursor (session_id, consumer, acked) VALUES (?, ?, ?)
+			ON CONFLICT (session_id, consumer) DO UPDATE SET acked = max(acked, excluded.acked)`, sessionID, consumer, signed(upTo)); err != nil {
+			return fmt.Errorf("move the cursor: %w", err)
+		}
+
+		if _, err := tx.ExecContext(ctx, `DELETE FROM outbox WHERE session_id = ?
+			AND seq <= (SELECT min(acked) FROM outbox_cursor WHERE session_id = ?)`, sessionID, sessionID); err != nil {
+			return fmt.Errorf("delete the acked events: %w", err)
+		}
+
+		return nil
+	})
 	if err != nil {
-		return err
-	}
-
-	if upTo > recorded {
-		return fmt.Errorf("ack session %q: %w", sessionID, server.InvalidArgument("up_to_seq", "%d is above the session's highest recorded seq %d", upTo, recorded))
-	}
-
-	if _, err = tx.ExecContext(ctx, `INSERT INTO outbox_cursor (session_id, consumer, acked) VALUES (?, ?, ?)
-		ON CONFLICT (session_id, consumer) DO UPDATE SET acked = max(acked, excluded.acked)`, sessionID, consumer, signed(upTo)); err != nil {
-		return fmt.Errorf("ack session %q: %w", sessionID, err)
-	}
-
-	if _, err = tx.ExecContext(ctx, `DELETE FROM outbox WHERE session_id = ?
-		AND seq <= (SELECT min(acked) FROM outbox_cursor WHERE session_id = ?)`, sessionID, sessionID); err != nil {
-		return fmt.Errorf("ack session %q: %w", sessionID, err)
-	}
-
-	if err = tx.Commit(); err != nil {
 		return fmt.Errorf("ack session %q: %w", sessionID, err)
 	}
 

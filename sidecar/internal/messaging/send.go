@@ -346,7 +346,7 @@ func (svc *Service) run(q *queue, j *job) outcome {
 	}
 
 	// Recorded before the hand-off: from here on a crash or a lost answer reads as an unknown outcome.
-	if _, err := svc.db.ExecContext(j.ctx, "INSERT INTO sent_message (session_id, client_message_id) VALUES (?, ?)", j.session, j.id); err != nil {
+	if _, err := svc.w.Exec(j.ctx, "INSERT INTO sent_message (session_id, client_message_id) VALUES (?, ?)", j.session, j.id); err != nil {
 		return outcome{err: fmt.Errorf("send: record it: %w", err), sentNothing: true}
 	}
 
@@ -405,7 +405,7 @@ func (svc *Service) forget(j *job) {
 // write changes j's record. It runs even when the call ended, because what happened has to be recorded; a failure
 // leaves the record pending, which a repeat reads as an unknown outcome: never a second send.
 func (svc *Service) write(j *job, query string, args ...any) {
-	if _, err := svc.db.ExecContext(context.WithoutCancel(j.ctx), query, args...); err != nil {
+	if _, err := svc.w.Exec(context.WithoutCancel(j.ctx), query, args...); err != nil {
 		svc.log.Error().Err(err).Str("session_id", j.session).Str("client_message_id", j.id).Msg("recording a send's outcome failed")
 	}
 }

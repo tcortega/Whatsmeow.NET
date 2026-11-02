@@ -123,6 +123,8 @@ var ErrInUse = errors.New("in use by another whatsmeow-net")
 type Store struct {
 	// DB is the database, for the sidecar's own tables.
 	DB *sql.DB
+	// Writer is the gate every write of the sidecar takes (ADR 0040).
+	Writer *Writer
 	// Devices is whatsmeow's device store in the same database.
 	Devices *sqlstore.Container
 	lock    *os.File
@@ -181,7 +183,7 @@ func open(ctx context.Context, path string, log zerolog.Logger) (*Store, error) 
 		return nil, fmt.Errorf("upgrade the sidecar's tables in %s: %w", path, err)
 	}
 
-	return &Store{DB: db, Devices: devices}, nil
+	return &Store{DB: db, Writer: newWriter(db), Devices: devices}, nil
 }
 
 // migrate runs the steps after the database's version, and sets the version, in one transaction: a step that fails

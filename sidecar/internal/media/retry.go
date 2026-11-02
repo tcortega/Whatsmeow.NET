@@ -18,6 +18,7 @@ import (
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
 )
 
 // RequestMediaRetry asks the phone to upload a message's media again (media.proto). The phone's answer is encrypted
@@ -44,7 +45,7 @@ func (svc *Service) RequestMediaRetry(ctx context.Context, req *whatsmeowv1.Requ
 		return nil, fmt.Errorf("media retry: %w", err)
 	}
 
-	_, err = svc.db.ExecContext(ctx, `INSERT INTO media_retry (session_id, message_id, chat, media) VALUES (?, ?, ?, ?)
+	_, err = svc.w.Exec(ctx, `INSERT INTO media_retry (session_id, message_id, chat, media) VALUES (?, ?, ?, ?)
 		ON CONFLICT (session_id, message_id, chat) DO UPDATE SET media = excluded.media`, req.GetSessionId(), info.ID, info.Chat.String(), media)
 	if err != nil {
 		return nil, fmt.Errorf("media retry: store the request: %w", err)
@@ -92,7 +93,7 @@ func retryTarget(req *whatsmeowv1.RequestMediaRetryRequest) (*types.MessageInfo,
 // other addressing form, LID or phone number, than the request's [unknown: the live run, #10]. A final answer settles the request, and
 // its row, with its media key, is deleted (ADR 0026); whatsmeow acks the notification whatever the handler returns
 // (notification.go:510-511), so no answer comes again for a request whose event failed to record.
-func Mapper(db *sql.DB, log zerolog.Logger) func(sessionID string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) {
+func Mapper(db *sql.DB, w *store.Writer, log zerolog.Logger) func(sessionID string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) {
 	return func(sessionID string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) {
 		retry, ok := evt.(*events.MediaRetry)
 		if !ok {
@@ -132,7 +133,7 @@ func Mapper(db *sql.DB, log zerolog.Logger) func(sessionID string, evt any) (str
 		}
 
 		if answered(log, sessionID, retry, media, event) {
-			_, err := db.ExecContext(context.Background(), "DELETE FROM media_retry WHERE session_id = ? AND message_id = ? AND chat = ?",
+			_, err := w.Exec(context.Background(), "DELETE FROM media_retry WHERE session_id = ? AND message_id = ? AND chat = ?",
 				sessionID, retry.MessageID, requested)
 			if err != nil {
 				log.Error().Err(err).Str("session_id", sessionID).Msg("deleting a settled media retry request failed; it stays until its session is deleted")

@@ -26,6 +26,7 @@ import (
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/outbox"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
+	sidecarstore "github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
 )
 
 // Client is what the slice needs of a whatsmeow client. *whatsmeow.Client and the fake WhatsApp's client both
@@ -50,6 +51,7 @@ type Service struct {
 	whatsmeowv1.UnimplementedSessionServiceServer
 
 	db        *sql.DB
+	w         *sidecarstore.Writer
 	devices   *sqlstore.Container
 	box       *outbox.Outbox
 	newClient NewClient
@@ -97,10 +99,10 @@ type session struct {
 }
 
 // New loads every session from the database. It never connects one: the client calls Connect (session.proto).
-func New(ctx context.Context, db *sql.DB, devices *sqlstore.Container, box *outbox.Outbox, newClient NewClient, log zerolog.Logger) (*Service, error) {
+func New(ctx context.Context, db *sql.DB, w *sidecarstore.Writer, devices *sqlstore.Container, box *outbox.Outbox, newClient NewClient, log zerolog.Logger) (*Service, error) {
 	lifetime, end := context.WithCancel(context.Background())
 	svc := &Service{
-		db: db, devices: devices, box: box, newClient: newClient, log: log, lifetime: lifetime, end: end, recording: context.WithoutCancel(lifetime),
+		db: db, w: w, devices: devices, box: box, newClient: newClient, log: log, lifetime: lifetime, end: end, recording: context.WithoutCancel(lifetime),
 		linkTimeout: linkTimeout,
 		sessions:    map[string]*session{},
 	}
@@ -301,7 +303,7 @@ func (svc *Service) transition(ctx context.Context, s *session, state *whatsmeow
 	event := &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_ConnectionState{
 		ConnectionState: &whatsmeowv1.ConnectionStateEvent{State: state},
 	}}
-	_, err := svc.box.Record(ctx, s.id, "", event, func(tx *sql.Tx) error { return svc.persist(ctx, tx, s) })
+	_, err := svc.box.Record(ctx, s.id, "", event, func(ctx context.Context, tx *sql.Tx) error { return svc.persist(ctx, tx, s) })
 	if err != nil {
 		err = fmt.Errorf("record the state of session %q: %w", s.id, err)
 	}
@@ -319,13 +321,8 @@ func (svc *Service) transition(ctx context.Context, s *session, state *whatsmeow
 	return err
 }
 
-// execer is the database or a transaction.
-type execer interface {
-	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
-}
-
 // persist writes what a restart needs: the device's JIDs and a stopping state. s.mu is held.
-func (svc *Service) persist(ctx context.Context, db execer, s *session) error {
+func (svc *Service) persist(ctx context.Context, tx *sql.Tx, s *session) error {
 	var stopped []byte
 
 	if kept(s.state) {
@@ -335,7 +332,7 @@ func (svc *Service) persist(ctx context.Context, db execer, s *session) error {
 		}
 	}
 
-	if _, err := db.ExecContext(ctx, "UPDATE session SET jid = ?, lid = ?, stop_state = ? WHERE id = ?",
+	if _, err := tx.ExecContext(ctx, "UPDATE session SET jid = ?, lid = ?, stop_state = ? WHERE id = ?",
 		nullable(s.jid), nullable(s.lid), stopped, s.id); err != nil {
 		return fmt.Errorf("record session %q: %w", s.id, err)
 	}
@@ -462,7 +459,7 @@ func (svc *Service) CreateSession(ctx context.Context, req *whatsmeowv1.CreateSe
 		return &whatsmeowv1.CreateSessionResponse{Session: s.proto()}, nil
 	}
 
-	if _, err := svc.db.ExecContext(ctx, "INSERT INTO session (id) VALUES (?)", id); err != nil {
+	if _, err := svc.w.Exec(ctx, "INSERT INTO session (id) VALUES (?)", id); err != nil {
 		return nil, fmt.Errorf("create session %q: %w", id, err)
 	}
 
@@ -541,7 +538,7 @@ func (svc *Service) deleteSession(ctx context.Context, s *session) (*whatsmeowv1
 		}
 	}
 
-	if _, err := svc.db.ExecContext(ctx, "DELETE FROM session WHERE id = ?", s.id); err != nil {
+	if _, err := svc.w.Exec(ctx, "DELETE FROM session WHERE id = ?", s.id); err != nil {
 		return nil, fmt.Errorf("delete session %q: %w", s.id, err)
 	}
 

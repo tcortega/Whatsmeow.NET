@@ -301,7 +301,7 @@ func start(t *testing.T) *harness {
 	// The sidecar logs at info level and above (ARCHITECTURE §7.8).
 	log := zerolog.New(h.logs).Level(zerolog.InfoLevel)
 	h.sessions = &sessions{client: h.stub, left: make(chan struct{})}
-	h.svc = New(db.DB, h.sessions, log)
+	h.svc = New(db.DB, db.Writer, h.sessions, log)
 	// Fast enough for a test, and still measurable.
 	h.svc.pace, h.svc.burst, h.svc.backoff = 40*time.Millisecond, 100, []time.Duration{time.Millisecond, 2 * time.Millisecond, 4 * time.Millisecond}
 	h.svc.margin = time.Millisecond

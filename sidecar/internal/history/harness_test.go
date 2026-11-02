@@ -359,7 +359,7 @@ func startLogging(t *testing.T, log zerolog.Logger, path string, ids ...string) 
 	t.Cleanup(cancel)
 
 	h := &harness{
-		t: t, db: db, box: outbox.New(db.DB), sessions: &sessions{online: map[string]*online{}}, stubs: map[string]*stub{},
+		t: t, db: db, box: outbox.New(db.DB, db.Writer), sessions: &sessions{online: map[string]*online{}}, stubs: map[string]*stub{},
 		ctx: ctx, waits: make(chan string, 1024), queued: make(chan string, 16), idle: make(chan string, 1024),
 		offline: make(chan string, 1024), delays: make(chan time.Duration, 1024), upExpired: make(chan time.Time, 1),
 	}
@@ -368,7 +368,7 @@ func startLogging(t *testing.T, log zerolog.Logger, path string, ids ...string) 
 		h.addSession(id)
 	}
 
-	h.svc = New(db.DB, h.box, eventsslice.MessageEvent, log)
+	h.svc = New(db.DB, db.Writer, h.box, eventsslice.MessageEvent, log)
 	h.svc.Use(h.sessions)
 	h.svc.after = func(d time.Duration) <-chan time.Time {
 		select {

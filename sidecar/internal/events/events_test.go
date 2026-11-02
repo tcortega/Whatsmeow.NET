@@ -86,7 +86,7 @@ func startOn(t *testing.T, path string, sessions ...string) *harness {
 		}
 	}
 
-	h := &harness{t: t, path: path, db: db, box: outbox.New(db.DB)}
+	h := &harness{t: t, path: path, db: db, box: outbox.New(db.DB, db.Writer)}
 	h.svc = New(h.box, zerolog.Nop())
 
 	srv := server.New(token, zerolog.Nop(), sidecarlog.NewRedactor())
