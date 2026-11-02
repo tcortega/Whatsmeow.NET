@@ -1,6 +1,7 @@
 package messaging
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -11,6 +12,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 )
 
 const (
@@ -159,6 +161,8 @@ func TestAMalformedActionIsInvalidAndSendsNothing(t *testing.T) {
 		{revoke(func(r *whatsmeowv1.SendRevokeRequest) { r.TargetId = "" }), "target_id"},
 		{revoke(func(r *whatsmeowv1.SendRevokeRequest) { r.TargetSender = group }), "target_sender"},
 		{revoke(func(r *whatsmeowv1.SendRevokeRequest) { r.Chat = "111:2@lid" }), "chat"},
+		{revoke(func(r *whatsmeowv1.SendRevokeRequest) { r.Chat = "@" }), "chat"},
+		{revoke(func(r *whatsmeowv1.SendRevokeRequest) { r.Chat = "1@newsletter" }), "chat"},
 		{edit(func(r *whatsmeowv1.SendEditRequest) { r.TargetId = "" }), "target_id"},
 		{edit(func(r *whatsmeowv1.SendEditRequest) { r.Text = "" }), "text"},
 	}
@@ -167,7 +171,7 @@ func TestAMalformedActionIsInvalidAndSendsNothing(t *testing.T) {
 		wantReason(t, c.err, codes.InvalidArgument, "INVALID_ARGUMENT", map[string]string{"field": c.field})
 
 		// The texts name the field, never a JID.
-		if strings.Contains(status.Convert(c.err).Message(), "@") && c.field != "chat" {
+		if strings.Contains(status.Convert(c.err).Message(), "@") {
 			t.Errorf("case %d: %q carries a JID", n, status.Convert(c.err).Message())
 		}
 	}
@@ -270,21 +274,133 @@ func TestAReplyAndMentionsGoInTheMessagesContextInfo(t *testing.T) {
 	}
 }
 
-func TestAReplyToTheAccountsOwnMessageNamesTheAccount(t *testing.T) {
+// Every kind of send carries a reply's and its mentions' context on its own message, as mautrix sends it
+// (from-matrix.go:56-96, 344-375): a text as an extended text, a voice note on its audio, a captioned document inside its
+// wrapper.
+func TestEveryKindOfSendCarriesTheReplyAndTheMentionsOnItsMessage(t *testing.T) {
+	t.Parallel()
+
+	reply := &whatsmeowv1.MessageReply{Id: "ABC", Sender: member, QuotedText: "the question"}
+	mentions := []string{member, "900000002@lid"}
+	context := &waE2E.ContextInfo{
+		StanzaID: proto.String("ABC"), Participant: proto.String("5511900000002@s.whatsapp.net"),
+		QuotedMessage: &waE2E.Message{Conversation: proto.String("the question")}, QuotedType: waE2E.ContextInfo_EXPLICIT.Enum(),
+		MentionedJID: []string{"5511900000002@s.whatsapp.net", "900000002@lid"},
+	}
+
+	media := func(t whatsmeowv1.MediaType, metadata func(*whatsmeowv1.SendMediaRequest)) func(*harness) error {
+		return func(h *harness) error {
+			req := &whatsmeowv1.SendMediaRequest{SessionId: "s1", Chat: group, ClientMessageId: id(1), Media: ref(t, nil), ReplyTo: reply, Mentions: mentions}
+			metadata(req)
+			_, err := h.client.SendMedia(h.ctx, req)
+
+			return err //nolint:wrapcheck // the test reads the status
+		}
+	}
+
+	cases := []struct {
+		name    string
+		send    func(*harness) error
+		context func(*waE2E.Message) *waE2E.ContextInfo
+	}{
+		{
+			"a text",
+			func(h *harness) error {
+				_, err := h.client.SendText(h.ctx, &whatsmeowv1.SendTextRequest{SessionId: "s1", Chat: group, ClientMessageId: id(1), Text: "yes", ReplyTo: reply, Mentions: mentions})
+
+				return err //nolint:wrapcheck // the test reads the status
+			},
+			func(m *waE2E.Message) *waE2E.ContextInfo { return m.GetExtendedTextMessage().GetContextInfo() },
+		},
+		{
+			"an image", media(whatsmeowv1.MediaType_MEDIA_TYPE_IMAGE, image(&whatsmeowv1.ImageMetadata{Caption: "look"})),
+			func(m *waE2E.Message) *waE2E.ContextInfo { return m.GetImageMessage().GetContextInfo() },
+		},
+		{
+			"a video", media(whatsmeowv1.MediaType_MEDIA_TYPE_VIDEO, video(&whatsmeowv1.VideoMetadata{Caption: "watch"})),
+			func(m *waE2E.Message) *waE2E.ContextInfo { return m.GetVideoMessage().GetContextInfo() },
+		},
+		{
+			"a voice note", media(whatsmeowv1.MediaType_MEDIA_TYPE_AUDIO, audio(&whatsmeowv1.AudioMetadata{VoiceNote: true})),
+			func(m *waE2E.Message) *waE2E.ContextInfo { return m.GetAudioMessage().GetContextInfo() },
+		},
+		{
+			"a captioned document", media(whatsmeowv1.MediaType_MEDIA_TYPE_DOCUMENT, document(&whatsmeowv1.DocumentMetadata{Caption: "read"})),
+			func(m *waE2E.Message) *waE2E.ContextInfo {
+				return m.GetDocumentWithCaptionMessage().GetMessage().GetDocumentMessage().GetContextInfo()
+			},
+		},
+		{
+			"a sticker", media(whatsmeowv1.MediaType_MEDIA_TYPE_IMAGE, sticker(&whatsmeowv1.StickerMetadata{})),
+			func(m *waE2E.Message) *waE2E.ContextInfo { return m.GetStickerMessage().GetContextInfo() },
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
+			h := start(t)
+
+			if err := c.send(h); err != nil {
+				t.Fatalf("send: %v", err)
+			}
+
+			if got := c.context(h.only(t).message); !proto.Equal(got, context) {
+				t.Fatalf("%s carries %v, want %v", c.name, got, context)
+			}
+		})
+	}
+}
+
+// A reply without a sender quotes the account's own message, named as the chat names the account: by its LID in a LID
+// chat, by its phone number otherwise. Which form a LID-addressed group needs is unknown (#36).
+func TestAReplyToTheAccountsOwnMessageNamesTheAccountAsTheChatDoes(t *testing.T) {
+	t.Parallel()
+
+	for _, c := range []struct{ chat, account string }{
+		{"111@lid", "900000001@lid"},
+		{"5511900000009@s.whatsapp.net", "5511900000001@s.whatsapp.net"},
+		{group, "5511900000001@s.whatsapp.net"},
+	} {
+		h := start(t)
+
+		if _, err := h.client.SendText(h.ctx, &whatsmeowv1.SendTextRequest{SessionId: "s1", Chat: c.chat, ClientMessageId: id(1), Text: "more", ReplyTo: &whatsmeowv1.MessageReply{Id: "ABC"}}); err != nil {
+			t.Fatalf("SendText to %s: %v", c.chat, err)
+		}
+
+		want := &waE2E.Message{ExtendedTextMessage: &waE2E.ExtendedTextMessage{Text: proto.String("more"), ContextInfo: &waE2E.ContextInfo{
+			StanzaID: proto.String("ABC"), Participant: proto.String(c.account),
+			QuotedMessage: &waE2E.Message{Conversation: proto.String("")}, QuotedType: waE2E.ContextInfo_EXPLICIT.Enum(),
+		}}}
+		if sent := h.only(t); !proto.Equal(sent.message, want) {
+			t.Fatalf("in %s whatsmeow got %v, want %v", c.chat, sent.message, want)
+		}
+	}
+}
+
+// The account's own JID is read only when the reply is sent, after its record: a repeat of a sent reply once the
+// session logged out gets its recorded result, as every other repeat does.
+func TestARepeatOfARecordedReplyAfterLogoutGetsItsRecordedResult(t *testing.T) {
 	t.Parallel()
 
 	h := start(t)
+	req := &whatsmeowv1.SendTextRequest{SessionId: "s1", Chat: "111@lid", ClientMessageId: id(1), Text: "more", ReplyTo: &whatsmeowv1.MessageReply{Id: "ABC"}}
 
-	if _, err := h.client.SendText(h.ctx, &whatsmeowv1.SendTextRequest{SessionId: "s1", Chat: "111@lid", ClientMessageId: id(1), Text: "more", ReplyTo: &whatsmeowv1.MessageReply{Id: "ABC"}}); err != nil {
+	first, err := h.client.SendText(h.ctx, req)
+	if err != nil {
 		t.Fatalf("SendText: %v", err)
 	}
 
-	want := &waE2E.Message{ExtendedTextMessage: &waE2E.ExtendedTextMessage{Text: proto.String("more"), ContextInfo: &waE2E.ContextInfo{
-		StanzaID: proto.String("ABC"), Participant: proto.String("5511900000001@s.whatsapp.net"),
-		QuotedMessage: &waE2E.Message{Conversation: proto.String("")}, QuotedType: waE2E.ContextInfo_EXPLICIT.Enum(),
-	}}}
-	if sent := h.only(t); !proto.Equal(sent.message, want) {
-		t.Fatalf("whatsmeow got %v, want %v", sent.message, want)
+	h.sessions.leave(fmt.Errorf("session %q: %w", "s1", server.ErrLoggedOut))
+
+	again, err := h.client.SendText(h.ctx, req)
+	if err != nil || !proto.Equal(again, first) {
+		t.Fatalf("the repeat = %v, %v; want the recorded %v", again, err, first)
+	}
+
+	if sent := h.stub.sent(); len(sent) != 1 {
+		t.Fatalf("whatsmeow got %v, want the reply once", h.stub.ids())
 	}
 }
 

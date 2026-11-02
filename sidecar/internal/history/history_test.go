@@ -14,9 +14,11 @@ import (
 
 	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow"
+	"go.mau.fi/whatsmeow/proto/waCommon"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/proto/waHistorySync"
 	"go.mau.fi/whatsmeow/proto/waWeb"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 	"google.golang.org/protobuf/proto"
@@ -686,6 +688,27 @@ func TestAHistoryMediaMessageCarriesWhatALiveOneDoes(t *testing.T) {
 	}
 }
 
+// A history reaction's target is read as a live one's, with the session's device naming the account: a member's
+// reaction to the account's message has no sender.
+func TestAHistoryReactionNamesItsTargetAsALiveOneDoes(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	reaction := webMessage(group, "R1", false, member, "")
+	reaction.Message = &waE2E.Message{ReactionMessage: &waE2E.ReactionMessage{
+		Key: &waCommon.MessageKey{RemoteJID: proto.String(group), FromMe: proto.Bool(false), ID: proto.String("T1"), Participant: proto.String("5511000000000@s.whatsapp.net")},
+	}}
+
+	conv := &waHistorySync.Conversation{ID: proto.String(group), Messages: []*waHistorySync.HistorySyncMsg{{Message: reaction}}}
+	h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, conv))
+	h.caughtUp("s1")
+
+	got := h.read("s1", 0, 1)[0].GetHistoryMessages().GetMessages()
+	if len(got) != 1 || !proto.Equal(got[0].GetTarget(), &whatsmeowv1.MessageTarget{Id: "T1"}) {
+		t.Fatalf("messages %v, want the reaction to the account's own T1", got)
+	}
+}
+
 func TestASecondOfflineSyncInOneConnectionWakesTheWorker(t *testing.T) {
 	t.Parallel()
 
@@ -824,8 +847,8 @@ func TestARestartAfterTheMappingChangedResumesAtTheNextMessage(t *testing.T) {
 
 	h := startLogging(t, zerolog.New(&log), path)
 	// A mapping that makes each message 8 KiB, so the first run cuts batches by bytes, of fewer messages each.
-	h.svc.toEvent = func(m *events.Message) *whatsmeowv1.MessageEvent {
-		e := eventsslice.MessageEvent(m)
+	h.svc.toEvent = func(m *events.Message, account *store.Device) *whatsmeowv1.MessageEvent {
+		e := eventsslice.MessageEvent(m, account)
 		e.Message = &waE2E.Message{Conversation: proto.String(strings.Repeat("x", 8<<10))}
 
 		return e
@@ -1118,8 +1141,8 @@ func TestABatchThatCannotBeMarshalledReportsItsBlobInvalidAndTheNextArrives(t *t
 
 	h := start(t)
 	// A mapping that lets an invalid UTF-8 string through: the outbox's marshal fails with a protobuf error.
-	h.svc.toEvent = func(m *events.Message) *whatsmeowv1.MessageEvent {
-		e := eventsslice.MessageEvent(m)
+	h.svc.toEvent = func(m *events.Message, account *store.Device) *whatsmeowv1.MessageEvent {
+		e := eventsslice.MessageEvent(m, account)
 		if e.GetInfo().GetId() == "X1" {
 			e.Info.Id = "X1\xff"
 		}

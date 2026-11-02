@@ -101,6 +101,21 @@ message MessageEvent {
   // The message as received, wrappers included, when whatsmeow unwrapped any; unset when it unwrapped none, as the
   // message is then what was received.
   WAWebProtobufsE2E.Message raw_message = 6;
+  // For a reaction, an edit or a revoke, the message its key names; unset for every other message, and for a key
+  // that names none: one without an id, one whose participant is not a JID, or, outside a direct chat, one that is
+  // not the actor's and names no participant.
+  MessageTarget target = 7;
+}
+
+// MessageTarget is the message a reaction, an edit or a revoke names by its key.
+message MessageTarget {
+  // The message's WhatsApp id.
+  string id = 1;
+  // Its sender, a user's JID without a device, as mautrix reads a key (pkg/msgconv/wa-poll.go:97-132 at 5dd621f): the
+  // actor when the key says the actor sent it, else the key's participant, else, in a direct chat, the other side:
+  // the chat when the account acted, else the account. Empty for the account's own message, by its phone number or
+  // LID and from any device, so empty always means the account's.
+  string sender = 2;
 }
 
 // ReceiptEvent is a receipt for one or more messages of a chat.

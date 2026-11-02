@@ -65,6 +65,15 @@ func (c *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E.M
 
 	c.whatsApp.take(c.sessionID, func(s *script) bool { return s.holdSend }, func(s *script) { s.holdSend, held = false, s.held })
 
+	if held != nil {
+		// Once this send ended, however it ended, refused or not sent included, nothing is held any more.
+		defer c.whatsApp.setScript(c.sessionID, func(s *script) {
+			if s.held == held {
+				s.held = nil
+			}
+		})
+	}
+
 	c.conn.Lock()
 	connected, connection := c.connected, c.connection
 	c.conn.Unlock()
@@ -79,18 +88,12 @@ func (c *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E.M
 	}}})
 
 	if c.whatsApp.take(c.sessionID, func(s *script) bool { return s.refuseSend != 0 }, func(s *script) { refusal, s.refuseSend = s.refuseSend, 0 }) {
-		// An answer with an error attribute, as whatsmeow reads it (send.go:468-470).
+		// An answer with an error attribute, as whatsmeow reads it (send.go:468-470), at once: a held send's hold goes
+		// with it.
 		return whatsmeow.SendResponse{ID: req.ID, Timestamp: at, Chat: to}, fmt.Errorf("%w %d", whatsmeow.ErrServerReturnedError, refusal)
 	}
 
 	if held != nil {
-		// Once it ended, however it ended, nothing is held any more.
-		defer c.whatsApp.setScript(c.sessionID, func(s *script) {
-			if s.held == held {
-				s.held = nil
-			}
-		})
-
 		select {
 		case <-held:
 		case <-ctx.Done():

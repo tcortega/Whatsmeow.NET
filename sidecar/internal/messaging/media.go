@@ -26,14 +26,14 @@ func (svc *Service) SendMedia(ctx context.Context, req *whatsmeowv1.SendMediaReq
 		return nil, err
 	}
 
-	info, err := svc.contextInfo(req.GetSessionId(), req.GetReplyTo(), req.GetMentions())
+	reply, err := newReplyContext(req.GetReplyTo(), req.GetMentions())
 	if err != nil {
 		return nil, err
 	}
 
-	withContext(message, info)
+	withContext(message, reply.info)
 
-	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), as(message))
+	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), svc.named(req.GetSessionId(), reply, message))
 	if err != nil {
 		return nil, err
 	}

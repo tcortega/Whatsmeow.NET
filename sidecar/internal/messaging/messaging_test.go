@@ -172,10 +172,17 @@ func (s *sessions) Online(id string) (session.Client, <-chan struct{}, error) {
 	return s.client, s.left, nil
 }
 
-// Device is the device of s1 and s3, the stub's; another session is not found.
+// Device is the device of s1 and s3, the stub's, until s1 leaves; another session is not found.
 func (s *sessions) Device(id string) (*store.Device, error) {
 	if id != "s1" && id != "s3" {
 		return nil, fmt.Errorf("session %q: %w", id, server.ErrSessionNotFound)
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if id == "s1" && s.why != nil {
+		return nil, s.why
 	}
 
 	return s.client.wa.Store, nil

@@ -45,7 +45,7 @@ public sealed class MessagingTests(FakeSidecar fixture)
 			await watch.ReachesAsync(new SessionState.Connected(), new SessionState.Connecting());
 		var id = MessageId.New();
 
-		var result = await client.SendTextAsync(Jid.Parse("5511900000101@s.whatsapp.net"), "hello", id, ct);
+		var result = await client.SendTextAsync(Jid.Parse("5511900000101@s.whatsapp.net"), "hello", id, cancellationToken: ct);
 
 		// WhatsApp got the text, sent to the LID, with the client's id; the result says where it went and when.
 		var sent = await SentAsync(Session, ct);
@@ -170,14 +170,14 @@ public sealed class MessagingTests(FakeSidecar fixture)
 		var to = Jid.Parse("5511900000103@s.whatsapp.net");
 		var id = MessageId.New();
 
-		var error = await Assert.ThrowsAsync<RecipientNotFoundException>(() => client.SendTextAsync(to, "hi", id, ct));
+		var error = await Assert.ThrowsAsync<RecipientNotFoundException>(() => client.SendTextAsync(to, "hi", id, cancellationToken: ct));
 		Assert.Equal(WhatsmeowErrorCode.RecipientNotOnWhatsApp, error.ErrorCode);
 		// whatsmeow's error names the number; the message carries none of it, nor any other digit (ARCHITECTURE §7.8).
 		Assert.DoesNotMatch("[0-9]", error.Message);
 
 		// Nothing was sent, so nothing was recorded: the same id sends once the number is on WhatsApp.
 		await RegisterAsync("5511900000103@s.whatsapp.net", "900000103@lid", ct);
-		var result = await client.SendTextAsync(to, "hi", id, ct);
+		var result = await client.SendTextAsync(to, "hi", id, cancellationToken: ct);
 
 		var sent = await SentAsync(Session, ct);
 		Assert.Equal((id.Value, "900000103@lid"), (sent.Message.Id, sent.Message.Chat));
@@ -193,8 +193,8 @@ public sealed class MessagingTests(FakeSidecar fixture)
 		var to = Jid.Parse("900000104@lid");
 		var id = MessageId.New();
 
-		var first = await client.SendTextAsync(to, "once", id, ct);
-		var again = await client.SendTextAsync(to, "once", id, ct);
+		var first = await client.SendTextAsync(to, "once", id, cancellationToken: ct);
+		var again = await client.SendTextAsync(to, "once", id, cancellationToken: ct);
 		var other = await client.SendTextAsync(to, "other", cancellationToken: ct);
 
 		Assert.Equal(first, again);
@@ -214,12 +214,12 @@ public sealed class MessagingTests(FakeSidecar fixture)
 		_ = await fixture.Fake.HoldNextSendAsync(new HoldNextSendRequest { SessionId = Session }, cancellationToken: ct);
 		using var cancel = CancellationTokenSource.CreateLinkedTokenSource(ct);
 
-		var held = client.SendTextAsync(to, "maybe", id, cancel.Token);
+		var held = client.SendTextAsync(to, "maybe", id, cancellationToken: cancel.Token);
 		var sent = await SentAsync(Session, ct);
 		await cancel.CancelAsync();
 
 		_ = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => held);
-		var error = await Assert.ThrowsAsync<OutcomeUnknownException>(() => client.SendTextAsync(to, "maybe", id, ct));
+		var error = await Assert.ThrowsAsync<OutcomeUnknownException>(() => client.SendTextAsync(to, "maybe", id, cancellationToken: ct));
 		Assert.Equal(WhatsmeowErrorCode.OutcomeUnknown, error.ErrorCode);
 
 		// Never sent again: the next thing WhatsApp gets is the next send (invariant 10).

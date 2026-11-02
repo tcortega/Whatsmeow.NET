@@ -10,6 +10,7 @@ import (
 
 	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow"
+	"go.mau.fi/whatsmeow/store"
 	"google.golang.org/grpc"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
@@ -61,7 +62,8 @@ func New(box *outbox.Outbox, log zerolog.Logger, mappers ...Mapper) *Service {
 // (message.go:459-497). It returns false when the write fails or anything panics, with its own recover, because
 // whatsmeow's dispatchEvent turns a panic into success (client.go:999-1013). It never calls .NET, the network or
 // media, and never returns false because no consumer is connected. An event it does not record returns true.
-func (svc *Service) Handler(sessionID string) whatsmeow.EventHandlerWithSuccessStatus {
+// account is the client's device, which names the account in what it maps.
+func (svc *Service) Handler(sessionID string, account *store.Device) whatsmeow.EventHandlerWithSuccessStatus {
 	// Bound now, so a client still running after its session was deleted pushes only into its own dead ring, never
 	// into the ring of a session created again with the same id.
 	ephemeral := svc.ring(sessionID)
@@ -86,7 +88,7 @@ func (svc *Service) Handler(sessionID string) whatsmeow.EventHandlerWithSuccessS
 			return false
 		}
 
-		key, event, record := svc.toEvent(sessionID, evt)
+		key, event, record := svc.toEvent(sessionID, evt, account)
 		if !record {
 			return true
 		}
@@ -109,8 +111,8 @@ func (svc *Service) Handler(sessionID string) whatsmeow.EventHandlerWithSuccessS
 }
 
 // toEvent maps evt with this slice's own mapping, then with each slice's mapper.
-func (svc *Service) toEvent(sessionID string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) {
-	if key, event, ok := toEvent(evt); ok {
+func (svc *Service) toEvent(sessionID string, evt any, account *store.Device) (string, *whatsmeowv1.StreamEventsResponse, bool) {
+	if key, event, ok := toEvent(evt, account); ok {
 		return key, event, true
 	}
 

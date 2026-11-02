@@ -3,6 +3,7 @@ package events
 import (
 	"testing"
 
+	"go.mau.fi/whatsmeow/proto/waCommon"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"google.golang.org/protobuf/proto"
 )
@@ -20,7 +21,7 @@ func TestAHistorySyncNotificationIsNeverALiveMessage(t *testing.T) {
 
 		// The History slice queues it (internal/history); a bot must never answer it, and its inline payload has no
 		// bound a gRPC message keeps.
-		if key, got, ok := toEvent(notification); ok {
+		if key, got, ok := toEvent(notification, nil); ok {
 			t.Fatalf("from me %v: recorded under %q as %v, want nothing", fromMe, key, got)
 		}
 	}
@@ -30,9 +31,10 @@ func TestMessageEventIsTheMappingOfALiveMessage(t *testing.T) {
 	t.Parallel()
 
 	m := messageEvent("M1")
-	_, live, _ := toEvent(m)
+	m.Message = &waE2E.Message{ReactionMessage: &waE2E.ReactionMessage{Key: &waCommon.MessageKey{ID: proto.String("T1"), Participant: proto.String(accountLID)}}}
+	_, live, _ := toEvent(m, account())
 
-	if got := MessageEvent(m); !proto.Equal(got, live.GetMessage()) {
+	if got := MessageEvent(m, account()); !proto.Equal(got, live.GetMessage()) || got.GetTarget() == nil {
 		t.Fatalf("MessageEvent %v, want the live message's %v", got, live.GetMessage())
 	}
 }

@@ -107,6 +107,32 @@ func TestRefuseNextSendAnswersTheNextNodeWithItsCode(t *testing.T) {
 	}
 }
 
+// A send both held and refused is refused at once, and takes both with it: nothing stays held or refused for the next.
+func TestAHeldAndRefusedSendIsRefusedAndLeavesNeither(t *testing.T) {
+	t.Parallel()
+
+	control, ctx, client := connectedClient(t)
+	if _, err := control.HoldNextSend(ctx, &fakev1.HoldNextSendRequest{SessionId: "s1"}); err != nil {
+		t.Fatalf("HoldNextSend: %v", err)
+	}
+
+	if _, err := control.RefuseNextSend(ctx, &fakev1.RefuseNextSendRequest{SessionId: "s1", Code: 479}); err != nil {
+		t.Fatalf("RefuseNextSend: %v", err)
+	}
+
+	if _, err := send(ctx, client, parse(t, "900000002@lid"), "3EB0000000000000000001"); !errors.Is(err, whatsmeow.ErrServerReturnedError) {
+		t.Fatalf("the held and refused send = %v, want whatsmeow's server error", err)
+	}
+
+	if _, err := control.ReleaseSend(ctx, &fakev1.ReleaseSendRequest{SessionId: "s1"}); err == nil {
+		t.Fatal("a send stayed held after the refused one")
+	}
+
+	if _, err := send(ctx, client, parse(t, "900000002@lid"), "3EB0000000000000000002"); err != nil {
+		t.Fatalf("the send after = %v", err)
+	}
+}
+
 func TestADeliveredReceiptCarriesTheSenderOfItsMessages(t *testing.T) {
 	t.Parallel()
 

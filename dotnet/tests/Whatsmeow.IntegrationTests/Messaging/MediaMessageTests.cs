@@ -429,9 +429,9 @@ public sealed class MediaMessageTests(FakeSidecar fixture)
 		var upload = await NextAsync(Session, 0, 1, ct);
 		var id = MessageId.New();
 
-		var first = await client.SendImageAsync(s_peer, image, new ImageMetadata { Caption = "once" }, id, ct);
-		var again = await client.SendImageAsync(s_peer, image, new ImageMetadata { Caption = "twice" }, id, ct);
-		var asText = await client.SendTextAsync(s_peer, "thrice", id, ct);
+		var first = await client.SendImageAsync(s_peer, image, new ImageMetadata { Caption = "once" }, id, cancellationToken: ct);
+		var again = await client.SendImageAsync(s_peer, image, new ImageMetadata { Caption = "twice" }, id, cancellationToken: ct);
+		var asText = await client.SendTextAsync(s_peer, "thrice", id, cancellationToken: ct);
 		var other = await client.SendTextAsync(s_peer, "other", cancellationToken: ct);
 
 		Assert.Equal(first, again);

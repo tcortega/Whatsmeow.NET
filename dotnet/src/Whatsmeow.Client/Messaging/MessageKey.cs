@@ -10,8 +10,10 @@ public sealed record MessageKey
 	public required MessageId Id { get; init; }
 
 	/// <summary>
-	/// Who sent the message (<see cref="Events.MessageSource.Sender"/>); null for the account's own message. The
-	/// account's own JID names its message too. In a group, a message from someone else needs its sender.
+	/// Who sent the message (<see cref="Events.MessageSource.Sender"/>), without a device; null for the account's own
+	/// message. In a send, the account's own JID names its message too, and in a group a message from someone else needs
+	/// its sender. In a received reaction, edit or revoke it is never the account's own JID: the account's message is
+	/// always null.
 	/// </summary>
 	public Jid? Sender { get; init; }
 }

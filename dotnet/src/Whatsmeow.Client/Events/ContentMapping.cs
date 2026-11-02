@@ -1,9 +1,9 @@
 using System.Collections.Immutable;
 using Google.Protobuf;
 using Whatsmeow.Messaging;
+using MessageTarget = Whatsmeow.Protocol.V1.MessageTarget;
 using E2E = Whatsmeow.Proto.WAWebProtobufsE2E;
 using ProtocolType = Whatsmeow.Proto.WAWebProtobufsE2E.ProtocolMessage.Types.Type;
-using WACommon = Whatsmeow.Proto.WACommon;
 
 namespace Whatsmeow.Events;
 
@@ -15,25 +15,28 @@ internal static class ContentMapping
 {
 	/// <param name="message">The message as whatsmeow unwrapped it.</param>
 	/// <param name="viewOnce">True when whatsmeow unwrapped it from a view-once wrapper.</param>
-	/// <param name="source">Who sent it and where, which names the message a reaction, an edit or a revoke targets.</param>
-	public static MessageContent ToContent(E2E.Message? message, bool viewOnce, MessageSource source) =>
-		message switch
+	/// <param name="target">
+	/// The message a reaction, an edit or a revoke names, as the sidecar read its key; null for every other message, and
+	/// for a key that names none, which makes the action malformed: unknown content.
+	/// </param>
+	public static MessageContent ToContent(E2E.Message? message, bool viewOnce, MessageTarget? target) =>
+		(message, target) switch
 		{
 			// REVOKE is the type's zero value (WAWebProtobufsE2E.proto), so only a set type is one.
-			{ ReactionMessage: { Key.ID.Length: > 0 } reaction } => new ReactionContent { Target = ToKey(reaction.Key, source), Emoji = reaction.Text },
-			{ ProtocolMessage: { HasType: true, Type: ProtocolType.Revoke, Key.ID.Length: > 0 } revoke } => new RevokeContent { Target = ToKey(revoke.Key, source) },
-			{ ProtocolMessage: { HasType: true, Type: ProtocolType.MessageEdit, Key.ID.Length: > 0, EditedMessage: { } edited } edit } => new EditContent
+			({ ReactionMessage: { } reaction }, { } key) => new ReactionContent { Target = ToKey(key), Emoji = reaction.Text },
+			({ ProtocolMessage: { HasType: true, Type: ProtocolType.Revoke } }, { } key) => new RevokeContent { Target = ToKey(key) },
+			({ ProtocolMessage: { HasType: true, Type: ProtocolType.MessageEdit, EditedMessage: { } edited } }, { } key) => new EditContent
 			{
-				Target = ToKey(edit.Key, source),
-				Content = ToContent(edited, viewOnce: false, source),
+				Target = ToKey(key),
+				Content = ToContent(edited, viewOnce: false, target: null),
 			},
-			{ HasConversation: true } => new TextContent { Text = message.Conversation },
-			{ ExtendedTextMessage.HasText: true } => new TextContent { Text = message.ExtendedTextMessage.Text },
-			{ ImageMessage: { } image } => ToImage(image, viewOnce),
-			{ VideoMessage: { } video } => ToVideo(video, viewOnce),
-			{ AudioMessage: { } audio } => ToAudio(audio, viewOnce),
-			{ DocumentMessage: { } document } => ToDocument(document),
-			{ StickerMessage: { } sticker } => ToSticker(sticker),
+			({ HasConversation: true }, _) => new TextContent { Text = message.Conversation },
+			({ ExtendedTextMessage.HasText: true }, _) => new TextContent { Text = message.ExtendedTextMessage.Text },
+			({ ImageMessage: { } image }, _) => ToImage(image, viewOnce),
+			({ VideoMessage: { } video }, _) => ToVideo(video, viewOnce),
+			({ AudioMessage: { } audio }, _) => ToAudio(audio, viewOnce),
+			({ DocumentMessage: { } document }, _) => ToDocument(document),
+			({ StickerMessage: { } sticker }, _) => ToSticker(sticker),
 			_ => new UnknownContent(),
 		};
 
@@ -142,29 +145,22 @@ internal static class ContentMapping
 			StreamingSidecar = [.. streamingSidecar.Span],
 		};
 
-	/// <summary>
-	/// The message a key names, as mautrix reads one (pkg/msgconv/msgconv.go:97-132 at 5dd621f): a key that names a
-	/// participant names its sender; one the actor marks as its own names the actor; otherwise, in a direct chat, the
-	/// other side: the chat when the account acted, else the account itself, which is null.
-	/// </summary>
-	private static MessageKey ToKey(WACommon.MessageKey key, MessageSource source) =>
+	/// <summary>The message a reaction, an edit or a revoke names; an empty sender is the account's own message.</summary>
+	private static MessageKey ToKey(MessageTarget target) =>
 		new()
 		{
-			Id = MessageId.From(key.ID),
-			Sender = key.HasParticipant && Jid.TryParse(key.Participant, out var participant) ? participant
-				: key.FromMe ? source.Sender
-				: source.IsFromMe ? source.Chat
-				: null,
+			Id = MessageId.From(target.Id),
+			Sender = Jid.TryParse(target.Sender, out var sender) ? sender : null,
 		};
 
 	/// <summary>The message a received one replies to, from its content's context; null for no reply.</summary>
-	public static QuotedMessage? ToReplyTo(E2E.Message? message, MessageSource source) =>
+	public static QuotedMessage? ToReplyTo(E2E.Message? message) =>
 		ContextOf(message) is { StanzaID.Length: > 0 } context
 			? new QuotedMessage
 			{
 				Id = MessageId.From(context.StanzaID),
 				Sender = Jid.TryParse(context.Participant, out var sender) ? sender : null,
-				Content = context.QuotedMessage is { } quoted ? ToContent(quoted, viewOnce: false, source) : null,
+				Content = context.QuotedMessage is { } quoted ? ToContent(quoted, viewOnce: false, target: null) : null,
 			}
 			: null;
 

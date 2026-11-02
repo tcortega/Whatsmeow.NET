@@ -90,14 +90,14 @@ public sealed partial class CallTests : IAsyncDisposable
 		var id = MessageId.From("3EB0C0FFEE0000000000AA");
 		_time.Advance(TimeSpan.FromMinutes(5));
 
-		var sent = await _fake.SendTextAsync(Ana, "hello", id, TestContext.Current.CancellationToken);
+		var sent = await _fake.SendTextAsync(Ana, "hello", id, cancellationToken: TestContext.Current.CancellationToken);
 
 		var at = Now.AddMinutes(5);
 		Assert.Equal(new SendResult { Id = id, Chat = Ana, Timestamp = at }, sent);
 		var call = Assert.Single(_fake.Calls);
 		Assert.Equal(nameof(IWhatsAppClient.SendTextAsync), call.Member);
 		Assert.Equal(at, call.Timestamp);
-		Assert.Equal(new Dictionary<string, object?>(StringComparer.Ordinal) { ["chat"] = Ana, ["text"] = "hello", ["id"] = id }, call.Arguments);
+		Assert.Equal(new Dictionary<string, object?>(StringComparer.Ordinal) { ["chat"] = Ana, ["text"] = "hello", ["id"] = id, ["options"] = null }, call.Arguments);
 	}
 
 	[Fact(Timeout = 10_000)]
@@ -443,19 +443,19 @@ public sealed partial class CallTests : IAsyncDisposable
 	public async Task Call_EqualsACallBuiltWithTheSameMemberArgumentsAndTime()
 	{
 		var id = MessageId.From("3EB0C0FFEE0000000000AA");
-		_ = await _fake.SendTextAsync(Ana, "hello", id, TestContext.Current.CancellationToken);
+		_ = await _fake.SendTextAsync(Ana, "hello", id, cancellationToken: TestContext.Current.CancellationToken);
 		var actual = Assert.Single(_fake.Calls);
 
 		var expected = new FakeCall
 		{
 			Member = nameof(IWhatsAppClient.SendTextAsync),
-			Arguments = new Dictionary<string, object?>(StringComparer.Ordinal) { ["chat"] = Ana, ["text"] = "hello", ["id"] = id },
+			Arguments = new Dictionary<string, object?>(StringComparer.Ordinal) { ["chat"] = Ana, ["text"] = "hello", ["id"] = id, ["options"] = null },
 			Timestamp = Now,
 		};
 
 		Assert.Equal(expected, actual);
 		Assert.Equal(expected.GetHashCode(), actual.GetHashCode());
-		Assert.NotEqual(expected with { Arguments = new Dictionary<string, object?>(StringComparer.Ordinal) { ["chat"] = Ana, ["text"] = "bye", ["id"] = id } }, actual);
+		Assert.NotEqual(expected with { Arguments = new Dictionary<string, object?>(StringComparer.Ordinal) { ["chat"] = Ana, ["text"] = "bye", ["id"] = id, ["options"] = null } }, actual);
 		Assert.NotEqual(expected with { Arguments = new Dictionary<string, object?>(StringComparer.Ordinal) { ["chat"] = Ana, ["text"] = "hello" } }, actual);
 		Assert.NotEqual(expected with { Arguments = new Dictionary<string, object?>(StringComparer.Ordinal) { ["chat"] = Ana, ["text"] = "hello", ["sender"] = id } }, actual);
 		Assert.NotEqual(expected with { Member = nameof(IWhatsAppClient.SendRawAsync) }, actual);

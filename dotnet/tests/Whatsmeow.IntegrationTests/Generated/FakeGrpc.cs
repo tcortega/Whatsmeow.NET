@@ -2188,7 +2188,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// RefuseNextSend makes WhatsApp answer the session's next message node, which WaitForSent shows, with an error code,
-      /// as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470).
+      /// as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470). A send HoldNextSend holds too is
+      /// refused at once, and nothing stays held.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -2202,7 +2203,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// RefuseNextSend makes WhatsApp answer the session's next message node, which WaitForSent shows, with an error code,
-      /// as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470).
+      /// as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470). A send HoldNextSend holds too is
+      /// refused at once, and nothing stays held.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -2214,7 +2216,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// RefuseNextSend makes WhatsApp answer the session's next message node, which WaitForSent shows, with an error code,
-      /// as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470).
+      /// as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470). A send HoldNextSend holds too is
+      /// refused at once, and nothing stays held.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -2228,7 +2231,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// RefuseNextSend makes WhatsApp answer the session's next message node, which WaitForSent shows, with an error code,
-      /// as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470).
+      /// as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470). A send HoldNextSend holds too is
+      /// refused at once, and nothing stays held.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>

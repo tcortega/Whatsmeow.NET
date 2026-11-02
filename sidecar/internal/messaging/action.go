@@ -22,8 +22,8 @@ func (svc *Service) SendReaction(ctx context.Context, req *whatsmeowv1.SendReact
 		return nil, err
 	}
 
-	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), func(wa whatsApp, chat types.JID) *waE2E.Message {
-		return wa.BuildReaction(chat, sender, req.GetTargetId(), req.GetEmoji())
+	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), func(wa whatsApp, chat types.JID) (*waE2E.Message, error) {
+		return wa.BuildReaction(chat, sender, req.GetTargetId(), req.GetEmoji()), nil
 	})
 	if err != nil {
 		return nil, err
@@ -43,8 +43,8 @@ func (svc *Service) SendEdit(ctx context.Context, req *whatsmeowv1.SendEditReque
 		return nil, invalid("text", "the text is empty")
 	}
 
-	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), func(wa whatsApp, chat types.JID) *waE2E.Message {
-		return wa.BuildEdit(chat, req.GetTargetId(), &waE2E.Message{Conversation: proto.String(req.GetText())})
+	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), func(wa whatsApp, chat types.JID) (*waE2E.Message, error) {
+		return wa.BuildEdit(chat, req.GetTargetId(), &waE2E.Message{Conversation: proto.String(req.GetText())}), nil
 	})
 	if err != nil {
 		return nil, err
@@ -62,8 +62,8 @@ func (svc *Service) SendRevoke(ctx context.Context, req *whatsmeowv1.SendRevokeR
 		return nil, err
 	}
 
-	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), func(wa whatsApp, chat types.JID) *waE2E.Message {
-		return wa.BuildRevoke(chat, sender, req.GetTargetId())
+	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), func(wa whatsApp, chat types.JID) (*waE2E.Message, error) {
+		return wa.BuildRevoke(chat, sender, req.GetTargetId()), nil
 	})
 	if err != nil {
 		return nil, err
@@ -85,13 +85,19 @@ func target(id, sender string) (types.JID, error) {
 	return user("target_sender", sender)
 }
 
-// contextInfo is the context of a reply and its mentions, as mautrix sends it (from-matrix.go:56-96, 344-375): the
+// replyContext is the context of a reply and its mentions, as mautrix sends it (from-matrix.go:56-96, 344-375): the
 // quoted message's id and sender, the quoted text as a conversation (empty when none was given, as mautrix falls back
-// to), an explicit quote, and the mentioned users. No reply and no mentions is none. A reply without a sender quotes
-// the account's own message: its device's JID names it.
-func (svc *Service) contextInfo(sessionID string, reply *whatsmeowv1.MessageReply, mentions []string) (*waE2E.ContextInfo, error) {
+// to), an explicit quote, and the mentioned users. No reply and no mentions is none. It is checked before the send, so
+// a malformed one sends nothing. own is set for a reply without a sender: it quotes the account's own message, whose
+// participant named fills in when the send is built.
+type replyContext struct {
+	info *waE2E.ContextInfo
+	own  bool
+}
+
+func newReplyContext(reply *whatsmeowv1.MessageReply, mentions []string) (replyContext, error) {
 	if reply == nil && len(mentions) == 0 {
-		return nil, nil //nolint:nilnil // no context is not sent
+		return replyContext{}, nil
 	}
 
 	info := &waE2E.ContextInfo{}
@@ -99,53 +105,75 @@ func (svc *Service) contextInfo(sessionID string, reply *whatsmeowv1.MessageRepl
 	for _, mention := range mentions {
 		j, err := user("mentions", mention)
 		if err != nil {
-			return nil, err
+			return replyContext{}, err
 		}
 
 		info.MentionedJID = append(info.MentionedJID, j.ToNonAD().String())
 	}
 
 	if reply == nil {
-		return info, nil
+		return replyContext{info: info}, nil
 	}
 
 	if reply.GetId() == "" {
-		return nil, invalid("reply_to.id", "no quoted message")
-	}
-
-	sender, err := svc.quoted(sessionID, reply.GetSender())
-	if err != nil {
-		return nil, err
+		return replyContext{}, invalid("reply_to.id", "no quoted message")
 	}
 
 	info.StanzaID = proto.String(reply.GetId())
-	info.Participant = proto.String(sender.ToNonAD().String())
 	info.QuotedMessage = &waE2E.Message{Conversation: proto.String(reply.GetQuotedText())}
 	info.QuotedType = waE2E.ContextInfo_EXPLICIT.Enum()
 
-	return info, nil
+	if reply.GetSender() == "" {
+		return replyContext{info: info, own: true}, nil
+	}
+
+	sender, err := user("reply_to.sender", reply.GetSender())
+	if err != nil {
+		return replyContext{}, err
+	}
+
+	info.Participant = proto.String(sender.ToNonAD().String())
+
+	return replyContext{info: info}, nil
 }
 
-// quoted is the sender of a quoted message: the one given, or the account's own JID when none was.
-func (svc *Service) quoted(sessionID, sender string) (types.JID, error) {
-	if sender != "" {
-		return user("reply_to.sender", sender)
+// named is the build of message, whose context is c, once a reply to the account's own message names the account. It
+// reads the session's device only then, after the send's record, so a repeat of a recorded reply gets its record
+// whatever the session's state.
+func (svc *Service) named(sessionID string, c replyContext, message *waE2E.Message) build {
+	if !c.own {
+		return as(message)
 	}
 
-	if err := validateSession(sessionID); err != nil {
-		return types.JID{}, err
-	}
+	return func(_ whatsApp, chat types.JID) (*waE2E.Message, error) {
+		account, err := svc.account(sessionID, chat)
+		if err != nil {
+			return nil, err
+		}
 
+		c.info.Participant = proto.String(account.String())
+
+		return message, nil
+	}
+}
+
+// account is the account's own JID without a device, as chat names it: its LID in a LID chat, else its phone number.
+// Which form a LID-addressed group needs is unknown (#36).
+func (svc *Service) account(sessionID string, chat types.JID) (types.JID, error) {
 	device, err := svc.sessions.Device(sessionID)
 	if err != nil {
 		return types.JID{}, fmt.Errorf("reply: %w", err)
+	}
+
+	if chat.Server == types.HiddenUserServer && !device.LID.IsEmpty() {
+		return device.LID.ToNonAD(), nil
 	}
 
 	if device.ID == nil {
 		return types.JID{}, fmt.Errorf("reply: session %q has no device JID", sessionID) //nolint:err113 // Device returns only paired devices
 	}
 
-	return *device.ID, nil
+	return device.ID.ToNonAD(), nil
 }
 
 // withContext puts info on the media message of message, inside a captioned document's wrapper.

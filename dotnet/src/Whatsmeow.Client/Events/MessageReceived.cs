@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Text;
 using E2E = Whatsmeow.Proto.WAWebProtobufsE2E;
 
 namespace Whatsmeow.Events;
@@ -60,6 +61,27 @@ public sealed record MessageReceived : WhatsAppEvent
 		&& Mentions.AsSpan().SequenceEqual(other.Mentions.AsSpan())
 		&& IsEphemeral == other.IsEphemeral
 		&& Nullable.Equals(DestinationChat, other.DestinationChat);
+
+	/// <summary>
+	/// Prints every member but the experimental <see cref="Raw"/>: protobuf's text of a message carries what it holds,
+	/// media keys included, which must not reach a log.
+	/// </summary>
+	protected override bool PrintMembers(StringBuilder builder)
+	{
+		ArgumentNullException.ThrowIfNull(builder);
+		if (base.PrintMembers(builder))
+			_ = builder.Append(", ");
+		_ = builder.Append("Id = ").Append(Id);
+		_ = builder.Append(", Source = ").Append(Source);
+		_ = builder.Append(", PushName = ").Append(PushName);
+		_ = builder.Append(", Timestamp = ").Append(Timestamp);
+		_ = builder.Append(", Content = ").Append(Content);
+		_ = builder.Append(", ReplyTo = ").Append(ReplyTo);
+		_ = builder.Append(", Mentions = [").AppendJoin(", ", Mentions.AsSpan().ToArray()).Append(']');
+		_ = builder.Append(", IsEphemeral = ").Append(IsEphemeral);
+		_ = builder.Append(", DestinationChat = ").Append(DestinationChat);
+		return true;
+	}
 
 	/// <inheritdoc/>
 	public override int GetHashCode()

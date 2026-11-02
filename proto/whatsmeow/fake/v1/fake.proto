@@ -153,7 +153,8 @@ service FakeWhatsAppService {
   rpc ReleaseSend(ReleaseSendRequest) returns (ReleaseSendResponse);
 
   // RefuseNextSend makes WhatsApp answer the session's next message node, which WaitForSent shows, with an error code,
-  // as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470).
+  // as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470). A send HoldNextSend holds too is
+  // refused at once, and nothing stays held.
   rpc RefuseNextSend(RefuseNextSendRequest) returns (RefuseNextSendResponse);
 
   // AddGroup puts a group on WhatsApp's side, which every session's group calls read and change. Its members are

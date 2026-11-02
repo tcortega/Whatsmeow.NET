@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using Google.Protobuf.WellKnownTypes;
 using Whatsmeow.Protocol.V1;
 
@@ -25,7 +24,15 @@ internal static class MessagingMapping
 				QuotedText = reply.QuotedText ?? "",
 			};
 
-	public static IEnumerable<string> ToProto(ImmutableArray<Jid> mentions) => mentions.Select(m => m.ToString());
+	/// <summary>The users <paramref name="options"/> mentions, as JIDs' text: none for no options, and for mentions left default.</summary>
+	public static string[] ToMentions(SendOptions? options)
+	{
+		var mentions = options is null ? [] : options.Mentions.AsSpan();
+		var texts = new string[mentions.Length];
+		for (var i = 0; i < mentions.Length; i++)
+			texts[i] = mentions[i].ToString();
+		return texts;
+	}
 
 	public static MarkReadRequest ToMarkRead(SessionId sessionId, Jid chat, IReadOnlyCollection<MessageId> messageIds, Jid? sender)
 	{

@@ -185,7 +185,8 @@ type FakeWhatsAppServiceClient interface {
 	// ReleaseSend makes WhatsApp answer the session's held send: it succeeds. No held send is an error.
 	ReleaseSend(ctx context.Context, in *ReleaseSendRequest, opts ...grpc.CallOption) (*ReleaseSendResponse, error)
 	// RefuseNextSend makes WhatsApp answer the session's next message node, which WaitForSent shows, with an error code,
-	// as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470).
+	// as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470). A send HoldNextSend holds too is
+	// refused at once, and nothing stays held.
 	RefuseNextSend(ctx context.Context, in *RefuseNextSendRequest, opts ...grpc.CallOption) (*RefuseNextSendResponse, error)
 	// AddGroup puts a group on WhatsApp's side, which every session's group calls read and change. Its members are
 	// phone-number JIDs; in a LID-addressed group WhatsApp answers each by the LID RegisterUser gave it, with the phone
@@ -794,7 +795,8 @@ type FakeWhatsAppServiceServer interface {
 	// ReleaseSend makes WhatsApp answer the session's held send: it succeeds. No held send is an error.
 	ReleaseSend(context.Context, *ReleaseSendRequest) (*ReleaseSendResponse, error)
 	// RefuseNextSend makes WhatsApp answer the session's next message node, which WaitForSent shows, with an error code,
-	// as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470).
+	// as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470). A send HoldNextSend holds too is
+	// refused at once, and nothing stays held.
 	RefuseNextSend(context.Context, *RefuseNextSendRequest) (*RefuseNextSendResponse, error)
 	// AddGroup puts a group on WhatsApp's side, which every session's group calls read and change. Its members are
 	// phone-number JIDs; in a LID-addressed group WhatsApp answers each by the LID RegisterUser gave it, with the phone

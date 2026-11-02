@@ -304,7 +304,7 @@ func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, op
 func recording(newClient session.NewClient, events *eventsslice.Service, chats *chatstate.Service, histories *historyslice.Service) session.NewClient {
 	return func(sessionID string, device *wastore.Device) session.Client {
 		client := newClient(sessionID, device)
-		client.AddEventHandlerWithSuccessStatus(events.Handler(sessionID))
+		client.AddEventHandlerWithSuccessStatus(events.Handler(sessionID, device))
 		client.AddEventHandlerWithSuccessStatus(chats.Handler(sessionID))
 		client.AddEventHandlerWithSuccessStatus(histories.Handler(sessionID))
 

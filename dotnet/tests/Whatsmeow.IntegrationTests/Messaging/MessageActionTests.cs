@@ -157,16 +157,15 @@ public sealed class MessageActionTests(FakeSidecar fixture)
 		var client = await SessionSetup.LinkedAsync(fixture, Session, ct);
 		using var received = new Received<MessageReceived>(client);
 		await ConnectAsync(client, ct);
-		var self = Jid.Parse(SessionSetup.Jid(Session));
 
 		(Jid Chat, Jid Sender, E2E.Message Message, MessageContent Content)[] cases =
 		[
-			// A member reacts to the account's message, which the key names by its participant.
+			// A member reacts to another member's message, which the key names by its participant, without the device.
 			(
 				s_group,
 				s_member,
-				new() { ReactionMessage = new E2E.ReactionMessage { Key = Key(s_group, fromMe: false, "T1", self), Text = "❤" } },
-				new ReactionContent { Target = new MessageKey { Id = MessageId.From("T1"), Sender = self }, Emoji = "❤" }
+				new() { ReactionMessage = new E2E.ReactionMessage { Key = Key(s_group, fromMe: false, "T1", s_admin with { Device = 4 }), Text = "❤" } },
+				new ReactionContent { Target = new MessageKey { Id = MessageId.From("T1"), Sender = s_admin }, Emoji = "❤" }
 			),
 			// A member removes a reaction to their own message.
 			(
@@ -216,6 +215,15 @@ public sealed class MessageActionTests(FakeSidecar fixture)
 				Revoke(Key(s_group, fromMe: false, "T6", s_member)),
 				new RevokeContent { Target = new MessageKey { Id = MessageId.From("T6"), Sender = s_member } }
 			),
+			// The actor's own message, sent from one of its devices: the target names the user, not the device.
+			(
+				s_group,
+				s_member with { Device = 7 },
+				Revoke(Key(s_group, fromMe: true, "T9")),
+				new RevokeContent { Target = new MessageKey { Id = MessageId.From("T9"), Sender = s_member } }
+			),
+			// In a group, a key that is not the actor's and names no participant names no message: malformed.
+			(s_group, s_member, new() { ReactionMessage = new E2E.ReactionMessage { Key = Key(s_group, fromMe: false, "T10"), Text = "👍" } }, new UnknownContent()),
 			// A protocol message without a type is no revoke, though REVOKE is the type's zero value.
 			(s_group, s_member, new() { ProtocolMessage = new E2E.ProtocolMessage { Key = Key(s_group, fromMe: true, "T7") } }, new UnknownContent()),
 		];
@@ -242,6 +250,104 @@ public sealed class MessageActionTests(FakeSidecar fixture)
 	}
 
 	[Fact(Timeout = Timeout)]
+	public async Task Receive_AnActionOnTheAccountsOwnMessage_NamesNoSender_HoweverItsKeyNamesTheAccount()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "message-actions-receive-own";
+		var client = await SessionSetup.LinkedAsync(fixture, Session, ct);
+		using var received = new Received<MessageReceived>(client);
+		await ConnectAsync(client, ct);
+		var device = Jid.Parse(SessionSetup.Jid(Session));
+		var phone = device with { Device = 0 };
+		var own = new MessageKey { Id = MessageId.From("T1") };
+
+		// The other side of a direct chat names the account by its device, a member by its phone number.
+		await DeliverAsync(Session, "O1", s_peer, s_peer, new E2E.Message { ReactionMessage = new E2E.ReactionMessage { Key = Key(s_peer, fromMe: false, "T1", device), Text = "👍" } }, ct);
+		Assert.Equal(Received(Session, "O1", s_peer, s_peer, new ReactionContent { Target = own, Emoji = "👍" }), await received.NextAsync(ct));
+		await DeliverAsync(Session, "O2", s_group, s_member, Revoke(Key(s_group, fromMe: false, "T1", phone)), ct);
+		Assert.Equal(Received(Session, "O2", s_group, s_member, new RevokeContent { Target = own }), await received.NextAsync(ct));
+
+		// The account's phone revokes the account's message.
+		await DeliverAsync(Session, "O3", s_peer, phone, Revoke(Key(s_peer, fromMe: true, "T1")), ct, isFromMe: true);
+		var revoked = Received(Session, "O3", s_peer, phone, new RevokeContent { Target = own });
+		Assert.Equal(revoked with { Source = revoked.Source with { IsFromMe = true } }, await received.NextAsync(ct));
+	}
+
+	/// <summary>
+	/// Every kind of send carries the quote and the mentions to WhatsApp, and the same message received carries them to
+	/// the application: the context is on the text's extended text, on the media message, and inside a captioned
+	/// document's wrapper.
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task SendAndReceive_EveryKindInReplyMentioningUsers_CarriesTheQuoteAndTheMentions()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "message-actions-reply-kinds";
+		var client = await SessionSetup.LinkedAsync(fixture, Session, ct);
+		using var received = new Received<MessageReceived>(client);
+		await ConnectAsync(client, ct);
+		var image = await UploadAsync(client, ct);
+		var upload = (await NextAsync(Session, 0, 1, ct))[0];
+		var pn = Jid.Parse("5511900000304@s.whatsapp.net");
+		var options = new SendOptions
+		{
+			ReplyTo = new MessageReply { Id = MessageId.From("Q1"), Sender = s_member, QuotedText = "the question" },
+			Mentions = [s_member, pn],
+		};
+		var context = new E2E.ContextInfo
+		{
+			StanzaID = "Q1",
+			Participant = s_member.ToString(),
+			QuotedMessage = new E2E.Message { Conversation = "the question" },
+			QuotedType = E2E.ContextInfo.Types.QuotedType.Explicit,
+			MentionedJID = { s_member.ToString(), pn.ToString() },
+		};
+
+		(Func<Task<SendResult>> Send, Func<E2E.Message, E2E.ContextInfo?> Context)[] kinds =
+		[
+			(() => client.SendTextAsync(s_group, "@900000302 yes", options: options, cancellationToken: ct), static m => m.ExtendedTextMessage?.ContextInfo),
+			(() => client.SendImageAsync(s_group, image, new ImageMetadata { Caption = "look" }, options: options, cancellationToken: ct), static m => m.ImageMessage?.ContextInfo),
+			(() => client.SendVideoAsync(s_group, image with { Type = MediaType.Video }, new VideoMetadata { Caption = "watch" }, options: options, cancellationToken: ct), static m => m.VideoMessage?.ContextInfo),
+			(
+				() => client.SendAudioAsync(s_group, image with { Type = MediaType.Audio }, new AudioMetadata { IsVoiceNote = true }, options: options, cancellationToken: ct),
+				static m => m.AudioMessage?.ContextInfo
+			),
+			(
+				() => client.SendDocumentAsync(s_group, image with { Type = MediaType.Document }, new DocumentMetadata { Caption = "read" }, options: options, cancellationToken: ct),
+				static m => m.DocumentWithCaptionMessage?.Message?.DocumentMessage?.ContextInfo
+			),
+			(() => client.SendStickerAsync(s_group, image, new StickerMetadata(), options: options, cancellationToken: ct), static m => m.StickerMessage?.ContextInfo),
+		];
+
+		var after = upload.Index;
+		for (var i = 0; i < kinds.Length; i++)
+		{
+			_ = await kinds[i].Send();
+			var sent = await NextMessageAsync(Session, after, ct);
+			after = sent.Index;
+			Assert.Equal(context, kinds[i].Context(sent.Message.Message));
+
+			// The member gets it as sent, and so does the account, from the member's side.
+			await DeliverAsync(Session, $"K{i}", s_group, s_member, sent.Message.Message, ct);
+			var message = await received.NextAsync(ct);
+			Assert.Equal(new QuotedMessage { Id = MessageId.From("Q1"), Sender = s_member, Content = new TextContent { Text = "the question" } }, message.ReplyTo);
+			Assert.Equal<Jid>([s_member, pn], message.Mentions);
+		}
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Send_WithDefaultMentionsAndNoReply_IsAPlainText()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "message-actions-default-mentions";
+		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
+
+		_ = await client.SendTextAsync(s_peer, "plain", options: new SendOptions { Mentions = default }, cancellationToken: ct);
+
+		Assert.Equal(new E2E.Message { Conversation = "plain" }, (await NextAsync(Session, 0, 1, ct))[0].Message.Message);
+	}
+
+	[Fact(Timeout = Timeout)]
 	public async Task Send_TextAndMediaInReplyMentioningUsers_CarryTheQuoteAndTheMentions()
 	{
 		var ct = TestContext.Current.CancellationToken;
@@ -263,9 +369,9 @@ public sealed class MessageActionTests(FakeSidecar fixture)
 			MentionedJID = { s_member.ToString(), "5511900000304@s.whatsapp.net" },
 		};
 
-		_ = await client.SendTextAsync(s_group, "@900000302 yes", options, cancellationToken: ct);
-		_ = await client.SendImageAsync(s_group, image, new ImageMetadata { Caption = "@900000302 look" }, options, cancellationToken: ct);
-		_ = await client.SendDocumentAsync(s_group, image with { Type = MediaType.Document }, new DocumentMetadata(), options, cancellationToken: ct);
+		_ = await client.SendTextAsync(s_group, "@900000302 yes", options: options, cancellationToken: ct);
+		_ = await client.SendImageAsync(s_group, image, new ImageMetadata { Caption = "@900000302 look" }, options: options, cancellationToken: ct);
+		_ = await client.SendDocumentAsync(s_group, image with { Type = MediaType.Document }, new DocumentMetadata(), options: options, cancellationToken: ct);
 
 		var sent = await NextAsync(Session, upload.Index, 3, ct);
 		Assert.Equal(new E2E.Message { ExtendedTextMessage = new E2E.ExtendedTextMessage { Text = "@900000302 yes", ContextInfo = context } }, sent[0].Message.Message);
@@ -280,7 +386,7 @@ public sealed class MessageActionTests(FakeSidecar fixture)
 		const string Session = "message-actions-reply-own";
 		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
 
-		_ = await client.SendTextAsync(s_peer, "and more", new SendOptions { ReplyTo = new MessageReply { Id = MessageId.From("Q1") } }, cancellationToken: ct);
+		_ = await client.SendTextAsync(s_peer, "and more", options: new SendOptions { ReplyTo = new MessageReply { Id = MessageId.From("Q1") } }, cancellationToken: ct);
 
 		Assert.Equal(
 			new E2E.Message
@@ -422,10 +528,14 @@ public sealed class MessageActionTests(FakeSidecar fixture)
 		await DeliverAsync(Session, "W1", s_peer, s_peer, wrapped, ct);
 		await DeliverAsync(Session, "W2", s_peer, s_peer, plain, ct);
 
+		var first = await received.NextAsync(ct);
 #pragma warning disable WMN1001 // Justification: the raw message is what is under test
-		Assert.Equal(wrapped, (await received.NextAsync(ct)).Raw);
+		Assert.Equal(wrapped, first.Raw);
 		Assert.Equal(plain, (await received.NextAsync(ct)).Raw);
 #pragma warning restore WMN1001
+
+		// Not printed: protobuf's text of a message carries its media keys.
+		Assert.DoesNotContain("Raw", first.ToString(), StringComparison.Ordinal);
 	}
 
 	[Fact(Timeout = Timeout)]
@@ -546,6 +656,18 @@ public sealed class MessageActionTests(FakeSidecar fixture)
 	{
 		using var input = new MemoryStream(RandomNumberGenerator.GetBytes(1024));
 		return await client.UploadMediaAsync(input, MediaType.Image, ct).ConfigureAwait(false);
+	}
+
+	/// <summary>The session's next message node after the entry <paramref name="after"/>, past the receipts and acks of what was delivered.</summary>
+	private async Task<Sent> NextMessageAsync(string session, ulong after, CancellationToken ct)
+	{
+		while (true)
+		{
+			var next = (await fixture.Fake.WaitForSentAsync(new WaitForSentRequest { SessionId = session, After = after }, cancellationToken: ct).ConfigureAwait(false)).Sent;
+			if (next.Message is not null)
+				return next;
+			after = next.Index;
+		}
 	}
 
 	/// <summary>The session's next <paramref name="count"/> entries after the entry <paramref name="after"/>.</summary>

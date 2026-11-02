@@ -12,7 +12,9 @@ import (
 	"time"
 
 	"github.com/rs/zerolog"
+	"go.mau.fi/whatsmeow/proto/waCommon"
 	"go.mau.fi/whatsmeow/proto/waE2E"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	waevents "go.mau.fi/whatsmeow/types/events"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -166,7 +168,7 @@ func (h *harness) deliver(session string, evt any) (answered bool) {
 		}
 	}()
 
-	return h.svc.Handler(session)(evt)
+	return h.svc.Handler(session, nil)(evt)
 }
 
 func (h *harness) mustDeliver(session string, evt any) {
@@ -289,7 +291,7 @@ func TestEveryWhatsmeowEventMapsToOneOutboxEventOrNone(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		key, got, ok := toEvent(c.evt)
+		key, got, ok := toEvent(c.evt, nil)
 		if ok != (c.want != nil) || key != c.key || !proto.Equal(got, c.want) {
 			t.Errorf("%T: key %q, %v, %v; want %q, %v", c.evt, key, got, ok, c.key, c.want)
 		}
@@ -743,7 +745,7 @@ func TestAViewOnceMessageAndAnUnavailableOneSayWhatTheyAre(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		if _, got, ok := toEvent(c.evt); !ok || !proto.Equal(got, c.want) {
+		if _, got, ok := toEvent(c.evt, nil); !ok || !proto.Equal(got, c.want) {
 			t.Errorf("%+v: %v, %v; want %v", c.evt, got, ok, c.want)
 		}
 	}
@@ -783,8 +785,86 @@ func TestAMessagesWrappersSayWhatTheyWere_AndTheRawMessageIsKeptWhenUnwrapped(t 
 	}
 
 	for _, c := range cases {
-		if _, got, ok := toEvent(c.evt); !ok || !proto.Equal(got, c.want) {
+		if _, got, ok := toEvent(c.evt, nil); !ok || !proto.Equal(got, c.want) {
 			t.Errorf("%v: %v, %v; want %v", c.evt.RawMessage, got, ok, c.want)
+		}
+	}
+}
+
+// The account a target test's session is: its device JID and LID, as WhatsApp assigns them.
+const (
+	accountPN  = "5511900000001:3@s.whatsapp.net"
+	accountLID = "900000001:3@lid"
+)
+
+func account() *store.Device {
+	return &store.Device{ID: new(jid(accountPN)), LID: jid(accountLID)}
+}
+
+// A reaction's, an edit's and a revoke's target is read from its key as mautrix reads one (pkg/msgconv/wa-poll.go:97-132
+// at 5dd621f), without a device, and empty when it is the account's own message however the key names the account;
+// a key that names no message has no target.
+func TestAnActionsTargetIsReadFromItsKey_AndTheAccountsOwnMessageHasNoSender(t *testing.T) {
+	t.Parallel()
+
+	const (
+		groupChat = "120363000000000000@g.us"
+		peer      = "222@lid"
+	)
+
+	key := func(fromMe bool, id, participant string) *waCommon.MessageKey {
+		k := &waCommon.MessageKey{FromMe: proto.Bool(fromMe), ID: proto.String(id)}
+		if participant != "" {
+			k.Participant = proto.String(participant)
+		}
+
+		return k
+	}
+	reaction := func(k *waCommon.MessageKey) *waE2E.Message {
+		return &waE2E.Message{ReactionMessage: &waE2E.ReactionMessage{Key: k, Text: proto.String("👍")}}
+	}
+	revoke := func(k *waCommon.MessageKey) *waE2E.Message {
+		return &waE2E.Message{ProtocolMessage: &waE2E.ProtocolMessage{Type: waE2E.ProtocolMessage_REVOKE.Enum(), Key: k}}
+	}
+	edit := &waE2E.Message{ProtocolMessage: &waE2E.ProtocolMessage{
+		Type: waE2E.ProtocolMessage_MESSAGE_EDIT.Enum(), Key: key(true, "T1", ""), EditedMessage: &waE2E.Message{Conversation: proto.String("new")},
+	}}
+	from := func(chat, sender string, isFromMe bool) types.MessageSource {
+		return types.MessageSource{Chat: jid(chat), Sender: jid(sender), IsFromMe: isFromMe}
+	}
+	member, admin := from(groupChat, "333:7@lid", false), from(groupChat, "444:1@lid", false)
+	other, phone := from(peer, "222:2@lid", false), from(peer, "5511900000001@s.whatsapp.net", true)
+	target := func(sender string) *whatsmeowv1.MessageTarget {
+		return &whatsmeowv1.MessageTarget{Id: "T1", Sender: sender}
+	}
+
+	cases := []struct {
+		name    string
+		source  types.MessageSource
+		message *waE2E.Message
+		want    *whatsmeowv1.MessageTarget
+	}{
+		{"a member's revoke of their own message, without the device", member, revoke(key(true, "T1", "")), target("333@lid")},
+		{"an admin's revoke of a member's", admin, revoke(key(false, "T1", "333:5@lid")), target("333@lid")},
+		{"a member's edit", member, edit, target("333@lid")},
+		{"a legacy participant", member, reaction(key(false, "T1", "5511900000002@c.us")), target("5511900000002@s.whatsapp.net")},
+		{"a group key naming the account by its LID", member, reaction(key(false, "T1", "900000001:2@lid")), target("")},
+		{"a group key naming the account by its phone number", member, reaction(key(false, "T1", "5511900000001@s.whatsapp.net")), target("")},
+		{"a direct chat's other side on the account's message", other, reaction(key(false, "T1", "")), target("")},
+		{"a direct chat key naming the account with a device", other, reaction(key(false, "T1", accountPN)), target("")},
+		{"the account's phone on its own message", phone, revoke(key(true, "T1", "")), target("")},
+		{"the account's phone on the other side's message", phone, reaction(key(false, "T1", "")), target(peer)},
+		{"a group key neither the actor's nor naming a participant", member, reaction(key(false, "T1", "")), nil},
+		{"a participant that is not a JID", member, reaction(key(false, "T1", "1:x@s.whatsapp.net")), nil},
+		{"a key without an id", member, reaction(key(true, "", "")), nil},
+		{"a protocol message without a type", member, &waE2E.Message{ProtocolMessage: &waE2E.ProtocolMessage{Key: key(true, "T1", "")}}, nil},
+		{"a text", member, &waE2E.Message{Conversation: proto.String("hi")}, nil},
+	}
+
+	for _, c := range cases {
+		e := &waevents.Message{Info: types.MessageInfo{MessageSource: c.source, ID: "M1"}, Message: c.message}
+		if got := MessageEvent(e, account()).GetTarget(); !proto.Equal(got, c.want) {
+			t.Errorf("%s: target %v, want %v", c.name, got, c.want)
 		}
 	}
 }

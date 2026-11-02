@@ -114,18 +114,18 @@ func (svc *Service) SendText(ctx context.Context, req *whatsmeowv1.SendTextReque
 		return nil, invalid("text", "the text is empty")
 	}
 
-	info, err := svc.contextInfo(req.GetSessionId(), req.GetReplyTo(), req.GetMentions())
+	reply, err := newReplyContext(req.GetReplyTo(), req.GetMentions())
 	if err != nil {
 		return nil, err
 	}
 
 	message := &waE2E.Message{Conversation: proto.String(req.GetText())}
-	if info != nil {
+	if reply.info != nil {
 		// A conversation carries no context; an extended text does, as mautrix sends it (from-matrix.go:358-375).
-		message = &waE2E.Message{ExtendedTextMessage: &waE2E.ExtendedTextMessage{Text: proto.String(req.GetText()), ContextInfo: info}}
+		message = &waE2E.Message{ExtendedTextMessage: &waE2E.ExtendedTextMessage{Text: proto.String(req.GetText()), ContextInfo: reply.info}}
 	}
 
-	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), as(message))
+	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), svc.named(req.GetSessionId(), reply, message))
 	if err != nil {
 		return nil, err
 	}
@@ -223,22 +223,23 @@ func validateSession(id string) error {
 }
 
 // recipient is a chat to send to, as message.proto says: a user without a device (by phone number or LID), or a
-// group. whatsmeow refuses a device (send.go:203-206); newsletters and broadcast lists are not in v1.
+// group. whatsmeow refuses a device (send.go:203-206); newsletters and broadcast lists are not in v1. Its texts name
+// the field, never the JID, which names a person.
 func recipient(field, chat string) (types.JID, error) {
 	to, err := types.ParseJID(chat)
 	if chat == "" || err != nil || to.User == "" {
-		return types.JID{}, invalid(field, "%q is not a JID", chat)
+		return types.JID{}, invalid(field, "not a JID")
 	}
 
 	if to.Device != 0 {
-		return types.JID{}, invalid(field, "%q names a device; send to the user", chat)
+		return types.JID{}, invalid(field, "names a device; send to the user")
 	}
 
 	switch to.Server {
 	case types.DefaultUserServer, types.HiddenUserServer, types.GroupServer:
 		return to, nil
 	default:
-		return types.JID{}, invalid(field, "%q is not a user or a group", chat)
+		return types.JID{}, invalid(field, "not a user or a group")
 	}
 }
 
