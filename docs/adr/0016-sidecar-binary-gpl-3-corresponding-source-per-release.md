@@ -91,7 +91,9 @@ What the sources say:
 - Each released `whatsmeow-net` binary is one combined work that the GPL covers as a whole [inferred: GPLv3 §5(c) and FAQ #GPLStaticVsDynamic, quoted above].
 - We convey it under GPL-3.0-only, which libsignal's "or any later version" allows [inferred: GPLv3 §14, quoted above].
 - We comply through GPLv3 §6(d): the object code is on nuget.org, and the Corresponding Source is on the GitHub release of the same tag, with directions in `NOTICE` and in each native package.
-- The .NET assemblies are separate programs that talk to the sidecar only through gRPC over a local socket, so the GPL does not reach them [inferred: FAQ #MereAggregation; the contract carries whatsmeow message types and no libsignal structures, and the contract does not exist yet (#3)].
+- The .NET assemblies are separate programs that talk to the sidecar only through gRPC over a local socket, so the GPL does not reach them [inferred: FAQ #MereAggregation; the contract carries whatsmeow message types and no libsignal structures, re-checked below].
+  - Re-checked by #47 at 86718fd, now that the contract exists (#3): `proto/whatsmeow/v1` imports only `google/protobuf/timestamp.proto`, the upstream `waE2E/WAWebProtobufsE2E.proto` and its own files, and no message or field names a Signal key, session, pre-key or ratchet [observed: grep of the imports and names].
+  - libsignal ships protos of its own (`serialize/WhisperTextProtocol.proto`, `LocalStorageProtocol.proto`, `FingerprintProtocol.proto`) [observed: the vendored module], but the buf workspace holds only `proto` and `third_party/whatsmeow` [observed: `buf.yaml`], so the contract cannot import them [inferred].
 - Files generated from `third_party/whatsmeow` protos are MPL-2.0 [inferred: MPL §1.10(b) makes "any new file in Source Code Form that contains any Covered Software" a Modification, and each generated file embeds its whole proto descriptor (observed in `Generated/*.cs`)].
 - The protos carry no Exhibit A header; the module's `LICENSE`, copied to `third_party/whatsmeow/LICENSE`, is the location Exhibit A allows [observed: zero protos with a header; MPL Exhibit A].
 - The repository's own licence is MPL-2.0 (option A, chosen by the owner on 2026-10-31), in the root `LICENSE`, the mozilla.org text verbatim:
@@ -106,7 +108,7 @@ What the sources say:
 
 ## Consequences
 
-- Phase 4 obligations, before the first public release:
+- Phase 4 obligations, before the first public release; [ADR 0029](0029-gpl-release-obligations.md) builds and checks each of them (#47):
   - Every GitHub release attaches `whatsmeow-net_<version>_source.tar.gz`: the whole tagged repository plus the output of `go mod vendor` for `sidecar/`.
   - The audit's vendored tree was 30 MB gzipped [observed].
   - Releases are never deleted while their packages are on nuget.org.
