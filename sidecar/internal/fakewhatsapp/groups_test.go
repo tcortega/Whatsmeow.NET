@@ -298,21 +298,17 @@ func TestTheMemberAddModeDecidesWhoAddsAndEveryMemberIsNotified(t *testing.T) {
 		return err
 	}
 
-	// No mode answered after a create, and only admins add [inferred].
-	if info, err := member.GetGroupInfo(ctx, created.JID); err != nil || info.MemberAddMode != "" {
+	// The mode the create asked for: whatsmeow asks for all_member_add unless told otherwise (group.go:59-63).
+	if info, err := member.GetGroupInfo(ctx, created.JID); err != nil || info.MemberAddMode != types.GroupMemberAddModeAllMember {
 		t.Fatalf("the member reads %+v, %v", info, err)
 	}
 
-	if err := add(member, "5511900000002@s.whatsapp.net"); !errors.Is(err, whatsmeow.ErrIQForbidden) {
-		t.Fatalf("a member's add with no mode = %v, want 403", err)
-	}
-
 	// Only an admin sets it [inferred: 403].
-	if err := member.SetGroupMemberAddMode(ctx, created.JID, types.GroupMemberAddModeAllMember); !errors.Is(err, whatsmeow.ErrIQForbidden) {
+	if err := member.SetGroupMemberAddMode(ctx, created.JID, types.GroupMemberAddModeAdmin); !errors.Is(err, whatsmeow.ErrIQForbidden) {
 		t.Fatalf("a member's SetGroupMemberAddMode = %v, want 403", err)
 	}
 
-	for _, mode := range []types.GroupMemberAddMode{types.GroupMemberAddModeAllMember, types.GroupMemberAddModeAdmin} {
+	for _, mode := range []types.GroupMemberAddMode{types.GroupMemberAddModeAdmin, types.GroupMemberAddModeAllMember} {
 		if err := owner.SetGroupMemberAddMode(ctx, created.JID, mode); err != nil {
 			t.Fatalf("SetGroupMemberAddMode(%s): %v", mode, err)
 		}
@@ -330,18 +326,31 @@ func TestTheMemberAddModeDecidesWhoAddsAndEveryMemberIsNotified(t *testing.T) {
 			t.Fatalf("the member reads %+v, %v; want %s", info, err, mode)
 		}
 
-		if mode == types.GroupMemberAddModeAllMember {
-			if err := add(member, "5511900000002@s.whatsapp.net"); err != nil {
-				t.Fatalf("a member's add with every member adding: %v", err)
+		if mode == types.GroupMemberAddModeAdmin {
+			if err := add(member, "5511900000004@s.whatsapp.net"); !errors.Is(err, whatsmeow.ErrIQForbidden) {
+				t.Fatalf("a member's add with only admins adding = %v, want 403", err)
 			}
-
-			_ = next[*events.GroupInfo](t, ownerGot)
-			_ = next[*events.GroupInfo](t, memberGot)
 		}
 	}
 
-	if err := add(member, "5511900000004@s.whatsapp.net"); !errors.Is(err, whatsmeow.ErrIQForbidden) {
-		t.Fatalf("a member's add with only admins adding = %v, want 403", err)
+	if err := add(member, "5511900000002@s.whatsapp.net"); err != nil {
+		t.Fatalf("a member's add with every member adding: %v", err)
+	}
+
+	// A group no create made has no mode until one is set, and only admins add.
+	if _, err := control.AddGroup(ctx, &fakev1.AddGroupRequest{
+		Jid: "120363000000000009@g.us", Name: "Old", Members: []*fakev1.AddGroupRequest_Member{{Jid: "1555@s.whatsapp.net", Type: "superadmin"}, {Jid: "1666@s.whatsapp.net"}},
+	}); err != nil {
+		t.Fatalf("AddGroup: %v", err)
+	}
+
+	old := parse(t, "120363000000000009@g.us")
+	if info, err := member.GetGroupInfo(ctx, old); err != nil || info.MemberAddMode != "" {
+		t.Fatalf("the member reads %+v, %v", info, err)
+	}
+
+	if _, err := member.UpdateGroupParticipants(ctx, old, []types.JID{parse(t, "5511900000005@s.whatsapp.net")}, whatsmeow.ParticipantChangeAdd); !errors.Is(err, whatsmeow.ErrIQForbidden) {
+		t.Fatalf("a member's add with no mode = %v, want 403", err)
 	}
 
 	// As whatsmeow refuses it before asking (group.go:1086-1088).

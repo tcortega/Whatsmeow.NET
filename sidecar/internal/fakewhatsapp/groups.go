@@ -35,8 +35,8 @@ type group struct {
 	members               []member
 	// code is the current invite code; empty until the first request for the link.
 	code string
-	// addMode is who can add participants: none answered until it is set, and then only admins add unless it is
-	// all_member_add [inferred].
+	// addMode is who can add participants: the mode a create asked for, none for a group AddGroup put there until one
+	// is set; only admins add unless it is all_member_add [inferred].
 	addMode types.GroupMemberAddMode
 	// timer is the disappearing messages timer in seconds; zero is off.
 	timer uint32
@@ -291,7 +291,8 @@ func (c *Client) GetGroupInfo(_ context.Context, jid types.JID) (*types.GroupInf
 }
 
 // CreateGroup creates a group with the session as its super admin and adds each participant WhatsApp does not refuse;
-// the answer lists a refused one with its error [inferred]. Each added session gets a create notification; the
+// the answer lists a refused one with its error [inferred]. The group has the member add mode the create asked for,
+// all_member_add unless told otherwise, as whatsmeow asks (group.go:59-63); what WhatsApp answers is [unknown]. Each added session gets a create notification; the
 // creator gets none [inferred].
 func (c *Client) CreateGroup(_ context.Context, req whatsmeow.ReqCreateGroup) (*types.GroupInfo, error) {
 	if err := c.groupQuery(); err != nil {
@@ -305,7 +306,7 @@ func (c *Client) CreateGroup(_ context.Context, req whatsmeow.ReqCreateGroup) (*
 	self := c.self()
 	g := &group{
 		jid: types.NewJID(fmt.Sprintf("1203639%011d", w.serial), types.GroupServer), name: req.Name, owner: self, created: now(),
-		members: []member{{id: self, super: true}},
+		members: []member{{id: self, super: true}}, addMode: cmp.Or(req.MemberAddMode, types.GroupMemberAddModeAllMember),
 	}
 	w.groups[g.jid] = g
 
