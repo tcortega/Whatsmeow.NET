@@ -608,7 +608,8 @@ How to write each test, what is banned, and the can-it-fail check: [guidelines/t
   Each native package carries `COPYING`, `NOTICE`, `THIRD-PARTY-NOTICES.txt` and a README; `NOTICE` and the README say where the source is.
   `PackageLicenseExpression` is `GPL-3.0-only` on the native packages and `MPL-2.0` on the .NET packages.
 - `sidecar/licenses.allow` lists every licence file of every module linked into `whatsmeow-net`, and of the Go standard library, with its sha256 and a reviewed licence.
-  `build/ci.sh go` fails when the linked graph or a licence file differs from it (`tools/check-licenses`), so a bump that adds a module waits for a reviewer to read its licence, and when `sidecar/THIRD-PARTY-NOTICES.txt` is not what `go -C tools run ./check-licenses -write` generates from it.
+  `build/ci.sh go` fails when the linked graph or a licence file differs from it (`tools/check-licenses`), so a bump that adds a module waits for a reviewer to read its licence.
+  It also fails when `sidecar/THIRD-PARTY-NOTICES.txt` is not what `go -C tools run ./check-licenses -write` generates from the allowlist.
 
 ---
 

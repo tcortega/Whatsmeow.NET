@@ -3,6 +3,7 @@
 - Status: Accepted (owner, 2026-10-31)
 - Date: 2026-10-31
 - Evidence: [ARCHITECTURE §14](../ARCHITECTURE.md#licence-audit-2026-10-31) question 9, issue #12
+- Amended by: [ADR 0023](0023-native-packages-build-pin-and-find.md) (`.goreleaser.yaml`), [ADR 0029](0029-gpl-release-obligations.md) (the Phase 4 obligations, built)
 
 ## Context
 
