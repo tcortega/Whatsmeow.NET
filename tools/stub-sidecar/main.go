@@ -16,6 +16,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -37,6 +38,12 @@ func run() error {
 	exe, err := os.Executable()
 	if err != nil {
 		return fmt.Errorf("find the binary: %w", err)
+	}
+
+	// The arguments first, so a test that sees the pid file can read them too.
+	err = os.WriteFile(filepath.Join(filepath.Dir(exe), "args"), []byte(strings.Join(os.Args[1:], "\n")), 0o600) //nolint:gosec // G703: the path is fixed, next to this binary; only the content comes from the arguments
+	if err != nil {
+		return fmt.Errorf("write the args file: %w", err)
 	}
 
 	err = os.WriteFile(filepath.Join(filepath.Dir(exe), "pid"), []byte(strconv.Itoa(os.Getpid())), 0o600)

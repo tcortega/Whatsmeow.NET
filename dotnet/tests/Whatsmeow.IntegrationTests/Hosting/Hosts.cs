@@ -13,9 +13,9 @@ namespace Whatsmeow.IntegrationTests.Hosting;
 /// <summary>The generic hosts the Hosting tests build: no defaults, the Whatsmeow section from the test, the test's logs.</summary>
 internal static class Hosts
 {
-	public static HostApplicationBuilder Builder(LogCapture logs, Dictionary<string, string?> settings)
+	public static HostApplicationBuilder Builder(LogCapture logs, Dictionary<string, string?> settings, string? contentRoot = null)
 	{
-		var builder = Host.CreateEmptyApplicationBuilder(settings: null);
+		var builder = Host.CreateEmptyApplicationBuilder(new HostApplicationBuilderSettings { ContentRootPath = contentRoot });
 		_ = builder.Configuration.AddInMemoryCollection(settings);
 		_ = builder.Services.AddSingleton(logs.Factory);
 		_ = builder.Services.AddSingleton<Handled>();
@@ -86,6 +86,69 @@ internal sealed class SessionHandler(Handled handled) : IWhatsAppEventHandler<Me
 		handled.Add("only", e, client);
 		return ValueTask.CompletedTask;
 	}
+}
+
+/// <summary>A handler of every event, as handler <c>any</c>; the tests register it for messages only.</summary>
+internal sealed class AnyEventHandler(Handled handled) : IWhatsAppEventHandler<WhatsAppEvent>
+{
+	public ValueTask HandleAsync(WhatsAppEvent e, IWhatsAppClient client, CancellationToken cancellationToken)
+	{
+		handled.Add("any", e as MessageReceived ?? throw new InvalidOperationException($"{e.GetType().Name} reached a handler registered for messages"), client);
+		return ValueTask.CompletedTask;
+	}
+}
+
+/// <summary>Holds message M1 until its token is cancelled, as handler <c>holding</c>.</summary>
+internal sealed class HoldingHandler(Handled handled) : IWhatsAppEventHandler<MessageReceived>
+{
+	public async ValueTask HandleAsync(MessageReceived e, IWhatsAppClient client, CancellationToken cancellationToken)
+	{
+		handled.Add("holding", e, client);
+		if (e.Id == MessageId.From("M1"))
+			await new TaskCompletionSource().Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+	}
+}
+
+/// <summary>What <see cref="StuckHandler"/> waits on, ignoring its token; the test opens it when it is done.</summary>
+internal sealed class Gate
+{
+	public TaskCompletionSource Open { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+}
+
+/// <summary>Holds message M1 until the test opens the <see cref="Gate"/>, ignoring its token, as handler <c>stuck</c>.</summary>
+internal sealed class StuckHandler(Handled handled, Gate gate) : IWhatsAppEventHandler<MessageReceived>
+{
+	public async ValueTask HandleAsync(MessageReceived e, IWhatsAppClient client, CancellationToken cancellationToken)
+	{
+		handled.Add("stuck", e, client);
+		if (e.Id == MessageId.From("M1"))
+			await gate.Open.Task.ConfigureAwait(false);
+	}
+}
+
+/// <summary>An application service, registered after AddWhatsmeow, whose start fails; it records the state of <c>hosting-later</c> first.</summary>
+internal sealed class FailingStart([FromKeyedServices("hosting-later")] IWhatsAppClient client, Observed observed) : IHostedService
+{
+	public static InvalidOperationException Failure { get; } = new("a later hosted service failed to start");
+
+	public async Task StartAsync(CancellationToken cancellationToken)
+	{
+		observed.Start.SetResult((client, await SessionSetup.StateAsync(client, cancellationToken).ConfigureAwait(false)));
+		throw Failure;
+	}
+
+	public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+}
+
+/// <summary>An application service, registered after AddWhatsmeow, that makes the fake WhatsApp refuse the next connect of <c>hosting-failfast</c>.</summary>
+internal sealed class RefuseNextConnect(WhatsmeowSidecar sidecar) : IHostedService
+{
+	public async Task StartAsync(CancellationToken cancellationToken) =>
+		_ = await new FakeWhatsAppService.FakeWhatsAppServiceClient(sidecar.CallInvoker)
+			.FailNextConnectAsync(new FailNextConnectRequest { SessionId = "hosting-failfast" }, cancellationToken: cancellationToken)
+			.ConfigureAwait(false);
+
+	public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }
 
 /// <summary>Throws <see cref="Failure"/> for message M1.</summary>

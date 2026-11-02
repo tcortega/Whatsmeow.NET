@@ -48,7 +48,7 @@ internal static class WhatsmeowSidecarOptionsSetup
 
 		// Hand-written: [Range(typeof(TimeSpan), ...)] is trim-unsafe (IL2026), so no rule here fits the generator.
 		if (options.StartupTimeout <= TimeSpan.Zero || options.StartupTimeout > MaxStartupTimeout)
-			failures.Add($"{nameof(WhatsmeowSidecarOptions.StartupTimeout)} must be more than zero and at most {MaxStartupTimeout}.");
+			failures.Add($"{nameof(WhatsmeowSidecarOptions.StartupTimeout)} {options.StartupTimeout} must be more than zero and at most {MaxStartupTimeout}.");
 
 		if (options.SidecarPath is { } path && string.IsNullOrWhiteSpace(path))
 			failures.Add($"{nameof(WhatsmeowSidecarOptions.SidecarPath)} must not be empty or white space.");

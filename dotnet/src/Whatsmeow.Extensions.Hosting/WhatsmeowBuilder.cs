@@ -6,27 +6,29 @@ namespace Whatsmeow.Extensions.Hosting;
 /// <summary>Declares the sessions of the sidecar <see cref="WhatsmeowServiceCollectionExtensions.AddWhatsmeow"/> added, and registers handlers for their events.</summary>
 public sealed class WhatsmeowBuilder
 {
-	private readonly IServiceCollection _services;
+	internal WhatsmeowBuilder(IServiceCollection services) => Services = services;
 
-	internal WhatsmeowBuilder(IServiceCollection services) => _services = services;
+	/// <summary>The service collection <see cref="WhatsmeowServiceCollectionExtensions.AddWhatsmeow"/> was called on, for extensions of this builder.</summary>
+	public IServiceCollection Services { get; }
 
 	/// <summary>
 	/// Declares the session <paramref name="sessionKey"/>, resolved as <c>[FromKeyedServices("key")] IWhatsAppClient</c>,
-	/// also before the host started. When the host starts, the session is created if it does not exist, and connected if
-	/// it is paired and <see cref="Sessions.SessionState.Disconnected"/>, before any other hosted service starts; a
-	/// session that is not paired waits for the application to pair it, and one in a stopping state keeps it. A connect
-	/// that fails makes the host's start fail. Declaring a session again does nothing.
+	/// also before the host started. When the host starts, the session is created if it does not exist, before any
+	/// hosted service's <c>StartAsync</c>; once they all started, it is connected if it is paired and
+	/// <see cref="Sessions.SessionState.Disconnected"/>. A session that is not paired waits for the application to pair
+	/// it, and one in a stopping state keeps it. A connect that fails makes the host's start fail. A declared session
+	/// cannot be deleted while the host runs. Declaring a session again does nothing.
 	/// </summary>
 	/// <param name="sessionKey">The session's id, which is also its service key.</param>
 	/// <exception cref="WhatsmeowValidationException"><paramref name="sessionKey"/> is not a session id.</exception>
 	public WhatsmeowBuilder AddSession(string sessionKey)
 	{
 		var id = SessionId.From(sessionKey);
-		if (_services.Any(descriptor => !descriptor.IsKeyedService && descriptor.ImplementationInstance is DeclaredSession declared && declared.Id == id))
+		if (Services.Any(descriptor => !descriptor.IsKeyedService && descriptor.ImplementationInstance is DeclaredSession declared && declared.Id == id))
 			return this;
 
-		_ = _services.AddSingleton(new DeclaredSession(id));
-		_services.TryAddKeyedSingleton<IWhatsAppClient>(
+		_ = Services.AddSingleton(new DeclaredSession(id));
+		Services.TryAddKeyedSingleton<IWhatsAppClient>(
 			sessionKey,
 			static (services, key) => services.GetRequiredService<WhatsmeowSidecar>().Sessions.Client(SessionId.From((string)key!))
 		);
@@ -36,13 +38,17 @@ public sealed class WhatsmeowBuilder
 	/// <summary>
 	/// Registers <typeparamref name="THandler"/>, a scoped service, for the <typeparamref name="TEvent"/> events of every
 	/// session: the declared ones and the ones created at runtime through <see cref="WhatsmeowSidecar.Sessions"/>.
+	/// Registering the same handler for the same events again adds nothing.
 	/// </summary>
 	public WhatsmeowBuilder AddHandler<TEvent, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>()
 		where TEvent : WhatsAppEvent
 		where THandler : class, IWhatsAppEventHandler<TEvent> =>
 		Register<TEvent, THandler>(session: null);
 
-	/// <summary>Registers <typeparamref name="THandler"/>, a scoped service, for the <typeparamref name="TEvent"/> events of the session <paramref name="sessionKey"/> only.</summary>
+	/// <summary>
+	/// Registers <typeparamref name="THandler"/>, a scoped service, for the <typeparamref name="TEvent"/> events of the
+	/// session <paramref name="sessionKey"/> only. Registering the same handler for the same events and session again adds nothing.
+	/// </summary>
 	/// <exception cref="WhatsmeowValidationException"><paramref name="sessionKey"/> is not a session id.</exception>
 	public WhatsmeowBuilder AddHandler<TEvent, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(string sessionKey)
 		where TEvent : WhatsAppEvent
@@ -52,7 +58,7 @@ public sealed class WhatsmeowBuilder
 	/// <summary>Starts the sidecar with <c>--fake-whatsapp</c>, for the integration tests (ADR 0019); a release build refuses it.</summary>
 	internal WhatsmeowBuilder UseFakeWhatsApp()
 	{
-		_services.TryAddSingleton<FakeWhatsAppMode>();
+		Services.TryAddSingleton<FakeWhatsAppMode>();
 		return this;
 	}
 
@@ -60,9 +66,17 @@ public sealed class WhatsmeowBuilder
 		where TEvent : WhatsAppEvent
 		where THandler : class, IWhatsAppEventHandler<TEvent>
 	{
-		_services.TryAddScoped<THandler>();
-		_ = _services.AddSingleton(
-			new HandlerRegistration(session, static (client, services) => client.On<TEvent>((e, ct) => HandleAsync<TEvent, THandler>(services, client, e, ct)))
+		if (Services.Any(descriptor => !descriptor.IsKeyedService && descriptor.ImplementationInstance is HandlerRegistration registered && registered.Is(typeof(TEvent), typeof(THandler), session)))
+			return this;
+
+		Services.TryAddScoped<THandler>();
+		_ = Services.AddSingleton(
+			new HandlerRegistration(
+				typeof(TEvent),
+				typeof(THandler),
+				session,
+				static (client, services) => client.On<TEvent>((e, ct) => HandleAsync<TEvent, THandler>(services, client, e, ct))
+			)
 		);
 		return this;
 	}

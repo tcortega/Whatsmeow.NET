@@ -2,7 +2,6 @@
 
 Read this when adding or changing configuration in `Whatsmeow.Client` or `Whatsmeow.Extensions.Hosting`.
 This is the house ASP.NET Core options guide adapted to a library that works both with DI and without it (ARCHITECTURE §8.2).
-Type names below are indicative until the code exists.
 
 Use the options pattern.
 Do not walk the tree, deserialize a file, overlay env vars by hand, and `AddSingleton` the result.
@@ -10,10 +9,11 @@ Do not walk the tree, deserialize a file, overlay env vars by hand, and `AddSing
 ## Two entry points, one validator
 
 - Without DI: `WhatsmeowSidecar.StartAsync(options, ct)` takes a `WhatsmeowSidecarOptions` instance.
-- With DI: `services.AddWhatsmeow(...)` (namespace `Whatsmeow.Extensions.Hosting`) binds the same type from `IConfiguration`.
+- With DI: `services.AddWhatsmeow()` (namespace `Whatsmeow.Extensions.Hosting`) binds the same type from `IConfiguration`.
 
-Both paths run the same setup step and the same generated validator before the sidecar starts.
+Both paths run the same setup step and the same rules (`WhatsmeowSidecarOptionsSetup.Failures`) before the sidecar starts.
 A bad option fails at start on both paths, never on the first send.
+One difference is deliberate: on the DI path a relative `DatabasePath` or `MediaRoot`, and the default database file, are in the host's content root, not the current directory, which for a Windows service is `System32` (ADR 0034).
 
 ## Bind
 
@@ -24,9 +24,13 @@ Do not read `Environment.GetEnvironmentVariable` at a call site.
 ```csharp
 services.AddOptions<WhatsmeowSidecarOptions>()
 	.BindConfiguration("Whatsmeow")
-	.PostConfigure(WhatsmeowSidecarOptionsSetup.Apply)
+	.PostConfigure<IHostEnvironment>((options, environment) =>
+	{
+		InContentRoot(options, environment.ContentRootPath);
+		WhatsmeowSidecarOptionsSetup.Apply(options);
+	})
 	.ValidateOnStart();
-services.AddSingleton<IValidateOptions<WhatsmeowSidecarOptions>, WhatsmeowSidecarOptionsValidator>();
+services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<WhatsmeowSidecarOptions>, WhatsmeowSidecarOptionsValidator>());
 ```
 
 `BindConfiguration` is the bind.
@@ -35,6 +39,7 @@ A library does not get that generator from `IsAotCompatible`: set `<EnableConfig
 Path resolve, computed defaults (`DatabasePath` defaults to `whatsmeow-net.db` and becomes a full path against the current directory), and the `WHATSMEOW_NET_SIDECAR_PATH` override belong in the one setup step (`WhatsmeowSidecarOptionsSetup.Apply`), not in a private `Load` and not in the binary locator.
 The no-DI path calls the same `Apply`.
 That is the only place the environment variable is read.
+The DI path puts relative paths in the content root first (`InContentRoot`, in `Whatsmeow.Extensions.Hosting`); `Apply` then makes them full paths, which they already are.
 
 ### Time options are `TimeSpan`
 
@@ -45,18 +50,19 @@ Do not invent a custom time type for options: the spike showed that a type the b
 ## Fail at start
 
 `ValidateOnStart` throws `OptionsValidationException` at host start, not on the first request.
-The validator is generated: `[OptionsValidator]` on a `partial class` implementing `IValidateOptions<T>`.
+A value the binder cannot convert, such as a `Transport` that is no name or number, fails before any rule, with the binder's `InvalidOperationException` (ADR 0034).
+A validator that an attribute can express is generated: `[OptionsValidator]` on a `partial class` implementing `IValidateOptions<T>`.
 `ValidateDataAnnotations()` reflects, so it is banned (see [csharp.md](csharp.md) Reflection).
 
 ```csharp
 [OptionsValidator]
-public sealed partial class WhatsmeowSidecarOptionsValidator : IValidateOptions<WhatsmeowSidecarOptions>;
+public sealed partial class SomeOptionsValidator : IValidateOptions<SomeOptions>;
 ```
 
 `[Range]` and `[Required]` on the options type feed the generator, which is fine for a small closed set.
 `[Range(typeof(TimeSpan), ...)]` is not: its constructor is trim-unsafe, and it fails a library build with IL2026 [observed: #4, SDK 10.0.403], so a `TimeSpan` bound is a hand-written rule.
 Today every rule on `WhatsmeowSidecarOptions` is hand-written (`WhatsmeowSidecarOptionsSetup.Failures`): the no-DI path throws them through `WhatsmeowSidecarOptionsSetup.Validate`, and the DI path runs them as `WhatsmeowSidecarOptionsValidator`, an `IValidateOptions<T>` (ADR 0034).
-There is no generated validator yet; add one with the first rule an attribute can express.
+None fits the generator yet, so there is no generated validator; add one with the first rule an attribute can express.
 When a rule needs the environment, a file check, or more than one failure string, hand-write the extra `IValidateOptions<T>` next to it.
 
 ## Call sites

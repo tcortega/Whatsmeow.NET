@@ -30,4 +30,11 @@ public static class Processes
 
 	/// <summary>Whether a stub sidecar was ever started.</summary>
 	public static bool StubStarted(string stub) => File.Exists(Path.Combine(Path.GetDirectoryName(stub)!, "pid"));
+
+	/// <summary>The value the stub was started with after <paramref name="flag"/>; it writes its arguments before its pid.</summary>
+	public static string StubArgument(string stub, string flag)
+	{
+		var args = File.ReadAllLines(Path.Combine(Path.GetDirectoryName(stub)!, "args"));
+		return args[Array.IndexOf(args, flag) + 1];
+	}
 }

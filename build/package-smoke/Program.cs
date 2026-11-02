@@ -1,6 +1,6 @@
-// The consumer that build/ci.sh install builds from the local feed: a new console app whose only change is
-// `dotnet add package Whatsmeow.Client` (ADR 0023). It never names a sidecar path, so the client must find the
-// packaged binary itself.
+// The consumer that build/ci.sh install builds from the local feed: a new console app whose only changes are
+// `dotnet add package Whatsmeow.Client` and `Whatsmeow.Extensions.Hosting` (ADR 0023, ADR 0034). It never names a
+// sidecar path, so the client must find the packaged binary itself.
 //   start <version>  starts the sidecar with default options, calls GetInfo, and exits 0 only if it reports <version>.
 //   missing <rid>    expects the start to fail because no binary ships for <rid>, naming both bundled paths.
 using Whatsmeow;

@@ -125,7 +125,10 @@ internal sealed class SessionEvents : IAsyncDisposable
 	}
 
 	/// <summary>Stops reading, lets the dispatcher stop its handlers, and acks what they finished (ARCHITECTURE §8.4).</summary>
-	public async ValueTask DisposeAsync()
+	public ValueTask DisposeAsync() => new(StopAsync(CancellationToken.None));
+
+	/// <summary><see cref="DisposeAsync"/>; once <paramref name="stopWaiting"/> is cancelled, it no longer waits for handlers that ignore their cancellation (ADR 0034).</summary>
+	public async Task StopAsync(CancellationToken stopWaiting)
 	{
 		if (Interlocked.Exchange(ref _disposed, 1) != 0)
 			return;
@@ -138,6 +141,10 @@ internal sealed class SessionEvents : IAsyncDisposable
 		}
 		finally
 		{
+			await _dispatcher.StopAsync(stopWaiting).ConfigureAwait(false);
+			await _ephemeralDispatcher.StopAsync(stopWaiting).ConfigureAwait(false);
+
+			// Already stopped, so these return at once; they keep the dispose visible to the analyzers.
 			await _dispatcher.DisposeAsync().ConfigureAwait(false);
 			await _ephemeralDispatcher.DisposeAsync().ConfigureAwait(false);
 		}

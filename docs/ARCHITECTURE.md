@@ -392,7 +392,7 @@ Moved to [guidelines/go.md](guidelines/go.md): `context.Context` first, `%w` err
 | `Whatsmeow.Client` | public API, supervisor, transport, dispatcher, mapping | stable |
 | `Whatsmeow.Protocol` | generated `whatsmeow.v1` messages and client stubs | internal use; no stability promise |
 | `Whatsmeow.Protocol.WhatsApp` | generated upstream WhatsApp protos (`Whatsmeow.Proto.*`) | **unstable**: changes with every whatsmeow bump |
-| `Whatsmeow.Extensions.Hosting` | `AddWhatsmeow(...)`, options validation, keyed sessions, hosted supervisor | stable |
+| `Whatsmeow.Extensions.Hosting` | `AddWhatsmeow()`, options validation, keyed sessions, DI handlers, hosted sidecar | stable |
 | `Whatsmeow.Testing` | `FakeWhatsAppClient`, `Raise(event)` | stable |
 | `Whatsmeow.Sidecar.Native.{Linux,MacOS,Windows}` | `whatsmeow-net` binaries under `runtimes/{rid}/native/` | pinned to the exact `Whatsmeow.Client` version |
 
@@ -416,7 +416,7 @@ SendResult result = await client.SendTextAsync(chat, "hello", cancellationToken:
 - `WhatsmeowSidecar` owns the process and the single shared `GrpcChannel`. Clients are lightweight views over it.
 - `IWhatsAppClient` is the one deliberate exception to the house rule "no interface just to mock it": `Whatsmeow.Testing` ships `FakeWhatsAppClient` to consumers. Library internals get no interfaces for testability.
 - Core behavior lives on real members. C# 14 extension blocks are used only for convenience (`jid.IsGroup`), never for logic that must be mockable.
-- Works without DI (`WhatsmeowSidecar.StartAsync`) and with DI (`services.AddWhatsmeow(...)` in namespace `Whatsmeow.Extensions.Hosting`, **not** `Microsoft.Extensions.DependencyInjection`).
+- Works without DI (`WhatsmeowSidecar.StartAsync`) and with DI (`services.AddWhatsmeow()` in namespace `Whatsmeow.Extensions.Hosting`, **not** `Microsoft.Extensions.DependencyInjection`).
   With DI, `AddWhatsmeow()` binds `WhatsmeowSidecarOptions` from the `Whatsmeow` section through the same setup step and rules, registers the `WhatsmeowSidecar` singleton, and returns a builder: `AddSession("key")` declares a session resolved as `[FromKeyedServices("key")] IWhatsAppClient`, and `AddHandler<TEvent, THandler>()` registers a DI handler for every session, or with a key for one ([ADR 0034](adr/0034-hosting-package.md)).
 
 ### 8.3 Modeling rules
@@ -467,7 +467,7 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
   - Embedded mode requires `sidecar.version == client.version`.
   - Every mode requires `sidecar.protocol` to be within `[MinProtocol, MaxProtocol]`.
   - A mismatch is a hard `SidecarVersionMismatchException`.
-- **Hosted** (`Whatsmeow.Extensions.Hosting`): one `IHostedLifecycleService` starts the sidecar in `StartingAsync`, before any hosted service's `StartAsync`, creates the declared sessions and connects the ones that come back `Disconnected`; a failure, a connect included, fails the host's start and leaves no sidecar. It stops it in `StoppedAsync`, after every hosted service stopped, with the stop above; the host waits for it beyond its shutdown timeout [observed: ADR 0034], so the kill always runs. Crashes in between are the supervisor's ([ADR 0034](adr/0034-hosting-package.md)).
+- **Hosted** (`Whatsmeow.Extensions.Hosting`): one `IHostedLifecycleService` starts the sidecar and creates the declared sessions in `StartingAsync`, before any hosted service's `StartAsync`, and connects the ones that come back `Disconnected` in `StartedAsync`, once every `StartAsync` succeeded; a failure, a connect included, fails the host's start and leaves no sidecar. It stops it in `StoppedAsync`, after every hosted service stopped, with the stop above; once the host's shutdown timeout passes it no longer waits for handlers that ignore their token, whose events come again, and the process stop is never cut short: the host waits for it [observed: ADR 0034], so the kill always runs. Crashes in between are the supervisor's ([ADR 0034](adr/0034-hosting-package.md)).
 - After a sidecar restart, the client calls `Connect` again for the sessions the application had connected that come back `Disconnected` (it reads `ListSessions`; a stopped session keeps its state, §7.4), a `WatchStateAsync` reopens with the restarted sidecar's current state first, and the event reader reopens `StreamEvents` with `after_seq` = the highest `seq` it received in this process (0 in a new process, so the server-side cursor decides). Users see a `SidecarRestarted` diagnostic event, not a gap.
 
 ### 8.6 Transport
@@ -899,7 +899,7 @@ Phase 0 decisions:
 - [0030](adr/0030-groups-participants-settings-invites-and-group-events.md): Groups: group events gated, at least once and unkeyed, a result per participant and no throw for some, `INVITE_LINK_INVALID` on the base exception, `WhatsAppErrorException` with WhatsApp's code for every slice, group JIDs as personal data, the fake's members notified of every change (#34)
 - [0031](adr/0031-chat-state-and-app-state-recovery.md): Chat state: one `SetChatState` RPC over whatsmeow's builders, `NOT_CONNECTED` before the app state key, a rejected write recovered by a full sync and sent once more, a failed sync recovered by one worker per online session that the handler only wakes, every full sync on the slice's own context with a 2-minute bound, one at a time per collection with an hour's cooldown after a failed one, `EmitAppStateEventsOnFullSync`, chat state events unkeyed and best effort, `WHATSAPP_ERROR` 409 (`WhatsAppErrorException.Code`), invariant 1 names the wake (#38)
 - [0033](adr/0033-media-messages.md): Media messages: one `SendMedia` of a `MediaRef` and the caller's metadata through the send queue, mautrix's message shapes with the streaming sidecar, the type checked against the kind, received media mapped in .NET with `IsViewOnce`, unavailable view-once marked on the undecryptable event (#29)
-- [0034](adr/0034-hosting-package.md): Hosting: the sidecar created unstarted so keyed clients exist before the host starts, started in `StartingAsync` and stopped in `StoppedAsync`, the event's client passed to `HandleAsync`, DI handlers on runtime sessions too, a failed connect fails the start, sessions declared in code, the package pinned exactly to `Whatsmeow.Client` (#39)
+- [0034](adr/0034-hosting-package.md): Hosting: the sidecar created unstarted so keyed clients exist before the host starts, started in `StartingAsync`, its paired sessions connected in `StartedAsync`, stopped in `StoppedAsync` without waiting past the shutdown timeout for handlers that ignore their token, the event's client passed to a contravariant `HandleAsync`, DI handlers on runtime sessions too, relative paths in the content root, a failed connect fails the start, declared sessions in code and not deletable, the package pinned exactly to `Whatsmeow.Client` (#39)
 
 House-rule alignment (applied, or opted out of with a measured reason):
 

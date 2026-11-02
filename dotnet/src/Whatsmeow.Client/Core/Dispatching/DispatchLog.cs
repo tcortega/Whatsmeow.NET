@@ -20,4 +20,7 @@ internal static partial class DispatchLog
 		"The handlers of event {Seq} have not finished for {After}, and {Waiting} events wait behind it to be acked; they come again in the next process if this one stops first"
 	)]
 	public static partial void WatermarkStuck(ILogger logger, ulong seq, int waiting, TimeSpan after);
+
+	[LoggerMessage(25, LogLevel.Warning, "Stopped waiting for event handlers that ignore their cancellation; the events they hold were not acked and come again")]
+	public static partial void HandlersAbandoned(ILogger logger);
 }

@@ -12,13 +12,15 @@ namespace Whatsmeow.Extensions.Hosting;
 /// handler must be idempotent: after a crash of either process an event can come again, with the same
 /// <see cref="WhatsAppEvent.SessionId"/> and message id, which together are the dedupe key.
 /// </summary>
-/// <typeparam name="TEvent">The events it handles; <see cref="WhatsAppEvent"/> for every event.</typeparam>
+/// <typeparam name="TEvent">
+/// The events it handles. Contravariant: a handler of <see cref="WhatsAppEvent"/> can be registered for any event type.
+/// </typeparam>
 [SuppressMessage(
 	"Naming",
 	"CA1711:Identifiers should not have incorrect suffix",
 	Justification = "The name ARCHITECTURE §8.4 and #39 give the DI handler; it handles WhatsApp events and is no .NET event delegate."
 )]
-public interface IWhatsAppEventHandler<TEvent>
+public interface IWhatsAppEventHandler<in TEvent>
 	where TEvent : WhatsAppEvent
 {
 	/// <summary>Handles <paramref name="e"/>, an event of the session of <paramref name="client"/>.</summary>

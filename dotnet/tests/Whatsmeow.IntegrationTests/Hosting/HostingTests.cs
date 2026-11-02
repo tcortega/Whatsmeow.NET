@@ -7,7 +7,6 @@ using Microsoft.Extensions.Time.Testing;
 using Whatsmeow.Events;
 using Whatsmeow.Extensions.Hosting;
 using Whatsmeow.IntegrationTests.Events;
-using Whatsmeow.IntegrationTests.Fake;
 using Whatsmeow.IntegrationTests.Support;
 using Whatsmeow.Sessions;
 
@@ -92,13 +91,15 @@ public sealed class HostingTests(FakeSidecar fixture, SidecarBinaries binaries)
 	}
 
 	[Fact]
-	public void Options_FromConfigurationAndTheEnvironment_GetTheSetupStepOfTheNoDiPath()
+	public void Options_FromConfigurationAndTheEnvironment_GetTheSetupStepWithRelativePathsUnderTheContentRoot()
 	{
 		using var logs = new LogCapture();
-		var media = binaries.NewDirectory();
+		var contentRoot = binaries.NewDirectory();
+		var media = Directory.CreateDirectory(Path.Combine(contentRoot, "media")).FullName;
 		var builder = Hosts.Builder(
 			logs,
-			new(StringComparer.Ordinal) { ["Whatsmeow:SidecarPath"] = "configured-sidecar", ["Whatsmeow:DatabasePath"] = "hosting-options.db", ["Whatsmeow:MediaRoot"] = media + Path.DirectorySeparatorChar }
+			new(StringComparer.Ordinal) { ["Whatsmeow:SidecarPath"] = "configured-sidecar", ["Whatsmeow:DatabasePath"] = "hosting-options.db", ["Whatsmeow:MediaRoot"] = "media" + Path.DirectorySeparatorChar },
+			contentRoot
 		);
 
 		// A prefix of this test's own, so no other configuration in the process sees the variable.
@@ -111,9 +112,9 @@ public sealed class HostingTests(FakeSidecar fixture, SidecarBinaries binaries)
 			using var host = builder.Build();
 			var options = host.Services.GetRequiredService<IOptions<WhatsmeowSidecarOptions>>().Value;
 
-			// The setup step made the database a full path against the current directory and trimmed the media root.
+			// Relative paths are the content root's, not the current directory's (ADR 0034); the setup step trimmed the media root.
 			Assert.Equal(
-				("configured-sidecar", Path.Combine(Directory.GetCurrentDirectory(), "hosting-options.db"), TimeSpan.FromSeconds(45), SidecarTransport.UnixDomainSocket, media),
+				("configured-sidecar", Path.Combine(contentRoot, "hosting-options.db"), TimeSpan.FromSeconds(45), SidecarTransport.UnixDomainSocket, media),
 				(options.SidecarPath, options.DatabasePath, options.StartupTimeout, options.Transport, options.MediaRoot)
 			);
 		}
@@ -136,7 +137,7 @@ public sealed class HostingTests(FakeSidecar fixture, SidecarBinaries binaries)
 
 		var error = await Assert.ThrowsAsync<OptionsValidationException>(() => host.StartAsync(ct));
 
-		Assert.Equal(["StartupTimeout must be more than zero and at most 01:00:00."], error.Failures, StringComparer.Ordinal);
+		Assert.Equal(["StartupTimeout 00:00:00 must be more than zero and at most 01:00:00."], error.Failures, StringComparer.Ordinal);
 		// The same rules are the options' validator, for any service that reads them.
 		_ = Assert.Throws<OptionsValidationException>(() => host.Services.GetRequiredService<IOptions<WhatsmeowSidecarOptions>>().Value);
 		Assert.Empty(logs.Named("SidecarStarted"));
@@ -173,7 +174,7 @@ public sealed class HostingTests(FakeSidecar fixture, SidecarBinaries binaries)
 		var builder = Hosts.Builder(logs, Hosts.Settings(fixture.Binary, binaries.NewDatabase()));
 		_ = builder.Services.AddSingleton<Observed>();
 		_ = builder.Services.AddHostedService<KeyedConsumer>();
-		_ = builder.Services.AddWhatsmeow().UseFakeWhatsApp().AddSession("hosting-keyed");
+		_ = builder.Services.AddWhatsmeow().UseFakeWhatsApp().AddSession("hosting-keyed").AddHandler<MessageReceived, RecordingHandler>();
 		using var host = builder.Build();
 
 		await host.StartAsync(ct);
@@ -181,6 +182,12 @@ public sealed class HostingTests(FakeSidecar fixture, SidecarBinaries binaries)
 		var (client, state) = await host.Services.GetRequiredService<Observed>().Start.Task;
 		Assert.Equal((SessionId.From("hosting-keyed"), new SessionState.Created()), (client.SessionId, state));
 		Assert.Same(client, await Hosts.Sidecar(host).Sessions.GetOrCreateAsync(SessionId.From("hosting-keyed"), ct));
+
+		// The client handed out before the start is the one the handlers are on.
+		await Hosts.LinkAsync(host, "hosting-keyed", ct);
+		await client.ConnectAsync(ct);
+		await Deliveries.DeliverAsync(Hosts.Fake(host), "hosting-keyed", ct, "M1");
+		Assert.Equal(new Handling { Handler = "every", Event = Deliveries.Received("hosting-keyed", "M1"), Client = client }, await Hosts.Handled(host).NextAsync(ct));
 		await host.StopAsync(ct);
 	}
 
@@ -202,17 +209,8 @@ public sealed class HostingTests(FakeSidecar fixture, SidecarBinaries binaries)
 
 		var second = Hosts.Builder(logs, Hosts.Settings(fixture.Binary, database));
 		_ = second.Services.AddWhatsmeow().UseFakeWhatsApp().AddSession("hosting-failfast");
-		// The host resolves the keyed client once the sidecar runs, right before connecting it: the fake WhatsApp is told
-		// then to refuse that connect. Blocking, since a factory is synchronous.
-		_ = second.Services.AddKeyedSingleton<IWhatsAppClient>(
-			"hosting-failfast",
-			static (services, key) =>
-			{
-				var sidecar = services.GetRequiredService<WhatsmeowSidecar>();
-				_ = new FakeWhatsAppService.FakeWhatsAppServiceClient(sidecar.CallInvoker).FailNextConnect(new FailNextConnectRequest { SessionId = "hosting-failfast" });
-				return sidecar.Sessions.Client(SessionId.From((string)key!));
-			}
-		);
+		// Its StartAsync runs once the sidecar runs and before the declared sessions connect, in StartedAsync.
+		_ = second.Services.AddHostedService<RefuseNextConnect>();
 		using var secondHost = second.Build();
 
 		_ = await Assert.ThrowsAsync<NotConnectedException>(() => secondHost.StartAsync(ct));
@@ -367,5 +365,267 @@ public sealed class HostingTests(FakeSidecar fixture, SidecarBinaries binaries)
 			await Hosts.Sidecar(host).Sessions.ListAsync(ct)
 		);
 		await host.StopAsync(ct);
+	}
+
+	[Fact]
+	public void Options_WithoutADatabasePath_TheDefaultFileIsInTheContentRoot()
+	{
+		using var logs = new LogCapture();
+		var contentRoot = binaries.NewDirectory();
+		var builder = Hosts.Builder(logs, new(StringComparer.Ordinal), contentRoot);
+		_ = builder.Services.AddWhatsmeow();
+		using var host = builder.Build();
+
+		Assert.Equal(Path.Combine(contentRoot, "whatsmeow-net.db"), host.Services.GetRequiredService<IOptions<WhatsmeowSidecarOptions>>().Value.DatabasePath);
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Transport_FromConfiguration_ANumberNoTransportHasFailsValidation()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var settings = Hosts.Settings(fixture.Binary, binaries.NewDatabase());
+		settings["Whatsmeow:Transport"] = "7";
+		var builder = Hosts.Builder(logs, settings);
+		_ = builder.Services.AddWhatsmeow().UseFakeWhatsApp();
+		using var host = builder.Build();
+
+		var error = await Assert.ThrowsAsync<OptionsValidationException>(() => host.StartAsync(ct));
+
+		Assert.Equal(["Transport 7 is not a transport."], error.Failures, StringComparer.Ordinal);
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task UnparsableOption_TheHostStartFailsWithTheBindersInvalidOperationException()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var settings = Hosts.Settings(fixture.Binary, binaries.NewDatabase());
+		settings["Whatsmeow:Transport"] = "Pigeon";
+		var builder = Hosts.Builder(logs, settings);
+		_ = builder.Services.AddWhatsmeow().UseFakeWhatsApp();
+		using var host = builder.Build();
+
+		// The binder fails before any rule runs, so this is not an OptionsValidationException (ADR 0034).
+		var error = await Assert.ThrowsAsync<InvalidOperationException>(() => host.StartAsync(ct));
+
+		Assert.Contains("'Pigeon'", error.Message, StringComparison.Ordinal);
+		Assert.Empty(logs.Named("SidecarStarted"));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task AddHandlerTwice_TheHandlerRunsOncePerEvent()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var builder = Hosts.Builder(logs, Hosts.Settings(fixture.Binary, binaries.NewDatabase()));
+		_ = builder.Services.AddWhatsmeow().UseFakeWhatsApp().AddSession("hosting-handler-twice").AddHandler<MessageReceived, RecordingHandler>();
+		_ = builder.Services.AddWhatsmeow().AddHandler<MessageReceived, RecordingHandler>();
+		using var host = builder.Build();
+		await host.StartAsync(ct);
+		var client = Hosts.Client(host, "hosting-handler-twice");
+		await Hosts.LinkAsync(host, "hosting-handler-twice", ct);
+		await client.ConnectAsync(ct);
+
+		await Deliveries.DeliverAsync(Hosts.Fake(host), "hosting-handler-twice", ct, "M1", "M2");
+
+		// A second run of M1's handler would come before M2's.
+		Assert.Equal(
+			[Deliveries.Received("hosting-handler-twice", "M1"), Deliveries.Received("hosting-handler-twice", "M2")],
+			(await Hosts.Handled(host).NextAsync(2, ct)).Select(handling => handling.Event)
+		);
+		await host.StopAsync(ct);
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task HandlerOfEveryEvent_RegisteredForMessages_GetsTheMessagesOnly()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var builder = Hosts.Builder(logs, Hosts.Settings(fixture.Binary, binaries.NewDatabase()));
+		_ = builder.Services.AddWhatsmeow().UseFakeWhatsApp().AddSession("hosting-contravariant").AddHandler<MessageReceived, AnyEventHandler>();
+		using var host = builder.Build();
+		await host.StartAsync(ct);
+		var client = Hosts.Client(host, "hosting-contravariant");
+		var errors = new TaskCompletionSource<HandlerError>(TaskCreationOptions.RunContinuationsAsynchronously);
+		using var onError = client.OnHandlerError(error => errors.TrySetResult(error));
+		await Hosts.LinkAsync(host, "hosting-contravariant", ct);
+		await client.ConnectAsync(ct);
+
+		await Deliveries.DeliverAsync(Hosts.Fake(host), "hosting-contravariant", ct, "M1");
+
+		// The connect's state changes came first; a handler that got one would have failed.
+		Assert.Equal(new Handling { Handler = "any", Event = Deliveries.Received("hosting-contravariant", "M1"), Client = client }, await Hosts.Handled(host).NextAsync(ct));
+		Assert.False(errors.Task.IsCompleted, "a handler registered for messages got another event");
+		await host.StopAsync(ct);
+	}
+
+	[Fact]
+	public void Builder_Services_IsTheCollectionAddWhatsmeowExtends()
+	{
+		var services = new ServiceCollection();
+
+		Assert.Same(services, services.AddWhatsmeow().Services);
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task LaterServiceFailsToStart_NoEventIsHandled_AndThePendingOnesComeInTheNextHost()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var database = binaries.NewDatabase();
+
+		// M1 is pending: its handler was still running when the first host stopped, and the clock never acked it.
+		var first = Hosts.Builder(logs, Hosts.Settings(fixture.Binary, database));
+		_ = first.Services.AddSingleton<TimeProvider>(new FakeTimeProvider());
+		_ = first.Services.AddWhatsmeow().UseFakeWhatsApp().AddSession("hosting-later").AddHandler<MessageReceived, HoldingHandler>();
+		using (var firstHost = first.Build())
+		{
+			await firstHost.StartAsync(ct);
+			await Hosts.LinkAsync(firstHost, "hosting-later", ct);
+			await Hosts.Client(firstHost, "hosting-later").ConnectAsync(ct);
+			await Deliveries.DeliverAsync(Hosts.Fake(firstHost), "hosting-later", ct, "M1");
+			_ = await Hosts.Handled(firstHost).NextAsync(ct);
+			await firstHost.StopAsync(ct);
+		}
+
+		// A service after AddWhatsmeow fails, so the host never stops ours: it only disposes the container. The session
+		// was not connected yet when that service started, so no event flowed into handlers the container is disposing.
+		var second = Hosts.Builder(logs, Hosts.Settings(fixture.Binary, database));
+		_ = second.Services.AddSingleton<Observed>();
+		_ = second.Services.AddWhatsmeow().UseFakeWhatsApp().AddSession("hosting-later").AddHandler<MessageReceived, RecordingHandler>();
+		_ = second.Services.AddHostedService<FailingStart>();
+		using (var secondHost = second.Build())
+		{
+			Assert.Same(FailingStart.Failure, await Assert.ThrowsAsync<InvalidOperationException>(() => secondHost.StartAsync(ct)));
+			Assert.Equal(new SessionState.Disconnected(), (await secondHost.Services.GetRequiredService<Observed>().Start.Task).State);
+		}
+
+		var third = Hosts.Builder(logs, Hosts.Settings(fixture.Binary, database));
+		_ = third.Services.AddWhatsmeow().UseFakeWhatsApp().AddSession("hosting-later").AddHandler<MessageReceived, RecordingHandler>();
+		using var thirdHost = third.Build();
+		await thirdHost.StartAsync(ct);
+		await Deliveries.DeliverAsync(Hosts.Fake(thirdHost), "hosting-later", ct, "M2");
+
+		Assert.Equal(
+			[Deliveries.Received("hosting-later", "M1"), Deliveries.Received("hosting-later", "M2")],
+			(await Hosts.Handled(thirdHost).NextAsync(2, ct)).Select(handling => handling.Event)
+		);
+		await thirdHost.StopAsync(ct);
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task DeleteAsync_OfADeclaredSession_ThrowsAndKeepsTheSession()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var builder = Hosts.Builder(logs, Hosts.Settings(fixture.Binary, binaries.NewDatabase()));
+		_ = builder.Services.AddWhatsmeow().UseFakeWhatsApp().AddSession("hosting-delete");
+		using var host = builder.Build();
+		await host.StartAsync(ct);
+		var sessions = Hosts.Sidecar(host).Sessions;
+
+		var error = await Assert.ThrowsAsync<InvalidOperationException>(() => sessions.DeleteAsync(SessionId.From("hosting-delete"), ct));
+
+		Assert.Equal("Session hosting-delete is declared with AddSession, so it cannot be deleted while the host runs: its keyed client would stay behind.", error.Message);
+		Assert.Equal([new SessionInfo { Id = SessionId.From("hosting-delete"), State = new SessionState.Created() }], await sessions.ListAsync(ct));
+		await host.StopAsync(ct);
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task KeyedRegistrationReplaced_TheHostConnectsTheClientTheHandlersAreOn()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var database = binaries.NewDatabase();
+
+		var first = Hosts.Builder(logs, Hosts.Settings(fixture.Binary, database));
+		_ = first.Services.AddWhatsmeow().UseFakeWhatsApp().AddSession("hosting-own");
+		using (var firstHost = first.Build())
+		{
+			await firstHost.StartAsync(ct);
+			await Hosts.LinkAsync(firstHost, "hosting-own", ct);
+			await firstHost.StopAsync(ct);
+		}
+
+		// The application replaces the keyed registration; the declared session is still the sidecar's own client.
+		var second = Hosts.Builder(logs, Hosts.Settings(fixture.Binary, database));
+		_ = second.Services.AddWhatsmeow().UseFakeWhatsApp().AddSession("hosting-own").AddHandler<MessageReceived, RecordingHandler>();
+		_ = second.Services.AddKeyedSingleton<IWhatsAppClient>(
+			"hosting-own",
+			static (services, _) => services.GetRequiredService<WhatsmeowSidecar>().Sessions.Client(SessionId.From("hosting-decoy"))
+		);
+		using var secondHost = second.Build();
+		await secondHost.StartAsync(ct);
+		await Deliveries.DeliverAsync(Hosts.Fake(secondHost), "hosting-own", ct, "M1");
+
+		var own = await Hosts.Sidecar(secondHost).Sessions.GetOrCreateAsync(SessionId.From("hosting-own"), ct);
+		Assert.Equal(new Handling { Handler = "every", Event = Deliveries.Received("hosting-own", "M1"), Client = own }, await Hosts.Handled(secondHost).NextAsync(ct));
+		await secondHost.StopAsync(ct);
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task DisposeDuringTheHostStart_LeavesNoProcessAndNoSocketDirectory()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var stub = binaries.Stage(binaries.HangingStub);
+		var settings = Hosts.Settings(stub, binaries.NewDatabase());
+		settings["Whatsmeow:StartupTimeout"] = "01:00:00";
+		var builder = Hosts.Builder(logs, settings);
+		_ = builder.Services.AddWhatsmeow();
+		using var host = builder.Build();
+
+		var start = host.StartAsync(ct);
+		// The stub writes one stderr line and never its ready line, so the start hangs until the dispose.
+		_ = await logs.WaitForAsync(record => record.Category == "Whatsmeow.Sidecar", ct);
+		var socketDirectory = Processes.StubArgument(stub, "--socket-dir");
+		await Hosts.Sidecar(host).DisposeAsync();
+
+		// The dispose cancelled the start and returned only once it had ended: nothing of it is left, nor runs on.
+		Processes.AssertGone(Processes.StubProcessId(stub));
+		Assert.False(Directory.Exists(socketDirectory), $"the socket directory {socketDirectory} is still there");
+		_ = await Assert.ThrowsAsync<ObjectDisposedException>(() => start);
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task HostStop_AHandlerIgnoringItsToken_TheSidecarStillStops_AndTheEventComesAgain()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var database = binaries.NewDatabase();
+		var gate = new Gate();
+		try
+		{
+			var first = Hosts.Builder(logs, Hosts.Settings(fixture.Binary, database));
+			_ = first.Services.AddSingleton(gate);
+			_ = first.Services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.Zero);
+			_ = first.Services.AddWhatsmeow().UseFakeWhatsApp().AddSession("hosting-stuck").AddHandler<MessageReceived, StuckHandler>();
+			using (var firstHost = first.Build())
+			{
+				await firstHost.StartAsync(ct);
+				var (processId, _) = await logs.StartedAsync(1, ct);
+				await Hosts.LinkAsync(firstHost, "hosting-stuck", ct);
+				await Hosts.Client(firstHost, "hosting-stuck").ConnectAsync(ct);
+				await Deliveries.DeliverAsync(Hosts.Fake(firstHost), "hosting-stuck", ct, "M1");
+				_ = await Hosts.Handled(firstHost).NextAsync(ct);
+
+				await firstHost.StopAsync(ct);
+				Processes.AssertGone(processId);
+			}
+
+			// M1's handler never finished, so M1 was never acked.
+			var second = Hosts.Builder(logs, Hosts.Settings(fixture.Binary, database));
+			_ = second.Services.AddWhatsmeow().UseFakeWhatsApp().AddSession("hosting-stuck").AddHandler<MessageReceived, RecordingHandler>();
+			using var secondHost = second.Build();
+			await secondHost.StartAsync(ct);
+
+			Assert.Equal(Deliveries.Received("hosting-stuck", "M1"), (await Hosts.Handled(secondHost).NextAsync(ct)).Event);
+			await secondHost.StopAsync(ct);
+		}
+		finally
+		{
+			gate.Open.SetResult();
+		}
 	}
 }

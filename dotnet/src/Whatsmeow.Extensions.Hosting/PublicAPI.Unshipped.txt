@@ -6,4 +6,5 @@ Whatsmeow.Extensions.Hosting.WhatsmeowBuilder
 Whatsmeow.Extensions.Hosting.WhatsmeowBuilder.AddHandler<TEvent, THandler>() -> Whatsmeow.Extensions.Hosting.WhatsmeowBuilder!
 Whatsmeow.Extensions.Hosting.WhatsmeowBuilder.AddHandler<TEvent, THandler>(string! sessionKey) -> Whatsmeow.Extensions.Hosting.WhatsmeowBuilder!
 Whatsmeow.Extensions.Hosting.WhatsmeowBuilder.AddSession(string! sessionKey) -> Whatsmeow.Extensions.Hosting.WhatsmeowBuilder!
+Whatsmeow.Extensions.Hosting.WhatsmeowBuilder.Services.get -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 Whatsmeow.Extensions.Hosting.WhatsmeowServiceCollectionExtensions
