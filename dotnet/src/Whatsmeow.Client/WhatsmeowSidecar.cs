@@ -91,6 +91,18 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		StartCoreAsync(options, loggerFactory, minProtocol, maxProtocol, fakeWhatsApp: false, timeProvider: null, cancellationToken);
 
 	/// <summary>
+	/// Starts the sidecar on <paramref name="timeProvider"/>, so the live tests' host can hold the clock still and ack
+	/// exactly once (ADR 0029).
+	/// </summary>
+	internal static Task<WhatsmeowSidecar> StartAsync(
+		WhatsmeowSidecarOptions options,
+		ILoggerFactory loggerFactory,
+		TimeProvider timeProvider,
+		CancellationToken cancellationToken
+	) =>
+		StartCoreAsync(options, loggerFactory, MinProtocol, MaxProtocol, fakeWhatsApp: false, timeProvider, cancellationToken);
+
+	/// <summary>
 	/// Starts a test build of the sidecar with <c>--fake-whatsapp</c>, for the integration tests' shared fixture
 	/// (ADR 0019). A release build refuses the flag, so this fails with <see cref="SidecarUnavailableException"/> there.
 	/// </summary>

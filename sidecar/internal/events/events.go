@@ -35,6 +35,9 @@ type Service struct {
 	streams map[consumer]*registration
 	// rings are the sessions' ephemeral events (ring.go).
 	rings map[string]*ring
+	// held is the live tests' seam, which withholds the first answer to a marked message; a release build's never
+	// does (livetest_off.go, ADR 0029).
+	held withheld
 }
 
 type consumer struct{ session, name string }
@@ -77,6 +80,10 @@ func (svc *Service) Handler(sessionID string) whatsmeow.EventHandlerWithSuccessS
 			ephemeral.push(event)
 
 			return true
+		}
+
+		if svc.held.once(svc.log, sessionID, evt) {
+			return false
 		}
 
 		key, event, record := svc.toEvent(sessionID, evt)

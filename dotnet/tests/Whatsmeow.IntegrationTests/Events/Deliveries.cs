@@ -69,6 +69,9 @@ internal static class Deliveries
 			_ = await fake.DeliverGroupNotificationAsync(Renamed(session, name), cancellationToken: cancellationToken).ConfigureAwait(false);
 	}
 
+	/// <summary>What <see cref="DeliverAsync"/> sends, by text, for <see cref="DeliveryChecks"/>.</summary>
+	public static Dictionary<string, MessageId> Sent(params string[] ids) => ids.ToDictionary(id => $"text of {id}", MessageId.From, StringComparer.Ordinal);
+
 	public static async Task DeliverAsync(FakeWhatsAppService.FakeWhatsAppServiceClient fake, string session, CancellationToken cancellationToken, params string[] ids)
 	{
 		foreach (var id in ids)

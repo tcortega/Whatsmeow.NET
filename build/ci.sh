@@ -172,6 +172,24 @@ release_links_no_fake() {
 	echo "whatsmeow-net without -tags fakewhatsapp links no fake package"
 }
 
+# The release build must not link the live tests' seams (ADR 0029): they are the files named livetest_* behind the
+# livetest tag (tools/check-repo allows the tag nowhere else). The same listing with the tag must show them, so this
+# check can see them at all.
+release_links_no_livetest() {
+	local files='{{.ImportPath}} {{join .GoFiles " "}}' release live
+	release="$(CGO_ENABLED=0 go -C sidecar list -deps -f "$files" ./cmd/whatsmeow-net)" || return
+	live="$(CGO_ENABLED=0 go -C sidecar list -deps -tags livetest -f "$files" ./cmd/whatsmeow-net)" || return
+	if ! grep -q ' livetest_on\.go\b' <<<"$live"; then
+		annotate error "livetest in the release build" "whatsmeow-net with -tags livetest links no livetest_on.go, so this check cannot see the seams"
+		return 1
+	fi
+	if grep -q ' livetest_on\.go\b' <<<"$release"; then
+		annotate error "livetest in the release build" "whatsmeow-net without -tags livetest links $(grep ' livetest_on\.go\b' <<<"$release" | cut -d' ' -f1)"
+		return 1
+	fi
+	echo "whatsmeow-net without -tags livetest links no live test seam"
+}
+
 job_go() {
 	local before module tags label tagsets
 	before="$(tree_state)"
@@ -182,9 +200,9 @@ job_go() {
 			continue
 		fi
 		# A file behind a build tag is invisible to build, test, lint and the cgo check unless the tag is passed, so
-		# sidecar, the only module that may use fakewhatsapp (tools/check-repo), runs them once more with it.
+		# sidecar, the only module that may use fakewhatsapp and livetest (tools/check-repo), runs them once more with each.
 		tagsets=("")
-		if [ "$module" = sidecar ]; then tagsets+=(fakewhatsapp); fi
+		if [ "$module" = sidecar ]; then tagsets+=(fakewhatsapp livetest); fi
 		for tags in "${tagsets[@]}"; do
 			label="$module${tags:+ (-tags $tags)}"
 			check "$label: no cgo files" no_cgo "$module" "$tags"
@@ -195,6 +213,7 @@ job_go() {
 		done
 	done
 	check "sidecar: the release build links no fake WhatsApp (ADR 0019)" release_links_no_fake
+	check "sidecar: the release build links no live test seam (ADR 0029)" release_links_no_livetest
 	check "sidecar: linked modules and licence files match sidecar/licenses.allow (ADR 0016)" go -C tools run ./check-licenses
 	check "the go job left the tree unchanged" tree_unchanged "$before" "the go job"
 }
@@ -644,8 +663,12 @@ packaged_binaries() {
 			annotate error "fake in a packaged binary" "runtimes/$r/native/whatsmeow-net was built with -tags fakewhatsapp (ADR 0019)"
 			rc=1
 		fi
+		if grep -E '^[[:space:]]+build[[:space:]]+-tags=' <<<"$info" | grep -qF livetest; then
+			annotate error "livetest in a packaged binary" "runtimes/$r/native/whatsmeow-net was built with -tags livetest (ADR 0029)"
+			rc=1
+		fi
 	done
-	[ "$rc" -eq 0 ] && echo "every packaged binary is a CGO-free -trimpath build of its RID's target, none with -tags fakewhatsapp"
+	[ "$rc" -eq 0 ] && echo "every packaged binary is a CGO-free -trimpath build of its RID's target, none with -tags fakewhatsapp or livetest"
 	return "$rc"
 }
 
@@ -877,7 +900,7 @@ job_install() { # feed
 	check "install: each native package holds exactly its binaries, its buildTransitive targets, its README and the GPL files" packaged_files
 	check "install: each native package's README and GPL files are the repository's, and COPYING is the GPL-3.0 text (ADR 0016)" packaged_notices
 	check "install: GPL-3.0-only on the native packages, MPL-2.0 on the .NET packages (ADR 0016)" packaged_licences
-	check "install: every packaged binary is a CGO-free -trimpath release build of its target, none with -tags fakewhatsapp (ADR 0019)" packaged_binaries
+	check "install: every packaged binary is a CGO-free -trimpath release build of its target, none with -tags fakewhatsapp or livetest (ADR 0019, 0029)" packaged_binaries
 	check "install: the packaged binary refuses --fake-whatsapp" packaged_refuses_fake
 	check "consumer: portable build and dotnet run" install_portable
 	check "consumer: RID-specific framework-dependent publish" install_rid "RID-specific framework-dependent publish" fd -r "$host_rid" --self-contained false

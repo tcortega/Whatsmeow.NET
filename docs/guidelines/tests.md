@@ -187,7 +187,15 @@ dotnet test --project dotnet/tests/Whatsmeow.LiveTests -c Release
 The person watches `dotnet/artifacts/live/`: `qr.png` is the QR code to scan (rewritten on each rotation), only when the live session is not paired yet, and `pairing-code.txt` the code to enter on the phone; both are deleted at the end, and a QR payload is never written as text (it carries the device's ADV secret). `sidecar.log` is the sidecar's log, with every JID's user part and the test number redacted.
 The QR test stays connected until the live session is `CaughtUp`, at most two minutes, and prints how long that took: a device that went offline right after pairing stayed "connecting" on the phone (ADR 0021).
 
-Fake-only seams (injected failures, scripted disconnects) stay on fake-mode fixtures. They are not a live concern.
+Every live test is in the `Live` collection: one after the other, on one `LiveSidecar` and one `LiveSender`.
+The live sidecar is a release build with `-tags livetest`, the live tests' seams ([ADR 0029](../adr/0029-live-test-seams-and-the-throwaway-sender.md)): a loose id rule, and a handler that withholds the first answer to a text starting `wmn-withhold `. CI proves no release binary links them.
+The incoming bursts come from `live-sender`, a throwaway second companion of the same account in a sidecar and a temporary database of its own: paired by QR code (`qr.png`) when a test first needs it, it sends to the account's own chat, and at the end it is logged out, deleted, checked gone, and its database deleted, also when a test failed.
+The account's own JID comes from the owner's ping: `wmn ping` sent from the phone to "Message yourself", before the run or within five minutes of the first test that needs it.
+The kill tests call the fake-mode kill tests' checks (`Whatsmeow.IntegrationTests/Events/DeliveryChecks.cs`); the .NET kill runs `SidecarHost events-live` on the live database, so the live sidecar stops first and starts again after it.
+Every measurement goes to `sidecar.log` and the test output, redacted, for ARCHITECTURE §14.
+Back up the live database before a run with new code: `sqlite3 "$WHATSMEOW_LIVE_DATABASE" ".backup ~/.whatsmeow-net-live/backup/live-before-<issue>-<timestamp>.db"`, then `chmod 600` it.
+
+Other fake-only seams (injected failures, scripted disconnects) stay on fake-mode fixtures. They are not a live concern.
 
 ## Bugs
 

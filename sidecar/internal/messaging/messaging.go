@@ -54,9 +54,10 @@ func backoff() []time.Duration { return []time.Duration{time.Second, 2 * time.Se
 // node's answer usually take well under a second [inferred]; WhatsApp may take up to 75 s to answer (send.go:445).
 const tryMargin = time.Second
 
-// clientMessageID is the only id format accepted: the one whatsmeow generates (send.go:41, 47-61). Whether WhatsApp
-// accepts others is unknown, so the rule is strict until it is measured (ADR 0025).
-var clientMessageID = regexp.MustCompile(`^3EB0[0-9A-F]{18}$`)
+// clientMessageID is the only id format accepted (clientMessageIDPattern): in a release build the one whatsmeow
+// generates (send.go:41, 47-61). Whether WhatsApp accepts others is unknown, so the rule is strict until it is
+// measured (ADR 0025); the live tests' build loosens it to measure that (livetest_on.go, ADR 0029).
+var clientMessageID = regexp.MustCompile(clientMessageIDPattern)
 
 // Service implements whatsmeowv1.MessageServiceServer.
 type Service struct {

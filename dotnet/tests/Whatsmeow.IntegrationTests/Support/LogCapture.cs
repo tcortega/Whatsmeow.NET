@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging.Testing;
+using Microsoft.Extensions.Options;
 
 namespace Whatsmeow.IntegrationTests.Support;
 
@@ -7,13 +8,15 @@ public sealed class LogCapture : IDisposable
 {
 	private readonly FakeLoggerProvider _provider;
 
-	public LogCapture()
+	/// <param name="sink">Also gets each record as a line, as it comes; the live tests write their log file with it.</param>
+	public LogCapture(Action<string>? sink = null)
 	{
+		Collector = new FakeLogCollector(Options.Create(new FakeLogCollectorOptions { OutputSink = sink }));
 		_provider = new FakeLoggerProvider(Collector);
 		Factory = LoggerFactory.Create(builder => builder.AddProvider(_provider).SetMinimumLevel(LogLevel.Trace));
 	}
 
-	public FakeLogCollector Collector { get; } = new();
+	public FakeLogCollector Collector { get; }
 
 	public ILoggerFactory Factory { get; }
 

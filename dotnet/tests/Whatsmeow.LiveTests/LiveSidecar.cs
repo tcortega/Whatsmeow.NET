@@ -1,7 +1,9 @@
-using Microsoft.Extensions.Logging.Testing;
-using Microsoft.Extensions.Options;
+using System.Diagnostics;
 using QRCoder;
+using Whatsmeow.Events;
 using Whatsmeow.IntegrationTests;
+using Whatsmeow.IntegrationTests.Events;
+using Whatsmeow.IntegrationTests.Pairing;
 using Whatsmeow.IntegrationTests.Sessions;
 using Whatsmeow.IntegrationTests.Support;
 using Whatsmeow.Sessions;
@@ -9,11 +11,12 @@ using Whatsmeow.Sessions;
 namespace Whatsmeow.LiveTests;
 
 /// <summary>
-/// A release <c>whatsmeow-net</c> against real WhatsApp on the persistent live database
-/// (<see cref="LiveSettings.DatabaseVariable"/>), started when a live test first needs it; nothing starts while the
-/// live tests are off. The database holds the <see cref="LiveSessionId"/> session, paired once and reused by every
-/// run: it is never logged out, deleted or copied. A throwaway session (<see cref="ThrowawaySessionAsync"/>) is logged
-/// out and deleted at the end, so the phone keeps only the live session's linked device.
+/// The live tests' <c>whatsmeow-net</c>, a release build with the live seams (<c>-tags livetest</c>, ADR 0029), against
+/// real WhatsApp on the persistent live database (<see cref="LiveSettings.DatabaseVariable"/>), started when a live
+/// test first needs it; nothing starts while the live tests are off. The database holds the
+/// <see cref="LiveSessionId"/> session, paired once and reused by every run: it is never logged out, deleted or copied.
+/// A throwaway session (<see cref="ThrowawaySessionAsync"/>) is logged out and deleted at the end, so the phone keeps
+/// only the live session's linked device.
 /// What a person must see goes to files in <see cref="OutputDirectory"/>, deleted at the end: <c>qr.png</c>, the
 /// current QR code, and <c>pairing-code.txt</c>. The sidecar's log goes to <c>sidecar.log</c> there, with phone numbers
 /// redacted.
@@ -23,16 +26,26 @@ public sealed class LiveSidecar : IAsyncLifetime
 	/// <summary>The persistent live session's id.</summary>
 	public const string LiveSessionId = "live";
 
+	/// <summary>What the owner sends to "Message yourself" from the phone (docs/guidelines/tests.md Live WhatsApp).</summary>
+	public const string PingText = "wmn ping";
+
+	/// <summary>How long a test waits for the owner's ping.</summary>
+	private static readonly TimeSpan s_pingBound = TimeSpan.FromMinutes(5);
+
 	private readonly SemaphoreSlim _starting = new(1, 1);
-	private readonly List<IWhatsAppClient> _throwaway = [];
-	private readonly Lock _logLock = new();
+	private readonly List<string> _throwaway = [];
+	private readonly TaskCompletionSource<MessageReceived> _ping = new(TaskCreationOptions.RunContinuationsAsynchronously);
 	private string? _directory;
-	private StreamWriter? _log;
-	private ILoggerFactory? _loggerFactory;
+	private string? _binary;
+	private LiveLog? _log;
 	private WhatsmeowSidecar? _sidecar;
+	private IDisposable? _pingWatch;
 
 	/// <summary><c>dotnet/artifacts/live/</c>, which git ignores.</summary>
 	public string OutputDirectory { get; } = Path.Combine(new SidecarBinaries().Root, "dotnet", "artifacts", "live");
+
+	/// <summary>The live sidecar's log records, for a test that waits on one.</summary>
+	internal LogCapture Logs => _log?.Capture ?? throw new InvalidOperationException("No live sidecar was started.");
 
 	public ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
@@ -44,16 +57,94 @@ public sealed class LiveSidecar : IAsyncLifetime
 	}
 
 	/// <summary>
+	/// The live session, connected and CaughtUp. It must be paired already: the QR test pairs it. The first call on a
+	/// sidecar also starts watching for the owner's ping (<see cref="PingAsync"/>), before it connects, so a ping the
+	/// phone sent while the session was offline is seen too.
+	/// </summary>
+	public async Task<IWhatsAppClient> LiveAsync(CancellationToken cancellationToken)
+	{
+		var client = await SessionAsync(LiveSessionId, cancellationToken).ConfigureAwait(false);
+		_pingWatch ??= client.On<MessageReceived>(
+			(e, token) =>
+			{
+				if (IsPing(e))
+					_ = _ping.TrySetResult(e);
+				return ValueTask.CompletedTask;
+			}
+		);
+
+		var state = await SessionSetup.StateAsync(client, cancellationToken).ConfigureAwait(false);
+		if (state is SessionState.Created or SessionState.LoggedOut)
+			throw new InvalidOperationException("The live session is not paired: the QR test pairs it (docs/guidelines/tests.md Live WhatsApp).");
+		if (state is SessionState.CaughtUp)
+			return client;
+
+		PairingChecks.ValidateUsable(await ConnectAsync(client, cancellationToken).ConfigureAwait(false));
+		_ = await StayUntilCaughtUpAsync(client, cancellationToken).ConfigureAwait(false);
+		return client;
+	}
+
+	/// <summary>
+	/// The owner's ping: the first message the phone sent to its own chat with the text <see cref="PingText"/> (any
+	/// case). Its chat is the account's own JID, and its id is one the phone made. Waits at most five minutes.
+	/// </summary>
+	public async Task<MessageReceived> PingAsync(CancellationToken cancellationToken)
+	{
+		if (!_ping.Task.IsCompleted)
+			_ = await LiveAsync(cancellationToken).ConfigureAwait(false);
+		Write($"live: waiting at most {s_pingBound.TotalMinutes:F0} min for the owner's \"{PingText}\" to Message yourself");
+		return await _ping.Task.WaitAsync(s_pingBound, LiveClock.Time, cancellationToken).ConfigureAwait(false);
+	}
+
+	/// <summary>
 	/// A throwaway session, unpaired: one an earlier run left behind is discarded first. It is discarded again at
 	/// the end. Never the live session.
 	/// </summary>
 	public async Task<IWhatsAppClient> ThrowawaySessionAsync(string id, CancellationToken cancellationToken)
 	{
 		ArgumentOutOfRangeException.ThrowIfEqual(id, LiveSessionId);
-		await DiscardAsync(await SessionAsync(id, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+		await DiscardAsync(await SessionAsync(id, cancellationToken).ConfigureAwait(false), _sidecar!, cancellationToken).ConfigureAwait(false);
 		var client = await SessionAsync(id, cancellationToken).ConfigureAwait(false);
-		_throwaway.Add(client);
+		_throwaway.Add(id);
 		return client;
+	}
+
+	/// <summary>The release build with the live seams, built once: <c>-tags livetest</c> (ADR 0029).</summary>
+	public async Task<string> BinaryAsync(CancellationToken cancellationToken)
+	{
+		await _starting.WaitAsync(cancellationToken).ConfigureAwait(false);
+		try
+		{
+			return await BuildAsync(cancellationToken).ConfigureAwait(false);
+		}
+		finally
+		{
+			_ = _starting.Release();
+		}
+	}
+
+	/// <summary>
+	/// Stops the live sidecar gracefully, so another process can own the live database; the next
+	/// <see cref="SessionAsync"/> starts it again. The ping already seen is kept.
+	/// </summary>
+	public async Task StopAsync()
+	{
+		if (_sidecar is not null)
+			await _sidecar.DisposeAsync().ConfigureAwait(false);
+		_sidecar = null;
+		_pingWatch = null;
+	}
+
+	/// <summary>Kills the live sidecar's process, as a crash would, and waits until the client restarted it (ARCHITECTURE §8.5).</summary>
+	public async Task CrashAsync(CancellationToken cancellationToken)
+	{
+		var restarts = Logs.Named("SidecarRestarted").Count;
+		var (processId, _) = await Logs.StartedAsync(Logs.Named("SidecarStarted").Count, cancellationToken).ConfigureAwait(false);
+
+		using (var process = Process.GetProcessById(processId))
+			process.Kill();
+
+		_ = await Logs.WaitForAsync(_ => Logs.Named("SidecarRestarted").Count > restarts, cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <summary>Connects a paired session and returns its state once WhatsApp accepted the login.</summary>
@@ -76,10 +167,18 @@ public sealed class LiveSidecar : IAsyncLifetime
 	/// </summary>
 	public async Task ShowQrCodeAsync(string code, CancellationToken cancellationToken)
 	{
+		_ = Directory.CreateDirectory(OutputDirectory);
 		using var data = QRCodeGenerator.GenerateQrCode(code, QRCodeGenerator.ECCLevel.L);
 		using var renderer = new PngByteQRCode(data);
 		var png = renderer.GetGraphic(10);
 		await File.WriteAllBytesAsync(Path.Combine(OutputDirectory, "qr.png"), png, cancellationToken).ConfigureAwait(false);
+	}
+
+	/// <summary>Deletes what a person was shown, once a pairing ended.</summary>
+	public void DeleteShown()
+	{
+		foreach (var shown in new[] { "qr.png", "pairing-code.txt" })
+			File.Delete(Path.Combine(OutputDirectory, shown));
 	}
 
 	/// <summary>
@@ -88,22 +187,22 @@ public sealed class LiveSidecar : IAsyncLifetime
 	/// online got CaughtUp 5 s after Connected [observed: the owner's phone, 2026-11-01]; that a new device must stay
 	/// online through its first sync is [inferred].
 	/// </summary>
-	public async Task<TimeSpan> StayUntilCaughtUpAsync(IWhatsAppClient client, CancellationToken cancellationToken)
+	public Task<TimeSpan> StayUntilCaughtUpAsync(IWhatsAppClient client, CancellationToken cancellationToken) =>
+		StayUntilCaughtUpAsync(client, Write, cancellationToken);
+
+	/// <inheritdoc cref="StayUntilCaughtUpAsync(IWhatsAppClient, CancellationToken)"/>
+	internal static async Task<TimeSpan> StayUntilCaughtUpAsync(IWhatsAppClient client, Action<string> log, CancellationToken cancellationToken)
 	{
-#pragma warning disable RS0030 // Justification: a live test measures and bounds real time; nothing here can be faked.
-		var time = TimeProvider.System;
-#pragma warning restore RS0030
-		var started = time.GetTimestamp();
-		using var bound = new CancellationTokenSource(TimeSpan.FromMinutes(2), time);
-		using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, bound.Token);
-		var watch = StateWatch.Start(client, linked.Token);
+		var started = LiveClock.Time.GetTimestamp();
+		using var bound = LiveClock.Bound(TimeSpan.FromMinutes(2), cancellationToken);
+		var watch = StateWatch.Start(client, bound.Token);
 		await using (watch.ConfigureAwait(false))
 			await watch
 				.ReachesAsync(new SessionState.CaughtUp(), new SessionState.Connected(), new SessionState.Connecting(), new SessionState.Reconnecting())
 				.ConfigureAwait(false);
 
-		var elapsed = time.GetElapsedTime(started);
-		WriteLog($"live: CaughtUp {elapsed.TotalSeconds:F1} s after the session was usable");
+		var elapsed = LiveClock.Time.GetElapsedTime(started);
+		log($"live: {client.SessionId} CaughtUp {elapsed.TotalSeconds:F1} s after the session was usable");
 		return elapsed;
 	}
 
@@ -111,38 +210,46 @@ public sealed class LiveSidecar : IAsyncLifetime
 	public Task ShowPairingCodeAsync(string code, CancellationToken cancellationToken) =>
 		File.WriteAllTextAsync(Path.Combine(OutputDirectory, "pairing-code.txt"), code, cancellationToken);
 
+	/// <summary>Writes a measurement to <c>sidecar.log</c>, redacted, and to the running test's output.</summary>
+	public void Write(string line)
+	{
+		_log?.Write(line);
+		TestContext.Current.TestOutputHelper?.WriteLine(LogRedaction.Redact(line, LiveSettings.PhoneNumber));
+	}
+
+	/// <summary>
+	/// Unlinks a throwaway session's device from the phone and deletes the session: a paired session is connected
+	/// first, because WhatsApp is told of a logout only over a connection. It then checks the session is gone.
+	/// </summary>
+	internal static async Task DiscardAsync(IWhatsAppClient client, WhatsmeowSidecar sidecar, CancellationToken cancellationToken)
+	{
+		if (client.SessionId == SessionId.From(LiveSessionId))
+			throw new InvalidOperationException("The live session is never logged out or deleted.");
+		var state = await SessionSetup.StateAsync(client, cancellationToken).ConfigureAwait(false);
+		if (state is SessionState.Disconnected)
+			state = await ConnectAsync(client, cancellationToken).ConfigureAwait(false);
+		if (state is SessionState.Connected or SessionState.CaughtUp)
+			await client.LogoutAsync(cancellationToken).ConfigureAwait(false);
+		await sidecar.Sessions.DeleteAsync(client.SessionId, cancellationToken).ConfigureAwait(false);
+		Assert.DoesNotContain(await sidecar.Sessions.ListAsync(cancellationToken).ConfigureAwait(false), session => session.Id == client.SessionId);
+	}
+
+	private static bool IsPing(MessageReceived e) =>
+		e.Source.IsFromMe
+		&& string.Equals(e.Source.Chat.User, e.Source.Sender.User, StringComparison.Ordinal)
+		&& string.Equals(DeliveryChecks.TextOf(e)?.Trim(), PingText, StringComparison.OrdinalIgnoreCase);
+
 	private async Task<WhatsmeowSidecar> StartAsync(CancellationToken cancellationToken)
 	{
-		// Never against a database by accident: only with the opt-in set (docs/guidelines/tests.md).
-		if (!LiveSettings.Enabled)
-			throw new InvalidOperationException($"The live tests run only with {LiveSettings.DatabaseVariable} set.");
-
 		await _starting.WaitAsync(cancellationToken).ConfigureAwait(false);
 		try
 		{
 			if (_sidecar is not null)
 				return _sidecar;
 
-			_ = Directory.CreateDirectory(OutputDirectory);
-			DeleteShown();
-
-			// The account's keys: owner-only, outside the repository (the sidecar creates the file 0600).
-			var databaseDirectory = Path.GetDirectoryName(Path.GetFullPath(LiveSettings.Database))!;
-			_ = OperatingSystem.IsWindows()
-				? Directory.CreateDirectory(databaseDirectory)
-				: Directory.CreateDirectory(databaseDirectory, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
-
-			_directory = Directory.CreateTempSubdirectory("wmn-live-").FullName;
-			var binary = await SidecarBinaries
-				.BuildAsync("sidecar", "./cmd/whatsmeow-net", $"-X main.version={SidecarBinaries.ClientVersion}", "", _directory, cancellationToken)
-				.ConfigureAwait(false);
-
-			_log = new StreamWriter(Path.Combine(OutputDirectory, "sidecar.log"), append: false) { AutoFlush = true };
-			var collector = new FakeLogCollector(Options.Create(new FakeLogCollectorOptions { OutputSink = WriteLog }));
-			_loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(new FakeLoggerProvider(collector)).SetMinimumLevel(LogLevel.Trace));
-
+			var binary = await BuildAsync(cancellationToken).ConfigureAwait(false);
 			var options = new WhatsmeowSidecarOptions { SidecarPath = binary, DatabasePath = LiveSettings.Database };
-			_sidecar = await WhatsmeowSidecar.StartAsync(options, _loggerFactory, cancellationToken).ConfigureAwait(false);
+			_sidecar = await WhatsmeowSidecar.StartAsync(options, _log!.Capture.Factory, cancellationToken).ConfigureAwait(false);
 			return _sidecar;
 		}
 		finally
@@ -151,56 +258,55 @@ public sealed class LiveSidecar : IAsyncLifetime
 		}
 	}
 
-	/// <summary>
-	/// Unlinks a throwaway session's device from the phone and deletes the session: a paired session is connected
-	/// first, because WhatsApp is told of a logout only over a connection.
-	/// </summary>
-	private async Task DiscardAsync(IWhatsAppClient client, CancellationToken cancellationToken)
+	/// <summary>Builds the binary and opens the log once; the caller holds <see cref="_starting"/>.</summary>
+	private async Task<string> BuildAsync(CancellationToken cancellationToken)
 	{
-		var state = await SessionSetup.StateAsync(client, cancellationToken).ConfigureAwait(false);
-		if (state is SessionState.Disconnected)
-			state = await ConnectAsync(client, cancellationToken).ConfigureAwait(false);
-		if (state is SessionState.Connected or SessionState.CaughtUp)
-			await client.LogoutAsync(cancellationToken).ConfigureAwait(false);
-		await _sidecar!.Sessions.DeleteAsync(client.SessionId, cancellationToken).ConfigureAwait(false);
-	}
+		// Never against a database by accident: only with the opt-in set (docs/guidelines/tests.md).
+		if (!LiveSettings.Enabled)
+			throw new InvalidOperationException($"The live tests run only with {LiveSettings.DatabaseVariable} set.");
+		if (_binary is not null)
+			return _binary;
 
-	private void DeleteShown()
-	{
-		foreach (var shown in new[] { "qr.png", "pairing-code.txt" })
-			File.Delete(Path.Combine(OutputDirectory, shown));
-	}
+		_ = Directory.CreateDirectory(OutputDirectory);
+		DeleteShown();
 
-	/// <summary>Writes a log line with every JID's user part and the test number redacted (<see cref="LogRedaction"/>).</summary>
-	private void WriteLog(string line)
-	{
-		var redacted = LogRedaction.Redact(line, LiveSettings.PhoneNumber);
-		lock (_logLock)
-			_log?.WriteLine(redacted);
+		// The account's keys: owner-only, outside the repository (the sidecar creates the file 0600).
+		var databaseDirectory = Path.GetDirectoryName(Path.GetFullPath(LiveSettings.Database))!;
+		_ = OperatingSystem.IsWindows()
+			? Directory.CreateDirectory(databaseDirectory)
+			: Directory.CreateDirectory(databaseDirectory, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+
+		_directory = Directory.CreateTempSubdirectory("wmn-live-").FullName;
+		_binary = await SidecarBinaries
+			.BuildAsync("sidecar", "./cmd/whatsmeow-net", $"-X main.version={SidecarBinaries.ClientVersion}", "livetest", _directory, cancellationToken)
+			.ConfigureAwait(false);
+		_log = new LiveLog(Path.Combine(OutputDirectory, "sidecar.log"));
+		return _binary;
 	}
 
 	public async ValueTask DisposeAsync()
 	{
-		foreach (var client in _throwaway)
-			await DiscardAsync(client, CancellationToken.None).ConfigureAwait(false);
-
-		if (_sidecar is not null)
-			await _sidecar.DisposeAsync().ConfigureAwait(false);
-		_loggerFactory?.Dispose();
-		lock (_logLock)
+		try
 		{
+			// By id: a stop since then (StopAsync) replaced the clients.
+			foreach (var id in _throwaway)
+				await DiscardAsync(await SessionAsync(id, CancellationToken.None).ConfigureAwait(false), _sidecar!, CancellationToken.None).ConfigureAwait(false);
+		}
+		finally
+		{
+			if (_sidecar is not null)
+				await _sidecar.DisposeAsync().ConfigureAwait(false);
 			_log?.Dispose();
-			_log = null;
-		}
 
-		// The build directory and what was shown only, when this run started anything (xUnit disposes the fixture of
-		// tests it did not run too): the live database stays.
-		if (_directory is not null)
-		{
-			Directory.Delete(_directory, recursive: true);
-			DeleteShown();
-		}
+			// The build directory and what was shown only, when this run started anything (xUnit disposes the fixture
+			// of tests it did not run too): the live database stays.
+			if (_directory is not null)
+			{
+				Directory.Delete(_directory, recursive: true);
+				DeleteShown();
+			}
 
-		_starting.Dispose();
+			_starting.Dispose();
+		}
 	}
 }

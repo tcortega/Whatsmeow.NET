@@ -191,7 +191,9 @@ public sealed class EventProcessTests(FakeSidecar fixture, SidecarBinaries binar
 		await client.ConnectAsync(ct);
 
 		Assert.Equal(["events-kill M1", "events-kill M2", "events-kill M3", "acked"], handledBefore);
-		Assert.Equal(ids[2..].Select(id => Deliveries.Received("events-kill", id)), await received.NextAsync(3, ct));
+		var after = await received.NextAsync(3, ct);
+		Assert.Equal(ids[2..].Select(id => Deliveries.Received("events-kill", id)), after);
+		DeliveryChecks.ValidateRepeatsFollowTheAck(Deliveries.Sent(ids), [MessageId.From("M1"), MessageId.From("M2")], after, SessionId.From("events-kill"));
 	}
 
 	[Fact(Timeout = Timeout)]

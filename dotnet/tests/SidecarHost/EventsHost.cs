@@ -9,9 +9,11 @@ using Whatsmeow.Sessions;
 namespace SidecarHost;
 
 /// <summary>
-/// The process the events kill test kills: it starts the fake-mode sidecar on the database, prints the sidecar's
+/// The process the events kill tests kill: it starts the sidecar on the database (the fake-mode build, or with
+/// <c>fakeWhatsApp</c> false a release build against real WhatsApp, for the live test), prints the sidecar's
 /// process id, connects the session and prints "session id" as each message handler starts, and "session name" as each
-/// handler of a group rename to name does. In the handler of <c>blockOn</c>, a message id or a name, it waits until the session's state lane handled <see cref="SessionState.Connected"/>, moves its clock
+/// handler of a group rename to name does. In the handler of <c>blockOn</c>, a message id or a name, it waits until the
+/// session's state lane handled <see cref="SessionState.Connected"/>, moves its clock
 /// one ack interval, waits until the ack went out, prints "acked", and never returns; the test kills this process
 /// there. Its clock moves only then, so that is the one ack, and it covers exactly the events before <c>blockOn</c>.
 /// </summary>
@@ -23,16 +25,17 @@ namespace SidecarHost;
 /// </remarks>
 internal static class EventsHost
 {
-	public static async Task RunAsync(string fakeSidecar, string database, string session, string blockOn)
+	public static async Task RunAsync(string sidecarPath, string database, string session, string blockOn, bool fakeWhatsApp)
 	{
 		var logs = new FakeLogCollector();
 		using var provider = new FakeLoggerProvider(logs);
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(provider).SetMinimumLevel(LogLevel.Debug));
 		var time = new FakeTimeProvider();
 
-		var sidecar = await WhatsmeowSidecar
-			.StartFakeWhatsAppAsync(new WhatsmeowSidecarOptions { SidecarPath = fakeSidecar, DatabasePath = database }, loggerFactory, time, CancellationToken.None)
-			.ConfigureAwait(false);
+		var options = new WhatsmeowSidecarOptions { SidecarPath = sidecarPath, DatabasePath = database };
+		var sidecar = fakeWhatsApp
+			? await WhatsmeowSidecar.StartFakeWhatsAppAsync(options, loggerFactory, time, CancellationToken.None).ConfigureAwait(false)
+			: await WhatsmeowSidecar.StartAsync(options, loggerFactory, time, CancellationToken.None).ConfigureAwait(false);
 		await using (sidecar.ConfigureAwait(false))
 		{
 			await PrintAsync(logs.GetSnapshot().First(r => r.Id.Name == "SidecarStarted").GetStructuredStateValue("ProcessId")).ConfigureAwait(false);

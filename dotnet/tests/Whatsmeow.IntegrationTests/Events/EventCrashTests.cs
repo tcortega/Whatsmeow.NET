@@ -39,10 +39,9 @@ public sealed class EventCrashTests(FakeSidecar fixture)
 		await Deliveries.DeliverAsync(fixture.Fake, "events-crash", ct, "M6");
 
 		// This process kept what it received, and the stream goes on after it: nothing lost, nothing repeated.
-		Assert.Equal(
-			Enumerable.Range(1, 6).Select(i => Deliveries.Received("events-crash", $"M{i}")),
-			await received.NextAsync(6, ct)
-		);
+		var all = await received.NextAsync(6, ct);
+		Assert.Equal(Enumerable.Range(1, 6).Select(i => Deliveries.Received("events-crash", $"M{i}")), all);
+		DeliveryChecks.ValidateEachOnce(Deliveries.Sent("M1", "M2", "M3", "M4", "M5", "M6"), all, SessionId.From("events-crash"));
 	}
 
 	[Fact(Timeout = Timeout)]

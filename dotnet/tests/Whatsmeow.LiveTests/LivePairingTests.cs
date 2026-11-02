@@ -7,15 +7,16 @@ namespace Whatsmeow.LiveTests;
 
 /// <summary>
 /// Pairing a real phone, with the fake-mode tests' own checks (<see cref="PairingChecks"/>): a person scans
-/// <c>qr.png</c> or enters the code in <c>pairing-code.txt</c> (<see cref="LiveSidecar"/>). The tests in this class
-/// run one after the other.
+/// <c>qr.png</c> or enters the code in <c>pairing-code.txt</c> (<see cref="LiveSidecar"/>). The live tests run one
+/// after the other (<see cref="Live"/>).
 /// </summary>
-public sealed class LivePairingTests(LiveSidecar live) : IClassFixture<LiveSidecar>
+[Collection(nameof(Live))]
+public sealed class LivePairingTests(LiveSidecar live)
 {
 	/// <summary>
 	/// Pairs the persistent live session by QR code the first time, or after the phone logged it out; on every other
 	/// run it connects the session paired before, so nobody scans again. Either way it stays connected until CaughtUp,
-	/// so the phone finishes linking the device (<see cref="LiveSidecar.StayUntilCaughtUpAsync"/>).
+	/// so the phone finishes linking the device (<see cref="LiveSidecar.StayUntilCaughtUpAsync(IWhatsAppClient, CancellationToken)"/>).
 	/// </summary>
 	[LiveFact]
 	public async Task Live_PairWithQrCode_YieldsEachCodeThenPaired_AndTheSessionIsConnected()
@@ -25,8 +26,7 @@ public sealed class LivePairingTests(LiveSidecar live) : IClassFixture<LiveSidec
 
 		if (await SessionSetup.StateAsync(client, ct) is not (SessionState.Created or SessionState.LoggedOut))
 		{
-			PairingChecks.ValidateUsable(await LiveSidecar.ConnectAsync(client, ct));
-			TestContext.Current.TestOutputHelper?.WriteLine($"CaughtUp {(await live.StayUntilCaughtUpAsync(client, ct)).TotalSeconds:F1} s after Connected");
+			PairingChecks.ValidateUsable(await SessionSetup.StateAsync(await live.LiveAsync(ct), ct));
 			return;
 		}
 
