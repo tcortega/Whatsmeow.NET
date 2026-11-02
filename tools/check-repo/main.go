@@ -5,7 +5,9 @@
 // generated folders and Go build tags exist; anything else is reported, and the fix for a real need is to
 // extend the allowlist here in a reviewed change. On top of that it rejects, in C# outside generated code:
 // unjustified pragmas and SuppressMessage attributes, generated-code markers, aliases of the suppression and
-// generated-code attributes, captured contexts, and positional records.
+// generated-code attributes, captured contexts, and positional records. In workflows and shell scripts it rejects
+// any step that deletes a GitHub release: a release holds the Corresponding Source of the packages on nuget.org,
+// which stay there, so it is never deleted (ADR 0016, ADR 0029).
 //
 // Findings print as path:line: [rule] message. The rules are in docs/guidelines/csharp.md Suppressions.
 // Run it from the tools module: go -C tools run ./check-repo [-root ..].
@@ -76,6 +78,10 @@ var (
 	attributeAlias    = regexp.MustCompile(`\busing\s+[A-Za-z_]\w*\s*=\s*[\w.:\s]*\b(?:GeneratedCode|(?:Unconditional)?SuppressMessage)(?:Attribute)?\s*;`)
 	capturedContext   = regexp.MustCompile(`\bConfigureAwait\s*\(\s*(?:continueOnCapturedContext\s*:\s*)?true\s*\)|\bContinueOnCapturedContext\b`)
 	positionalRecord  = regexp.MustCompile(`\brecord\s+(?:struct\s+|class\s+)?[A-Za-z_]\w*\s*(?:<[^>]*>)?\s*\(`)
+	// Every way a workflow or script deletes a release or its assets: the gh CLI, Octokit, an action named for it,
+	// and the REST DELETE through gh api, curl or a request route.
+	releaseDelete = regexp.MustCompile(`(?i)\bgh\s+release\s+delete|\bdeleteRelease|\buses:\s*\S*(?:delete\S*release|release\S*delete)|` +
+		`(?:-X\s*|--request[\s=]+|--method[\s=]+)DELETE\b.*/releases\b|/releases\b.*(?:-X\s*|--request[\s=]+|--method[\s=]+)DELETE\b|\bDELETE\s+/repos/\S*/releases\b`)
 )
 
 var errFindings = errors.New("repository check failed")
@@ -180,6 +186,15 @@ func checkFile(fsys fs.FS, name string) ([]finding, error) {
 	}
 
 	ext := strings.ToLower(path.Ext(name))
+	if isWorkflow(name) || ext == ".sh" {
+		content, err := fs.ReadFile(fsys, name)
+		if err != nil {
+			return nil, fmt.Errorf("read %s: %w", name, err)
+		}
+
+		return checkReleaseDelete(name, content), nil
+	}
+
 	if ext != ".cs" && ext != ".go" && ext != ".csproj" {
 		return nil, nil
 	}
@@ -201,6 +216,26 @@ func checkFile(fsys fs.FS, name string) ([]finding, error) {
 	default:
 		return checkProject(name, content), nil
 	}
+}
+
+func isWorkflow(name string) bool {
+	ext := path.Ext(name)
+
+	return strings.HasPrefix(name, ".github/workflows/") && (ext == ".yml" || ext == ".yaml")
+}
+
+// checkReleaseDelete reports every line that deletes a GitHub release or one of its assets, comments included:
+// a commented-out deletion is one keystroke from running.
+func checkReleaseDelete(name string, content []byte) []finding {
+	var findings []finding
+
+	for number, line := range strings.Split(string(content), "\n") {
+		if releaseDelete.MatchString(line) {
+			findings = append(findings, finding{name, number + 1, "release-delete", "a release holds the Corresponding Source of packages that stay on nuget.org, so no workflow or script deletes one (ADR 0016, ADR 0029)"})
+		}
+	}
+
+	return findings
 }
 
 // checkName reports a file whose name alone breaks a rule: a configuration file that is not the blessed one,
