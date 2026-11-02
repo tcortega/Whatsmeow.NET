@@ -5,10 +5,15 @@ namespace Whatsmeow.Sidecar;
 /// to 1 s after a run that stayed up 60 s (ADR 0017). Every wait is on the injected <see cref="TimeProvider"/>.
 /// </summary>
 /// <param name="launchAsync">Starts a sidecar and returns its process id and a task that completes with its exit code.</param>
+/// <param name="external">
+/// The address of an external sidecar, which <paramref name="launchAsync"/> connects to instead (ADR 0046): its task
+/// completes when the sidecar went away. Null for one the client starts.
+/// </param>
 internal sealed class SidecarSupervisor(
 	Func<CancellationToken, Task<(int ProcessId, Task<int> Exited)>> launchAsync,
 	TimeProvider timeProvider,
-	ILogger logger
+	ILogger logger,
+	string? external = null
 ) : IAsyncDisposable
 {
 	public static TimeSpan InitialDelay { get; } = TimeSpan.FromSeconds(1);
@@ -44,7 +49,10 @@ internal sealed class SidecarSupervisor(
 			while (true)
 			{
 				var exitCode = await exited.WaitAsync(cancellationToken).ConfigureAwait(false);
-				SidecarLog.SidecarExited(logger, processId, exitCode);
+				if (external is null)
+					SidecarLog.SidecarExited(logger, processId, exitCode);
+				if (external is not null)
+					SidecarLog.ExternalSidecarLost(logger, external);
 
 				if (timeProvider.GetElapsedTime(startedAt) >= HealthyPeriod)
 					(delay, attempt) = (InitialDelay, 0);
@@ -59,7 +67,10 @@ internal sealed class SidecarSupervisor(
 					{
 						(processId, exited) = await launchAsync(cancellationToken).ConfigureAwait(false);
 						startedAt = timeProvider.GetTimestamp();
-						SidecarLog.SidecarRestarted(logger, processId, waited, attempt);
+						if (external is null)
+							SidecarLog.SidecarRestarted(logger, processId, waited, attempt);
+						if (external is not null)
+							SidecarLog.ExternalSidecarBack(logger, external, waited, attempt);
 						break;
 					}
 					catch (Exception e) when (!cancellationToken.IsCancellationRequested)

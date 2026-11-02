@@ -27,4 +27,11 @@ public sealed class SidecarVersionMismatchException : WhatsmeowException
 		throw new SidecarVersionMismatchException(
 			$"The sidecar is version {sidecarVersion} with protocol {sidecarProtocol}; this client is version {clientVersion} and needs the same version and a protocol from {minProtocol} to {maxProtocol}."
 		);
+
+	/// <summary>An external sidecar's protocol is out of range; any version is accepted there (ADR 0046).</summary>
+	[DoesNotReturn]
+	internal static void ThrowProtocol(string sidecarVersion, int sidecarProtocol, int minProtocol, int maxProtocol) =>
+		throw new SidecarVersionMismatchException(
+			$"The external sidecar is version {sidecarVersion} with protocol {sidecarProtocol}; this client needs a protocol from {minProtocol} to {maxProtocol}."
+		);
 }

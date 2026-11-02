@@ -31,5 +31,6 @@
 		<TrimmerRootAssembly Include="Whatsmeow.Protocol" />
 		<TrimmerRootAssembly Include="Whatsmeow.Protocol.WhatsApp" />
 		<TrimmerRootAssembly Include="Whatsmeow.Testing" />
+		<TrimmerRootAssembly Include="Grpc.HealthCheck" />
 	</ItemGroup>
 </Project>

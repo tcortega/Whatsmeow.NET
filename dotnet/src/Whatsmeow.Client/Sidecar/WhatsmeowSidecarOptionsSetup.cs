@@ -24,12 +24,21 @@ internal static class WhatsmeowSidecarOptionsSetup
 	/// </summary>
 	public static void Apply(WhatsmeowSidecarOptions options)
 	{
+		if (!string.IsNullOrWhiteSpace(options.MediaRoot))
+			options.MediaRoot = Path.TrimEndingDirectorySeparator(Path.GetFullPath(options.MediaRoot));
+
+		// An external sidecar has its own binary and database: none of the embedded defaults apply (ADR 0046).
+		if (options.External is { } external)
+		{
+			if (!string.IsNullOrWhiteSpace(external.TokenPath))
+				external.TokenPath = Path.GetFullPath(external.TokenPath);
+			return;
+		}
+
 		options.SidecarPath ??= Environment.GetEnvironmentVariable(SidecarPathVariable);
 		options.DatabasePath ??= DefaultDatabaseFile;
 		if (!string.IsNullOrWhiteSpace(options.DatabasePath))
 			options.DatabasePath = Path.GetFullPath(options.DatabasePath);
-		if (!string.IsNullOrWhiteSpace(options.MediaRoot))
-			options.MediaRoot = Path.TrimEndingDirectorySeparator(Path.GetFullPath(options.MediaRoot));
 	}
 
 	/// <summary>
@@ -55,13 +64,13 @@ internal static class WhatsmeowSidecarOptionsSetup
 		if (options.SidecarPath is { } path && string.IsNullOrWhiteSpace(path))
 			failures.Add($"{nameof(WhatsmeowSidecarOptions.SidecarPath)} must not be empty or white space.");
 
-		if (string.IsNullOrWhiteSpace(options.DatabasePath))
+		if (options.External is null && string.IsNullOrWhiteSpace(options.DatabasePath))
 			failures.Add($"{nameof(WhatsmeowSidecarOptions.DatabasePath)} must not be empty or white space.");
 
 		if (!Enum.IsDefined(options.Transport))
 			failures.Add($"{nameof(WhatsmeowSidecarOptions.Transport)} {options.Transport} is not a transport.");
 
-		if (options.Transport is SidecarTransport.NamedPipe && !OperatingSystem.IsWindows())
+		if (options.External is null && options.Transport is SidecarTransport.NamedPipe && !OperatingSystem.IsWindows())
 			failures.Add($"{nameof(WhatsmeowSidecarOptions.Transport)} {SidecarTransport.NamedPipe} is Windows only.");
 
 		if (options.MediaRoot is { } root && (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root)))
@@ -76,6 +85,7 @@ internal static class WhatsmeowSidecarOptionsSetup
 			failures.Add($"{nameof(WhatsmeowSidecarOptions.SendPacing)} must not be null.");
 
 		failures.AddRange(SendPacingFailures(options.SendPacing));
+		failures.AddRange(ExternalFailures(options));
 
 		return failures;
 	}
@@ -91,6 +101,46 @@ internal static class WhatsmeowSidecarOptionsSetup
 
 		if (pacing.Interval <= TimeSpan.Zero || pacing.Interval > SendPacingOptions.MaxInterval)
 			yield return $"{nameof(WhatsmeowSidecarOptions.SendPacing)}.{nameof(pacing.Interval)} {pacing.Interval} must be more than zero and at most {SendPacingOptions.MaxInterval}.";
+	}
+
+	/// <summary>
+	/// The External-mode rules (ADR 0046): an address and a token file, a consumer name the sidecar accepts, and the
+	/// options of a sidecar the client starts left at their defaults, so none is silently ignored.
+	/// </summary>
+	private static IEnumerable<string> ExternalFailures(WhatsmeowSidecarOptions options)
+	{
+		if (options.External is not { } external)
+			yield break;
+
+		const string Prefix = nameof(WhatsmeowSidecarOptions.External);
+
+		if (SidecarAddress.Parse(external.Address) is null)
+			yield return $"{Prefix}.{nameof(external.Address)} {external.Address} must be unix:<absolute path> or tcp:<host>:<port>.";
+
+		if (string.IsNullOrWhiteSpace(external.TokenPath))
+			yield return $"{Prefix}.{nameof(external.TokenPath)} must name the sidecar's token file.";
+
+		// A consumer name follows the sidecar's one id rule, a session id's (sidecar/internal/server/ids.go).
+		if (external.Consumer is null || !SessionId.TryFrom(external.Consumer, out _))
+			yield return $"{Prefix}.{nameof(external.Consumer)} {external.Consumer} must be 1 to 64 of [A-Za-z0-9._-], starting with a letter or a digit.";
+
+		const string Embedded = "configures a sidecar the client starts; an external one has its own flags";
+
+		if (options.SidecarPath is not null)
+			yield return $"{nameof(WhatsmeowSidecarOptions.SidecarPath)} {Embedded}.";
+
+		if (options.DatabasePath is not null)
+			yield return $"{nameof(WhatsmeowSidecarOptions.DatabasePath)} {Embedded}.";
+
+		if (options.Transport is not SidecarTransport.UnixDomainSocket)
+			yield return $"{nameof(WhatsmeowSidecarOptions.Transport)} {Embedded}.";
+
+		if (options.History is { RequestFullSync: true } or { FullSyncDaysLimit: not null } or { FullSyncSizeLimitMegabytes: not null } or { StorageQuotaMegabytes: not null })
+			yield return $"{nameof(WhatsmeowSidecarOptions.History)} {Embedded}: its --history-* flags.";
+
+		var pacing = new SendPacingOptions();
+		if (options.SendPacing is { } sendPacing && (sendPacing.Burst != pacing.Burst || sendPacing.Interval != pacing.Interval))
+			yield return $"{nameof(WhatsmeowSidecarOptions.SendPacing)} {Embedded}: its --send-* flags.";
 	}
 
 	/// <summary>The history options' broken rules: a limit is null, or more than zero.</summary>

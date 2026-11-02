@@ -724,4 +724,38 @@ public sealed class HostingTests(FakeSidecar fixture, SidecarBinaries binaries)
 		Assert.Equal(Tags.Of(("error.type", "NotLoggedIn")), Tags.Of(measurement));
 		await host.StopAsync(ct);
 	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task HostStop_ExternalMode_LeavesTheSidecarAndItsSessionsRunning()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var contentRoot = binaries.NewDirectory();
+		var token = StandaloneSidecar.NewTokenFile(contentRoot);
+		await using var standalone = await StandaloneSidecar.StartAsync(fixture.Binary, binaries.NewDatabase(), "tcp:127.0.0.1:0", token, ["--fake-whatsapp"], ct);
+
+		// From configuration, as a container's appsettings or environment would give it; the token file in the content root.
+		var builder = Hosts.Builder(
+			logs,
+			new(StringComparer.Ordinal) { ["Whatsmeow:External:Address"] = standalone.Address, ["Whatsmeow:External:TokenPath"] = Path.GetFileName(token), ["Whatsmeow:External:Consumer"] = "hosting" },
+			contentRoot
+		);
+		_ = builder.Services.AddWhatsmeow().AddSession("hosting-external").AddHandler<MessageReceived, RecordingHandler>();
+		using (var host = builder.Build())
+		{
+			await host.StartAsync(ct);
+			await Hosts.LinkAsync(host, "hosting-external", ct);
+			await Hosts.Client(host, "hosting-external").ConnectAsync(ct);
+			await Deliveries.DeliverAsync(Hosts.Fake(host), "hosting-external", ct, "M1");
+			Assert.Equal(Deliveries.Received("hosting-external", "M1"), (await Hosts.Handled(host).NextAsync(ct)).Event);
+
+			await host.StopAsync(ct);
+		}
+
+		// The host stopped what it started, its client, and never the sidecar an orchestrator runs.
+		await using var after = await WhatsmeowSidecar.StartAsync(new WhatsmeowSidecarOptions { External = new ExternalSidecarOptions { Address = standalone.Address, TokenPath = token } }, ct);
+		var session = await after.Sessions.GetOrCreateAsync(SessionId.From("hosting-external"), ct);
+		Assert.Equal(new SessionState.Connected(), await Sessions.SessionSetup.StateAsync(session, ct));
+		Assert.False(standalone.HasExited, standalone.Stderr);
+	}
 }

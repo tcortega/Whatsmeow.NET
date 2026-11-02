@@ -1,6 +1,7 @@
 using System.Diagnostics.Metrics;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
+using Grpc.Health.V1;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Whatsmeow.Core.Errors;
@@ -14,7 +15,9 @@ namespace Whatsmeow;
 
 /// <summary>
 /// The <c>whatsmeow-net</c> sidecar process and the calls to it. It finds, starts, checks and supervises the
-/// process, restarts it when it exits on its own, and stops it on <see cref="DisposeAsync"/>.
+/// process, restarts it when it exits on its own, and stops it on <see cref="DisposeAsync"/>. With
+/// <see cref="WhatsmeowSidecarOptions.External"/> it connects to a sidecar it does not start instead, connects again
+/// when that one goes away, and never stops it (ADR 0046).
 /// </summary>
 public sealed class WhatsmeowSidecar : IAsyncDisposable
 {
@@ -30,6 +33,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 	private readonly ILogger _log;
 	private readonly ILogger _sidecarLog;
 	private readonly ILoggerFactory _loggerFactory;
+	private readonly SidecarAddress? _external;
 	private readonly LocalChannel _none;
 	private readonly LaunchInvoker _launchInvoker;
 	private readonly SidecarService.SidecarServiceClient _client;
@@ -42,6 +46,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 	private string? _binary;
 	private string? _socketDirectory;
 	private Task? _starting;
+	private Task _watching = Task.CompletedTask;
 	private int _disposed;
 	private int _launches;
 	private TaskCompletionSource _launched = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -72,17 +77,27 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		// Every failed call is counted here, by its error code, the library's own calls included (ADR 0037).
 		CallInvoker = _launchInvoker.Intercept(new ErrorCounter(Metrics));
 		_client = new SidecarService.SidecarServiceClient(CallInvoker);
-		_supervisor = new SidecarSupervisor(LaunchAsync, timeProvider, _log);
+		_external = SidecarAddress.Parse(options.External?.Address);
+		_supervisor = new SidecarSupervisor(_external is null ? LaunchAsync : ConnectAsync, timeProvider, _log, _external?.ToString());
 		Sessions = new WhatsmeowSessions(this, CallInvoker, _log, clientCreated, declared);
 	}
 
 	/// <summary>The sidecar's sessions, one WhatsApp account each.</summary>
 	public WhatsmeowSessions Sessions { get; }
 
-	/// <summary>Starts the sidecar, waits until it is ready and checks its version.</summary>
+	/// <summary>
+	/// Starts the sidecar, waits until it is ready and checks its version; in External mode, connects to the sidecar and
+	/// checks its protocol only, so another release that speaks this client's contract is accepted.
+	/// </summary>
 	/// <exception cref="OptionsValidationException"><paramref name="options"/> is invalid; nothing was started.</exception>
-	/// <exception cref="SidecarUnavailableException">The binary was not found, or the sidecar did not start.</exception>
-	/// <exception cref="SidecarVersionMismatchException">The sidecar is another version; it was stopped.</exception>
+	/// <exception cref="SidecarUnavailableException">
+	/// The binary was not found, or the sidecar did not start. In External mode: the token file cannot be read, the
+	/// sidecar refused the token, or it did not answer within <see cref="WhatsmeowSidecarOptions.StartupTimeout"/>.
+	/// </exception>
+	/// <exception cref="SidecarVersionMismatchException">
+	/// The sidecar is another version, and it was stopped; in External mode, it speaks no protocol this client supports,
+	/// and it keeps running.
+	/// </exception>
 	public static Task<WhatsmeowSidecar> StartAsync(WhatsmeowSidecarOptions options, CancellationToken cancellationToken) =>
 		StartAsync(options, NullLoggerFactory.Instance, meterFactory: null, cancellationToken);
 
@@ -174,6 +189,9 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 
 	private static readonly HashSet<SessionId> s_none = [];
 
+	/// <summary>How long a connect waits before it asks an external sidecar that did not answer again.</summary>
+	private static readonly TimeSpan s_connectRetry = TimeSpan.FromSeconds(1);
+
 	/// <summary>
 	/// A sidecar that is not started yet, for the hosting package: its sessions' clients exist before the host starts it
 	/// (ADR 0034). <paramref name="clientCreated"/> runs for each new client of <see cref="Sessions"/>, before anyone can
@@ -240,15 +258,18 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 
 	private async Task StartFirstAsync(CancellationToken cancellationToken)
 	{
-		_binary = SidecarBinary.Locate(_options);
+		if (_external is null)
+		{
+			_binary = SidecarBinary.Locate(_options);
 
-		// The client owns the socket directory: created 0700 here, reused by every restart, deleted on dispose (ADR 0017).
-		_socketDirectory = _options.Transport is SidecarTransport.UnixDomainSocket ? Directory.CreateTempSubdirectory("wmn-").FullName : null;
+			// The client owns the socket directory: created 0700 here, reused by every restart, deleted on dispose (ADR 0017).
+			_socketDirectory = _options.Transport is SidecarTransport.UnixDomainSocket ? Directory.CreateTempSubdirectory("wmn-").FullName : null;
+		}
 
 		using var starting = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _disposing.Token);
 		try
 		{
-			var (processId, exited) = await LaunchAsync(starting.Token).ConfigureAwait(false);
+			var (processId, exited) = await (_external is null ? LaunchAsync(starting.Token) : ConnectAsync(starting.Token)).ConfigureAwait(false);
 			_supervisor.Start(processId, exited);
 		}
 		catch (OperationCanceledException) when (_disposing.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
@@ -266,6 +287,9 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 
 	/// <summary>The media root as a full path, or null when none is configured.</summary>
 	internal string? MediaRoot => _options.MediaRoot;
+
+	/// <summary>The name the sidecar keeps this client's event cursors under (ARCHITECTURE §8.4).</summary>
+	internal string Consumer => _options.External?.Consumer ?? ExternalSidecarOptions.DefaultConsumer;
 
 	internal bool IsDisposed => _disposed != 0;
 
@@ -319,7 +343,11 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		return ToSidecarInfo(await GetInfoCoreAsync(cancellationToken).ConfigureAwait(false));
 	}
 
-	/// <summary>Stops the sidecar: a graceful stop, then a kill after a 5 s grace. Its socket directory is deleted.</summary>
+	/// <summary>
+	/// Stops the sidecar: a graceful stop, then a kill after a 5 s grace. Its socket directory is deleted. An external
+	/// sidecar is never stopped: the client only stops its own event readers, acks what their handlers finished, and
+	/// closes its connection.
+	/// </summary>
 	public ValueTask DisposeAsync() => new(StopAsync(CancellationToken.None));
 
 	/// <summary>
@@ -351,6 +379,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 			{
 				await _disposing.CancelAsync().ConfigureAwait(false);
 				await _supervisor.DisposeAsync().ConfigureAwait(false);
+				await _watching.ConfigureAwait(false);
 			}
 		}
 		finally
@@ -435,6 +464,125 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 
 		await Sessions.ReconnectAsync(cancellationToken).ConfigureAwait(false);
 
+		CountLaunch();
+		return (process.Id, process.Exited);
+	}
+
+	/// <summary>
+	/// Connects to an external sidecar (ADR 0046), for the first start and after it went away: one connect epoch, an
+	/// External-mode launch. Each attempt reads the token file again and publishes a channel of its own with that token,
+	/// so a rotated secret is followed and no call of an older epoch reaches this one (ADR 0045). GetInfo until the
+	/// sidecar answers within the startup timeout, the protocol check, then the health watch on this epoch's channel,
+	/// whose end says the sidecar is gone, then Connect again for the sessions the application had connected. Its
+	/// process id is 0: the process is not the client's.
+	/// </summary>
+	private async Task<(int ProcessId, Task<int> Exited)> ConnectAsync(CancellationToken cancellationToken)
+	{
+		using var timeout = new CancellationTokenSource(_options.StartupTimeout, TimeProvider);
+		using var startup = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
+		var address = _external!.ToString();
+
+		SidecarUnavailableException? unreachable = null;
+		try
+		{
+			GetInfoResponse info;
+			LocalChannel channel;
+			while (true)
+			{
+				channel = LocalChannel.ToExternal(_external, ExternalToken.Read(_options.External!.TokenPath!), _options.External.KeepAlive, _loggerFactory, TimeProvider);
+				Publish(channel);
+				try
+				{
+					info = await GetInfoCoreAsync(startup.Token).ConfigureAwait(false);
+					break;
+				}
+				catch (SidecarUnavailableException e) when (e.ErrorCode is WhatsmeowErrorCode.Unauthenticated)
+				{
+					SidecarUnavailableException.ThrowTokenRefused(address, e);
+				}
+				catch (SidecarUnavailableException e)
+				{
+					// Not listening yet, or restarting: an orchestrator may start the two in any order.
+					unreachable = e;
+					await Task.Delay(s_connectRetry, TimeProvider, startup.Token).ConfigureAwait(false);
+				}
+			}
+
+			var protocol = (int)info.Protocol;
+			if (protocol < _minProtocol || protocol > _maxProtocol)
+				SidecarVersionMismatchException.ThrowProtocol(info.Version, protocol, _minProtocol, _maxProtocol);
+
+			var watching = await WatchAsync(channel, startup.Token).ConfigureAwait(false);
+			_watching = watching;
+			SidecarLog.ExternalSidecarConnected(_log, address, info.Version);
+			await Sessions.ReconnectAsync(cancellationToken).ConfigureAwait(false);
+
+			CountLaunch();
+			return (0, watching);
+		}
+		catch (OperationCanceledException e) when (timeout.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+		{
+			SidecarUnavailableException.ThrowNotAnswering(address, _options.StartupTimeout, unreachable ?? (Exception)e);
+			throw;
+		}
+	}
+
+	/// <summary>
+	/// Opens the health watch on <paramref name="channel"/>, this epoch's, and waits for its first status, which proves the
+	/// stream reaches the sidecar. The task it returns completes once the watch ends, however: the sidecar stopped,
+	/// restarted, or its connection failed, a silent one included, which the keepalive pings drop. Disposing the client
+	/// ends it too.
+	/// </summary>
+	private async Task<Task<int>> WatchAsync(LocalChannel channel, CancellationToken startup)
+	{
+		var call = new Health.HealthClient(channel.CallInvoker).Watch(new HealthCheckRequest(), cancellationToken: _disposing.Token);
+		try
+		{
+			if (!await call.ResponseStream.MoveNext(startup).ConfigureAwait(false))
+				SidecarUnavailableException.ThrowNotAnswering(_external!.ToString(), _options.StartupTimeout, innerException: null);
+		}
+		catch (RpcException e)
+		{
+			call.Dispose();
+			RpcErrors.Throw(e);
+		}
+		catch
+		{
+			call.Dispose();
+			throw;
+		}
+
+#pragma warning disable CA2025 // Justification: the returned task owns the call, and disposes it when the watch ends
+		return WatchUntilItEndsAsync(call, _log);
+#pragma warning restore CA2025
+	}
+
+	/// <summary>Completes when the watch ends, whatever ends it: any end or fault is the sidecar lost, never a fault of this task.</summary>
+	private static async Task<int> WatchUntilItEndsAsync(AsyncServerStreamingCall<HealthCheckResponse> call, ILogger log)
+	{
+		using (call)
+		{
+			try
+			{
+				while (await call.ResponseStream.MoveNext(CancellationToken.None).ConfigureAwait(false))
+				{
+					// A status change; the sidecar sends none but its first.
+				}
+			}
+#pragma warning disable CA1031 // Justification: a watch that faults is a sidecar lost; the supervisor connects again
+			catch (Exception e)
+#pragma warning restore CA1031
+			{
+				SidecarLog.ExternalWatchEnded(log, e);
+			}
+		}
+
+		return 0;
+	}
+
+	/// <summary>Counts a sidecar that is ready, and wakes everything that waits for the next one.</summary>
+	private void CountLaunch()
+	{
 		TaskCompletionSource launched;
 		bool restarted;
 		lock (_launchLock)
@@ -448,7 +596,6 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 			Metrics.Restarted();
 
 		launched.SetResult();
-		return (process.Id, process.Exited);
 	}
 
 	/// <summary>
