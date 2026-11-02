@@ -1,4 +1,5 @@
 using Google.Protobuf.WellKnownTypes;
+using Whatsmeow.ChatState;
 using Whatsmeow.Contacts;
 using Whatsmeow.Presence;
 using Whatsmeow.Media;
@@ -63,6 +64,7 @@ internal static class EventMapping
 					_ => new MediaRetryResult.Failed { Reason = MediaRetryFailure.Unknown },
 				},
 			},
+			Payload.ChatState => ChatStateMapping.ToEvent(sessionId, response.ChatState),
 			Payload.Receipt => new ReceiptReceived
 			{
 				SessionId = sessionId,
@@ -85,6 +87,7 @@ internal static class EventMapping
 			// The contact's lane: a user's changes run in order with their direct chat when it uses the same form.
 			Payload.Contact => response.Contact.Jid,
 			Payload.MediaRetry => response.MediaRetry.Chat,
+			Payload.ChatState => response.ChatState.Chat,
 			Payload.Receipt => response.Receipt.Source?.Chat ?? SessionLane,
 			// The group's lane: its changes run in order with its messages.
 			Payload.Group => response.Group.Group,

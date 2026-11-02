@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Grpc.Core;
+using Whatsmeow.ChatState;
 using Whatsmeow.Contacts;
 using Whatsmeow.Core.Errors;
 using Whatsmeow.Events;
@@ -42,6 +43,7 @@ internal sealed class SessionClient(
 	private readonly MediaTransfer _media = new(new MediaService.MediaServiceClient(invoker), sessionId, sidecar.MediaRoot, log);
 	private readonly MessageService.MessageServiceClient _messages = new(invoker);
 	private readonly GroupService.GroupServiceClient _groups = new(invoker);
+	private readonly ChatStateService.ChatStateServiceClient _chatState = new(invoker);
 
 	public SessionId SessionId => sessionId;
 
@@ -492,5 +494,47 @@ internal sealed class SessionClient(
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new LeaveGroupRequest { SessionId = sessionId.Value, Group = group.ToString() };
 		_ = await RpcErrors.CallAsync(_groups.LeaveGroupAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+	}
+
+	public Task MuteChatAsync(Jid chat, DateTimeOffset? until = null, CancellationToken cancellationToken = default) =>
+		SetChatStateAsync(new SetChatStateRequest { Chat = chat.ToString(), Mute = ChatStateMapping.ToMute(until) }, cancellationToken);
+
+	public Task UnmuteChatAsync(Jid chat, CancellationToken cancellationToken = default) =>
+		SetChatStateAsync(new SetChatStateRequest { Chat = chat.ToString(), Mute = new ChatMute() }, cancellationToken);
+
+	public Task PinChatAsync(Jid chat, CancellationToken cancellationToken = default) =>
+		SetChatStateAsync(new SetChatStateRequest { Chat = chat.ToString(), Pin = new ChatPin { Pinned = true } }, cancellationToken);
+
+	public Task UnpinChatAsync(Jid chat, CancellationToken cancellationToken = default) =>
+		SetChatStateAsync(new SetChatStateRequest { Chat = chat.ToString(), Pin = new ChatPin() }, cancellationToken);
+
+	public Task ArchiveChatAsync(Jid chat, CancellationToken cancellationToken = default) =>
+		SetChatStateAsync(new SetChatStateRequest { Chat = chat.ToString(), Archive = new ChatArchive { Archived = true } }, cancellationToken);
+
+	public Task UnarchiveChatAsync(Jid chat, CancellationToken cancellationToken = default) =>
+		SetChatStateAsync(new SetChatStateRequest { Chat = chat.ToString(), Archive = new ChatArchive() }, cancellationToken);
+
+	public Task MarkChatReadAsync(Jid chat, CancellationToken cancellationToken = default) =>
+		SetChatStateAsync(new SetChatStateRequest { Chat = chat.ToString(), Read = new ChatRead { Read = true } }, cancellationToken);
+
+	public Task MarkChatUnreadAsync(Jid chat, CancellationToken cancellationToken = default) =>
+		SetChatStateAsync(new SetChatStateRequest { Chat = chat.ToString(), Read = new ChatRead() }, cancellationToken);
+
+	public Task StarMessageAsync(MessageId id, Events.MessageSource source, CancellationToken cancellationToken = default) => StarAsync(id, source, starred: true, cancellationToken);
+
+	public Task UnstarMessageAsync(MessageId id, Events.MessageSource source, CancellationToken cancellationToken = default) =>
+		StarAsync(id, source, starred: false, cancellationToken);
+
+	private Task StarAsync(MessageId id, Events.MessageSource source, bool starred, CancellationToken cancellationToken)
+	{
+		ArgumentNullException.ThrowIfNull(source);
+		return SetChatStateAsync(new SetChatStateRequest { Chat = source.Chat.ToString(), Star = ChatStateMapping.ToStar(id, source, starred) }, cancellationToken);
+	}
+
+	private async Task SetChatStateAsync(SetChatStateRequest request, CancellationToken cancellationToken)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		request.SessionId = sessionId.Value;
+		_ = await RpcErrors.CallAsync(_chatState.SetChatStateAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
 	}
 }

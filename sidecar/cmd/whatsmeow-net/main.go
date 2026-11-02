@@ -30,6 +30,7 @@ import (
 	wastore "go.mau.fi/whatsmeow/store"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/chatstate"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/contacts"
 	eventsslice "github.com/tcortega/Whatsmeow.NET/sidecar/internal/events"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/groups"
@@ -191,10 +192,14 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 
 	box := outbox.New(db.DB)
 	// Each slice that records whatsmeow events in the outbox passes its mapper (eventsslice.Mapper).
-	events := eventsslice.New(box, log, contacts.Event, groups.Event, media.Mapper(db.DB, log), messaging.Receipt) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
+	events := eventsslice.New(box, log, contacts.Event, chatstate.Event, groups.Event, media.Mapper(db.DB, log), messaging.Receipt) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
 	whatsmeowv1.RegisterEventServiceServer(srv, events)
 
-	sessions, err := session.New(ctx, db.DB, db.Devices, box, recording(newClient, events), log) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
+	// Closed after the sessions: its recoveries end with their sessions' clients.
+	chats := chatstate.New(log)
+	defer chats.Close()
+
+	sessions, err := session.New(ctx, db.DB, db.Devices, box, recording(newClient, events, chats), log) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
 	if err != nil {
 		_ = lis.Close()
 
@@ -227,6 +232,9 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 	defer messages.Close()
 
 	whatsmeowv1.RegisterMessageServiceServer(srv, messages)
+
+	chats.Use(sessions)
+	whatsmeowv1.RegisterChatStateServiceServer(srv, chats)
 
 	served := make(chan error, 1)
 
@@ -277,11 +285,13 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 }
 
 // recording gives every client the Events slice's handler, first, so each session's events go into the outbox
-// (ARCHITECTURE §7.3); the session slice's own handler comes after it.
-func recording(newClient session.NewClient, events *eventsslice.Service) session.NewClient {
+// (ARCHITECTURE §7.3), then the Chat state slice's, which only signals its recovery; the session slice's own handler
+// comes after them.
+func recording(newClient session.NewClient, events *eventsslice.Service, chats *chatstate.Service) session.NewClient {
 	return func(sessionID string, device *wastore.Device) session.Client {
 		client := newClient(sessionID, device)
 		client.AddEventHandlerWithSuccessStatus(events.Handler(sessionID))
+		client.AddEventHandlerWithSuccessStatus(chats.Handler(sessionID))
 
 		return client
 	}

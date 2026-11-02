@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+package whatsmeow.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// ChatStateService changes how the account's chats look on all of its devices: muted, pinned, archived, read, and
+// starred messages (ARCHITECTURE §3, Chat state). These live in WhatsApp's app state, which the phone and every
+// linked device share. In whatsmeow and on the wire, "chatstate" is typing (composing, paused), which is
+// presence.proto's ChatPresence; chat state here is app state.
+//
+// A chat is a user's JID, by phone number or LID, or a group's; a device in it is ignored. A chat that does not parse,
+// or that is neither, is INVALID_ARGUMENT (field "chat").
+// The RPC needs the session logged in to WhatsApp right now: it fails at once with NOT_LOGGED_IN, LOGGED_OUT,
+// TEMPORARILY_BANNED or NOT_CONNECTED otherwise. It is NOT_CONNECTED too while the phone has not shared the app state
+// keys yet, which it does once after pairing.
+// It fails with SESSION_NOT_FOUND for an id no session has.
+service ChatStateService {
+  // SetChatState sets one chat state, or stars or unstars one message. Setting a state the chat already has succeeds.
+  // When WhatsApp rejects the write because the session's copy of the app state is out of step with WhatsApp's, the
+  // sidecar syncs that copy again in full and retries the write once: WhatsApp rejected it, so it did not take effect.
+  // When the write still fails, WhatsApp rejected it: WHATSAPP_ERROR, with metadata "code", 409 for a conflict.
+  // A write that went out with no answer back is OUTCOME_UNKNOWN, and is never retried.
+  // A write WhatsApp took whose sync after it failed is OK when the sync found the session's copy out of step (the
+  // sidecar then syncs it in full), and otherwise OUTCOME_UNKNOWN or NOT_CONNECTED: whatsmeow wraps that sync's error
+  // without a sentinel that would tell it from the write's own (appstate.go:627-629).
+  // Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, TEMPORARILY_BANNED, NOT_CONNECTED,
+  // RATE_LIMITED, WHATSAPP_ERROR, OUTCOME_UNKNOWN.
+  rpc SetChatState(SetChatStateRequest) returns (SetChatStateResponse);
+}
+
+// SetChatStateRequest names the chat and what to change.
+message SetChatStateRequest {
+  // The session id.
+  string session_id = 1;
+  // The chat: a user or a group JID.
+  string chat = 2;
+  // What to change. Unset is INVALID_ARGUMENT (field "change").
+  oneof change {
+    // Mute or unmute the chat.
+    ChatMute mute = 3;
+    // Pin or unpin the chat.
+    ChatPin pin = 4;
+    // Archive or unarchive the chat. Archiving also unpins it.
+    ChatArchive archive = 5;
+    // Mark the chat read or unread.
+    ChatRead read = 6;
+    // Star or unstar a message of the chat.
+    MessageStar star = 7;
+  }
+}
+
+// SetChatStateResponse has no fields.
+message SetChatStateResponse {}
+
+// ChatMute is whether a chat is muted.
+message ChatMute {
+  // True when the chat is muted.
+  bool muted = 1;
+  // When the mute ends; unset while unmuted, or when muted forever. It is kept to the millisecond. In a request, an end
+  // at or before the Unix epoch is INVALID_ARGUMENT (field "until"): whatsmeow reads 0 or less as forever.
+  google.protobuf.Timestamp until = 2;
+}
+
+// ChatPin is whether a chat is pinned.
+message ChatPin {
+  // True when the chat is pinned.
+  bool pinned = 1;
+}
+
+// ChatArchive is whether a chat is archived.
+message ChatArchive {
+  // True when the chat is archived.
+  bool archived = 1;
+}
+
+// ChatRead is whether a chat is marked read.
+message ChatRead {
+  // True when the chat is read; false when it is marked unread.
+  bool read = 1;
+}
+
+// MessageStar is whether a message is starred.
+message MessageStar {
+  // The message's id. Empty is INVALID_ARGUMENT (field "message_id").
+  string message_id = 1;
+  // In a group, the user who sent the message, without a device; empty for a message the account sent, and in a
+  // direct chat. A group message from someone else without one is INVALID_ARGUMENT (field "sender").
+  string sender = 2;
+  // True when the account sent the message.
+  bool is_from_me = 3;
+  // True when the message is starred.
+  bool starred = 4;
+}
+
+// ChatStateEvent is a change to a chat's state that the app state sync brought: made on another device, or the echo of
+// this session's own write. whatsmeow acknowledges app state to WhatsApp whatever the handlers return, so these are
+// best effort: one that the sidecar failed to record is lost (ARCHITECTURE §1). A repeat carries the same value.
+// A full sync, once after pairing and again when the sidecar recovers a collection, sends the state of every chat it
+// holds, each marked from_full_sync.
+message ChatStateEvent {
+  // The chat, without a device.
+  string chat = 1;
+  // When the change was made.
+  google.protobuf.Timestamp change_time = 2;
+  // True when the event comes from a full sync of the app state, not from a change.
+  bool from_full_sync = 3;
+  // What changed.
+  oneof change {
+    // See ChatMute.
+    ChatMute mute = 4;
+    // See ChatPin.
+    ChatPin pin = 5;
+    // See ChatArchive.
+    ChatArchive archive = 6;
+    // See ChatRead.
+    ChatRead read = 7;
+    // See MessageStar.
+    MessageStar star = 8;
+  }
+}

@@ -1244,3 +1244,110 @@ Whatsmeow.Messaging.SendResult.Id.init -> void
 Whatsmeow.Messaging.SendResult.SendResult() -> void
 Whatsmeow.Messaging.SendResult.Timestamp.get -> System.DateTimeOffset
 Whatsmeow.Messaging.SendResult.Timestamp.init -> void
+abstract Whatsmeow.ChatState.ChatStateChange.<Clone>$() -> Whatsmeow.ChatState.ChatStateChange!
+override sealed Whatsmeow.ChatState.ChatStateChange.Archive.Equals(Whatsmeow.ChatState.ChatStateChange? other) -> bool
+override sealed Whatsmeow.ChatState.ChatStateChange.Mute.Equals(Whatsmeow.ChatState.ChatStateChange? other) -> bool
+override sealed Whatsmeow.ChatState.ChatStateChange.Pin.Equals(Whatsmeow.ChatState.ChatStateChange? other) -> bool
+override sealed Whatsmeow.ChatState.ChatStateChange.Read.Equals(Whatsmeow.ChatState.ChatStateChange? other) -> bool
+override sealed Whatsmeow.ChatState.ChatStateChange.Star.Equals(Whatsmeow.ChatState.ChatStateChange? other) -> bool
+override sealed Whatsmeow.ChatState.ChatStateChanged.Equals(Whatsmeow.Events.WhatsAppEvent? other) -> bool
+override Whatsmeow.ChatState.ChatStateChange.Archive.<Clone>$() -> Whatsmeow.ChatState.ChatStateChange.Archive!
+override Whatsmeow.ChatState.ChatStateChange.Archive.Equals(object? obj) -> bool
+override Whatsmeow.ChatState.ChatStateChange.Archive.GetHashCode() -> int
+override Whatsmeow.ChatState.ChatStateChange.Archive.ToString() -> string!
+override Whatsmeow.ChatState.ChatStateChange.Equals(object? obj) -> bool
+override Whatsmeow.ChatState.ChatStateChange.GetHashCode() -> int
+override Whatsmeow.ChatState.ChatStateChange.Mute.<Clone>$() -> Whatsmeow.ChatState.ChatStateChange.Mute!
+override Whatsmeow.ChatState.ChatStateChange.Mute.Equals(object? obj) -> bool
+override Whatsmeow.ChatState.ChatStateChange.Mute.GetHashCode() -> int
+override Whatsmeow.ChatState.ChatStateChange.Mute.ToString() -> string!
+override Whatsmeow.ChatState.ChatStateChange.Pin.<Clone>$() -> Whatsmeow.ChatState.ChatStateChange.Pin!
+override Whatsmeow.ChatState.ChatStateChange.Pin.Equals(object? obj) -> bool
+override Whatsmeow.ChatState.ChatStateChange.Pin.GetHashCode() -> int
+override Whatsmeow.ChatState.ChatStateChange.Pin.ToString() -> string!
+override Whatsmeow.ChatState.ChatStateChange.Read.<Clone>$() -> Whatsmeow.ChatState.ChatStateChange.Read!
+override Whatsmeow.ChatState.ChatStateChange.Read.Equals(object? obj) -> bool
+override Whatsmeow.ChatState.ChatStateChange.Read.GetHashCode() -> int
+override Whatsmeow.ChatState.ChatStateChange.Read.ToString() -> string!
+override Whatsmeow.ChatState.ChatStateChange.Star.<Clone>$() -> Whatsmeow.ChatState.ChatStateChange.Star!
+override Whatsmeow.ChatState.ChatStateChange.Star.Equals(object? obj) -> bool
+override Whatsmeow.ChatState.ChatStateChange.Star.GetHashCode() -> int
+override Whatsmeow.ChatState.ChatStateChange.Star.ToString() -> string!
+override Whatsmeow.ChatState.ChatStateChange.ToString() -> string!
+override Whatsmeow.ChatState.ChatStateChanged.<Clone>$() -> Whatsmeow.ChatState.ChatStateChanged!
+override Whatsmeow.ChatState.ChatStateChanged.Equals(object? obj) -> bool
+override Whatsmeow.ChatState.ChatStateChanged.GetHashCode() -> int
+override Whatsmeow.ChatState.ChatStateChanged.ToString() -> string!
+static Whatsmeow.ChatState.ChatStateChange.Archive.operator !=(Whatsmeow.ChatState.ChatStateChange.Archive? left, Whatsmeow.ChatState.ChatStateChange.Archive? right) -> bool
+static Whatsmeow.ChatState.ChatStateChange.Archive.operator ==(Whatsmeow.ChatState.ChatStateChange.Archive? left, Whatsmeow.ChatState.ChatStateChange.Archive? right) -> bool
+static Whatsmeow.ChatState.ChatStateChange.Mute.operator !=(Whatsmeow.ChatState.ChatStateChange.Mute? left, Whatsmeow.ChatState.ChatStateChange.Mute? right) -> bool
+static Whatsmeow.ChatState.ChatStateChange.Mute.operator ==(Whatsmeow.ChatState.ChatStateChange.Mute? left, Whatsmeow.ChatState.ChatStateChange.Mute? right) -> bool
+static Whatsmeow.ChatState.ChatStateChange.operator !=(Whatsmeow.ChatState.ChatStateChange? left, Whatsmeow.ChatState.ChatStateChange? right) -> bool
+static Whatsmeow.ChatState.ChatStateChange.operator ==(Whatsmeow.ChatState.ChatStateChange? left, Whatsmeow.ChatState.ChatStateChange? right) -> bool
+static Whatsmeow.ChatState.ChatStateChange.Pin.operator !=(Whatsmeow.ChatState.ChatStateChange.Pin? left, Whatsmeow.ChatState.ChatStateChange.Pin? right) -> bool
+static Whatsmeow.ChatState.ChatStateChange.Pin.operator ==(Whatsmeow.ChatState.ChatStateChange.Pin? left, Whatsmeow.ChatState.ChatStateChange.Pin? right) -> bool
+static Whatsmeow.ChatState.ChatStateChange.Read.operator !=(Whatsmeow.ChatState.ChatStateChange.Read? left, Whatsmeow.ChatState.ChatStateChange.Read? right) -> bool
+static Whatsmeow.ChatState.ChatStateChange.Read.operator ==(Whatsmeow.ChatState.ChatStateChange.Read? left, Whatsmeow.ChatState.ChatStateChange.Read? right) -> bool
+static Whatsmeow.ChatState.ChatStateChange.Star.operator !=(Whatsmeow.ChatState.ChatStateChange.Star? left, Whatsmeow.ChatState.ChatStateChange.Star? right) -> bool
+static Whatsmeow.ChatState.ChatStateChange.Star.operator ==(Whatsmeow.ChatState.ChatStateChange.Star? left, Whatsmeow.ChatState.ChatStateChange.Star? right) -> bool
+static Whatsmeow.ChatState.ChatStateChanged.operator !=(Whatsmeow.ChatState.ChatStateChanged? left, Whatsmeow.ChatState.ChatStateChanged? right) -> bool
+static Whatsmeow.ChatState.ChatStateChanged.operator ==(Whatsmeow.ChatState.ChatStateChanged? left, Whatsmeow.ChatState.ChatStateChanged? right) -> bool
+virtual Whatsmeow.ChatState.ChatStateChange.EqualityContract.get -> System.Type!
+virtual Whatsmeow.ChatState.ChatStateChange.Equals(Whatsmeow.ChatState.ChatStateChange? other) -> bool
+virtual Whatsmeow.ChatState.ChatStateChange.PrintMembers(System.Text.StringBuilder! builder) -> bool
+Whatsmeow.ChatState.ChatStateChange
+Whatsmeow.ChatState.ChatStateChange.Archive
+Whatsmeow.ChatState.ChatStateChange.Archive.Archive() -> void
+Whatsmeow.ChatState.ChatStateChange.Archive.Equals(Whatsmeow.ChatState.ChatStateChange.Archive? other) -> bool
+Whatsmeow.ChatState.ChatStateChange.Archive.IsArchived.get -> bool
+Whatsmeow.ChatState.ChatStateChange.Archive.IsArchived.init -> void
+Whatsmeow.ChatState.ChatStateChange.ChatStateChange(Whatsmeow.ChatState.ChatStateChange! original) -> void
+Whatsmeow.ChatState.ChatStateChange.Mute
+Whatsmeow.ChatState.ChatStateChange.Mute.Equals(Whatsmeow.ChatState.ChatStateChange.Mute? other) -> bool
+Whatsmeow.ChatState.ChatStateChange.Mute.IsMuted.get -> bool
+Whatsmeow.ChatState.ChatStateChange.Mute.IsMuted.init -> void
+Whatsmeow.ChatState.ChatStateChange.Mute.Mute() -> void
+Whatsmeow.ChatState.ChatStateChange.Mute.Until.get -> System.DateTimeOffset?
+Whatsmeow.ChatState.ChatStateChange.Mute.Until.init -> void
+Whatsmeow.ChatState.ChatStateChange.Pin
+Whatsmeow.ChatState.ChatStateChange.Pin.Equals(Whatsmeow.ChatState.ChatStateChange.Pin? other) -> bool
+Whatsmeow.ChatState.ChatStateChange.Pin.IsPinned.get -> bool
+Whatsmeow.ChatState.ChatStateChange.Pin.IsPinned.init -> void
+Whatsmeow.ChatState.ChatStateChange.Pin.Pin() -> void
+Whatsmeow.ChatState.ChatStateChange.Read
+Whatsmeow.ChatState.ChatStateChange.Read.Equals(Whatsmeow.ChatState.ChatStateChange.Read? other) -> bool
+Whatsmeow.ChatState.ChatStateChange.Read.IsRead.get -> bool
+Whatsmeow.ChatState.ChatStateChange.Read.IsRead.init -> void
+Whatsmeow.ChatState.ChatStateChange.Read.Read() -> void
+Whatsmeow.ChatState.ChatStateChange.Star
+Whatsmeow.ChatState.ChatStateChange.Star.Equals(Whatsmeow.ChatState.ChatStateChange.Star? other) -> bool
+Whatsmeow.ChatState.ChatStateChange.Star.IsFromMe.get -> bool
+Whatsmeow.ChatState.ChatStateChange.Star.IsFromMe.init -> void
+Whatsmeow.ChatState.ChatStateChange.Star.IsStarred.get -> bool
+Whatsmeow.ChatState.ChatStateChange.Star.IsStarred.init -> void
+Whatsmeow.ChatState.ChatStateChange.Star.MessageId.get -> Whatsmeow.MessageId
+Whatsmeow.ChatState.ChatStateChange.Star.MessageId.init -> void
+Whatsmeow.ChatState.ChatStateChange.Star.Sender.get -> Whatsmeow.Jid?
+Whatsmeow.ChatState.ChatStateChange.Star.Sender.init -> void
+Whatsmeow.ChatState.ChatStateChange.Star.Star() -> void
+Whatsmeow.ChatState.ChatStateChanged
+Whatsmeow.ChatState.ChatStateChanged.Change.get -> Whatsmeow.ChatState.ChatStateChange!
+Whatsmeow.ChatState.ChatStateChanged.Change.init -> void
+Whatsmeow.ChatState.ChatStateChanged.Chat.get -> Whatsmeow.Jid
+Whatsmeow.ChatState.ChatStateChanged.Chat.init -> void
+Whatsmeow.ChatState.ChatStateChanged.ChatStateChanged() -> void
+Whatsmeow.ChatState.ChatStateChanged.Equals(Whatsmeow.ChatState.ChatStateChanged? other) -> bool
+Whatsmeow.ChatState.ChatStateChanged.FromFullSync.get -> bool
+Whatsmeow.ChatState.ChatStateChanged.FromFullSync.init -> void
+Whatsmeow.ChatState.ChatStateChanged.Timestamp.get -> System.DateTimeOffset
+Whatsmeow.ChatState.ChatStateChanged.Timestamp.init -> void
+Whatsmeow.IWhatsAppClient.ArchiveChatAsync(Whatsmeow.Jid chat, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.MarkChatReadAsync(Whatsmeow.Jid chat, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.MarkChatUnreadAsync(Whatsmeow.Jid chat, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.MuteChatAsync(Whatsmeow.Jid chat, System.DateTimeOffset? until = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.PinChatAsync(Whatsmeow.Jid chat, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.UnarchiveChatAsync(Whatsmeow.Jid chat, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.UnmuteChatAsync(Whatsmeow.Jid chat, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.UnpinChatAsync(Whatsmeow.Jid chat, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.StarMessageAsync(Whatsmeow.MessageId id, Whatsmeow.Events.MessageSource! source, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.UnstarMessageAsync(Whatsmeow.MessageId id, Whatsmeow.Events.MessageSource! source, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!

@@ -47,10 +47,12 @@ type Client struct {
 	// activeReceipts is whatsmeow's sendActiveReceipts (client.go:95), which SendPresence turns on and off.
 	activeReceipts bool
 	// queue runs one dispatch at a time, as whatsmeow's per-client node queue does (ARCHITECTURE §7.3).
-	queue    sync.Mutex
-	mu       sync.RWMutex
-	handlers []whatsmeow.EventHandlerWithSuccessStatus
-	lastID   uint32
+	queue sync.Mutex
+	// appStateLock is whatsmeow's appStateSyncLock (client.go:107), held while a sync fetches (appstate.go:46).
+	appStateLock sync.Mutex
+	mu           sync.RWMutex
+	handlers     []whatsmeow.EventHandlerWithSuccessStatus
+	lastID       uint32
 }
 
 // AddEventHandlerWithSuccessStatus registers a handler; returning false withholds the answer to the stanza (for a

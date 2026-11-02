@@ -4,6 +4,7 @@ package whatsmeow.v1;
 
 import "google/protobuf/timestamp.proto";
 import "waE2E/WAWebProtobufsE2E.proto";
+import "whatsmeow/v1/chatstate.proto";
 import "whatsmeow/v1/contact.proto";
 import "whatsmeow/v1/media.proto";
 import "whatsmeow/v1/presence.proto";
@@ -179,6 +180,8 @@ message StreamEventsResponse {
     MediaRetryEvent media_retry = 15;
     // A group notification: a change to a group, or the session joining one (group.proto).
     GroupEvent group = 16;
+    // A change to a chat's state; best effort (chatstate.proto).
+    ChatStateEvent chat_state = 17;
   }
 }
 

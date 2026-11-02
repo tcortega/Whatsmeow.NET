@@ -152,6 +152,12 @@ func (c *Control) LinkDevice(ctx context.Context, req *fakev1.LinkDeviceRequest)
 		return nil, fmt.Errorf("link session %q: save the device: %w", req.GetSessionId(), err)
 	}
 
+	if !req.GetWithoutAppStateKey() {
+		if err := shareAppStateKey(ctx, client.Store); err != nil {
+			return nil, fmt.Errorf("link session %q: %w", req.GetSessionId(), err)
+		}
+	}
+
 	client.dispatch(&events.PairSuccess{ID: jid})
 
 	client.conn.Lock()
