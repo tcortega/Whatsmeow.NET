@@ -36,6 +36,12 @@ internal static class LiveSettings
 	/// <summary>Whether the owner is at the phone.</summary>
 	public static bool Owner { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(OwnerVariable));
 
+	/// <summary>
+	/// Where each run backs up the live and peer databases before their first start, <c>~/.whatsmeow-net-live/backup/</c>
+	/// (0700, the files 0600): the one sanctioned copy of them.
+	/// </summary>
+	public static string BackupDirectory { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".whatsmeow-net-live", "backup");
+
 	/// <summary>Whether the live tests run.</summary>
 	public static bool Enabled => Database.Length > 0;
 }

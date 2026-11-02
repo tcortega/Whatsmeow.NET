@@ -24,6 +24,10 @@ namespace SidecarHost;
 /// watermark until that lane ran them: a tick before that acks nothing, and no tick comes after it (#61). This
 /// process's connect records <see cref="SessionState.Connected"/> after the messages, and a lane runs its events one
 /// after the other, so once that handler runs, every state event before the messages finished.
+/// The clock is a <see cref="FakeTimeProvider"/> that only <see cref="SettledAckAsync"/> moves, and it is the client's
+/// every clock: it also freezes the sidecar's <c>StartupTimeout</c>, the event stream's retry delay, the supervisor's
+/// restart backoff and the stop's grace. A start that hangs or a stream that fails therefore waits for the test's own
+/// bound, which kills this process.
 /// </remarks>
 internal static class EventsHost
 {
@@ -87,6 +91,9 @@ internal static class EventsHost
 	/// Moves the clock one ack interval at a time until an interval acks nothing new within <see cref="s_quiet"/> of
 	/// real time, and returns the last acked seq. The watermark spans the session's lanes, so a slow lane of other
 	/// traffic can hold it back for a tick; the blocked handler holds its own lane, so it settles just below it.
+	/// There is no exact signal to wait for instead: the seq just below the blocked event is the target, but the public
+	/// events carry no seq, and the client logs only the seq it acked, not the one it could ack next. So a quiet window
+	/// stands in for "every other lane finished": a tick that acks nothing for <see cref="s_quiet"/> means none moved.
 	/// </summary>
 	private static async Task<string> SettledAckAsync(FakeLogCollector logs, FakeTimeProvider time, CancellationToken cancellationToken)
 	{

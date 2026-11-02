@@ -11,7 +11,7 @@ namespace Whatsmeow.LiveTests;
 /// after the other (<see cref="Live"/>).
 /// </summary>
 [Collection(nameof(Live))]
-public sealed class LivePairingTests(LiveSidecar live)
+public sealed class LivePairingTests(LiveSidecar live, LivePeer peer)
 {
 	/// <summary>
 	/// Pairs the persistent live session by QR code the first time, or after the phone logged it out; on every other
@@ -22,27 +22,19 @@ public sealed class LivePairingTests(LiveSidecar live)
 	public async Task Live_PairWithQrCode_YieldsEachCodeThenPaired_AndTheSessionIsConnected()
 	{
 		var ct = TestContext.Current.CancellationToken;
-		var client = await live.SessionAsync(LiveSidecar.LiveSessionId, ct);
+		await PairOrConnectAsync(await live.SessionAsync(LiveSidecar.LiveSessionId, ct), () => live.LiveAsync(ct), ct);
+	}
 
-		if (await SessionSetup.StateAsync(client, ct) is not (SessionState.Created or SessionState.LoggedOut))
-		{
-			PairingChecks.ValidateUsable(await SessionSetup.StateAsync(await live.LiveAsync(ct), ct));
-			return;
-		}
-
-		var updates = new List<PairingUpdate>();
-		await foreach (var update in client.PairWithQrCodeAsync(ct))
-		{
-			updates.Add(update);
-			if (update is not PairingUpdate.QrCode qrCode)
-				continue;
-			if (updates.Count == 1)
-				PairingChecks.ValidatePairingStarted(await SessionSetup.StateAsync(client, ct));
-			await live.ShowQrCodeAsync(qrCode.Code, ct);
-		}
-
-		PairingChecks.ValidateQrPairing(updates, await SessionSetup.StateAsync(client, ct));
-		TestContext.Current.TestOutputHelper?.WriteLine($"CaughtUp {(await live.StayUntilCaughtUpAsync(client, ct)).TotalSeconds:F1} s after Paired");
+	/// <summary>
+	/// The same for the persistent peer session, on its own database and sidecar (<see cref="LivePeer"/>), scanned with
+	/// the second account's phone: paired the first time or after a logout, connected on every other run. It never
+	/// pairs again, logs out or deletes a paired session.
+	/// </summary>
+	[LiveFact(NeedsPeer = true)]
+	public async Task Live_PairThePeerWithQrCode_YieldsEachCodeThenPaired_AndTheSessionIsConnected()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		await PairOrConnectAsync(await peer.SessionAsync(live, ct), () => peer.ConnectedAsync(live, ct), ct);
 	}
 
 	/// <summary>Pairs a throwaway session by phone code; it is logged out and deleted at the end.</summary>
@@ -63,5 +55,34 @@ public sealed class LivePairingTests(LiveSidecar live)
 		}
 
 		PairingChecks.ValidatePhonePairing(updates, await SessionSetup.StateAsync(client, ct));
+	}
+
+	/// <summary>
+	/// Pairs <paramref name="client"/> by QR code when it is Created or LoggedOut, showing each code in <c>qr.png</c>,
+	/// and stays connected until CaughtUp; a session in any other state is paired already, so it only connects it
+	/// (<paramref name="connected"/>) and checks it is usable.
+	/// </summary>
+	private async Task PairOrConnectAsync(IWhatsAppClient client, Func<Task<IWhatsAppClient>> connected, CancellationToken ct)
+	{
+		if (await SessionSetup.StateAsync(client, ct).ConfigureAwait(false) is not (SessionState.Created or SessionState.LoggedOut))
+		{
+			PairingChecks.ValidateUsable(await SessionSetup.StateAsync(await connected().ConfigureAwait(false), ct).ConfigureAwait(false));
+			return;
+		}
+
+		var updates = new List<PairingUpdate>();
+		await foreach (var update in client.PairWithQrCodeAsync(ct).ConfigureAwait(false))
+		{
+			updates.Add(update);
+			if (update is not PairingUpdate.QrCode qrCode)
+				continue;
+			if (updates.Count == 1)
+				PairingChecks.ValidatePairingStarted(await SessionSetup.StateAsync(client, ct).ConfigureAwait(false));
+			await live.ShowQrCodeAsync(qrCode.Code, ct).ConfigureAwait(false);
+		}
+
+		live.DeleteShown();
+		PairingChecks.ValidateQrPairing(updates, await SessionSetup.StateAsync(client, ct).ConfigureAwait(false));
+		_ = await live.StayUntilCaughtUpAsync(client, ct).ConfigureAwait(false);
 	}
 }

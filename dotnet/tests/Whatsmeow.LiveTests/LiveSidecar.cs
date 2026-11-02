@@ -14,7 +14,8 @@ namespace Whatsmeow.LiveTests;
 /// The live tests' <c>whatsmeow-net</c>, a release build with the live seams (<c>-tags livetest</c>, ADR 0032), against
 /// real WhatsApp on the persistent live database (<see cref="LiveSettings.DatabaseVariable"/>), started when a live
 /// test first needs it; nothing starts while the live tests are off. The database holds the
-/// <see cref="LiveSessionId"/> session, paired once and reused by every run: it is never logged out, deleted or copied.
+/// <see cref="LiveSessionId"/> session, paired once and reused by every run: it is never logged out or deleted, and
+/// copied only into the backup each run takes before its first start (<see cref="StoreBackup"/>).
 /// A throwaway session (<see cref="ThrowawaySessionAsync"/>) is logged out and deleted at the end, so the phone keeps
 /// only the live session's linked device.
 /// What a person must see goes to files in <see cref="OutputDirectory"/>, deleted at the end: <c>qr.png</c>, the
@@ -40,6 +41,7 @@ public sealed class LiveSidecar : IAsyncLifetime
 	private LiveLog? _log;
 	private WhatsmeowSidecar? _sidecar;
 	private IDisposable? _pingWatch;
+	private bool _backedUp;
 
 	/// <summary><c>dotnet/artifacts/live/</c>, which git ignores.</summary>
 	public string OutputDirectory { get; } = Path.Combine(new SidecarBinaries().Root, "dotnet", "artifacts", "live");
@@ -239,8 +241,8 @@ public sealed class LiveSidecar : IAsyncLifetime
 	/// </summary>
 	internal static async Task DiscardAsync(IWhatsAppClient client, WhatsmeowSidecar sidecar, CancellationToken cancellationToken)
 	{
-		if (client.SessionId == SessionId.From(LiveSessionId))
-			throw new InvalidOperationException("The live session is never logged out or deleted.");
+		if (client.SessionId == SessionId.From(LiveSessionId) || client.SessionId == SessionId.From(LivePeer.SessionIdValue))
+			throw new InvalidOperationException("The live and peer sessions are never logged out or deleted.");
 		var state = await SessionSetup.StateAsync(client, cancellationToken).ConfigureAwait(false);
 		if (state is SessionState.Disconnected)
 			state = await ConnectAsync(client, cancellationToken).ConfigureAwait(false);
@@ -264,6 +266,10 @@ public sealed class LiveSidecar : IAsyncLifetime
 				return _sidecar;
 
 			var binary = await BuildAsync(cancellationToken).ConfigureAwait(false);
+			// The one sanctioned copy of the live database: before the run's first start, while nothing holds it.
+			if (!_backedUp && File.Exists(LiveSettings.Database))
+				Write($"live: backed up the live database as {Path.GetFileName(StoreBackup.Take(LiveSettings.Database, LiveSettings.BackupDirectory, "live", LiveClock.Time.GetUtcNow()))}");
+			_backedUp = true;
 			var options = new WhatsmeowSidecarOptions { SidecarPath = binary, DatabasePath = LiveSettings.Database };
 			_sidecar = await WhatsmeowSidecar.StartAsync(options, _log!.Capture.Factory, cancellationToken).ConfigureAwait(false);
 			return _sidecar;
