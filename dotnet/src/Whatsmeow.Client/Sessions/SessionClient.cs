@@ -521,7 +521,7 @@ internal sealed class SessionClient(
 			.ConfigureAwait(false);
 		sessions.Remember(sessionId);
 
-		// Events flow from the first connect in this process (ADR 0022).
+		// Events flow from the first connect or pairing in this process (ADR 0022, ADR 0052).
 		_events.Start();
 	}
 
@@ -609,6 +609,11 @@ internal sealed class SessionClient(
 			// connects it again. A refused call (paired, invalid, gone) never got this far.
 			if (update is PairingUpdate.QrCode or PairingUpdate.PairingCode)
 				sessions.Remember(sessionId);
+
+			// Paired comes once the session is usable and Connected: its events flow from here, as from a first
+			// connect, before the caller gets it; a pairing that ends without it starts none (ADR 0052).
+			if (update is PairingUpdate.Paired)
+				_events.Start();
 			yield return update;
 		}
 	}
