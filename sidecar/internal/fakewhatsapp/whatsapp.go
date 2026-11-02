@@ -140,8 +140,8 @@ func (w *WhatsApp) NewClient(sessionID string) *Client {
 
 // deliverMessage has the session's client learn what the message's info carries (learn), dispatches the decrypted
 // parts of one message stanza to it, in order, and records what whatsmeow answers at the pin: nothing when a handler
-// of any part failed (message.go:459-462), otherwise one receipt (message.go:489-495), of the type receiptType
-// says.
+// of any part failed (message.go:459-462), and WhatsApp delivers it again at the next login (Client.logIn),
+// otherwise one receipt (message.go:489-495), of the type receiptType says.
 func (w *WhatsApp) deliverMessage(ctx context.Context, sessionID string, parts ...*events.Message) error {
 	w.mu.Lock()
 	c, ok := w.clients[sessionID]
@@ -162,16 +162,27 @@ func (w *WhatsApp) deliverMessage(ctx context.Context, sessionID string, parts .
 		}
 	}
 
+	c.deliver(parts)
+
+	return nil
+}
+
+// deliver dispatches the decrypted parts of one message stanza, in order, and answers it with one receipt once every
+// handler succeeded; otherwise it answers nothing, and the stanza is left unanswered for the next login.
+func (c *Client) deliver(parts []*events.Message) {
 	for _, part := range parts {
 		if c.dispatch(part) {
-			return nil
+			c.conn.Lock()
+			c.unanswered = append(c.unanswered, parts)
+			c.conn.Unlock()
+
+			return
 		}
 	}
 
-	receipt := &fakev1.Receipt{Id: id, Type: c.receiptType(&parts[len(parts)-1].Info)}
-	w.append(&fakev1.Sent{SessionId: sessionID, Kind: &fakev1.Sent_Receipt{Receipt: receipt}})
-
-	return nil
+	info := &parts[len(parts)-1].Info
+	receipt := &fakev1.Receipt{Id: info.ID, Type: c.receiptType(info)}
+	c.whatsApp.append(&fakev1.Sent{SessionId: c.sessionID, Kind: &fakev1.Sent_Receipt{Receipt: receipt}})
 }
 
 // client returns the session's client.

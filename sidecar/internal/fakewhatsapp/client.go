@@ -46,6 +46,13 @@ type Client struct {
 	preKeysUploaded bool
 	// activeReceipts is whatsmeow's sendActiveReceipts (client.go:95), which SendPresence turns on and off.
 	activeReceipts bool
+	// reconnect is set by ResetConnection until its reconnect, and cleared by Disconnect, which cancels it, as
+	// whatsmeow's expected disconnect does (client.go:647-660).
+	reconnect bool
+	// unanswered are the message stanzas the client left unanswered, each its decrypted parts, which WhatsApp
+	// delivers again at the device's next login and never while the connection stays up (ARCHITECTURE §14, #10).
+	// They are the device's, so the client's: a Pair call gives the session a new client and a new device.
+	unanswered [][]*events.Message
 	// queue runs one dispatch at a time, as whatsmeow's per-client node queue does (ARCHITECTURE §7.3).
 	queue sync.Mutex
 	// appStateLock is whatsmeow's appStateSyncLock (client.go:107), held while a sync fetches (appstate.go:46).
@@ -88,10 +95,10 @@ func (c *Client) ConnectContext(context.Context) error {
 	switch {
 	case c.Store.ID == nil:
 	case c.whatsApp.take(c.sessionID, func(s *script) bool { return s.holdLogin }, func(s *script) {
-		s.holdLogin, s.login = false, func() { c.runHandlers(&events.Connected{}) }
+		s.holdLogin, s.login = false, c.logIn
 	}):
 	default:
-		c.whatsApp.offQueue(c, &events.Connected{})
+		c.whatsApp.background.Go(c.logIn)
 	}
 
 	// WhatsApp answers an unpaired client with the pair-device refs, the first of which the QR channel sends
@@ -185,8 +192,27 @@ func (c *Client) logInAfterLink() {
 	})
 }
 
-// Disconnect closes an open connection; like whatsmeow's, it raises no event (client.go:695-703).
+// Disconnect closes an open connection and cancels a reconnect ResetConnection started; like whatsmeow's, it raises
+// no event (client.go:695-703).
 func (c *Client) Disconnect() {
+	c.conn.Lock()
+	defer c.conn.Unlock()
+
+	c.reconnect = false
+
+	if !c.connected {
+		return
+	}
+
+	c.disconnect()
+	c.whatsApp.append(&fakev1.Sent{SessionId: c.sessionID, Kind: &fakev1.Sent_Disconnect{Disconnect: &fakev1.Disconnect{}}})
+}
+
+// ResetConnection closes an open connection and reconnects at once, as whatsmeow's does after a login: Disconnected
+// off the node queue, then a reconnect with no delay, whose login WhatsApp accepts (client.go:612-631, 653-660,
+// 712-724; connectionevents.go:165). A Disconnect before the reconnect cancels it. Without a connection it does
+// nothing.
+func (c *Client) ResetConnection() {
 	c.conn.Lock()
 	defer c.conn.Unlock()
 
@@ -195,7 +221,41 @@ func (c *Client) Disconnect() {
 	}
 
 	c.disconnect()
+	c.reconnect = true
 	c.whatsApp.append(&fakev1.Sent{SessionId: c.sessionID, Kind: &fakev1.Sent_Disconnect{Disconnect: &fakev1.Disconnect{}}})
+
+	c.whatsApp.background.Go(func() {
+		c.runHandlers(&events.Disconnected{})
+
+		c.conn.Lock()
+		if !c.reconnect || c.connected || c.Store.Deleted {
+			c.conn.Unlock()
+
+			return
+		}
+
+		c.reconnect = false
+		c.connected = true
+		c.connection = make(chan struct{})
+		c.conn.Unlock()
+
+		c.logIn()
+	})
+}
+
+// logIn is WhatsApp accepting the login of a paired device: Connected, off the node queue, then each stanza the
+// device left unanswered, again, in order, on the queue (ARCHITECTURE §14, #10). One unanswered again stays so.
+func (c *Client) logIn() {
+	c.runHandlers(&events.Connected{})
+
+	c.conn.Lock()
+	again := c.unanswered
+	c.unanswered = nil
+	c.conn.Unlock()
+
+	for _, parts := range again {
+		c.deliver(parts)
+	}
 }
 
 // IsConnected reports whether the connection is open, as whatsmeow's does.
