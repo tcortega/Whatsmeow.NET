@@ -55,4 +55,7 @@ enum ErrorReason {
   // FAILED_PRECONDITION. WhatsApp answered with an error no other reason covers; nothing was done.
   // Metadata "code": WhatsApp's numeric error code.
   ERROR_REASON_WHATSAPP_ERROR = 19;
+  // UNAVAILABLE. WhatsApp did not answer a read in time; nothing was done, and the call can be repeated. A write that
+  // got no answer is OUTCOME_UNKNOWN instead.
+  ERROR_REASON_WHATSAPP_TIMED_OUT = 20;
 }

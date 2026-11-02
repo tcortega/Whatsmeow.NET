@@ -1,9 +1,16 @@
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Grpc.Core;
+using Whatsmeow.Contacts;
 using Whatsmeow.Core.Errors;
 using Whatsmeow.Events;
 using Whatsmeow.Pairing;
 using Whatsmeow.Protocol.V1;
+using BlockedUser = Whatsmeow.Contacts.BlockedUser;
+using Contact = Whatsmeow.Contacts.Contact;
+using PhoneNumberCheck = Whatsmeow.Contacts.PhoneNumberCheck;
+using ResolvedJid = Whatsmeow.Contacts.ResolvedJid;
+using UserInfo = Whatsmeow.Contacts.UserInfo;
 
 namespace Whatsmeow.Sessions;
 
@@ -21,6 +28,7 @@ internal sealed class SessionClient(
 	private static readonly TimeSpan s_retryDelay = TimeSpan.FromSeconds(1);
 
 	private readonly SessionEvents _events = new(sidecar, invoker, sessionId, sidecar.TimeProvider, log);
+	private readonly ContactService.ContactServiceClient _contacts = new(invoker);
 
 	public SessionId SessionId => sessionId;
 
@@ -198,5 +206,61 @@ internal sealed class SessionClient(
 			RpcErrors.Throw(e);
 			throw;
 		}
+	}
+
+	public async Task<ImmutableArray<PhoneNumberCheck>> IsOnWhatsAppAsync(IReadOnlyList<string> phoneNumbers, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(phoneNumbers);
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new IsOnWhatsAppRequest { SessionId = sessionId.Value, PhoneNumbers = { phoneNumbers } };
+		return ContactMapping.ToChecks(await RpcErrors.CallAsync(_contacts.IsOnWhatsAppAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false));
+	}
+
+	public async Task<ImmutableArray<UserInfo>> GetUserInfoAsync(IReadOnlyList<Jid> users, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(users);
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new GetUserInfoRequest { SessionId = sessionId.Value, Jids = { users.Select(jid => jid.ToString()) } };
+		return ContactMapping.ToUsers(await RpcErrors.CallAsync(_contacts.GetUserInfoAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false));
+	}
+
+	public async Task<ProfilePicture> GetProfilePictureAsync(Jid jid, CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new GetProfilePictureRequest { SessionId = sessionId.Value, Jid = jid.ToString() };
+		return ContactMapping.ToPicture(await RpcErrors.CallAsync(_contacts.GetProfilePictureAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false));
+	}
+
+	public async Task<ImmutableArray<ResolvedJid>> ResolveJidsAsync(IReadOnlyList<Jid> jids, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(jids);
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new ResolveJidsRequest { SessionId = sessionId.Value, Jids = { jids.Select(jid => jid.ToString()) } };
+		return ContactMapping.ToResolved(await RpcErrors.CallAsync(_contacts.ResolveJidsAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false));
+	}
+
+	public async Task<ImmutableArray<Contact>> GetContactsAsync(CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new ListContactsRequest { SessionId = sessionId.Value };
+		return ContactMapping.ToContacts(await RpcErrors.CallAsync(_contacts.ListContactsAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false));
+	}
+
+	public async Task<ImmutableArray<BlockedUser>> GetBlocklistAsync(CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new GetBlocklistRequest { SessionId = sessionId.Value };
+		return ContactMapping.ToBlocked(await RpcErrors.CallAsync(_contacts.GetBlocklistAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false));
+	}
+
+	public Task BlockAsync(Jid user, CancellationToken cancellationToken = default) => UpdateBlocklistAsync(user, BlocklistAction.Block, cancellationToken);
+
+	public Task UnblockAsync(Jid user, CancellationToken cancellationToken = default) => UpdateBlocklistAsync(user, BlocklistAction.Unblock, cancellationToken);
+
+	private async Task UpdateBlocklistAsync(Jid user, BlocklistAction action, CancellationToken cancellationToken)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new UpdateBlocklistRequest { SessionId = sessionId.Value, Jid = user.ToString(), Action = action };
+		_ = await RpcErrors.CallAsync(_contacts.UpdateBlocklistAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
 	}
 }

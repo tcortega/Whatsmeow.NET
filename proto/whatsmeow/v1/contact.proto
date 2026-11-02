@@ -1,0 +1,277 @@
+syntax = "proto3";
+
+package whatsmeow.v1;
+
+// ContactService looks up WhatsApp users, resolves their two address forms, lists the session's contacts and manages
+// its blocklist (ARCHITECTURE §3, Contacts & LID).
+//
+// A JID is whatsmeow's string form, user[.agent][:device]@server. A user is addressed by phone number
+// (@s.whatsapp.net) or by LID (@lid); some LIDs never resolve to a phone number. A JID argument that does not parse,
+// or that is not a user where a user is required, is INVALID_ARGUMENT (field: the request field at fault).
+// An empty list argument returns OK with an empty list at once: it neither looks the session up nor asks WhatsApp,
+// so only a malformed session id fails it.
+// The RPCs that ask WhatsApp need the session logged in to WhatsApp right now: they fail at once with NOT_LOGGED_IN,
+// LOGGED_OUT, TEMPORARILY_BANNED or NOT_CONNECTED otherwise, with RATE_LIMITED or WHATSAPP_ERROR when WhatsApp
+// refuses, and, those that only read, with WHATSAPP_TIMED_OUT when WhatsApp does not answer in time. ResolveJids and ListContacts read what the session's store learned and need no connection; they fail with
+// NOT_LOGGED_IN or LOGGED_OUT for a session without a device.
+// Every RPC but one with an empty list fails with SESSION_NOT_FOUND for an id no session has.
+service ContactService {
+  // IsOnWhatsApp checks phone numbers: one result per number, in request order. A number is digits with an optional
+  // leading +; anything else is INVALID_ARGUMENT (field "phone_numbers"). It also teaches the store each LID it
+  // returns, for ResolveJids.
+  // Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, TEMPORARILY_BANNED, NOT_CONNECTED,
+  // RATE_LIMITED, WHATSAPP_ERROR, WHATSAPP_TIMED_OUT.
+  rpc IsOnWhatsApp(IsOnWhatsAppRequest) returns (IsOnWhatsAppResponse);
+
+  // GetUserInfo reads users' profiles: one entry per user WhatsApp answered for, ordered by JID. It also teaches the
+  // store each user's LID.
+  // Errors: as IsOnWhatsApp; INVALID_ARGUMENT (field "jids") for a JID that is not a user.
+  rpc GetUserInfo(GetUserInfoRequest) returns (GetUserInfoResponse);
+
+  // GetProfilePicture reads the profile picture of a user or a group.
+  // Errors: as IsOnWhatsApp; INVALID_ARGUMENT (field "jid") for a JID that is neither a user nor a group.
+  rpc GetProfilePicture(GetProfilePictureRequest) returns (GetProfilePictureResponse);
+
+  // ResolveJids gives each JID its other address form when the store knows it: one result per JID, in request order.
+  // The store learns a pair from messages that carry both forms, from IsOnWhatsApp, GetUserInfo and the blocklist;
+  // it never asks WhatsApp here. An unknown pair is an empty jid_alt, not an error.
+  // Errors: INVALID_ARGUMENT (field "jids") for a JID that is not a user, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT.
+  rpc ResolveJids(ResolveJidsRequest) returns (ResolveJidsResponse);
+
+  // ListContacts lists the session's contacts as WhatsApp synced them, ordered by JID. One person can be listed under
+  // both address forms.
+  // Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT.
+  rpc ListContacts(ListContactsRequest) returns (ListContactsResponse);
+
+  // GetBlocklist lists the users the account blocked.
+  // Errors: as IsOnWhatsApp.
+  rpc GetBlocklist(GetBlocklistRequest) returns (GetBlocklistResponse);
+
+  // UpdateBlocklist blocks or unblocks a user; the next GetBlocklist reflects it. A phone number without a LID WhatsApp
+  // knows is RECIPIENT_NOT_ON_WHATSAPP. A request that went out with no answer back is OUTCOME_UNKNOWN, never
+  // WHATSAPP_TIMED_OUT.
+  // Errors: as IsOnWhatsApp but WHATSAPP_TIMED_OUT; INVALID_ARGUMENT (field "jid") for a JID that is not a user, INVALID_ARGUMENT (field
+  // "action") for an unspecified action, RECIPIENT_NOT_ON_WHATSAPP, OUTCOME_UNKNOWN.
+  rpc UpdateBlocklist(UpdateBlocklistRequest) returns (UpdateBlocklistResponse);
+}
+
+// IsOnWhatsAppRequest names the phone numbers to check.
+message IsOnWhatsAppRequest {
+  // The session id.
+  string session_id = 1;
+  // International phone numbers: digits with an optional leading +.
+  repeated string phone_numbers = 2;
+}
+
+// IsOnWhatsAppResponse has one result per requested number.
+message IsOnWhatsAppResponse {
+  // The results, in request order.
+  repeated PhoneNumberCheck results = 1;
+}
+
+// PhoneNumberCheck is whether one phone number is on WhatsApp.
+message PhoneNumberCheck {
+  // The number as requested.
+  string phone_number = 1;
+  // True when the number is on WhatsApp.
+  bool on_whatsapp = 2;
+  // The phone-number JID; empty when the number is not on WhatsApp.
+  string jid = 3;
+  // The LID; empty when the number is not on WhatsApp or WhatsApp sent none.
+  string lid = 4;
+}
+
+// GetUserInfoRequest names the users.
+message GetUserInfoRequest {
+  // The session id.
+  string session_id = 1;
+  // User JIDs, by phone number or LID.
+  repeated string jids = 2;
+}
+
+// GetUserInfoResponse is the users WhatsApp answered for.
+message GetUserInfoResponse {
+  // The users, ordered by JID.
+  repeated UserInfo users = 1;
+}
+
+// UserInfo is one user's profile. An empty field is one WhatsApp did not send.
+message UserInfo {
+  // The user, as WhatsApp answered.
+  string jid = 1;
+  // The about text.
+  string about = 2;
+  // The verified business name.
+  string verified_business_name = 3;
+  // The current profile picture's id.
+  string picture_id = 4;
+}
+
+// GetProfilePictureRequest names the user or group.
+message GetProfilePictureRequest {
+  // The session id.
+  string session_id = 1;
+  // A user or group JID.
+  string jid = 2;
+}
+
+// GetProfilePictureResponse is the picture, or why there is none.
+message GetProfilePictureResponse {
+  // The picture is set.
+  message Picture {
+    // The full-size image's URL; the application downloads it.
+    string url = 1;
+    // The picture's id, the one UserInfo.picture_id and ContactEvent.Picture carry.
+    string id = 2;
+  }
+
+  // There is no picture.
+  message None {}
+
+  // The user hid the picture from this account.
+  message Hidden {}
+
+  // The result.
+  oneof result {
+    // See Picture.
+    Picture picture = 1;
+    // See None.
+    None none = 2;
+    // See Hidden.
+    Hidden hidden = 3;
+  }
+}
+
+// ResolveJidsRequest names the JIDs.
+message ResolveJidsRequest {
+  // The session id.
+  string session_id = 1;
+  // User JIDs, by phone number or LID.
+  repeated string jids = 2;
+}
+
+// ResolveJidsResponse has one result per requested JID.
+message ResolveJidsResponse {
+  // The results, in request order.
+  repeated ResolvedJid results = 1;
+}
+
+// ResolvedJid is one JID and its other address form.
+message ResolvedJid {
+  // The JID as requested.
+  string jid = 1;
+  // The other form, with the same device; empty when the store does not know it.
+  string jid_alt = 2;
+}
+
+// ListContactsRequest names the session.
+message ListContactsRequest {
+  // The session id.
+  string session_id = 1;
+}
+
+// ListContactsResponse is the session's contacts.
+message ListContactsResponse {
+  // The contacts, ordered by JID.
+  repeated Contact contacts = 1;
+}
+
+// Contact is one contact as WhatsApp synced it. An empty name is one WhatsApp did not sync.
+message Contact {
+  // The contact's JID.
+  string jid = 1;
+  // The name the account saved for the contact (the address book's full name).
+  string saved_name = 2;
+  // The name the contact set for themselves.
+  string push_name = 3;
+  // The contact's verified business name.
+  string business_name = 4;
+}
+
+// GetBlocklistRequest names the session.
+message GetBlocklistRequest {
+  // The session id.
+  string session_id = 1;
+}
+
+// GetBlocklistResponse is the blocked users.
+message GetBlocklistResponse {
+  // The blocked users, in WhatsApp's order.
+  repeated BlockedUser users = 1;
+}
+
+// BlockedUser is one blocked user.
+message BlockedUser {
+  // The user, as WhatsApp lists it (usually the LID).
+  string jid = 1;
+  // The user's other address form; empty when WhatsApp sent none.
+  string jid_alt = 2;
+}
+
+// UpdateBlocklistRequest blocks or unblocks one user.
+message UpdateBlocklistRequest {
+  // The session id.
+  string session_id = 1;
+  // The user, by phone number or LID; a device in it is ignored.
+  string jid = 2;
+  // What to do.
+  BlocklistAction action = 3;
+}
+
+// UpdateBlocklistResponse has no fields.
+message UpdateBlocklistResponse {}
+
+// BlocklistAction is a blocklist change.
+enum BlocklistAction {
+  // Never sent; INVALID_ARGUMENT.
+  BLOCKLIST_ACTION_UNSPECIFIED = 0;
+  // Block the user.
+  BLOCKLIST_ACTION_BLOCK = 1;
+  // Unblock the user.
+  BLOCKLIST_ACTION_UNBLOCK = 2;
+}
+
+// ContactEvent is a change to a user's profile, or a group's picture, that WhatsApp told the session about.
+// whatsmeow acknowledges these to WhatsApp whatever the handlers return, so they are best effort: one that the
+// sidecar failed to record is lost (ARCHITECTURE §1). A repeat carries the same value.
+message ContactEvent {
+  // The user changed their push name.
+  message PushName {
+    // The new push name.
+    string name = 1;
+  }
+
+  // The user's verified business name changed.
+  message BusinessName {
+    // The new business name.
+    string name = 1;
+  }
+
+  // The profile picture changed.
+  message Picture {
+    // The new picture's id; empty when it was removed.
+    string id = 1;
+  }
+
+  // The user changed their about text.
+  message About {
+    // The new about text.
+    string text = 1;
+  }
+
+  // The user, or for a picture also a group, without a device.
+  string jid = 1;
+  // The user's other address form, when known.
+  string jid_alt = 2;
+  // What changed.
+  oneof change {
+    // See PushName.
+    PushName push_name = 3;
+    // See BusinessName.
+    BusinessName business_name = 4;
+    // See Picture.
+    Picture picture = 5;
+    // See About.
+    About about = 6;
+  }
+}

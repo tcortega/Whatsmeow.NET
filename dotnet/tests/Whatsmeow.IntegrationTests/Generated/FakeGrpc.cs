@@ -100,6 +100,26 @@ namespace Whatsmeow.IntegrationTests.Fake {
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectRequest> __Marshaller_whatsmeow_fake_v1_RaisePermanentDisconnectRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectResponse> __Marshaller_whatsmeow_fake_v1_RaisePermanentDisconnectResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.RegisterUserRequest> __Marshaller_whatsmeow_fake_v1_RegisterUserRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.RegisterUserRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.RegisterUserResponse> __Marshaller_whatsmeow_fake_v1_RegisterUserResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.RegisterUserResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.SetProfilePictureRequest> __Marshaller_whatsmeow_fake_v1_SetProfilePictureRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.SetProfilePictureRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.SetProfilePictureResponse> __Marshaller_whatsmeow_fake_v1_SetProfilePictureResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.SetProfilePictureResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DeliverContactNotificationRequest> __Marshaller_whatsmeow_fake_v1_DeliverContactNotificationRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DeliverContactNotificationRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DeliverContactNotificationResponse> __Marshaller_whatsmeow_fake_v1_DeliverContactNotificationResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DeliverContactNotificationResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.SyncContactRequest> __Marshaller_whatsmeow_fake_v1_SyncContactRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.SyncContactRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.SyncContactResponse> __Marshaller_whatsmeow_fake_v1_SyncContactResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.SyncContactResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryRequest> __Marshaller_whatsmeow_fake_v1_FailNextContactQueryRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryResponse> __Marshaller_whatsmeow_fake_v1_FailNextContactQueryResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryResponse.Parser));
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse> __Method_DeliverMessage = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse>(
@@ -196,6 +216,46 @@ namespace Whatsmeow.IntegrationTests.Fake {
         "RaisePermanentDisconnect",
         __Marshaller_whatsmeow_fake_v1_RaisePermanentDisconnectRequest,
         __Marshaller_whatsmeow_fake_v1_RaisePermanentDisconnectResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.RegisterUserRequest, global::Whatsmeow.IntegrationTests.Fake.RegisterUserResponse> __Method_RegisterUser = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.RegisterUserRequest, global::Whatsmeow.IntegrationTests.Fake.RegisterUserResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "RegisterUser",
+        __Marshaller_whatsmeow_fake_v1_RegisterUserRequest,
+        __Marshaller_whatsmeow_fake_v1_RegisterUserResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.SetProfilePictureRequest, global::Whatsmeow.IntegrationTests.Fake.SetProfilePictureResponse> __Method_SetProfilePicture = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.SetProfilePictureRequest, global::Whatsmeow.IntegrationTests.Fake.SetProfilePictureResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "SetProfilePicture",
+        __Marshaller_whatsmeow_fake_v1_SetProfilePictureRequest,
+        __Marshaller_whatsmeow_fake_v1_SetProfilePictureResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverContactNotificationRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverContactNotificationResponse> __Method_DeliverContactNotification = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverContactNotificationRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverContactNotificationResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "DeliverContactNotification",
+        __Marshaller_whatsmeow_fake_v1_DeliverContactNotificationRequest,
+        __Marshaller_whatsmeow_fake_v1_DeliverContactNotificationResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.SyncContactRequest, global::Whatsmeow.IntegrationTests.Fake.SyncContactResponse> __Method_SyncContact = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.SyncContactRequest, global::Whatsmeow.IntegrationTests.Fake.SyncContactResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "SyncContact",
+        __Marshaller_whatsmeow_fake_v1_SyncContactRequest,
+        __Marshaller_whatsmeow_fake_v1_SyncContactResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryRequest, global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryResponse> __Method_FailNextContactQuery = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryRequest, global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "FailNextContactQuery",
+        __Marshaller_whatsmeow_fake_v1_FailNextContactQueryRequest,
+        __Marshaller_whatsmeow_fake_v1_FailNextContactQueryResponse);
 
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
@@ -905,6 +965,278 @@ namespace Whatsmeow.IntegrationTests.Fake {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectResponse> RaisePermanentDisconnectAsync(global::Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_RaisePermanentDisconnect, null, options, request);
+      }
+      /// <summary>
+      /// RegisterUser adds a user to WhatsApp's directory, which every session's lookups read: IsOnWhatsApp, GetUserInfo,
+      /// and the LID that UpdateBlocklist fetches. An unregistered number is not on WhatsApp. Registering a phone_jid again
+      /// replaces it.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.RegisterUserResponse RegisterUser(global::Whatsmeow.IntegrationTests.Fake.RegisterUserRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return RegisterUser(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// RegisterUser adds a user to WhatsApp's directory, which every session's lookups read: IsOnWhatsApp, GetUserInfo,
+      /// and the LID that UpdateBlocklist fetches. An unregistered number is not on WhatsApp. Registering a phone_jid again
+      /// replaces it.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.RegisterUserResponse RegisterUser(global::Whatsmeow.IntegrationTests.Fake.RegisterUserRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_RegisterUser, null, options, request);
+      }
+      /// <summary>
+      /// RegisterUser adds a user to WhatsApp's directory, which every session's lookups read: IsOnWhatsApp, GetUserInfo,
+      /// and the LID that UpdateBlocklist fetches. An unregistered number is not on WhatsApp. Registering a phone_jid again
+      /// replaces it.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.RegisterUserResponse> RegisterUserAsync(global::Whatsmeow.IntegrationTests.Fake.RegisterUserRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return RegisterUserAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// RegisterUser adds a user to WhatsApp's directory, which every session's lookups read: IsOnWhatsApp, GetUserInfo,
+      /// and the LID that UpdateBlocklist fetches. An unregistered number is not on WhatsApp. Registering a phone_jid again
+      /// replaces it.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.RegisterUserResponse> RegisterUserAsync(global::Whatsmeow.IntegrationTests.Fake.RegisterUserRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_RegisterUser, null, options, request);
+      }
+      /// <summary>
+      /// SetProfilePicture sets what WhatsApp answers for the profile picture of a user or a group; without one it answers
+      /// that there is none.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.SetProfilePictureResponse SetProfilePicture(global::Whatsmeow.IntegrationTests.Fake.SetProfilePictureRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SetProfilePicture(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SetProfilePicture sets what WhatsApp answers for the profile picture of a user or a group; without one it answers
+      /// that there is none.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.SetProfilePictureResponse SetProfilePicture(global::Whatsmeow.IntegrationTests.Fake.SetProfilePictureRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_SetProfilePicture, null, options, request);
+      }
+      /// <summary>
+      /// SetProfilePicture sets what WhatsApp answers for the profile picture of a user or a group; without one it answers
+      /// that there is none.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.SetProfilePictureResponse> SetProfilePictureAsync(global::Whatsmeow.IntegrationTests.Fake.SetProfilePictureRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SetProfilePictureAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SetProfilePicture sets what WhatsApp answers for the profile picture of a user or a group; without one it answers
+      /// that there is none.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.SetProfilePictureResponse> SetProfilePictureAsync(global::Whatsmeow.IntegrationTests.Fake.SetProfilePictureRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_SetProfilePicture, null, options, request);
+      }
+      /// <summary>
+      /// DeliverContactNotification makes WhatsApp send the session's client a picture or status notification. As
+      /// whatsmeow does, the client dispatches Picture or UserAbout on the node queue and ignores the handlers' result
+      /// (notification.go:91-115, 449-466, 472); it returns once the handlers ran. A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.DeliverContactNotificationResponse DeliverContactNotification(global::Whatsmeow.IntegrationTests.Fake.DeliverContactNotificationRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return DeliverContactNotification(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// DeliverContactNotification makes WhatsApp send the session's client a picture or status notification. As
+      /// whatsmeow does, the client dispatches Picture or UserAbout on the node queue and ignores the handlers' result
+      /// (notification.go:91-115, 449-466, 472); it returns once the handlers ran. A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.DeliverContactNotificationResponse DeliverContactNotification(global::Whatsmeow.IntegrationTests.Fake.DeliverContactNotificationRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_DeliverContactNotification, null, options, request);
+      }
+      /// <summary>
+      /// DeliverContactNotification makes WhatsApp send the session's client a picture or status notification. As
+      /// whatsmeow does, the client dispatches Picture or UserAbout on the node queue and ignores the handlers' result
+      /// (notification.go:91-115, 449-466, 472); it returns once the handlers ran. A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DeliverContactNotificationResponse> DeliverContactNotificationAsync(global::Whatsmeow.IntegrationTests.Fake.DeliverContactNotificationRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return DeliverContactNotificationAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// DeliverContactNotification makes WhatsApp send the session's client a picture or status notification. As
+      /// whatsmeow does, the client dispatches Picture or UserAbout on the node queue and ignores the handlers' result
+      /// (notification.go:91-115, 449-466, 472); it returns once the handlers ran. A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DeliverContactNotificationResponse> DeliverContactNotificationAsync(global::Whatsmeow.IntegrationTests.Fake.DeliverContactNotificationRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_DeliverContactNotification, null, options, request);
+      }
+      /// <summary>
+      /// SyncContact makes an app state sync deliver a contact's saved name: the client stores it, then dispatches Contact,
+      /// as whatsmeow does (appstate.go:292-296). The session must be linked.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.SyncContactResponse SyncContact(global::Whatsmeow.IntegrationTests.Fake.SyncContactRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SyncContact(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SyncContact makes an app state sync deliver a contact's saved name: the client stores it, then dispatches Contact,
+      /// as whatsmeow does (appstate.go:292-296). The session must be linked.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.SyncContactResponse SyncContact(global::Whatsmeow.IntegrationTests.Fake.SyncContactRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_SyncContact, null, options, request);
+      }
+      /// <summary>
+      /// SyncContact makes an app state sync deliver a contact's saved name: the client stores it, then dispatches Contact,
+      /// as whatsmeow does (appstate.go:292-296). The session must be linked.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.SyncContactResponse> SyncContactAsync(global::Whatsmeow.IntegrationTests.Fake.SyncContactRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SyncContactAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SyncContact makes an app state sync deliver a contact's saved name: the client stores it, then dispatches Contact,
+      /// as whatsmeow does (appstate.go:292-296). The session must be linked.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.SyncContactResponse> SyncContactAsync(global::Whatsmeow.IntegrationTests.Fake.SyncContactRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_SyncContact, null, options, request);
+      }
+      /// <summary>
+      /// FailNextContactQuery makes WhatsApp answer the session's next contact query (IsOnWhatsApp, GetUserInfo,
+      /// GetProfilePictureInfo, GetBlocklist, UpdateBlocklist) with an IQ error of code: 429 is whatsmeow's
+      /// ErrIQRateOverLimit (errors.go:197).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryResponse FailNextContactQuery(global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return FailNextContactQuery(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// FailNextContactQuery makes WhatsApp answer the session's next contact query (IsOnWhatsApp, GetUserInfo,
+      /// GetProfilePictureInfo, GetBlocklist, UpdateBlocklist) with an IQ error of code: 429 is whatsmeow's
+      /// ErrIQRateOverLimit (errors.go:197).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryResponse FailNextContactQuery(global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_FailNextContactQuery, null, options, request);
+      }
+      /// <summary>
+      /// FailNextContactQuery makes WhatsApp answer the session's next contact query (IsOnWhatsApp, GetUserInfo,
+      /// GetProfilePictureInfo, GetBlocklist, UpdateBlocklist) with an IQ error of code: 429 is whatsmeow's
+      /// ErrIQRateOverLimit (errors.go:197).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryResponse> FailNextContactQueryAsync(global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return FailNextContactQueryAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// FailNextContactQuery makes WhatsApp answer the session's next contact query (IsOnWhatsApp, GetUserInfo,
+      /// GetProfilePictureInfo, GetBlocklist, UpdateBlocklist) with an IQ error of code: 429 is whatsmeow's
+      /// ErrIQRateOverLimit (errors.go:197).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryResponse> FailNextContactQueryAsync(global::Whatsmeow.IntegrationTests.Fake.FailNextContactQueryRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_FailNextContactQuery, null, options, request);
       }
       /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]

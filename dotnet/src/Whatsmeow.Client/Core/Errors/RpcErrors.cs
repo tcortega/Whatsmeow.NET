@@ -86,8 +86,11 @@ internal static class RpcErrors
 			case ErrorReason.RateLimited:
 				RateLimitedException.Throw(exception);
 				break;
+			case ErrorReason.RecipientNotOnWhatsapp:
+				RecipientNotFoundException.Throw(exception);
+				break;
 			case null or ErrorReason.Unspecified or ErrorReason.Internal or ErrorReason.Unauthenticated or ErrorReason.SidecarShuttingDown
-				or ErrorReason.ConsumerReplaced or ErrorReason.RecipientNotOnWhatsapp or ErrorReason.WhatsappError:
+				or ErrorReason.ConsumerReplaced or ErrorReason.WhatsappError or ErrorReason.WhatsappTimedOut:
 			default:
 				break;
 		}
@@ -132,6 +135,7 @@ internal static class RpcErrors
 			ErrorReason.RateLimited => WhatsmeowErrorCode.RateLimited,
 			ErrorReason.OutcomeUnknown => WhatsmeowErrorCode.OutcomeUnknown,
 			ErrorReason.WhatsappError => WhatsmeowErrorCode.WhatsAppError,
+			ErrorReason.WhatsappTimedOut => WhatsmeowErrorCode.WhatsAppTimedOut,
 			null or ErrorReason.Unspecified => WhatsmeowErrorCode.Unknown,
 			_ => WhatsmeowErrorCode.Unknown,
 		};

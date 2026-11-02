@@ -29,6 +29,19 @@ public readonly struct Jid : IEquatable<Jid>, ISpanParsable<Jid>
 		init;
 	}
 
+	/// <summary>Whether this is a user addressed by phone number (<c>@s.whatsapp.net</c>).</summary>
+	public bool IsPhoneNumber => string.Equals(Server, PhoneNumberServer, StringComparison.Ordinal);
+
+	/// <summary>
+	/// Whether this is a user addressed by LID (<c>@lid</c>), WhatsApp's address that hides the phone number. The other
+	/// form of the same user, when known, comes beside it: an event's <c>SenderAlt</c>, or
+	/// <see cref="IWhatsAppClient.ResolveJidsAsync"/>.
+	/// </summary>
+	public bool IsLid => string.Equals(Server, LidServer, StringComparison.Ordinal);
+
+	private const string PhoneNumberServer = "s.whatsapp.net";
+	private const string LidServer = "lid";
+
 	/// <summary>Parses whatsmeow's form.</summary>
 	/// <exception cref="WhatsmeowValidationException"><paramref name="s"/> is not a JID.</exception>
 	public static Jid Parse(string s)

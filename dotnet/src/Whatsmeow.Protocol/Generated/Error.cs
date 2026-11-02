@@ -24,7 +24,7 @@ namespace Whatsmeow.Protocol.V1 {
     static ErrorReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Chh3aGF0c21lb3cvdjEvZXJyb3IucHJvdG8SDHdoYXRzbWVvdy52MSq7BQoL",
+            "Chh3aGF0c21lb3cvdjEvZXJyb3IucHJvdG8SDHdoYXRzbWVvdy52MSrgBQoL",
             "RXJyb3JSZWFzb24SHAoYRVJST1JfUkVBU09OX1VOU1BFQ0lGSUVEEAASGQoV",
             "RVJST1JfUkVBU09OX0lOVEVSTkFMEAESIQodRVJST1JfUkVBU09OX0lOVkFM",
             "SURfQVJHVU1FTlQQAhIgChxFUlJPUl9SRUFTT05fVU5BVVRIRU5USUNBVEVE",
@@ -40,11 +40,12 @@ namespace Whatsmeow.Protocol.V1 {
             "VU1FUl9SRVBMQUNFRBAPEioKJkVSUk9SX1JFQVNPTl9SRUNJUElFTlRfTk9U",
             "X09OX1dIQVRTQVBQEBASHQoZRVJST1JfUkVBU09OX1JBVEVfTElNSVRFRBAR",
             "EiAKHEVSUk9SX1JFQVNPTl9PVVRDT01FX1VOS05PV04QEhIfChtFUlJPUl9S",
-            "RUFTT05fV0hBVFNBUFBfRVJST1IQE0LAAQoQY29tLndoYXRzbWVvdy52MUIK",
-            "RXJyb3JQcm90b1ABWkZnaXRodWIuY29tL3Rjb3J0ZWdhL1doYXRzbWVvdy5O",
-            "RVQvc2lkZWNhci9nZW4vd2hhdHNtZW93L3YxO3doYXRzbWVvd3YxogIDV1hY",
-            "qgIVV2hhdHNtZW93LlByb3RvY29sLlYxygIMV2hhdHNtZW93XFYx4gIYV2hh",
-            "dHNtZW93XFYxXEdQQk1ldGFkYXRh6gINV2hhdHNtZW93OjpWMWIGcHJvdG8z"));
+            "RUFTT05fV0hBVFNBUFBfRVJST1IQExIjCh9FUlJPUl9SRUFTT05fV0hBVFNB",
+            "UFBfVElNRURfT1VUEBRCwAEKEGNvbS53aGF0c21lb3cudjFCCkVycm9yUHJv",
+            "dG9QAVpGZ2l0aHViLmNvbS90Y29ydGVnYS9XaGF0c21lb3cuTkVUL3NpZGVj",
+            "YXIvZ2VuL3doYXRzbWVvdy92MTt3aGF0c21lb3d2MaICA1dYWKoCFVdoYXRz",
+            "bWVvdy5Qcm90b2NvbC5WMcoCDFdoYXRzbWVvd1xWMeICGFdoYXRzbWVvd1xW",
+            "MVxHUEJNZXRhZGF0YeoCDVdoYXRzbWVvdzo6VjFiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Whatsmeow.Protocol.V1.ErrorReason), }, null, null));
@@ -148,6 +149,11 @@ namespace Whatsmeow.Protocol.V1 {
     /// Metadata "code": WhatsApp's numeric error code.
     /// </summary>
     [pbr::OriginalName("ERROR_REASON_WHATSAPP_ERROR")] WhatsappError = 19,
+    /// <summary>
+    /// UNAVAILABLE. WhatsApp did not answer a read in time; nothing was done, and the call can be repeated. A write that
+    /// got no answer is OUTCOME_UNKNOWN instead.
+    /// </summary>
+    [pbr::OriginalName("ERROR_REASON_WHATSAPP_TIMED_OUT")] WhatsappTimedOut = 20,
   }
 
   #endregion

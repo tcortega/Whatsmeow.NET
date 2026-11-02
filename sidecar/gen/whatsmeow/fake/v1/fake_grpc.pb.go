@@ -31,6 +31,11 @@ const (
 	FakeWhatsAppService_FailNextConnect_FullMethodName             = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextConnect"
 	FakeWhatsAppService_FailNextLogout_FullMethodName              = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextLogout"
 	FakeWhatsAppService_RaisePermanentDisconnect_FullMethodName    = "/whatsmeow.fake.v1.FakeWhatsAppService/RaisePermanentDisconnect"
+	FakeWhatsAppService_RegisterUser_FullMethodName                = "/whatsmeow.fake.v1.FakeWhatsAppService/RegisterUser"
+	FakeWhatsAppService_SetProfilePicture_FullMethodName           = "/whatsmeow.fake.v1.FakeWhatsAppService/SetProfilePicture"
+	FakeWhatsAppService_DeliverContactNotification_FullMethodName  = "/whatsmeow.fake.v1.FakeWhatsAppService/DeliverContactNotification"
+	FakeWhatsAppService_SyncContact_FullMethodName                 = "/whatsmeow.fake.v1.FakeWhatsAppService/SyncContact"
+	FakeWhatsAppService_FailNextContactQuery_FullMethodName        = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextContactQuery"
 )
 
 // FakeWhatsAppServiceClient is the client API for FakeWhatsAppService service.
@@ -92,6 +97,24 @@ type FakeWhatsAppServiceClient interface {
 	// whatsmeow does; the client is disconnected and does not reconnect. For logged_out the client also deletes its
 	// device concurrently, as whatsmeow does (connectionevents.go:37-44, 130-136). It returns before the handlers run.
 	RaisePermanentDisconnect(ctx context.Context, in *RaisePermanentDisconnectRequest, opts ...grpc.CallOption) (*RaisePermanentDisconnectResponse, error)
+	// RegisterUser adds a user to WhatsApp's directory, which every session's lookups read: IsOnWhatsApp, GetUserInfo,
+	// and the LID that UpdateBlocklist fetches. An unregistered number is not on WhatsApp. Registering a phone_jid again
+	// replaces it.
+	RegisterUser(ctx context.Context, in *RegisterUserRequest, opts ...grpc.CallOption) (*RegisterUserResponse, error)
+	// SetProfilePicture sets what WhatsApp answers for the profile picture of a user or a group; without one it answers
+	// that there is none.
+	SetProfilePicture(ctx context.Context, in *SetProfilePictureRequest, opts ...grpc.CallOption) (*SetProfilePictureResponse, error)
+	// DeliverContactNotification makes WhatsApp send the session's client a picture or status notification. As
+	// whatsmeow does, the client dispatches Picture or UserAbout on the node queue and ignores the handlers' result
+	// (notification.go:91-115, 449-466, 472); it returns once the handlers ran. A session without a client is an error.
+	DeliverContactNotification(ctx context.Context, in *DeliverContactNotificationRequest, opts ...grpc.CallOption) (*DeliverContactNotificationResponse, error)
+	// SyncContact makes an app state sync deliver a contact's saved name: the client stores it, then dispatches Contact,
+	// as whatsmeow does (appstate.go:292-296). The session must be linked.
+	SyncContact(ctx context.Context, in *SyncContactRequest, opts ...grpc.CallOption) (*SyncContactResponse, error)
+	// FailNextContactQuery makes WhatsApp answer the session's next contact query (IsOnWhatsApp, GetUserInfo,
+	// GetProfilePictureInfo, GetBlocklist, UpdateBlocklist) with an IQ error of code: 429 is whatsmeow's
+	// ErrIQRateOverLimit (errors.go:197).
+	FailNextContactQuery(ctx context.Context, in *FailNextContactQueryRequest, opts ...grpc.CallOption) (*FailNextContactQueryResponse, error)
 }
 
 type fakeWhatsAppServiceClient struct {
@@ -222,6 +245,56 @@ func (c *fakeWhatsAppServiceClient) RaisePermanentDisconnect(ctx context.Context
 	return out, nil
 }
 
+func (c *fakeWhatsAppServiceClient) RegisterUser(ctx context.Context, in *RegisterUserRequest, opts ...grpc.CallOption) (*RegisterUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RegisterUserResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_RegisterUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) SetProfilePicture(ctx context.Context, in *SetProfilePictureRequest, opts ...grpc.CallOption) (*SetProfilePictureResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetProfilePictureResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_SetProfilePicture_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) DeliverContactNotification(ctx context.Context, in *DeliverContactNotificationRequest, opts ...grpc.CallOption) (*DeliverContactNotificationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeliverContactNotificationResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_DeliverContactNotification_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) SyncContact(ctx context.Context, in *SyncContactRequest, opts ...grpc.CallOption) (*SyncContactResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SyncContactResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_SyncContact_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) FailNextContactQuery(ctx context.Context, in *FailNextContactQueryRequest, opts ...grpc.CallOption) (*FailNextContactQueryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FailNextContactQueryResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_FailNextContactQuery_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FakeWhatsAppServiceServer is the server API for FakeWhatsAppService service.
 // All implementations must embed UnimplementedFakeWhatsAppServiceServer
 // for forward compatibility.
@@ -281,6 +354,24 @@ type FakeWhatsAppServiceServer interface {
 	// whatsmeow does; the client is disconnected and does not reconnect. For logged_out the client also deletes its
 	// device concurrently, as whatsmeow does (connectionevents.go:37-44, 130-136). It returns before the handlers run.
 	RaisePermanentDisconnect(context.Context, *RaisePermanentDisconnectRequest) (*RaisePermanentDisconnectResponse, error)
+	// RegisterUser adds a user to WhatsApp's directory, which every session's lookups read: IsOnWhatsApp, GetUserInfo,
+	// and the LID that UpdateBlocklist fetches. An unregistered number is not on WhatsApp. Registering a phone_jid again
+	// replaces it.
+	RegisterUser(context.Context, *RegisterUserRequest) (*RegisterUserResponse, error)
+	// SetProfilePicture sets what WhatsApp answers for the profile picture of a user or a group; without one it answers
+	// that there is none.
+	SetProfilePicture(context.Context, *SetProfilePictureRequest) (*SetProfilePictureResponse, error)
+	// DeliverContactNotification makes WhatsApp send the session's client a picture or status notification. As
+	// whatsmeow does, the client dispatches Picture or UserAbout on the node queue and ignores the handlers' result
+	// (notification.go:91-115, 449-466, 472); it returns once the handlers ran. A session without a client is an error.
+	DeliverContactNotification(context.Context, *DeliverContactNotificationRequest) (*DeliverContactNotificationResponse, error)
+	// SyncContact makes an app state sync deliver a contact's saved name: the client stores it, then dispatches Contact,
+	// as whatsmeow does (appstate.go:292-296). The session must be linked.
+	SyncContact(context.Context, *SyncContactRequest) (*SyncContactResponse, error)
+	// FailNextContactQuery makes WhatsApp answer the session's next contact query (IsOnWhatsApp, GetUserInfo,
+	// GetProfilePictureInfo, GetBlocklist, UpdateBlocklist) with an IQ error of code: 429 is whatsmeow's
+	// ErrIQRateOverLimit (errors.go:197).
+	FailNextContactQuery(context.Context, *FailNextContactQueryRequest) (*FailNextContactQueryResponse, error)
 	mustEmbedUnimplementedFakeWhatsAppServiceServer()
 }
 
@@ -326,6 +417,21 @@ func (UnimplementedFakeWhatsAppServiceServer) FailNextLogout(context.Context, *F
 }
 func (UnimplementedFakeWhatsAppServiceServer) RaisePermanentDisconnect(context.Context, *RaisePermanentDisconnectRequest) (*RaisePermanentDisconnectResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RaisePermanentDisconnect not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) RegisterUser(context.Context, *RegisterUserRequest) (*RegisterUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RegisterUser not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) SetProfilePicture(context.Context, *SetProfilePictureRequest) (*SetProfilePictureResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetProfilePicture not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) DeliverContactNotification(context.Context, *DeliverContactNotificationRequest) (*DeliverContactNotificationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeliverContactNotification not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) SyncContact(context.Context, *SyncContactRequest) (*SyncContactResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SyncContact not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) FailNextContactQuery(context.Context, *FailNextContactQueryRequest) (*FailNextContactQueryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FailNextContactQuery not implemented")
 }
 func (UnimplementedFakeWhatsAppServiceServer) mustEmbedUnimplementedFakeWhatsAppServiceServer() {}
 func (UnimplementedFakeWhatsAppServiceServer) testEmbeddedByValue()                             {}
@@ -564,6 +670,96 @@ func _FakeWhatsAppService_RaisePermanentDisconnect_Handler(srv interface{}, ctx 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FakeWhatsAppService_RegisterUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).RegisterUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_RegisterUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).RegisterUser(ctx, req.(*RegisterUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_SetProfilePicture_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetProfilePictureRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).SetProfilePicture(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_SetProfilePicture_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).SetProfilePicture(ctx, req.(*SetProfilePictureRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_DeliverContactNotification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeliverContactNotificationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).DeliverContactNotification(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_DeliverContactNotification_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).DeliverContactNotification(ctx, req.(*DeliverContactNotificationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_SyncContact_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SyncContactRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).SyncContact(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_SyncContact_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).SyncContact(ctx, req.(*SyncContactRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_FailNextContactQuery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FailNextContactQueryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).FailNextContactQuery(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_FailNextContactQuery_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).FailNextContactQuery(ctx, req.(*FailNextContactQueryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FakeWhatsAppService_ServiceDesc is the grpc.ServiceDesc for FakeWhatsAppService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -618,6 +814,26 @@ var FakeWhatsAppService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RaisePermanentDisconnect",
 			Handler:    _FakeWhatsAppService_RaisePermanentDisconnect_Handler,
+		},
+		{
+			MethodName: "RegisterUser",
+			Handler:    _FakeWhatsAppService_RegisterUser_Handler,
+		},
+		{
+			MethodName: "SetProfilePicture",
+			Handler:    _FakeWhatsAppService_SetProfilePicture_Handler,
+		},
+		{
+			MethodName: "DeliverContactNotification",
+			Handler:    _FakeWhatsAppService_DeliverContactNotification_Handler,
+		},
+		{
+			MethodName: "SyncContact",
+			Handler:    _FakeWhatsAppService_SyncContact_Handler,
+		},
+		{
+			MethodName: "FailNextContactQuery",
+			Handler:    _FakeWhatsAppService_FailNextContactQuery_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

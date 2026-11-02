@@ -1,4 +1,5 @@
 using Google.Protobuf.WellKnownTypes;
+using Whatsmeow.Contacts;
 using Whatsmeow.Protocol.V1;
 using Whatsmeow.Sessions;
 using E2E = Whatsmeow.Proto.WAWebProtobufsE2E;
@@ -39,6 +40,7 @@ internal static class EventMapping
 				HidePlaceholder = response.UndecryptableMessage.HidePlaceholder,
 			},
 			Payload.ConnectionState => new ConnectionStateChanged { SessionId = sessionId, State = SessionMapping.ToState(response.ConnectionState.State) },
+			Payload.Contact => ContactMapping.ToEvent(sessionId, response.Contact),
 			// Receipts come with #9: skipped, and acked.
 			Payload.Receipt or Payload.None => null,
 			_ => null,
@@ -50,6 +52,8 @@ internal static class EventMapping
 		{
 			Payload.Message => response.Message.Info?.Source?.Chat ?? SessionLane,
 			Payload.UndecryptableMessage => response.UndecryptableMessage.Info?.Source?.Chat ?? SessionLane,
+			// The contact's lane: a user's changes run in order with their direct chat when it uses the same form.
+			Payload.Contact => response.Contact.Jid,
 			Payload.ConnectionState or Payload.Receipt or Payload.None => SessionLane,
 			_ => SessionLane,
 		};

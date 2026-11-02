@@ -39,6 +39,7 @@ type WhatsApp struct {
 	background sync.WaitGroup
 	// scripts are what the controls scripted for each session's next calls.
 	scripts map[string]*script
+	directory
 }
 
 // script is what the controls scripted for a session's next calls. It is the session's, not its client's: each Pair
@@ -48,6 +49,8 @@ type script struct {
 	failPreKeyUpload bool
 	// failPairPhone is the IQ error code of the next PairPhone; 0 for none.
 	failPairPhone int32
+	// failContactQuery is the IQ error code of the next contact query; 0 for none.
+	failContactQuery int32
 }
 
 // setScript changes the session's script.
@@ -82,7 +85,10 @@ func (w *WhatsApp) take(sessionID string, scripted func(*script) bool, reset fun
 
 // New returns a fake WhatsApp with no clients and an empty log.
 func New(log zerolog.Logger) *WhatsApp {
-	return &WhatsApp{log: log, clients: map[string]*Client{}, changed: make(chan struct{}), scripts: map[string]*script{}}
+	return &WhatsApp{
+		log: log, clients: map[string]*Client{}, changed: make(chan struct{}), scripts: map[string]*script{},
+		directory: directory{users: map[types.JID]*user{}, pictures: map[types.JID]picture{}, blocklists: map[string][]types.BlocklistItem{}},
+	}
 }
 
 // NewClient returns a new client for a session, in place of whatsmeow.NewClient; it replaces the session's previous
@@ -97,11 +103,12 @@ func (w *WhatsApp) NewClient(sessionID string) *Client {
 	return c
 }
 
-// deliverMessage dispatches the decrypted parts of one message stanza to the session's client, in order, and records
+// deliverMessage has the session's client learn what the message's info carries (learn), dispatches the decrypted
+// parts of one message stanza to it, in order, and records
 // what whatsmeow answers at the pin: nothing when a handler of any part failed (message.go:459-462), otherwise one
 // receipt (message.go:489-495), of type inactive for a message from someone else while the client sends no active
 // receipts (receipt.go:280-296).
-func (w *WhatsApp) deliverMessage(sessionID string, parts ...*events.Message) error {
+func (w *WhatsApp) deliverMessage(ctx context.Context, sessionID string, parts ...*events.Message) error {
 	w.mu.Lock()
 	c, ok := w.clients[sessionID]
 	w.mu.Unlock()
@@ -110,6 +117,8 @@ func (w *WhatsApp) deliverMessage(sessionID string, parts ...*events.Message) er
 	if !ok {
 		return fmt.Errorf("deliver message %q to session %q: %w", id, sessionID, ErrNoClient)
 	}
+
+	c.learn(ctx, &parts[len(parts)-1].Info)
 
 	for _, part := range parts {
 		if c.dispatch(part) {

@@ -90,6 +90,8 @@ type session struct {
 	deleted  chan struct{}
 	// pairing is the open Pair call's attempt, nil when none is open.
 	pairing *attempt
+	// online is open while the session is Connected or CaughtUp, nil otherwise (Online).
+	online chan struct{}
 }
 
 // New loads every session from the database. It never connects one: the client calls Connect (session.proto).
@@ -292,6 +294,7 @@ func (svc *Service) apply(s *session, evt any) {
 // happened is recorded even when the call that caused it was cancelled meanwhile.
 func (svc *Service) transition(ctx context.Context, s *session, state *whatsmeowv1.SessionState) error {
 	s.state = state
+	s.track(state)
 	ctx = context.WithoutCancel(ctx)
 	event := &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_ConnectionState{
 		ConnectionState: &whatsmeowv1.ConnectionStateEvent{State: state},
@@ -528,6 +531,12 @@ func (svc *Service) DeleteSession(ctx context.Context, req *whatsmeowv1.DeleteSe
 	svc.mu.Unlock()
 
 	s.mu.Lock()
+	// A deleted session is online no more; its client may never dispatch the disconnect that would close this.
+	if s.online != nil {
+		close(s.online)
+		s.online = nil
+	}
+
 	close(s.deleted)
 	s.mu.Unlock()
 
