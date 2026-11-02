@@ -19,6 +19,7 @@ third_party/whatsmeow/ upstream protos copied from the exact pinned version (`VE
 sidecar/               Go module `github.com/tcortega/Whatsmeow.NET/sidecar`: product code and dependencies only
 tools/                 Go module for repo tools (`check-repo`, `sync-protos`, `check-licenses`, `bump-report`, `parity-report`, the tests' `stub-sidecar`), kept out of the product module
 build/ci.sh            every CI check; the workflow only calls it
+build/release.sh       the release, tested by build/release-test.sh; release.yml only calls it (ADR 0050)
 dotnet/                `Whatsmeow.slnx` (never a .sln), src/, tests/, samples/ (`EchoBot`, the hosted sample, ADR 0049)
 docs/                  ARCHITECTURE, RESEARCH, guidelines/, adr/
 global.json mise.toml  .NET SDK pin; Go, buf, golangci-lint, protoc, protoc plugins and shellcheck pins
@@ -39,6 +40,8 @@ bash build/ci.sh all        # or: setup, contract, go, dotnet, external, package
 A package change regenerates `packages.lock.json` with a plain `dotnet restore dotnet/Whatsmeow.slnx`; commit it.
 Update third_party after a pin change with `go -C tools run ./sync-protos -write`, and generated code with `buf generate` (whatsmeow.v1) and `buf generate --template buf.gen.whatsapp.yaml` (upstream).
 The weekly whatsmeow bump is `build/bump.sh`; `bash build/bump.sh --dry-run` runs it in the working tree and prints the PR body (ADR 0043).
+A `v<semver>` tag on main releases (`release.yml`, ADR 0050); only Antonio pushes one.
+A manual run of `release.yml` on main rehearses it without publishing.
 After a reviewed `sidecar/licenses.allow` edit, regenerate the native packages' notices with `go -C tools run ./check-licenses -write` (ADR 0029).
 
 ## .NET rules

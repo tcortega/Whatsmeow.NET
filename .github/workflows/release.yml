@@ -1,0 +1,172 @@
+name: release
+
+# A v<semver> tag on main publishes that commit (#46, ADR 0050): the guard job refuses a tag that is not a release
+# tag at a commit on main, packaging.yml builds and checks the feed, and the publish job, after approval in the
+# release environment, puts up the GitHub release with the binaries, their checksums and the Corresponding Source,
+# then pushes the packages to nuget.org through Trusted Publishing (no stored API key), the native packages first.
+# Re-running it pushes and uploads only what is missing; nothing is ever deleted or unlisted.
+#
+# workflow_dispatch is the rehearsal: the same guard, packaging and verify, at a tag made in each runner only and never
+# pushed, with every publishing command printed instead of run. It has no environment and no id-token permission, and
+# build/release.sh refuses to publish outside a push of the tag. Every step lives in build/release.sh.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # Owner action 1 (ADR 0050): the nuget.org profile name, not the e-mail address, that owns the Trusted Publishing
+  # policy. A tag push fails in the guard job, before anything is built, while it is this placeholder.
+  NUGET_USER: REPLACE-WITH-NUGET-PROFILE-NAME
+  TAG: ${{ github.event_name == 'push' && github.ref_name || format('v0.0.0-rehearsal.{0}', github.run_number) }}
+
+jobs:
+  guard:
+    name: guard
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: the rehearsal's tag, in this runner only
+        if: github.event_name == 'workflow_dispatch'
+        run: git tag "$TAG"
+
+      - name: build/release.sh guard
+        run: bash build/release.sh guard "$TAG"
+
+  packaging:
+    name: packaging
+    needs: guard
+    uses: ./.github/workflows/packaging.yml
+    with:
+      rehearsal-tag: ${{ github.event_name == 'workflow_dispatch' && format('v0.0.0-rehearsal.{0}', github.run_number) || '' }}
+
+  publish:
+    name: publish
+    needs: packaging
+    if: github.event_name == 'push'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 120
+    # Owner action 3: required reviewers, and only v* tags deploy to it.
+    environment: release
+    permissions:
+      # The GitHub release.
+      contents: write
+      # The OIDC token NuGet/login trades for a nuget.org API key that lasts an hour.
+      id-token: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: native-packages
+          path: ${{ runner.temp }}/feed
+
+      - name: build/release.sh guard
+        run: bash build/release.sh guard "$TAG"
+
+      - name: build/release.sh verify
+        run: bash build/release.sh verify "$TAG" "$RUNNER_TEMP/feed" "$RUNNER_TEMP/assets"
+
+      - name: build/release.sh github
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: bash build/release.sh github "$TAG" "$RUNNER_TEMP/assets"
+
+      - name: nuget.org key for the first phase
+        id: login-1
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ env.NUGET_USER }}
+
+      - name: build/release.sh push 1 (the native packages and Whatsmeow.Protocol.WhatsApp)
+        env:
+          NUGET_API_KEY: ${{ steps.login-1.outputs.NUGET_API_KEY }}
+        run: bash build/release.sh push "$TAG" "$RUNNER_TEMP/feed" 1
+
+      - name: build/release.sh wait
+        run: bash build/release.sh wait "$TAG" "$RUNNER_TEMP/feed"
+
+      # A new key: the wait can outlast the first one's hour, and each OIDC token buys one key.
+      - name: nuget.org key for the second phase
+        id: login-2
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ env.NUGET_USER }}
+
+      - name: build/release.sh push 2 (the packages that depend on them)
+        env:
+          NUGET_API_KEY: ${{ steps.login-2.outputs.NUGET_API_KEY }}
+        run: bash build/release.sh push "$TAG" "$RUNNER_TEMP/feed" 2
+
+  rehearsal:
+    name: rehearsal
+    needs: packaging
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: native-packages
+          path: ${{ runner.temp }}/feed
+
+      - name: the rehearsal's tag, in this runner only
+        run: git tag "$TAG"
+
+      - name: build/release.sh guard
+        run: bash build/release.sh guard "$TAG"
+
+      - name: build/release.sh verify
+        run: bash build/release.sh verify "$TAG" "$RUNNER_TEMP/feed" "$RUNNER_TEMP/assets"
+
+      - name: what publish would do
+        run: |
+          bash build/release.sh github "$TAG" "$RUNNER_TEMP/assets" --dry-run
+          bash build/release.sh push "$TAG" "$RUNNER_TEMP/feed" 1 --dry-run
+          bash build/release.sh wait "$TAG" "$RUNNER_TEMP/feed" --dry-run
+          bash build/release.sh push "$TAG" "$RUNNER_TEMP/feed" 2 --dry-run
+
+      - name: publishing refuses a rehearsal
+        run: |
+          for command in "github $TAG $RUNNER_TEMP/assets" "push $TAG $RUNNER_TEMP/feed 1"; do
+            # shellcheck disable=SC2086 # the words of one command
+            if bash build/release.sh $command; then
+              echo "::error title=rehearsal::build/release.sh $command published in a rehearsal"
+              exit 1
+            fi
+          done
