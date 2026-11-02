@@ -677,10 +677,12 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// DeliverPollVote makes WhatsApp deliver a poll vote from sender to a session's client, as DeliverMessage does. The
       /// fake encrypts it as the voter's device would, with whatsmeow's own message secret code
-      /// (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret from the session's store,
-      /// and names the poll by a key as the voter sees it (msgsecret.go:130-151): its own when the voter sent the poll,
-      /// else the poll's sender as the remote JID in a direct chat and as the participant in a group. A session with no
-      /// secret for the poll is an error: such a vote is DeliverMessage's, with a message of its own.
+      /// (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret as the voter's device has
+      /// it: the secret the session's message node with the poll's id carried, as WhatsApp delivered the account's poll,
+      /// else the session's store's, as the poll's sender sent it to every member. It names the poll by a key as the voter
+      /// sees it (msgsecret.go:130-151): its own when the voter sent the poll, else the poll's sender as the remote JID in a
+      /// direct chat and as the participant in a group. A poll with no secret either way is an error: such a vote is
+      /// DeliverMessage's, with a message of its own.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -695,10 +697,12 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// DeliverPollVote makes WhatsApp deliver a poll vote from sender to a session's client, as DeliverMessage does. The
       /// fake encrypts it as the voter's device would, with whatsmeow's own message secret code
-      /// (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret from the session's store,
-      /// and names the poll by a key as the voter sees it (msgsecret.go:130-151): its own when the voter sent the poll,
-      /// else the poll's sender as the remote JID in a direct chat and as the participant in a group. A session with no
-      /// secret for the poll is an error: such a vote is DeliverMessage's, with a message of its own.
+      /// (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret as the voter's device has
+      /// it: the secret the session's message node with the poll's id carried, as WhatsApp delivered the account's poll,
+      /// else the session's store's, as the poll's sender sent it to every member. It names the poll by a key as the voter
+      /// sees it (msgsecret.go:130-151): its own when the voter sent the poll, else the poll's sender as the remote JID in a
+      /// direct chat and as the participant in a group. A poll with no secret either way is an error: such a vote is
+      /// DeliverMessage's, with a message of its own.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -711,10 +715,12 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// DeliverPollVote makes WhatsApp deliver a poll vote from sender to a session's client, as DeliverMessage does. The
       /// fake encrypts it as the voter's device would, with whatsmeow's own message secret code
-      /// (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret from the session's store,
-      /// and names the poll by a key as the voter sees it (msgsecret.go:130-151): its own when the voter sent the poll,
-      /// else the poll's sender as the remote JID in a direct chat and as the participant in a group. A session with no
-      /// secret for the poll is an error: such a vote is DeliverMessage's, with a message of its own.
+      /// (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret as the voter's device has
+      /// it: the secret the session's message node with the poll's id carried, as WhatsApp delivered the account's poll,
+      /// else the session's store's, as the poll's sender sent it to every member. It names the poll by a key as the voter
+      /// sees it (msgsecret.go:130-151): its own when the voter sent the poll, else the poll's sender as the remote JID in a
+      /// direct chat and as the participant in a group. A poll with no secret either way is an error: such a vote is
+      /// DeliverMessage's, with a message of its own.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -729,10 +735,12 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// DeliverPollVote makes WhatsApp deliver a poll vote from sender to a session's client, as DeliverMessage does. The
       /// fake encrypts it as the voter's device would, with whatsmeow's own message secret code
-      /// (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret from the session's store,
-      /// and names the poll by a key as the voter sees it (msgsecret.go:130-151): its own when the voter sent the poll,
-      /// else the poll's sender as the remote JID in a direct chat and as the participant in a group. A session with no
-      /// secret for the poll is an error: such a vote is DeliverMessage's, with a message of its own.
+      /// (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret as the voter's device has
+      /// it: the secret the session's message node with the poll's id carried, as WhatsApp delivered the account's poll,
+      /// else the session's store's, as the poll's sender sent it to every member. It names the poll by a key as the voter
+      /// sees it (msgsecret.go:130-151): its own when the voter sent the poll, else the poll's sender as the remote JID in a
+      /// direct chat and as the participant in a group. A poll with no secret either way is an error: such a vote is
+      /// DeliverMessage's, with a message of its own.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>

@@ -1605,7 +1605,7 @@ type DeliverPollVoteRequest struct {
 	Sender string `protobuf:"bytes,4,opt,name=sender,proto3" json:"sender,omitempty"`
 	// The poll's WhatsApp id.
 	PollId string `protobuf:"bytes,5,opt,name=poll_id,json=pollId,proto3" json:"poll_id,omitempty"`
-	// The poll's sender, as the session's store has it.
+	// The poll's sender, as its message named it.
 	PollSender string `protobuf:"bytes,6,opt,name=poll_sender,json=pollSender,proto3" json:"poll_sender,omitempty"`
 	// The names of the options selected; none clears the vote.
 	Options []string `protobuf:"bytes,7,rep,name=options,proto3" json:"options,omitempty"`
@@ -7022,7 +7022,10 @@ type DeliverHistorySyncRequest_Message struct {
 	// The sender's push name.
 	PushName string `protobuf:"bytes,6,opt,name=push_name,json=pushName,proto3" json:"push_name,omitempty"`
 	// When set, the message itself, in place of the text: a media message, or one in a view-once wrapper.
-	Message       *waE2E.Message `protobuf:"bytes,7,opt,name=message,proto3" json:"message,omitempty"`
+	Message *waE2E.Message `protobuf:"bytes,7,opt,name=message,proto3" json:"message,omitempty"`
+	// The message's secret, as a WebMessageInfo carries it (messageSecret), which whatsmeow stores when it downloads
+	// the blob (message.go:806-809, 988-1050): a poll's, which votes on it are encrypted with.
+	MessageSecret []byte `protobuf:"bytes,8,opt,name=message_secret,json=messageSecret,proto3" json:"message_secret,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -7102,6 +7105,13 @@ func (x *DeliverHistorySyncRequest_Message) GetPushName() string {
 func (x *DeliverHistorySyncRequest_Message) GetMessage() *waE2E.Message {
 	if x != nil {
 		return x.Message
+	}
+	return nil
+}
+
+func (x *DeliverHistorySyncRequest_Message) GetMessageSecret() []byte {
+	if x != nil {
+		return x.MessageSecret
 	}
 	return nil
 }
@@ -7540,7 +7550,7 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\"3\n" +
 	"\x1bCompleteOfflineSyncResponse\x12\x14\n" +
-	"\x05index\x18\x01 \x01(\x04R\x05index\"\xd6\x05\n" +
+	"\x05index\x18\x01 \x01(\x04R\x05index\"\xfd\x05\n" +
 	"\x19DeliverHistorySyncRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x1d\n" +
@@ -7556,7 +7566,7 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"\bblobless\x18\t \x01(\bR\bblobless\x1at\n" +
 	"\fConversation\x12\x12\n" +
 	"\x04chat\x18\x01 \x01(\tR\x04chat\x12P\n" +
-	"\bmessages\x18\x02 \x03(\v24.whatsmeow.fake.v1.DeliverHistorySyncRequest.MessageR\bmessages\x1a\xfa\x01\n" +
+	"\bmessages\x18\x02 \x03(\v24.whatsmeow.fake.v1.DeliverHistorySyncRequest.MessageR\bmessages\x1a\xa1\x02\n" +
 	"\aMessage\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12 \n" +
 	"\vparticipant\x18\x02 \x01(\tR\vparticipant\x12\x17\n" +
@@ -7564,7 +7574,8 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"\x04text\x18\x04 \x01(\tR\x04text\x12=\n" +
 	"\fmessage_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\vmessageTime\x12\x1b\n" +
 	"\tpush_name\x18\x06 \x01(\tR\bpushName\x124\n" +
-	"\amessage\x18\a \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\"=\n" +
+	"\amessage\x18\a \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\x12%\n" +
+	"\x0emessage_secret\x18\b \x01(\fR\rmessageSecret\"=\n" +
 	"\x1aDeliverHistorySyncResponse\x12\x1f\n" +
 	"\vdirect_path\x18\x01 \x01(\tR\n" +
 	"directPath\"=\n" +

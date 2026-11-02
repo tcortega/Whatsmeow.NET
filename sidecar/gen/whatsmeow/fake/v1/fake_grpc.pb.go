@@ -82,10 +82,12 @@ type FakeWhatsAppServiceClient interface {
 	DeliverMessage(ctx context.Context, in *DeliverMessageRequest, opts ...grpc.CallOption) (*DeliverMessageResponse, error)
 	// DeliverPollVote makes WhatsApp deliver a poll vote from sender to a session's client, as DeliverMessage does. The
 	// fake encrypts it as the voter's device would, with whatsmeow's own message secret code
-	// (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret from the session's store,
-	// and names the poll by a key as the voter sees it (msgsecret.go:130-151): its own when the voter sent the poll,
-	// else the poll's sender as the remote JID in a direct chat and as the participant in a group. A session with no
-	// secret for the poll is an error: such a vote is DeliverMessage's, with a message of its own.
+	// (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret as the voter's device has
+	// it: the secret the session's message node with the poll's id carried, as WhatsApp delivered the account's poll,
+	// else the session's store's, as the poll's sender sent it to every member. It names the poll by a key as the voter
+	// sees it (msgsecret.go:130-151): its own when the voter sent the poll, else the poll's sender as the remote JID in a
+	// direct chat and as the participant in a group. A poll with no secret either way is an error: such a vote is
+	// DeliverMessage's, with a message of its own.
 	DeliverPollVote(ctx context.Context, in *DeliverPollVoteRequest, opts ...grpc.CallOption) (*DeliverPollVoteResponse, error)
 	// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
 	// the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches
@@ -736,10 +738,12 @@ type FakeWhatsAppServiceServer interface {
 	DeliverMessage(context.Context, *DeliverMessageRequest) (*DeliverMessageResponse, error)
 	// DeliverPollVote makes WhatsApp deliver a poll vote from sender to a session's client, as DeliverMessage does. The
 	// fake encrypts it as the voter's device would, with whatsmeow's own message secret code
-	// (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret from the session's store,
-	// and names the poll by a key as the voter sees it (msgsecret.go:130-151): its own when the voter sent the poll,
-	// else the poll's sender as the remote JID in a direct chat and as the participant in a group. A session with no
-	// secret for the poll is an error: such a vote is DeliverMessage's, with a message of its own.
+	// (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret as the voter's device has
+	// it: the secret the session's message node with the poll's id carried, as WhatsApp delivered the account's poll,
+	// else the session's store's, as the poll's sender sent it to every member. It names the poll by a key as the voter
+	// sees it (msgsecret.go:130-151): its own when the voter sent the poll, else the poll's sender as the remote JID in a
+	// direct chat and as the participant in a group. A poll with no secret either way is an error: such a vote is
+	// DeliverMessage's, with a message of its own.
 	DeliverPollVote(context.Context, *DeliverPollVoteRequest) (*DeliverPollVoteResponse, error)
 	// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
 	// the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches

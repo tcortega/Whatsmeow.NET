@@ -8,7 +8,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 	"time"
@@ -33,8 +32,10 @@ import (
 var errNotPaired = errors.New("the session was never paired")
 
 // DownloadHistorySync reads the blob as whatsmeow does (message.go:783-825): the inline payload, or a download from
-// the media server, which needs the connection (mediaconn.go:44-58) and fails for a blob ExpireMedia expired.
-func (c *Client) DownloadHistorySync(_ context.Context, notif *waE2E.HistorySyncNotification, _ bool) (*waHistorySync.HistorySync, error) {
+// the media server, which needs the connection (mediaconn.go:44-58) and fails for a blob ExpireMedia expired. The rest
+// is whatsmeow's own, on a client that never connects: it decompresses and parses the blob, and stores what it
+// carries, the messages' secrets among it (message.go:799-825, 988-1050).
+func (c *Client) DownloadHistorySync(ctx context.Context, notif *waE2E.HistorySyncNotification, synchronousStorage bool) (*waHistorySync.HistorySync, error) {
 	data := notif.GetInitialHistBootstrapInlinePayload()
 	if data == nil {
 		downloaded, err := c.downloadBlob(notif.GetDirectPath())
@@ -45,22 +46,7 @@ func (c *Client) DownloadHistorySync(_ context.Context, notif *waE2E.HistorySync
 		data = downloaded
 	}
 
-	reader, err := zlib.NewReader(bytes.NewReader(data))
-	if err != nil {
-		return nil, fmt.Errorf("failed to prepare to decompress: %w", err)
-	}
-
-	raw, err := io.ReadAll(reader)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decompress: %w", err)
-	}
-
-	var blob waHistorySync.HistorySync
-	if err := proto.Unmarshal(raw, &blob); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal: %w", err)
-	}
-
-	return &blob, nil
+	return whatsmeow.NewClient(c.Store, nil).DownloadHistorySync(ctx, &waE2E.HistorySyncNotification{InitialHistBootstrapInlinePayload: data}, synchronousStorage) //nolint:wrapcheck // whatsmeow's own
 }
 
 func (c *Client) downloadBlob(directPath string) ([]byte, error) {
@@ -224,6 +210,10 @@ func historySync(req *fakev1.DeliverHistorySyncRequest) *waHistorySync.HistorySy
 
 			if m.GetPushName() != "" {
 				web.PushName = proto.String(m.GetPushName())
+			}
+
+			if m.GetMessageSecret() != nil {
+				web.MessageSecret = m.GetMessageSecret()
 			}
 
 			out.Messages = append(out.Messages, &waHistorySync.HistorySyncMsg{Message: web})

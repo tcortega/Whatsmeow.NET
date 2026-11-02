@@ -5,9 +5,11 @@ package fakewhatsapp
 import (
 	"bytes"
 	"context"
+	"errors"
 	"testing"
 
 	"go.mau.fi/whatsmeow"
+	"go.mau.fi/whatsmeow/proto/waAdv"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
@@ -114,6 +116,34 @@ func TestASentMessagesSecretIsStoredAsWhatsmeowStoresIt(t *testing.T) {
 	}
 }
 
+// As whatsmeow's SendMessage stores the secret before sendDM and sendGroup marshal the message and look its devices up
+// (send.go:403-410, 875, 782, 1198): a send rate limited there has its secret stored already.
+func TestARateLimitedSendHasItsSecretStoredFirst(t *testing.T) {
+	t.Parallel()
+
+	_, control, ctx, client, _, _ := linked(t)
+	client.Store.LID = parse(t, ownLID)
+
+	if err := client.ConnectContext(ctx); err != nil {
+		t.Fatalf("ConnectContext: %v", err)
+	}
+
+	if _, err := control.RateLimitNextSends(ctx, &fakev1.RateLimitNextSendsRequest{SessionId: "s1", Count: 1}); err != nil {
+		t.Fatalf("RateLimitNextSends: %v", err)
+	}
+
+	poll := client.BuildPollCreation("Lunch?", []string{"Pizza", "Sushi"}, 1)
+
+	var iq *whatsmeow.IQError
+	if _, err := client.SendMessage(ctx, parse(t, "900000002@lid"), poll, whatsmeow.SendRequestExtra{ID: "3EB0000000000000000001"}); !errors.As(err, &iq) || iq.Code != 429 {
+		t.Fatalf("SendMessage = %v, want an IQ 429", err)
+	}
+
+	if got := secretOf(t, client, "900000002@lid", "900000009@lid", "3EB0000000000000000001"); !bytes.Equal(got, poll.GetMessageContextInfo().GetMessageSecret()) {
+		t.Fatalf("stored secret %x, want the rate-limited poll's %x", got, poll.GetMessageContextInfo().GetMessageSecret())
+	}
+}
+
 // As whatsmeow stores a received message's secret before it dispatches the message (message.go:939-940, 964-985).
 func TestADeliveredMessagesSecretIsStored(t *testing.T) {
 	t.Parallel()
@@ -169,6 +199,58 @@ func TestDeliverPollVoteDeliversAVoteThatDecryptsWithThePollsSecret(t *testing.T
 				t.Fatalf("the vote decrypts to %v, %v; want Sushi's hash", vote, err)
 			}
 		})
+	}
+}
+
+// The voter's device has the account's poll only as WhatsApp delivered it, so its vote is encrypted with the secret the
+// poll carried, whatever this device stored: whatsmeow keeps the first secret stored for an id (store.go:882-885).
+func TestDeliverPollVoteOnTheAccountsPollUsesTheSecretThePollCarried(t *testing.T) {
+	t.Parallel()
+
+	_, control, ctx, client, got, db := linked(t)
+	client.Store.LID = parse(t, ownLID)
+
+	if err := client.ConnectContext(ctx); err != nil {
+		t.Fatalf("ConnectContext: %v", err)
+	}
+
+	const id = "3EB0000000000000000001"
+
+	if err := client.Store.MsgSecrets.PutMessageSecret(ctx, parse(t, "222@lid"), parse(t, "900000009@lid"), id, bytes.Repeat([]byte{7}, 32)); err != nil {
+		t.Fatalf("PutMessageSecret: %v", err)
+	}
+
+	poll := client.BuildPollCreation("Lunch?", []string{"Pizza", "Sushi"}, 1)
+	if _, err := client.SendMessage(ctx, parse(t, "222@lid"), poll, whatsmeow.SendRequestExtra{ID: id}); err != nil {
+		t.Fatalf("SendMessage: %v", err)
+	}
+
+	if _, err := control.DeliverPollVote(ctx, &fakev1.DeliverPollVoteRequest{
+		SessionId: "s1", Id: "V1", Chat: "222@lid", Sender: "222:2@lid", PollId: id, PollSender: "900000009@lid", Options: []string{"Sushi"},
+	}); err != nil {
+		t.Fatalf("DeliverPollVote: %v", err)
+	}
+
+	evt := next[*events.Message](t, got)
+
+	// A device that has the poll as it was sent decrypts the vote with whatsmeow's own code.
+	voter := db.Devices.NewDevice()
+	voter.ID = new(parse(t, "5511900000222:2@s.whatsapp.net"))
+	voter.Account = &waAdv.ADVSignedDeviceIdentity{
+		Details: []byte{}, AccountSignature: make([]byte, 64), AccountSignatureKey: make([]byte, 32), DeviceSignature: make([]byte, 64),
+	}
+
+	if err := voter.Save(ctx); err != nil {
+		t.Fatalf("save the voter's device: %v", err)
+	}
+
+	if err := voter.MsgSecrets.PutMessageSecret(ctx, parse(t, "222@lid"), parse(t, "900000009@lid"), id, poll.GetMessageContextInfo().GetMessageSecret()); err != nil {
+		t.Fatalf("PutMessageSecret: %v", err)
+	}
+
+	vote, err := whatsmeow.NewClient(voter, nil).DecryptPollVote(ctx, evt)
+	if err != nil || len(vote.GetSelectedOptions()) != 1 || !bytes.Equal(vote.GetSelectedOptions()[0], whatsmeow.HashPollOptions([]string{"Sushi"})[0]) {
+		t.Fatalf("with the secret the poll carried, the vote decrypts to %v, %v; want Sushi's hash", vote, err)
 	}
 }
 

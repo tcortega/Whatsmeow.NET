@@ -9,6 +9,7 @@ import (
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/proto/waCommon"
 	"go.mau.fi/whatsmeow/proto/waE2E"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 	"google.golang.org/protobuf/proto"
@@ -88,7 +89,7 @@ func (c *Control) DeliverPollVote(ctx context.Context, req *fakev1.DeliverPollVo
 		return nil, fmt.Errorf("deliver poll vote %q: %w", req.GetId(), err)
 	}
 
-	payload, iv, err := client.secrets().DangerousInternals().EncryptMsgSecret(ctx, source.Sender, source.Chat, pollSender, req.GetPollId(), whatsmeow.EncSecretPollVote, plaintext) //nolint:staticcheck // the voter's encryption, which no exported call makes
+	payload, iv, err := client.voter(req.GetPollId(), pollSender).DangerousInternals().EncryptMsgSecret(ctx, source.Sender, source.Chat, pollSender, req.GetPollId(), whatsmeow.EncSecretPollVote, plaintext) //nolint:staticcheck // the voter's encryption, which no exported call makes
 	if err != nil {
 		return nil, fmt.Errorf("deliver poll vote %q: %w", req.GetId(), err)
 	}
@@ -108,6 +109,48 @@ func (c *Control) DeliverPollVote(ctx context.Context, req *fakev1.DeliverPollVo
 	}
 
 	return &fakev1.DeliverPollVoteResponse{}, nil
+}
+
+// voter is a never-connected whatsmeow client with the poll's secret as the voter's device has it: for the account's
+// own poll, the secret its message node carried, as WhatsApp delivered it (whatsmeow's store keeps the first secret of
+// an id, store.go:882-885, so it can hold another); for a poll the account received, the one stored here, which its
+// sender sent to every member alike.
+func (c *Client) voter(pollID string, pollSender types.JID) *whatsmeow.Client {
+	secret := c.whatsApp.sentSecret(c.sessionID, pollID)
+	if secret == nil {
+		return c.secrets()
+	}
+
+	device := *c.Store
+	device.MsgSecrets = heardSecret{sender: pollSender, secret: secret}
+
+	return whatsmeow.NewClient(&device, nil)
+}
+
+// heardSecret is the voter's store of the one secret it has: the poll's, from its sender.
+type heardSecret struct {
+	store.MsgSecretStore
+
+	sender types.JID
+	secret []byte
+}
+
+func (h heardSecret) GetMessageSecret(context.Context, types.JID, types.JID, types.MessageID) ([]byte, types.JID, error) {
+	return h.secret, h.sender, nil
+}
+
+// sentSecret is the message secret of the session's latest message node with the id id, or nil.
+func (w *WhatsApp) sentSecret(sessionID, id string) []byte {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	for i := len(w.sent) - 1; i >= 0; i-- {
+		if m := w.sent[i].GetMessage(); w.sent[i].GetSessionId() == sessionID && m.GetId() == id {
+			return m.GetMessage().GetMessageContextInfo().GetMessageSecret()
+		}
+	}
+
+	return nil
 }
 
 // voterKey is the poll's key as the voter names it, which whatsmeow reads back (msgsecret.go:130-151): the voter's own

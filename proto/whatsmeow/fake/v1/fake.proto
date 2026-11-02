@@ -20,10 +20,12 @@ service FakeWhatsAppService {
 
   // DeliverPollVote makes WhatsApp deliver a poll vote from sender to a session's client, as DeliverMessage does. The
   // fake encrypts it as the voter's device would, with whatsmeow's own message secret code
-  // (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret from the session's store,
-  // and names the poll by a key as the voter sees it (msgsecret.go:130-151): its own when the voter sent the poll,
-  // else the poll's sender as the remote JID in a direct chat and as the participant in a group. A session with no
-  // secret for the poll is an error: such a vote is DeliverMessage's, with a message of its own.
+  // (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret as the voter's device has
+  // it: the secret the session's message node with the poll's id carried, as WhatsApp delivered the account's poll,
+  // else the session's store's, as the poll's sender sent it to every member. It names the poll by a key as the voter
+  // sees it (msgsecret.go:130-151): its own when the voter sent the poll, else the poll's sender as the remote JID in a
+  // direct chat and as the participant in a group. A poll with no secret either way is an error: such a vote is
+  // DeliverMessage's, with a message of its own.
   rpc DeliverPollVote(DeliverPollVoteRequest) returns (DeliverPollVoteResponse);
 
   // DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
@@ -495,7 +497,7 @@ message DeliverPollVoteRequest {
   string sender = 4;
   // The poll's WhatsApp id.
   string poll_id = 5;
-  // The poll's sender, as the session's store has it.
+  // The poll's sender, as its message named it.
   string poll_sender = 6;
   // The names of the options selected; none clears the vote.
   repeated string options = 7;
@@ -1173,6 +1175,9 @@ message DeliverHistorySyncRequest {
     string push_name = 6;
     // When set, the message itself, in place of the text: a media message, or one in a view-once wrapper.
     WAWebProtobufsE2E.Message message = 7;
+    // The message's secret, as a WebMessageInfo carries it (messageSecret), which whatsmeow stores when it downloads
+    // the blob (message.go:806-809, 988-1050): a poll's, which votes on it are encrypted with.
+    bytes message_secret = 8;
   }
 
   // The session whose phone sends it.
