@@ -12,6 +12,10 @@
 // is a human verdict: for a new or changed file it prints the line to add with <licence> left for the
 // reviewer, and the parser rejects that placeholder.
 //
+// When the allowlist matches, it also checks sidecar/THIRD-PARTY-NOTICES.txt, which the native packages ship: every
+// file the allowlist lists, verbatim and in its order, under a header naming the module, its version, the file and
+// the verdict. With -write it regenerates that file instead, and only from licence files the allowlist approved.
+//
 // Findings print as path:line: [rule] message. Run it from the tools module: go -C tools run ./check-licenses.
 // With -targets it only prints the release targets, one GOOS/GOARCH per line: build/ci.sh builds exactly those
 // for the native packages, so the binaries and this check cover the same six (ADR 0023).
@@ -40,11 +44,15 @@ import (
 )
 
 const (
-	allowFile = "sidecar/licenses.allow"
-	moduleDir = "sidecar"
-	mainPkg   = "./cmd/whatsmeow-net"
-	stdModule = "std"
-	review    = "review the licence text, then edit " + allowFile + " in a reviewed change (ADR 0016)"
+	allowFile   = "sidecar/licenses.allow"
+	noticesFile = "sidecar/THIRD-PARTY-NOTICES.txt"
+	moduleDir   = "sidecar"
+	mainPkg     = "./cmd/whatsmeow-net"
+	stdModule   = "std"
+	review      = "review the licence text, then edit " + allowFile + " in a reviewed change (ADR 0016)"
+	// noticesRule is the rule of a finding in the notices file rather than in the allowlist.
+	noticesRule = "notices"
+	regenerate  = "run go -C tools run ./check-licenses -write"
 )
 
 // targets are the GOOS/GOARCH pairs the native packages ship (ADR 0007). build/ci.sh builds the binaries from this
@@ -64,6 +72,7 @@ var errFindings = errors.New("licence check failed")
 func main() {
 	root := flag.String("root", "..", "the repository root")
 	printTargets := flag.Bool("targets", false, "print the release targets, one GOOS/GOARCH per line, and exit")
+	write := flag.Bool("write", false, "regenerate "+noticesFile+" when the allowlist matches")
 	flag.Parse()
 
 	if *printTargets {
@@ -75,7 +84,7 @@ func main() {
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
-	err := run(ctx, config{root: *root, out: os.Stdout, goCmd: runGo})
+	err := run(ctx, config{root: *root, out: os.Stdout, goCmd: runGo, write: *write})
 	stop()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "check-licenses:", err)
@@ -106,9 +115,10 @@ type config struct {
 	root  string
 	out   io.Writer
 	goCmd runner
+	write bool
 }
 
-// finding is one rule violation at an allowlist line (0 when no line fits).
+// finding is one rule violation at an allowlist line (0 when no line fits), or in the notices file.
 type finding struct {
 	line    int
 	rule    string
@@ -116,7 +126,12 @@ type finding struct {
 }
 
 func (f finding) String() string {
-	return fmt.Sprintf("%s:%d: [%s] %s", allowFile, f.line, f.rule, f.message)
+	file := allowFile
+	if f.rule == noticesRule {
+		file = noticesFile
+	}
+
+	return fmt.Sprintf("%s:%d: [%s] %s", file, f.line, f.rule, f.message)
 }
 
 func run(ctx context.Context, cfg config) error {
@@ -132,18 +147,33 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	goroot, std, err := stdModuleFiles(ctx, cfg)
+	goroot, goVersion, std, err := stdModuleFiles(ctx, cfg)
 	if err != nil {
 		return err
 	}
 
-	compared, err := compare(allow, goroot, std, linked)
+	compared, texts, err := compare(allow, goroot, std, linked)
 	if err != nil {
 		return err
 	}
 
 	findings = append(findings, compared...)
 	slices.SortStableFunc(findings, func(a, b finding) int { return a.line - b.line })
+
+	// The notices are only as good as the licence files under them, so they wait for a matching allowlist.
+	if len(findings) == 0 {
+		versions := map[string]string{stdModule: goVersion}
+		for name, m := range linked {
+			versions[name] = m.version
+		}
+
+		texts[stdModule] = std
+
+		findings, err = notices(cfg, renderNotices(allow, versions, texts))
+		if err != nil {
+			return err
+		}
+	}
 
 	for _, f := range findings {
 		_, err = fmt.Fprintln(cfg.out, f)
@@ -157,6 +187,13 @@ func run(ctx context.Context, cfg config) error {
 	}
 
 	_, err = fmt.Fprintf(cfg.out, "%s matches the licence files of %d linked modules and %s\n", allowFile, len(linked), stdModule)
+	if err != nil {
+		return fmt.Errorf("report: %w", err)
+	}
+
+	if cfg.write {
+		_, err = fmt.Fprintf(cfg.out, "wrote %s\n", noticesFile)
+	}
 	if err != nil {
 		return fmt.Errorf("report: %w", err)
 	}
@@ -298,31 +335,36 @@ func addPackages(linked map[string]*module, stdout []byte, target string) error 
 	}
 }
 
-// stdModuleFiles returns GOROOT, as the sidecar module's go command sees it, and the licence files of
-// the standard library: the ones at the top of GOROOT and those of the modules it vendors under
-// src/vendor, which link into std packages.
-func stdModuleFiles(ctx context.Context, cfg config) (string, map[string][]byte, error) {
-	stdout, err := cfg.goCmd(ctx, filepath.Join(cfg.root, moduleDir), nil, "env", "GOROOT")
+// stdModuleFiles returns GOROOT and the Go version, as the sidecar module's go command sees them, and the
+// licence files of the standard library: the ones at the top of GOROOT and those of the modules it vendors
+// under src/vendor, which link into std packages.
+func stdModuleFiles(ctx context.Context, cfg config) (string, string, map[string][]byte, error) {
+	stdout, err := cfg.goCmd(ctx, filepath.Join(cfg.root, moduleDir), nil, "env", "GOROOT", "GOVERSION")
 	if err != nil {
-		return "", nil, fmt.Errorf("find GOROOT: %w", err)
+		return "", "", nil, fmt.Errorf("find GOROOT: %w", err)
 	}
 
-	dir := strings.TrimSpace(string(stdout))
+	lines := strings.Fields(string(stdout))
+	if len(lines) != 2 {
+		return "", "", nil, fmt.Errorf("go env GOROOT GOVERSION printed %q, want two lines", stdout)
+	}
+
+	dir, version := lines[0], lines[1]
 	goroot := os.DirFS(dir)
 
 	files, err := licenseFiles(goroot, ".", false)
 	if err != nil {
-		return "", nil, fmt.Errorf("read the GOROOT licence files: %w", err)
+		return "", "", nil, fmt.Errorf("read the GOROOT licence files: %w", err)
 	}
 
 	vendored, err := licenseFiles(goroot, "src/vendor", true)
 	if err != nil {
-		return "", nil, fmt.Errorf("read the GOROOT licence files: %w", err)
+		return "", "", nil, fmt.Errorf("read the GOROOT licence files: %w", err)
 	}
 
 	maps.Copy(files, vendored)
 
-	return dir, files, nil
+	return dir, version, files, nil
 }
 
 // licenseFiles reads every licence-named file under root in fsys, keyed by its slash path relative to
@@ -369,9 +411,11 @@ func licenseFiles(fsys fs.FS, root string, recurse bool) (map[string][]byte, err
 	return files, nil
 }
 
-// compare reports every difference between the allowlist and what links.
-func compare(allow map[string]map[string]entry, goroot string, std map[string][]byte, linked map[string]*module) ([]finding, error) {
+// compare reports every difference between the allowlist and what links, and returns the licence files it
+// read, keyed by module path and file.
+func compare(allow map[string]map[string]entry, goroot string, std map[string][]byte, linked map[string]*module) ([]finding, map[string]map[string][]byte, error) {
 	findings := compareFiles(stdModule, goroot, "the Go standard library", allow[stdModule], std)
+	texts := map[string]map[string][]byte{}
 
 	for _, name := range slices.Sorted(maps.Keys(linked)) {
 		m := linked[name]
@@ -380,8 +424,10 @@ func compare(allow map[string]map[string]entry, goroot string, std map[string][]
 
 		files, err := licenseFiles(os.DirFS(m.dir), ".", true)
 		if err != nil {
-			return nil, fmt.Errorf("read the licence files of %s: %w", m.path, err)
+			return nil, nil, fmt.Errorf("read the licence files of %s: %w", m.path, err)
 		}
+
+		texts[name] = files
 
 		if len(files) == 0 {
 			findings = append(findings, finding{0, "no-licence", what + " has no licence file, so it cannot be redistributed; drop the dependency or get it licensed, never guess"})
@@ -407,7 +453,73 @@ func compare(allow map[string]map[string]entry, goroot string, std map[string][]
 		findings = append(findings, finding{first.line, "stale", name + " no longer links into whatsmeow-net on any target; remove its lines"})
 	}
 
-	return findings, nil
+	return findings, texts, nil
+}
+
+// renderNotices is the notices file: every allowlisted licence file, verbatim, in allowlist order. Call it only
+// when the allowlist matches, so every file it names was read and approved.
+func renderNotices(allow map[string]map[string]entry, versions map[string]string, texts map[string]map[string][]byte) []byte {
+	var entries []entry
+	for _, files := range allow {
+		entries = slices.AppendSeq(entries, maps.Values(files))
+	}
+
+	slices.SortFunc(entries, func(a, b entry) int { return a.line - b.line })
+
+	bar := strings.Repeat("=", 80) + "\n"
+
+	var out bytes.Buffer
+
+	out.WriteString("THIRD-PARTY-NOTICES.txt for whatsmeow-net\n\n" +
+		"whatsmeow-net links the modules below and the Go standard library. This file holds every licence file\n" +
+		"that " + allowFile + " lists, verbatim, in its order, each under a header naming the module, its\n" +
+		"version, the file and the reviewed licence (ADR 0016).\n\n" +
+		"Generated by go -C tools run ./check-licenses -write; never edit it by hand.\n\n")
+
+	for i, e := range entries {
+		if i > 0 {
+			out.WriteString("\n")
+		}
+
+		fmt.Fprintf(&out, "%s%s %s %s (%s)\n%s", bar, e.module, versions[e.module], e.file, e.license, bar)
+		out.Write(texts[e.module][e.file])
+
+		if !bytes.HasSuffix(texts[e.module][e.file], []byte("\n")) {
+			out.WriteString("\n")
+		}
+	}
+
+	return out.Bytes()
+}
+
+// notices compares the notices file with want, or with write replaces it.
+func notices(cfg config, want []byte) ([]finding, error) {
+	path := filepath.Join(cfg.root, filepath.FromSlash(noticesFile))
+
+	if cfg.write {
+		// The file is committed; git records its mode, not this one.
+		err := os.WriteFile(path, want, 0o600)
+		if err != nil {
+			return nil, fmt.Errorf("write the notices: %w", err)
+		}
+
+		return nil, nil
+	}
+
+	got, err := fs.ReadFile(os.DirFS(cfg.root), noticesFile)
+	if errors.Is(err, fs.ErrNotExist) {
+		return []finding{{0, noticesRule, noticesFile + " is missing; " + regenerate}}, nil
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("read the notices: %w", err)
+	}
+
+	if !bytes.Equal(got, want) {
+		return []finding{{0, noticesRule, noticesFile + " differs from the licence files " + allowFile + " lists; " + regenerate}}, nil
+	}
+
+	return nil, nil
 }
 
 func compareFiles(name, dir, what string, allowed map[string]entry, files map[string][]byte) []finding {
