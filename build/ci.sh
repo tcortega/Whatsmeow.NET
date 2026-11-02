@@ -207,6 +207,23 @@ release_links_no_livetest() {
 	echo "whatsmeow-net without -tags livetest links no live test seam"
 }
 
+# The whatsmeow Client parity report (ADR 0048): shown in the log and the job summary, a warning for each run with a
+# missing method, and never a failure, not even when the report itself cannot run; its unit tests gate instead.
+parity_report() {
+	local report missing
+	if ! report="$(go -C tools run ./parity-report)"; then
+		annotate warning "parity report" "tools/parity-report did not run; the report is not shown"
+		return 0
+	fi
+	echo "$report"
+	if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then echo "$report" >>"$GITHUB_STEP_SUMMARY"; fi
+	missing="$(sed -n 's/.*\*\*\([0-9][0-9]*\) missing\*\*.*/\1/p' <<<"$report")"
+	if [ "${missing:-0}" != 0 ]; then
+		annotate warning "parity report" "$missing whatsmeow Client methods are missing: cover each or give its reason in sidecar/parity.excluded"
+	fi
+	return 0
+}
+
 job_go() {
 	local before module tags label tagsets
 	before="$(tree_state)"
@@ -232,6 +249,7 @@ job_go() {
 	check "sidecar: the release build links no fake WhatsApp (ADR 0019)" release_links_no_fake
 	check "sidecar: the release build links no live test seam (ADR 0032)" release_links_no_livetest
 	check "sidecar: linked modules and licence files match sidecar/licenses.allow (ADR 0016)" go -C tools run ./check-licenses
+	check "whatsmeow Client parity (report only, ADR 0048)" parity_report
 	check "the go job left the tree unchanged" tree_unchanged "$before" "the go job"
 }
 
