@@ -144,6 +144,12 @@ internal sealed class SessionClient(
 	/// <summary>Stops the session's events for the sidecar's stop; see <see cref="SessionEvents.StopAsync"/>.</summary>
 	internal Task StopEventsAsync(CancellationToken stopWaiting) => _events.StopAsync(stopWaiting);
 
+	/// <summary>
+	/// Whether the session's events started in this process: what a test checks to show a pairing that ended without
+	/// <see cref="PairingUpdate.Paired"/> started none, which no handler can show without waiting (ADR 0052).
+	/// </summary>
+	internal bool EventsStarted => _events.IsStarted;
+
 	public async Task<SendResult> SendTextAsync(Jid chat, string text, MessageId? id = null, SendOptions? options = null, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(text);

@@ -172,8 +172,9 @@ public interface IWhatsAppClient
 	/// <summary>
 	/// Calls <paramref name="handler"/> for every event of the session that is a <typeparamref name="TEvent"/>, until
 	/// the returned registration is disposed. Events flow once the session was connected in this process
-	/// (<see cref="ConnectAsync"/>) or paired in it (<see cref="PairingUpdate.Paired"/>), starting with the ones not handled before, also by an earlier process: register
-	/// handlers before connecting, because an event dispatched before a handler exists is not repeated for it.
+	/// (<see cref="ConnectAsync"/>) or paired in it (<see cref="PairingUpdate.Paired"/>), starting with the ones not
+	/// handled before, also by an earlier process: register handlers before connecting or pairing, because an event
+	/// dispatched before a handler exists is not repeated for it.
 	/// Events of one chat reach the handlers one at a time, in order; different chats run concurrently. An event's
 	/// handlers run one after the other, and the event is acknowledged to the sidecar only after all of them returned.
 	/// A handler that throws does not stop the stream: the event counts as handled, and <see cref="OnHandlerError"/>

@@ -9,8 +9,9 @@ namespace Whatsmeow.Extensions.Hosting;
 /// Runs the sidecar for the host's lifetime (ADR 0034). <see cref="StartingAsync"/>, before any hosted service's
 /// <c>StartAsync</c>, starts it and creates the declared sessions, so a service that took a client in its constructor
 /// finds both, whatever the registration order. <see cref="StartedAsync"/>, after every <c>StartAsync</c> succeeded,
-/// connects the paired ones: a host that fails to start never had events flowing into handlers whose container it then
-/// disposes. <see cref="StoppedAsync"/>, after every service stopped using it, stops it. Crashes in between are the
+/// connects the paired ones, so a host that fails to start had no events flowing into handlers whose container it then
+/// disposes, unless a service connected or paired a session in its own <c>StartAsync</c>, or a later service's
+/// <c>StartedAsync</c> failed (ADR 0034, ADR 0052). <see cref="StoppedAsync"/>, after every service stopped using it, stops it. Crashes in between are the
 /// supervisor's: it restarts the sidecar with its backoff and never throws (ARCHITECTURE §8.5).
 /// A host whose sessions a test replaced with fakes (<see cref="ReplacedSession"/>, ADR 0036) starts no sidecar and
 /// creates or connects nothing: the handlers go on the fakes in <see cref="StartedAsync"/>, and come off them in
@@ -59,8 +60,9 @@ internal sealed class WhatsmeowHostedService(
 
 	/// <summary>
 	/// Connects the declared sessions that are paired; a failure fails the host's start and leaves no sidecar behind.
-	/// With fakes, it puts the handlers on them instead: a host whose start failed never had events flowing into handlers
-	/// whose container it then disposes, as with a sidecar.
+	/// With fakes, it puts the handlers on them instead, so a host whose start failed before here had no events flowing
+	/// into handlers whose container it then disposes; a later service's <c>StartedAsync</c> that fails leaves the same
+	/// window as with a sidecar (ADR 0034, ADR 0036).
 	/// </summary>
 	public async Task StartedAsync(CancellationToken cancellationToken)
 	{

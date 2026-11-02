@@ -94,10 +94,11 @@ public sealed class PairingTests(FakeSidecar fixture)
 	}
 
 	[Fact(Timeout = Timeout)]
-	public async Task Pair_Cancelled_StartsNoEvents_AHandlerAddedBeforeTheConnectGetsThePairingStates()
+	public async Task Pair_Cancelled_StartsNoEvents_TheHandlerGetsThePairingStatesOnTheConnect()
 	{
 		var ct = TestContext.Current.CancellationToken;
 		var client = await Sessions.GetOrCreateAsync(SessionId.From("pair-events-cancelled"), ct);
+		using var received = new Received<ConnectionStateChanged>(client);
 		using var cancel = CancellationTokenSource.CreateLinkedTokenSource(ct);
 		_ = await Assert.ThrowsAnyAsync<OperationCanceledException>(
 			async () =>
@@ -106,16 +107,16 @@ public sealed class PairingTests(FakeSidecar fixture)
 					await cancel.CancelAsync().ConfigureAwait(false);
 			}
 		);
-		await ReachesUnpairedAsync(client, ct);
 
-		await ValidateNoEventsStartedAsync(client, "pair-events-cancelled", ct);
+		await ValidateNoEventsStartedAsync(client, received, "pair-events-cancelled", ct);
 	}
 
 	[Fact(Timeout = Timeout)]
-	public async Task Pair_TheCodesRunOut_StartsNoEvents_AHandlerAddedBeforeTheConnectGetsThePairingStates()
+	public async Task Pair_TheCodesRunOut_StartsNoEvents_TheHandlerGetsThePairingStatesOnTheConnect()
 	{
 		var ct = TestContext.Current.CancellationToken;
 		var client = await Sessions.GetOrCreateAsync(SessionId.From("pair-events-expired"), ct);
+		using var received = new Received<ConnectionStateChanged>(client);
 		_ = await Assert.ThrowsAsync<PairingException>(
 			() =>
 				PairAsync(
@@ -124,9 +125,8 @@ public sealed class PairingTests(FakeSidecar fixture)
 					ct
 				)
 		);
-		await ReachesUnpairedAsync(client, ct);
 
-		await ValidateNoEventsStartedAsync(client, "pair-events-expired", ct);
+		await ValidateNoEventsStartedAsync(client, received, "pair-events-expired", ct);
 	}
 
 	[Fact(Timeout = Timeout)]
@@ -312,14 +312,17 @@ public sealed class PairingTests(FakeSidecar fixture)
 	}
 
 	/// <summary>
-	/// After a pairing that ended without <see cref="PairingUpdate.Paired"/>, the session's events have not started: a
-	/// handler added only now, before the first connect, still gets the pairing's states, which an event dispatched to
-	/// no handler would never repeat (ADR 0022).
+	/// After a pairing that ended without <see cref="PairingUpdate.Paired"/>, the session's events have not started, and
+	/// the handler <paramref name="received"/> registered before it gets the pairing's states first once the session
+	/// is connected. The check is the client's own: an event that never arrives cannot be told from a late one without
+	/// waiting, and a reader started at the end of the pairing still lost the race to a later handler 9 times in 10
+	/// (ADR 0052).
 	/// </summary>
-	private async Task ValidateNoEventsStartedAsync(IWhatsAppClient client, string id, CancellationToken cancellationToken)
+	private async Task ValidateNoEventsStartedAsync(IWhatsAppClient client, Received<ConnectionStateChanged> received, string id, CancellationToken cancellationToken)
 	{
+		Assert.False(((SessionClient)client).EventsStarted);
+		await ReachesUnpairedAsync(client, cancellationToken).ConfigureAwait(false);
 		_ = await fixture.Fake.LinkDeviceAsync(new LinkDeviceRequest { SessionId = id, Jid = SessionSetup.Jid(id) }, cancellationToken: cancellationToken).ConfigureAwait(false);
-		using var received = new Received<ConnectionStateChanged>(client);
 
 		await client.ConnectAsync(cancellationToken).ConfigureAwait(false);
 
