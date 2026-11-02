@@ -148,6 +148,13 @@ func start(t *testing.T) *harness {
 func startOn(t *testing.T, path string) *harness {
 	t.Helper()
 
+	return startLogging(t, path, zerolog.Nop())
+}
+
+// startLogging starts the slice with log as its logger.
+func startLogging(t *testing.T, path string, log zerolog.Logger) *harness {
+	t.Helper()
+
 	h := &harness{t: t, path: path, stubs: map[string]*stub{}}
 
 	db, err := sidecarstore.Open(context.Background(), path, zerolog.Nop())
@@ -165,7 +172,7 @@ func startOn(t *testing.T, path string) *harness {
 		h.mu.Unlock()
 
 		return s
-	}, zerolog.Nop())
+	}, log)
 	if err != nil {
 		_ = db.Close()
 
@@ -590,6 +597,121 @@ func TestEverySignalMapsToExactlyOneState(t *testing.T) {
 			t.Errorf("%s: = %v, %v; want %v", c.name, got, ok, c.want)
 		}
 	}
+}
+
+// whatsmeow dispatches Connected on a goroutine of its own after two IQs (connectionevents.go:187-204), and
+// OfflineSyncCompleted from the offline ib on the node queue (connectionevents.go:87-90), so the offline sync can come
+// first.
+func TestAnOfflineSyncBeforeConnectedMakesTheSessionCaughtUpOnceConnected(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.create("s1")
+	h.link("s1", "1555:1@s.whatsapp.net")
+	h.connect("s1")
+
+	h.stub("s1").emit(&events.OfflineSyncCompleted{})
+	h.wantState("s1", connecting())
+
+	h.stub("s1").emit(&events.Connected{})
+	h.wantRecorded("s1", disconnected(), connecting(), connected(), caughtUp())
+}
+
+func TestAnOfflineSyncBeforeTheReconnectsConnectedMakesTheSessionCaughtUpOnceConnected(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.connected("s1")
+	h.stub("s1").emit(&events.Disconnected{})
+
+	h.stub("s1").emit(&events.OfflineSyncCompleted{})
+	h.wantState("s1", reconnecting())
+
+	h.stub("s1").emit(&events.Connected{})
+	h.wantRecorded("s1", disconnected(), connecting(), connected(), reconnecting(), connected(), caughtUp())
+}
+
+func TestAnEarlyOfflineSyncIsForgottenWhenItsLoginDrops(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.create("s1")
+	h.link("s1", "1555:1@s.whatsapp.net")
+	h.connect("s1")
+	h.stub("s1").emit(&events.OfflineSyncCompleted{})
+
+	// The reconnect's login is another one, with an offline sync of its own.
+	h.stub("s1").emit(&events.Disconnected{})
+	h.stub("s1").emit(&events.Connected{})
+
+	h.wantRecorded("s1", disconnected(), connecting(), reconnecting(), connected())
+}
+
+func TestAnEarlyOfflineSyncIsForgottenWhenTheSessionIsDisconnected(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.create("s1")
+	h.link("s1", "1555:1@s.whatsapp.net")
+	h.connect("s1")
+	h.stub("s1").emit(&events.OfflineSyncCompleted{})
+
+	if _, err := h.client.Disconnect(h.ctx, &whatsmeowv1.DisconnectRequest{SessionId: "s1"}); err != nil {
+		t.Fatalf("Disconnect: %v", err)
+	}
+
+	h.connect("s1")
+	h.stub("s1").emit(&events.Connected{})
+
+	h.wantRecorded("s1", disconnected(), connecting(), disconnected(), connecting(), connected())
+}
+
+func TestAnEarlyOfflineSyncIsLoggedWithTheSessionIDOnly(t *testing.T) {
+	t.Parallel()
+
+	var log bytes.Buffer
+
+	h := startLogging(t, filepath.Join(t.TempDir(), "whatsmeow-net.db"), zerolog.New(&log))
+	h.create("s1")
+	h.link("s1", "1555:1@s.whatsapp.net")
+	h.connect("s1")
+
+	h.stub("s1").emit(&events.OfflineSyncCompleted{})
+
+	// The live run looks for this line to record which order WhatsApp used (#83).
+	want := `{"level":"info","session_id":"s1","state":"Connecting","message":"the offline sync completed before Connected; the session is CaughtUp once Connected"}` + "\n"
+	if got := log.String(); got != want {
+		t.Fatalf("log = %q, want %q", got, want)
+	}
+}
+
+func TestAnOfflineSyncOutsideALoginKeepsNothingAndLogsNothing(t *testing.T) {
+	t.Parallel()
+
+	var log bytes.Buffer
+
+	h := startLogging(t, filepath.Join(t.TempDir(), "whatsmeow-net.db"), zerolog.New(&log))
+
+	h.create("idle")
+	h.link("idle", "1555:1@s.whatsapp.net")
+	h.stub("idle").emit(&events.OfflineSyncCompleted{})
+
+	h.connected("caughtup")
+	h.stub("caughtup").emit(&events.OfflineSyncCompleted{})
+	h.stub("caughtup").emit(&events.OfflineSyncCompleted{})
+
+	// Before the link there is no account, and no login to keep it for.
+	h.create("pairing")
+	h.pair("pairing", "")
+	h.pairing("pairing", nil).emit(&events.OfflineSyncCompleted{})
+
+	if strings.Contains(log.String(), "offline sync") {
+		t.Fatalf("an offline sync outside a login was kept:\n%s", log.String())
+	}
+
+	h.wantState("idle", disconnected())
+	h.wantState("caughtup", caughtUp())
+	h.wantState("pairing", pairing())
 }
 
 // container records every write or delete of the device.

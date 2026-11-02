@@ -26,6 +26,8 @@ const (
 	FakeWhatsAppService_RotateQrCode_FullMethodName                = "/whatsmeow.fake.v1.FakeWhatsAppService/RotateQrCode"
 	FakeWhatsAppService_ExpireQrCodes_FullMethodName               = "/whatsmeow.fake.v1.FakeWhatsAppService/ExpireQrCodes"
 	FakeWhatsAppService_DropConnection_FullMethodName              = "/whatsmeow.fake.v1.FakeWhatsAppService/DropConnection"
+	FakeWhatsAppService_HoldNextLogin_FullMethodName               = "/whatsmeow.fake.v1.FakeWhatsAppService/HoldNextLogin"
+	FakeWhatsAppService_ReleaseLogin_FullMethodName                = "/whatsmeow.fake.v1.FakeWhatsAppService/ReleaseLogin"
 	FakeWhatsAppService_FailNextPreKeyUpload_FullMethodName        = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextPreKeyUpload"
 	FakeWhatsAppService_FailNextPairPhone_FullMethodName           = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextPairPhone"
 	FakeWhatsAppService_FailNextConnect_FullMethodName             = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextConnect"
@@ -104,6 +106,13 @@ type FakeWhatsAppServiceClient interface {
 	// does not reconnect an unpaired client (client.go:648). No QR channel open is an error. It returns before the
 	// handlers run.
 	DropConnection(ctx context.Context, in *DropConnectionRequest, opts ...grpc.CallOption) (*DropConnectionResponse, error)
+	// HoldNextLogin makes the session's next login, after a connect, hold Connected until ReleaseLogin: whatsmeow
+	// dispatches it on a goroutine of its own after two IQs (connectionevents.go:187-204), while the offline sync's
+	// OfflineSyncCompleted comes on the node queue (connectionevents.go:87-90), so CompleteOfflineSync can come first.
+	HoldNextLogin(ctx context.Context, in *HoldNextLoginRequest, opts ...grpc.CallOption) (*HoldNextLoginResponse, error)
+	// ReleaseLogin dispatches the session's held Connected off the node queue, and returns once its handlers ran. No
+	// held login is an error.
+	ReleaseLogin(ctx context.Context, in *ReleaseLoginRequest, opts ...grpc.CallOption) (*ReleaseLoginResponse, error)
 	// FailNextPreKeyUpload makes the session's next login after a link fail to upload the pre-keys: whatsmeow only logs
 	// that (prekeys.go:84-87), never sets PreKeysUploaded, and still dispatches Connected (connectionevents.go:187-204).
 	FailNextPreKeyUpload(ctx context.Context, in *FailNextPreKeyUploadRequest, opts ...grpc.CallOption) (*FailNextPreKeyUploadResponse, error)
@@ -326,6 +335,26 @@ func (c *fakeWhatsAppServiceClient) DropConnection(ctx context.Context, in *Drop
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DropConnectionResponse)
 	err := c.cc.Invoke(ctx, FakeWhatsAppService_DropConnection_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) HoldNextLogin(ctx context.Context, in *HoldNextLoginRequest, opts ...grpc.CallOption) (*HoldNextLoginResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(HoldNextLoginResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_HoldNextLogin_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) ReleaseLogin(ctx context.Context, in *ReleaseLoginRequest, opts ...grpc.CallOption) (*ReleaseLoginResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReleaseLoginResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_ReleaseLogin_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -714,6 +743,13 @@ type FakeWhatsAppServiceServer interface {
 	// does not reconnect an unpaired client (client.go:648). No QR channel open is an error. It returns before the
 	// handlers run.
 	DropConnection(context.Context, *DropConnectionRequest) (*DropConnectionResponse, error)
+	// HoldNextLogin makes the session's next login, after a connect, hold Connected until ReleaseLogin: whatsmeow
+	// dispatches it on a goroutine of its own after two IQs (connectionevents.go:187-204), while the offline sync's
+	// OfflineSyncCompleted comes on the node queue (connectionevents.go:87-90), so CompleteOfflineSync can come first.
+	HoldNextLogin(context.Context, *HoldNextLoginRequest) (*HoldNextLoginResponse, error)
+	// ReleaseLogin dispatches the session's held Connected off the node queue, and returns once its handlers ran. No
+	// held login is an error.
+	ReleaseLogin(context.Context, *ReleaseLoginRequest) (*ReleaseLoginResponse, error)
 	// FailNextPreKeyUpload makes the session's next login after a link fail to upload the pre-keys: whatsmeow only logs
 	// that (prekeys.go:84-87), never sets PreKeysUploaded, and still dispatches Connected (connectionevents.go:187-204).
 	FailNextPreKeyUpload(context.Context, *FailNextPreKeyUploadRequest) (*FailNextPreKeyUploadResponse, error)
@@ -892,6 +928,12 @@ func (UnimplementedFakeWhatsAppServiceServer) ExpireQrCodes(context.Context, *Ex
 }
 func (UnimplementedFakeWhatsAppServiceServer) DropConnection(context.Context, *DropConnectionRequest) (*DropConnectionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DropConnection not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) HoldNextLogin(context.Context, *HoldNextLoginRequest) (*HoldNextLoginResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method HoldNextLogin not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) ReleaseLogin(context.Context, *ReleaseLoginRequest) (*ReleaseLoginResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReleaseLogin not implemented")
 }
 func (UnimplementedFakeWhatsAppServiceServer) FailNextPreKeyUpload(context.Context, *FailNextPreKeyUploadRequest) (*FailNextPreKeyUploadResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method FailNextPreKeyUpload not implemented")
@@ -1138,6 +1180,42 @@ func _FakeWhatsAppService_DropConnection_Handler(srv interface{}, ctx context.Co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FakeWhatsAppServiceServer).DropConnection(ctx, req.(*DropConnectionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_HoldNextLogin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HoldNextLoginRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).HoldNextLogin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_HoldNextLogin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).HoldNextLogin(ctx, req.(*HoldNextLoginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_ReleaseLogin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReleaseLoginRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).ReleaseLogin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_ReleaseLogin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).ReleaseLogin(ctx, req.(*ReleaseLoginRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1788,6 +1866,14 @@ var FakeWhatsAppService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DropConnection",
 			Handler:    _FakeWhatsAppService_DropConnection_Handler,
+		},
+		{
+			MethodName: "HoldNextLogin",
+			Handler:    _FakeWhatsAppService_HoldNextLogin_Handler,
+		},
+		{
+			MethodName: "ReleaseLogin",
+			Handler:    _FakeWhatsAppService_ReleaseLogin_Handler,
 		},
 		{
 			MethodName: "FailNextPreKeyUpload",

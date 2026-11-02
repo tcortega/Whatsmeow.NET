@@ -75,6 +75,9 @@ type script struct {
 	refuseSend int32
 	// failGroupQuery is the IQ error code of the next group call; 0 for none.
 	failGroupQuery int32
+	// holdLogin holds the next login's Connected; login is the held one's dispatch, which ReleaseLogin runs.
+	holdLogin bool
+	login     func()
 }
 
 // setScript changes the session's script.

@@ -81,6 +81,14 @@ namespace Whatsmeow.IntegrationTests.Fake {
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DropConnectionResponse> __Marshaller_whatsmeow_fake_v1_DropConnectionResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DropConnectionResponse.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.HoldNextLoginRequest> __Marshaller_whatsmeow_fake_v1_HoldNextLoginRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.HoldNextLoginRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.HoldNextLoginResponse> __Marshaller_whatsmeow_fake_v1_HoldNextLoginResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.HoldNextLoginResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.ReleaseLoginRequest> __Marshaller_whatsmeow_fake_v1_ReleaseLoginRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.ReleaseLoginRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.ReleaseLoginResponse> __Marshaller_whatsmeow_fake_v1_ReleaseLoginResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.ReleaseLoginResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadRequest> __Marshaller_whatsmeow_fake_v1_FailNextPreKeyUploadRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadResponse> __Marshaller_whatsmeow_fake_v1_FailNextPreKeyUploadResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadResponse.Parser));
@@ -272,6 +280,22 @@ namespace Whatsmeow.IntegrationTests.Fake {
         "DropConnection",
         __Marshaller_whatsmeow_fake_v1_DropConnectionRequest,
         __Marshaller_whatsmeow_fake_v1_DropConnectionResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.HoldNextLoginRequest, global::Whatsmeow.IntegrationTests.Fake.HoldNextLoginResponse> __Method_HoldNextLogin = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.HoldNextLoginRequest, global::Whatsmeow.IntegrationTests.Fake.HoldNextLoginResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "HoldNextLogin",
+        __Marshaller_whatsmeow_fake_v1_HoldNextLoginRequest,
+        __Marshaller_whatsmeow_fake_v1_HoldNextLoginResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.ReleaseLoginRequest, global::Whatsmeow.IntegrationTests.Fake.ReleaseLoginResponse> __Method_ReleaseLogin = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.ReleaseLoginRequest, global::Whatsmeow.IntegrationTests.Fake.ReleaseLoginResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "ReleaseLogin",
+        __Marshaller_whatsmeow_fake_v1_ReleaseLoginRequest,
+        __Marshaller_whatsmeow_fake_v1_ReleaseLoginResponse);
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadRequest, global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadResponse> __Method_FailNextPreKeyUpload = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadRequest, global::Whatsmeow.IntegrationTests.Fake.FailNextPreKeyUploadResponse>(
@@ -985,6 +1009,114 @@ namespace Whatsmeow.IntegrationTests.Fake {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DropConnectionResponse> DropConnectionAsync(global::Whatsmeow.IntegrationTests.Fake.DropConnectionRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_DropConnection, null, options, request);
+      }
+      /// <summary>
+      /// HoldNextLogin makes the session's next login, after a connect, hold Connected until ReleaseLogin: whatsmeow
+      /// dispatches it on a goroutine of its own after two IQs (connectionevents.go:187-204), while the offline sync's
+      /// OfflineSyncCompleted comes on the node queue (connectionevents.go:87-90), so CompleteOfflineSync can come first.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.HoldNextLoginResponse HoldNextLogin(global::Whatsmeow.IntegrationTests.Fake.HoldNextLoginRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return HoldNextLogin(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// HoldNextLogin makes the session's next login, after a connect, hold Connected until ReleaseLogin: whatsmeow
+      /// dispatches it on a goroutine of its own after two IQs (connectionevents.go:187-204), while the offline sync's
+      /// OfflineSyncCompleted comes on the node queue (connectionevents.go:87-90), so CompleteOfflineSync can come first.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.HoldNextLoginResponse HoldNextLogin(global::Whatsmeow.IntegrationTests.Fake.HoldNextLoginRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_HoldNextLogin, null, options, request);
+      }
+      /// <summary>
+      /// HoldNextLogin makes the session's next login, after a connect, hold Connected until ReleaseLogin: whatsmeow
+      /// dispatches it on a goroutine of its own after two IQs (connectionevents.go:187-204), while the offline sync's
+      /// OfflineSyncCompleted comes on the node queue (connectionevents.go:87-90), so CompleteOfflineSync can come first.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.HoldNextLoginResponse> HoldNextLoginAsync(global::Whatsmeow.IntegrationTests.Fake.HoldNextLoginRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return HoldNextLoginAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// HoldNextLogin makes the session's next login, after a connect, hold Connected until ReleaseLogin: whatsmeow
+      /// dispatches it on a goroutine of its own after two IQs (connectionevents.go:187-204), while the offline sync's
+      /// OfflineSyncCompleted comes on the node queue (connectionevents.go:87-90), so CompleteOfflineSync can come first.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.HoldNextLoginResponse> HoldNextLoginAsync(global::Whatsmeow.IntegrationTests.Fake.HoldNextLoginRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_HoldNextLogin, null, options, request);
+      }
+      /// <summary>
+      /// ReleaseLogin dispatches the session's held Connected off the node queue, and returns once its handlers ran. No
+      /// held login is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.ReleaseLoginResponse ReleaseLogin(global::Whatsmeow.IntegrationTests.Fake.ReleaseLoginRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ReleaseLogin(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// ReleaseLogin dispatches the session's held Connected off the node queue, and returns once its handlers ran. No
+      /// held login is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.ReleaseLoginResponse ReleaseLogin(global::Whatsmeow.IntegrationTests.Fake.ReleaseLoginRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_ReleaseLogin, null, options, request);
+      }
+      /// <summary>
+      /// ReleaseLogin dispatches the session's held Connected off the node queue, and returns once its handlers ran. No
+      /// held login is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.ReleaseLoginResponse> ReleaseLoginAsync(global::Whatsmeow.IntegrationTests.Fake.ReleaseLoginRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ReleaseLoginAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// ReleaseLogin dispatches the session's held Connected off the node queue, and returns once its handlers ran. No
+      /// held login is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.ReleaseLoginResponse> ReleaseLoginAsync(global::Whatsmeow.IntegrationTests.Fake.ReleaseLoginRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_ReleaseLogin, null, options, request);
       }
       /// <summary>
       /// FailNextPreKeyUpload makes the session's next login after a link fail to upload the pre-keys: whatsmeow only logs

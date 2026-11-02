@@ -100,7 +100,7 @@ func (svc *Service) whilePairing(s *session, a *attempt, evt any) bool {
 
 		if uploadedPreKeys(s.client) {
 			a.usable = true
-			if err := svc.transition(svc.lifetime, s, connected()); err != nil {
+			if err := svc.loggedIn(s); err != nil {
 				svc.log.Error().Err(err).Str("session_id", s.id).Msg("recording Connected after pairing failed")
 			}
 		}

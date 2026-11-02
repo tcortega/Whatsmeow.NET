@@ -85,7 +85,12 @@ func (c *Client) ConnectContext(context.Context) error {
 
 	c.connected = true
 	c.connection = make(chan struct{})
-	if c.Store.ID != nil {
+	switch {
+	case c.Store.ID == nil:
+	case c.whatsApp.take(c.sessionID, func(s *script) bool { return s.holdLogin }, func(s *script) {
+		s.holdLogin, s.login = false, func() { c.runHandlers(&events.Connected{}) }
+	}):
+	default:
 		c.whatsApp.offQueue(c, &events.Connected{})
 	}
 

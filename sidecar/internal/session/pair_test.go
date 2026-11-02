@@ -323,6 +323,51 @@ func TestPairFailsWhenThePreKeysWereNotUploadedAndTheSessionStaysPaired(t *testi
 	startOn(t, h.path).wantState("s1", disconnected())
 }
 
+// The login after the link dispatches Connected after the pre-key upload (connectionevents.go:187-204), so the offline
+// sync can come first.
+func TestAnOfflineSyncBeforeTheLoginAfterTheLinkMakesTheSessionCaughtUpOnceConnected(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.create("s1")
+	stream, _ := h.pair("s1", "")
+	client := h.pairing("s1", nil)
+
+	client.linkAs(t, pairedJID, pairedLID)
+	client.send(whatsmeow.QRChannelSuccess)
+	client.emit(&events.OfflineSyncCompleted{})
+	h.wantState("s1", pairing())
+
+	client.logIn(true)
+	wantStep(t, recv(t, stream), successStep(pairedJID, pairedLID))
+
+	if err := end(t, stream); err != nil {
+		t.Fatalf("Pair ended with %v, want OK", err)
+	}
+
+	h.wantRecorded("s1", pairing(), connected(), caughtUp())
+}
+
+func TestAnEarlyOfflineSyncIsForgottenWhenTheLoginAfterTheLinkFails(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.create("s1")
+	stream, _ := h.pair("s1", "")
+	client := h.pairing("s1", nil)
+
+	client.linkAs(t, pairedJID, pairedLID)
+	client.send(whatsmeow.QRChannelSuccess)
+	client.emit(&events.OfflineSyncCompleted{})
+	client.logIn(false)
+	wantReason(t, end(t, stream), codes.Aborted, "PAIRING_FAILED", nil)
+
+	h.connect("s1")
+	client.emit(&events.Connected{})
+
+	h.wantRecorded("s1", pairing(), disconnected(), connecting(), connected())
+}
+
 func TestPairFailsWhenNoLoginComesInTime(t *testing.T) {
 	t.Parallel()
 

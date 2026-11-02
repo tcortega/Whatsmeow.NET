@@ -204,6 +204,21 @@ public sealed class SessionTests(FakeSidecar fixture)
 	}
 
 	[Fact(Timeout = Timeout)]
+	public async Task Connect_TheOfflineSyncComesBeforeConnected_BecomesCaughtUp()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var client = await SessionSetup.LinkedAsync(fixture, "offline-first", ct);
+		_ = await fixture.Fake.HoldNextLoginAsync(new HoldNextLoginRequest { SessionId = "offline-first" }, cancellationToken: ct);
+		await client.ConnectAsync(ct);
+
+		_ = await fixture.Fake.CompleteOfflineSyncAsync(new CompleteOfflineSyncRequest { SessionId = "offline-first" }, cancellationToken: ct);
+		Assert.Equal(new SessionState.Connecting(), await SessionSetup.StateAsync(client, ct));
+		_ = await fixture.Fake.ReleaseLoginAsync(new ReleaseLoginRequest { SessionId = "offline-first" }, cancellationToken: ct);
+
+		Assert.Equal(new SessionState.CaughtUp(), await SessionSetup.StateAsync(client, ct));
+	}
+
+	[Fact(Timeout = Timeout)]
 	public async Task Disconnect_Connected_BecomesDisconnected()
 	{
 		var ct = TestContext.Current.CancellationToken;
