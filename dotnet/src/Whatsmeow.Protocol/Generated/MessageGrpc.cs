@@ -11,17 +11,24 @@ namespace Whatsmeow.Protocol.V1 {
   /// <summary>
   /// MessageService sends messages and read receipts.
   ///
-  /// A send is idempotent per (session, client_message_id), the WhatsApp message id the client chooses:
+  /// A send is idempotent per (session, client_message_id), the WhatsApp message id the client chooses, "3EB0" and 18
+  /// uppercase hex digits (the format whatsmeow makes; any other is INVALID_ARGUMENT):
   /// after a success, a repeat returns the recorded result and sends nothing; after an unknown outcome, a repeat
   /// fails with OUTCOME_UNKNOWN again and sends nothing (ARCHITECTURE invariant 10); after a failure that sent
   /// nothing, a repeat sends; a repeat while the first call is in flight waits for its outcome. A repeat's other
-  /// fields are ignored.
+  /// fields are ignored. So repeating an id is always safe: it never sends a message twice.
+  /// WHATSAPP_ERROR, with WhatsApp's code in the "code" metadata, comes two ways, and a repeat differs:
+  /// WhatsApp refused a query the send makes before the message (the recipient's LID, its devices, a group's members),
+  /// so nothing was sent and a repeat sends; or WhatsApp answered the message itself with an error, which is recorded,
+  /// and a repeat fails with the same WHATSAPP_ERROR and sends nothing. Whether WhatsApp kept a message it answered
+  /// with an error is unknown, so sending it again takes a new client_message_id.
   /// The sidecar records a send before handing it to whatsmeow, so a send interrupted after the hand-off, by a crash
   /// or by the client cancelling, reads as OUTCOME_UNKNOWN; one cancelled while still queued sent nothing.
   /// A send never waits for a connection: a session that is not logged in, not connected or temporarily banned fails
-  /// at once. Sends are paced per session while connected; a WhatsApp 429 is retried with backoff within the call's
-  /// deadline, then fails with RATE_LIMITED. A queued send fails when the session leaves Connected (NOT_CONNECTED, or
-  /// LOGGED_OUT).
+  /// at once. Sends are paced per session while connected; a WhatsApp 429 is tried again after 1, 2 and 4 s while the
+  /// wait and one second more for the try fit the call's deadline, then fails with RATE_LIMITED; nothing was sent. A
+  /// queued send fails, having sent nothing, when the session stops being Connected or CaughtUp: NOT_CONNECTED,
+  /// LOGGED_OUT or TEMPORARILY_BANNED, as the session's new state says, or SESSION_NOT_FOUND once it is deleted.
   /// </summary>
   internal static partial class MessageService
   {

@@ -5,6 +5,7 @@ using Whatsmeow.Contacts;
 using Whatsmeow.Core.Errors;
 using Whatsmeow.Events;
 using Whatsmeow.Media;
+using Whatsmeow.Messaging;
 using Whatsmeow.Pairing;
 using Whatsmeow.Presence;
 using ChatPresenceState = Whatsmeow.Presence.ChatPresenceState;
@@ -15,6 +16,7 @@ using Contact = Whatsmeow.Contacts.Contact;
 using PhoneNumberCheck = Whatsmeow.Contacts.PhoneNumberCheck;
 using ResolvedJid = Whatsmeow.Contacts.ResolvedJid;
 using UserInfo = Whatsmeow.Contacts.UserInfo;
+using E2E = Whatsmeow.Proto.WAWebProtobufsE2E;
 
 namespace Whatsmeow.Sessions;
 
@@ -35,6 +37,7 @@ internal sealed class SessionClient(
 	private readonly ContactService.ContactServiceClient _contacts = new(invoker);
 	private readonly PresenceService.PresenceServiceClient _presence = new(invoker);
 	private readonly MediaTransfer _media = new(new MediaService.MediaServiceClient(invoker), sessionId, sidecar.MediaRoot, log);
+	private readonly MessageService.MessageServiceClient _messages = new(invoker);
 
 	public SessionId SessionId => sessionId;
 
@@ -90,6 +93,47 @@ internal sealed class SessionClient(
 
 	/// <summary>Stops the session's events and acks what was handled.</summary>
 	public ValueTask DisposeAsync() => _events.DisposeAsync();
+
+	public async Task<SendResult> SendTextAsync(Jid chat, string text, MessageId? id = null, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(text);
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var messageId = id ?? MessageId.New();
+		var response = await RpcErrors
+			.CallAsync(
+				_messages.SendTextAsync(
+					new SendTextRequest { SessionId = sessionId.Value, Chat = chat.ToString(), ClientMessageId = messageId.Value, Text = text },
+					cancellationToken: cancellationToken
+				)
+			)
+			.ConfigureAwait(false);
+		return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+	}
+
+	public async Task<SendResult> SendRawAsync(Jid chat, E2E.Message message, MessageId? id = null, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(message);
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var messageId = id ?? MessageId.New();
+		var response = await RpcErrors
+			.CallAsync(
+				_messages.SendMessageAsync(
+					new SendMessageRequest { SessionId = sessionId.Value, Chat = chat.ToString(), ClientMessageId = messageId.Value, Message = message },
+					cancellationToken: cancellationToken
+				)
+			)
+			.ConfigureAwait(false);
+		return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+	}
+
+	public async Task MarkReadAsync(Jid chat, IReadOnlyCollection<MessageId> messageIds, Jid? sender = null, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(messageIds);
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		_ = await RpcErrors
+			.CallAsync(_messages.MarkReadAsync(MessagingMapping.ToMarkRead(sessionId, chat, messageIds, sender), cancellationToken: cancellationToken))
+			.ConfigureAwait(false);
+	}
 
 	public async Task ConnectAsync(CancellationToken cancellationToken = default)
 	{

@@ -4,6 +4,7 @@ package whatsmeow.fake.v1;
 
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
+import "waE2E/WAWebProtobufsE2E.proto";
 
 // FakeWhatsAppService scripts the fake WhatsApp of a test build of whatsmeow-net (-tags fakewhatsapp) started with
 // --fake-whatsapp, and records what the sidecar sent to it. It is served next to whatsmeow.v1 on the same socket,
@@ -73,8 +74,8 @@ service FakeWhatsAppService {
   rpc RaisePermanentDisconnect(RaisePermanentDisconnectRequest) returns (RaisePermanentDisconnectResponse);
 
   // RegisterUser adds a user to WhatsApp's directory, which every session's lookups read: IsOnWhatsApp, GetUserInfo,
-  // and the LID that UpdateBlocklist fetches. An unregistered number is not on WhatsApp. Registering a phone_jid again
-  // replaces it.
+  // and the LID that UpdateBlocklist and a send to a phone number fetch (send.go:341-365). An unregistered number is
+  // not on WhatsApp. Registering a phone_jid again replaces it.
   rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse);
 
   // SetProfilePicture sets what WhatsApp answers for the profile picture of a user or a group; without one it answers
@@ -130,6 +131,26 @@ service FakeWhatsAppService {
   // from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
   // (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
   rpc AnswerMediaRetry(AnswerMediaRetryRequest) returns (AnswerMediaRetryResponse);
+
+  // DeliverReceipt makes WhatsApp deliver a receipt to a session's client, and returns once the client's event
+  // handlers ran. With SynchronousAck, whatsmeow acks a receipt only when every handler succeeded
+  // (maybeDeferredAck, receipt.go:21-43, 115-128); a retry receipt it acks inside its retry handler, before the
+  // dispatch, whatever the handlers return (receipt.go:34-38, retry.go:184-192). The ack shows in WaitForSent. A
+  // session without a client is an error.
+  rpc DeliverReceipt(DeliverReceiptRequest) returns (DeliverReceiptResponse);
+
+  // RateLimitNextSends makes the session's next count sends fail as WhatsApp's rate limit fails them: an IQ before the
+  // node is written answers 429 (ErrIQRateOverLimit, errors.go:197), so nothing is sent.
+  rpc RateLimitNextSends(RateLimitNextSendsRequest) returns (RateLimitNextSendsResponse);
+
+  // HoldNextSend makes the session's next send write its node, which WaitForSent shows, and then get no answer until
+  // ReleaseSend: like whatsmeow's, it then returns ctx.Err() when its context ends (send.go:445-455), and when the
+  // connection ends, a DisconnectedError 5 s later, once whatsmeow's wait for a reconnect is over (request.go:185-202),
+  // since the fake never reconnects on its own. ReleaseSend makes WhatsApp accept it.
+  rpc HoldNextSend(HoldNextSendRequest) returns (HoldNextSendResponse);
+
+  // ReleaseSend makes WhatsApp answer the session's held send: it succeeds. No held send is an error.
+  rpc ReleaseSend(ReleaseSendRequest) returns (ReleaseSendResponse);
 }
 
 // FailNextUploadsRequest names the session and how many uploads fail.
@@ -420,6 +441,12 @@ message Sent {
     MediaDownload media_download = 10;
     // The client asked the phone to upload a message's media again.
     MediaRetryReceipt media_retry_receipt = 11;
+    // A message node: the hand-off of a send (sendNodeAndGetData, client.go:974-992).
+    SentMessage message = 12;
+    // A read receipt (MarkRead, receipt.go:197-237).
+    ReadReceipt read = 13;
+    // The ack for a receipt WhatsApp delivered (sendAck, receipt.go:151-181).
+    Ack ack = 14;
   }
 }
 
@@ -489,6 +516,7 @@ message SetPushNameRequest {
 
 // SetPushNameResponse has no fields.
 message SetPushNameResponse {}
+
 // MediaUpload is one upload attempt: whatsmeow's POST to the media host (upload.go:243-302).
 message MediaUpload {
   // whatsmeow's media type, its key info: "WhatsApp Image Keys" and so on (download.go:42-52).
@@ -515,6 +543,92 @@ message MediaRetryReceipt {
   bool is_from_me = 4;
 }
 
+// SentMessage is a message the client sent.
+message SentMessage {
+  // The WhatsApp message id.
+  string id = 1;
+  // The chat it went to: the LID of a phone number with an account.
+  string chat = 2;
+  // The message.
+  WAWebProtobufsE2E.Message message = 3;
+  // WhatsApp's timestamp of it, whole seconds, as the send's answer carries it (send.go:467).
+  google.protobuf.Timestamp message_time = 4;
+}
+
+// ReadReceipt is the read receipt whatsmeow's MarkRead sends.
+message ReadReceipt {
+  // The chat.
+  string chat = 1;
+  // The participant, set only for a group, as whatsmeow sets it (receipt.go:223-225); empty otherwise.
+  string participant = 2;
+  // The messages.
+  repeated string message_ids = 3;
+}
+
+// Ack is whatsmeow's ack for a receipt.
+message Ack {
+  // The stanza class: "receipt".
+  string class = 1;
+  // The receipt's id: its first message id.
+  string id = 2;
+  // The receipt's type; empty for a delivery receipt.
+  string type = 3;
+}
+
+// DeliverReceiptRequest is one receipt. A JID is whatsmeow's string form; empty is none.
+message DeliverReceiptRequest {
+  // The session whose client receives it.
+  string session_id = 1;
+  // The chat.
+  string chat = 2;
+  // Who sent the receipt.
+  string sender = 3;
+  // The sender's other address form.
+  string sender_alt = 4;
+  // In a direct chat, the recipient's other address form.
+  string recipient_alt = 5;
+  // True when another of the account's devices sent it.
+  bool is_from_me = 6;
+  // The messages it covers; at least one.
+  repeated string message_ids = 7;
+  // whatsmeow's receipt type (types/presence.go:38-61): empty for delivered, "read", "retry", ...
+  string type = 8;
+  // The receipt's WhatsApp timestamp; unset is the zero time.
+  google.protobuf.Timestamp receipt_time = 9;
+}
+
+// DeliverReceiptResponse has no fields.
+message DeliverReceiptResponse {}
+
+// RateLimitNextSendsRequest names the session and how many sends.
+message RateLimitNextSendsRequest {
+  // The session whose next sends fail.
+  string session_id = 1;
+  // How many.
+  uint32 count = 2;
+}
+
+// RateLimitNextSendsResponse has no fields.
+message RateLimitNextSendsResponse {}
+
+// HoldNextSendRequest names the session.
+message HoldNextSendRequest {
+  // The session whose next send gets no answer until released.
+  string session_id = 1;
+}
+
+// HoldNextSendResponse has no fields.
+message HoldNextSendResponse {}
+
+// ReleaseSendRequest names the session.
+message ReleaseSendRequest {
+  // The session whose held send WhatsApp accepts.
+  string session_id = 1;
+}
+
+// ReleaseSendResponse has no fields.
+message ReleaseSendResponse {}
+
 // Disconnect is the client closing a connection that was open.
 message Disconnect {}
 
@@ -526,7 +640,8 @@ message RemoveCompanionDevice {}
 message Receipt {
   // The message id.
   string id = 1;
-  // The receipt type: "inactive" for a message from someone else while the client sends no active receipts.
+  // The receipt type: "sender" for a message another of the account's devices sent, "inactive" for one from someone else
+  // while the client sends no active receipts (receipt.go:280-289).
   string type = 2;
 }
 

@@ -38,9 +38,10 @@ public sealed class EventTests(FakeSidecar fixture)
 			cancellationToken: ct
 		);
 
-		// whatsmeow answers a decrypted message with a receipt only once the handler recorded it (invariant 2).
+		// whatsmeow answers a decrypted message with a receipt only once the handler recorded it (invariant 2); one the
+		// account's other device sent, with type sender (receipt.go:282-286).
 		var sent = (await fixture.Fake.WaitForSentAsync(new WaitForSentRequest { SessionId = "events-fullcycle" }, cancellationToken: ct)).Sent;
-		Assert.Equal(new Receipt { Id = "M1", Type = "inactive" }, sent.Receipt);
+		Assert.Equal(new Receipt { Id = "M1", Type = "sender" }, sent.Receipt);
 
 		Assert.Equal(
 			new MessageReceived

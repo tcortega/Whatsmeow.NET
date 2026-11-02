@@ -152,6 +152,22 @@ namespace Whatsmeow.IntegrationTests.Fake {
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryRequest> __Marshaller_whatsmeow_fake_v1_AnswerMediaRetryRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryResponse> __Marshaller_whatsmeow_fake_v1_AnswerMediaRetryResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DeliverReceiptRequest> __Marshaller_whatsmeow_fake_v1_DeliverReceiptRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DeliverReceiptRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DeliverReceiptResponse> __Marshaller_whatsmeow_fake_v1_DeliverReceiptResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DeliverReceiptResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.RateLimitNextSendsRequest> __Marshaller_whatsmeow_fake_v1_RateLimitNextSendsRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.RateLimitNextSendsRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.RateLimitNextSendsResponse> __Marshaller_whatsmeow_fake_v1_RateLimitNextSendsResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.RateLimitNextSendsResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.HoldNextSendRequest> __Marshaller_whatsmeow_fake_v1_HoldNextSendRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.HoldNextSendRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.HoldNextSendResponse> __Marshaller_whatsmeow_fake_v1_HoldNextSendResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.HoldNextSendResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.ReleaseSendRequest> __Marshaller_whatsmeow_fake_v1_ReleaseSendRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.ReleaseSendRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.ReleaseSendResponse> __Marshaller_whatsmeow_fake_v1_ReleaseSendResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.ReleaseSendResponse.Parser));
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse> __Method_DeliverMessage = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse>(
@@ -352,6 +368,38 @@ namespace Whatsmeow.IntegrationTests.Fake {
         "AnswerMediaRetry",
         __Marshaller_whatsmeow_fake_v1_AnswerMediaRetryRequest,
         __Marshaller_whatsmeow_fake_v1_AnswerMediaRetryResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverReceiptRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverReceiptResponse> __Method_DeliverReceipt = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverReceiptRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverReceiptResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "DeliverReceipt",
+        __Marshaller_whatsmeow_fake_v1_DeliverReceiptRequest,
+        __Marshaller_whatsmeow_fake_v1_DeliverReceiptResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.RateLimitNextSendsRequest, global::Whatsmeow.IntegrationTests.Fake.RateLimitNextSendsResponse> __Method_RateLimitNextSends = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.RateLimitNextSendsRequest, global::Whatsmeow.IntegrationTests.Fake.RateLimitNextSendsResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "RateLimitNextSends",
+        __Marshaller_whatsmeow_fake_v1_RateLimitNextSendsRequest,
+        __Marshaller_whatsmeow_fake_v1_RateLimitNextSendsResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.HoldNextSendRequest, global::Whatsmeow.IntegrationTests.Fake.HoldNextSendResponse> __Method_HoldNextSend = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.HoldNextSendRequest, global::Whatsmeow.IntegrationTests.Fake.HoldNextSendResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "HoldNextSend",
+        __Marshaller_whatsmeow_fake_v1_HoldNextSendRequest,
+        __Marshaller_whatsmeow_fake_v1_HoldNextSendResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.ReleaseSendRequest, global::Whatsmeow.IntegrationTests.Fake.ReleaseSendResponse> __Method_ReleaseSend = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.ReleaseSendRequest, global::Whatsmeow.IntegrationTests.Fake.ReleaseSendResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "ReleaseSend",
+        __Marshaller_whatsmeow_fake_v1_ReleaseSendRequest,
+        __Marshaller_whatsmeow_fake_v1_ReleaseSendResponse);
 
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
@@ -1064,8 +1112,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// RegisterUser adds a user to WhatsApp's directory, which every session's lookups read: IsOnWhatsApp, GetUserInfo,
-      /// and the LID that UpdateBlocklist fetches. An unregistered number is not on WhatsApp. Registering a phone_jid again
-      /// replaces it.
+      /// and the LID that UpdateBlocklist and a send to a phone number fetch (send.go:341-365). An unregistered number is
+      /// not on WhatsApp. Registering a phone_jid again replaces it.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -1079,8 +1127,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// RegisterUser adds a user to WhatsApp's directory, which every session's lookups read: IsOnWhatsApp, GetUserInfo,
-      /// and the LID that UpdateBlocklist fetches. An unregistered number is not on WhatsApp. Registering a phone_jid again
-      /// replaces it.
+      /// and the LID that UpdateBlocklist and a send to a phone number fetch (send.go:341-365). An unregistered number is
+      /// not on WhatsApp. Registering a phone_jid again replaces it.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -1092,8 +1140,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// RegisterUser adds a user to WhatsApp's directory, which every session's lookups read: IsOnWhatsApp, GetUserInfo,
-      /// and the LID that UpdateBlocklist fetches. An unregistered number is not on WhatsApp. Registering a phone_jid again
-      /// replaces it.
+      /// and the LID that UpdateBlocklist and a send to a phone number fetch (send.go:341-365). An unregistered number is
+      /// not on WhatsApp. Registering a phone_jid again replaces it.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -1107,8 +1155,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// RegisterUser adds a user to WhatsApp's directory, which every session's lookups read: IsOnWhatsApp, GetUserInfo,
-      /// and the LID that UpdateBlocklist fetches. An unregistered number is not on WhatsApp. Registering a phone_jid again
-      /// replaces it.
+      /// and the LID that UpdateBlocklist and a send to a phone number fetch (send.go:341-365). An unregistered number is
+      /// not on WhatsApp. Registering a phone_jid again replaces it.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -1769,6 +1817,230 @@ namespace Whatsmeow.IntegrationTests.Fake {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryResponse> AnswerMediaRetryAsync(global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_AnswerMediaRetry, null, options, request);
+      }
+      /// <summary>
+      /// DeliverReceipt makes WhatsApp deliver a receipt to a session's client, and returns once the client's event
+      /// handlers ran. With SynchronousAck, whatsmeow acks a receipt only when every handler succeeded
+      /// (maybeDeferredAck, receipt.go:21-43, 115-128); a retry receipt it acks inside its retry handler, before the
+      /// dispatch, whatever the handlers return (receipt.go:34-38, retry.go:184-192). The ack shows in WaitForSent. A
+      /// session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.DeliverReceiptResponse DeliverReceipt(global::Whatsmeow.IntegrationTests.Fake.DeliverReceiptRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return DeliverReceipt(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// DeliverReceipt makes WhatsApp deliver a receipt to a session's client, and returns once the client's event
+      /// handlers ran. With SynchronousAck, whatsmeow acks a receipt only when every handler succeeded
+      /// (maybeDeferredAck, receipt.go:21-43, 115-128); a retry receipt it acks inside its retry handler, before the
+      /// dispatch, whatever the handlers return (receipt.go:34-38, retry.go:184-192). The ack shows in WaitForSent. A
+      /// session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.DeliverReceiptResponse DeliverReceipt(global::Whatsmeow.IntegrationTests.Fake.DeliverReceiptRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_DeliverReceipt, null, options, request);
+      }
+      /// <summary>
+      /// DeliverReceipt makes WhatsApp deliver a receipt to a session's client, and returns once the client's event
+      /// handlers ran. With SynchronousAck, whatsmeow acks a receipt only when every handler succeeded
+      /// (maybeDeferredAck, receipt.go:21-43, 115-128); a retry receipt it acks inside its retry handler, before the
+      /// dispatch, whatever the handlers return (receipt.go:34-38, retry.go:184-192). The ack shows in WaitForSent. A
+      /// session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DeliverReceiptResponse> DeliverReceiptAsync(global::Whatsmeow.IntegrationTests.Fake.DeliverReceiptRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return DeliverReceiptAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// DeliverReceipt makes WhatsApp deliver a receipt to a session's client, and returns once the client's event
+      /// handlers ran. With SynchronousAck, whatsmeow acks a receipt only when every handler succeeded
+      /// (maybeDeferredAck, receipt.go:21-43, 115-128); a retry receipt it acks inside its retry handler, before the
+      /// dispatch, whatever the handlers return (receipt.go:34-38, retry.go:184-192). The ack shows in WaitForSent. A
+      /// session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DeliverReceiptResponse> DeliverReceiptAsync(global::Whatsmeow.IntegrationTests.Fake.DeliverReceiptRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_DeliverReceipt, null, options, request);
+      }
+      /// <summary>
+      /// RateLimitNextSends makes the session's next count sends fail as WhatsApp's rate limit fails them: an IQ before the
+      /// node is written answers 429 (ErrIQRateOverLimit, errors.go:197), so nothing is sent.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.RateLimitNextSendsResponse RateLimitNextSends(global::Whatsmeow.IntegrationTests.Fake.RateLimitNextSendsRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return RateLimitNextSends(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// RateLimitNextSends makes the session's next count sends fail as WhatsApp's rate limit fails them: an IQ before the
+      /// node is written answers 429 (ErrIQRateOverLimit, errors.go:197), so nothing is sent.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.RateLimitNextSendsResponse RateLimitNextSends(global::Whatsmeow.IntegrationTests.Fake.RateLimitNextSendsRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_RateLimitNextSends, null, options, request);
+      }
+      /// <summary>
+      /// RateLimitNextSends makes the session's next count sends fail as WhatsApp's rate limit fails them: an IQ before the
+      /// node is written answers 429 (ErrIQRateOverLimit, errors.go:197), so nothing is sent.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.RateLimitNextSendsResponse> RateLimitNextSendsAsync(global::Whatsmeow.IntegrationTests.Fake.RateLimitNextSendsRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return RateLimitNextSendsAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// RateLimitNextSends makes the session's next count sends fail as WhatsApp's rate limit fails them: an IQ before the
+      /// node is written answers 429 (ErrIQRateOverLimit, errors.go:197), so nothing is sent.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.RateLimitNextSendsResponse> RateLimitNextSendsAsync(global::Whatsmeow.IntegrationTests.Fake.RateLimitNextSendsRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_RateLimitNextSends, null, options, request);
+      }
+      /// <summary>
+      /// HoldNextSend makes the session's next send write its node, which WaitForSent shows, and then get no answer until
+      /// ReleaseSend: like whatsmeow's, it then returns ctx.Err() when its context ends (send.go:445-455), and when the
+      /// connection ends, a DisconnectedError 5 s later, once whatsmeow's wait for a reconnect is over (request.go:185-202),
+      /// since the fake never reconnects on its own. ReleaseSend makes WhatsApp accept it.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.HoldNextSendResponse HoldNextSend(global::Whatsmeow.IntegrationTests.Fake.HoldNextSendRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return HoldNextSend(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// HoldNextSend makes the session's next send write its node, which WaitForSent shows, and then get no answer until
+      /// ReleaseSend: like whatsmeow's, it then returns ctx.Err() when its context ends (send.go:445-455), and when the
+      /// connection ends, a DisconnectedError 5 s later, once whatsmeow's wait for a reconnect is over (request.go:185-202),
+      /// since the fake never reconnects on its own. ReleaseSend makes WhatsApp accept it.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.HoldNextSendResponse HoldNextSend(global::Whatsmeow.IntegrationTests.Fake.HoldNextSendRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_HoldNextSend, null, options, request);
+      }
+      /// <summary>
+      /// HoldNextSend makes the session's next send write its node, which WaitForSent shows, and then get no answer until
+      /// ReleaseSend: like whatsmeow's, it then returns ctx.Err() when its context ends (send.go:445-455), and when the
+      /// connection ends, a DisconnectedError 5 s later, once whatsmeow's wait for a reconnect is over (request.go:185-202),
+      /// since the fake never reconnects on its own. ReleaseSend makes WhatsApp accept it.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.HoldNextSendResponse> HoldNextSendAsync(global::Whatsmeow.IntegrationTests.Fake.HoldNextSendRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return HoldNextSendAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// HoldNextSend makes the session's next send write its node, which WaitForSent shows, and then get no answer until
+      /// ReleaseSend: like whatsmeow's, it then returns ctx.Err() when its context ends (send.go:445-455), and when the
+      /// connection ends, a DisconnectedError 5 s later, once whatsmeow's wait for a reconnect is over (request.go:185-202),
+      /// since the fake never reconnects on its own. ReleaseSend makes WhatsApp accept it.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.HoldNextSendResponse> HoldNextSendAsync(global::Whatsmeow.IntegrationTests.Fake.HoldNextSendRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_HoldNextSend, null, options, request);
+      }
+      /// <summary>
+      /// ReleaseSend makes WhatsApp answer the session's held send: it succeeds. No held send is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.ReleaseSendResponse ReleaseSend(global::Whatsmeow.IntegrationTests.Fake.ReleaseSendRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ReleaseSend(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// ReleaseSend makes WhatsApp answer the session's held send: it succeeds. No held send is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.ReleaseSendResponse ReleaseSend(global::Whatsmeow.IntegrationTests.Fake.ReleaseSendRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_ReleaseSend, null, options, request);
+      }
+      /// <summary>
+      /// ReleaseSend makes WhatsApp answer the session's held send: it succeeds. No held send is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.ReleaseSendResponse> ReleaseSendAsync(global::Whatsmeow.IntegrationTests.Fake.ReleaseSendRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ReleaseSendAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// ReleaseSend makes WhatsApp answer the session's held send: it succeeds. No held send is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.ReleaseSendResponse> ReleaseSendAsync(global::Whatsmeow.IntegrationTests.Fake.ReleaseSendRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_ReleaseSend, null, options, request);
       }
       /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]

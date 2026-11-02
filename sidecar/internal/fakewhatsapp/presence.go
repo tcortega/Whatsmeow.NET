@@ -75,9 +75,14 @@ func (c *Client) SendChatPresence(_ context.Context, jid types.JID, state types.
 	return nil
 }
 
-// receiptType is the type of the receipt for a message from someone else: none while active receipts are on,
-// inactive otherwise (receipt.go:280-296).
-func (c *Client) receiptType() string {
+// receiptType is the type of the receipt whatsmeow answers a decrypted message with (sendMessageReceipt,
+// receipt.go:280-296): sender for a message another of the account's devices sent; for one from someone else, none
+// while active receipts are on, inactive otherwise. The one place the fake chooses it.
+func (c *Client) receiptType(info *types.MessageInfo) string {
+	if info.IsFromMe {
+		return string(types.ReceiptTypeSender)
+	}
+
 	c.conn.Lock()
 	defer c.conn.Unlock()
 

@@ -34,6 +34,7 @@ import (
 	eventsslice "github.com/tcortega/Whatsmeow.NET/sidecar/internal/events"
 	wmlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/media"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/messaging"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/outbox"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/presence"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
@@ -189,7 +190,7 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 
 	box := outbox.New(db.DB)
 	// Each slice that records whatsmeow events in the outbox passes its mapper (eventsslice.Mapper).
-	events := eventsslice.New(box, log, contacts.Event, media.Mapper(db.DB, log)) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
+	events := eventsslice.New(box, log, contacts.Event, media.Mapper(db.DB, log), messaging.Receipt) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
 	whatsmeowv1.RegisterEventServiceServer(srv, events)
 
 	sessions, err := session.New(ctx, db.DB, db.Devices, box, recording(newClient, events), log) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
@@ -214,6 +215,16 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 	defer closeMedia(log, mediaSlice)
 
 	whatsmeowv1.RegisterMediaServiceServer(srv, mediaSlice)
+
+	// Closed once srv.Stop returned, before the sessions. Until then queued sends keep going out, paced: Stop waits for
+	// the calls in flight up to the stop grace, then grpc's Stop cancels every call's context (grpc v1.85.0
+	// server.go:1738-1744, internal/transport/http2_server.go:1300-1321), so a send still queued fails having sent
+	// nothing, and the one handed to whatsmeow ends as its context says. Close waits for that one, so its outcome is
+	// recorded before the sessions disconnect and the store closes.
+	messages := messaging.New(db.DB, sessions, log)
+	defer messages.Close()
+
+	whatsmeowv1.RegisterMessageServiceServer(srv, messages)
 
 	served := make(chan error, 1)
 

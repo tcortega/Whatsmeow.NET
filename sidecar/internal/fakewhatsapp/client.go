@@ -34,8 +34,10 @@ type Client struct {
 	whatsApp  *WhatsApp
 	sessionID string
 	// conn guards the connection's state.
-	conn       sync.Mutex
-	connected  bool
+	conn      sync.Mutex
+	connected bool
+	// connection is open while connected, and closed when the connection ends, which ends a held send.
+	connection chan struct{}
 	failLogout bool
 	// qr is the open QR channel, nil when none is open; codes counts the codes it sent.
 	qr    chan whatsmeow.QRChannelItem
@@ -80,6 +82,7 @@ func (c *Client) ConnectContext(context.Context) error {
 	}
 
 	c.connected = true
+	c.connection = make(chan struct{})
 	if c.Store.ID != nil {
 		c.whatsApp.offQueue(c, &events.Connected{})
 	}
@@ -184,7 +187,7 @@ func (c *Client) Disconnect() {
 		return
 	}
 
-	c.connected = false
+	c.disconnect()
 	c.whatsApp.append(&fakev1.Sent{SessionId: c.sessionID, Kind: &fakev1.Sent_Disconnect{Disconnect: &fakev1.Disconnect{}}})
 }
 
@@ -230,8 +233,17 @@ func (c *Client) Logout(ctx context.Context) error {
 // disconnect, so it raises no Disconnected (connectionevents.go:37-38, 120-127).
 func (c *Client) drop() {
 	c.conn.Lock()
-	c.connected = false
+	c.disconnect()
 	c.conn.Unlock()
+}
+
+// disconnect ends an open connection. c.conn is held.
+func (c *Client) disconnect() {
+	if c.connected {
+		close(c.connection)
+	}
+
+	c.connected = false
 }
 
 // dispatch runs the handlers as whatsmeow's dispatchEvent does at the pin (client.go:999-1013): in order, stopping

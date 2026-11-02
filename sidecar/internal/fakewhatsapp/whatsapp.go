@@ -60,6 +60,11 @@ type script struct {
 	failUploads uint32
 	// holdDownload holds the next download until its call ends.
 	holdDownload bool
+	// rateLimitSends is how many of the next sends WhatsApp rate limits.
+	rateLimitSends uint32
+	// holdSend holds the next send; held is the answer of the send being held, closed by ReleaseSend.
+	holdSend bool
+	held     chan struct{}
 }
 
 // setScript changes the session's script.
@@ -120,10 +125,9 @@ func (w *WhatsApp) NewClient(sessionID string) *Client {
 }
 
 // deliverMessage has the session's client learn what the message's info carries (learn), dispatches the decrypted
-// parts of one message stanza to it, in order, and records
-// what whatsmeow answers at the pin: nothing when a handler of any part failed (message.go:459-462), otherwise one
-// receipt (message.go:489-495), of type inactive for a message from someone else while the client sends no active
-// receipts, and of no type once SendPresence turned them on (receipt.go:280-296).
+// parts of one message stanza to it, in order, and records what whatsmeow answers at the pin: nothing when a handler
+// of any part failed (message.go:459-462), otherwise one receipt (message.go:489-495), of the type receiptType
+// says.
 func (w *WhatsApp) deliverMessage(ctx context.Context, sessionID string, parts ...*events.Message) error {
 	w.mu.Lock()
 	c, ok := w.clients[sessionID]
@@ -142,7 +146,7 @@ func (w *WhatsApp) deliverMessage(ctx context.Context, sessionID string, parts .
 		}
 	}
 
-	receipt := &fakev1.Receipt{Id: id, Type: c.receiptType()}
+	receipt := &fakev1.Receipt{Id: id, Type: c.receiptType(&parts[len(parts)-1].Info)}
 	w.append(&fakev1.Sent{SessionId: sessionID, Kind: &fakev1.Sent_Receipt{Receipt: receipt}})
 
 	return nil

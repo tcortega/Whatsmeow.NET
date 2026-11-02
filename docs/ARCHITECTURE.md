@@ -113,17 +113,18 @@ Vertical-slice thinking applies to this library. A **slice is a WhatsApp capabil
 | Sessions | `session.proto` | `internal/session` | `Sessions/` | `WhatsmeowSidecar.Sessions` |
 | Pairing | `session.proto` (`Pair`) | `internal/session` (`pair.go`) | `Pairing/` | `client.PairWithQrCodeAsync`, `client.PairWithPhoneNumberAsync` |
 | Events | `events.proto` | `internal/events` + `internal/outbox` | `Events/` | `client.On<T>`, handlers |
-| Messaging | `message.proto` | `internal/messaging` | `Messaging/` | `client.Messages` |
+| Messaging and receipts | `message.proto` | `internal/messaging` (its receipt mapper feeds the Events slice) | `Messaging/` | `client.SendTextAsync`, `client.SendRawAsync`, `client.MarkReadAsync`, `ReceiptReceived` |
 | Media | `media.proto` | `internal/media` | `Media/` | `client.UploadMediaFileAsync`, `client.DownloadMediaFileAsync` and their `Stream` forms, `client.RequestMediaRetryAsync` |
 | Contacts & LID | `contact.proto` | `internal/contacts` | `Contacts/` | `client.Contacts` |
 | Groups | `group.proto` | `internal/groups` | `Groups/` | `client.Groups` |
 | Presence | `presence.proto`; `events.proto` (`StreamEphemeralEvents`) | `internal/presence`; `internal/events` (`ring.go`) | `Presence/` | `client.SendPresenceAsync`, `client.SubscribePresenceAsync`, `client.SendChatPresenceAsync`; events |
-| History sync | `events.proto` (history events) | `internal/history` | `History/` | events + `client.Messages.RequestHistoryAsync` |
+| History sync | `events.proto` (history events) | `internal/history` | `History/` | events + `client.RequestHistoryAsync` |
 | Chat state (Phase 3) | `chatstate.proto` | `internal/chatstate` | `ChatState/` | `client.Chats` |
 
 **Rules**
 
 - A slice owns its proto messages, Go service implementation, event mapping, .NET public types, proto↔record mapping and tests. Adding a capability means adding or extending **one** slice in all three layers.
+  A slice's event mapping is an `events.Mapper` the Events slice records through its one handler; a slice acts on WhatsApp through a session with `session.(*Service).Online` ([ADR 0028](adr/0028-contacts-blocklist-and-lid-resolution.md)).
 - Slices do not call each other's internals. Shared needs go into the **core**, which is deliberately small:
   - Go core: `internal/server` (gRPC plumbing, interceptors, error mapping), `internal/transport`, `internal/outbox`, `internal/store`, `internal/log`.
   - .NET core: `Core/Transport`, `Core/Dispatching`, `Core/Errors`, `Core/Telemetry`, `Core/Primitives` (`Jid`, `MessageId`, `SessionId`, `MediaRef`).
@@ -230,7 +231,8 @@ The contract is the most important artifact in the repo. Both sides are generate
 - Proto style (proto3, buf STANDARD, AIP-191, `_UNSPECIFIED` zero values, WKTs, field numbering) and the `Timestamp`/`Duration` mapping: [guidelines/proto.md](guidelines/proto.md).
 - **Independent of whatsmeow's Go API.** No field mirrors a whatsmeow Go struct by accident. Mapping happens in Go slice code.
 - whatsmeow's own protos (`WAWebProtobufsE2E.Message` etc.) are imported **unmodified** from `third_party/whatsmeow` and embedded as **typed fields**. On the wire, a typed field is identical to a `bytes` field holding the serialized message.
-- The Go server uses a lenient codec (`AllowPartial` both ways) installed with `grpc.ForceServerCodecV2`, never a global `encoding.RegisterCodec`. With grpc-go's default codec, a message missing a proto2 `required` field fails to decode before any interceptor runs, as a bare `Internal` with no `ErrorInfo`; with the lenient codec it reaches the slice, whatsmeow's send-path `proto.Marshal` rejects it, and the slice maps that to `INVALID_ARGUMENT` (§14 question 1).
+- The Go server uses a lenient codec (`AllowPartial` both ways) installed with `grpc.ForceServerCodecV2`, never a global `encoding.RegisterCodec`.
+  With grpc-go's default codec, a message missing a proto2 `required` field fails to decode before any interceptor runs, as a bare `Internal` with no `ErrorInfo`; with the lenient codec it reaches the slice, which checks it with `proto.CheckInitialized` before anything is sent (the rule whatsmeow's send-path `proto.Marshal` enforces) and returns `INVALID_ARGUMENT` (§14 question 1, ADR 0025).
 - From the first published `v<semver>` tag (pre-releases and build metadata included) on, `whatsmeow.v1` never breaks: a break means a new package `whatsmeow.v2` with its own ADR, every additive change increments `protocol`, and `buf breaking` gates `whatsmeow.v1` against `main`.
   Before that tag, `protocol` keeps its initial value, 1, and `buf breaking` only reports ([ADR 0015](adr/0015-buf-breaking-gates-from-first-published-tag.md)).
   `buf breaking` covers `whatsmeow.v1` only; upstream wire changes are reported but don't block.
@@ -319,11 +321,18 @@ Each SQLite file has a single owner, enforced with an OS lock on `<database>.loc
 
 ### 7.5 Sending
 
-- Per-session FIFO queue with a token bucket and jitter, pacing sends while the session is connected. A WhatsApp 429 is retried with backoff within the call's deadline, then fails with `RATE_LIMITED`.
-- Sends never wait for a connection: a session that is not logged in, not connected or `TempBanned` fails at once (`NOT_LOGGED_IN` or `LOGGED_OUT`, `NOT_CONNECTED`, `TEMPORARILY_BANNED`). Queued sends fail when the session leaves `Connected` (`NOT_CONNECTED`, or `LOGGED_OUT`).
-- Idempotent sends: .NET supplies `client_message_id`, which is used as the WhatsApp message ID through `SendRequestExtra.ID`. The send is recorded before the hand-off to whatsmeow and its result after, so a repeat returns the recorded result; the rules are in `message.proto`.
-- **A send whose outcome is unknown is never automatically replayed.** It surfaces as an error.
+The design is [ADR 0025](adr/0025-messaging-and-receipts.md); the whatsmeow facts are in §14 "Measured for Messaging (#9)".
+
+- Per-session FIFO queue, one send in flight, paced by a token bucket (a burst of 5, then one per second; tuning and jitter are Phase 2).
+  An IQ 429 before the write is tried again after 1 s, 2 s and 4 s while the wait and one second more for the try fit the call's deadline, then fails with `RATE_LIMITED`.
+- Sends never wait for a connection: a session that is not logged in, not connected or `TempBanned` fails at once (`NOT_LOGGED_IN` or `LOGGED_OUT`, `NOT_CONNECTED`, `TEMPORARILY_BANNED`), through `session.(*Service).Online`.
+  Queued sends fail when the session stops being `Connected` or `CaughtUp` (`NOT_CONNECTED`, `LOGGED_OUT`, or `TEMPORARILY_BANNED`), having sent nothing.
+- Idempotent sends: .NET supplies `client_message_id` (`3EB0` and 18 uppercase hex digits, the format whatsmeow makes; `MessageId.New()`), which is used as the WhatsApp message ID through `SendRequestExtra.ID`.
+  The send is recorded in `sent_message` before the hand-off to whatsmeow and its result after, so a repeat returns the recorded result, and a repeat in flight waits for the first; the rules are in `message.proto`.
+- **A send whose outcome is unknown is never automatically replayed.** It surfaces as `OUTCOME_UNKNOWN`, also on every repeat.
+  Only errors that provably come before the write count as "nothing sent"; everything else is unknown.
 - Responses report `SendResponse.Chat`, because whatsmeow redirects a phone-number user JID to its LID, fetching it with `GetUserInfo` if needed; with no LID it returns `ErrRecipientNotOnWhatsApp` (`send.go:340-363`), which maps to `RECIPIENT_NOT_ON_WHATSAPP`.
+- Receipts are recorded through the outbox by Messaging's `events.Mapper`, so whatsmeow acks them only after they are durable (§13 invariant 2); `MarkRead` sends one read receipt and is not queued.
 
 ### 7.6 Media
 
@@ -388,10 +397,11 @@ await foreach (PairingUpdate update in client.PairWithQrCodeAsync(cancellationTo
 
 using IDisposable subscription = client.On<MessageReceived>(static async (e, ct) => { … });
 
-SendResult result = await client.Messages.SendTextAsync(chat, "hello", cancellationToken: cancellationToken);
+SendResult result = await client.SendTextAsync(chat, "hello", cancellationToken: cancellationToken);
 ```
 
-- **One `IWhatsAppClient` per session.** The session's lifecycle and its pairing are members of the client itself (#6, #7; [ADR 0021](adr/0021-pairing.md) amends ADR 0012). Whether the later slices (`Messages`, `Media`, `Contacts`, `Groups`, `Presence`, later `Chats`) become feature groups is decided with Messages: a group needs a second public interface, or a class `FakeWhatsAppClient` cannot substitute.
+- **One `IWhatsAppClient` per session.** The session's lifecycle, its pairing and its messaging are members of the client itself (#6, #7, #9; [ADR 0021](adr/0021-pairing.md) amends ADR 0012).
+  Every later feature slice (media, contacts, groups, presence, later chats) adds members too, never a feature group: a group needs a second public interface, or a class `FakeWhatsAppClient` cannot substitute ([ADR 0025](adr/0025-messaging-and-receipts.md)).
 - `WhatsmeowSidecar` owns the process and the single shared `GrpcChannel`. Clients are lightweight views over it.
 - `IWhatsAppClient` is the one deliberate exception to the house rule "no interface just to mock it": `Whatsmeow.Testing` ships `FakeWhatsAppClient` to consumers. Library internals get no interfaces for testability.
 - Core behavior lives on real members. C# 14 extension blocks are used only for convenience (`jid.IsGroup`), never for logic that must be mockable.
@@ -401,7 +411,8 @@ SendResult result = await client.Messages.SendTextAsync(chat, "hello", cancellat
 
 - Events: `public abstract record WhatsAppEvent` with `sealed record` cases (`MessageReceived`, `ReceiptReceived`, `ConnectionStateChanged`, …). Message content is a separate `abstract record MessageContent` hierarchy with sealed cases (`TextContent`, `ImageContent`, …, `UnknownContent`). These are shaped so they can become C# `closed`/`union` types later without breaking users' `switch` statements.
 - Identifiers: `MessageId` and `SessionId` are Vogen value objects; `Jid` is a hand-written `readonly struct Jid : ISpanParsable<Jid>`. `Jid` carries both PN and LID forms where known. Events always include `Sender`/`SenderAlt` and `Chat`/`RecipientAlt`. Rules and rationale: [guidelines/csharp.md](guidelines/csharp.md) IDs.
-- **Generated protobuf types never appear in the stable public API.** The only exception is the opt-in `Raw` escape hatch: `MessageReceived.Raw` (an `[Experimental]`-attributed property) and `client.Messages.SendRawAsync(WAWebProtobufsE2E.Message …)`. These live in `Whatsmeow.Protocol.WhatsApp` types and are documented as unstable.
+- **Generated protobuf types never appear in the stable public API.** The only exception is the opt-in `Raw` escape hatch: `MessageReceived.Raw` (an `[Experimental]`-attributed property, later) and `client.SendRawAsync(Jid, WAWebProtobufsE2E.Message, …)` (`[Experimental("WMN1001")]`, #9).
+  These live in `Whatsmeow.Protocol.WhatsApp` types and are documented as unstable.
 - Time is BCL: `DateTimeOffset` (UTC) and `TimeSpan` in public members, "now" and every timer from one injected `TimeProvider`, never `DateTime`.
 - Idioms (immutability with `required`/`init` and `ImmutableArray<T>`/`IReadOnlyList<T>`, `Task` vs `ValueTask`, `CancellationToken` last, `Async` suffix, time): [guidelines/csharp.md](guidelines/csharp.md) Public API modeling and Time.
 
@@ -461,7 +472,7 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
 ### 8.7 Errors
 
 - `WhatsmeowException` (base) carries `ErrorCode`, the public enum `WhatsmeowErrorCode` mapped from `ErrorInfo.reason` by an explicit switch (`Unknown` for no reason, a local failure, or a reason the client does not know), and the `RpcException` as `InnerException`.
-- Each subtype exists from the slice that first returns its reason: Sessions (#6) added the validation, session-not-found, not-logged-in, logged-out, not-connected, temporarily-banned and outcome-unknown ones; Pairing (#7) added `PairingException` and `RateLimitedException`; Contacts (#33) added `RecipientNotFoundException`, for a phone number without a LID WhatsApp knows when blocking, and the `WHATSAPP_TIMED_OUT` reason, a read WhatsApp did not answer in time, on the base type with its `ErrorCode`: nothing was done, so it is not `OUTCOME_UNKNOWN`, which stays for writes; Media (#28) added `MediaExpiredException`.
+- Each subtype exists from the slice that first returns its reason: Sessions (#6) added the validation, session-not-found, not-logged-in, logged-out, not-connected, temporarily-banned and outcome-unknown ones; Pairing (#7) added `PairingException` and `RateLimitedException`; Contacts (#33) added `RecipientNotFoundException`, for a phone number without a LID WhatsApp knows when blocking (and, from Messaging (#9), when sending), and the `WHATSAPP_TIMED_OUT` reason, a read WhatsApp did not answer in time, on the base type with its `ErrorCode`: nothing was done, so it is not `OUTCOME_UNKNOWN`, which stays for writes; Media (#28) added `MediaExpiredException`.
   Until a later slice adds its subtype, a reason maps to `WhatsmeowException` with its `ErrorCode`.
 - Subtypes:
   - `SidecarUnavailableException`, `SidecarVersionMismatchException`
@@ -733,6 +744,18 @@ Setup: Go 1.27.3 grpc-go 1.85.0 server, .NET 10.0.14 Native AOT client, on Windo
   - Media connection: no caller forces a refresh; upload, download and their variants call `refreshMediaConn(ctx, false)`, cached until the TTL WhatsApp gave (upload.go:244, 312; download-to-file.go:95; download.go:268; mediaconn.go:44-58). Only `DangerousInternals().RefreshMediaConn` forces one (internals.go:306-308).
   - Credentials in errors: `rawUpload` puts the media connection's auth in the URL's query (upload.go:251-273), and a download URL is the direct path, with the CDN's signature, plus more query (download-to-file.go:104). A failed request is a `*url.Error`, which prints that URL (upload.go:281-288, download.go:375-378), and whatsmeow logs a failed download's error with it (download-to-file.go:116, 177).
   - Go: opening a FIFO with no writer through `os.Root` blocks past the call's context; `O_NONBLOCK` passes through `Root.OpenFile` (os/root_unix.go:82-110, Go 1.27.3) [observed: `TestAPathSwappedForAFIFOIsRefusedAtOnce` without it, macOS].
+- Measured for Messaging (#9), whatsmeow at the pin:
+  - Ids: `GenerateMessageID` is `3EB0` plus the uppercase hex of 9 bytes of a SHA-256, 18 digits (send.go:41, 47-61).
+    Whether WhatsApp accepts other ids is [unknown]; #10 measures it live.
+  - `SendMessage` returns `SendResponse{Timestamp, ID, ServerID, Sender, Chat}`, `Chat` being where it went (send.go:114-133, 384-385); the timestamp is whole seconds (`UnixTime("t")`, send.go:467).
+  - Before the node is written: `ErrRecipientADJID` (send.go:203-206), `ErrNotLoggedIn` (207-211), the LID lookup and `ErrRecipientNotOnWhatsApp` (341-365), group members (310-331), `proto.Marshal` (1257-1265), the devices IQs (sendDM 875-918, sendGroup 814-840), and a wrapped `ErrNotConnected` when there is no socket (client.go:981-983; sendDM 921, sendGroup 840 wrap it).
+  - After the write: up to 75 s for the answer, `ErrMessageTimedOut`, or `ctx.Err()` on cancel (send.go:438-455; request.go:150).
+    A disconnect gives every waiter the stream end (client.go:618, 720, 730), and `retryFrame` waits 5 s for a reconnect, resends the same frame with the same id, or fails with `DisconnectedError` or an unwrapped `ErrNotConnected` (send.go:457-463; request.go:185-216).
+  - An answer with an `error` attribute is `ErrServerReturnedError` with the code only in its text (send.go:468-470); whether the message was dropped is [unknown].
+  - `IQError` has `Code`, `Text` and the nodes, no delay (errors.go:182-197); `ErrIQRateOverLimit` is 429, and `IQError.Is` compares the text too (errors.go:229-240).
+  - `MarkRead` sends one `<receipt type=read>`, a list for more ids, a `participant` only outside a direct chat, `read-self` when read receipts are off, and waits for no answer (receipt.go:197-237).
+  - Receipts: `events.Receipt` (types/events/events.go:443-452), types at types/presence.go:38-61; grouped receipts are dispatched per participant (receipt.go:45-63); a non-retry receipt is acked only when no handler failed, a retry receipt in the retry handler regardless (receipt.go:21-43, 115-128; retry.go:184-192); whatsmeow dispatches none without an id (receipt.go:85-88).
+  - The answer to a message another of the account's devices sent is a receipt of type `sender` (receipt.go:282-286); the fake answered `inactive` until #9.
 - Refuted, now corrected above: "one queue per client" (§7.3)*; "whatsmeow has already deleted the device rows" on `LoggedOut` (§7.4)*; "`UploadReader` retries up to 3 times" (§7.6)*; "a `PreKeysUploaded` event" (§9; it is a `Client` field)*; "the zombie-socket bug" (§7.2, not in code; the mechanism is the keepalive loop)*.
 - `RESEARCH.md` still contains the refuted claims as originally researched. This section wins over it.
 
@@ -819,6 +842,7 @@ Phase 0 decisions:
 - [0022](adr/0022-outbox-event-stream-and-dispatcher.md): The outbox (seq in the transaction, natural keys, retention, cascade delete), `StreamEvents` replacement, the dispatcher and watermark ack, events from the first connect, invariant 2 says "answered", and the phone's copy of an undecryptable message is not gated (#8)
 - [0023](adr/0023-native-packages-build-pin-and-find.md): One MinVer version for every package and binary; the binaries from a plain `go build` over `tools/check-licenses -targets`, not GoReleaser; exact pins by rewriting NuGet's `_ProjectReferencesWithVersions`; `ExcludeFromSingleFile` in the native packages; `build/ci.sh package` and `install` prove a new consumer finds the binary (#43)
 - [0024](adr/0024-tether-backups.md): The tether backups: `--parent-pid`; Linux `PR_SET_PDEATHSIG` with SIGUSR1 that only wakes a parent check; a macOS parent poll; a Windows kill-on-close Job Object from the client, hand-written `[LibraryImport]`, a failed job fails the start; SIGPIPE ignored (#22)
+- [0025](adr/0025-messaging-and-receipts.md): Feature members on `IWhatsAppClient` for every slice, never groups; strict `3EB0` ids; a send recorded before its hand-off and the classification of whatsmeow's errors; a paced per-session queue with a 429 backoff; receipts through the outbox (#9)
 - [0026](adr/0026-media-transfer-and-media-retry.md): Media by path through `os.Root` or in 64 KiB chunks, the sidecar's temporary files next to the database, verification before delivery, upload retry by whole attempts, `MEDIA_EXPIRED`, media retry stored and decrypted by the media slice's `events.Mapper`, `MediaRef` with content equality (#28)
 - [0027](adr/0027-ephemeral-events-presence-and-typing.md): Presence and typing on `StreamEphemeralEvents`, without a seq or an ack, from a 256-event ring per session in memory; a second .NET dispatcher with no ack; `NO_PUSH_NAME`; invariant 1 names the ring (#32)
 - [0028](adr/0028-contacts-blocklist-and-lid-resolution.md): Contacts & LID: `Online` for calls to WhatsApp and `Device` for store reads, LID resolution from the store only, contact events through the outbox unkeyed and best effort, a slice records its own events through an `events.Mapper`, no whatsmeow error text in a status, `WHATSAPP_TIMED_OUT` for a read without an answer (#33)

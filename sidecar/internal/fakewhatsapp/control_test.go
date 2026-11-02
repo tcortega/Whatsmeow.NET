@@ -361,3 +361,18 @@ func TestASenderKeyDeliveryDispatchesTheSenderKeyThenTheContentAndAnswersOnce(t 
 
 	wantSent(t, waitForSent(ctx, t, control, "s1", 0), receipt(1, "s1", "M1"))
 }
+
+func TestAnOwnMessageGetsASenderReceipt(t *testing.T) {
+	t.Parallel()
+
+	whatsApp, control, ctx := start(t)
+	whatsApp.NewClient("s1").AddEventHandlerWithSuccessStatus(func(any) bool { return true })
+
+	// whatsmeow answers a message another of the account's devices sent with type sender (receipt.go:282-286).
+	if _, err := control.DeliverMessage(ctx, &fakev1.DeliverMessageRequest{SessionId: "s1", Id: "M1", IsFromMe: true}); err != nil {
+		t.Fatalf("DeliverMessage: %v", err)
+	}
+
+	wantSent(t, waitForSent(ctx, t, control, "s1", 0),
+		&fakev1.Sent{Index: 1, SessionId: "s1", Kind: &fakev1.Sent_Receipt{Receipt: &fakev1.Receipt{Id: "M1", Type: "sender"}}})
+}

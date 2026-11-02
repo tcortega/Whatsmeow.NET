@@ -480,6 +480,61 @@ func TestDeleteSessionDisconnectsDeletesTheDeviceAndEndsWatches(t *testing.T) {
 	}
 }
 
+// A call that found the session just before DeleteSession took it waits for the delete, then must not act on the
+// deleted session: it records nothing, and a second delete does not close what the first one closed.
+func TestACallThatFoundTheSessionBeforeItWasDeletedIsSessionNotFound(t *testing.T) {
+	t.Parallel()
+
+	calls := []struct {
+		name string
+		call func(svc *Service, ctx context.Context, s *session) error
+	}{
+		{"Connect", func(svc *Service, ctx context.Context, s *session) error {
+			_, err := svc.connect(ctx, s)
+			return err
+		}},
+		{"Disconnect", func(svc *Service, ctx context.Context, s *session) error {
+			_, err := svc.disconnect(ctx, s)
+			return err
+		}},
+		{"Logout", func(svc *Service, ctx context.Context, s *session) error {
+			_, err := svc.logout(ctx, s)
+			return err
+		}},
+		{"DeleteSession", func(svc *Service, ctx context.Context, s *session) error {
+			_, err := svc.deleteSession(ctx, s)
+			return err
+		}},
+	}
+
+	for _, c := range calls {
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
+			h := start(t)
+			h.connected("s1")
+
+			// What the call found before it waited for s.ops.
+			s, err := h.svc.get("s1")
+			if err != nil {
+				t.Fatalf("get: %v", err)
+			}
+
+			if _, err := h.client.DeleteSession(h.ctx, &whatsmeowv1.DeleteSessionRequest{SessionId: "s1"}); err != nil {
+				t.Fatalf("DeleteSession: %v", err)
+			}
+
+			if err := c.call(h.svc, h.ctx, s); !errors.Is(err, server.ErrSessionNotFound) {
+				t.Fatalf("%s on the deleted session = %v, want SESSION_NOT_FOUND", c.name, err)
+			}
+
+			if d := h.stub("s1").disconnects; d != 1 {
+				t.Fatalf("disconnects = %d, want only the delete's", d)
+			}
+		})
+	}
+}
+
 func TestEverySignalMapsToExactlyOneState(t *testing.T) {
 	t.Parallel()
 
