@@ -123,7 +123,7 @@ func (s *stub) ids() []string {
 	return ids
 }
 
-// sessions stands in for the session slice's Online: one session, s1, online with the stub until leave.
+// sessions stands in for the session slice's Online: s1, online with the stub until leave, and s3, always online.
 type sessions struct {
 	mu     sync.Mutex
 	client *stub
@@ -134,6 +134,10 @@ type sessions struct {
 func (s *sessions) Online(id string) (session.Client, <-chan struct{}, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	if id == "s3" {
+		return s.client, make(chan struct{}), nil
+	}
 
 	if id != "s1" {
 		return nil, nil, fmt.Errorf("session %q: %w", id, server.ErrSessionNotFound)
@@ -219,8 +223,8 @@ func start(t *testing.T) *harness {
 		t.Fatalf("open the store: %v", err)
 	}
 
-	if _, err := db.DB.ExecContext(context.Background(), "INSERT INTO session (id) VALUES ('s1')"); err != nil {
-		t.Fatalf("create s1: %v", err)
+	if _, err := db.DB.ExecContext(context.Background(), "INSERT INTO session (id) VALUES ('s1'), ('s3')"); err != nil {
+		t.Fatalf("create the sessions: %v", err)
 	}
 
 	h := &harness{
@@ -886,6 +890,52 @@ func TestACancelWhileQueuedSendsNothingAndLeavesNoRecord(t *testing.T) {
 
 	if got := h.stub.ids(); len(got) != 2 || got[1] != id(2) {
 		t.Fatalf("whatsmeow got %v, want 1, then the repeat of 2", got)
+	}
+}
+
+// The pacing holds across sends made one after another, the queue idle between them, not only across queued ones.
+func TestSendsOneAfterAnotherArePacedToo(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.svc.burst = 1
+
+	for n := range 2 {
+		if _, err := h.sendText(h.ctx, n, "hi"); err != nil {
+			t.Fatalf("SendText %d: %v", n, err)
+		}
+	}
+
+	if sent := h.stub.sent(); len(sent) != 2 || sent[1].at.Sub(sent[0].at) < h.svc.pace {
+		t.Fatalf("whatsmeow got %v, want the second at least %v after the first", sent, h.svc.pace)
+	}
+}
+
+// A session's queue holds its pacing, so it stays while that pacing still holds back a send; once it ran out, the
+// queue is the same as a new one and goes, a deleted session's too, so the queues do not grow with every session.
+func TestAnIdleQueueGoesOnceItsPacingRanOut(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.svc.pace = time.Nanosecond
+
+	if _, err := h.sendText(h.ctx, 1, "hi"); err != nil {
+		t.Fatalf("SendText: %v", err)
+	}
+
+	// s1 is deleted; s3 sends.
+	h.sessions.leave(fmt.Errorf("session %q: %w", "s1", server.ErrSessionNotFound))
+
+	if _, err := h.client.SendText(h.ctx, &whatsmeowv1.SendTextRequest{SessionId: "s3", Chat: "111@lid", ClientMessageId: id(2), Text: "hi"}); err != nil {
+		t.Fatalf("SendText on s3: %v", err)
+	}
+
+	h.svc.mu.Lock()
+	_, kept := h.svc.queues["s1"]
+	h.svc.mu.Unlock()
+
+	if kept {
+		t.Fatal("the deleted session's idle queue is still kept")
 	}
 }
 

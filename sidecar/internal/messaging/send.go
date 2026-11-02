@@ -195,6 +195,7 @@ func (svc *Service) recorded(ctx context.Context, sessionID, id string) (outcome
 // enqueue adds j to its session's queue and starts the queue if it is idle.
 func (svc *Service) enqueue(j *job) {
 	svc.mu.Lock()
+	svc.sweep()
 
 	q, ok := svc.queues[j.session]
 	if !ok {
@@ -214,6 +215,18 @@ func (svc *Service) enqueue(j *job) {
 
 	if waits && svc.onQueue != nil {
 		svc.onQueue()
+	}
+}
+
+// sweep drops the idle queues whose pacing ran out: such a queue paces as a new one does (due, spend), so nothing is
+// lost, and a deleted session's queue goes too. svc.mu is held.
+func (svc *Service) sweep() {
+	now := time.Now()
+
+	for session, q := range svc.queues {
+		if !q.running && len(q.jobs) == 0 && !q.tat.After(now) {
+			delete(svc.queues, session)
+		}
 	}
 }
 
