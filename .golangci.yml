@@ -46,7 +46,9 @@ linters:
         - pattern: ^encoding\.RegisterCodec(V2)?$
           pkg: ^google\.golang\.org/grpc/encoding$
           msg: package-level mutable state; install the lenient codec with grpc.ForceServerCodecV2 (docs/guidelines/go.md)
-        - pattern: ^sql\.DB\.(Exec|ExecContext|Begin|BeginTx)$
+        # Reads stay on the *sql.DB (WAL readers never wait for the writer), so a query that writes still gets past
+        # this; it is a backstop (docs/guidelines/go.md).
+        - pattern: ^sql\.DB\.(Exec|ExecContext|Begin|BeginTx|Conn|Prepare|PrepareContext)$
           pkg: ^database/sql$
           msg: the sidecar writes through store.Writer, the fair write gate (ADR 0040)
     importas:
