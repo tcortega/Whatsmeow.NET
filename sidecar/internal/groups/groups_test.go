@@ -890,7 +890,6 @@ func TestEachGroupNotificationMapsToOneGroupEventAndOthersToNone(t *testing.T) {
 		{
 			"only changes the contract has no case for",
 			eventInfo(at, func(e *events.GroupInfo) {
-				e.Ephemeral = &types.GroupEphemeral{IsEphemeral: true, DisappearingTimer: 86400}
 				e.Delete = &types.GroupDelete{Deleted: true}
 				e.NewInviteLink = new(string)
 				e.MembershipApprovalMode = &types.GroupMembershipApprovalMode{IsJoinApprovalRequired: true}

@@ -1004,6 +1004,8 @@ message DeliverGroupNotificationRequest {
   bool ephemeral = 14;
   // The notification's stanza id, which its ack names.
   string id = 15;
+  // A join approval mode change, which the contract has no case for.
+  bool membership_approval = 18;
 }
 
 // DeliverGroupNotificationResponse has no fields.

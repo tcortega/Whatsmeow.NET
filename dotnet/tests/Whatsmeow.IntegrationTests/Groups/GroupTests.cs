@@ -429,7 +429,7 @@ public sealed class GroupTests(FakeSidecar fixture)
 				Id = "GN-NOTIFIED-2",
 				Group = "120363109000000001@g.us",
 				Time = Timestamp.FromDateTimeOffset(at),
-				Ephemeral = true,
+				MembershipApproval = true,
 			},
 			cancellationToken: ct
 		);

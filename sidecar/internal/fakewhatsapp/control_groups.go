@@ -122,6 +122,10 @@ func (c *Control) DeliverGroupNotification(_ context.Context, req *fakev1.Delive
 		evt.Ephemeral = &types.GroupEphemeral{IsEphemeral: true, DisappearingTimer: 86400}
 	}
 
+	if req.GetMembershipApproval() {
+		evt.MembershipApprovalMode = &types.GroupMembershipApprovalMode{IsJoinApprovalRequired: true}
+	}
+
 	for _, list := range []struct {
 		field  string
 		values []string

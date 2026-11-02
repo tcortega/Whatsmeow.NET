@@ -4884,9 +4884,11 @@ type DeliverGroupNotificationRequest struct {
 	// A disappearing messages change, which the contract has no case for.
 	Ephemeral bool `protobuf:"varint,14,opt,name=ephemeral,proto3" json:"ephemeral,omitempty"`
 	// The notification's stanza id, which its ack names.
-	Id            string `protobuf:"bytes,15,opt,name=id,proto3" json:"id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Id string `protobuf:"bytes,15,opt,name=id,proto3" json:"id,omitempty"`
+	// A join approval mode change, which the contract has no case for.
+	MembershipApproval bool `protobuf:"varint,18,opt,name=membership_approval,json=membershipApproval,proto3" json:"membership_approval,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *DeliverGroupNotificationRequest) Reset() {
@@ -5022,6 +5024,13 @@ func (x *DeliverGroupNotificationRequest) GetId() string {
 		return x.Id
 	}
 	return ""
+}
+
+func (x *DeliverGroupNotificationRequest) GetMembershipApproval() bool {
+	if x != nil {
+		return x.MembershipApproval
+	}
+	return false
 }
 
 // DeliverGroupNotificationResponse has no fields.
@@ -7477,7 +7486,7 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"\x06Member\x12\x10\n" +
 	"\x03jid\x18\x01 \x01(\tR\x03jid\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\"\x12\n" +
-	"\x10AddGroupResponse\"\xe2\x03\n" +
+	"\x10AddGroupResponse\"\x93\x04\n" +
 	"\x1fDeliverGroupNotificationRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
@@ -7495,7 +7504,8 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"\apromote\x18\f \x03(\tR\apromote\x12\x16\n" +
 	"\x06demote\x18\r \x03(\tR\x06demote\x12\x1c\n" +
 	"\tephemeral\x18\x0e \x01(\bR\tephemeral\x12\x0e\n" +
-	"\x02id\x18\x0f \x01(\tR\x02idB\a\n" +
+	"\x02id\x18\x0f \x01(\tR\x02id\x12/\n" +
+	"\x13membership_approval\x18\x12 \x01(\bR\x12membershipApprovalB\a\n" +
 	"\x05_nameB\b\n" +
 	"\x06_topicB\v\n" +
 	"\t_announceB\t\n" +
