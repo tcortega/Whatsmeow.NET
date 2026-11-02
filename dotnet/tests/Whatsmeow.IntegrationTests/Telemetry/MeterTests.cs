@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.Metrics.Testing;
@@ -126,6 +127,16 @@ public sealed class MeterTests(FakeSidecar fixture, SidecarBinaries binaries)
 		using var logs = new LogCapture();
 		// Meters of no factory: other tests' own sidecars publish there too, told apart by the session id.
 		using var sent = new UnscopedMeasurements("whatsmeow.messages.sent");
+		var instruments = new ConcurrentQueue<(bool FromAFactory, string Name, string? Unit, string? Description, string Kind)>();
+		using var published = new MeterListener
+		{
+			InstrumentPublished = (instrument, _) =>
+			{
+				if (instrument.Meter.Name == WhatsmeowTelemetry.MeterName && (instrument.Meter.Scope is null || instrument.Meter.Scope == fixture.MeterFactory))
+					instruments.Enqueue((instrument.Meter.Scope is not null, instrument.Name, instrument.Unit, instrument.Description, instrument.GetType().Name));
+			},
+		};
+		published.Start();
 		var options = new WhatsmeowSidecarOptions { SidecarPath = fixture.Binary, DatabasePath = binaries.NewDatabase() };
 
 		await using var sidecar = await WhatsmeowSidecar.StartFakeWhatsAppAsync(options, logs.Factory, ct);
@@ -139,9 +150,49 @@ public sealed class MeterTests(FakeSidecar fixture, SidecarBinaries binaries)
 			await watch.ReachesAsync(new SessionState.Connected(), new SessionState.Connecting());
 		_ = await client.SendTextAsync(Jid.Parse(Peer), "hello", cancellationToken: ct);
 
+		// Every instrument, with its unit, description and kind, is on the own meter as on the factory's.
+		string[] names = ["whatsmeow.messages.sent", "whatsmeow.messages.received", "whatsmeow.handler.duration", "whatsmeow.dispatcher.queue.length", "whatsmeow.errors", "whatsmeow.sidecar.restarts"];
+		var own = instruments.Where(instrument => !instrument.FromAFactory).Select(instrument => (instrument.Name, instrument.Unit, instrument.Description, instrument.Kind)).Distinct().OrderBy(instrument => instrument.Name, StringComparer.Ordinal).ToList();
+		var factory = instruments.Where(instrument => instrument.FromAFactory).Select(instrument => (instrument.Name, instrument.Unit, instrument.Description, instrument.Kind)).Distinct().OrderBy(instrument => instrument.Name, StringComparer.Ordinal).ToList();
+		Assert.Equal(names.Order(StringComparer.Ordinal), factory.Select(instrument => instrument.Name), StringComparer.Ordinal);
+		Assert.Equal(factory, own);
 		var measurement = Assert.Single(sent.Of(Session));
 		Assert.Equal(1L, measurement.Value);
 		Assert.Equal(Tags.Of(("whatsmeow.session.id", Session)), measurement.Tags);
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Errors_AreCountedByErrorCode_ForUnaryClientStreamAndServerStreamCalls()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		// A sidecar and meter of its own: errors carry no session id, so another test's would count here on the shared one.
+		await using var services = new ServiceCollection().AddMetrics().BuildServiceProvider();
+		var meterFactory = services.GetRequiredService<IMeterFactory>();
+		var options = new WhatsmeowSidecarOptions { SidecarPath = fixture.Binary, DatabasePath = binaries.NewDatabase() };
+		await using var sidecar = await WhatsmeowSidecar.StartFakeWhatsAppWithMeterFactoryAsync(options, logs.Factory, meterFactory, ct);
+		var fake = new FakeWhatsAppService.FakeWhatsAppServiceClient(sidecar.CallInvoker);
+		var unpaired = await sidecar.Sessions.GetOrCreateAsync(SessionId.From("telemetry-errors-unpaired"), ct);
+		var offline = await LinkedAsync(sidecar, fake, "telemetry-errors-offline", ct);
+		var connected = await LinkedAsync(sidecar, fake, "telemetry-errors-expired", ct);
+		await connected.ConnectAsync(ct);
+		await using (var watch = StateWatch.Start(connected, ct))
+			await watch.ReachesAsync(new SessionState.Connected(), new SessionState.Connecting());
+		using var three = new MemoryStream([1, 2, 3]);
+		var media = await connected.UploadMediaAsync(three, MediaType.Audio, ct);
+		_ = await fake.ExpireMediaAsync(new ExpireMediaRequest { DirectPath = media.DirectPath, Status = 410 }, cancellationToken: ct);
+		using var errors = new MetricCollector<long>(meterFactory, WhatsmeowTelemetry.MeterName, "whatsmeow.errors");
+
+		// A unary call, a client stream and a server stream, each failing with its own code.
+		_ = await Assert.ThrowsAsync<NotLoggedInException>(() => unpaired.SendTextAsync(Jid.Parse(Peer), "hi", cancellationToken: ct));
+		using var one = new MemoryStream([1]);
+		_ = await Assert.ThrowsAsync<NotConnectedException>(() => offline.UploadMediaAsync(one, MediaType.Image, ct));
+		_ = await Assert.ThrowsAsync<MediaExpiredException>(() => connected.DownloadMediaAsync(media, Stream.Null, ct));
+
+		// Counted before each call returned; no background call fails with these codes.
+		var counted = errors.GetMeasurementSnapshot().Where(measurement => measurement.Tags["error.type"] is "NotLoggedIn" or "NotConnected" or "MediaExpired").ToList();
+		Assert.Equal([1L, 1L, 1L], counted.Select(measurement => measurement.Value));
+		Assert.Equal([Tags.Of(("error.type", "NotLoggedIn")), Tags.Of(("error.type", "NotConnected")), Tags.Of(("error.type", "MediaExpired"))], counted.Select(Tags.Of));
 	}
 
 	[Fact(Timeout = Timeout)]
@@ -162,5 +213,12 @@ public sealed class MeterTests(FakeSidecar fixture, SidecarBinaries binaries)
 		var measurement = Assert.Single(errors.GetMeasurementSnapshot());
 		Assert.Equal(1L, measurement.Value);
 		Assert.Equal(Tags.Of(("error.type", "NotLoggedIn")), Tags.Of(measurement));
+	}
+
+	private static async Task<IWhatsAppClient> LinkedAsync(WhatsmeowSidecar sidecar, FakeWhatsAppService.FakeWhatsAppServiceClient fake, string session, CancellationToken ct)
+	{
+		var client = await sidecar.Sessions.GetOrCreateAsync(SessionId.From(session), ct).ConfigureAwait(false);
+		_ = await fake.LinkDeviceAsync(new LinkDeviceRequest { SessionId = session, Jid = SessionSetup.Jid(session) }, cancellationToken: ct).ConfigureAwait(false);
+		return client;
 	}
 }

@@ -79,7 +79,7 @@ public sealed class FakeSidecar : IAsyncLifetime
 		};
 		_metrics = new ServiceCollection().AddMetrics().BuildServiceProvider();
 		MeterFactory = _metrics.GetRequiredService<IMeterFactory>();
-		Sidecar = await WhatsmeowSidecar.StartFakeWhatsAppAsync(Options, Logs.Factory, MeterFactory, ct).ConfigureAwait(false);
+		Sidecar = await WhatsmeowSidecar.StartFakeWhatsAppWithMeterFactoryAsync(Options, Logs.Factory, MeterFactory, ct).ConfigureAwait(false);
 		Fake = new FakeWhatsAppService.FakeWhatsAppServiceClient(Sidecar.CallInvoker);
 	}
 

@@ -670,6 +670,7 @@ public sealed class HostingTests(FakeSidecar fixture, SidecarBinaries binaries)
 			gate.Open.SetResult();
 		}
 	}
+
 	[Fact(Timeout = Timeout)]
 	public async Task HostWithAMeterFactory_TheSidecarsMeterComesFromIt()
 	{

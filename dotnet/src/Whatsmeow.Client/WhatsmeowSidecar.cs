@@ -122,7 +122,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		StartCoreAsync(options, loggerFactory, meterFactory: null, MinProtocol, MaxProtocol, fakeWhatsApp: true, timeProvider: null, cancellationToken);
 
 	/// <summary>Starts a test build with <c>--fake-whatsapp</c> whose meter comes from <paramref name="meterFactory"/>.</summary>
-	internal static Task<WhatsmeowSidecar> StartFakeWhatsAppAsync(
+	internal static Task<WhatsmeowSidecar> StartFakeWhatsAppWithMeterFactoryAsync(
 		WhatsmeowSidecarOptions options,
 		ILoggerFactory loggerFactory,
 		IMeterFactory meterFactory,
