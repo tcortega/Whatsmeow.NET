@@ -38,18 +38,19 @@ const (
 // A JID is whatsmeow's string form, user[.agent][:device]@server. A user is addressed by phone number
 // (@s.whatsapp.net) or by LID (@lid); some LIDs never resolve to a phone number. A JID argument that does not parse,
 // or that is not a user where a user is required, is INVALID_ARGUMENT (field: the request field at fault).
-// An empty list argument returns an empty list without asking WhatsApp.
+// An empty list argument returns OK with an empty list at once: it neither looks the session up nor asks WhatsApp,
+// so only a malformed session id fails it.
 // The RPCs that ask WhatsApp need the session logged in to WhatsApp right now: they fail at once with NOT_LOGGED_IN,
-// LOGGED_OUT, TEMPORARILY_BANNED or NOT_CONNECTED otherwise, and with RATE_LIMITED or WHATSAPP_ERROR when WhatsApp
-// refuses. ResolveJids and ListContacts read what the session's store learned and need no connection; they fail with
+// LOGGED_OUT, TEMPORARILY_BANNED or NOT_CONNECTED otherwise, with RATE_LIMITED or WHATSAPP_ERROR when WhatsApp
+// refuses, and, those that only read, with WHATSAPP_TIMED_OUT when WhatsApp does not answer in time. ResolveJids and ListContacts read what the session's store learned and need no connection; they fail with
 // NOT_LOGGED_IN or LOGGED_OUT for a session without a device.
-// Every RPC fails with SESSION_NOT_FOUND for an id no session has.
+// Every RPC but one with an empty list fails with SESSION_NOT_FOUND for an id no session has.
 type ContactServiceClient interface {
 	// IsOnWhatsApp checks phone numbers: one result per number, in request order. A number is digits with an optional
 	// leading +; anything else is INVALID_ARGUMENT (field "phone_numbers"). It also teaches the store each LID it
 	// returns, for ResolveJids.
 	// Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, TEMPORARILY_BANNED, NOT_CONNECTED,
-	// RATE_LIMITED, WHATSAPP_ERROR.
+	// RATE_LIMITED, WHATSAPP_ERROR, WHATSAPP_TIMED_OUT.
 	IsOnWhatsApp(ctx context.Context, in *IsOnWhatsAppRequest, opts ...grpc.CallOption) (*IsOnWhatsAppResponse, error)
 	// GetUserInfo reads users' profiles: one entry per user WhatsApp answered for, ordered by JID. It also teaches the
 	// store each user's LID.
@@ -60,7 +61,7 @@ type ContactServiceClient interface {
 	GetProfilePicture(ctx context.Context, in *GetProfilePictureRequest, opts ...grpc.CallOption) (*GetProfilePictureResponse, error)
 	// ResolveJids gives each JID its other address form when the store knows it: one result per JID, in request order.
 	// The store learns a pair from messages that carry both forms, from IsOnWhatsApp, GetUserInfo and the blocklist;
-	// it never asks WhatsApp here. An unknown pair is an empty alt, not an error.
+	// it never asks WhatsApp here. An unknown pair is an empty jid_alt, not an error.
 	// Errors: INVALID_ARGUMENT (field "jids") for a JID that is not a user, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT.
 	ResolveJids(ctx context.Context, in *ResolveJidsRequest, opts ...grpc.CallOption) (*ResolveJidsResponse, error)
 	// ListContacts lists the session's contacts as WhatsApp synced them, ordered by JID. One person can be listed under
@@ -71,8 +72,9 @@ type ContactServiceClient interface {
 	// Errors: as IsOnWhatsApp.
 	GetBlocklist(ctx context.Context, in *GetBlocklistRequest, opts ...grpc.CallOption) (*GetBlocklistResponse, error)
 	// UpdateBlocklist blocks or unblocks a user; the next GetBlocklist reflects it. A phone number without a LID WhatsApp
-	// knows is RECIPIENT_NOT_ON_WHATSAPP. A request that went out with no answer back is OUTCOME_UNKNOWN.
-	// Errors: as IsOnWhatsApp; INVALID_ARGUMENT (field "jid") for a JID that is not a user, INVALID_ARGUMENT (field
+	// knows is RECIPIENT_NOT_ON_WHATSAPP. A request that went out with no answer back is OUTCOME_UNKNOWN, never
+	// WHATSAPP_TIMED_OUT.
+	// Errors: as IsOnWhatsApp but WHATSAPP_TIMED_OUT; INVALID_ARGUMENT (field "jid") for a JID that is not a user, INVALID_ARGUMENT (field
 	// "action") for an unspecified action, RECIPIENT_NOT_ON_WHATSAPP, OUTCOME_UNKNOWN.
 	UpdateBlocklist(ctx context.Context, in *UpdateBlocklistRequest, opts ...grpc.CallOption) (*UpdateBlocklistResponse, error)
 }
@@ -165,18 +167,19 @@ func (c *contactServiceClient) UpdateBlocklist(ctx context.Context, in *UpdateBl
 // A JID is whatsmeow's string form, user[.agent][:device]@server. A user is addressed by phone number
 // (@s.whatsapp.net) or by LID (@lid); some LIDs never resolve to a phone number. A JID argument that does not parse,
 // or that is not a user where a user is required, is INVALID_ARGUMENT (field: the request field at fault).
-// An empty list argument returns an empty list without asking WhatsApp.
+// An empty list argument returns OK with an empty list at once: it neither looks the session up nor asks WhatsApp,
+// so only a malformed session id fails it.
 // The RPCs that ask WhatsApp need the session logged in to WhatsApp right now: they fail at once with NOT_LOGGED_IN,
-// LOGGED_OUT, TEMPORARILY_BANNED or NOT_CONNECTED otherwise, and with RATE_LIMITED or WHATSAPP_ERROR when WhatsApp
-// refuses. ResolveJids and ListContacts read what the session's store learned and need no connection; they fail with
+// LOGGED_OUT, TEMPORARILY_BANNED or NOT_CONNECTED otherwise, with RATE_LIMITED or WHATSAPP_ERROR when WhatsApp
+// refuses, and, those that only read, with WHATSAPP_TIMED_OUT when WhatsApp does not answer in time. ResolveJids and ListContacts read what the session's store learned and need no connection; they fail with
 // NOT_LOGGED_IN or LOGGED_OUT for a session without a device.
-// Every RPC fails with SESSION_NOT_FOUND for an id no session has.
+// Every RPC but one with an empty list fails with SESSION_NOT_FOUND for an id no session has.
 type ContactServiceServer interface {
 	// IsOnWhatsApp checks phone numbers: one result per number, in request order. A number is digits with an optional
 	// leading +; anything else is INVALID_ARGUMENT (field "phone_numbers"). It also teaches the store each LID it
 	// returns, for ResolveJids.
 	// Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, TEMPORARILY_BANNED, NOT_CONNECTED,
-	// RATE_LIMITED, WHATSAPP_ERROR.
+	// RATE_LIMITED, WHATSAPP_ERROR, WHATSAPP_TIMED_OUT.
 	IsOnWhatsApp(context.Context, *IsOnWhatsAppRequest) (*IsOnWhatsAppResponse, error)
 	// GetUserInfo reads users' profiles: one entry per user WhatsApp answered for, ordered by JID. It also teaches the
 	// store each user's LID.
@@ -187,7 +190,7 @@ type ContactServiceServer interface {
 	GetProfilePicture(context.Context, *GetProfilePictureRequest) (*GetProfilePictureResponse, error)
 	// ResolveJids gives each JID its other address form when the store knows it: one result per JID, in request order.
 	// The store learns a pair from messages that carry both forms, from IsOnWhatsApp, GetUserInfo and the blocklist;
-	// it never asks WhatsApp here. An unknown pair is an empty alt, not an error.
+	// it never asks WhatsApp here. An unknown pair is an empty jid_alt, not an error.
 	// Errors: INVALID_ARGUMENT (field "jids") for a JID that is not a user, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT.
 	ResolveJids(context.Context, *ResolveJidsRequest) (*ResolveJidsResponse, error)
 	// ListContacts lists the session's contacts as WhatsApp synced them, ordered by JID. One person can be listed under
@@ -198,8 +201,9 @@ type ContactServiceServer interface {
 	// Errors: as IsOnWhatsApp.
 	GetBlocklist(context.Context, *GetBlocklistRequest) (*GetBlocklistResponse, error)
 	// UpdateBlocklist blocks or unblocks a user; the next GetBlocklist reflects it. A phone number without a LID WhatsApp
-	// knows is RECIPIENT_NOT_ON_WHATSAPP. A request that went out with no answer back is OUTCOME_UNKNOWN.
-	// Errors: as IsOnWhatsApp; INVALID_ARGUMENT (field "jid") for a JID that is not a user, INVALID_ARGUMENT (field
+	// knows is RECIPIENT_NOT_ON_WHATSAPP. A request that went out with no answer back is OUTCOME_UNKNOWN, never
+	// WHATSAPP_TIMED_OUT.
+	// Errors: as IsOnWhatsApp but WHATSAPP_TIMED_OUT; INVALID_ARGUMENT (field "jid") for a JID that is not a user, INVALID_ARGUMENT (field
 	// "action") for an unspecified action, RECIPIENT_NOT_ON_WHATSAPP, OUTCOME_UNKNOWN.
 	UpdateBlocklist(context.Context, *UpdateBlocklistRequest) (*UpdateBlocklistResponse, error)
 	mustEmbedUnimplementedContactServiceServer()

@@ -169,8 +169,12 @@ public interface IWhatsAppClient
 	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
 	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
 	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
-	/// <exception cref="WhatsmeowException">WhatsApp refused, with <see cref="WhatsmeowErrorCode.WhatsAppError"/>.</exception>
+	/// <exception cref="WhatsmeowException">
+	/// WhatsApp refused, with <see cref="WhatsmeowErrorCode.WhatsAppError"/>, or did not answer in time, with
+	/// <see cref="WhatsmeowErrorCode.WhatsAppTimedOut"/>: nothing was done, and the call can be repeated.
+	/// </exception>
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
 	/// <exception cref="ArgumentNullException"><paramref name="phoneNumbers"/> is null.</exception>
 	Task<ImmutableArray<PhoneNumberCheck>> IsOnWhatsAppAsync(IReadOnlyList<string> phoneNumbers, CancellationToken cancellationToken = default);
 
@@ -190,6 +194,7 @@ public interface IWhatsAppClient
 	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
 	/// <exception cref="WhatsmeowException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
 	/// <exception cref="ArgumentNullException"><paramref name="users"/> is null.</exception>
 	Task<ImmutableArray<UserInfo>> GetUserInfoAsync(IReadOnlyList<Jid> users, CancellationToken cancellationToken = default);
 
@@ -208,12 +213,13 @@ public interface IWhatsAppClient
 	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
 	/// <exception cref="WhatsmeowException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
 	Task<ProfilePicture> GetProfilePictureAsync(Jid jid, CancellationToken cancellationToken = default);
 
 	/// <summary>
 	/// Gives each JID its other address form, the LID of a phone-number JID or the phone-number JID of a LID, when the
 	/// session's store knows it: one result per JID, in the order given; an unknown one has a null
-	/// <see cref="ResolvedJid.Alt"/>, and nothing throws for it. Some LIDs never resolve to a phone number. The store
+	/// <see cref="ResolvedJid.JidAlt"/>, and nothing throws for it. Some LIDs never resolve to a phone number. The store
 	/// learns a pair from every message that carries both forms (<see cref="Events.MessageSource.SenderAlt"/>), from
 	/// <see cref="IsOnWhatsAppAsync"/>, <see cref="GetUserInfoAsync"/> and the blocklist; this never asks WhatsApp, so it
 	/// works while the session is disconnected. The store is shared by the sidecar's sessions.
@@ -225,6 +231,7 @@ public interface IWhatsAppClient
 	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
 	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
 	/// <exception cref="ArgumentNullException"><paramref name="jids"/> is null.</exception>
 	Task<ImmutableArray<ResolvedJid>> ResolveJidsAsync(IReadOnlyList<Jid> jids, CancellationToken cancellationToken = default);
 
@@ -237,6 +244,7 @@ public interface IWhatsAppClient
 	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
 	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
 	Task<ImmutableArray<Contact>> GetContactsAsync(CancellationToken cancellationToken = default);
 
 	/// <summary>Lists the users the account blocked, as WhatsApp has them now.</summary>
@@ -248,10 +256,11 @@ public interface IWhatsAppClient
 	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
 	/// <exception cref="WhatsmeowException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
 	Task<ImmutableArray<BlockedUser>> GetBlocklistAsync(CancellationToken cancellationToken = default);
 
 	/// <summary>Blocks a user; the next <see cref="GetBlocklistAsync"/> lists them.</summary>
-	/// <param name="user">The user, by phone-number JID or LID.</param>
+	/// <param name="user">The user, by phone-number JID or LID; a device in it is ignored.</param>
 	/// <param name="cancellationToken">Cancels the call.</param>
 	/// <exception cref="WhatsmeowValidationException">The JID is not a user.</exception>
 	/// <exception cref="RecipientNotFoundException">The phone number is not on WhatsApp.</exception>
@@ -262,12 +271,13 @@ public interface IWhatsAppClient
 	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
 	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
 	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
-	/// <exception cref="WhatsmeowException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="WhatsmeowException">WhatsApp refused, with <see cref="WhatsmeowErrorCode.WhatsAppError"/>.</exception>
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
 	Task BlockAsync(Jid user, CancellationToken cancellationToken = default);
 
 	/// <summary>Unblocks a user; the next <see cref="GetBlocklistAsync"/> no longer lists them.</summary>
-	/// <param name="user">The user, by phone-number JID or LID.</param>
+	/// <param name="user">The user, by phone-number JID or LID; a device in it is ignored.</param>
 	/// <param name="cancellationToken">Cancels the call.</param>
 	/// <exception cref="WhatsmeowValidationException">The JID is not a user.</exception>
 	/// <exception cref="RecipientNotFoundException">The phone number is not on WhatsApp.</exception>
@@ -278,7 +288,8 @@ public interface IWhatsAppClient
 	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
 	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
 	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
-	/// <exception cref="WhatsmeowException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="WhatsmeowException">WhatsApp refused, with <see cref="WhatsmeowErrorCode.WhatsAppError"/>.</exception>
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
 	Task UnblockAsync(Jid user, CancellationToken cancellationToken = default);
 }

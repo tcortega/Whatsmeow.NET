@@ -49,54 +49,54 @@ namespace Whatsmeow.Protocol.V1 {
             "GgYKBE5vbmUaCAoGSGlkZGVuQggKBnJlc3VsdCJHChJSZXNvbHZlSmlkc1Jl",
             "cXVlc3QSHQoKc2Vzc2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkEhIKBGppZHMY",
             "AiADKAlSBGppZHMiSgoTUmVzb2x2ZUppZHNSZXNwb25zZRIzCgdyZXN1bHRz",
-            "GAEgAygLMhkud2hhdHNtZW93LnYxLlJlc29sdmVkSmlkUgdyZXN1bHRzIjEK",
-            "C1Jlc29sdmVkSmlkEhAKA2ppZBgBIAEoCVIDamlkEhAKA2FsdBgCIAEoCVID",
-            "YWx0IjQKE0xpc3RDb250YWN0c1JlcXVlc3QSHQoKc2Vzc2lvbl9pZBgBIAEo",
-            "CVIJc2Vzc2lvbklkIkkKFExpc3RDb250YWN0c1Jlc3BvbnNlEjEKCGNvbnRh",
-            "Y3RzGAEgAygLMhUud2hhdHNtZW93LnYxLkNvbnRhY3RSCGNvbnRhY3RzInwK",
-            "B0NvbnRhY3QSEAoDamlkGAEgASgJUgNqaWQSHQoKc2F2ZWRfbmFtZRgCIAEo",
-            "CVIJc2F2ZWROYW1lEhsKCXB1c2hfbmFtZRgDIAEoCVIIcHVzaE5hbWUSIwoN",
-            "YnVzaW5lc3NfbmFtZRgEIAEoCVIMYnVzaW5lc3NOYW1lIjQKE0dldEJsb2Nr",
-            "bGlzdFJlcXVlc3QSHQoKc2Vzc2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkIkcK",
-            "FEdldEJsb2NrbGlzdFJlc3BvbnNlEi8KBXVzZXJzGAEgAygLMhkud2hhdHNt",
-            "ZW93LnYxLkJsb2NrZWRVc2VyUgV1c2VycyI4CgtCbG9ja2VkVXNlchIQCgNq",
-            "aWQYASABKAlSA2ppZBIXCgdqaWRfYWx0GAIgASgJUgZqaWRBbHQigAEKFlVw",
-            "ZGF0ZUJsb2NrbGlzdFJlcXVlc3QSHQoKc2Vzc2lvbl9pZBgBIAEoCVIJc2Vz",
-            "c2lvbklkEhAKA2ppZBgCIAEoCVIDamlkEjUKBmFjdGlvbhgDIAEoDjIdLndo",
-            "YXRzbWVvdy52MS5CbG9ja2xpc3RBY3Rpb25SBmFjdGlvbiIZChdVcGRhdGVC",
-            "bG9ja2xpc3RSZXNwb25zZSLNAwoMQ29udGFjdEV2ZW50EhAKA2ppZBgBIAEo",
-            "CVIDamlkEhcKB2ppZF9hbHQYAiABKAlSBmppZEFsdBJCCglwdXNoX25hbWUY",
-            "AyABKAsyIy53aGF0c21lb3cudjEuQ29udGFjdEV2ZW50LlB1c2hOYW1lSABS",
-            "CHB1c2hOYW1lEk4KDWJ1c2luZXNzX25hbWUYBCABKAsyJy53aGF0c21lb3cu",
-            "djEuQ29udGFjdEV2ZW50LkJ1c2luZXNzTmFtZUgAUgxidXNpbmVzc05hbWUS",
-            "PgoHcGljdHVyZRgFIAEoCzIiLndoYXRzbWVvdy52MS5Db250YWN0RXZlbnQu",
-            "UGljdHVyZUgAUgdwaWN0dXJlEjgKBWFib3V0GAYgASgLMiAud2hhdHNtZW93",
-            "LnYxLkNvbnRhY3RFdmVudC5BYm91dEgAUgVhYm91dBoeCghQdXNoTmFtZRIS",
-            "CgRuYW1lGAEgASgJUgRuYW1lGiIKDEJ1c2luZXNzTmFtZRISCgRuYW1lGAEg",
-            "ASgJUgRuYW1lGhkKB1BpY3R1cmUSDgoCaWQYASABKAlSAmlkGhsKBUFib3V0",
-            "EhIKBHRleHQYASABKAlSBHRleHRCCAoGY2hhbmdlKm0KD0Jsb2NrbGlzdEFj",
-            "dGlvbhIgChxCTE9DS0xJU1RfQUNUSU9OX1VOU1BFQ0lGSUVEEAASGgoWQkxP",
-            "Q0tMSVNUX0FDVElPTl9CTE9DSxABEhwKGEJMT0NLTElTVF9BQ1RJT05fVU5C",
-            "TE9DSxACMoMFCg5Db250YWN0U2VydmljZRJVCgxJc09uV2hhdHNBcHASIS53",
-            "aGF0c21lb3cudjEuSXNPbldoYXRzQXBwUmVxdWVzdBoiLndoYXRzbWVvdy52",
-            "MS5Jc09uV2hhdHNBcHBSZXNwb25zZRJSCgtHZXRVc2VySW5mbxIgLndoYXRz",
-            "bWVvdy52MS5HZXRVc2VySW5mb1JlcXVlc3QaIS53aGF0c21lb3cudjEuR2V0",
-            "VXNlckluZm9SZXNwb25zZRJkChFHZXRQcm9maWxlUGljdHVyZRImLndoYXRz",
-            "bWVvdy52MS5HZXRQcm9maWxlUGljdHVyZVJlcXVlc3QaJy53aGF0c21lb3cu",
-            "djEuR2V0UHJvZmlsZVBpY3R1cmVSZXNwb25zZRJSCgtSZXNvbHZlSmlkcxIg",
-            "LndoYXRzbWVvdy52MS5SZXNvbHZlSmlkc1JlcXVlc3QaIS53aGF0c21lb3cu",
-            "djEuUmVzb2x2ZUppZHNSZXNwb25zZRJVCgxMaXN0Q29udGFjdHMSIS53aGF0",
-            "c21lb3cudjEuTGlzdENvbnRhY3RzUmVxdWVzdBoiLndoYXRzbWVvdy52MS5M",
-            "aXN0Q29udGFjdHNSZXNwb25zZRJVCgxHZXRCbG9ja2xpc3QSIS53aGF0c21l",
-            "b3cudjEuR2V0QmxvY2tsaXN0UmVxdWVzdBoiLndoYXRzbWVvdy52MS5HZXRC",
-            "bG9ja2xpc3RSZXNwb25zZRJeCg9VcGRhdGVCbG9ja2xpc3QSJC53aGF0c21l",
-            "b3cudjEuVXBkYXRlQmxvY2tsaXN0UmVxdWVzdBolLndoYXRzbWVvdy52MS5V",
-            "cGRhdGVCbG9ja2xpc3RSZXNwb25zZULCAQoQY29tLndoYXRzbWVvdy52MUIM",
-            "Q29udGFjdFByb3RvUAFaRmdpdGh1Yi5jb20vdGNvcnRlZ2EvV2hhdHNtZW93",
-            "Lk5FVC9zaWRlY2FyL2dlbi93aGF0c21lb3cvdjE7d2hhdHNtZW93djGiAgNX",
-            "WFiqAhVXaGF0c21lb3cuUHJvdG9jb2wuVjHKAgxXaGF0c21lb3dcVjHiAhhX",
-            "aGF0c21lb3dcVjFcR1BCTWV0YWRhdGHqAg1XaGF0c21lb3c6OlYxYgZwcm90",
-            "bzM="));
+            "GAEgAygLMhkud2hhdHNtZW93LnYxLlJlc29sdmVkSmlkUgdyZXN1bHRzIjgK",
+            "C1Jlc29sdmVkSmlkEhAKA2ppZBgBIAEoCVIDamlkEhcKB2ppZF9hbHQYAiAB",
+            "KAlSBmppZEFsdCI0ChNMaXN0Q29udGFjdHNSZXF1ZXN0Eh0KCnNlc3Npb25f",
+            "aWQYASABKAlSCXNlc3Npb25JZCJJChRMaXN0Q29udGFjdHNSZXNwb25zZRIx",
+            "Cghjb250YWN0cxgBIAMoCzIVLndoYXRzbWVvdy52MS5Db250YWN0Ughjb250",
+            "YWN0cyJ8CgdDb250YWN0EhAKA2ppZBgBIAEoCVIDamlkEh0KCnNhdmVkX25h",
+            "bWUYAiABKAlSCXNhdmVkTmFtZRIbCglwdXNoX25hbWUYAyABKAlSCHB1c2hO",
+            "YW1lEiMKDWJ1c2luZXNzX25hbWUYBCABKAlSDGJ1c2luZXNzTmFtZSI0ChNH",
+            "ZXRCbG9ja2xpc3RSZXF1ZXN0Eh0KCnNlc3Npb25faWQYASABKAlSCXNlc3Np",
+            "b25JZCJHChRHZXRCbG9ja2xpc3RSZXNwb25zZRIvCgV1c2VycxgBIAMoCzIZ",
+            "LndoYXRzbWVvdy52MS5CbG9ja2VkVXNlclIFdXNlcnMiOAoLQmxvY2tlZFVz",
+            "ZXISEAoDamlkGAEgASgJUgNqaWQSFwoHamlkX2FsdBgCIAEoCVIGamlkQWx0",
+            "IoABChZVcGRhdGVCbG9ja2xpc3RSZXF1ZXN0Eh0KCnNlc3Npb25faWQYASAB",
+            "KAlSCXNlc3Npb25JZBIQCgNqaWQYAiABKAlSA2ppZBI1CgZhY3Rpb24YAyAB",
+            "KA4yHS53aGF0c21lb3cudjEuQmxvY2tsaXN0QWN0aW9uUgZhY3Rpb24iGQoX",
+            "VXBkYXRlQmxvY2tsaXN0UmVzcG9uc2UizQMKDENvbnRhY3RFdmVudBIQCgNq",
+            "aWQYASABKAlSA2ppZBIXCgdqaWRfYWx0GAIgASgJUgZqaWRBbHQSQgoJcHVz",
+            "aF9uYW1lGAMgASgLMiMud2hhdHNtZW93LnYxLkNvbnRhY3RFdmVudC5QdXNo",
+            "TmFtZUgAUghwdXNoTmFtZRJOCg1idXNpbmVzc19uYW1lGAQgASgLMicud2hh",
+            "dHNtZW93LnYxLkNvbnRhY3RFdmVudC5CdXNpbmVzc05hbWVIAFIMYnVzaW5l",
+            "c3NOYW1lEj4KB3BpY3R1cmUYBSABKAsyIi53aGF0c21lb3cudjEuQ29udGFj",
+            "dEV2ZW50LlBpY3R1cmVIAFIHcGljdHVyZRI4CgVhYm91dBgGIAEoCzIgLndo",
+            "YXRzbWVvdy52MS5Db250YWN0RXZlbnQuQWJvdXRIAFIFYWJvdXQaHgoIUHVz",
+            "aE5hbWUSEgoEbmFtZRgBIAEoCVIEbmFtZRoiCgxCdXNpbmVzc05hbWUSEgoE",
+            "bmFtZRgBIAEoCVIEbmFtZRoZCgdQaWN0dXJlEg4KAmlkGAEgASgJUgJpZBob",
+            "CgVBYm91dBISCgR0ZXh0GAEgASgJUgR0ZXh0QggKBmNoYW5nZSptCg9CbG9j",
+            "a2xpc3RBY3Rpb24SIAocQkxPQ0tMSVNUX0FDVElPTl9VTlNQRUNJRklFRBAA",
+            "EhoKFkJMT0NLTElTVF9BQ1RJT05fQkxPQ0sQARIcChhCTE9DS0xJU1RfQUNU",
+            "SU9OX1VOQkxPQ0sQAjKDBQoOQ29udGFjdFNlcnZpY2USVQoMSXNPbldoYXRz",
+            "QXBwEiEud2hhdHNtZW93LnYxLklzT25XaGF0c0FwcFJlcXVlc3QaIi53aGF0",
+            "c21lb3cudjEuSXNPbldoYXRzQXBwUmVzcG9uc2USUgoLR2V0VXNlckluZm8S",
+            "IC53aGF0c21lb3cudjEuR2V0VXNlckluZm9SZXF1ZXN0GiEud2hhdHNtZW93",
+            "LnYxLkdldFVzZXJJbmZvUmVzcG9uc2USZAoRR2V0UHJvZmlsZVBpY3R1cmUS",
+            "Ji53aGF0c21lb3cudjEuR2V0UHJvZmlsZVBpY3R1cmVSZXF1ZXN0Gicud2hh",
+            "dHNtZW93LnYxLkdldFByb2ZpbGVQaWN0dXJlUmVzcG9uc2USUgoLUmVzb2x2",
+            "ZUppZHMSIC53aGF0c21lb3cudjEuUmVzb2x2ZUppZHNSZXF1ZXN0GiEud2hh",
+            "dHNtZW93LnYxLlJlc29sdmVKaWRzUmVzcG9uc2USVQoMTGlzdENvbnRhY3Rz",
+            "EiEud2hhdHNtZW93LnYxLkxpc3RDb250YWN0c1JlcXVlc3QaIi53aGF0c21l",
+            "b3cudjEuTGlzdENvbnRhY3RzUmVzcG9uc2USVQoMR2V0QmxvY2tsaXN0EiEu",
+            "d2hhdHNtZW93LnYxLkdldEJsb2NrbGlzdFJlcXVlc3QaIi53aGF0c21lb3cu",
+            "djEuR2V0QmxvY2tsaXN0UmVzcG9uc2USXgoPVXBkYXRlQmxvY2tsaXN0EiQu",
+            "d2hhdHNtZW93LnYxLlVwZGF0ZUJsb2NrbGlzdFJlcXVlc3QaJS53aGF0c21l",
+            "b3cudjEuVXBkYXRlQmxvY2tsaXN0UmVzcG9uc2VCwgEKEGNvbS53aGF0c21l",
+            "b3cudjFCDENvbnRhY3RQcm90b1ABWkZnaXRodWIuY29tL3Rjb3J0ZWdhL1do",
+            "YXRzbWVvdy5ORVQvc2lkZWNhci9nZW4vd2hhdHNtZW93L3YxO3doYXRzbWVv",
+            "d3YxogIDV1hYqgIVV2hhdHNtZW93LlByb3RvY29sLlYxygIMV2hhdHNtZW93",
+            "XFYx4gIYV2hhdHNtZW93XFYxXEdQQk1ldGFkYXRh6gINV2hhdHNtZW93OjpW",
+            "MWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Whatsmeow.Protocol.V1.BlocklistAction), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -112,7 +112,7 @@ namespace Whatsmeow.Protocol.V1 {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.GetProfilePictureResponse.Types.Hidden), global::Whatsmeow.Protocol.V1.GetProfilePictureResponse.Types.Hidden.Parser, null, null, null, null, null)}),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.ResolveJidsRequest), global::Whatsmeow.Protocol.V1.ResolveJidsRequest.Parser, new[]{ "SessionId", "Jids" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.ResolveJidsResponse), global::Whatsmeow.Protocol.V1.ResolveJidsResponse.Parser, new[]{ "Results" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.ResolvedJid), global::Whatsmeow.Protocol.V1.ResolvedJid.Parser, new[]{ "Jid", "Alt" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.ResolvedJid), global::Whatsmeow.Protocol.V1.ResolvedJid.Parser, new[]{ "Jid", "JidAlt" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.ListContactsRequest), global::Whatsmeow.Protocol.V1.ListContactsRequest.Parser, new[]{ "SessionId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.ListContactsResponse), global::Whatsmeow.Protocol.V1.ListContactsResponse.Parser, new[]{ "Contacts" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.Contact), global::Whatsmeow.Protocol.V1.Contact.Parser, new[]{ "Jid", "SavedName", "PushName", "BusinessName" }, null, null, null, null),
@@ -3300,7 +3300,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ResolvedJid(ResolvedJid other) : this() {
       jid_ = other.jid_;
-      alt_ = other.alt_;
+      jidAlt_ = other.jidAlt_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -3325,18 +3325,18 @@ namespace Whatsmeow.Protocol.V1 {
       }
     }
 
-    /// <summary>Field number for the "alt" field.</summary>
-    public const int AltFieldNumber = 2;
-    private string alt_ = "";
+    /// <summary>Field number for the "jid_alt" field.</summary>
+    public const int JidAltFieldNumber = 2;
+    private string jidAlt_ = "";
     /// <summary>
     /// The other form, with the same device; empty when the store does not know it.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string Alt {
-      get { return alt_; }
+    public string JidAlt {
+      get { return jidAlt_; }
       set {
-        alt_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        jidAlt_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
@@ -3356,7 +3356,7 @@ namespace Whatsmeow.Protocol.V1 {
         return true;
       }
       if (Jid != other.Jid) return false;
-      if (Alt != other.Alt) return false;
+      if (JidAlt != other.JidAlt) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -3365,7 +3365,7 @@ namespace Whatsmeow.Protocol.V1 {
     public override int GetHashCode() {
       int hash = 1;
       if (Jid.Length != 0) hash ^= Jid.GetHashCode();
-      if (Alt.Length != 0) hash ^= Alt.GetHashCode();
+      if (JidAlt.Length != 0) hash ^= JidAlt.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -3388,9 +3388,9 @@ namespace Whatsmeow.Protocol.V1 {
         output.WriteRawTag(10);
         output.WriteString(Jid);
       }
-      if (Alt.Length != 0) {
+      if (JidAlt.Length != 0) {
         output.WriteRawTag(18);
-        output.WriteString(Alt);
+        output.WriteString(JidAlt);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -3406,9 +3406,9 @@ namespace Whatsmeow.Protocol.V1 {
         output.WriteRawTag(10);
         output.WriteString(Jid);
       }
-      if (Alt.Length != 0) {
+      if (JidAlt.Length != 0) {
         output.WriteRawTag(18);
-        output.WriteString(Alt);
+        output.WriteString(JidAlt);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
@@ -3423,8 +3423,8 @@ namespace Whatsmeow.Protocol.V1 {
       if (Jid.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Jid);
       }
-      if (Alt.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Alt);
+      if (JidAlt.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(JidAlt);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -3441,8 +3441,8 @@ namespace Whatsmeow.Protocol.V1 {
       if (other.Jid.Length != 0) {
         Jid = other.Jid;
       }
-      if (other.Alt.Length != 0) {
-        Alt = other.Alt;
+      if (other.JidAlt.Length != 0) {
+        JidAlt = other.JidAlt;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -3468,7 +3468,7 @@ namespace Whatsmeow.Protocol.V1 {
             break;
           }
           case 18: {
-            Alt = input.ReadString();
+            JidAlt = input.ReadString();
             break;
           }
         }
@@ -3495,7 +3495,7 @@ namespace Whatsmeow.Protocol.V1 {
             break;
           }
           case 18: {
-            Alt = input.ReadString();
+            JidAlt = input.ReadString();
             break;
           }
         }
@@ -4936,7 +4936,7 @@ namespace Whatsmeow.Protocol.V1 {
     public const int JidFieldNumber = 2;
     private string jid_ = "";
     /// <summary>
-    /// The user, by phone number or LID.
+    /// The user, by phone number or LID; a device in it is ignored.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]

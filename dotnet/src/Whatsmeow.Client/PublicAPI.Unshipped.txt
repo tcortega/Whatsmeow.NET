@@ -168,8 +168,8 @@ static Whatsmeow.Contacts.ProfilePicture.operator !=(Whatsmeow.Contacts.ProfileP
 static Whatsmeow.Contacts.ProfilePicture.operator ==(Whatsmeow.Contacts.ProfilePicture? left, Whatsmeow.Contacts.ProfilePicture? right) -> bool
 Whatsmeow.Contacts.ResolvedJid
 Whatsmeow.Contacts.ResolvedJid.<Clone>$() -> Whatsmeow.Contacts.ResolvedJid!
-Whatsmeow.Contacts.ResolvedJid.Alt.get -> Whatsmeow.Jid?
-Whatsmeow.Contacts.ResolvedJid.Alt.init -> void
+Whatsmeow.Contacts.ResolvedJid.JidAlt.get -> Whatsmeow.Jid?
+Whatsmeow.Contacts.ResolvedJid.JidAlt.init -> void
 Whatsmeow.Contacts.ResolvedJid.Equals(Whatsmeow.Contacts.ResolvedJid? other) -> bool
 override Whatsmeow.Contacts.ResolvedJid.Equals(object? obj) -> bool
 override Whatsmeow.Contacts.ResolvedJid.GetHashCode() -> int
@@ -687,6 +687,7 @@ Whatsmeow.WhatsmeowErrorCode.TemporarilyBanned = 14 -> Whatsmeow.WhatsmeowErrorC
 Whatsmeow.WhatsmeowErrorCode.Unauthenticated = 3 -> Whatsmeow.WhatsmeowErrorCode
 Whatsmeow.WhatsmeowErrorCode.Unknown = 0 -> Whatsmeow.WhatsmeowErrorCode
 Whatsmeow.WhatsmeowErrorCode.WhatsAppError = 19 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.WhatsAppTimedOut = 20 -> Whatsmeow.WhatsmeowErrorCode
 Whatsmeow.WhatsmeowException
 Whatsmeow.WhatsmeowException.ErrorCode.get -> Whatsmeow.WhatsmeowErrorCode
 Whatsmeow.WhatsmeowException.WhatsmeowException() -> void

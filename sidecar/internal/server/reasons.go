@@ -30,6 +30,9 @@ var (
 	ErrConsumerReplaced  = errors.New("a newer stream for the same consumer replaced this one")
 	// ErrRecipientNotOnWhatsApp is a user WhatsApp does not know: nothing was done.
 	ErrRecipientNotOnWhatsApp = errors.New("the recipient is not on WhatsApp")
+	// ErrWhatsAppTimedOut is a read WhatsApp did not answer in time: nothing was done. Never for a write, which is
+	// ErrOutcomeUnknown.
+	ErrWhatsAppTimedOut = errors.New("WhatsApp did not answer in time")
 )
 
 // reasons is each error's gRPC code and reason, as error.proto lists them.
@@ -54,6 +57,7 @@ var reasons = []struct { //nolint:gochecknoglobals // a read-only table, the one
 	{ErrRateLimited, codes.ResourceExhausted, whatsmeowv1.ErrorReason_ERROR_REASON_RATE_LIMITED},
 	{ErrConsumerReplaced, codes.Aborted, whatsmeowv1.ErrorReason_ERROR_REASON_CONSUMER_REPLACED},
 	{ErrRecipientNotOnWhatsApp, codes.NotFound, whatsmeowv1.ErrorReason_ERROR_REASON_RECIPIENT_NOT_ON_WHATSAPP},
+	{ErrWhatsAppTimedOut, codes.Unavailable, whatsmeowv1.ErrorReason_ERROR_REASON_WHATSAPP_TIMED_OUT},
 }
 
 // metadataError adds one ErrorInfo metadata entry to the error it wraps.

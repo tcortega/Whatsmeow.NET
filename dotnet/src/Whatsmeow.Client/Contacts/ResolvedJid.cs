@@ -10,5 +10,5 @@ public sealed record ResolvedJid
 	/// The other form, the LID of a phone-number JID or the phone-number JID of a LID, with the same device; null when
 	/// it is not known. Some LIDs never resolve to a phone number.
 	/// </summary>
-	public required Jid? Alt { get; init; }
+	public required Jid? JidAlt { get; init; }
 }

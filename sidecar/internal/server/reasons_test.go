@@ -34,6 +34,7 @@ func TestEachReasonErrorBecomesItsStatus(t *testing.T) {
 		},
 		{ErrOutcomeUnknown, codes.Unknown, "OUTCOME_UNKNOWN", nil},
 		{WithMetadata(ErrWhatsAppError, "code", "500"), codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "500"}},
+		{fmt.Errorf("get the blocklist: %w", ErrWhatsAppTimedOut), codes.Unavailable, "WHATSAPP_TIMED_OUT", nil},
 		{errors.New("a bug"), codes.Internal, "INTERNAL", nil},
 	}
 

@@ -11,7 +11,7 @@ import (
 )
 
 // Online returns the client of a session that is logged in to WhatsApp right now (Connected or CaughtUp), for another
-// slice's call to WhatsApp, and a channel closed once the session leaves those states. A call never waits for a
+// slice's call to WhatsApp, and a channel closed once the session leaves those states or is deleted. A call never waits for a
 // connection (ARCHITECTURE §7.5): a session in any other state fails at once with its reason, NOT_LOGGED_IN,
 // LOGGED_OUT, TEMPORARILY_BANNED (with its end when known) or NOT_CONNECTED.
 func (svc *Service) Online(id string) (Client, <-chan struct{}, error) {

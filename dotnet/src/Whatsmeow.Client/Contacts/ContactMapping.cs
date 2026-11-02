@@ -30,8 +30,13 @@ internal static class ContactMapping
 			}),
 		];
 
-	public static ProfilePicture ToPicture(GetProfilePictureResponse response) =>
-		response.ResultCase switch
+	/// <exception cref="WhatsmeowValidationException">
+	/// The result is unset or one this client does not know: the sidecar always sets one it knows, so the response is
+	/// unusable, as a malformed JID in one is.
+	/// </exception>
+	public static ProfilePicture ToPicture(GetProfilePictureResponse response)
+	{
+		ProfilePicture? picture = response.ResultCase switch
 		{
 			PictureResult.Picture => new ProfilePicture.Set
 			{
@@ -39,12 +44,18 @@ internal static class ContactMapping
 				Id = response.Picture.Id,
 			},
 			PictureResult.Hidden => new ProfilePicture.Hidden(),
-			PictureResult.None or PictureResult.None_ => new ProfilePicture.None(),
-			_ => new ProfilePicture.None(),
+			PictureResult.None_ => new ProfilePicture.None(),
+			PictureResult.None => null,
+			_ => null,
 		};
 
+		if (picture is null)
+			WhatsmeowValidationException.ThrowInvalid($"The sidecar sent a profile picture result this client does not know: {response.ResultCase}.");
+		return picture;
+	}
+
 	public static ImmutableArray<ResolvedJid> ToResolved(ResolveJidsResponse response) =>
-		[.. response.Results.Select(result => new ResolvedJid { Jid = Jid.Parse(result.Jid), Alt = ToJid(result.Alt) })];
+		[.. response.Results.Select(result => new ResolvedJid { Jid = Jid.Parse(result.Jid), JidAlt = ToJid(result.JidAlt) })];
 
 	public static ImmutableArray<Contact> ToContacts(ListContactsResponse response) =>
 		[

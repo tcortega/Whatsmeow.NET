@@ -35,7 +35,7 @@ public sealed class ContactTests(FakeSidecar fixture)
 
 		// The check taught the store the pair.
 		Assert.Equal(
-			[new ResolvedJid { Jid = Pn("5511910000001"), Alt = Lid("910000001") }],
+			[new ResolvedJid { Jid = Pn("5511910000001"), JidAlt = Lid("910000001") }],
 			await client.ResolveJidsAsync([Pn("5511910000001")], ct)
 		);
 	}
@@ -72,9 +72,9 @@ public sealed class ContactTests(FakeSidecar fixture)
 
 		Assert.Equal(
 			[
-				new ResolvedJid { Jid = Lid("920000001"), Alt = Pn("5511920000001") },
-				new ResolvedJid { Jid = Pn("5511920000001"), Alt = Lid("920000001") },
-				new ResolvedJid { Jid = Lid("920000999"), Alt = null },
+				new ResolvedJid { Jid = Lid("920000001"), JidAlt = Pn("5511920000001") },
+				new ResolvedJid { Jid = Pn("5511920000001"), JidAlt = Lid("920000001") },
+				new ResolvedJid { Jid = Lid("920000999"), JidAlt = null },
 			],
 			resolved
 		);
@@ -250,6 +250,38 @@ public sealed class ContactTests(FakeSidecar fixture)
 
 		var thrown = await Assert.ThrowsAsync<RecipientNotFoundException>(() => client.BlockAsync(Pn("5511970000009"), ct));
 		Assert.Equal(WhatsmeowErrorCode.RecipientNotOnWhatsApp, thrown.ErrorCode);
+		Assert.Empty(await client.GetBlocklistAsync(ct));
+
+		// whatsmeow's error names the number (user.go:1043); none of it reaches the exception, its cause included.
+		Assert.DoesNotContain("970000009", thrown.ToString(), StringComparison.Ordinal);
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Block_RateLimitedWhileLookingUpTheLid_ThrowsRateLimitedWithoutTheNumber()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var client = await SessionSetup.ConnectedAsync(fixture, "contacts-block-ratelimit", ct);
+		_ = await fixture.Fake.RegisterUserAsync(new RegisterUserRequest { PhoneJid = "5511970000001@s.whatsapp.net", Lid = "970000001@lid" }, cancellationToken: ct);
+		_ = await fixture.Fake.FailNextContactQueryAsync(new FailNextContactQueryRequest { SessionId = "contacts-block-ratelimit", Code = 429 }, cancellationToken: ct);
+
+		// The store has no LID for the number yet, so blocking looks it up first, and that lookup is refused (user.go:1037-1040).
+		var thrown = await Assert.ThrowsAsync<RateLimitedException>(() => client.BlockAsync(Pn("5511970000001"), ct));
+		Assert.Equal(WhatsmeowErrorCode.RateLimited, thrown.ErrorCode);
+		Assert.DoesNotContain("970000001", thrown.ToString(), StringComparison.Ordinal);
+		Assert.Empty(await client.GetBlocklistAsync(ct));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Block_ADeviceJid_BlocksTheUser()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var client = await SessionSetup.ConnectedAsync(fixture, "contacts-block-device", ct);
+		_ = await fixture.Fake.RegisterUserAsync(new RegisterUserRequest { PhoneJid = "5511960000002@s.whatsapp.net", Lid = "960000002@lid" }, cancellationToken: ct);
+
+		await client.BlockAsync(Pn("5511960000002") with { Device = 3 }, ct);
+		Assert.Equal([new BlockedUser { Jid = Lid("960000002"), JidAlt = Pn("5511960000002") }], await client.GetBlocklistAsync(ct));
+
+		await client.UnblockAsync(Lid("960000002") with { Device = 3 }, ct);
 		Assert.Empty(await client.GetBlocklistAsync(ct));
 	}
 

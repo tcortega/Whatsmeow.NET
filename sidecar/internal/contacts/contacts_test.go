@@ -1,16 +1,20 @@
 package contacts
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow"
+	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waAdv"
 	"go.mau.fi/whatsmeow/proto/waVnameCert"
 	"go.mau.fi/whatsmeow/store"
@@ -142,6 +146,13 @@ type harness struct {
 func start(t *testing.T) *harness {
 	t.Helper()
 
+	return startLogging(t, zerolog.Nop())
+}
+
+// startLogging is start with the server logging to log.
+func startLogging(t *testing.T, log zerolog.Logger) *harness {
+	t.Helper()
+
 	db, err := sidecarstore.Open(context.Background(), filepath.Join(t.TempDir(), "whatsmeow-net.db"), zerolog.Nop())
 	if err != nil {
 		t.Fatalf("open the store: %v", err)
@@ -162,7 +173,7 @@ func start(t *testing.T) *harness {
 	h := &harness{t: t, stub: &stub{}, device: device}
 	h.sessions = &sessions{client: h.stub, device: device}
 
-	srv := server.New(token, zerolog.Nop())
+	srv := server.New(token, log)
 	whatsmeowv1.RegisterContactServiceServer(srv, New(h.sessions))
 
 	lis := bufconn.Listen(1 << 20)
@@ -432,9 +443,9 @@ func TestResolveJidsGivesEachItsOtherFormFromTheStoreOrUnknown(t *testing.T) {
 	}
 
 	wantProto(t, resp, &whatsmeowv1.ResolveJidsResponse{Results: []*whatsmeowv1.ResolvedJid{
-		{Jid: "111@lid", Alt: "5511900000001@s.whatsapp.net"},
-		{Jid: "5511900000001@s.whatsapp.net", Alt: "111@lid"},
-		{Jid: "111:3@lid", Alt: "5511900000001:3@s.whatsapp.net"},
+		{Jid: "111@lid", JidAlt: "5511900000001@s.whatsapp.net"},
+		{Jid: "5511900000001@s.whatsapp.net", JidAlt: "111@lid"},
+		{Jid: "111:3@lid", JidAlt: "5511900000001:3@s.whatsapp.net"},
 		{Jid: "999@lid"},
 		{Jid: "5511900000009@s.whatsapp.net"},
 	}})
@@ -537,7 +548,11 @@ func TestBlocklistReadsAndUpdates(t *testing.T) {
 func TestWhatsAppsErrorsBecomeTheirReasons(t *testing.T) {
 	t.Parallel()
 
-	disconnected := &whatsmeow.DisconnectedError{Action: "info query"}
+	// whatsmeow puts the JID in its errors (user.go:1034, 1039, 1043, 1052) and in an IQ error's node (errors.go:216-226).
+	const pn = "5511900000001@s.whatsapp.net"
+
+	node := &waBinary.Node{Tag: "iq", Attrs: waBinary.Attrs{"from": jid(pn)}}
+	disconnected := &whatsmeow.DisconnectedError{Action: "info query", Node: node}
 
 	for _, tc := range []struct {
 		name     string
@@ -547,16 +562,19 @@ func TestWhatsAppsErrorsBecomeTheirReasons(t *testing.T) {
 		reason   string
 		metadata map[string]string
 	}{
-		{"rate limited", whatsmeow.ErrIQRateOverLimit, false, codes.ResourceExhausted, "RATE_LIMITED", nil},
-		{"rate limited inside the blocklist's user lookup", fmt.Errorf("failed to get user info: %w", &whatsmeow.IQError{Code: 429, Text: "x"}), true, codes.ResourceExhausted, "RATE_LIMITED", nil},
-		{"another IQ error", &whatsmeow.IQError{Code: 500, Text: "internal-server-error"}, false, codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "500"}},
+		{"rate limited", fmt.Errorf("failed to send usync query: %w", whatsmeow.ErrIQRateOverLimit), false, codes.ResourceExhausted, "RATE_LIMITED", nil},
+		{"rate limited inside the blocklist's user lookup", fmt.Errorf("failed to get user info for %s to fill LID cache: failed to send usync query: %w", pn, &whatsmeow.IQError{Code: 429, Text: "rate-overlimit", RawNode: node}), true, codes.ResourceExhausted, "RATE_LIMITED", nil},
+		{"another IQ error", &whatsmeow.IQError{Code: 500, Text: "internal-server-error", RawNode: node}, false, codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "500"}},
+		{"an IQ error without a code, which prints its node", &whatsmeow.IQError{RawNode: node}, false, codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "0"}},
 		{"not connected", whatsmeow.ErrNotConnected, false, codes.Unavailable, "NOT_CONNECTED", nil},
-		{"not connected, an update that was never sent", whatsmeow.ErrNotConnected, true, codes.Unavailable, "NOT_CONNECTED", nil},
+		{"not connected, an update that was never sent", fmt.Errorf("failed to get user info for %s to fill LID cache: failed to send usync query: %w", pn, whatsmeow.ErrNotConnected), true, codes.Unavailable, "NOT_CONNECTED", nil},
 		{"disconnected while waiting", disconnected, false, codes.Unavailable, "NOT_CONNECTED", nil},
 		{"an update disconnected while waiting", disconnected, true, codes.Unknown, "OUTCOME_UNKNOWN", nil},
 		{"an update that timed out", whatsmeow.ErrIQTimedOut, true, codes.Unknown, "OUTCOME_UNKNOWN", nil},
-		{"a read that timed out", whatsmeow.ErrIQTimedOut, false, codes.Internal, "INTERNAL", nil},
-		{"a number without a LID", fmt.Errorf("%w: no LID found from server", whatsmeow.ErrRecipientNotOnWhatsApp), true, codes.NotFound, "RECIPIENT_NOT_ON_WHATSAPP", nil},
+		{"a read that timed out", fmt.Errorf("failed to send usync query: %w", whatsmeow.ErrIQTimedOut), false, codes.Unavailable, "WHATSAPP_TIMED_OUT", nil},
+		{"a number without a LID", fmt.Errorf("%w: no LID found for %s from server", whatsmeow.ErrRecipientNotOnWhatsApp, pn), true, codes.NotFound, "RECIPIENT_NOT_ON_WHATSAPP", nil},
+		{"a store failure", fmt.Errorf("failed to get LID for PN %s: %w", pn, errors.New("database is locked")), true, codes.Internal, "INTERNAL", nil},
+		{"cancelled", fmt.Errorf("failed to get user info for %s to fill LID cache: failed to send usync query: %w", pn, context.Canceled), true, codes.Canceled, "", nil},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -573,7 +591,18 @@ func TestWhatsAppsErrorsBecomeTheirReasons(t *testing.T) {
 				_, err = h.client.GetBlocklist(h.ctx, &whatsmeowv1.GetBlocklistRequest{SessionId: "s1"})
 			}
 
-			wantReason(t, err, tc.code, tc.reason, tc.metadata)
+			if tc.reason == "" {
+				if status.Code(err) != tc.code {
+					t.Fatalf("error = %v, want %v", err, tc.code)
+				}
+			} else {
+				wantReason(t, err, tc.code, tc.reason, tc.metadata)
+			}
+
+			// The message reaches the application: none of whatsmeow's text around the error, with its JID, goes along.
+			if msg := status.Convert(err).Message(); strings.Contains(msg, "900000001") {
+				t.Fatalf("the message %q carries the JID", msg)
+			}
 		})
 	}
 }
@@ -675,5 +704,84 @@ func TestEachContactChangeMapsToOneContactEventAndOthersToNone(t *testing.T) {
 		if ok != (tc.want != nil) || key != "" || !proto.Equal(got, tc.want) {
 			t.Errorf("%s: Event = %q, %v, %v; want %v", tc.name, key, got, ok, tc.want)
 		}
+	}
+}
+
+func TestIsOnWhatsAppGivesTheNumbersJIDWhenWhatsAppSentOnlyTheLID(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	// A user answered by LID without a pn_jid: whatsmeow leaves PhoneNumber empty (user.go:194-204).
+	h.stub.onWA = []types.IsOnWhatsAppResponse{{Query: "+5511900000001", JID: jid("111@lid"), IsIn: true}}
+
+	resp, err := h.client.IsOnWhatsApp(h.ctx, &whatsmeowv1.IsOnWhatsAppRequest{SessionId: "s1", PhoneNumbers: []string{"+5511900000001"}})
+	if err != nil {
+		t.Fatalf("IsOnWhatsApp: %v", err)
+	}
+
+	wantProto(t, resp, &whatsmeowv1.IsOnWhatsAppResponse{Results: []*whatsmeowv1.PhoneNumberCheck{
+		{PhoneNumber: "+5511900000001", OnWhatsapp: true, Jid: "5511900000001@s.whatsapp.net", Lid: "111@lid"},
+	}})
+}
+
+func TestUpdateBlocklistSendsTheUserWithoutItsDevice(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+
+	for _, req := range []*whatsmeowv1.UpdateBlocklistRequest{
+		{SessionId: "s1", Jid: "5511900000001:2@s.whatsapp.net", Action: whatsmeowv1.BlocklistAction_BLOCKLIST_ACTION_BLOCK},
+		{SessionId: "s1", Jid: "111:3@lid", Action: whatsmeowv1.BlocklistAction_BLOCKLIST_ACTION_UNBLOCK},
+	} {
+		if _, err := h.client.UpdateBlocklist(h.ctx, req); err != nil {
+			t.Fatalf("UpdateBlocklist: %v", err)
+		}
+	}
+
+	// whatsmeow sends the JID as given, and its LID lookup keeps the device (user.go:1027-1066, lidmap.go:100, 113).
+	if fmt.Sprint(h.stub.updated) != "[block 5511900000001@s.whatsapp.net unblock 111@lid]" {
+		t.Fatalf("sent %v", h.stub.updated)
+	}
+}
+
+func TestTheInfoLogCarriesNoJID(t *testing.T) {
+	t.Parallel()
+
+	var logged bytes.Buffer
+
+	h := startLogging(t, zerolog.New(&logged).Level(zerolog.InfoLevel))
+	h.stub.onWA = []types.IsOnWhatsAppResponse{{Query: "+5511900000001", JID: jid("111@lid"), PhoneNumber: jid("5511900000001@s.whatsapp.net"), IsIn: true}}
+	h.stub.users = map[types.JID]types.UserInfo{jid("5511900000001@s.whatsapp.net"): {Status: "hi"}}
+	h.stub.picture = &types.ProfilePictureInfo{ID: "P1", URL: "https://pps.example/p1"}
+	h.stub.blocked = &types.Blocklist{Items: []types.BlocklistItem{{LID: jid("111@lid"), PN: jid("5511900000001@s.whatsapp.net")}}}
+
+	calls := func() {
+		_, _ = h.client.IsOnWhatsApp(h.ctx, &whatsmeowv1.IsOnWhatsAppRequest{SessionId: "s1", PhoneNumbers: []string{"+5511900000001"}})
+		_, _ = h.client.GetUserInfo(h.ctx, &whatsmeowv1.GetUserInfoRequest{SessionId: "s1", Jids: []string{"5511900000001@s.whatsapp.net"}})
+		_, _ = h.client.GetProfilePicture(h.ctx, &whatsmeowv1.GetProfilePictureRequest{SessionId: "s1", Jid: "5511900000001@s.whatsapp.net"})
+		_, _ = h.client.ResolveJids(h.ctx, &whatsmeowv1.ResolveJidsRequest{SessionId: "s1", Jids: []string{"5511900000001@s.whatsapp.net"}})
+		_, _ = h.client.ListContacts(h.ctx, &whatsmeowv1.ListContactsRequest{SessionId: "s1"})
+		_, _ = h.client.GetBlocklist(h.ctx, &whatsmeowv1.GetBlocklistRequest{SessionId: "s1"})
+		_, _ = h.client.UpdateBlocklist(h.ctx, &whatsmeowv1.UpdateBlocklistRequest{
+			SessionId: "s1", Jid: "5511900000001@s.whatsapp.net", Action: whatsmeowv1.BlocklistAction_BLOCKLIST_ACTION_BLOCK,
+		})
+	}
+
+	calls()
+
+	// And each failure whatsmeow returns with a JID in it (user.go:1034, 1039, 1043, 1052; errors.go:216-226).
+	node := &waBinary.Node{Tag: "iq", Attrs: waBinary.Attrs{"from": jid("5511900000001@s.whatsapp.net")}}
+	for _, err := range []error{
+		fmt.Errorf("failed to get LID for PN %s: %w", "5511900000001@s.whatsapp.net", errors.New("database is locked")),
+		fmt.Errorf("%w: no LID found for %s from server", whatsmeow.ErrRecipientNotOnWhatsApp, "5511900000001@s.whatsapp.net"),
+		&whatsmeow.IQError{RawNode: node},
+		fmt.Errorf("failed to resolve PN for %s: %w", "111@lid", errors.New("database is locked")),
+	} {
+		h.stub.err = err
+		calls()
+	}
+
+	if strings.Contains(logged.String(), "900000001") || strings.Contains(logged.String(), "111@lid") {
+		t.Fatalf("the info log carries a JID:\n%s", logged.String())
 	}
 }

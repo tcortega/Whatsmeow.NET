@@ -73,6 +73,8 @@ func (w *WhatsApp) pictureOf(jid types.JID) (picture, bool) {
 }
 
 // query is WhatsApp answering one contact query of the client: the IQ error FailNextContactQuery scripted, or nil.
+// A failed usync query (IsOnWhatsApp, GetUserInfo) is wrapped as whatsmeow wraps it (user.go:950); the others return
+// it as sendIQ does (request.go:152-182).
 func (c *Client) query() error {
 	var code int32
 
@@ -88,7 +90,7 @@ func (c *Client) query() error {
 // pairs. An unregistered number is answered with its phone-number JID and not in [inferred: unmeasured].
 func (c *Client) IsOnWhatsApp(ctx context.Context, phones []string) ([]types.IsOnWhatsAppResponse, error) {
 	if err := c.query(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to send usync query: %w", err)
 	}
 
 	answers := make([]types.IsOnWhatsAppResponse, 0, len(phones))
@@ -122,7 +124,7 @@ func (c *Client) IsOnWhatsApp(ctx context.Context, phones []string) ([]types.IsO
 // answer [inferred: unmeasured].
 func (c *Client) GetUserInfo(ctx context.Context, jids []types.JID) (map[types.JID]types.UserInfo, error) {
 	if err := c.query(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to send usync query: %w", err)
 	}
 
 	answers := make(map[types.JID]types.UserInfo, len(jids))
@@ -205,7 +207,7 @@ func (c *Client) GetBlocklist(context.Context, string) (*types.Blocklist, error)
 
 // UpdateBlocklist does what whatsmeow's does before its request (user.go:1027-1066): a phone number's LID comes from
 // the store, else from GetUserInfo, and without one it is ErrRecipientNotOnWhatsApp; blocking a LID looks its phone
-// number up. WhatsApp then changes the session's list and answers it.
+// number up. Its errors carry whatsmeow's text, the JID in it. WhatsApp then changes the session's list and answers it.
 func (c *Client) UpdateBlocklist(ctx context.Context, jid types.JID, action events.BlocklistChangeAction, _ string) (*types.Blocklist, error) {
 	var lid, pn types.JID
 
@@ -215,17 +217,17 @@ func (c *Client) UpdateBlocklist(ctx context.Context, jid types.JID, action even
 
 		var err error
 		if lid, err = c.Store.LIDs.GetLIDForPN(ctx, jid); err != nil {
-			return nil, fmt.Errorf("failed to get LID for PN: %w", err)
+			return nil, fmt.Errorf("failed to get LID for PN %s: %w", jid, err)
 		}
 
 		if lid.IsEmpty() {
 			info, err := c.GetUserInfo(ctx, []types.JID{jid})
 			if err != nil {
-				return nil, fmt.Errorf("failed to get user info to fill LID cache: %w", err)
+				return nil, fmt.Errorf("failed to get user info for %s to fill LID cache: %w", jid, err)
 			}
 
 			if lid = info[jid].LID; lid.IsEmpty() {
-				return nil, fmt.Errorf("%w: no LID found from server", whatsmeow.ErrRecipientNotOnWhatsApp)
+				return nil, fmt.Errorf("%w: no LID found for %s from server", whatsmeow.ErrRecipientNotOnWhatsApp, jid)
 			}
 		}
 	case types.HiddenUserServer:
@@ -233,7 +235,7 @@ func (c *Client) UpdateBlocklist(ctx context.Context, jid types.JID, action even
 		if action == events.BlocklistChangeActionBlock {
 			var err error
 			if pn, err = c.Store.LIDs.GetPNForLID(ctx, jid); err != nil {
-				return nil, fmt.Errorf("failed to resolve PN: %w", err)
+				return nil, fmt.Errorf("failed to resolve PN for %s: %w", jid, err)
 			}
 		}
 	}

@@ -688,7 +688,7 @@ type ResolvedJid struct {
 	// The JID as requested.
 	Jid string `protobuf:"bytes,1,opt,name=jid,proto3" json:"jid,omitempty"`
 	// The other form, with the same device; empty when the store does not know it.
-	Alt           string `protobuf:"bytes,2,opt,name=alt,proto3" json:"alt,omitempty"`
+	JidAlt        string `protobuf:"bytes,2,opt,name=jid_alt,json=jidAlt,proto3" json:"jid_alt,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -730,9 +730,9 @@ func (x *ResolvedJid) GetJid() string {
 	return ""
 }
 
-func (x *ResolvedJid) GetAlt() string {
+func (x *ResolvedJid) GetJidAlt() string {
 	if x != nil {
-		return x.Alt
+		return x.JidAlt
 	}
 	return ""
 }
@@ -1054,7 +1054,7 @@ type UpdateBlocklistRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The session id.
 	SessionId string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	// The user, by phone number or LID.
+	// The user, by phone number or LID; a device in it is ignored.
 	Jid string `protobuf:"bytes,2,opt,name=jid,proto3" json:"jid,omitempty"`
 	// What to do.
 	Action        BlocklistAction `protobuf:"varint,3,opt,name=action,proto3,enum=whatsmeow.v1.BlocklistAction" json:"action,omitempty"`
@@ -1652,10 +1652,10 @@ const file_whatsmeow_v1_contact_proto_rawDesc = "" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x12\n" +
 	"\x04jids\x18\x02 \x03(\tR\x04jids\"J\n" +
 	"\x13ResolveJidsResponse\x123\n" +
-	"\aresults\x18\x01 \x03(\v2\x19.whatsmeow.v1.ResolvedJidR\aresults\"1\n" +
+	"\aresults\x18\x01 \x03(\v2\x19.whatsmeow.v1.ResolvedJidR\aresults\"8\n" +
 	"\vResolvedJid\x12\x10\n" +
-	"\x03jid\x18\x01 \x01(\tR\x03jid\x12\x10\n" +
-	"\x03alt\x18\x02 \x01(\tR\x03alt\"4\n" +
+	"\x03jid\x18\x01 \x01(\tR\x03jid\x12\x17\n" +
+	"\ajid_alt\x18\x02 \x01(\tR\x06jidAlt\"4\n" +
 	"\x13ListContactsRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\"I\n" +

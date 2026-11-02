@@ -175,6 +175,51 @@ func TestUpdateBlocklistFetchesTheLidAsWhatsmeowDoesAndGetBlocklistReflectsIt(t 
 	}
 }
 
+func TestTheContactQueriesFailWithWhatsmeowsTextJIDIncluded(t *testing.T) {
+	t.Parallel()
+
+	_, control, ctx, client, _, _ := linked(t)
+	fail := func() {
+		t.Helper()
+
+		if _, err := control.FailNextContactQuery(ctx, &fakev1.FailNextContactQueryRequest{SessionId: "s1", Code: 429}); err != nil {
+			t.Fatalf("FailNextContactQuery: %v", err)
+		}
+	}
+
+	// The texts whatsmeow builds at the pin (user.go:842, 950, 1037-1043), so the sidecar is tested against them.
+	iq := "info query returned status 429: fake WhatsApp: FailNextContactQuery"
+	for _, tc := range []struct {
+		name string
+		call func() error
+		want string
+	}{
+		{"blocking a number WhatsApp has no LID for", func() error {
+			_, err := client.UpdateBlocklist(ctx, parse(t, "5511900000009@s.whatsapp.net"), events.BlocklistChangeActionBlock, "")
+			return err
+		}, "recipient is not on WhatsApp: no LID found for 5511900000009@s.whatsapp.net from server"},
+		{"blocking a number whose LID lookup fails", func() error {
+			fail()
+			_, err := client.UpdateBlocklist(ctx, parse(t, "5511900000008@s.whatsapp.net"), events.BlocklistChangeActionBlock, "")
+			return err
+		}, "failed to get user info for 5511900000008@s.whatsapp.net to fill LID cache: failed to send usync query: " + iq},
+		{"a number check", func() error {
+			fail()
+			_, err := client.IsOnWhatsApp(ctx, []string{"+5511900000001"})
+			return err
+		}, "failed to send usync query: " + iq},
+		{"a user info read", func() error {
+			fail()
+			_, err := client.GetUserInfo(ctx, []types.JID{parse(t, pn)})
+			return err
+		}, "failed to send usync query: " + iq},
+	} {
+		if err := tc.call(); err == nil || err.Error() != tc.want {
+			t.Errorf("%s = %v, want %q", tc.name, err, tc.want)
+		}
+	}
+}
+
 func TestFailNextContactQueryFailsOnlyTheNextQuery(t *testing.T) {
 	t.Parallel()
 

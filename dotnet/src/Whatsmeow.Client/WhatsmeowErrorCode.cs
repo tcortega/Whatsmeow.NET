@@ -65,4 +65,7 @@ public enum WhatsmeowErrorCode
 
 	/// <summary>WhatsApp answered with an error no other code covers; nothing was done.</summary>
 	WhatsAppError,
+
+	/// <summary>WhatsApp did not answer a read in time; nothing was done, and the call can be repeated.</summary>
+	WhatsAppTimedOut,
 }

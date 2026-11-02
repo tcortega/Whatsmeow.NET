@@ -531,6 +531,12 @@ func (svc *Service) DeleteSession(ctx context.Context, req *whatsmeowv1.DeleteSe
 	svc.mu.Unlock()
 
 	s.mu.Lock()
+	// A deleted session is online no more; its client may never dispatch the disconnect that would close this.
+	if s.online != nil {
+		close(s.online)
+		s.online = nil
+	}
+
 	close(s.deleted)
 	s.mu.Unlock()
 

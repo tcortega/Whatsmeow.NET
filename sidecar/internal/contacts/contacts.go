@@ -1,8 +1,8 @@
 // Package contacts is the Contacts & LID slice: lookups of WhatsApp users, the two address forms of a user (phone
 // number and LID), the session's contacts and blocklist, and the contact change events (contact.proto, ADR 0028).
 //
-// Phone numbers and JIDs are other people's personal data: nothing here logs them, and no error text of this package
-// carries one (ARCHITECTURE §7.8).
+// Phone numbers and JIDs are other people's personal data: nothing here logs them, and no error this package returns
+// carries one, whatsmeow's text included (classify, ARCHITECTURE §7.8).
 package contacts
 
 import (
@@ -126,9 +126,15 @@ func (svc *Service) IsOnWhatsApp(ctx context.Context, req *whatsmeowv1.IsOnWhats
 		if answer, ok := byQuery[query]; ok && answer.IsIn {
 			check.OnWhatsapp = true
 
-			// With LID addressing the JID is the LID, and the phone number comes beside it (user.go:194-206).
+			// With LID addressing the JID is the LID, and the phone number comes beside it (user.go:194-206). Without a
+			// pn_jid, the number asked for is the user's.
 			if answer.JID.Server == types.HiddenUserServer {
-				check.Jid, check.Lid = text(answer.PhoneNumber), answer.JID.String()
+				pn := answer.PhoneNumber
+				if pn.IsEmpty() {
+					pn = types.NewJID(strings.TrimPrefix(query, "+"), types.DefaultUserServer)
+				}
+
+				check.Jid, check.Lid = pn.String(), answer.JID.String()
 			} else {
 				check.Jid = answer.JID.String()
 			}
@@ -241,13 +247,14 @@ func (svc *Service) ResolveJids(ctx context.Context, req *whatsmeowv1.ResolveJid
 	}
 
 	for i, jid := range jids {
-		// An unknown pair is the empty JID, not an error (store/sqlstore/lidmap.go:91-116).
+		// An unknown pair is the empty JID, not an error (store/store.go:316-326, store/sqlstore/lidmap.go:96-98, 105-107,
+		// 115).
 		alt, err := device.GetAltJID(ctx, jid)
 		if err != nil {
 			return nil, fmt.Errorf("resolve entry %d: %w", i, err)
 		}
 
-		resp.Results = append(resp.Results, &whatsmeowv1.ResolvedJid{Jid: req.GetJids()[i], Alt: text(alt)})
+		resp.Results = append(resp.Results, &whatsmeowv1.ResolvedJid{Jid: req.GetJids()[i], JidAlt: text(alt)})
 	}
 
 	return resp, nil
@@ -330,7 +337,9 @@ func (svc *Service) UpdateBlocklist(ctx context.Context, req *whatsmeowv1.Update
 		return nil, err
 	}
 
-	if _, err := client.UpdateBlocklist(ctx, jids[0], action, ""); err != nil {
+	// Without its device: whatsmeow sends the JID as given, and its LID lookup keeps the device (user.go:1027-1066,
+	// store/sqlstore/lidmap.go:100, 113).
+	if _, err := client.UpdateBlocklist(ctx, jids[0].ToNonAD(), action, ""); err != nil {
 		return nil, classify("update the blocklist", err, true)
 	}
 
@@ -367,7 +376,12 @@ func text(jid types.JID) string {
 }
 
 // classify gives what a contact query returned its reason (request.go:152-182, errors.go). A write that went out and
-// got no answer may have taken effect: OUTCOME_UNKNOWN; a read that got none did nothing. A context error stays one.
+// got no answer may have taken effect: OUTCOME_UNKNOWN; a read that got none did nothing: WHATSAPP_TIMED_OUT, or
+// NOT_CONNECTED when the socket dropped. A context error stays one.
+//
+// The error keeps whatsmeow's sentinel or a bare copy of its typed error, never the text whatsmeow wraps around it:
+// that text names the JID (user.go:1034, 1039, 1043, 1052), and so does an IQ error's node (errors.go:216-226). The
+// status message reaches the application, and an INTERNAL one the error log (server.toStatus).
 func classify(op string, err error, write bool) error {
 	var (
 		iqErr        *whatsmeow.IQError
@@ -375,22 +389,49 @@ func classify(op string, err error, write bool) error {
 	)
 
 	switch {
-	case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
-		return fmt.Errorf("%s: %w", op, err)
+	case errors.Is(err, context.Canceled):
+		return fmt.Errorf("%s: %w", op, context.Canceled)
+	case errors.Is(err, context.DeadlineExceeded):
+		return fmt.Errorf("%s: %w", op, context.DeadlineExceeded)
 	case errors.Is(err, whatsmeow.ErrRecipientNotOnWhatsApp):
-		return fmt.Errorf("%s: %w: %w", op, server.ErrRecipientNotOnWhatsApp, err)
-	case errors.As(err, &iqErr) && iqErr.Code == rateOverLimit:
-		return fmt.Errorf("%s: %w: %w", op, server.ErrRateLimited, err)
+		return fmt.Errorf("%s: %w", op, server.ErrRecipientNotOnWhatsApp)
 	case errors.As(err, &iqErr):
-		return fmt.Errorf("%s: %w: %w", op, server.WithMetadata(server.ErrWhatsAppError, "code", fmt.Sprint(iqErr.Code)), err)
+		// The code and WhatsApp's error keyword, without the nodes.
+		bare := &whatsmeow.IQError{Code: iqErr.Code, Text: iqErr.Text}
+		if iqErr.Code == rateOverLimit {
+			return fmt.Errorf("%s: %w: %w", op, server.ErrRateLimited, bare)
+		}
+
+		return fmt.Errorf("%s: %w: %w", op, server.WithMetadata(server.ErrWhatsAppError, "code", fmt.Sprint(iqErr.Code)), bare)
 	case errors.Is(err, whatsmeow.ErrNotConnected):
 		// Never sent (request.go:133-141).
-		return fmt.Errorf("%s: %w: %w", op, server.ErrNotConnected, err)
-	case write && (errors.As(err, &disconnected) || errors.Is(err, whatsmeow.ErrIQTimedOut)):
-		return fmt.Errorf("%s: %w: %w", op, server.ErrOutcomeUnknown, err)
+		return fmt.Errorf("%s: %w: %w", op, server.ErrNotConnected, whatsmeow.ErrNotConnected)
+	case errors.Is(err, whatsmeow.ErrIQTimedOut) && write:
+		return fmt.Errorf("%s: %w: %w", op, server.ErrOutcomeUnknown, whatsmeow.ErrIQTimedOut)
+	case errors.Is(err, whatsmeow.ErrIQTimedOut):
+		return fmt.Errorf("%s: %w: %w", op, server.ErrWhatsAppTimedOut, whatsmeow.ErrIQTimedOut)
 	case errors.As(err, &disconnected):
-		return fmt.Errorf("%s: %w: %w", op, server.ErrNotConnected, err)
+		bare := &whatsmeow.DisconnectedError{Action: disconnected.Action}
+		if write {
+			return fmt.Errorf("%s: %w: %w", op, server.ErrOutcomeUnknown, bare)
+		}
+
+		return fmt.Errorf("%s: %w: %w", op, server.ErrNotConnected, bare)
 	default:
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("%s: %w", op, cause(err))
+	}
+}
+
+// cause is the error at the end of err's chain: a store or socket error, or whatsmeow's own typed one, without the
+// text whatsmeow wrapped around it. At the pin none of those it can end with on these calls names a JID [inferred:
+// read at the pin, request.go, client.go:975-996, user.go:840-955, store/sqlstore/lidmap.go].
+func cause(err error) error {
+	for {
+		next := errors.Unwrap(err)
+		if next == nil {
+			return err
+		}
+
+		err = next
 	}
 }
