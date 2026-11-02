@@ -183,6 +183,29 @@ service FakeWhatsAppService {
   // FailNextGroupQuery makes WhatsApp answer the session's next group call with an IQ error of code: 429 is
   // whatsmeow's ErrIQRateOverLimit (errors.go:197).
   rpc FailNextGroupQuery(FailNextGroupQueryRequest) returns (FailNextGroupQueryResponse);
+  // SyncChatState makes the phone change a chat's state, and the session's client sync it as whatsmeow does after a
+  // server_sync notification: on its node queue, holding its app state lock while it fetches (appstate.go:46-47,
+  // notification.go:481-483), and dispatching the change once it let go of the lock (appstate.go:36-38). While the
+  // collection is corrupted (CorruptAppState) the fetch fails instead: whatsmeow dispatches AppStateSyncError holding
+  // the lock (appstate.go:167), and the change does not arrive. With full_sync the change arrives as a full sync's,
+  // marked FromFullSync, as it does after pairing. It returns once the client's event handlers ran. A session without
+  // a client is an error.
+  rpc SyncChatState(SyncChatStateRequest) returns (SyncChatStateResponse);
+
+  // GetPhoneChatState reads what the phone shows for a chat: what the session's writes (SendAppState) and SyncChatState
+  // made it.
+  rpc GetPhoneChatState(GetPhoneChatStateRequest) returns (GetPhoneChatStateResponse);
+
+  // CorruptAppState makes the session's copy of an app state collection out of step with WhatsApp's, as a mismatching
+  // LTHash does [inferred: the server cannot verify the hash, so it shows only when another device's patch arrives]:
+  // a write to it is rejected with a 409 whose patches do not verify (appstate.go:607-614), and a sync of it fails.
+  // A full sync (FetchAppState with fullSync) repairs it, unless unrecoverable: then the full sync fails too, as one
+  // whose snapshot does not verify does (appstate/decode.go:287-294).
+  rpc CorruptAppState(CorruptAppStateRequest) returns (CorruptAppStateResponse);
+
+  // HoldFullSync makes the session's next full syncs wait, holding the client's app state lock, until it is called
+  // again with hold false. A full sync is recorded (Sent.app_state_full_sync) before it waits.
+  rpc HoldFullSync(HoldFullSyncRequest) returns (HoldFullSyncResponse);
 }
 
 // FailNextUploadsRequest names the session and how many uploads fail.
@@ -255,6 +278,9 @@ message LinkDeviceRequest {
   string session_id = 1;
   // The device JID WhatsApp assigns, user:device@s.whatsapp.net.
   string jid = 2;
+  // True to keep the app state key from the device. Otherwise the phone shares one as the device is linked, as it
+  // does once after pairing (message.go:827-861), and the device can write app state.
+  bool without_app_state_key = 3;
 }
 
 // LinkDeviceResponse has no fields.
@@ -479,7 +505,15 @@ message Sent {
     ReadReceipt read = 13;
     // The ack for a receipt or a group notification WhatsApp delivered (sendAck, receipt.go:151-181).
     Ack ack = 14;
+    // The client asked for a full sync of an app state collection (FetchAppState with fullSync).
+    AppStateFullSync app_state_full_sync = 15;
   }
+}
+
+// AppStateFullSync is the full sync of one app state collection, asking for its snapshot (appstate.go:466-494).
+message AppStateFullSync {
+  // The collection's name, as whatsmeow's WAPatchName: "regular_low", "regular_high", ...
+  string collection = 1;
 }
 
 // Presence is the <presence> SendPresence sends (presence.go:64-87).
@@ -874,3 +908,114 @@ message FailNextGroupQueryRequest {
 
 // FailNextGroupQueryResponse has no fields.
 message FailNextGroupQueryResponse {}
+// PhoneChatChange is one change the phone makes to a chat.
+message PhoneChatChange {
+  // A mute or an unmute.
+  message Mute {
+    // True to mute.
+    bool muted = 1;
+    // When the mute ends; unset to mute forever.
+    google.protobuf.Timestamp until = 2;
+  }
+
+  // A star or an unstar of a message.
+  message Star {
+    // The message's id.
+    string message_id = 1;
+    // In a group, the message's sender; empty otherwise and for the account's own messages.
+    string sender = 2;
+    // True when the account sent the message.
+    bool is_from_me = 3;
+    // True to star.
+    bool starred = 4;
+  }
+
+  // The change.
+  oneof kind {
+    // See Mute.
+    Mute mute = 1;
+    // Pin (true) or unpin.
+    bool pinned = 2;
+    // Archive (true) or unarchive.
+    bool archived = 3;
+    // Mark read (true) or unread.
+    bool read = 4;
+    // See Star.
+    Star star = 5;
+  }
+}
+
+// SyncChatStateRequest is one change on the phone.
+message SyncChatStateRequest {
+  // The session whose client syncs it.
+  string session_id = 1;
+  // The chat.
+  string chat = 2;
+  // The change.
+  PhoneChatChange change = 3;
+  // When the phone made it.
+  google.protobuf.Timestamp change_time = 4;
+  // True to deliver it as a full sync's.
+  bool full_sync = 5;
+}
+
+// SyncChatStateResponse has no fields.
+message SyncChatStateResponse {}
+
+// GetPhoneChatStateRequest names the session and the chat.
+message GetPhoneChatStateRequest {
+  // The session whose account it is.
+  string session_id = 1;
+  // The chat.
+  string chat = 2;
+}
+
+// GetPhoneChatStateResponse is what the phone shows for the chat; a chat it never changed has every field unset.
+message GetPhoneChatStateResponse {
+  // A starred message, as the app state indexes it: ["star", chat, id, from me, sender] (appstate/encode.go:233-260).
+  message StarredMessage {
+    // The message's id.
+    string message_id = 1;
+    // True when the account sent it.
+    bool is_from_me = 2;
+    // The index's sender: a JID, or "0" when it names none.
+    string sender = 3;
+  }
+
+  // True when the chat is muted.
+  bool muted = 1;
+  // When the mute ends; unset while unmuted or when muted forever.
+  google.protobuf.Timestamp mute_until = 2;
+  // True when the chat is pinned.
+  bool pinned = 3;
+  // True when the chat is archived.
+  bool archived = 4;
+  // True when the chat is marked unread.
+  bool unread = 5;
+  // The starred messages, ordered by id.
+  repeated StarredMessage starred = 6;
+}
+
+// CorruptAppStateRequest names the session and the collection.
+message CorruptAppStateRequest {
+  // The session whose copy is corrupted.
+  string session_id = 1;
+  // The collection's name, as whatsmeow's WAPatchName.
+  string collection = 2;
+  // True when a full sync does not repair it.
+  bool unrecoverable = 3;
+}
+
+// CorruptAppStateResponse has no fields.
+message CorruptAppStateResponse {}
+
+// HoldFullSyncRequest names the session.
+message HoldFullSyncRequest {
+  // The session whose full syncs wait.
+  string session_id = 1;
+  // True to hold them; false to let them go on.
+  bool hold = 2;
+}
+
+// HoldFullSyncResponse has no fields.
+message HoldFullSyncResponse {}

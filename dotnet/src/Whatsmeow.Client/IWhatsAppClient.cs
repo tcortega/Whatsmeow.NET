@@ -525,6 +525,7 @@ public interface IWhatsAppClient
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
 	/// <exception cref="ArgumentNullException"><paramref name="messageIds"/> is null.</exception>
 	Task MarkReadAsync(Jid chat, IReadOnlyCollection<MessageId> messageIds, Jid? sender = null, CancellationToken cancellationToken = default);
+
 	/// <summary>Lists the groups the session is in, ordered by JID, each with its participants and their roles.</summary>
 	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
 	/// <exception cref="NotConnectedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
@@ -802,4 +803,315 @@ public interface IWhatsAppClient
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
 	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
 	Task LeaveGroupAsync(Jid group, CancellationToken cancellationToken = default);
+
+	/// <summary>Mutes a chat, until a time or forever.</summary>
+	/// <remarks>
+	/// Chat state here is WhatsApp's app state, which the phone and every linked device share, not typing (that is
+	/// <see cref="SendChatPresenceAsync"/>). The change shows on all of them, and comes back to this session as a
+	/// <see cref="ChatState.ChatStateChanged"/>. Setting a state the chat already has succeeds. When WhatsApp rejects the
+	/// write because the session's copy of the app state is out of step, the sidecar syncs that copy again and retries the
+	/// write once.
+	/// </remarks>
+	/// <param name="chat">The chat: a user, by phone-number JID or LID, or a group; a device in it is ignored.</param>
+	/// <param name="until">When the mute ends, kept to the millisecond; null mutes the chat forever.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The chat is neither a user nor a group, or <paramref name="until"/> is at or before the Unix epoch.</exception>
+	/// <exception cref="NotConnectedException">
+	/// The session is not logged in to WhatsApp right now, or its phone has not shared the app state keys yet, which it does
+	/// once after pairing. Rarely, WhatsApp took the write and only the sync after it could not go out: whatsmeow does not
+	/// tell the two apart.
+	/// </exception>
+	/// <exception cref="OutcomeUnknownException">The write, or the sync after it, went out and no answer came back: it may or may not have taken effect.</exception>
+	/// <exception cref="RateLimitedException">WhatsApp rate limited the session.</exception>
+	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
+	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="WhatsAppErrorException">
+	/// WhatsApp rejected the write, with its <see cref="WhatsAppErrorException.Code"/>: 409 for a conflict that the sidecar
+	/// could not resolve by syncing the session's app state again.
+	/// </exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	Task MuteChatAsync(Jid chat, DateTimeOffset? until = null, CancellationToken cancellationToken = default);
+
+	/// <summary>Unmutes a chat.</summary>
+	/// <remarks>
+	/// Chat state here is WhatsApp's app state, which the phone and every linked device share, not typing (that is
+	/// <see cref="SendChatPresenceAsync"/>). The change shows on all of them, and comes back to this session as a
+	/// <see cref="ChatState.ChatStateChanged"/>. Setting a state the chat already has succeeds. When WhatsApp rejects the
+	/// write because the session's copy of the app state is out of step, the sidecar syncs that copy again and retries the
+	/// write once.
+	/// </remarks>
+	/// <param name="chat">The chat: a user, by phone-number JID or LID, or a group; a device in it is ignored.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The chat is neither a user nor a group.</exception>
+	/// <exception cref="NotConnectedException">
+	/// The session is not logged in to WhatsApp right now, or its phone has not shared the app state keys yet, which it does
+	/// once after pairing. Rarely, WhatsApp took the write and only the sync after it could not go out: whatsmeow does not
+	/// tell the two apart.
+	/// </exception>
+	/// <exception cref="OutcomeUnknownException">The write, or the sync after it, went out and no answer came back: it may or may not have taken effect.</exception>
+	/// <exception cref="RateLimitedException">WhatsApp rate limited the session.</exception>
+	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
+	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="WhatsAppErrorException">
+	/// WhatsApp rejected the write, with its <see cref="WhatsAppErrorException.Code"/>: 409 for a conflict that the sidecar
+	/// could not resolve by syncing the session's app state again.
+	/// </exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	Task UnmuteChatAsync(Jid chat, CancellationToken cancellationToken = default);
+
+	/// <summary>Pins a chat.</summary>
+	/// <remarks>
+	/// Chat state here is WhatsApp's app state, which the phone and every linked device share, not typing (that is
+	/// <see cref="SendChatPresenceAsync"/>). The change shows on all of them, and comes back to this session as a
+	/// <see cref="ChatState.ChatStateChanged"/>. Setting a state the chat already has succeeds. When WhatsApp rejects the
+	/// write because the session's copy of the app state is out of step, the sidecar syncs that copy again and retries the
+	/// write once.
+	/// </remarks>
+	/// <param name="chat">The chat: a user, by phone-number JID or LID, or a group; a device in it is ignored.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The chat is neither a user nor a group.</exception>
+	/// <exception cref="NotConnectedException">
+	/// The session is not logged in to WhatsApp right now, or its phone has not shared the app state keys yet, which it does
+	/// once after pairing. Rarely, WhatsApp took the write and only the sync after it could not go out: whatsmeow does not
+	/// tell the two apart.
+	/// </exception>
+	/// <exception cref="OutcomeUnknownException">The write, or the sync after it, went out and no answer came back: it may or may not have taken effect.</exception>
+	/// <exception cref="RateLimitedException">WhatsApp rate limited the session.</exception>
+	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
+	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="WhatsAppErrorException">
+	/// WhatsApp rejected the write, with its <see cref="WhatsAppErrorException.Code"/>: 409 for a conflict that the sidecar
+	/// could not resolve by syncing the session's app state again.
+	/// </exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	Task PinChatAsync(Jid chat, CancellationToken cancellationToken = default);
+
+	/// <summary>Unpins a chat.</summary>
+	/// <remarks>
+	/// Chat state here is WhatsApp's app state, which the phone and every linked device share, not typing (that is
+	/// <see cref="SendChatPresenceAsync"/>). The change shows on all of them, and comes back to this session as a
+	/// <see cref="ChatState.ChatStateChanged"/>. Setting a state the chat already has succeeds. When WhatsApp rejects the
+	/// write because the session's copy of the app state is out of step, the sidecar syncs that copy again and retries the
+	/// write once.
+	/// </remarks>
+	/// <param name="chat">The chat: a user, by phone-number JID or LID, or a group; a device in it is ignored.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The chat is neither a user nor a group.</exception>
+	/// <exception cref="NotConnectedException">
+	/// The session is not logged in to WhatsApp right now, or its phone has not shared the app state keys yet, which it does
+	/// once after pairing. Rarely, WhatsApp took the write and only the sync after it could not go out: whatsmeow does not
+	/// tell the two apart.
+	/// </exception>
+	/// <exception cref="OutcomeUnknownException">The write, or the sync after it, went out and no answer came back: it may or may not have taken effect.</exception>
+	/// <exception cref="RateLimitedException">WhatsApp rate limited the session.</exception>
+	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
+	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="WhatsAppErrorException">
+	/// WhatsApp rejected the write, with its <see cref="WhatsAppErrorException.Code"/>: 409 for a conflict that the sidecar
+	/// could not resolve by syncing the session's app state again.
+	/// </exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	Task UnpinChatAsync(Jid chat, CancellationToken cancellationToken = default);
+
+	/// <summary>Archives a chat. Archiving also unpins it.</summary>
+	/// <remarks>
+	/// Chat state here is WhatsApp's app state, which the phone and every linked device share, not typing (that is
+	/// <see cref="SendChatPresenceAsync"/>). The change shows on all of them, and comes back to this session as a
+	/// <see cref="ChatState.ChatStateChanged"/>. Setting a state the chat already has succeeds. When WhatsApp rejects the
+	/// write because the session's copy of the app state is out of step, the sidecar syncs that copy again and retries the
+	/// write once.
+	/// </remarks>
+	/// <param name="chat">The chat: a user, by phone-number JID or LID, or a group; a device in it is ignored.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The chat is neither a user nor a group.</exception>
+	/// <exception cref="NotConnectedException">
+	/// The session is not logged in to WhatsApp right now, or its phone has not shared the app state keys yet, which it does
+	/// once after pairing. Rarely, WhatsApp took the write and only the sync after it could not go out: whatsmeow does not
+	/// tell the two apart.
+	/// </exception>
+	/// <exception cref="OutcomeUnknownException">The write, or the sync after it, went out and no answer came back: it may or may not have taken effect.</exception>
+	/// <exception cref="RateLimitedException">WhatsApp rate limited the session.</exception>
+	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
+	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="WhatsAppErrorException">
+	/// WhatsApp rejected the write, with its <see cref="WhatsAppErrorException.Code"/>: 409 for a conflict that the sidecar
+	/// could not resolve by syncing the session's app state again.
+	/// </exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	Task ArchiveChatAsync(Jid chat, CancellationToken cancellationToken = default);
+
+	/// <summary>Unarchives a chat.</summary>
+	/// <remarks>
+	/// Chat state here is WhatsApp's app state, which the phone and every linked device share, not typing (that is
+	/// <see cref="SendChatPresenceAsync"/>). The change shows on all of them, and comes back to this session as a
+	/// <see cref="ChatState.ChatStateChanged"/>. Setting a state the chat already has succeeds. When WhatsApp rejects the
+	/// write because the session's copy of the app state is out of step, the sidecar syncs that copy again and retries the
+	/// write once.
+	/// </remarks>
+	/// <param name="chat">The chat: a user, by phone-number JID or LID, or a group; a device in it is ignored.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The chat is neither a user nor a group.</exception>
+	/// <exception cref="NotConnectedException">
+	/// The session is not logged in to WhatsApp right now, or its phone has not shared the app state keys yet, which it does
+	/// once after pairing. Rarely, WhatsApp took the write and only the sync after it could not go out: whatsmeow does not
+	/// tell the two apart.
+	/// </exception>
+	/// <exception cref="OutcomeUnknownException">The write, or the sync after it, went out and no answer came back: it may or may not have taken effect.</exception>
+	/// <exception cref="RateLimitedException">WhatsApp rate limited the session.</exception>
+	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
+	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="WhatsAppErrorException">
+	/// WhatsApp rejected the write, with its <see cref="WhatsAppErrorException.Code"/>: 409 for a conflict that the sidecar
+	/// could not resolve by syncing the session's app state again.
+	/// </exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	Task UnarchiveChatAsync(Jid chat, CancellationToken cancellationToken = default);
+
+	/// <summary>Marks a chat read.</summary>
+	/// <remarks>
+	/// Chat state here is WhatsApp's app state, which the phone and every linked device share, not typing (that is
+	/// <see cref="SendChatPresenceAsync"/>). The change shows on all of them, and comes back to this session as a
+	/// <see cref="ChatState.ChatStateChanged"/>. Setting a state the chat already has succeeds. When WhatsApp rejects the
+	/// write because the session's copy of the app state is out of step, the sidecar syncs that copy again and retries the
+	/// write once.
+	/// </remarks>
+	/// <param name="chat">The chat: a user, by phone-number JID or LID, or a group; a device in it is ignored.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The chat is neither a user nor a group.</exception>
+	/// <exception cref="NotConnectedException">
+	/// The session is not logged in to WhatsApp right now, or its phone has not shared the app state keys yet, which it does
+	/// once after pairing. Rarely, WhatsApp took the write and only the sync after it could not go out: whatsmeow does not
+	/// tell the two apart.
+	/// </exception>
+	/// <exception cref="OutcomeUnknownException">The write, or the sync after it, went out and no answer came back: it may or may not have taken effect.</exception>
+	/// <exception cref="RateLimitedException">WhatsApp rate limited the session.</exception>
+	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
+	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="WhatsAppErrorException">
+	/// WhatsApp rejected the write, with its <see cref="WhatsAppErrorException.Code"/>: 409 for a conflict that the sidecar
+	/// could not resolve by syncing the session's app state again.
+	/// </exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	Task MarkChatReadAsync(Jid chat, CancellationToken cancellationToken = default);
+
+	/// <summary>Marks a chat unread.</summary>
+	/// <remarks>
+	/// Chat state here is WhatsApp's app state, which the phone and every linked device share, not typing (that is
+	/// <see cref="SendChatPresenceAsync"/>). The change shows on all of them, and comes back to this session as a
+	/// <see cref="ChatState.ChatStateChanged"/>. Setting a state the chat already has succeeds. When WhatsApp rejects the
+	/// write because the session's copy of the app state is out of step, the sidecar syncs that copy again and retries the
+	/// write once.
+	/// </remarks>
+	/// <param name="chat">The chat: a user, by phone-number JID or LID, or a group; a device in it is ignored.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The chat is neither a user nor a group.</exception>
+	/// <exception cref="NotConnectedException">
+	/// The session is not logged in to WhatsApp right now, or its phone has not shared the app state keys yet, which it does
+	/// once after pairing. Rarely, WhatsApp took the write and only the sync after it could not go out: whatsmeow does not
+	/// tell the two apart.
+	/// </exception>
+	/// <exception cref="OutcomeUnknownException">The write, or the sync after it, went out and no answer came back: it may or may not have taken effect.</exception>
+	/// <exception cref="RateLimitedException">WhatsApp rate limited the session.</exception>
+	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
+	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="WhatsAppErrorException">
+	/// WhatsApp rejected the write, with its <see cref="WhatsAppErrorException.Code"/>: 409 for a conflict that the sidecar
+	/// could not resolve by syncing the session's app state again.
+	/// </exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	Task MarkChatUnreadAsync(Jid chat, CancellationToken cancellationToken = default);
+
+	/// <summary>Stars a message.</summary>
+	/// <remarks>
+	/// Chat state here is WhatsApp's app state, which the phone and every linked device share, not typing (that is
+	/// <see cref="SendChatPresenceAsync"/>). The change shows on all of them, and comes back to this session as a
+	/// <see cref="ChatState.ChatStateChanged"/>. Setting a state the chat already has succeeds. When WhatsApp rejects the
+	/// write because the session's copy of the app state is out of step, the sidecar syncs that copy again and retries the
+	/// write once.
+	/// </remarks>
+	/// <param name="id">The message.</param>
+	/// <param name="source">
+	/// Where the message is: its chat, whether the account sent it, and in a group its sender, as
+	/// <see cref="MessageReceived.Source"/> has them.
+	/// </param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The chat is neither a user nor a group, or a group message from someone else has no user as its sender.</exception>
+	/// <exception cref="NotConnectedException">
+	/// The session is not logged in to WhatsApp right now, or its phone has not shared the app state keys yet, which it does
+	/// once after pairing. Rarely, WhatsApp took the write and only the sync after it could not go out: whatsmeow does not
+	/// tell the two apart.
+	/// </exception>
+	/// <exception cref="OutcomeUnknownException">The write, or the sync after it, went out and no answer came back: it may or may not have taken effect.</exception>
+	/// <exception cref="RateLimitedException">WhatsApp rate limited the session.</exception>
+	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
+	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="WhatsAppErrorException">
+	/// WhatsApp rejected the write, with its <see cref="WhatsAppErrorException.Code"/>: 409 for a conflict that the sidecar
+	/// could not resolve by syncing the session's app state again.
+	/// </exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
+	Task StarMessageAsync(MessageId id, MessageSource source, CancellationToken cancellationToken = default);
+
+	/// <summary>Unstars a message.</summary>
+	/// <remarks>
+	/// Chat state here is WhatsApp's app state, which the phone and every linked device share, not typing (that is
+	/// <see cref="SendChatPresenceAsync"/>). The change shows on all of them, and comes back to this session as a
+	/// <see cref="ChatState.ChatStateChanged"/>. Setting a state the chat already has succeeds. When WhatsApp rejects the
+	/// write because the session's copy of the app state is out of step, the sidecar syncs that copy again and retries the
+	/// write once.
+	/// </remarks>
+	/// <param name="id">The message.</param>
+	/// <param name="source">
+	/// Where the message is: its chat, whether the account sent it, and in a group its sender, as
+	/// <see cref="MessageReceived.Source"/> has them.
+	/// </param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The chat is neither a user nor a group, or a group message from someone else has no user as its sender.</exception>
+	/// <exception cref="NotConnectedException">
+	/// The session is not logged in to WhatsApp right now, or its phone has not shared the app state keys yet, which it does
+	/// once after pairing. Rarely, WhatsApp took the write and only the sync after it could not go out: whatsmeow does not
+	/// tell the two apart.
+	/// </exception>
+	/// <exception cref="OutcomeUnknownException">The write, or the sync after it, went out and no answer came back: it may or may not have taken effect.</exception>
+	/// <exception cref="RateLimitedException">WhatsApp rate limited the session.</exception>
+	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
+	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="WhatsAppErrorException">
+	/// WhatsApp rejected the write, with its <see cref="WhatsAppErrorException.Code"/>: 409 for a conflict that the sidecar
+	/// could not resolve by syncing the session's app state again.
+	/// </exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
+	Task UnstarMessageAsync(MessageId id, MessageSource source, CancellationToken cancellationToken = default);
 }

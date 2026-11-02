@@ -39,6 +39,8 @@ type WhatsApp struct {
 	background sync.WaitGroup
 	// scripts are what the controls scripted for each session's next calls.
 	scripts map[string]*script
+	// appStates are WhatsApp's side of each session's app state (chatstate.go).
+	appStates map[string]*appState
 	directory
 	// mediaDir holds the media server's files (media.go); expired is the status ExpireMedia set for a direct path.
 	mediaDir string
@@ -103,7 +105,7 @@ func (w *WhatsApp) take(sessionID string, scripted func(*script) bool, reset fun
 // New returns a fake WhatsApp with no clients and an empty log.
 func New(log zerolog.Logger, options ...Option) *WhatsApp {
 	w := &WhatsApp{
-		log: log, clients: map[string]*Client{}, changed: make(chan struct{}), scripts: map[string]*script{},
+		log: log, clients: map[string]*Client{}, changed: make(chan struct{}), scripts: map[string]*script{}, appStates: map[string]*appState{},
 		directory:  directory{users: map[types.JID]*user{}, pictures: map[types.JID]picture{}, blocklists: map[string][]types.BlocklistItem{}},
 		groupState: groupState{groups: map[types.JID]*group{}, revoked: map[string]bool{}, refusals: map[types.JID]refusal{}},
 		expired:    map[string]int32{}, retries: map[string]retryRequest{},

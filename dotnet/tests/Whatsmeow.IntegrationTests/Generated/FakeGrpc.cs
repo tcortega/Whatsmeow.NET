@@ -184,6 +184,22 @@ namespace Whatsmeow.IntegrationTests.Fake {
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryRequest> __Marshaller_whatsmeow_fake_v1_FailNextGroupQueryRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryResponse> __Marshaller_whatsmeow_fake_v1_FailNextGroupQueryResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.SyncChatStateRequest> __Marshaller_whatsmeow_fake_v1_SyncChatStateRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.SyncChatStateRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.SyncChatStateResponse> __Marshaller_whatsmeow_fake_v1_SyncChatStateResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.SyncChatStateResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.GetPhoneChatStateRequest> __Marshaller_whatsmeow_fake_v1_GetPhoneChatStateRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.GetPhoneChatStateRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.GetPhoneChatStateResponse> __Marshaller_whatsmeow_fake_v1_GetPhoneChatStateResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.GetPhoneChatStateResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.CorruptAppStateRequest> __Marshaller_whatsmeow_fake_v1_CorruptAppStateRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.CorruptAppStateRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.CorruptAppStateResponse> __Marshaller_whatsmeow_fake_v1_CorruptAppStateResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.CorruptAppStateResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncRequest> __Marshaller_whatsmeow_fake_v1_HoldFullSyncRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncResponse> __Marshaller_whatsmeow_fake_v1_HoldFullSyncResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncResponse.Parser));
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse> __Method_DeliverMessage = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse>(
@@ -448,6 +464,38 @@ namespace Whatsmeow.IntegrationTests.Fake {
         "FailNextGroupQuery",
         __Marshaller_whatsmeow_fake_v1_FailNextGroupQueryRequest,
         __Marshaller_whatsmeow_fake_v1_FailNextGroupQueryResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.SyncChatStateRequest, global::Whatsmeow.IntegrationTests.Fake.SyncChatStateResponse> __Method_SyncChatState = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.SyncChatStateRequest, global::Whatsmeow.IntegrationTests.Fake.SyncChatStateResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "SyncChatState",
+        __Marshaller_whatsmeow_fake_v1_SyncChatStateRequest,
+        __Marshaller_whatsmeow_fake_v1_SyncChatStateResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.GetPhoneChatStateRequest, global::Whatsmeow.IntegrationTests.Fake.GetPhoneChatStateResponse> __Method_GetPhoneChatState = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.GetPhoneChatStateRequest, global::Whatsmeow.IntegrationTests.Fake.GetPhoneChatStateResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "GetPhoneChatState",
+        __Marshaller_whatsmeow_fake_v1_GetPhoneChatStateRequest,
+        __Marshaller_whatsmeow_fake_v1_GetPhoneChatStateResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.CorruptAppStateRequest, global::Whatsmeow.IntegrationTests.Fake.CorruptAppStateResponse> __Method_CorruptAppState = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.CorruptAppStateRequest, global::Whatsmeow.IntegrationTests.Fake.CorruptAppStateResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "CorruptAppState",
+        __Marshaller_whatsmeow_fake_v1_CorruptAppStateRequest,
+        __Marshaller_whatsmeow_fake_v1_CorruptAppStateResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncRequest, global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncResponse> __Method_HoldFullSync = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncRequest, global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "HoldFullSync",
+        __Marshaller_whatsmeow_fake_v1_HoldFullSyncRequest,
+        __Marshaller_whatsmeow_fake_v1_HoldFullSyncResponse);
 
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
@@ -2361,6 +2409,246 @@ namespace Whatsmeow.IntegrationTests.Fake {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryResponse> FailNextGroupQueryAsync(global::Whatsmeow.IntegrationTests.Fake.FailNextGroupQueryRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_FailNextGroupQuery, null, options, request);
+      }
+      /// <summary>
+      /// SyncChatState makes the phone change a chat's state, and the session's client sync it as whatsmeow does after a
+      /// server_sync notification: on its node queue, holding its app state lock while it fetches (appstate.go:46-47,
+      /// notification.go:481-483), and dispatching the change once it let go of the lock (appstate.go:36-38). While the
+      /// collection is corrupted (CorruptAppState) the fetch fails instead: whatsmeow dispatches AppStateSyncError holding
+      /// the lock (appstate.go:167), and the change does not arrive. With full_sync the change arrives as a full sync's,
+      /// marked FromFullSync, as it does after pairing. It returns once the client's event handlers ran. A session without
+      /// a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.SyncChatStateResponse SyncChatState(global::Whatsmeow.IntegrationTests.Fake.SyncChatStateRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SyncChatState(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SyncChatState makes the phone change a chat's state, and the session's client sync it as whatsmeow does after a
+      /// server_sync notification: on its node queue, holding its app state lock while it fetches (appstate.go:46-47,
+      /// notification.go:481-483), and dispatching the change once it let go of the lock (appstate.go:36-38). While the
+      /// collection is corrupted (CorruptAppState) the fetch fails instead: whatsmeow dispatches AppStateSyncError holding
+      /// the lock (appstate.go:167), and the change does not arrive. With full_sync the change arrives as a full sync's,
+      /// marked FromFullSync, as it does after pairing. It returns once the client's event handlers ran. A session without
+      /// a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.SyncChatStateResponse SyncChatState(global::Whatsmeow.IntegrationTests.Fake.SyncChatStateRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_SyncChatState, null, options, request);
+      }
+      /// <summary>
+      /// SyncChatState makes the phone change a chat's state, and the session's client sync it as whatsmeow does after a
+      /// server_sync notification: on its node queue, holding its app state lock while it fetches (appstate.go:46-47,
+      /// notification.go:481-483), and dispatching the change once it let go of the lock (appstate.go:36-38). While the
+      /// collection is corrupted (CorruptAppState) the fetch fails instead: whatsmeow dispatches AppStateSyncError holding
+      /// the lock (appstate.go:167), and the change does not arrive. With full_sync the change arrives as a full sync's,
+      /// marked FromFullSync, as it does after pairing. It returns once the client's event handlers ran. A session without
+      /// a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.SyncChatStateResponse> SyncChatStateAsync(global::Whatsmeow.IntegrationTests.Fake.SyncChatStateRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SyncChatStateAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SyncChatState makes the phone change a chat's state, and the session's client sync it as whatsmeow does after a
+      /// server_sync notification: on its node queue, holding its app state lock while it fetches (appstate.go:46-47,
+      /// notification.go:481-483), and dispatching the change once it let go of the lock (appstate.go:36-38). While the
+      /// collection is corrupted (CorruptAppState) the fetch fails instead: whatsmeow dispatches AppStateSyncError holding
+      /// the lock (appstate.go:167), and the change does not arrive. With full_sync the change arrives as a full sync's,
+      /// marked FromFullSync, as it does after pairing. It returns once the client's event handlers ran. A session without
+      /// a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.SyncChatStateResponse> SyncChatStateAsync(global::Whatsmeow.IntegrationTests.Fake.SyncChatStateRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_SyncChatState, null, options, request);
+      }
+      /// <summary>
+      /// GetPhoneChatState reads what the phone shows for a chat: what the session's writes (SendAppState) and SyncChatState
+      /// made it.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.GetPhoneChatStateResponse GetPhoneChatState(global::Whatsmeow.IntegrationTests.Fake.GetPhoneChatStateRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return GetPhoneChatState(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// GetPhoneChatState reads what the phone shows for a chat: what the session's writes (SendAppState) and SyncChatState
+      /// made it.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.GetPhoneChatStateResponse GetPhoneChatState(global::Whatsmeow.IntegrationTests.Fake.GetPhoneChatStateRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_GetPhoneChatState, null, options, request);
+      }
+      /// <summary>
+      /// GetPhoneChatState reads what the phone shows for a chat: what the session's writes (SendAppState) and SyncChatState
+      /// made it.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.GetPhoneChatStateResponse> GetPhoneChatStateAsync(global::Whatsmeow.IntegrationTests.Fake.GetPhoneChatStateRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return GetPhoneChatStateAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// GetPhoneChatState reads what the phone shows for a chat: what the session's writes (SendAppState) and SyncChatState
+      /// made it.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.GetPhoneChatStateResponse> GetPhoneChatStateAsync(global::Whatsmeow.IntegrationTests.Fake.GetPhoneChatStateRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_GetPhoneChatState, null, options, request);
+      }
+      /// <summary>
+      /// CorruptAppState makes the session's copy of an app state collection out of step with WhatsApp's, as a mismatching
+      /// LTHash does [inferred: the server cannot verify the hash, so it shows only when another device's patch arrives]:
+      /// a write to it is rejected with a 409 whose patches do not verify (appstate.go:607-614), and a sync of it fails.
+      /// A full sync (FetchAppState with fullSync) repairs it, unless unrecoverable: then the full sync fails too, as one
+      /// whose snapshot does not verify does (appstate/decode.go:287-294).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.CorruptAppStateResponse CorruptAppState(global::Whatsmeow.IntegrationTests.Fake.CorruptAppStateRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return CorruptAppState(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// CorruptAppState makes the session's copy of an app state collection out of step with WhatsApp's, as a mismatching
+      /// LTHash does [inferred: the server cannot verify the hash, so it shows only when another device's patch arrives]:
+      /// a write to it is rejected with a 409 whose patches do not verify (appstate.go:607-614), and a sync of it fails.
+      /// A full sync (FetchAppState with fullSync) repairs it, unless unrecoverable: then the full sync fails too, as one
+      /// whose snapshot does not verify does (appstate/decode.go:287-294).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.CorruptAppStateResponse CorruptAppState(global::Whatsmeow.IntegrationTests.Fake.CorruptAppStateRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_CorruptAppState, null, options, request);
+      }
+      /// <summary>
+      /// CorruptAppState makes the session's copy of an app state collection out of step with WhatsApp's, as a mismatching
+      /// LTHash does [inferred: the server cannot verify the hash, so it shows only when another device's patch arrives]:
+      /// a write to it is rejected with a 409 whose patches do not verify (appstate.go:607-614), and a sync of it fails.
+      /// A full sync (FetchAppState with fullSync) repairs it, unless unrecoverable: then the full sync fails too, as one
+      /// whose snapshot does not verify does (appstate/decode.go:287-294).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.CorruptAppStateResponse> CorruptAppStateAsync(global::Whatsmeow.IntegrationTests.Fake.CorruptAppStateRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return CorruptAppStateAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// CorruptAppState makes the session's copy of an app state collection out of step with WhatsApp's, as a mismatching
+      /// LTHash does [inferred: the server cannot verify the hash, so it shows only when another device's patch arrives]:
+      /// a write to it is rejected with a 409 whose patches do not verify (appstate.go:607-614), and a sync of it fails.
+      /// A full sync (FetchAppState with fullSync) repairs it, unless unrecoverable: then the full sync fails too, as one
+      /// whose snapshot does not verify does (appstate/decode.go:287-294).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.CorruptAppStateResponse> CorruptAppStateAsync(global::Whatsmeow.IntegrationTests.Fake.CorruptAppStateRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_CorruptAppState, null, options, request);
+      }
+      /// <summary>
+      /// HoldFullSync makes the session's next full syncs wait, holding the client's app state lock, until it is called
+      /// again with hold false. A full sync is recorded (Sent.app_state_full_sync) before it waits.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncResponse HoldFullSync(global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return HoldFullSync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// HoldFullSync makes the session's next full syncs wait, holding the client's app state lock, until it is called
+      /// again with hold false. A full sync is recorded (Sent.app_state_full_sync) before it waits.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncResponse HoldFullSync(global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_HoldFullSync, null, options, request);
+      }
+      /// <summary>
+      /// HoldFullSync makes the session's next full syncs wait, holding the client's app state lock, until it is called
+      /// again with hold false. A full sync is recorded (Sent.app_state_full_sync) before it waits.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncResponse> HoldFullSyncAsync(global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return HoldFullSyncAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// HoldFullSync makes the session's next full syncs wait, holding the client's app state lock, until it is called
+      /// again with hold false. A full sync is recorded (Sent.app_state_full_sync) before it waits.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncResponse> HoldFullSyncAsync(global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_HoldFullSync, null, options, request);
       }
       /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]

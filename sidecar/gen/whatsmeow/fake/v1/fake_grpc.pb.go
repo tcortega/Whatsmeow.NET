@@ -52,6 +52,10 @@ const (
 	FakeWhatsAppService_DeliverGroupNotification_FullMethodName    = "/whatsmeow.fake.v1.FakeWhatsAppService/DeliverGroupNotification"
 	FakeWhatsAppService_RefuseGroupAdd_FullMethodName              = "/whatsmeow.fake.v1.FakeWhatsAppService/RefuseGroupAdd"
 	FakeWhatsAppService_FailNextGroupQuery_FullMethodName          = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextGroupQuery"
+	FakeWhatsAppService_SyncChatState_FullMethodName               = "/whatsmeow.fake.v1.FakeWhatsAppService/SyncChatState"
+	FakeWhatsAppService_GetPhoneChatState_FullMethodName           = "/whatsmeow.fake.v1.FakeWhatsAppService/GetPhoneChatState"
+	FakeWhatsAppService_CorruptAppState_FullMethodName             = "/whatsmeow.fake.v1.FakeWhatsAppService/CorruptAppState"
+	FakeWhatsAppService_HoldFullSync_FullMethodName                = "/whatsmeow.fake.v1.FakeWhatsAppService/HoldFullSync"
 )
 
 // FakeWhatsAppServiceClient is the client API for FakeWhatsAppService service.
@@ -204,6 +208,26 @@ type FakeWhatsAppServiceClient interface {
 	// FailNextGroupQuery makes WhatsApp answer the session's next group call with an IQ error of code: 429 is
 	// whatsmeow's ErrIQRateOverLimit (errors.go:197).
 	FailNextGroupQuery(ctx context.Context, in *FailNextGroupQueryRequest, opts ...grpc.CallOption) (*FailNextGroupQueryResponse, error)
+	// SyncChatState makes the phone change a chat's state, and the session's client sync it as whatsmeow does after a
+	// server_sync notification: on its node queue, holding its app state lock while it fetches (appstate.go:46-47,
+	// notification.go:481-483), and dispatching the change once it let go of the lock (appstate.go:36-38). While the
+	// collection is corrupted (CorruptAppState) the fetch fails instead: whatsmeow dispatches AppStateSyncError holding
+	// the lock (appstate.go:167), and the change does not arrive. With full_sync the change arrives as a full sync's,
+	// marked FromFullSync, as it does after pairing. It returns once the client's event handlers ran. A session without
+	// a client is an error.
+	SyncChatState(ctx context.Context, in *SyncChatStateRequest, opts ...grpc.CallOption) (*SyncChatStateResponse, error)
+	// GetPhoneChatState reads what the phone shows for a chat: what the session's writes (SendAppState) and SyncChatState
+	// made it.
+	GetPhoneChatState(ctx context.Context, in *GetPhoneChatStateRequest, opts ...grpc.CallOption) (*GetPhoneChatStateResponse, error)
+	// CorruptAppState makes the session's copy of an app state collection out of step with WhatsApp's, as a mismatching
+	// LTHash does [inferred: the server cannot verify the hash, so it shows only when another device's patch arrives]:
+	// a write to it is rejected with a 409 whose patches do not verify (appstate.go:607-614), and a sync of it fails.
+	// A full sync (FetchAppState with fullSync) repairs it, unless unrecoverable: then the full sync fails too, as one
+	// whose snapshot does not verify does (appstate/decode.go:287-294).
+	CorruptAppState(ctx context.Context, in *CorruptAppStateRequest, opts ...grpc.CallOption) (*CorruptAppStateResponse, error)
+	// HoldFullSync makes the session's next full syncs wait, holding the client's app state lock, until it is called
+	// again with hold false. A full sync is recorded (Sent.app_state_full_sync) before it waits.
+	HoldFullSync(ctx context.Context, in *HoldFullSyncRequest, opts ...grpc.CallOption) (*HoldFullSyncResponse, error)
 }
 
 type fakeWhatsAppServiceClient struct {
@@ -544,6 +568,46 @@ func (c *fakeWhatsAppServiceClient) FailNextGroupQuery(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *fakeWhatsAppServiceClient) SyncChatState(ctx context.Context, in *SyncChatStateRequest, opts ...grpc.CallOption) (*SyncChatStateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SyncChatStateResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_SyncChatState_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) GetPhoneChatState(ctx context.Context, in *GetPhoneChatStateRequest, opts ...grpc.CallOption) (*GetPhoneChatStateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPhoneChatStateResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_GetPhoneChatState_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) CorruptAppState(ctx context.Context, in *CorruptAppStateRequest, opts ...grpc.CallOption) (*CorruptAppStateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CorruptAppStateResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_CorruptAppState_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) HoldFullSync(ctx context.Context, in *HoldFullSyncRequest, opts ...grpc.CallOption) (*HoldFullSyncResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(HoldFullSyncResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_HoldFullSync_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FakeWhatsAppServiceServer is the server API for FakeWhatsAppService service.
 // All implementations must embed UnimplementedFakeWhatsAppServiceServer
 // for forward compatibility.
@@ -694,6 +758,26 @@ type FakeWhatsAppServiceServer interface {
 	// FailNextGroupQuery makes WhatsApp answer the session's next group call with an IQ error of code: 429 is
 	// whatsmeow's ErrIQRateOverLimit (errors.go:197).
 	FailNextGroupQuery(context.Context, *FailNextGroupQueryRequest) (*FailNextGroupQueryResponse, error)
+	// SyncChatState makes the phone change a chat's state, and the session's client sync it as whatsmeow does after a
+	// server_sync notification: on its node queue, holding its app state lock while it fetches (appstate.go:46-47,
+	// notification.go:481-483), and dispatching the change once it let go of the lock (appstate.go:36-38). While the
+	// collection is corrupted (CorruptAppState) the fetch fails instead: whatsmeow dispatches AppStateSyncError holding
+	// the lock (appstate.go:167), and the change does not arrive. With full_sync the change arrives as a full sync's,
+	// marked FromFullSync, as it does after pairing. It returns once the client's event handlers ran. A session without
+	// a client is an error.
+	SyncChatState(context.Context, *SyncChatStateRequest) (*SyncChatStateResponse, error)
+	// GetPhoneChatState reads what the phone shows for a chat: what the session's writes (SendAppState) and SyncChatState
+	// made it.
+	GetPhoneChatState(context.Context, *GetPhoneChatStateRequest) (*GetPhoneChatStateResponse, error)
+	// CorruptAppState makes the session's copy of an app state collection out of step with WhatsApp's, as a mismatching
+	// LTHash does [inferred: the server cannot verify the hash, so it shows only when another device's patch arrives]:
+	// a write to it is rejected with a 409 whose patches do not verify (appstate.go:607-614), and a sync of it fails.
+	// A full sync (FetchAppState with fullSync) repairs it, unless unrecoverable: then the full sync fails too, as one
+	// whose snapshot does not verify does (appstate/decode.go:287-294).
+	CorruptAppState(context.Context, *CorruptAppStateRequest) (*CorruptAppStateResponse, error)
+	// HoldFullSync makes the session's next full syncs wait, holding the client's app state lock, until it is called
+	// again with hold false. A full sync is recorded (Sent.app_state_full_sync) before it waits.
+	HoldFullSync(context.Context, *HoldFullSyncRequest) (*HoldFullSyncResponse, error)
 	mustEmbedUnimplementedFakeWhatsAppServiceServer()
 }
 
@@ -802,6 +886,18 @@ func (UnimplementedFakeWhatsAppServiceServer) RefuseGroupAdd(context.Context, *R
 }
 func (UnimplementedFakeWhatsAppServiceServer) FailNextGroupQuery(context.Context, *FailNextGroupQueryRequest) (*FailNextGroupQueryResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method FailNextGroupQuery not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) SyncChatState(context.Context, *SyncChatStateRequest) (*SyncChatStateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SyncChatState not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) GetPhoneChatState(context.Context, *GetPhoneChatStateRequest) (*GetPhoneChatStateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPhoneChatState not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) CorruptAppState(context.Context, *CorruptAppStateRequest) (*CorruptAppStateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CorruptAppState not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) HoldFullSync(context.Context, *HoldFullSyncRequest) (*HoldFullSyncResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method HoldFullSync not implemented")
 }
 func (UnimplementedFakeWhatsAppServiceServer) mustEmbedUnimplementedFakeWhatsAppServiceServer() {}
 func (UnimplementedFakeWhatsAppServiceServer) testEmbeddedByValue()                             {}
@@ -1418,6 +1514,78 @@ func _FakeWhatsAppService_FailNextGroupQuery_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FakeWhatsAppService_SyncChatState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SyncChatStateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).SyncChatState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_SyncChatState_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).SyncChatState(ctx, req.(*SyncChatStateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_GetPhoneChatState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPhoneChatStateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).GetPhoneChatState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_GetPhoneChatState_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).GetPhoneChatState(ctx, req.(*GetPhoneChatStateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_CorruptAppState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CorruptAppStateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).CorruptAppState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_CorruptAppState_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).CorruptAppState(ctx, req.(*CorruptAppStateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_HoldFullSync_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HoldFullSyncRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).HoldFullSync(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_HoldFullSync_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).HoldFullSync(ctx, req.(*HoldFullSyncRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FakeWhatsAppService_ServiceDesc is the grpc.ServiceDesc for FakeWhatsAppService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1556,6 +1724,22 @@ var FakeWhatsAppService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FailNextGroupQuery",
 			Handler:    _FakeWhatsAppService_FailNextGroupQuery_Handler,
+		},
+		{
+			MethodName: "SyncChatState",
+			Handler:    _FakeWhatsAppService_SyncChatState_Handler,
+		},
+		{
+			MethodName: "GetPhoneChatState",
+			Handler:    _FakeWhatsAppService_GetPhoneChatState_Handler,
+		},
+		{
+			MethodName: "CorruptAppState",
+			Handler:    _FakeWhatsAppService_CorruptAppState_Handler,
+		},
+		{
+			MethodName: "HoldFullSync",
+			Handler:    _FakeWhatsAppService_HoldFullSync_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

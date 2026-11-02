@@ -1023,6 +1023,18 @@ func TestTheWhatsmeowClientLogsNoURLQuery(t *testing.T) {
 	}
 }
 
+func TestTheWhatsmeowClientEmitsAppStateEventsOnFullSync(t *testing.T) {
+	t.Parallel()
+
+	cli := NewWhatsmeowClient(zerolog.Nop())("s1", (&sqlstoreless{}).device()).(*whatsmeow.Client) //nolint:forcetypeassert // the release factory's type
+
+	// Without it a full sync dispatches no chat state event (appstate.go:70-72): the state after pairing and after a
+	// recovery would never arrive (ADR 0031).
+	if !cli.EmitAppStateEventsOnFullSync {
+		t.Fatal("the client does not emit app state events on a full sync")
+	}
+}
+
 // sqlstoreless builds a device without a database, for the factory test.
 type sqlstoreless struct{}
 
