@@ -112,7 +112,7 @@ internal sealed class GeneratedStream(long length, MemorySampler? memory) : Stre
 }
 
 /// <summary>A write-only stream that keeps only the SHA-256 and the length of what was written.</summary>
-internal sealed class HashingStream(MemorySampler memory) : Stream
+internal sealed class HashingStream(MemorySampler? memory) : Stream
 {
 	private readonly IncrementalHash _hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
 	private long _length;
@@ -139,7 +139,7 @@ internal sealed class HashingStream(MemorySampler memory) : Stream
 	{
 		_hash.AppendData(buffer);
 		_length += buffer.Length;
-		memory.Sample();
+		memory?.Sample();
 	}
 
 	public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)

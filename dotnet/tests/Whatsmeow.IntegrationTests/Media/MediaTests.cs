@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Security.Cryptography;
 using Google.Protobuf.WellKnownTypes;
 using Whatsmeow.Events;
@@ -28,7 +27,7 @@ public sealed class MediaTests(FakeSidecar fixture)
 		var media = await client.UploadMediaFileAsync(source, MediaType.Image, ct);
 
 		// The sidecar read the file in place: no bytes crossed the socket, and the file is as it was.
-		Assert.Equal(Uploaded(media, MediaType.Image, content), media);
+		MediaChecks.ValidateUploaded(media, MediaType.Image, content, FakeUrl(media));
 		Assert.Equal(content, await File.ReadAllBytesAsync(source, ct));
 		_ = Assert.Single(fixture.Logs.Named("UploadingByPath"), r => r.Message.Contains("media-fullcycle", StringComparison.Ordinal));
 		var upload = await NextSentAsync("media-fullcycle", 0, ct);
@@ -40,9 +39,7 @@ public sealed class MediaTests(FakeSidecar fixture)
 		_ = Assert.Single(fixture.Logs.Named("DownloadingByPath"), r => r.Message.Contains("media-fullcycle", StringComparison.Ordinal));
 		Assert.Equal(["copy.jpg", "photo.jpg"], Names(directory));
 
-		using var stream = new MemoryStream();
-		await client.DownloadMediaAsync(media, stream, ct);
-		Assert.Equal(content, stream.ToArray());
+		await MediaChecks.ValidateDownloadsAsync(client, media, content, ct);
 	}
 
 	[Fact(Timeout = Timeout)]
@@ -55,12 +52,12 @@ public sealed class MediaTests(FakeSidecar fixture)
 
 		using var input = new MemoryStream(content);
 		var fromStream = await client.UploadMediaAsync(input, MediaType.Document, ct);
-		Assert.Equal(Uploaded(fromStream, MediaType.Document, content), fromStream);
+		MediaChecks.ValidateUploaded(fromStream, MediaType.Document, content, FakeUrl(fromStream));
 
 		var file = Path.Combine(outside, "report.pdf");
 		await File.WriteAllBytesAsync(file, content, ct);
 		var fromFile = await client.UploadMediaFileAsync(file, MediaType.Document, ct);
-		Assert.Equal(Uploaded(fromFile, MediaType.Document, content), fromFile);
+		MediaChecks.ValidateUploaded(fromFile, MediaType.Document, content, FakeUrl(fromFile));
 		Assert.Equal(2, fixture.Logs.Named("UploadingInChunks").Count(r => r.Message.Contains("media-chunks", StringComparison.Ordinal)));
 
 		// Outside the root the client writes the file itself, from chunks, and puts it in place once complete.
@@ -252,7 +249,7 @@ public sealed class MediaTests(FakeSidecar fixture)
 
 		var media = await client.UploadMediaAsync(input, MediaType.Image, ct);
 
-		Assert.Equal(Uploaded(media, MediaType.Image, content), media);
+		MediaChecks.ValidateUploaded(media, MediaType.Image, content, FakeUrl(media));
 		var failed = await NextSentAsync("media-retried", 0, ct);
 		var succeeded = await NextSentAsync("media-retried", failed.Index, ct);
 		Assert.Equal(new MediaUpload { MediaType = "WhatsApp Image Keys" }, failed.MediaUpload);
@@ -334,19 +331,8 @@ public sealed class MediaTests(FakeSidecar fixture)
 		}
 	}
 
-	/// <summary>What an upload of <paramref name="content"/> gives: its hash and length, and what only WhatsApp knows.</summary>
-	private static MediaRef Uploaded(MediaRef actual, MediaType type, byte[] content) =>
-		new()
-		{
-			Type = type,
-			DirectPath = actual.DirectPath,
-			Url = new Uri($"https://fake.whatsapp.net{actual.DirectPath}"),
-			MediaKey = actual.MediaKey,
-			FileSha256 = [.. SHA256.HashData(content)],
-			FileEncSha256 = actual.FileEncSha256,
-			FileLength = content.Length,
-			StreamingSidecar = ImmutableArray<byte>.Empty,
-		};
+	/// <summary>The URL the fake WhatsApp answers an upload with.</summary>
+	private static Uri FakeUrl(MediaRef media) => new($"https://fake.whatsapp.net{media.DirectPath}");
 
 	private static string[] Names(string directory) => [.. Directory.EnumerateFileSystemEntries(directory).Select(Path.GetFileName).Order(StringComparer.Ordinal)!];
 

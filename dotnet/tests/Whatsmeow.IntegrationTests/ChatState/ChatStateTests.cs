@@ -39,11 +39,7 @@ public sealed class ChatStateTests(FakeSidecar fixture)
 		Assert.Equal(new GetPhoneChatStateResponse { Muted = true, MuteUntil = Timestamp.FromDateTimeOffset(s_until) }, await PhoneAsync(session, s_chat, ct));
 
 		// The write comes back as a change, as whatsmeow's sync after it brings it (appstate.go:627-635).
-		var echo = await changes.NextAsync(ct);
-		Assert.Equal(
-			(s_chat, false, new ChatStateChange.Mute { IsMuted = true, Until = s_until }),
-			(echo.Chat, echo.FromFullSync, echo.Change)
-		);
+		ChatStateChecks.ValidateMuteEcho(await changes.NextAsync(ct), s_chat, s_until);
 
 		await client.MuteChatAsync(s_chat, cancellationToken: ct);
 		Assert.Equal(new GetPhoneChatStateResponse { Muted = true }, await PhoneAsync(session, s_chat, ct));

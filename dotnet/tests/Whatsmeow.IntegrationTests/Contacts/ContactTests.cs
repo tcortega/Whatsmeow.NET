@@ -236,10 +236,10 @@ public sealed class ContactTests(FakeSidecar fixture)
 		Assert.Empty(await client.GetBlocklistAsync(ct));
 
 		await client.BlockAsync(Pn("5511960000001"), ct);
-		Assert.Equal([new BlockedUser { Jid = Lid("960000001"), JidAlt = Pn("5511960000001") }], await client.GetBlocklistAsync(ct));
+		ContactChecks.ValidateBlocked(await client.GetBlocklistAsync(ct), Lid("960000001"), Pn("5511960000001"));
 
 		await client.UnblockAsync(Lid("960000001"), ct);
-		Assert.Empty(await client.GetBlocklistAsync(ct));
+		ContactChecks.ValidateUnblocked(await client.GetBlocklistAsync(ct));
 	}
 
 	[Fact(Timeout = Timeout)]
@@ -279,10 +279,10 @@ public sealed class ContactTests(FakeSidecar fixture)
 		_ = await fixture.Fake.RegisterUserAsync(new RegisterUserRequest { PhoneJid = "5511960000002@s.whatsapp.net", Lid = "960000002@lid" }, cancellationToken: ct);
 
 		await client.BlockAsync(Pn("5511960000002") with { Device = 3 }, ct);
-		Assert.Equal([new BlockedUser { Jid = Lid("960000002"), JidAlt = Pn("5511960000002") }], await client.GetBlocklistAsync(ct));
+		ContactChecks.ValidateBlocked(await client.GetBlocklistAsync(ct), Lid("960000002"), Pn("5511960000002"));
 
 		await client.UnblockAsync(Lid("960000002") with { Device = 3 }, ct);
-		Assert.Empty(await client.GetBlocklistAsync(ct));
+		ContactChecks.ValidateUnblocked(await client.GetBlocklistAsync(ct));
 	}
 
 	[Fact(Timeout = Timeout)]

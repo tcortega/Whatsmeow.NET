@@ -49,15 +49,7 @@ public sealed class GroupTests(FakeSidecar fixture)
 		};
 
 	private static GroupInfoChanged Changed(string session, Jid group, Jid? sender, params GroupChange[] changes) =>
-		new()
-		{
-			SessionId = SessionId.From(session),
-			Group = group,
-			Sender = sender,
-			SenderAlt = null,
-			Timestamp = s_at,
-			Changes = [.. changes],
-		};
+		GroupChecks.Changed(SessionId.From(session), group, sender, senderAlt: null, s_at, changes);
 
 	[Fact(Timeout = Timeout)]
 	public async Task GetGroups_TheSessionsGroups_EachWithNameTopicParticipantsAndRoles()
@@ -316,15 +308,9 @@ public sealed class GroupTests(FakeSidecar fixture)
 		var group = (await admin.CreateGroupAsync("Team", [Self("groups-settings-b")], ct)).Group.Jid;
 		var by = Self("groups-settings-a");
 
-		await admin.SetGroupNameAsync(group, "Crew", ct);
-		await admin.SetGroupTopicAsync(group, "Plans for Monday", ct);
-		await admin.SetGroupAnnounceAsync(group, announce: true, ct);
-		await admin.SetGroupLockedAsync(group, locked: true, ct);
+		await GroupChecks.SetSettingsAsync(admin, group, "Crew", "Plans for Monday", ct);
 
-		Assert.Equal(Changed("groups-settings-b", group, by, new GroupChange.Renamed { Name = "Crew" }), await changes.NextAsync(ct));
-		Assert.Equal(Changed("groups-settings-b", group, by, new GroupChange.TopicChanged { Topic = "Plans for Monday" }), await changes.NextAsync(ct));
-		Assert.Equal(Changed("groups-settings-b", group, by, new GroupChange.AnnounceChanged { IsAnnounce = true }), await changes.NextAsync(ct));
-		Assert.Equal(Changed("groups-settings-b", group, by, new GroupChange.LockedChanged { IsLocked = true }), await changes.NextAsync(ct));
+		Assert.Equal(GroupChecks.Settings("Crew", "Plans for Monday").Select(change => Changed("groups-settings-b", group, by, change)), await changes.NextAsync(4, ct));
 
 		var expected = Created(group, "groups-settings-a", "Crew", Member(Self("groups-settings-b"))) with { Topic = "Plans for Monday", IsAnnounce = true, IsLocked = true };
 		Assert.Equal(expected, await member.GetGroupInfoAsync(group, ct));

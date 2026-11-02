@@ -698,15 +698,14 @@ public sealed class MessageActionTests(FakeSidecar fixture)
 	}
 
 	private static MessageReceived Received(string session, string id, Jid chat, Jid sender, MessageContent content) =>
-		new()
-		{
-			SessionId = SessionId.From(session),
-			Id = MessageId.From(id),
-			Source = new MessageSource { Chat = chat, Sender = sender, SenderAlt = null, RecipientAlt = null, IsFromMe = false },
-			PushName = null,
-			Timestamp = Deliveries.At,
-			Content = content,
-		};
+		MessageChecks.Received(
+			SessionId.From(session),
+			MessageId.From(id),
+			new MessageSource { Chat = chat, Sender = sender, SenderAlt = null, RecipientAlt = null, IsFromMe = false },
+			pushName: null,
+			Deliveries.At,
+			content
+		);
 
 	/// <summary>Connects a linked session whose handlers are registered, so its events flow to them.</summary>
 	private static async Task ConnectAsync(IWhatsAppClient client, CancellationToken ct)

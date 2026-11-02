@@ -1,6 +1,4 @@
-using System.Collections.Immutable;
 using System.Security.Cryptography;
-using System.Text;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Whatsmeow.Events;
@@ -129,9 +127,9 @@ public sealed class PollTests(FakeSidecar fixture)
 		await DeliverAsync(Session, cleared.Id.Value, s_peer, self, sent[2].Message.Message, ct, isFromMe: true);
 
 		var votes = await received.NextAsync(2, ct);
-		var selected = new PollVoteContent { Poll = own, SelectedOptionHashes = [Hash("Sushi"), Hash("Tacos")] };
+		var selected = MessageChecks.Vote(own, "Sushi", "Tacos");
 		Assert.Equal(Received(Session, vote.Id.Value, s_peer, self, selected, isFromMe: true), votes[0]);
-		Assert.Equal(Received(Session, cleared.Id.Value, s_peer, self, new PollVoteContent { Poll = own }, isFromMe: true), votes[1]);
+		Assert.Equal(Received(Session, cleared.Id.Value, s_peer, self, MessageChecks.Vote(own), isFromMe: true), votes[1]);
 	}
 
 	[Fact(Timeout = Timeout)]
@@ -177,8 +175,8 @@ public sealed class PollTests(FakeSidecar fixture)
 
 		var votes = await received.NextAsync(2, ct);
 		var key = new MessageKey { Id = poll.Id };
-		Assert.Equal(Received(Session, "V1", s_group, s_member, new PollVoteContent { Poll = key, SelectedOptionHashes = [Hash("Pizza")] }), votes[0]);
-		Assert.Equal(Received(Session, "V2", s_group, s_member, new PollVoteContent { Poll = key, SelectedOptionHashes = [Hash("Sushi"), Hash("Tacos")] }), votes[1]);
+		Assert.Equal(Received(Session, "V1", s_group, s_member, MessageChecks.Vote(key, "Pizza")), votes[0]);
+		Assert.Equal(Received(Session, "V2", s_group, s_member, MessageChecks.Vote(key, "Sushi", "Tacos")), votes[1]);
 
 		// The application holds the poll's options, and tells which the latest vote selected.
 		var latest = (PollVoteContent)votes[1].Content;
@@ -199,7 +197,7 @@ public sealed class PollTests(FakeSidecar fixture)
 
 		var events = await received.NextAsync(2, ct);
 		Assert.Equal(
-			Received(Session, "V1", s_group, s_other, new PollVoteContent { Poll = new MessageKey { Id = MessageId.From("R1"), Sender = s_member }, SelectedOptionHashes = [Hash("Tacos")] }),
+			Received(Session, "V1", s_group, s_other, MessageChecks.Vote(new MessageKey { Id = MessageId.From("R1"), Sender = s_member }, "Tacos")),
 			events[1]
 		);
 	}
@@ -286,7 +284,7 @@ public sealed class PollTests(FakeSidecar fixture)
 		// The peer votes with the secret of the poll WhatsApp delivered to it.
 		await DeliverVoteAsync(Session, "V1", s_peer, s_peer, poll.Id, Lid(10), ["Pizza"], ct);
 		Assert.Equal(
-			Received(Session, "V1", s_peer, s_peer, new PollVoteContent { Poll = new MessageKey { Id = id }, SelectedOptionHashes = [Hash("Pizza")] }),
+			Received(Session, "V1", s_peer, s_peer, MessageChecks.Vote(new MessageKey { Id = id }, "Pizza")),
 			await received.NextAsync(ct)
 		);
 	}
@@ -362,8 +360,8 @@ public sealed class PollTests(FakeSidecar fixture)
 				Session,
 				HistorySyncType.Recent,
 				History("H1", s_member, new PollContent { Poll = s_lunch }),
-				History("V1", s_other, new PollVoteContent { Poll = poll, SelectedOptionHashes = [Hash("Pizza"), Hash("Sushi")] }) with { Timestamp = s_votedAt },
-				History("V2", Jid.Parse($"{Session}@s.whatsapp.net"), new PollVoteContent { Poll = poll }, isFromMe: true) with { Timestamp = s_votedAt },
+				History("V1", s_other, MessageChecks.Vote(poll, "Pizza", "Sushi")) with { Timestamp = s_votedAt },
+				History("V2", Jid.Parse($"{Session}@s.whatsapp.net"), MessageChecks.Vote(poll), isFromMe: true) with { Timestamp = s_votedAt },
 				History("H2", s_member, new PollContent { Poll = s_lunch with { MaxSelectable = 3 } })
 			),
 			await batches.NextAsync(ct)
@@ -382,7 +380,7 @@ public sealed class PollTests(FakeSidecar fixture)
 		};
 		if (voter is { } participant)
 			update.PollUpdateMessageKey.Participant = participant.ToString();
-		update.Vote.SelectedOptions.Add(options.Select(static option => ByteString.CopyFrom(Hash(option).AsSpan())));
+		update.Vote.SelectedOptions.Add(options.Select(static option => ByteString.CopyFrom(MessageChecks.Hash(option).AsSpan())));
 		return update;
 	}
 
@@ -395,8 +393,6 @@ public sealed class PollTests(FakeSidecar fixture)
 			Timestamp = Histories.At,
 			Content = content,
 		};
-
-	private static ImmutableArray<byte> Hash(string option) => [.. SHA256.HashData(Encoding.UTF8.GetBytes(option))];
 
 	private static E2E.PollCreationMessage.Types.Option Option(string name) => new() { OptionName = name };
 
@@ -417,15 +413,14 @@ public sealed class PollTests(FakeSidecar fixture)
 	private static Jid Lid(int n) => Jid.Parse($"90000049{n}@lid");
 
 	private static MessageReceived Received(string session, string id, Jid chat, Jid sender, MessageContent content, bool isFromMe = false) =>
-		new()
-		{
-			SessionId = SessionId.From(session),
-			Id = MessageId.From(id),
-			Source = new MessageSource { Chat = chat, Sender = sender, SenderAlt = null, RecipientAlt = null, IsFromMe = isFromMe },
-			PushName = null,
-			Timestamp = Deliveries.At,
-			Content = content,
-		};
+		MessageChecks.Received(
+			SessionId.From(session),
+			MessageId.From(id),
+			new MessageSource { Chat = chat, Sender = sender, SenderAlt = null, RecipientAlt = null, IsFromMe = isFromMe },
+			pushName: null,
+			Deliveries.At,
+			content
+		);
 
 	private Task<IWhatsAppClient> LinkedAsync(string session, int n, CancellationToken ct) => SessionSetup.LinkedAsync(fixture, session, $"{Lid(n).User}:1@lid", ct);
 
