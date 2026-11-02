@@ -3,16 +3,23 @@ using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Time.Testing;
 using Whatsmeow;
 using Whatsmeow.Events;
+using Whatsmeow.Sessions;
 
 namespace SidecarHost;
 
 /// <summary>
 /// The process the events kill test kills: it starts the fake-mode sidecar on the database, prints the sidecar's
 /// process id, connects the session and prints "session id" as each message handler starts. In the handler of
-/// <c>blockOn</c> it moves its clock one ack interval, waits until the ack went out, prints "acked", and never
-/// returns; the test kills this process there. Its clock moves only then, so that is the one ack, and it covers
-/// exactly the events before <c>blockOn</c>.
+/// <c>blockOn</c> it waits until the session's state lane handled <see cref="SessionState.Connected"/>, moves its clock
+/// one ack interval, waits until the ack went out, prints "acked", and never returns; the test kills this process
+/// there. Its clock moves only then, so that is the one ack, and it covers exactly the events before <c>blockOn</c>.
 /// </summary>
+/// <remarks>
+/// The state lane runs beside the chat's lane, and the session's state events before the first message hold the
+/// watermark until that lane ran them: a tick before that acks nothing, and no tick comes after it (#61). This
+/// process's connect records <see cref="SessionState.Connected"/> after the messages, and a lane runs its events one
+/// after the other, so once that handler runs, every state event before the messages finished.
+/// </remarks>
 internal static class EventsHost
 {
 	public static async Task RunAsync(string fakeSidecar, string database, string session, string blockOn)
@@ -30,7 +37,16 @@ internal static class EventsHost
 			await PrintAsync(logs.GetSnapshot().First(r => r.Id.Name == "SidecarStarted").GetStructuredStateValue("ProcessId")).ConfigureAwait(false);
 
 			var stuck = new TaskCompletionSource();
+			var connected = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 			var client = await sidecar.Sessions.GetOrCreateAsync(SessionId.From(session), CancellationToken.None).ConfigureAwait(false);
+			using var states = client.On<ConnectionStateChanged>(
+				(e, token) =>
+				{
+					if (e.State is SessionState.Connected)
+						_ = connected.TrySetResult();
+					return ValueTask.CompletedTask;
+				}
+			);
 			using var handler = client.On<MessageReceived>(
 				async (e, _) =>
 				{
@@ -38,6 +54,7 @@ internal static class EventsHost
 					if (e.Id != MessageId.From(blockOn))
 						return;
 
+					await connected.Task.ConfigureAwait(false);
 					time.Advance(TimeSpan.FromSeconds(1));
 					await AckedAsync(logs).ConfigureAwait(false);
 					await PrintAsync("acked").ConfigureAwait(false);
