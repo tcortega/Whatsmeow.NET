@@ -32,6 +32,11 @@ public class WhatsmeowException : Exception
 	/// </summary>
 	public WhatsmeowErrorCode ErrorCode { get; init; }
 
+	/// <summary>A value the sidecar sent that this client cannot read: the field, never its value (ARCHITECTURE §8.7).</summary>
+	[DoesNotReturn]
+	internal static void ThrowUnreadable(string field) =>
+		throw new WhatsmeowException($"The sidecar sent a {field} this client cannot read.") { ErrorCode = WhatsmeowErrorCode.Internal };
+
 	[DoesNotReturn]
 	internal static void ThrowUnmapped(RpcException exception, WhatsmeowErrorCode code) =>
 		throw new WhatsmeowException($"The sidecar call failed: {exception.Status.Detail}", exception) { ErrorCode = code };

@@ -594,4 +594,31 @@ public sealed class GroupTests(FakeSidecar fixture)
 			await client.GetGroupInfoAsync(Group("120363111000000001"), ct)
 		);
 	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task GetGroupInfo_AParticipantTheClientCannotRead_ThrowsInternalNamingTheField()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var client = await SessionSetup.ConnectedAsync(fixture, "groups-unreadable", ct);
+		// A member with no server: the sidecar sends its JID empty, which the client cannot read.
+		_ = await fixture.Fake.AddGroupAsync(
+			new AddGroupRequest
+			{
+				Jid = "120363113000000001@g.us",
+				Name = "Broken",
+				Members =
+				{
+					new AddGroupRequest.Types.Member { Jid = "5511911300001@" },
+					new AddGroupRequest.Types.Member { Jid = Self("groups-unreadable").ToString() },
+				},
+			},
+			cancellationToken: ct
+		);
+
+		// The sidecar's fault, not the caller's: no validation exception, and the field named, not its value.
+		var error = await Assert.ThrowsAsync<WhatsmeowException>(() => client.GetGroupInfoAsync(Group("120363113000000001"), ct));
+		Assert.Equal(WhatsmeowErrorCode.Internal, error.ErrorCode);
+		Assert.Contains("GroupParticipant.jid", error.Message, StringComparison.Ordinal);
+		Assert.DoesNotContain("5511911300001", error.ToString(), StringComparison.Ordinal);
+	}
 }

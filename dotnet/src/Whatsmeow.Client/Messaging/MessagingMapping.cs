@@ -1,4 +1,5 @@
 using Google.Protobuf.WellKnownTypes;
+using Whatsmeow.Core.Errors;
 using Whatsmeow.Protocol.V1;
 
 namespace Whatsmeow.Messaging;
@@ -6,11 +7,12 @@ namespace Whatsmeow.Messaging;
 /// <summary>The message.proto requests and responses as the public types.</summary>
 internal static class MessagingMapping
 {
-	public static SendResult ToResult(MessageId id, string chat, Timestamp messageTime) =>
+	/// <summary>The send's result; <paramref name="field"/> is the response's chat field, which an unreadable chat names.</summary>
+	public static SendResult ToResult(MessageId id, string chat, Timestamp messageTime, string field) =>
 		new()
 		{
 			Id = id,
-			Chat = Jid.Parse(chat),
+			Chat = SidecarValues.Jid(chat, field),
 			Timestamp = messageTime.ToDateTimeOffset(),
 		};
 

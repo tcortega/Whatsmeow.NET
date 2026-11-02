@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Whatsmeow.Core.Errors;
 using Whatsmeow.Protocol.V1;
 using Change = Whatsmeow.Protocol.V1.ContactEvent.ChangeOneofCase;
 using PictureResult = Whatsmeow.Protocol.V1.GetProfilePictureResponse.ResultOneofCase;
@@ -23,20 +24,19 @@ internal static class ContactMapping
 		[
 			.. response.Users.Select(user => new UserInfo
 			{
-				Jid = Jid.Parse(user.Jid),
+				Jid = SidecarValues.Jid(user.Jid, "UserInfo.jid"),
 				About = NullIfEmpty(user.About),
 				VerifiedBusinessName = NullIfEmpty(user.VerifiedBusinessName),
 				PictureId = NullIfEmpty(user.PictureId),
 			}),
 		];
 
-	/// <exception cref="WhatsmeowValidationException">
+	/// <exception cref="WhatsmeowException">
 	/// The result is unset or one this client does not know: the sidecar always sets one it knows, so the response is
-	/// unusable, as a malformed JID in one is.
+	/// unusable, as a malformed JID in one is (<see cref="WhatsmeowErrorCode.Internal"/>).
 	/// </exception>
-	public static ProfilePicture ToPicture(GetProfilePictureResponse response)
-	{
-		ProfilePicture? picture = response.ResultCase switch
+	public static ProfilePicture ToPicture(GetProfilePictureResponse response) =>
+		response.ResultCase switch
 		{
 			PictureResult.Picture => new ProfilePicture.Set
 			{
@@ -45,23 +45,18 @@ internal static class ContactMapping
 			},
 			PictureResult.Hidden => new ProfilePicture.Hidden(),
 			PictureResult.None_ => new ProfilePicture.None(),
-			PictureResult.None => null,
-			_ => null,
+			PictureResult.None => SidecarValues.Unreadable<ProfilePicture>("GetProfilePictureResponse.result"),
+			_ => SidecarValues.Unreadable<ProfilePicture>("GetProfilePictureResponse.result"),
 		};
 
-		if (picture is null)
-			WhatsmeowValidationException.ThrowInvalid($"The sidecar sent a profile picture result this client does not know: {response.ResultCase}.");
-		return picture;
-	}
-
 	public static ImmutableArray<ResolvedJid> ToResolved(ResolveJidsResponse response) =>
-		[.. response.Results.Select(result => new ResolvedJid { Jid = Jid.Parse(result.Jid), JidAlt = ToJid(result.JidAlt) })];
+		[.. response.Results.Select(result => new ResolvedJid { Jid = SidecarValues.Jid(result.Jid, "ResolvedJid.jid"), JidAlt = ToJid(result.JidAlt) })];
 
 	public static ImmutableArray<Contact> ToContacts(ListContactsResponse response) =>
 		[
 			.. response.Contacts.Select(contact => new Contact
 			{
-				Jid = Jid.Parse(contact.Jid),
+				Jid = SidecarValues.Jid(contact.Jid, "Contact.jid"),
 				SavedName = NullIfEmpty(contact.SavedName),
 				PushName = NullIfEmpty(contact.PushName),
 				BusinessName = NullIfEmpty(contact.BusinessName),
@@ -69,16 +64,16 @@ internal static class ContactMapping
 		];
 
 	public static ImmutableArray<BlockedUser> ToBlocked(GetBlocklistResponse response) =>
-		[.. response.Users.Select(user => new BlockedUser { Jid = Jid.Parse(user.Jid), JidAlt = ToJid(user.JidAlt) })];
+		[.. response.Users.Select(user => new BlockedUser { Jid = SidecarValues.Jid(user.Jid, "BlockedUser.jid"), JidAlt = ToJid(user.JidAlt) })];
 
 	/// <summary>The event of a ContactEvent, or null for a change this client does not know.</summary>
-	/// <exception cref="WhatsmeowValidationException">The JID is missing or malformed: the event is unusable.</exception>
+	/// <exception cref="WhatsmeowException">The JID is missing or malformed: the event is unusable (<see cref="WhatsmeowErrorCode.Internal"/>).</exception>
 	public static ContactUpdated? ToEvent(SessionId sessionId, ContactEvent contact) =>
 		ToChange(contact) is { } change
 			? new ContactUpdated
 			{
 				SessionId = sessionId,
-				Jid = Jid.Parse(contact.Jid),
+				Jid = SidecarValues.Jid(contact.Jid, "ContactEvent.jid"),
 				JidAlt = ToJid(contact.JidAlt),
 				Change = change,
 			}

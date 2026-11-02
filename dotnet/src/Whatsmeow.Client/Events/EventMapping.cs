@@ -2,6 +2,7 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging.Abstractions;
 using Whatsmeow.ChatState;
 using Whatsmeow.Contacts;
+using Whatsmeow.Core.Errors;
 using Whatsmeow.Presence;
 using Whatsmeow.Media;
 using Whatsmeow.Groups;
@@ -26,7 +27,9 @@ internal static class EventMapping
 	/// <param name="sessionId">The session the event is of.</param>
 	/// <param name="response">The event.</param>
 	/// <param name="log">Where a history message that cannot be used is logged, as it is skipped; nowhere when null.</param>
-	/// <exception cref="WhatsmeowValidationException">The id, the chat or the sender is missing or malformed: the event is unusable.</exception>
+	/// <exception cref="WhatsmeowException">
+	/// The id, the chat or the sender is missing or malformed: the event is unusable (<see cref="WhatsmeowErrorCode.Internal"/>).
+	/// </exception>
 	public static WhatsAppEvent? ToEvent(SessionId sessionId, StreamEventsResponse response, ILogger? log = null) =>
 		response.PayloadCase switch
 		{
@@ -34,7 +37,7 @@ internal static class EventMapping
 			Payload.UndecryptableMessage => new UndecryptableMessageReceived
 			{
 				SessionId = sessionId,
-				Id = MessageId.From(response.UndecryptableMessage.Info.Id),
+				Id = SidecarValues.MessageId(response.UndecryptableMessage.Info.Id, "MessageInfo.id"),
 				Source = ToSource(response.UndecryptableMessage.Info.Source),
 				PushName = NullIfEmpty(response.UndecryptableMessage.Info.PushName),
 				Timestamp = ToTime(response.UndecryptableMessage.Info.MessageTime),
@@ -46,8 +49,8 @@ internal static class EventMapping
 			Payload.MediaRetry => new MediaRetryReceived
 			{
 				SessionId = sessionId,
-				Id = MessageId.From(response.MediaRetry.MessageId),
-				Chat = Jid.Parse(response.MediaRetry.Chat),
+				Id = SidecarValues.MessageId(response.MediaRetry.MessageId, "MediaRetryEvent.message_id"),
+				Chat = SidecarValues.Jid(response.MediaRetry.Chat, "MediaRetryEvent.chat"),
 				Sender = ToJid(response.MediaRetry.Sender),
 				IsFromMe = response.MediaRetry.IsFromMe,
 				Timestamp = ToTime(response.MediaRetry.RetryTime),
@@ -66,7 +69,7 @@ internal static class EventMapping
 			{
 				SessionId = sessionId,
 				Source = ToSource(response.Receipt.Source),
-				MessageIds = [.. response.Receipt.MessageIds.Select(MessageId.From)],
+				MessageIds = [.. response.Receipt.MessageIds.Select(id => SidecarValues.MessageId(id, "ReceiptEvent.message_ids"))],
 				Timestamp = ToTime(response.Receipt.ReceiptTime),
 				Type = ToType(response.Receipt.Type),
 				MessageSender = ToJid(response.Receipt.MessageSender),
@@ -114,14 +117,16 @@ internal static class EventMapping
 	/// The record of an ephemeral event, or null for a payload case or a state this client does not know. The time and
 	/// the alt JIDs map as for <see cref="ToEvent(SessionId, StreamEventsResponse, ILogger?)"/>.
 	/// </summary>
-	/// <exception cref="WhatsmeowValidationException">The user, the chat or the sender is missing or malformed: the event is unusable.</exception>
+	/// <exception cref="WhatsmeowException">
+	/// The user, the chat or the sender is missing or malformed: the event is unusable (<see cref="WhatsmeowErrorCode.Internal"/>).
+	/// </exception>
 	public static WhatsAppEvent? ToEvent(SessionId sessionId, StreamEphemeralEventsResponse response) =>
 		response.PayloadCase switch
 		{
 			EphemeralPayload.Presence when PresenceMapping.ToState(response.Presence.State) is { } state => new PresenceChanged
 			{
 				SessionId = sessionId,
-				From = Jid.Parse(response.Presence.From),
+				From = SidecarValues.Jid(response.Presence.From, "PresenceEvent.from"),
 				State = state,
 				LastSeen = response.Presence.LastSeen is null ? null : ToTime(response.Presence.LastSeen),
 			},
@@ -146,7 +151,7 @@ internal static class EventMapping
 		return new MessageReceived
 		{
 			SessionId = sessionId,
-			Id = MessageId.From(message.Info.Id),
+			Id = SidecarValues.MessageId(message.Info.Id, "MessageInfo.id"),
 			Source = source,
 			PushName = NullIfEmpty(message.Info.PushName),
 			Timestamp = ToTime(message.Info.MessageTime),
@@ -164,8 +169,8 @@ internal static class EventMapping
 	internal static MessageSource ToSource(Protocol.V1.MessageSource source) =>
 		new()
 		{
-			Chat = Jid.Parse(source.Chat),
-			Sender = Jid.Parse(source.Sender),
+			Chat = SidecarValues.Jid(source.Chat, "MessageSource.chat"),
+			Sender = SidecarValues.Jid(source.Sender, "MessageSource.sender"),
 			SenderAlt = ToJid(source.SenderAlt),
 			RecipientAlt = ToJid(source.RecipientAlt),
 			IsFromMe = source.IsFromMe,

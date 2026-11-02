@@ -1,4 +1,5 @@
 using Google.Protobuf.WellKnownTypes;
+using Whatsmeow.Core.Errors;
 using Whatsmeow.Events;
 using Whatsmeow.Protocol.V1;
 using Change = Whatsmeow.Protocol.V1.ChatStateEvent.ChangeOneofCase;
@@ -21,13 +22,15 @@ internal static class ChatStateMapping
 		};
 
 	/// <summary>The event of a ChatStateEvent, or null for a change this client does not know.</summary>
-	/// <exception cref="WhatsmeowValidationException">The chat or a star's message id is missing or malformed: the event is unusable.</exception>
+	/// <exception cref="WhatsmeowException">
+	/// The chat or a star's message id is missing or malformed: the event is unusable (<see cref="WhatsmeowErrorCode.Internal"/>).
+	/// </exception>
 	public static ChatStateChanged? ToEvent(SessionId sessionId, ChatStateEvent chatState) =>
 		ToChange(chatState) is { } change
 			? new ChatStateChanged
 			{
 				SessionId = sessionId,
-				Chat = Jid.Parse(chatState.Chat),
+				Chat = SidecarValues.Jid(chatState.Chat, "ChatStateEvent.chat"),
 				Timestamp = EventMapping.ToTime(chatState.ChangeTime),
 				FromFullSync = chatState.FromFullSync,
 				Change = change,
@@ -47,7 +50,7 @@ internal static class ChatStateMapping
 			Change.Read => new ChatStateChange.Read { IsRead = chatState.Read.Read },
 			Change.Star => new ChatStateChange.Star
 			{
-				MessageId = MessageId.From(chatState.Star.MessageId),
+				MessageId = SidecarValues.MessageId(chatState.Star.MessageId, "MessageStar.message_id"),
 				Sender = Jid.TryParse(chatState.Star.Sender, out var sender) ? sender : null,
 				IsFromMe = chatState.Star.IsFromMe,
 				IsStarred = chatState.Star.Starred,

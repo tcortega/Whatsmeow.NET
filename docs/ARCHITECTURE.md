@@ -556,6 +556,8 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
 | `MEDIA_EXPIRED` | `MediaExpiredException` |
 | `OUTCOME_UNKNOWN` | `OutcomeUnknownException` |
 
+- A value the sidecar sent that the client cannot read, in a response or an event (a JID that does not parse, an empty id, an unset result, an enum case it does not know), is the library's fault, never the caller's: a plain `WhatsmeowException` with `Internal`, whose message names the contract's field (`GroupParticipant.jid`) and never its value (`Core/Errors/SidecarValues.cs`, #84).
+  An event that holds one is logged with it, skipped and acked (§8.4); `WhatsmeowValidationException` stays the caller's own invalid value or request.
 - The message is the status message, which `server.toStatus` makes without a phone number, a JID's user part or a URL's query, whatever a slice wrapped into the error; the reason and its metadata are untouched ([ADR 0039](adr/0039-pii-redaction-of-stderr-and-status-messages.md)). `Jid.Parse` throws without the text it refused.
 - Cancellation surfaces as `OperationCanceledException`, and deadlines as `TimeoutException`.
 - `RpcException` never escapes the public API. No Result types for I/O failures.

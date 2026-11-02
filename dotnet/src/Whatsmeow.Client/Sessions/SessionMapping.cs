@@ -1,3 +1,4 @@
+using Whatsmeow.Core.Errors;
 using Whatsmeow.Protocol.V1;
 using ProtoState = Whatsmeow.Protocol.V1.SessionState;
 
@@ -9,7 +10,7 @@ internal static class SessionMapping
 	public static SessionInfo ToInfo(Session session) =>
 		new()
 		{
-			Id = SessionId.From(session.Id),
+			Id = SidecarValues.SessionId(session.Id, "Session.id"),
 			State = ToState(session.State),
 			Jid = ToJid(session.Jid),
 			Lid = ToJid(session.Lid),
