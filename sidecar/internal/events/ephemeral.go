@@ -53,8 +53,8 @@ func chatState(state types.ChatPresence, media types.ChatPresenceMedia) whatsmeo
 	}
 }
 
-// ring returns the session's ring, making it on the first event or stream. A ring of a deleted session is replaced,
-// so a session created again with the same id never gets the old one's events.
+// ring returns the session's ring, making it for the first handler or stream. A ring of a deleted session is
+// replaced, so a session created again with the same id never gets the old one's events.
 func (svc *Service) ring(sessionID string) *ring {
 	svc.mu.Lock()
 	defer svc.mu.Unlock()
@@ -97,21 +97,22 @@ func (svc *Service) StreamEphemeralEvents(req *whatsmeowv1.StreamEphemeralEvents
 			overflow := &whatsmeowv1.StreamEphemeralEventsResponse{Payload: &whatsmeowv1.StreamEphemeralEventsResponse_QueueOverflow{
 				QueueOverflow: &whatsmeowv1.QueueOverflowEvent{Dropped: dropped},
 			}}
+			// Counted as got at hand-off, before the send: a stream opened once the client read it starts after it.
+			next += dropped
+			r.got(next)
+
 			if err := sendOrEnd(ctx, stream, overflow); err != nil {
 				return fmt.Errorf("stream the ephemeral events of session %q: %w", id, err)
 			}
-
-			next += dropped
-			r.got(next)
 		}
 
 		for _, event := range events {
+			next++
+			r.got(next)
+
 			if err := sendOrEnd(ctx, stream, event); err != nil {
 				return fmt.Errorf("stream the ephemeral events of session %q: %w", id, err)
 			}
-
-			next++
-			r.got(next)
 		}
 
 		next = after

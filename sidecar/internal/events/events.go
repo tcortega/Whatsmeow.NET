@@ -59,6 +59,10 @@ func New(box *outbox.Outbox, log zerolog.Logger, mappers ...Mapper) *Service {
 // whatsmeow's dispatchEvent turns a panic into success (client.go:999-1013). It never calls .NET, the network or
 // media, and never returns false because no consumer is connected. An event it does not record returns true.
 func (svc *Service) Handler(sessionID string) whatsmeow.EventHandlerWithSuccessStatus {
+	// Bound now, so a client still running after its session was deleted pushes only into its own dead ring, never
+	// into the ring of a session created again with the same id.
+	ephemeral := svc.ring(sessionID)
+
 	return func(evt any) (ok bool) {
 		defer func() {
 			if r := recover(); r != nil {
@@ -70,7 +74,7 @@ func (svc *Service) Handler(sessionID string) whatsmeow.EventHandlerWithSuccessS
 
 		// Ephemeral: into the session's ring in memory, never the outbox, and never waiting for a stream.
 		if event, ok := toEphemeral(evt); ok {
-			svc.ring(sessionID).push(event)
+			ephemeral.push(event)
 
 			return true
 		}
@@ -200,9 +204,10 @@ func (svc *Service) send(ctx context.Context, id string, after uint64, watch out
 }
 
 // sendOrEnd sends event, or returns when ctx ends first. Send blocks while the client does not read: backpressure
-// stops here, and the events stay in the outbox, or the ephemeral ones in the ring until it drops them. Its wait ends only with the stream itself, not with ctx, a context
-// derived from it (grpc-go http2_server.go:624, flowcontrol.go:54-66), so a replaced stream would stay in it; the send
-// runs on its own goroutine, which ends when grpc-go finishes the stream as this handler returns.
+// stops here, and the events stay in the outbox, or the ephemeral ones in the ring until it drops them. Its wait ends
+// only with the stream itself, not with ctx, a context derived from it (grpc-go http2_server.go:624,
+// flowcontrol.go:54-66), so a replaced stream would stay in it; the send runs on its own goroutine, which ends when
+// grpc-go finishes the stream as this handler returns.
 func sendOrEnd[T any](ctx context.Context, stream grpc.ServerStreamingServer[T], event *T) error {
 	sent := make(chan error, 1)
 

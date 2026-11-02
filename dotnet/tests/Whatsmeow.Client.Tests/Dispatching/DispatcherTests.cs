@@ -165,6 +165,42 @@ public sealed class DispatcherTests : IAsyncDisposable
 	}
 
 	[Fact(Timeout = 10_000)]
+	public async Task NoAck_BehindAHandlerThatNeverReturns_KeepsNothingOfTheEventsThatFinished()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const int Finishing = 1_000;
+		var input = Channel.CreateUnbounded<Work>();
+		var unacked = new Dispatcher(input.Reader, ackAsync: null, _time, new FakeLogger(_logs.Collector, "Whatsmeow.Client"));
+		await using var disposeUnacked = unacked.ConfigureAwait(false);
+		unacked.Start();
+		var finished = 0;
+		var allFinished = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+		_ = input.Writer.TryWrite(new Work { Seq = 1, Lane = "a", RunAsync = async token => await Task.Delay(Timeout.InfiniteTimeSpan, _time, token).ConfigureAwait(false) });
+		for (ulong seq = 2; seq <= Finishing + 1; seq++)
+		{
+			_ = input.Writer.TryWrite(
+				new Work
+				{
+					Seq = seq,
+					Lane = "b",
+					RunAsync = _ =>
+					{
+						if (Interlocked.Increment(ref finished) == Finishing)
+							allFinished.SetResult();
+						return ValueTask.CompletedTask;
+					},
+				}
+			);
+		}
+
+		await allFinished.Task.WaitAsync(ct);
+
+		// Nothing acks them, so no watermark waits for the stuck one: none of them is kept.
+		Assert.Equal(0, unacked.Unacked);
+	}
+
+	[Fact(Timeout = 10_000)]
 	public async Task Start_AfterTheStop_StartsNothing()
 	{
 		_ = TestContext.Current.CancellationToken;

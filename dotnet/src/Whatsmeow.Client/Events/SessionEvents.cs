@@ -324,6 +324,10 @@ internal sealed class SessionEvents : IAsyncDisposable
 		try
 		{
 			e = EventMapping.ToEvent(_sessionId, response);
+
+			// A payload case or a state this client does not know is skipped.
+			if (e is null)
+				EventLog.EphemeralEventSkipped(_log, response.PayloadCase.ToString(), _sessionId.Value);
 		}
 #pragma warning disable CA1031 // Justification: an ephemeral event this client cannot map is skipped, never the end of the stream
 		catch (Exception exception) when (exception is not OperationCanceledException)
@@ -332,10 +336,6 @@ internal sealed class SessionEvents : IAsyncDisposable
 			EventLog.EphemeralEventUnreadable(_log, exception, _sessionId.Value);
 			e = null;
 		}
-
-		// A payload case or a state this client does not know is skipped.
-		if (e is null)
-			EventLog.EphemeralEventSkipped(_log, response.PayloadCase.ToString(), _sessionId.Value);
 
 		return new Work
 		{

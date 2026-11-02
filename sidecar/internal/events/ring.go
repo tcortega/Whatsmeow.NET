@@ -44,7 +44,7 @@ func (r *ring) push(event *whatsmeowv1.StreamEphemeralEventsResponse) {
 }
 
 // start is where a stream that opens now begins: after the newest event any stream got. A stream opened while none
-// is open so gets the ones no stream got, and one opened while another is open the next one.
+// is open so gets the ones no stream got, and one opened while another is open starts where the furthest open one is.
 func (r *ring) start() uint64 {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -73,7 +73,8 @@ func (r *ring) read(from uint64) (uint64, []*whatsmeowv1.StreamEphemeralEventsRe
 	return dropped, events, r.next, r.changed
 }
 
-// got records that a stream got every event before number upTo, or was told they were dropped.
+// got records that a stream was handed every event before number upTo, or told they were dropped: before the send,
+// so a stream that opens once the client read one never starts before it.
 func (r *ring) got(upTo uint64) {
 	r.mu.Lock()
 	defer r.mu.Unlock()

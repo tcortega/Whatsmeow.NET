@@ -140,6 +140,7 @@ public sealed class PresenceTests(FakeSidecar fixture)
 		_ = await Assert.ThrowsAsync<NotConnectedException>(() => linked.SendChatPresenceAsync(user, ChatPresenceState.Typing, ct));
 		_ = await Assert.ThrowsAsync<NotLoggedInException>(() => created.SendPresenceAsync(PresenceState.Available, ct));
 		_ = await Assert.ThrowsAsync<WhatsmeowValidationException>(() => linked.SendPresenceAsync((PresenceState)42, ct));
+		_ = await Assert.ThrowsAsync<WhatsmeowValidationException>(() => linked.SendChatPresenceAsync(user, (ChatPresenceState)42, ct));
 	}
 
 	[Fact(Timeout = Timeout)]
@@ -201,25 +202,62 @@ public sealed class PresenceTests(FakeSidecar fixture)
 	}
 
 	[Fact(Timeout = Timeout)]
-	public async Task Burst_PresenceHandlersAreStuck_MessagesStillArrive()
+	public async Task Burst_PresenceHandlersAreStuck_MessagesStillArriveAndWhatIsNotHeldIsCounted()
 	{
 		var ct = TestContext.Current.CancellationToken;
 		const string Session = "presence-burst";
+
+		// More than this process and the transport hold while the handlers are stuck: about 2,800 on osx-arm64.
+		const int Burst = 10_000;
+		const string Last = "5511999999999@s.whatsapp.net";
 		var client = await Presences.OnlineAsync(fixture, Session, ct);
 		var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+		var accounted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+		long received = 0;
+		long dropped = 0;
+		void Account(long n)
+		{
+			if (Interlocked.Add(ref received, n) + Interlocked.Read(ref dropped) >= Burst)
+				_ = accounted.TrySetResult();
+		}
 
-		// Every presence handler holds its lane until the end of the test: far more than the dispatcher runs at once.
-		using var stuck = client.On<PresenceChanged>(async (_, token) => await release.Task.WaitAsync(token).ConfigureAwait(false));
+		// Every presence handler holds its lane until the messages arrived: far more than the dispatcher runs at once.
+		using var stuck = client.On<PresenceChanged>(
+			async (e, token) =>
+			{
+				await release.Task.WaitAsync(token).ConfigureAwait(false);
+				if (e.From != Jid.Parse(Last))
+					Account(1);
+			}
+		);
+		using var drops = client.On<EphemeralEventsDropped>(
+			(e, token) =>
+			{
+				_ = Interlocked.Add(ref dropped, e.Count);
+				Account(0);
+				return ValueTask.CompletedTask;
+			}
+		);
 		using var messages = new Received<MessageReceived>(client);
 
-		await Presences.DeliverAsync(fixture.Fake, ct, [.. Enumerable.Range(0, 2_000).Select(n => Presences.Of(Session, n, $"55119{n:D8}@s.whatsapp.net"))]);
+		await Presences.DeliverAsync(fixture.Fake, ct, [.. Enumerable.Range(0, Burst).Select(n => Presences.Of(Session, n, $"55119{n:D8}@s.whatsapp.net"))]);
 		await Deliveries.DeliverAsync(fixture.Fake, Session, ct, "M1", "M2", "M3", "M4", "M5");
 
 		Assert.Equal(
 			Enumerable.Range(1, 5).Select(i => Deliveries.Received(Session, $"M{i}")),
 			await messages.NextAsync(5, ct)
 		);
+
+		// This process holds a bounded number while its handlers are stuck, so the sidecar dropped the rest, and said
+		// how many: every presence of the burst arrives or is counted, and a later one finds nothing more.
 		release.SetResult();
+		await accounted.Task.WaitAsync(ct);
+		var lastArrived = client.WaitForAsync<PresenceChanged>(e => e.From == Jid.Parse(Last), TimeSpan.FromMinutes(1), ct);
+		await Presences.DeliverAsync(fixture.Fake, ct, Presences.Of(Session, 0, Last));
+		_ = await lastArrived;
+
+		Assert.True(Interlocked.Read(ref dropped) > 0, $"{Interlocked.Read(ref received)} received and none dropped: this process held the whole burst");
+		Assert.Equal(Burst, Interlocked.Read(ref received) + Interlocked.Read(ref dropped));
 	}
 
 	/// <summary>The next <paramref name="count"/> things the session's client sent, without their log index.</summary>

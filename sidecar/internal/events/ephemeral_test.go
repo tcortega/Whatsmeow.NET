@@ -286,3 +286,34 @@ func TestADeletedSessionsEphemeralEventsNeverReachTheNextSessionOfItsID(t *testi
 	h.mustDeliver("s1", presence(2))
 	recvEphemeral(t, h.openEphemeral(h.client, "s1"), streamedPresence(2))
 }
+
+func TestALateEventOfADeletedSessionsClientNeverReachesTheNextSessionOfItsID(t *testing.T) {
+	t.Parallel()
+
+	h := start(t, "s1")
+	old := h.svc.Handler("s1")
+
+	// As the session slice's DeleteSession does, then CreateSession with the same id and a client of its own.
+	if _, err := h.db.DB.ExecContext(h.ctx, "DELETE FROM session WHERE id = 's1'"); err != nil {
+		t.Fatalf("delete the session: %v", err)
+	}
+
+	h.box.Delete("s1")
+
+	if _, err := h.db.DB.ExecContext(h.ctx, "INSERT INTO session (id) VALUES ('s1')"); err != nil {
+		t.Fatalf("create the session again: %v", err)
+	}
+
+	next := h.svc.Handler("s1")
+
+	// The deleted session's client is still disconnecting, and its handler runs once more.
+	if !old(presence(1)) {
+		t.Fatal("the old client's handler withheld the answer")
+	}
+
+	if !next(presence(2)) {
+		t.Fatal("the handler withheld the answer")
+	}
+
+	recvEphemeral(t, h.openEphemeral(h.client, "s1"), streamedPresence(2))
+}

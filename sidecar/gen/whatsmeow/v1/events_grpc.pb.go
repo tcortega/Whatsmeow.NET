@@ -62,11 +62,11 @@ type EventServiceClient interface {
 	// StreamEphemeralEvents sends the session's ephemeral events, presence and chat presence, as they arrive. They are
 	// best effort: never recorded, never acked, without a seq, and gone when the sidecar restarts. Their order is kept
 	// among themselves, not relative to StreamEvents.
-	// The sidecar keeps each session's newest 256 in memory, also while no stream is open. A stream opened while none
-	// is open first gets the ones no stream was sent; one opened while another is open starts with the next one. Every
-	// open stream gets every event from then on. When events a stream would get were dropped, because more arrived
-	// than are kept while the stream fell behind or none was open, the stream gets a QueueOverflowEvent with how many,
-	// before the next event.
+	// The sidecar keeps each session's newest 256 in memory, also while no stream is open. A stream starts after the
+	// newest event any stream of the session got: one opened while none is open so first gets the ones no stream got,
+	// and one opened while another is open starts where the furthest open one is. Every open stream gets every event
+	// from then on. When events a stream would get were dropped, because more arrived than are kept while the stream
+	// fell behind or none was open, the stream gets a QueueOverflowEvent with how many, before the next event.
 	// The stream ends with SESSION_NOT_FOUND when the session is deleted.
 	// Errors: SESSION_NOT_FOUND.
 	StreamEphemeralEvents(ctx context.Context, in *StreamEphemeralEventsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamEphemeralEventsResponse], error)
@@ -166,11 +166,11 @@ type EventServiceServer interface {
 	// StreamEphemeralEvents sends the session's ephemeral events, presence and chat presence, as they arrive. They are
 	// best effort: never recorded, never acked, without a seq, and gone when the sidecar restarts. Their order is kept
 	// among themselves, not relative to StreamEvents.
-	// The sidecar keeps each session's newest 256 in memory, also while no stream is open. A stream opened while none
-	// is open first gets the ones no stream was sent; one opened while another is open starts with the next one. Every
-	// open stream gets every event from then on. When events a stream would get were dropped, because more arrived
-	// than are kept while the stream fell behind or none was open, the stream gets a QueueOverflowEvent with how many,
-	// before the next event.
+	// The sidecar keeps each session's newest 256 in memory, also while no stream is open. A stream starts after the
+	// newest event any stream of the session got: one opened while none is open so first gets the ones no stream got,
+	// and one opened while another is open starts where the furthest open one is. Every open stream gets every event
+	// from then on. When events a stream would get were dropped, because more arrived than are kept while the stream
+	// fell behind or none was open, the stream gets a QueueOverflowEvent with how many, before the next event.
 	// The stream ends with SESSION_NOT_FOUND when the session is deleted.
 	// Errors: SESSION_NOT_FOUND.
 	StreamEphemeralEvents(*StreamEphemeralEventsRequest, grpc.ServerStreamingServer[StreamEphemeralEventsResponse]) error
