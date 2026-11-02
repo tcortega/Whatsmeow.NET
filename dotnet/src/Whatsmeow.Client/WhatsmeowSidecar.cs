@@ -1,5 +1,6 @@
 using System.Diagnostics.Metrics;
 using Grpc.Core;
+using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Whatsmeow.Core.Errors;
@@ -12,7 +13,7 @@ using Whatsmeow.Sidecar;
 namespace Whatsmeow;
 
 /// <summary>
-/// The <c>whatsmeow-net</c> sidecar process and the one channel to it. It finds, starts, checks and supervises the
+/// The <c>whatsmeow-net</c> sidecar process and the calls to it. It finds, starts, checks and supervises the
 /// process, restarts it when it exits on its own, and stops it on <see cref="DisposeAsync"/>.
 /// </summary>
 public sealed class WhatsmeowSidecar : IAsyncDisposable
@@ -28,12 +29,16 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 	private readonly bool _fakeWhatsApp;
 	private readonly ILogger _log;
 	private readonly ILogger _sidecarLog;
-	private readonly LocalChannel _channel;
+	private readonly ILoggerFactory _loggerFactory;
+	private readonly LocalChannel _none;
+	private readonly LaunchInvoker _launchInvoker;
 	private readonly SidecarService.SidecarServiceClient _client;
 	private readonly SidecarSupervisor _supervisor;
 	private readonly CancellationTokenSource _disposing = new();
 	private readonly Lock _launchLock = new();
 	private volatile SidecarProcess? _current;
+	private LocalChannel? _channel;
+	private LocalChannel? _retired;
 	private string? _binary;
 	private string? _socketDirectory;
 	private Task? _starting;
@@ -60,11 +65,15 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		TimeProvider = timeProvider;
 		_log = loggerFactory.CreateLogger(SidecarLog.Category);
 		_sidecarLog = loggerFactory.CreateLogger(SidecarLog.SidecarCategory);
+		_loggerFactory = loggerFactory;
 		Metrics = new ClientMetrics(meterFactory);
-		_channel = new LocalChannel(options.Transport is SidecarTransport.NamedPipe, () => _current?.Endpoint, () => _current?.Token ?? "", loggerFactory, Metrics);
-		_client = new SidecarService.SidecarServiceClient(_channel.CallInvoker);
+		_none = new LocalChannel(options.Transport is SidecarTransport.NamedPipe, endpoint: null, token: "", loggerFactory, timeProvider);
+		_launchInvoker = new LaunchInvoker(_none.CallInvoker);
+		// Every failed call is counted here, by its error code, the library's own calls included (ADR 0037).
+		CallInvoker = _launchInvoker.Intercept(new ErrorCounter(Metrics));
+		_client = new SidecarService.SidecarServiceClient(CallInvoker);
 		_supervisor = new SidecarSupervisor(LaunchAsync, timeProvider, _log);
-		Sessions = new WhatsmeowSessions(this, _channel.CallInvoker, _log, clientCreated, declared);
+		Sessions = new WhatsmeowSessions(this, CallInvoker, _log, clientCreated, declared);
 	}
 
 	/// <summary>The sidecar's sessions, one WhatsApp account each.</summary>
@@ -250,10 +259,10 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 	}
 
 	/// <summary>
-	/// Every call goes through this invoker, which adds the current launch's token and follows restarts. The
+	/// Every call goes through this invoker, which starts it on the current launch's channel and follows restarts. The
 	/// integration tests reach the fake WhatsApp control through it (ADR 0019).
 	/// </summary>
-	internal CallInvoker CallInvoker => _channel.CallInvoker;
+	internal CallInvoker CallInvoker { get; }
 
 	/// <summary>The media root as a full path, or null when none is configured.</summary>
 	internal string? MediaRoot => _options.MediaRoot;
@@ -354,7 +363,9 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 			finally
 			{
 				_current = null;
-				_channel.Dispose();
+				Publish(channel: null);
+				_retired?.Dispose();
+				_none.Dispose();
 				_disposing.Dispose();
 				Metrics.Dispose();
 				DeleteSocketDirectory();
@@ -399,6 +410,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 			.StartAsync(_binary!, _options.Transport, _socketDirectory, _options.DatabasePath!, _options.MediaRoot, _options.History, _options.SendPacing, _fakeWhatsApp, _options.StartupTimeout, _log, _sidecarLog, startup.Token, cancellationToken)
 			.ConfigureAwait(false);
 		_current = process;
+		Publish(new LocalChannel(_options.Transport is SidecarTransport.NamedPipe, process.Endpoint, process.Token, _loggerFactory, TimeProvider));
 		SidecarLog.SidecarStarted(_log, process.Id, process.Version, process.Endpoint);
 
 		GetInfoResponse info;
@@ -437,6 +449,19 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 
 		launched.SetResult();
 		return (process.Id, process.Exited);
+	}
+
+	/// <summary>
+	/// Makes <paramref name="channel"/> the one new calls start on, or none when null. The last launch's channel is
+	/// disposed only when the next one is published: disposing it would cancel the calls still on it, which fail as
+	/// unreachable on their own, and a call started just before the switch would end as a cancellation (ADR 0045).
+	/// </summary>
+	private void Publish(LocalChannel? channel)
+	{
+		_retired?.Dispose();
+		_retired = _channel;
+		_channel = channel;
+		_launchInvoker.Use(channel?.CallInvoker);
 	}
 
 	private async Task<GetInfoResponse> GetInfoCoreAsync(CancellationToken cancellationToken)
