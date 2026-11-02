@@ -343,6 +343,20 @@ func (svc *Service) persist(ctx context.Context, db execer, s *session) error {
 
 func nullable(s string) sql.NullString { return sql.NullString{String: s, Valid: s != ""} }
 
+// lock takes s.ops for a call that found s, unless s was deleted meanwhile: a call that found it just before
+// DeleteSession waits for the delete, and must then fail as get does, not act on a deleted session.
+func (s *session) lock() error {
+	s.ops.Lock()
+
+	if s.gone() {
+		s.ops.Unlock()
+
+		return fmt.Errorf("session %q: %w", s.id, server.ErrSessionNotFound)
+	}
+
+	return nil
+}
+
 func (s *session) gone() bool {
 	select {
 	case <-s.deleted:
@@ -494,7 +508,14 @@ func (svc *Service) DeleteSession(ctx context.Context, req *whatsmeowv1.DeleteSe
 		return nil, err
 	}
 
-	s.ops.Lock()
+	return svc.deleteSession(ctx, s)
+}
+
+// deleteSession is DeleteSession on the session get found.
+func (svc *Service) deleteSession(ctx context.Context, s *session) (*whatsmeowv1.DeleteSessionResponse, error) {
+	if err := s.lock(); err != nil {
+		return nil, err
+	}
 	defer s.ops.Unlock()
 
 	s.mu.Lock()
@@ -551,7 +572,14 @@ func (svc *Service) Connect(ctx context.Context, req *whatsmeowv1.ConnectRequest
 		return nil, err
 	}
 
-	s.ops.Lock()
+	return svc.connect(ctx, s)
+}
+
+// connect is Connect on the session get found.
+func (svc *Service) connect(ctx context.Context, s *session) (*whatsmeowv1.ConnectResponse, error) {
+	if err := s.lock(); err != nil {
+		return nil, err
+	}
 	defer s.ops.Unlock()
 
 	s.mu.Lock()
@@ -622,7 +650,14 @@ func (svc *Service) Disconnect(ctx context.Context, req *whatsmeowv1.DisconnectR
 		return nil, err
 	}
 
-	s.ops.Lock()
+	return svc.disconnect(ctx, s)
+}
+
+// disconnect is Disconnect on the session get found.
+func (svc *Service) disconnect(ctx context.Context, s *session) (*whatsmeowv1.DisconnectResponse, error) {
+	if err := s.lock(); err != nil {
+		return nil, err
+	}
 	defer s.ops.Unlock()
 
 	s.mu.Lock()
@@ -661,7 +696,14 @@ func (svc *Service) Logout(ctx context.Context, req *whatsmeowv1.LogoutRequest) 
 		return nil, err
 	}
 
-	s.ops.Lock()
+	return svc.logout(ctx, s)
+}
+
+// logout is Logout on the session get found.
+func (svc *Service) logout(ctx context.Context, s *session) (*whatsmeowv1.LogoutResponse, error) {
+	if err := s.lock(); err != nil {
+		return nil, err
+	}
 	defer s.ops.Unlock()
 
 	s.mu.Lock()
