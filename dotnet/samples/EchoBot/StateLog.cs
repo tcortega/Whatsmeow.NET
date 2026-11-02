@@ -1,5 +1,6 @@
 using Whatsmeow.Events;
 using Whatsmeow.Extensions.Hosting;
+using Whatsmeow.Sessions;
 
 namespace EchoBot;
 
@@ -8,9 +9,27 @@ public sealed partial class StateLog(ILogger<StateLog> logger) : IWhatsAppEventH
 {
 	public ValueTask HandleAsync(ConnectionStateChanged e, IWhatsAppClient client, CancellationToken cancellationToken)
 	{
-		StateChanged(logger, e.SessionId.Value, e.State.GetType().Name);
+		StateChanged(logger, e.SessionId.Value, Name(e.State));
 		return ValueTask.CompletedTask;
 	}
+
+	private static string Name(SessionState state) =>
+		state switch
+		{
+			SessionState.Created => nameof(SessionState.Created),
+			SessionState.Pairing => nameof(SessionState.Pairing),
+			SessionState.Connecting => nameof(SessionState.Connecting),
+			SessionState.Connected => nameof(SessionState.Connected),
+			SessionState.CaughtUp => nameof(SessionState.CaughtUp),
+			SessionState.Reconnecting => nameof(SessionState.Reconnecting),
+			SessionState.Disconnected => nameof(SessionState.Disconnected),
+			SessionState.LoggedOut => nameof(SessionState.LoggedOut),
+			SessionState.Replaced => nameof(SessionState.Replaced),
+			SessionState.TempBanned => nameof(SessionState.TempBanned),
+			SessionState.Outdated => nameof(SessionState.Outdated),
+			SessionState.Error => nameof(SessionState.Error),
+			_ => nameof(SessionState.Unknown),
+		};
 
 	[LoggerMessage(20, LogLevel.Information, "Session {SessionId} is {State}")]
 	private static partial void StateChanged(ILogger logger, string sessionId, string state);

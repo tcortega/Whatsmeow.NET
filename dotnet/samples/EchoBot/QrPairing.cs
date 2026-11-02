@@ -12,30 +12,43 @@ public sealed partial class QrPairing([FromKeyedServices(EchoBotServices.Alice)]
 	{
 		foreach (var client in (IWhatsAppClient[])[alice, bob])
 		{
-			// A paired session is connected by the host; pairing it again would fail with AlreadyPaired.
-			if (await client.WatchStateAsync(stoppingToken).FirstAsync(stoppingToken).ConfigureAwait(false) is not (SessionState.Created or SessionState.LoggedOut))
-				continue;
-
-			await foreach (var update in client.PairWithQrCodeAsync(stoppingToken).ConfigureAwait(false))
+			// One session's pairing that fails, a code nobody scanned in time included, leaves the other's to go on.
+			try
 			{
-				switch (update)
-				{
-					case PairingUpdate.QrCode code:
-						// Only the picture: the code's text carries the device's secret and never goes to a log.
-						ShowingQrCode(logger, client.SessionId.Value);
-						Console.WriteLine(AsciiQRCodeHelper.GetQRCode(code.Code, QRCodeGenerator.ECCLevel.L, drawQuietZones: true, invert: true));
-						break;
-					case PairingUpdate.Paired:
-						Paired(logger, client.SessionId.Value);
-						break;
-					default:
-						break;
-				}
+				await PairAsync(client, stoppingToken).ConfigureAwait(false);
 			}
-
-			// Paired, the session is connected; its events reach the handlers from its first connect in this process.
-			await client.ConnectAsync(stoppingToken).ConfigureAwait(false);
+			catch (WhatsmeowException exception)
+			{
+				PairingFailed(logger, exception, client.SessionId.Value, exception.ErrorCode);
+			}
 		}
+	}
+
+	private async Task PairAsync(IWhatsAppClient client, CancellationToken cancellationToken)
+	{
+		// A paired session is connected by the host; pairing it again would fail with AlreadyPaired.
+		if (await client.WatchStateAsync(cancellationToken).FirstAsync(cancellationToken).ConfigureAwait(false) is not (SessionState.Created or SessionState.LoggedOut))
+			return;
+
+		await foreach (var update in client.PairWithQrCodeAsync(cancellationToken).ConfigureAwait(false))
+		{
+			switch (update)
+			{
+				case PairingUpdate.QrCode code:
+					// Only the picture: the code's text carries the device's secret and never goes to a log.
+					ShowingQrCode(logger, client.SessionId.Value);
+					Console.WriteLine(AsciiQRCodeHelper.GetQRCode(code.Code, QRCodeGenerator.ECCLevel.L, drawQuietZones: true, invert: true));
+					break;
+				case PairingUpdate.Paired:
+					Paired(logger, client.SessionId.Value);
+					break;
+				default:
+					break;
+			}
+		}
+
+		// Paired, the session is connected; its events reach the handlers from its first connect in this process.
+		await client.ConnectAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	[LoggerMessage(10, LogLevel.Information, "Scan the QR code below with the phone of session {SessionId}: WhatsApp, Linked devices, Link a device")]
@@ -43,4 +56,7 @@ public sealed partial class QrPairing([FromKeyedServices(EchoBotServices.Alice)]
 
 	[LoggerMessage(11, LogLevel.Information, "Session {SessionId} is paired")]
 	private static partial void Paired(ILogger logger, string sessionId);
+
+	[LoggerMessage(12, LogLevel.Warning, "Pairing session {SessionId} failed with {ErrorCode}; restart to pair it")]
+	private static partial void PairingFailed(ILogger logger, Exception exception, string sessionId, WhatsmeowErrorCode errorCode);
 }

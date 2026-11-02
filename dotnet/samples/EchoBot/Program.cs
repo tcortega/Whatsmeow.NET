@@ -7,6 +7,7 @@ var builder = Host.CreateApplicationBuilder(args);
 _ = builder.Services.AddEchoBot();
 
 // Traces and metrics to an OpenTelemetry collector, by the OTEL_EXPORTER_OTLP_* variables (localhost:4317 by default).
+// UseOtlpExporter also exports the host's logs there, the library's and the sidecar's among them.
 _ = builder
 	.Services.AddOpenTelemetry()
 	.WithTracing(static tracing => tracing.AddSource(WhatsmeowTelemetry.ActivitySourceName))

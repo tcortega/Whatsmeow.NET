@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-11-02
-- Evidence: issue #42 and its plan review; `Samples/EchoBotTests.cs` and the mutations in its PR
+- Evidence: issue #42, its plan review and PR #109's review; `Samples/EchoBotTests.cs` and the mutations in its PR
 - Amends: nothing; it adds the samples to the tree (ARCHITECTURE §4)
 
 ## Context
@@ -16,7 +16,7 @@ What the sample can reach decided the shape:
 - A session's events reach its handlers from its first `ConnectAsync` in the process (ARCHITECTURE §8.4); pairing alone leaves the session connected with no events flowing [observed: the FullCycle, red until the sample connected after `Paired`].
 - `WhatsmeowSessions.Client` is internal; a sample reaches its sessions as keyed clients [observed: `Sessions/WhatsmeowSessions.cs`].
 - Two accounts that each run an echo session would echo each other's echoes forever [inferred: an echo arrives at the other account as a text from someone else].
-- A message WhatsApp delivers again is recorded once: the outbox keeps one row per natural key (`ON CONFLICT (session_id, dedupe_key) DO NOTHING`, `outbox.go:179`), so only a .NET process that ends before its ack sees an event again [observed: a redelivery in the FullCycle reached no handler, so an echo id derived from the message's showed nothing a random one did not].
+- An event reaches a handler again in two ways. While its outbox row is kept, a whatsmeow redispatch is recorded once, by its natural key (`ON CONFLICT (session_id, dedupe_key) DO NOTHING`, `outbox.go:179`); an ack deletes the rows every consumer acked (`outbox.go:290`), and after that whatsmeow's decrypted-event buffer, which holds direct-chat and group Signal messages only [observed: `bufferedDecrypt` callers, message.go:605, 625, 653 at the pin], can dispatch one again after a crash, recorded with a new seq (`events.proto`, ARCHITECTURE §14 Gating). And an event whose handler did not finish is never acked, so the next process gets it again: a Ctrl+C while the echo is being sent, or a kill before the ack (`IWhatsAppEventHandler`) [observed: the redelivery test, red with a random echo id].
 
 ## Decision
 
@@ -24,12 +24,13 @@ What the sample can reach decided the shape:
   It references `Whatsmeow.Extensions.Hosting` as a project, and no project gives it internals, so the compiler holds it to the public API.
 - **One setup method.** `EchoBotServices.AddEchoBot(IServiceCollection)` declares the sessions `alice` and `bob`, the handlers and the console pairing, and returns the `WhatsmeowBuilder`.
   `Program.cs` calls it and adds only the OpenTelemetry exporter; the FullCycle calls it and adds `UseFakeWhatsApp()`, so what CI runs is the sample's own setup.
-- **The check.** `Whatsmeow.IntegrationTests/Samples/EchoBotTests.cs`, one FullCycle, with a fake-mode sidecar of its own on a database of its own, as the hosting tests have: the host starting the sidecar is part of the sample.
+- **The check.** `Whatsmeow.IntegrationTests/Samples/EchoBotTests.cs`: a FullCycle, plus a method each for a failed pairing and for a redelivery, with a fake-mode sidecar of its own on a database of its own, as the hosting tests have: the host starting the sidecar is part of the sample.
   The fake is both phones: it links each session once the sample logged that its QR code is shown, then delivers texts; what was not echoed shows by order.
+  The redelivery test stops a host while a test handler after the sample's holds the echoed text, so it is never acked, and the next host on the database gets it again and sends nothing for it.
 - **The sample's behaviour.**
-  - It pairs, one at a time so the codes never mix, each session that is `Created` or `LoggedOut` when the host starts, with the QR code drawn on the console and never written as text to a log (it carries the device's secret), then connects it, so its events flow.
+  - It pairs, one at a time so the codes never mix, each session that is `Created` or `LoggedOut` when the host starts, with the QR code drawn on the console and never written as text to a log (it carries the device's secret), then connects it, so its events flow. A session whose pairing fails, its codes run out included, is logged and left as it was, and the next one is paired; no retry, a restart pairs it.
   - The echo skips the account's own texts and any text that starts with `echo: `, which breaks the loop between two sessions.
-  - It sends with a new id: a repeat of an event, after the .NET process ended before its ack, is echoed again. An id derived from the message's would stop that (a send of an id already sent is never sent again, ADR 0025), but only a test that kills the .NET side could show it, too much for a sample's check; an application that must not repeat itself dedupes on the session and message id, as `IWhatsAppEventHandler` says.
+  - It sends with an id derived from the session, the chat and the received message's id (SHA-256, `3EB0` and its first 18 uppercase hex digits, the format `MessageId.New` makes), so an event that comes again is echoed once: a send of an id already sent is never sent again (ADR 0025). It skips a chat on the `broadcast` server, `status@broadcast`, whose send fails.
   - It logs each echo with the message's WhatsApp timestamp, each state change, and each history batch, which is what #42's live run measures with.
 - **Dependencies of the sample only.** QRCoder (MIT), which the live tests already use, and `OpenTelemetry.Extensions.Hosting` with `OpenTelemetry.Exporter.OpenTelemetryProtocol` (Apache-2.0, their whole graph), pinned centrally.
   `build/ci.sh` keeps QRCoder out of every shipped project, and no library package references OpenTelemetry.
