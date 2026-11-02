@@ -17,7 +17,7 @@ proto/whatsmeow/v1/    our contract, one file per slice, plus error.proto (the E
 proto/whatsmeow/fake/  the fake WhatsApp's test-only control, not the contract (ADR 0019)
 third_party/whatsmeow/ upstream protos copied from the exact pinned version (`VERSION`)
 sidecar/               Go module `github.com/tcortega/Whatsmeow.NET/sidecar`: product code and dependencies only
-tools/                 Go module for repo tools (`check-repo`, `sync-protos`, `check-licenses`, the tests' `stub-sidecar`), kept out of the product module
+tools/                 Go module for repo tools (`check-repo`, `sync-protos`, `check-licenses`, `bump-report`, the tests' `stub-sidecar`), kept out of the product module
 build/ci.sh            every CI check; the workflow only calls it
 dotnet/                `Whatsmeow.slnx` (never a .sln), src/, tests/; samples/ later (Phase 3)
 docs/                  ARCHITECTURE, RESEARCH, guidelines/, adr/
@@ -38,6 +38,7 @@ bash build/ci.sh all        # or: setup, contract, go, dotnet, package; install 
 
 A package change regenerates `packages.lock.json` with a plain `dotnet restore dotnet/Whatsmeow.slnx`; commit it.
 Update third_party after a pin change with `go -C tools run ./sync-protos -write`, and generated code with `buf generate` (whatsmeow.v1) and `buf generate --template buf.gen.whatsapp.yaml` (upstream).
+The weekly whatsmeow bump is `build/bump.sh`; `bash build/bump.sh --dry-run` runs it in the working tree and prints the PR body (ADR 0043).
 After a reviewed `sidecar/licenses.allow` edit, regenerate the native packages' notices with `go -C tools run ./check-licenses -write` (ADR 0029).
 
 ## .NET rules
