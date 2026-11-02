@@ -67,7 +67,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		_sidecarLog = loggerFactory.CreateLogger(SidecarLog.SidecarCategory);
 		_loggerFactory = loggerFactory;
 		Metrics = new ClientMetrics(meterFactory);
-		_none = new LocalChannel(options.Transport is SidecarTransport.NamedPipe, endpoint: null, token: "", loggerFactory);
+		_none = new LocalChannel(options.Transport is SidecarTransport.NamedPipe, endpoint: null, token: "", loggerFactory, timeProvider);
 		_launchInvoker = new LaunchInvoker(_none.CallInvoker);
 		// Every failed call is counted here, by its error code, the library's own calls included (ADR 0037).
 		CallInvoker = _launchInvoker.Intercept(new ErrorCounter(Metrics));
@@ -410,7 +410,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 			.StartAsync(_binary!, _options.Transport, _socketDirectory, _options.DatabasePath!, _options.MediaRoot, _options.History, _options.SendPacing, _fakeWhatsApp, _options.StartupTimeout, _log, _sidecarLog, startup.Token, cancellationToken)
 			.ConfigureAwait(false);
 		_current = process;
-		Publish(new LocalChannel(_options.Transport is SidecarTransport.NamedPipe, process.Endpoint, process.Token, _loggerFactory));
+		Publish(new LocalChannel(_options.Transport is SidecarTransport.NamedPipe, process.Endpoint, process.Token, _loggerFactory, TimeProvider));
 		SidecarLog.SidecarStarted(_log, process.Id, process.Version, process.Endpoint);
 
 		GetInfoResponse info;

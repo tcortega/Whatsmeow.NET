@@ -16,13 +16,21 @@ internal sealed class LocalChannel : IDisposable
 	private const int MaxMessageSize = 16 << 20;
 	private const string PipePrefix = @"\\.\pipe\";
 
+	/// <summary>
+	/// How long a pipe connect waits: a launch's pipe exists from before its ready line until it exits, so one that does
+	/// not accept within this is gone, and its name never comes back. go-winio's own <c>DialPipe</c> waits as long
+	/// by default (v0.6.4 pipe.go:235-236).
+	/// </summary>
+	private static readonly TimeSpan s_pipeConnectTimeout = TimeSpan.FromSeconds(2);
+
 	private readonly GrpcChannel _channel;
 
 	/// <param name="namedPipe">Connect to a named pipe instead of a Unix domain socket.</param>
 	/// <param name="endpoint">The launch's socket path or pipe name; null for a channel that never connects.</param>
 	/// <param name="token">The launch's token.</param>
 	/// <param name="loggerFactory">For gRPC's own logs.</param>
-	public LocalChannel(bool namedPipe, string? endpoint, string token, ILoggerFactory loggerFactory)
+	/// <param name="timeProvider">Bounds a pipe connect.</param>
+	public LocalChannel(bool namedPipe, string? endpoint, string token, ILoggerFactory loggerFactory, TimeProvider timeProvider)
 	{
 		// Never call ConnectAsync or read State: both throw with a ConnectCallback (ARCHITECTURE §8.6).
 		_channel = GrpcChannel.ForAddress("http://localhost", new GrpcChannelOptions
@@ -33,7 +41,7 @@ internal sealed class LocalChannel : IDisposable
 				InnerHandler = new SocketsHttpHandler
 				{
 					ConnectCallback = namedPipe
-						? (_, ct) => ConnectPipeAsync(endpoint, ct)
+						? (_, ct) => ConnectPipeAsync(endpoint, timeProvider, ct)
 						: (_, ct) => ConnectSocketAsync(endpoint, ct),
 				},
 			},
@@ -76,7 +84,12 @@ internal sealed class LocalChannel : IDisposable
 		}
 	}
 
-	private static async ValueTask<Stream> ConnectPipeAsync(string? name, CancellationToken cancellationToken)
+	/// <summary>
+	/// Connects to the pipe within <see cref="s_pipeConnectTimeout"/>. Without a bound, a connect to a launch that is gone
+	/// would wait forever: a missing pipe makes <see cref="NamedPipeClientStream"/> try again until its timeout, infinite
+	/// by default (.NET 10.0.14 NamedPipeClientStream.cs:131-162, NamedPipeClientStream.Windows.cs:113-129).
+	/// </summary>
+	private static async ValueTask<Stream> ConnectPipeAsync(string? name, TimeProvider timeProvider, CancellationToken cancellationToken)
 	{
 		if (name is null)
 			NotRunning();
@@ -85,10 +98,20 @@ internal sealed class LocalChannel : IDisposable
 			throw new IOException($"The sidecar's pipe name {name} does not start with {PipePrefix}.");
 
 		var pipe = new NamedPipeClientStream(".", name[PipePrefix.Length..], PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+		using var timeout = new CancellationTokenSource(s_pipeConnectTimeout, timeProvider);
+		using var connect = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
 		try
 		{
-			await pipe.ConnectAsync(cancellationToken).ConfigureAwait(false);
+			await pipe.ConnectAsync(connect.Token).ConfigureAwait(false);
 			return pipe;
+		}
+		catch (OperationCanceledException e) when (timeout.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+		{
+			await pipe.DisposeAsync().ConfigureAwait(false);
+
+			// An IOException, so gRPC reports the call Unavailable; a TimeoutException would be Internal (grpc-dotnet
+			// v2.85.0 GrpcProtocolHelpers.cs:450-462). The token is checked every 50 ms (NamedPipeClientStream.cs:137-145).
+			throw new IOException($"The sidecar's pipe {name} accepted no connection within {s_pipeConnectTimeout}; that sidecar is gone.", e);
 		}
 		catch
 		{
