@@ -2,8 +2,10 @@ syntax = "proto3";
 
 package whatsmeow.v1;
 
+import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "waE2E/WAWebProtobufsE2E.proto";
+import "whatsmeow/v1/media.proto";
 
 // MessageService sends messages and read receipts.
 //
@@ -35,6 +37,17 @@ service MessageService {
   // SendText sends a text message.
   // Errors: as SendMessage, and INVALID_ARGUMENT for empty text.
   rpc SendText(SendTextRequest) returns (SendTextResponse);
+
+  // SendMedia sends an image, video, audio file or voice note, document or sticker message of an uploaded or received
+  // MediaRef, so re-sending a MediaRef uploads nothing. The metadata is sent as given: the sidecar never decodes the
+  // media to check it, and an empty or unset field is not sent. A video or audio MediaRef's streaming sidecar goes into
+  // the message; a document with a caption is sent wrapped in a DocumentWithCaptionMessage, which is how WhatsApp
+  // shows both.
+  // Errors: as SendMessage, and INVALID_ARGUMENT for no or an incomplete media (field "media": a direct path that does
+  // not start with "/", a media key or a hash that is not 32 bytes), a media type the kind does not take (field
+  // "media.media_type": IMAGE for an image or a sticker, VIDEO, AUDIO, DOCUMENT for the others), no metadata (field
+  // "metadata"), or a duration that is negative or over 2^32-1 seconds (field "<kind>.duration").
+  rpc SendMedia(SendMediaRequest) returns (SendMediaResponse);
 
   // MarkRead sends a read receipt, timestamped now, for messages of one chat.
   // Errors: INVALID_ARGUMENT (no message ids; a group chat without sender), SESSION_NOT_FOUND, NOT_LOGGED_IN,
@@ -80,6 +93,106 @@ message SendTextResponse {
   string chat = 1;
   // The message's WhatsApp timestamp.
   google.protobuf.Timestamp message_time = 2;
+}
+
+// SendMediaRequest sends a media message.
+message SendMediaRequest {
+  // The session id.
+  string session_id = 1;
+  // The recipient: a user JID without a device, or a group JID.
+  string chat = 2;
+  // The WhatsApp message id to send with; required.
+  string client_message_id = 3;
+  // The file on WhatsApp's servers.
+  MediaRef media = 4;
+
+  // The kind of message, and what it says about the file.
+  oneof metadata {
+    // An image.
+    ImageMetadata image = 5;
+    // A video.
+    VideoMetadata video = 6;
+    // An audio file or a voice note.
+    AudioMetadata audio = 7;
+    // A document.
+    DocumentMetadata document = 8;
+    // A sticker.
+    StickerMetadata sticker = 9;
+  }
+}
+
+// SendMediaResponse is a successful send.
+message SendMediaResponse {
+  // The chat it was sent to, which can be the recipient's LID when a phone-number JID was requested.
+  string chat = 1;
+  // The message's WhatsApp timestamp.
+  google.protobuf.Timestamp message_time = 2;
+}
+
+// ImageMetadata is what an image message says about its file. Empty is not sent.
+message ImageMetadata {
+  // The file's MIME type.
+  string mimetype = 1;
+  // The caption.
+  string caption = 2;
+  // The width in pixels.
+  optional uint32 width = 3;
+  // The height in pixels.
+  optional uint32 height = 4;
+  // A JPEG thumbnail.
+  bytes jpeg_thumbnail = 5;
+}
+
+// VideoMetadata is what a video message says about its file. Empty or unset is not sent.
+message VideoMetadata {
+  // The file's MIME type.
+  string mimetype = 1;
+  // The caption.
+  string caption = 2;
+  // The width in pixels.
+  optional uint32 width = 3;
+  // The height in pixels.
+  optional uint32 height = 4;
+  // The length, sent in whole seconds: the fraction is dropped.
+  google.protobuf.Duration duration = 5;
+  // A JPEG thumbnail.
+  bytes jpeg_thumbnail = 6;
+}
+
+// AudioMetadata is what an audio message says about its file. Empty or unset is not sent.
+message AudioMetadata {
+  // The file's MIME type. Phones play a voice note as audio/ogg; codecs=opus; the sidecar does not check it.
+  string mimetype = 1;
+  // The length, sent in whole seconds: the fraction is dropped.
+  google.protobuf.Duration duration = 2;
+  // True for a voice note (PTT), false for an audio file; always sent.
+  bool voice_note = 3;
+  // A voice note's waveform, sent unchanged.
+  bytes waveform = 4;
+}
+
+// DocumentMetadata is what a document message says about its file. Empty is not sent.
+message DocumentMetadata {
+  // The file's MIME type.
+  string mimetype = 1;
+  // The file name the recipient sees.
+  string file_name = 2;
+  // The caption.
+  string caption = 3;
+  // A JPEG thumbnail.
+  bytes jpeg_thumbnail = 4;
+}
+
+// StickerMetadata is what a sticker message says about its file. Empty or unset is not sent.
+message StickerMetadata {
+  // The file's MIME type.
+  string mimetype = 1;
+  // The width in pixels.
+  optional uint32 width = 2;
+  // The height in pixels.
+  optional uint32 height = 3;
+  // A PNG thumbnail: stickers carry a PNG one, never a JPEG one.
+  bytes png_thumbnail = 4;
 }
 
 // MarkReadRequest marks messages of one chat as read.

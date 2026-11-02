@@ -51,6 +51,42 @@ func mediaKeys(mediaKey []byte, appInfo whatsmeow.MediaType) (iv, cipherKey, mac
 	return expanded[:16], expanded[16:48], expanded[48:80]
 }
 
+// sidecarChunk is how much of the upload each streaming sidecar MAC covers (upload.go:156).
+const sidecarChunk = 64 << 10
+
+// streamingSidecar is the streaming sidecar whatsmeow makes for a video (upload.go:141-151, 158-181): for each 64 KiB
+// of the uploaded file, ciphertext and MAC, the first 10 bytes of an HMAC-SHA256 over the 16 bytes before the chunk
+// (the IV for the first) and the chunk.
+func streamingSidecar(iv, macKey []byte, uploaded io.Reader) ([]byte, error) {
+	var sidecar []byte
+
+	before := iv
+	chunk := make([]byte, sidecarChunk)
+
+	for {
+		n, err := io.ReadFull(uploaded, chunk)
+		if n > 0 {
+			mac := hmac.New(sha256.New, macKey)
+			mac.Write(before)
+			mac.Write(chunk[:n])
+			sidecar = append(sidecar, mac.Sum(nil)[:macLength]...)
+		}
+
+		switch {
+		case errors.Is(err, io.EOF), errors.Is(err, io.ErrUnexpectedEOF):
+			return sidecar, nil
+		case err != nil:
+			return nil, fmt.Errorf("failed to read encrypted file for sidecar: %w", err)
+		}
+
+		// A whole chunk: the next MAC covers its last 16 bytes first.
+		before = append(before[:0:0], chunk[sidecarChunk-aesBlock:]...)
+	}
+}
+
+// aesBlock is the AES block size, the length of the IV and of what the next sidecar MAC covers before its chunk.
+const aesBlock = 16
+
 // blob is the file the media server keeps for directPath, which is /fake/<hex id>.
 func (w *WhatsApp) blob(directPath string) (string, error) {
 	if w.mediaDir == "" {
@@ -115,6 +151,16 @@ func (c *Client) UploadReader(_ context.Context, plaintext io.Reader, tempFile i
 
 	if _, err := tempFile.Seek(0, io.SeekStart); err != nil {
 		return whatsmeow.UploadResponse{}, fmt.Errorf("failed to seek to start of temporary file: %w", err)
+	}
+
+	if appInfo == whatsmeow.MediaVideo {
+		if resp.StreamingSidecar, err = streamingSidecar(iv, macKey, tempFile); err != nil {
+			return whatsmeow.UploadResponse{}, err
+		}
+
+		if _, err := tempFile.Seek(0, io.SeekStart); err != nil {
+			return whatsmeow.UploadResponse{}, fmt.Errorf("failed to seek to start of temporary file: %w", err)
+		}
 	}
 
 	stored, directPath, err := c.whatsApp.newBlob()

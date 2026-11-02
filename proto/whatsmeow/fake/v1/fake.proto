@@ -435,6 +435,9 @@ message DeliverMessageRequest {
   // decrypts to only the sender key, and its skmsg part to the content. The client dispatches a Message for each, with
   // the same info, in that order (message.go:355-497, 1172-1178), and answers once, after both.
   bool sender_key = 11;
+  // The message as WhatsApp sends it, wrappers included, instead of text: the client dispatches it unwrapped by
+  // whatsmeow's own events.Message.UnwrapRaw, as whatsmeow does (message.go:1172-1178). Unset sends text.
+  WAWebProtobufsE2E.Message message = 12;
 }
 
 // DeliverUndecryptableMessageRequest is one inbound message that fails to decrypt.
@@ -451,6 +454,11 @@ message DeliverUndecryptableMessageRequest {
   bool hide_placeholder = 5;
   // The message's WhatsApp timestamp; unset is the zero time.
   google.protobuf.Timestamp message_time = 6;
+  // True for a stanza with no ciphertext for this device, as WhatsApp sends a view-once message to a companion
+  // (message.go:324-333).
+  bool unavailable = 7;
+  // The unavailable stanza's type attribute, whatsmeow's UnavailableType: "view_once", or empty for none.
+  string unavailable_type = 8;
 }
 
 // DeliverUndecryptableMessageResponse has no fields.

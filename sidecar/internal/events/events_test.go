@@ -708,3 +708,42 @@ func TestAReplacedStreamWhoseClientStoppedReadingEnds(t *testing.T) {
 		t.Fatal("the replaced handler stayed in Send")
 	}
 }
+
+func TestAViewOnceMessageAndAnUnavailableOneSayWhatTheyAre(t *testing.T) {
+	t.Parallel()
+
+	source := types.MessageSource{Chat: jid("111@lid"), Sender: jid("111@lid")}
+	info := &whatsmeowv1.MessageInfo{Source: &whatsmeowv1.MessageSource{Chat: "111@lid", Sender: "111@lid"}, Id: "M1", MessageTime: timestamppb.New(time.Time{})}
+	image := &waE2E.Message{ImageMessage: &waE2E.ImageMessage{Caption: proto.String("once")}}
+	viewOnce := (&waevents.Message{
+		Info:       types.MessageInfo{MessageSource: source, ID: "M1"},
+		RawMessage: &waE2E.Message{ViewOnceMessageV2: &waE2E.FutureProofMessage{Message: image}},
+	}).UnwrapRaw()
+	unavailable := func(t waevents.UnavailableType) *waevents.UndecryptableMessage {
+		return &waevents.UndecryptableMessage{Info: types.MessageInfo{MessageSource: source, ID: "M1"}, IsUnavailable: true, UnavailableType: t}
+	}
+	undecryptable := func(event *whatsmeowv1.UndecryptableMessageEvent) *whatsmeowv1.StreamEventsResponse {
+		return &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_UndecryptableMessage{UndecryptableMessage: event}}
+	}
+
+	cases := []struct {
+		evt  any
+		want *whatsmeowv1.StreamEventsResponse
+	}{
+		{viewOnce, &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_Message{
+			Message: &whatsmeowv1.MessageEvent{Info: info, Message: image, ViewOnce: true},
+		}}},
+		{unavailable(waevents.UnavailableTypeViewOnce), undecryptable(&whatsmeowv1.UndecryptableMessageEvent{
+			Info: info, Unavailable: true, UnavailableType: whatsmeowv1.UnavailableType_UNAVAILABLE_TYPE_VIEW_ONCE,
+		})},
+		// No type, as for a group message whose sender key never came (message.go:419), and one this list does not have.
+		{unavailable(waevents.UnavailableTypeUnknown), undecryptable(&whatsmeowv1.UndecryptableMessageEvent{Info: info, Unavailable: true})},
+		{unavailable("hidden"), undecryptable(&whatsmeowv1.UndecryptableMessageEvent{Info: info, Unavailable: true})},
+	}
+
+	for _, c := range cases {
+		if _, got, ok := toEvent(c.evt); !ok || !proto.Equal(got, c.want) {
+			t.Errorf("%+v: %v, %v; want %v", c.evt, got, ok, c.want)
+		}
+	}
+}

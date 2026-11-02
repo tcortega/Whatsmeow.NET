@@ -10,6 +10,7 @@ import (
 	waE2E "go.mau.fi/whatsmeow/proto/waE2E"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
@@ -279,6 +280,627 @@ func (x *SendTextResponse) GetMessageTime() *timestamppb.Timestamp {
 	return nil
 }
 
+// SendMediaRequest sends a media message.
+type SendMediaRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The session id.
+	SessionId string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// The recipient: a user JID without a device, or a group JID.
+	Chat string `protobuf:"bytes,2,opt,name=chat,proto3" json:"chat,omitempty"`
+	// The WhatsApp message id to send with; required.
+	ClientMessageId string `protobuf:"bytes,3,opt,name=client_message_id,json=clientMessageId,proto3" json:"client_message_id,omitempty"`
+	// The file on WhatsApp's servers.
+	Media *MediaRef `protobuf:"bytes,4,opt,name=media,proto3" json:"media,omitempty"`
+	// The kind of message, and what it says about the file.
+	//
+	// Types that are valid to be assigned to Metadata:
+	//
+	//	*SendMediaRequest_Image
+	//	*SendMediaRequest_Video
+	//	*SendMediaRequest_Audio
+	//	*SendMediaRequest_Document
+	//	*SendMediaRequest_Sticker
+	Metadata      isSendMediaRequest_Metadata `protobuf_oneof:"metadata"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendMediaRequest) Reset() {
+	*x = SendMediaRequest{}
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendMediaRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendMediaRequest) ProtoMessage() {}
+
+func (x *SendMediaRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendMediaRequest.ProtoReflect.Descriptor instead.
+func (*SendMediaRequest) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *SendMediaRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *SendMediaRequest) GetChat() string {
+	if x != nil {
+		return x.Chat
+	}
+	return ""
+}
+
+func (x *SendMediaRequest) GetClientMessageId() string {
+	if x != nil {
+		return x.ClientMessageId
+	}
+	return ""
+}
+
+func (x *SendMediaRequest) GetMedia() *MediaRef {
+	if x != nil {
+		return x.Media
+	}
+	return nil
+}
+
+func (x *SendMediaRequest) GetMetadata() isSendMediaRequest_Metadata {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+func (x *SendMediaRequest) GetImage() *ImageMetadata {
+	if x != nil {
+		if x, ok := x.Metadata.(*SendMediaRequest_Image); ok {
+			return x.Image
+		}
+	}
+	return nil
+}
+
+func (x *SendMediaRequest) GetVideo() *VideoMetadata {
+	if x != nil {
+		if x, ok := x.Metadata.(*SendMediaRequest_Video); ok {
+			return x.Video
+		}
+	}
+	return nil
+}
+
+func (x *SendMediaRequest) GetAudio() *AudioMetadata {
+	if x != nil {
+		if x, ok := x.Metadata.(*SendMediaRequest_Audio); ok {
+			return x.Audio
+		}
+	}
+	return nil
+}
+
+func (x *SendMediaRequest) GetDocument() *DocumentMetadata {
+	if x != nil {
+		if x, ok := x.Metadata.(*SendMediaRequest_Document); ok {
+			return x.Document
+		}
+	}
+	return nil
+}
+
+func (x *SendMediaRequest) GetSticker() *StickerMetadata {
+	if x != nil {
+		if x, ok := x.Metadata.(*SendMediaRequest_Sticker); ok {
+			return x.Sticker
+		}
+	}
+	return nil
+}
+
+type isSendMediaRequest_Metadata interface {
+	isSendMediaRequest_Metadata()
+}
+
+type SendMediaRequest_Image struct {
+	// An image.
+	Image *ImageMetadata `protobuf:"bytes,5,opt,name=image,proto3,oneof"`
+}
+
+type SendMediaRequest_Video struct {
+	// A video.
+	Video *VideoMetadata `protobuf:"bytes,6,opt,name=video,proto3,oneof"`
+}
+
+type SendMediaRequest_Audio struct {
+	// An audio file or a voice note.
+	Audio *AudioMetadata `protobuf:"bytes,7,opt,name=audio,proto3,oneof"`
+}
+
+type SendMediaRequest_Document struct {
+	// A document.
+	Document *DocumentMetadata `protobuf:"bytes,8,opt,name=document,proto3,oneof"`
+}
+
+type SendMediaRequest_Sticker struct {
+	// A sticker.
+	Sticker *StickerMetadata `protobuf:"bytes,9,opt,name=sticker,proto3,oneof"`
+}
+
+func (*SendMediaRequest_Image) isSendMediaRequest_Metadata() {}
+
+func (*SendMediaRequest_Video) isSendMediaRequest_Metadata() {}
+
+func (*SendMediaRequest_Audio) isSendMediaRequest_Metadata() {}
+
+func (*SendMediaRequest_Document) isSendMediaRequest_Metadata() {}
+
+func (*SendMediaRequest_Sticker) isSendMediaRequest_Metadata() {}
+
+// SendMediaResponse is a successful send.
+type SendMediaResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The chat it was sent to, which can be the recipient's LID when a phone-number JID was requested.
+	Chat string `protobuf:"bytes,1,opt,name=chat,proto3" json:"chat,omitempty"`
+	// The message's WhatsApp timestamp.
+	MessageTime   *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=message_time,json=messageTime,proto3" json:"message_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendMediaResponse) Reset() {
+	*x = SendMediaResponse{}
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendMediaResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendMediaResponse) ProtoMessage() {}
+
+func (x *SendMediaResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendMediaResponse.ProtoReflect.Descriptor instead.
+func (*SendMediaResponse) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *SendMediaResponse) GetChat() string {
+	if x != nil {
+		return x.Chat
+	}
+	return ""
+}
+
+func (x *SendMediaResponse) GetMessageTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.MessageTime
+	}
+	return nil
+}
+
+// ImageMetadata is what an image message says about its file. Empty is not sent.
+type ImageMetadata struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The file's MIME type.
+	Mimetype string `protobuf:"bytes,1,opt,name=mimetype,proto3" json:"mimetype,omitempty"`
+	// The caption.
+	Caption string `protobuf:"bytes,2,opt,name=caption,proto3" json:"caption,omitempty"`
+	// The width in pixels.
+	Width *uint32 `protobuf:"varint,3,opt,name=width,proto3,oneof" json:"width,omitempty"`
+	// The height in pixels.
+	Height *uint32 `protobuf:"varint,4,opt,name=height,proto3,oneof" json:"height,omitempty"`
+	// A JPEG thumbnail.
+	JpegThumbnail []byte `protobuf:"bytes,5,opt,name=jpeg_thumbnail,json=jpegThumbnail,proto3" json:"jpeg_thumbnail,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImageMetadata) Reset() {
+	*x = ImageMetadata{}
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImageMetadata) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImageMetadata) ProtoMessage() {}
+
+func (x *ImageMetadata) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImageMetadata.ProtoReflect.Descriptor instead.
+func (*ImageMetadata) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ImageMetadata) GetMimetype() string {
+	if x != nil {
+		return x.Mimetype
+	}
+	return ""
+}
+
+func (x *ImageMetadata) GetCaption() string {
+	if x != nil {
+		return x.Caption
+	}
+	return ""
+}
+
+func (x *ImageMetadata) GetWidth() uint32 {
+	if x != nil && x.Width != nil {
+		return *x.Width
+	}
+	return 0
+}
+
+func (x *ImageMetadata) GetHeight() uint32 {
+	if x != nil && x.Height != nil {
+		return *x.Height
+	}
+	return 0
+}
+
+func (x *ImageMetadata) GetJpegThumbnail() []byte {
+	if x != nil {
+		return x.JpegThumbnail
+	}
+	return nil
+}
+
+// VideoMetadata is what a video message says about its file. Empty or unset is not sent.
+type VideoMetadata struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The file's MIME type.
+	Mimetype string `protobuf:"bytes,1,opt,name=mimetype,proto3" json:"mimetype,omitempty"`
+	// The caption.
+	Caption string `protobuf:"bytes,2,opt,name=caption,proto3" json:"caption,omitempty"`
+	// The width in pixels.
+	Width *uint32 `protobuf:"varint,3,opt,name=width,proto3,oneof" json:"width,omitempty"`
+	// The height in pixels.
+	Height *uint32 `protobuf:"varint,4,opt,name=height,proto3,oneof" json:"height,omitempty"`
+	// The length, sent in whole seconds: the fraction is dropped.
+	Duration *durationpb.Duration `protobuf:"bytes,5,opt,name=duration,proto3" json:"duration,omitempty"`
+	// A JPEG thumbnail.
+	JpegThumbnail []byte `protobuf:"bytes,6,opt,name=jpeg_thumbnail,json=jpegThumbnail,proto3" json:"jpeg_thumbnail,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VideoMetadata) Reset() {
+	*x = VideoMetadata{}
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VideoMetadata) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VideoMetadata) ProtoMessage() {}
+
+func (x *VideoMetadata) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VideoMetadata.ProtoReflect.Descriptor instead.
+func (*VideoMetadata) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *VideoMetadata) GetMimetype() string {
+	if x != nil {
+		return x.Mimetype
+	}
+	return ""
+}
+
+func (x *VideoMetadata) GetCaption() string {
+	if x != nil {
+		return x.Caption
+	}
+	return ""
+}
+
+func (x *VideoMetadata) GetWidth() uint32 {
+	if x != nil && x.Width != nil {
+		return *x.Width
+	}
+	return 0
+}
+
+func (x *VideoMetadata) GetHeight() uint32 {
+	if x != nil && x.Height != nil {
+		return *x.Height
+	}
+	return 0
+}
+
+func (x *VideoMetadata) GetDuration() *durationpb.Duration {
+	if x != nil {
+		return x.Duration
+	}
+	return nil
+}
+
+func (x *VideoMetadata) GetJpegThumbnail() []byte {
+	if x != nil {
+		return x.JpegThumbnail
+	}
+	return nil
+}
+
+// AudioMetadata is what an audio message says about its file. Empty or unset is not sent.
+type AudioMetadata struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The file's MIME type. Phones play a voice note as audio/ogg; codecs=opus; the sidecar does not check it.
+	Mimetype string `protobuf:"bytes,1,opt,name=mimetype,proto3" json:"mimetype,omitempty"`
+	// The length, sent in whole seconds: the fraction is dropped.
+	Duration *durationpb.Duration `protobuf:"bytes,2,opt,name=duration,proto3" json:"duration,omitempty"`
+	// True for a voice note (PTT), false for an audio file; always sent.
+	VoiceNote bool `protobuf:"varint,3,opt,name=voice_note,json=voiceNote,proto3" json:"voice_note,omitempty"`
+	// A voice note's waveform, sent unchanged.
+	Waveform      []byte `protobuf:"bytes,4,opt,name=waveform,proto3" json:"waveform,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AudioMetadata) Reset() {
+	*x = AudioMetadata{}
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AudioMetadata) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AudioMetadata) ProtoMessage() {}
+
+func (x *AudioMetadata) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AudioMetadata.ProtoReflect.Descriptor instead.
+func (*AudioMetadata) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *AudioMetadata) GetMimetype() string {
+	if x != nil {
+		return x.Mimetype
+	}
+	return ""
+}
+
+func (x *AudioMetadata) GetDuration() *durationpb.Duration {
+	if x != nil {
+		return x.Duration
+	}
+	return nil
+}
+
+func (x *AudioMetadata) GetVoiceNote() bool {
+	if x != nil {
+		return x.VoiceNote
+	}
+	return false
+}
+
+func (x *AudioMetadata) GetWaveform() []byte {
+	if x != nil {
+		return x.Waveform
+	}
+	return nil
+}
+
+// DocumentMetadata is what a document message says about its file. Empty is not sent.
+type DocumentMetadata struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The file's MIME type.
+	Mimetype string `protobuf:"bytes,1,opt,name=mimetype,proto3" json:"mimetype,omitempty"`
+	// The file name the recipient sees.
+	FileName string `protobuf:"bytes,2,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
+	// The caption.
+	Caption string `protobuf:"bytes,3,opt,name=caption,proto3" json:"caption,omitempty"`
+	// A JPEG thumbnail.
+	JpegThumbnail []byte `protobuf:"bytes,4,opt,name=jpeg_thumbnail,json=jpegThumbnail,proto3" json:"jpeg_thumbnail,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DocumentMetadata) Reset() {
+	*x = DocumentMetadata{}
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DocumentMetadata) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DocumentMetadata) ProtoMessage() {}
+
+func (x *DocumentMetadata) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DocumentMetadata.ProtoReflect.Descriptor instead.
+func (*DocumentMetadata) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *DocumentMetadata) GetMimetype() string {
+	if x != nil {
+		return x.Mimetype
+	}
+	return ""
+}
+
+func (x *DocumentMetadata) GetFileName() string {
+	if x != nil {
+		return x.FileName
+	}
+	return ""
+}
+
+func (x *DocumentMetadata) GetCaption() string {
+	if x != nil {
+		return x.Caption
+	}
+	return ""
+}
+
+func (x *DocumentMetadata) GetJpegThumbnail() []byte {
+	if x != nil {
+		return x.JpegThumbnail
+	}
+	return nil
+}
+
+// StickerMetadata is what a sticker message says about its file. Empty or unset is not sent.
+type StickerMetadata struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The file's MIME type.
+	Mimetype string `protobuf:"bytes,1,opt,name=mimetype,proto3" json:"mimetype,omitempty"`
+	// The width in pixels.
+	Width *uint32 `protobuf:"varint,2,opt,name=width,proto3,oneof" json:"width,omitempty"`
+	// The height in pixels.
+	Height *uint32 `protobuf:"varint,3,opt,name=height,proto3,oneof" json:"height,omitempty"`
+	// A PNG thumbnail: stickers carry a PNG one, never a JPEG one.
+	PngThumbnail  []byte `protobuf:"bytes,4,opt,name=png_thumbnail,json=pngThumbnail,proto3" json:"png_thumbnail,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StickerMetadata) Reset() {
+	*x = StickerMetadata{}
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StickerMetadata) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StickerMetadata) ProtoMessage() {}
+
+func (x *StickerMetadata) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StickerMetadata.ProtoReflect.Descriptor instead.
+func (*StickerMetadata) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *StickerMetadata) GetMimetype() string {
+	if x != nil {
+		return x.Mimetype
+	}
+	return ""
+}
+
+func (x *StickerMetadata) GetWidth() uint32 {
+	if x != nil && x.Width != nil {
+		return *x.Width
+	}
+	return 0
+}
+
+func (x *StickerMetadata) GetHeight() uint32 {
+	if x != nil && x.Height != nil {
+		return *x.Height
+	}
+	return 0
+}
+
+func (x *StickerMetadata) GetPngThumbnail() []byte {
+	if x != nil {
+		return x.PngThumbnail
+	}
+	return nil
+}
+
 // MarkReadRequest marks messages of one chat as read.
 type MarkReadRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -296,7 +918,7 @@ type MarkReadRequest struct {
 
 func (x *MarkReadRequest) Reset() {
 	*x = MarkReadRequest{}
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[4]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -308,7 +930,7 @@ func (x *MarkReadRequest) String() string {
 func (*MarkReadRequest) ProtoMessage() {}
 
 func (x *MarkReadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[4]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -321,7 +943,7 @@ func (x *MarkReadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MarkReadRequest.ProtoReflect.Descriptor instead.
 func (*MarkReadRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{4}
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *MarkReadRequest) GetSessionId() string {
@@ -361,7 +983,7 @@ type MarkReadResponse struct {
 
 func (x *MarkReadResponse) Reset() {
 	*x = MarkReadResponse{}
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[5]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -373,7 +995,7 @@ func (x *MarkReadResponse) String() string {
 func (*MarkReadResponse) ProtoMessage() {}
 
 func (x *MarkReadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[5]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -386,14 +1008,14 @@ func (x *MarkReadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MarkReadResponse.ProtoReflect.Descriptor instead.
 func (*MarkReadResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{5}
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{12}
 }
 
 var File_whatsmeow_v1_message_proto protoreflect.FileDescriptor
 
 const file_whatsmeow_v1_message_proto_rawDesc = "" +
 	"\n" +
-	"\x1awhatsmeow/v1/message.proto\x12\fwhatsmeow.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\"\xa9\x01\n" +
+	"\x1awhatsmeow/v1/message.proto\x12\fwhatsmeow.v1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x18whatsmeow/v1/media.proto\"\xa9\x01\n" +
 	"\x12SendMessageRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x12\n" +
@@ -411,7 +1033,58 @@ const file_whatsmeow_v1_message_proto_rawDesc = "" +
 	"\x04text\x18\x04 \x01(\tR\x04text\"e\n" +
 	"\x10SendTextResponse\x12\x12\n" +
 	"\x04chat\x18\x01 \x01(\tR\x04chat\x12=\n" +
-	"\fmessage_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\vmessageTime\"}\n" +
+	"\fmessage_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\vmessageTime\"\xc3\x03\n" +
+	"\x10SendMediaRequest\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x12\n" +
+	"\x04chat\x18\x02 \x01(\tR\x04chat\x12*\n" +
+	"\x11client_message_id\x18\x03 \x01(\tR\x0fclientMessageId\x12,\n" +
+	"\x05media\x18\x04 \x01(\v2\x16.whatsmeow.v1.MediaRefR\x05media\x123\n" +
+	"\x05image\x18\x05 \x01(\v2\x1b.whatsmeow.v1.ImageMetadataH\x00R\x05image\x123\n" +
+	"\x05video\x18\x06 \x01(\v2\x1b.whatsmeow.v1.VideoMetadataH\x00R\x05video\x123\n" +
+	"\x05audio\x18\a \x01(\v2\x1b.whatsmeow.v1.AudioMetadataH\x00R\x05audio\x12<\n" +
+	"\bdocument\x18\b \x01(\v2\x1e.whatsmeow.v1.DocumentMetadataH\x00R\bdocument\x129\n" +
+	"\asticker\x18\t \x01(\v2\x1d.whatsmeow.v1.StickerMetadataH\x00R\astickerB\n" +
+	"\n" +
+	"\bmetadata\"f\n" +
+	"\x11SendMediaResponse\x12\x12\n" +
+	"\x04chat\x18\x01 \x01(\tR\x04chat\x12=\n" +
+	"\fmessage_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\vmessageTime\"\xb9\x01\n" +
+	"\rImageMetadata\x12\x1a\n" +
+	"\bmimetype\x18\x01 \x01(\tR\bmimetype\x12\x18\n" +
+	"\acaption\x18\x02 \x01(\tR\acaption\x12\x19\n" +
+	"\x05width\x18\x03 \x01(\rH\x00R\x05width\x88\x01\x01\x12\x1b\n" +
+	"\x06height\x18\x04 \x01(\rH\x01R\x06height\x88\x01\x01\x12%\n" +
+	"\x0ejpeg_thumbnail\x18\x05 \x01(\fR\rjpegThumbnailB\b\n" +
+	"\x06_widthB\t\n" +
+	"\a_height\"\xf0\x01\n" +
+	"\rVideoMetadata\x12\x1a\n" +
+	"\bmimetype\x18\x01 \x01(\tR\bmimetype\x12\x18\n" +
+	"\acaption\x18\x02 \x01(\tR\acaption\x12\x19\n" +
+	"\x05width\x18\x03 \x01(\rH\x00R\x05width\x88\x01\x01\x12\x1b\n" +
+	"\x06height\x18\x04 \x01(\rH\x01R\x06height\x88\x01\x01\x125\n" +
+	"\bduration\x18\x05 \x01(\v2\x19.google.protobuf.DurationR\bduration\x12%\n" +
+	"\x0ejpeg_thumbnail\x18\x06 \x01(\fR\rjpegThumbnailB\b\n" +
+	"\x06_widthB\t\n" +
+	"\a_height\"\x9d\x01\n" +
+	"\rAudioMetadata\x12\x1a\n" +
+	"\bmimetype\x18\x01 \x01(\tR\bmimetype\x125\n" +
+	"\bduration\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\bduration\x12\x1d\n" +
+	"\n" +
+	"voice_note\x18\x03 \x01(\bR\tvoiceNote\x12\x1a\n" +
+	"\bwaveform\x18\x04 \x01(\fR\bwaveform\"\x8c\x01\n" +
+	"\x10DocumentMetadata\x12\x1a\n" +
+	"\bmimetype\x18\x01 \x01(\tR\bmimetype\x12\x1b\n" +
+	"\tfile_name\x18\x02 \x01(\tR\bfileName\x12\x18\n" +
+	"\acaption\x18\x03 \x01(\tR\acaption\x12%\n" +
+	"\x0ejpeg_thumbnail\x18\x04 \x01(\fR\rjpegThumbnail\"\x9f\x01\n" +
+	"\x0fStickerMetadata\x12\x1a\n" +
+	"\bmimetype\x18\x01 \x01(\tR\bmimetype\x12\x19\n" +
+	"\x05width\x18\x02 \x01(\rH\x00R\x05width\x88\x01\x01\x12\x1b\n" +
+	"\x06height\x18\x03 \x01(\rH\x01R\x06height\x88\x01\x01\x12#\n" +
+	"\rpng_thumbnail\x18\x04 \x01(\fR\fpngThumbnailB\b\n" +
+	"\x06_widthB\t\n" +
+	"\a_height\"}\n" +
 	"\x0fMarkReadRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x12\n" +
@@ -419,10 +1092,11 @@ const file_whatsmeow_v1_message_proto_rawDesc = "" +
 	"\x06sender\x18\x03 \x01(\tR\x06sender\x12\x1f\n" +
 	"\vmessage_ids\x18\x04 \x03(\tR\n" +
 	"messageIds\"\x12\n" +
-	"\x10MarkReadResponse2\xfa\x01\n" +
+	"\x10MarkReadResponse2\xc8\x02\n" +
 	"\x0eMessageService\x12R\n" +
 	"\vSendMessage\x12 .whatsmeow.v1.SendMessageRequest\x1a!.whatsmeow.v1.SendMessageResponse\x12I\n" +
-	"\bSendText\x12\x1d.whatsmeow.v1.SendTextRequest\x1a\x1e.whatsmeow.v1.SendTextResponse\x12I\n" +
+	"\bSendText\x12\x1d.whatsmeow.v1.SendTextRequest\x1a\x1e.whatsmeow.v1.SendTextResponse\x12L\n" +
+	"\tSendMedia\x12\x1e.whatsmeow.v1.SendMediaRequest\x1a\x1f.whatsmeow.v1.SendMediaResponse\x12I\n" +
 	"\bMarkRead\x12\x1d.whatsmeow.v1.MarkReadRequest\x1a\x1e.whatsmeow.v1.MarkReadResponseB\xc2\x01\n" +
 	"\x10com.whatsmeow.v1B\fMessageProtoP\x01ZFgithub.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1;whatsmeowv1\xa2\x02\x03WXX\xaa\x02\x15Whatsmeow.Protocol.V1\xca\x02\fWhatsmeow\\V1\xe2\x02\x18Whatsmeow\\V1\\GPBMetadata\xea\x02\rWhatsmeow::V1b\x06proto3"
 
@@ -438,32 +1112,52 @@ func file_whatsmeow_v1_message_proto_rawDescGZIP() []byte {
 	return file_whatsmeow_v1_message_proto_rawDescData
 }
 
-var file_whatsmeow_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_whatsmeow_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_whatsmeow_v1_message_proto_goTypes = []any{
 	(*SendMessageRequest)(nil),    // 0: whatsmeow.v1.SendMessageRequest
 	(*SendMessageResponse)(nil),   // 1: whatsmeow.v1.SendMessageResponse
 	(*SendTextRequest)(nil),       // 2: whatsmeow.v1.SendTextRequest
 	(*SendTextResponse)(nil),      // 3: whatsmeow.v1.SendTextResponse
-	(*MarkReadRequest)(nil),       // 4: whatsmeow.v1.MarkReadRequest
-	(*MarkReadResponse)(nil),      // 5: whatsmeow.v1.MarkReadResponse
-	(*waE2E.Message)(nil),         // 6: WAWebProtobufsE2E.Message
-	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
+	(*SendMediaRequest)(nil),      // 4: whatsmeow.v1.SendMediaRequest
+	(*SendMediaResponse)(nil),     // 5: whatsmeow.v1.SendMediaResponse
+	(*ImageMetadata)(nil),         // 6: whatsmeow.v1.ImageMetadata
+	(*VideoMetadata)(nil),         // 7: whatsmeow.v1.VideoMetadata
+	(*AudioMetadata)(nil),         // 8: whatsmeow.v1.AudioMetadata
+	(*DocumentMetadata)(nil),      // 9: whatsmeow.v1.DocumentMetadata
+	(*StickerMetadata)(nil),       // 10: whatsmeow.v1.StickerMetadata
+	(*MarkReadRequest)(nil),       // 11: whatsmeow.v1.MarkReadRequest
+	(*MarkReadResponse)(nil),      // 12: whatsmeow.v1.MarkReadResponse
+	(*waE2E.Message)(nil),         // 13: WAWebProtobufsE2E.Message
+	(*timestamppb.Timestamp)(nil), // 14: google.protobuf.Timestamp
+	(*MediaRef)(nil),              // 15: whatsmeow.v1.MediaRef
+	(*durationpb.Duration)(nil),   // 16: google.protobuf.Duration
 }
 var file_whatsmeow_v1_message_proto_depIdxs = []int32{
-	6, // 0: whatsmeow.v1.SendMessageRequest.message:type_name -> WAWebProtobufsE2E.Message
-	7, // 1: whatsmeow.v1.SendMessageResponse.message_time:type_name -> google.protobuf.Timestamp
-	7, // 2: whatsmeow.v1.SendTextResponse.message_time:type_name -> google.protobuf.Timestamp
-	0, // 3: whatsmeow.v1.MessageService.SendMessage:input_type -> whatsmeow.v1.SendMessageRequest
-	2, // 4: whatsmeow.v1.MessageService.SendText:input_type -> whatsmeow.v1.SendTextRequest
-	4, // 5: whatsmeow.v1.MessageService.MarkRead:input_type -> whatsmeow.v1.MarkReadRequest
-	1, // 6: whatsmeow.v1.MessageService.SendMessage:output_type -> whatsmeow.v1.SendMessageResponse
-	3, // 7: whatsmeow.v1.MessageService.SendText:output_type -> whatsmeow.v1.SendTextResponse
-	5, // 8: whatsmeow.v1.MessageService.MarkRead:output_type -> whatsmeow.v1.MarkReadResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	13, // 0: whatsmeow.v1.SendMessageRequest.message:type_name -> WAWebProtobufsE2E.Message
+	14, // 1: whatsmeow.v1.SendMessageResponse.message_time:type_name -> google.protobuf.Timestamp
+	14, // 2: whatsmeow.v1.SendTextResponse.message_time:type_name -> google.protobuf.Timestamp
+	15, // 3: whatsmeow.v1.SendMediaRequest.media:type_name -> whatsmeow.v1.MediaRef
+	6,  // 4: whatsmeow.v1.SendMediaRequest.image:type_name -> whatsmeow.v1.ImageMetadata
+	7,  // 5: whatsmeow.v1.SendMediaRequest.video:type_name -> whatsmeow.v1.VideoMetadata
+	8,  // 6: whatsmeow.v1.SendMediaRequest.audio:type_name -> whatsmeow.v1.AudioMetadata
+	9,  // 7: whatsmeow.v1.SendMediaRequest.document:type_name -> whatsmeow.v1.DocumentMetadata
+	10, // 8: whatsmeow.v1.SendMediaRequest.sticker:type_name -> whatsmeow.v1.StickerMetadata
+	14, // 9: whatsmeow.v1.SendMediaResponse.message_time:type_name -> google.protobuf.Timestamp
+	16, // 10: whatsmeow.v1.VideoMetadata.duration:type_name -> google.protobuf.Duration
+	16, // 11: whatsmeow.v1.AudioMetadata.duration:type_name -> google.protobuf.Duration
+	0,  // 12: whatsmeow.v1.MessageService.SendMessage:input_type -> whatsmeow.v1.SendMessageRequest
+	2,  // 13: whatsmeow.v1.MessageService.SendText:input_type -> whatsmeow.v1.SendTextRequest
+	4,  // 14: whatsmeow.v1.MessageService.SendMedia:input_type -> whatsmeow.v1.SendMediaRequest
+	11, // 15: whatsmeow.v1.MessageService.MarkRead:input_type -> whatsmeow.v1.MarkReadRequest
+	1,  // 16: whatsmeow.v1.MessageService.SendMessage:output_type -> whatsmeow.v1.SendMessageResponse
+	3,  // 17: whatsmeow.v1.MessageService.SendText:output_type -> whatsmeow.v1.SendTextResponse
+	5,  // 18: whatsmeow.v1.MessageService.SendMedia:output_type -> whatsmeow.v1.SendMediaResponse
+	12, // 19: whatsmeow.v1.MessageService.MarkRead:output_type -> whatsmeow.v1.MarkReadResponse
+	16, // [16:20] is the sub-list for method output_type
+	12, // [12:16] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_whatsmeow_v1_message_proto_init() }
@@ -471,13 +1165,24 @@ func file_whatsmeow_v1_message_proto_init() {
 	if File_whatsmeow_v1_message_proto != nil {
 		return
 	}
+	file_whatsmeow_v1_media_proto_init()
+	file_whatsmeow_v1_message_proto_msgTypes[4].OneofWrappers = []any{
+		(*SendMediaRequest_Image)(nil),
+		(*SendMediaRequest_Video)(nil),
+		(*SendMediaRequest_Audio)(nil),
+		(*SendMediaRequest_Document)(nil),
+		(*SendMediaRequest_Sticker)(nil),
+	}
+	file_whatsmeow_v1_message_proto_msgTypes[6].OneofWrappers = []any{}
+	file_whatsmeow_v1_message_proto_msgTypes[7].OneofWrappers = []any{}
+	file_whatsmeow_v1_message_proto_msgTypes[10].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_whatsmeow_v1_message_proto_rawDesc), len(file_whatsmeow_v1_message_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -24,41 +24,83 @@ namespace Whatsmeow.Protocol.V1 {
     static MessageReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Chp3aGF0c21lb3cvdjEvbWVzc2FnZS5wcm90bxIMd2hhdHNtZW93LnYxGh9n",
-            "b29nbGUvcHJvdG9idWYvdGltZXN0YW1wLnByb3RvGh13YUUyRS9XQVdlYlBy",
-            "b3RvYnVmc0UyRS5wcm90byKpAQoSU2VuZE1lc3NhZ2VSZXF1ZXN0Eh0KCnNl",
-            "c3Npb25faWQYASABKAlSCXNlc3Npb25JZBISCgRjaGF0GAIgASgJUgRjaGF0",
-            "EioKEWNsaWVudF9tZXNzYWdlX2lkGAMgASgJUg9jbGllbnRNZXNzYWdlSWQS",
-            "NAoHbWVzc2FnZRgEIAEoCzIaLldBV2ViUHJvdG9idWZzRTJFLk1lc3NhZ2VS",
-            "B21lc3NhZ2UiaAoTU2VuZE1lc3NhZ2VSZXNwb25zZRISCgRjaGF0GAEgASgJ",
-            "UgRjaGF0Ej0KDG1lc3NhZ2VfdGltZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1",
-            "Zi5UaW1lc3RhbXBSC21lc3NhZ2VUaW1lIoQBCg9TZW5kVGV4dFJlcXVlc3QS",
-            "HQoKc2Vzc2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkEhIKBGNoYXQYAiABKAlS",
-            "BGNoYXQSKgoRY2xpZW50X21lc3NhZ2VfaWQYAyABKAlSD2NsaWVudE1lc3Nh",
-            "Z2VJZBISCgR0ZXh0GAQgASgJUgR0ZXh0ImUKEFNlbmRUZXh0UmVzcG9uc2US",
+            "Chp3aGF0c21lb3cvdjEvbWVzc2FnZS5wcm90bxIMd2hhdHNtZW93LnYxGh5n",
+            "b29nbGUvcHJvdG9idWYvZHVyYXRpb24ucHJvdG8aH2dvb2dsZS9wcm90b2J1",
+            "Zi90aW1lc3RhbXAucHJvdG8aHXdhRTJFL1dBV2ViUHJvdG9idWZzRTJFLnBy",
+            "b3RvGhh3aGF0c21lb3cvdjEvbWVkaWEucHJvdG8iqQEKElNlbmRNZXNzYWdl",
+            "UmVxdWVzdBIdCgpzZXNzaW9uX2lkGAEgASgJUglzZXNzaW9uSWQSEgoEY2hh",
+            "dBgCIAEoCVIEY2hhdBIqChFjbGllbnRfbWVzc2FnZV9pZBgDIAEoCVIPY2xp",
+            "ZW50TWVzc2FnZUlkEjQKB21lc3NhZ2UYBCABKAsyGi5XQVdlYlByb3RvYnVm",
+            "c0UyRS5NZXNzYWdlUgdtZXNzYWdlImgKE1NlbmRNZXNzYWdlUmVzcG9uc2US",
             "EgoEY2hhdBgBIAEoCVIEY2hhdBI9CgxtZXNzYWdlX3RpbWUYAiABKAsyGi5n",
-            "b29nbGUucHJvdG9idWYuVGltZXN0YW1wUgttZXNzYWdlVGltZSJ9Cg9NYXJr",
-            "UmVhZFJlcXVlc3QSHQoKc2Vzc2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkEhIK",
-            "BGNoYXQYAiABKAlSBGNoYXQSFgoGc2VuZGVyGAMgASgJUgZzZW5kZXISHwoL",
-            "bWVzc2FnZV9pZHMYBCADKAlSCm1lc3NhZ2VJZHMiEgoQTWFya1JlYWRSZXNw",
-            "b25zZTL6AQoOTWVzc2FnZVNlcnZpY2USUgoLU2VuZE1lc3NhZ2USIC53aGF0",
-            "c21lb3cudjEuU2VuZE1lc3NhZ2VSZXF1ZXN0GiEud2hhdHNtZW93LnYxLlNl",
-            "bmRNZXNzYWdlUmVzcG9uc2USSQoIU2VuZFRleHQSHS53aGF0c21lb3cudjEu",
-            "U2VuZFRleHRSZXF1ZXN0Gh4ud2hhdHNtZW93LnYxLlNlbmRUZXh0UmVzcG9u",
-            "c2USSQoITWFya1JlYWQSHS53aGF0c21lb3cudjEuTWFya1JlYWRSZXF1ZXN0",
-            "Gh4ud2hhdHNtZW93LnYxLk1hcmtSZWFkUmVzcG9uc2VCwgEKEGNvbS53aGF0",
-            "c21lb3cudjFCDE1lc3NhZ2VQcm90b1ABWkZnaXRodWIuY29tL3Rjb3J0ZWdh",
-            "L1doYXRzbWVvdy5ORVQvc2lkZWNhci9nZW4vd2hhdHNtZW93L3YxO3doYXRz",
-            "bWVvd3YxogIDV1hYqgIVV2hhdHNtZW93LlByb3RvY29sLlYxygIMV2hhdHNt",
-            "ZW93XFYx4gIYV2hhdHNtZW93XFYxXEdQQk1ldGFkYXRh6gINV2hhdHNtZW93",
-            "OjpWMWIGcHJvdG8z"));
+            "b29nbGUucHJvdG9idWYuVGltZXN0YW1wUgttZXNzYWdlVGltZSKEAQoPU2Vu",
+            "ZFRleHRSZXF1ZXN0Eh0KCnNlc3Npb25faWQYASABKAlSCXNlc3Npb25JZBIS",
+            "CgRjaGF0GAIgASgJUgRjaGF0EioKEWNsaWVudF9tZXNzYWdlX2lkGAMgASgJ",
+            "Ug9jbGllbnRNZXNzYWdlSWQSEgoEdGV4dBgEIAEoCVIEdGV4dCJlChBTZW5k",
+            "VGV4dFJlc3BvbnNlEhIKBGNoYXQYASABKAlSBGNoYXQSPQoMbWVzc2FnZV90",
+            "aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcFILbWVzc2Fn",
+            "ZVRpbWUiwwMKEFNlbmRNZWRpYVJlcXVlc3QSHQoKc2Vzc2lvbl9pZBgBIAEo",
+            "CVIJc2Vzc2lvbklkEhIKBGNoYXQYAiABKAlSBGNoYXQSKgoRY2xpZW50X21l",
+            "c3NhZ2VfaWQYAyABKAlSD2NsaWVudE1lc3NhZ2VJZBIsCgVtZWRpYRgEIAEo",
+            "CzIWLndoYXRzbWVvdy52MS5NZWRpYVJlZlIFbWVkaWESMwoFaW1hZ2UYBSAB",
+            "KAsyGy53aGF0c21lb3cudjEuSW1hZ2VNZXRhZGF0YUgAUgVpbWFnZRIzCgV2",
+            "aWRlbxgGIAEoCzIbLndoYXRzbWVvdy52MS5WaWRlb01ldGFkYXRhSABSBXZp",
+            "ZGVvEjMKBWF1ZGlvGAcgASgLMhsud2hhdHNtZW93LnYxLkF1ZGlvTWV0YWRh",
+            "dGFIAFIFYXVkaW8SPAoIZG9jdW1lbnQYCCABKAsyHi53aGF0c21lb3cudjEu",
+            "RG9jdW1lbnRNZXRhZGF0YUgAUghkb2N1bWVudBI5CgdzdGlja2VyGAkgASgL",
+            "Mh0ud2hhdHNtZW93LnYxLlN0aWNrZXJNZXRhZGF0YUgAUgdzdGlja2VyQgoK",
+            "CG1ldGFkYXRhImYKEVNlbmRNZWRpYVJlc3BvbnNlEhIKBGNoYXQYASABKAlS",
+            "BGNoYXQSPQoMbWVzc2FnZV90aW1lGAIgASgLMhouZ29vZ2xlLnByb3RvYnVm",
+            "LlRpbWVzdGFtcFILbWVzc2FnZVRpbWUiuQEKDUltYWdlTWV0YWRhdGESGgoI",
+            "bWltZXR5cGUYASABKAlSCG1pbWV0eXBlEhgKB2NhcHRpb24YAiABKAlSB2Nh",
+            "cHRpb24SGQoFd2lkdGgYAyABKA1IAFIFd2lkdGiIAQESGwoGaGVpZ2h0GAQg",
+            "ASgNSAFSBmhlaWdodIgBARIlCg5qcGVnX3RodW1ibmFpbBgFIAEoDFINanBl",
+            "Z1RodW1ibmFpbEIICgZfd2lkdGhCCQoHX2hlaWdodCLwAQoNVmlkZW9NZXRh",
+            "ZGF0YRIaCghtaW1ldHlwZRgBIAEoCVIIbWltZXR5cGUSGAoHY2FwdGlvbhgC",
+            "IAEoCVIHY2FwdGlvbhIZCgV3aWR0aBgDIAEoDUgAUgV3aWR0aIgBARIbCgZo",
+            "ZWlnaHQYBCABKA1IAVIGaGVpZ2h0iAEBEjUKCGR1cmF0aW9uGAUgASgLMhku",
+            "Z29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uUghkdXJhdGlvbhIlCg5qcGVnX3Ro",
+            "dW1ibmFpbBgGIAEoDFINanBlZ1RodW1ibmFpbEIICgZfd2lkdGhCCQoHX2hl",
+            "aWdodCKdAQoNQXVkaW9NZXRhZGF0YRIaCghtaW1ldHlwZRgBIAEoCVIIbWlt",
+            "ZXR5cGUSNQoIZHVyYXRpb24YAiABKAsyGS5nb29nbGUucHJvdG9idWYuRHVy",
+            "YXRpb25SCGR1cmF0aW9uEh0KCnZvaWNlX25vdGUYAyABKAhSCXZvaWNlTm90",
+            "ZRIaCgh3YXZlZm9ybRgEIAEoDFIId2F2ZWZvcm0ijAEKEERvY3VtZW50TWV0",
+            "YWRhdGESGgoIbWltZXR5cGUYASABKAlSCG1pbWV0eXBlEhsKCWZpbGVfbmFt",
+            "ZRgCIAEoCVIIZmlsZU5hbWUSGAoHY2FwdGlvbhgDIAEoCVIHY2FwdGlvbhIl",
+            "Cg5qcGVnX3RodW1ibmFpbBgEIAEoDFINanBlZ1RodW1ibmFpbCKfAQoPU3Rp",
+            "Y2tlck1ldGFkYXRhEhoKCG1pbWV0eXBlGAEgASgJUghtaW1ldHlwZRIZCgV3",
+            "aWR0aBgCIAEoDUgAUgV3aWR0aIgBARIbCgZoZWlnaHQYAyABKA1IAVIGaGVp",
+            "Z2h0iAEBEiMKDXBuZ190aHVtYm5haWwYBCABKAxSDHBuZ1RodW1ibmFpbEII",
+            "CgZfd2lkdGhCCQoHX2hlaWdodCJ9Cg9NYXJrUmVhZFJlcXVlc3QSHQoKc2Vz",
+            "c2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkEhIKBGNoYXQYAiABKAlSBGNoYXQS",
+            "FgoGc2VuZGVyGAMgASgJUgZzZW5kZXISHwoLbWVzc2FnZV9pZHMYBCADKAlS",
+            "Cm1lc3NhZ2VJZHMiEgoQTWFya1JlYWRSZXNwb25zZTLIAgoOTWVzc2FnZVNl",
+            "cnZpY2USUgoLU2VuZE1lc3NhZ2USIC53aGF0c21lb3cudjEuU2VuZE1lc3Nh",
+            "Z2VSZXF1ZXN0GiEud2hhdHNtZW93LnYxLlNlbmRNZXNzYWdlUmVzcG9uc2US",
+            "SQoIU2VuZFRleHQSHS53aGF0c21lb3cudjEuU2VuZFRleHRSZXF1ZXN0Gh4u",
+            "d2hhdHNtZW93LnYxLlNlbmRUZXh0UmVzcG9uc2USTAoJU2VuZE1lZGlhEh4u",
+            "d2hhdHNtZW93LnYxLlNlbmRNZWRpYVJlcXVlc3QaHy53aGF0c21lb3cudjEu",
+            "U2VuZE1lZGlhUmVzcG9uc2USSQoITWFya1JlYWQSHS53aGF0c21lb3cudjEu",
+            "TWFya1JlYWRSZXF1ZXN0Gh4ud2hhdHNtZW93LnYxLk1hcmtSZWFkUmVzcG9u",
+            "c2VCwgEKEGNvbS53aGF0c21lb3cudjFCDE1lc3NhZ2VQcm90b1ABWkZnaXRo",
+            "dWIuY29tL3Rjb3J0ZWdhL1doYXRzbWVvdy5ORVQvc2lkZWNhci9nZW4vd2hh",
+            "dHNtZW93L3YxO3doYXRzbWVvd3YxogIDV1hYqgIVV2hhdHNtZW93LlByb3Rv",
+            "Y29sLlYxygIMV2hhdHNtZW93XFYx4gIYV2hhdHNtZW93XFYxXEdQQk1ldGFk",
+            "YXRh6gINV2hhdHNtZW93OjpWMWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, global::Whatsmeow.Proto.WAWebProtobufsE2E.WAWebProtobufsE2EReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.DurationReflection.Descriptor, global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, global::Whatsmeow.Proto.WAWebProtobufsE2E.WAWebProtobufsE2EReflection.Descriptor, global::Whatsmeow.Protocol.V1.MediaReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.SendMessageRequest), global::Whatsmeow.Protocol.V1.SendMessageRequest.Parser, new[]{ "SessionId", "Chat", "ClientMessageId", "Message" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.SendMessageResponse), global::Whatsmeow.Protocol.V1.SendMessageResponse.Parser, new[]{ "Chat", "MessageTime" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.SendTextRequest), global::Whatsmeow.Protocol.V1.SendTextRequest.Parser, new[]{ "SessionId", "Chat", "ClientMessageId", "Text" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.SendTextResponse), global::Whatsmeow.Protocol.V1.SendTextResponse.Parser, new[]{ "Chat", "MessageTime" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.SendMediaRequest), global::Whatsmeow.Protocol.V1.SendMediaRequest.Parser, new[]{ "SessionId", "Chat", "ClientMessageId", "Media", "Image", "Video", "Audio", "Document", "Sticker" }, new[]{ "Metadata" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.SendMediaResponse), global::Whatsmeow.Protocol.V1.SendMediaResponse.Parser, new[]{ "Chat", "MessageTime" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.ImageMetadata), global::Whatsmeow.Protocol.V1.ImageMetadata.Parser, new[]{ "Mimetype", "Caption", "Width", "Height", "JpegThumbnail" }, new[]{ "Width", "Height" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.VideoMetadata), global::Whatsmeow.Protocol.V1.VideoMetadata.Parser, new[]{ "Mimetype", "Caption", "Width", "Height", "Duration", "JpegThumbnail" }, new[]{ "Width", "Height" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.AudioMetadata), global::Whatsmeow.Protocol.V1.AudioMetadata.Parser, new[]{ "Mimetype", "Duration", "VoiceNote", "Waveform" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.DocumentMetadata), global::Whatsmeow.Protocol.V1.DocumentMetadata.Parser, new[]{ "Mimetype", "FileName", "Caption", "JpegThumbnail" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.StickerMetadata), global::Whatsmeow.Protocol.V1.StickerMetadata.Parser, new[]{ "Mimetype", "Width", "Height", "PngThumbnail" }, new[]{ "Width", "Height" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.MarkReadRequest), global::Whatsmeow.Protocol.V1.MarkReadRequest.Parser, new[]{ "SessionId", "Chat", "Sender", "MessageIds" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.MarkReadResponse), global::Whatsmeow.Protocol.V1.MarkReadResponse.Parser, null, null, null, null, null)
           }));
@@ -1231,6 +1273,2753 @@ namespace Whatsmeow.Protocol.V1 {
   }
 
   /// <summary>
+  /// SendMediaRequest sends a media message.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  internal sealed partial class SendMediaRequest : pb::IMessage<SendMediaRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<SendMediaRequest> _parser = new pb::MessageParser<SendMediaRequest>(() => new SendMediaRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<SendMediaRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Protocol.V1.MessageReflection.Descriptor.MessageTypes[4]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SendMediaRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SendMediaRequest(SendMediaRequest other) : this() {
+      sessionId_ = other.sessionId_;
+      chat_ = other.chat_;
+      clientMessageId_ = other.clientMessageId_;
+      media_ = other.media_ != null ? other.media_.Clone() : null;
+      switch (other.MetadataCase) {
+        case MetadataOneofCase.Image:
+          Image = other.Image.Clone();
+          break;
+        case MetadataOneofCase.Video:
+          Video = other.Video.Clone();
+          break;
+        case MetadataOneofCase.Audio:
+          Audio = other.Audio.Clone();
+          break;
+        case MetadataOneofCase.Document:
+          Document = other.Document.Clone();
+          break;
+        case MetadataOneofCase.Sticker:
+          Sticker = other.Sticker.Clone();
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SendMediaRequest Clone() {
+      return new SendMediaRequest(this);
+    }
+
+    /// <summary>Field number for the "session_id" field.</summary>
+    public const int SessionIdFieldNumber = 1;
+    private string sessionId_ = "";
+    /// <summary>
+    /// The session id.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string SessionId {
+      get { return sessionId_; }
+      set {
+        sessionId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "chat" field.</summary>
+    public const int ChatFieldNumber = 2;
+    private string chat_ = "";
+    /// <summary>
+    /// The recipient: a user JID without a device, or a group JID.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Chat {
+      get { return chat_; }
+      set {
+        chat_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "client_message_id" field.</summary>
+    public const int ClientMessageIdFieldNumber = 3;
+    private string clientMessageId_ = "";
+    /// <summary>
+    /// The WhatsApp message id to send with; required.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ClientMessageId {
+      get { return clientMessageId_; }
+      set {
+        clientMessageId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "media" field.</summary>
+    public const int MediaFieldNumber = 4;
+    private global::Whatsmeow.Protocol.V1.MediaRef media_;
+    /// <summary>
+    /// The file on WhatsApp's servers.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Protocol.V1.MediaRef Media {
+      get { return media_; }
+      set {
+        media_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "image" field.</summary>
+    public const int ImageFieldNumber = 5;
+    /// <summary>
+    /// An image.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Protocol.V1.ImageMetadata Image {
+      get { return metadataCase_ == MetadataOneofCase.Image ? (global::Whatsmeow.Protocol.V1.ImageMetadata) metadata_ : null; }
+      set {
+        metadata_ = value;
+        metadataCase_ = value == null ? MetadataOneofCase.None : MetadataOneofCase.Image;
+      }
+    }
+
+    /// <summary>Field number for the "video" field.</summary>
+    public const int VideoFieldNumber = 6;
+    /// <summary>
+    /// A video.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Protocol.V1.VideoMetadata Video {
+      get { return metadataCase_ == MetadataOneofCase.Video ? (global::Whatsmeow.Protocol.V1.VideoMetadata) metadata_ : null; }
+      set {
+        metadata_ = value;
+        metadataCase_ = value == null ? MetadataOneofCase.None : MetadataOneofCase.Video;
+      }
+    }
+
+    /// <summary>Field number for the "audio" field.</summary>
+    public const int AudioFieldNumber = 7;
+    /// <summary>
+    /// An audio file or a voice note.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Protocol.V1.AudioMetadata Audio {
+      get { return metadataCase_ == MetadataOneofCase.Audio ? (global::Whatsmeow.Protocol.V1.AudioMetadata) metadata_ : null; }
+      set {
+        metadata_ = value;
+        metadataCase_ = value == null ? MetadataOneofCase.None : MetadataOneofCase.Audio;
+      }
+    }
+
+    /// <summary>Field number for the "document" field.</summary>
+    public const int DocumentFieldNumber = 8;
+    /// <summary>
+    /// A document.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Protocol.V1.DocumentMetadata Document {
+      get { return metadataCase_ == MetadataOneofCase.Document ? (global::Whatsmeow.Protocol.V1.DocumentMetadata) metadata_ : null; }
+      set {
+        metadata_ = value;
+        metadataCase_ = value == null ? MetadataOneofCase.None : MetadataOneofCase.Document;
+      }
+    }
+
+    /// <summary>Field number for the "sticker" field.</summary>
+    public const int StickerFieldNumber = 9;
+    /// <summary>
+    /// A sticker.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Protocol.V1.StickerMetadata Sticker {
+      get { return metadataCase_ == MetadataOneofCase.Sticker ? (global::Whatsmeow.Protocol.V1.StickerMetadata) metadata_ : null; }
+      set {
+        metadata_ = value;
+        metadataCase_ = value == null ? MetadataOneofCase.None : MetadataOneofCase.Sticker;
+      }
+    }
+
+    private object metadata_;
+    /// <summary>Enum of possible cases for the "metadata" oneof.</summary>
+    public enum MetadataOneofCase {
+      None = 0,
+      Image = 5,
+      Video = 6,
+      Audio = 7,
+      Document = 8,
+      Sticker = 9,
+    }
+    private MetadataOneofCase metadataCase_ = MetadataOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public MetadataOneofCase MetadataCase {
+      get { return metadataCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearMetadata() {
+      metadataCase_ = MetadataOneofCase.None;
+      metadata_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as SendMediaRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(SendMediaRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (SessionId != other.SessionId) return false;
+      if (Chat != other.Chat) return false;
+      if (ClientMessageId != other.ClientMessageId) return false;
+      if (!object.Equals(Media, other.Media)) return false;
+      if (!object.Equals(Image, other.Image)) return false;
+      if (!object.Equals(Video, other.Video)) return false;
+      if (!object.Equals(Audio, other.Audio)) return false;
+      if (!object.Equals(Document, other.Document)) return false;
+      if (!object.Equals(Sticker, other.Sticker)) return false;
+      if (MetadataCase != other.MetadataCase) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (SessionId.Length != 0) hash ^= SessionId.GetHashCode();
+      if (Chat.Length != 0) hash ^= Chat.GetHashCode();
+      if (ClientMessageId.Length != 0) hash ^= ClientMessageId.GetHashCode();
+      if (media_ != null) hash ^= Media.GetHashCode();
+      if (metadataCase_ == MetadataOneofCase.Image) hash ^= Image.GetHashCode();
+      if (metadataCase_ == MetadataOneofCase.Video) hash ^= Video.GetHashCode();
+      if (metadataCase_ == MetadataOneofCase.Audio) hash ^= Audio.GetHashCode();
+      if (metadataCase_ == MetadataOneofCase.Document) hash ^= Document.GetHashCode();
+      if (metadataCase_ == MetadataOneofCase.Sticker) hash ^= Sticker.GetHashCode();
+      hash ^= (int) metadataCase_;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (SessionId.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(SessionId);
+      }
+      if (Chat.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Chat);
+      }
+      if (ClientMessageId.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(ClientMessageId);
+      }
+      if (media_ != null) {
+        output.WriteRawTag(34);
+        output.WriteMessage(Media);
+      }
+      if (metadataCase_ == MetadataOneofCase.Image) {
+        output.WriteRawTag(42);
+        output.WriteMessage(Image);
+      }
+      if (metadataCase_ == MetadataOneofCase.Video) {
+        output.WriteRawTag(50);
+        output.WriteMessage(Video);
+      }
+      if (metadataCase_ == MetadataOneofCase.Audio) {
+        output.WriteRawTag(58);
+        output.WriteMessage(Audio);
+      }
+      if (metadataCase_ == MetadataOneofCase.Document) {
+        output.WriteRawTag(66);
+        output.WriteMessage(Document);
+      }
+      if (metadataCase_ == MetadataOneofCase.Sticker) {
+        output.WriteRawTag(74);
+        output.WriteMessage(Sticker);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (SessionId.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(SessionId);
+      }
+      if (Chat.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Chat);
+      }
+      if (ClientMessageId.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(ClientMessageId);
+      }
+      if (media_ != null) {
+        output.WriteRawTag(34);
+        output.WriteMessage(Media);
+      }
+      if (metadataCase_ == MetadataOneofCase.Image) {
+        output.WriteRawTag(42);
+        output.WriteMessage(Image);
+      }
+      if (metadataCase_ == MetadataOneofCase.Video) {
+        output.WriteRawTag(50);
+        output.WriteMessage(Video);
+      }
+      if (metadataCase_ == MetadataOneofCase.Audio) {
+        output.WriteRawTag(58);
+        output.WriteMessage(Audio);
+      }
+      if (metadataCase_ == MetadataOneofCase.Document) {
+        output.WriteRawTag(66);
+        output.WriteMessage(Document);
+      }
+      if (metadataCase_ == MetadataOneofCase.Sticker) {
+        output.WriteRawTag(74);
+        output.WriteMessage(Sticker);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (SessionId.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(SessionId);
+      }
+      if (Chat.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Chat);
+      }
+      if (ClientMessageId.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ClientMessageId);
+      }
+      if (media_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Media);
+      }
+      if (metadataCase_ == MetadataOneofCase.Image) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Image);
+      }
+      if (metadataCase_ == MetadataOneofCase.Video) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Video);
+      }
+      if (metadataCase_ == MetadataOneofCase.Audio) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Audio);
+      }
+      if (metadataCase_ == MetadataOneofCase.Document) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Document);
+      }
+      if (metadataCase_ == MetadataOneofCase.Sticker) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Sticker);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(SendMediaRequest other) {
+      if (other == null) {
+        return;
+      }
+      if (other.SessionId.Length != 0) {
+        SessionId = other.SessionId;
+      }
+      if (other.Chat.Length != 0) {
+        Chat = other.Chat;
+      }
+      if (other.ClientMessageId.Length != 0) {
+        ClientMessageId = other.ClientMessageId;
+      }
+      if (other.media_ != null) {
+        if (media_ == null) {
+          Media = new global::Whatsmeow.Protocol.V1.MediaRef();
+        }
+        Media.MergeFrom(other.Media);
+      }
+      switch (other.MetadataCase) {
+        case MetadataOneofCase.Image:
+          if (Image == null) {
+            Image = new global::Whatsmeow.Protocol.V1.ImageMetadata();
+          }
+          Image.MergeFrom(other.Image);
+          break;
+        case MetadataOneofCase.Video:
+          if (Video == null) {
+            Video = new global::Whatsmeow.Protocol.V1.VideoMetadata();
+          }
+          Video.MergeFrom(other.Video);
+          break;
+        case MetadataOneofCase.Audio:
+          if (Audio == null) {
+            Audio = new global::Whatsmeow.Protocol.V1.AudioMetadata();
+          }
+          Audio.MergeFrom(other.Audio);
+          break;
+        case MetadataOneofCase.Document:
+          if (Document == null) {
+            Document = new global::Whatsmeow.Protocol.V1.DocumentMetadata();
+          }
+          Document.MergeFrom(other.Document);
+          break;
+        case MetadataOneofCase.Sticker:
+          if (Sticker == null) {
+            Sticker = new global::Whatsmeow.Protocol.V1.StickerMetadata();
+          }
+          Sticker.MergeFrom(other.Sticker);
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            SessionId = input.ReadString();
+            break;
+          }
+          case 18: {
+            Chat = input.ReadString();
+            break;
+          }
+          case 26: {
+            ClientMessageId = input.ReadString();
+            break;
+          }
+          case 34: {
+            if (media_ == null) {
+              Media = new global::Whatsmeow.Protocol.V1.MediaRef();
+            }
+            input.ReadMessage(Media);
+            break;
+          }
+          case 42: {
+            global::Whatsmeow.Protocol.V1.ImageMetadata subBuilder = new global::Whatsmeow.Protocol.V1.ImageMetadata();
+            if (metadataCase_ == MetadataOneofCase.Image) {
+              subBuilder.MergeFrom(Image);
+            }
+            input.ReadMessage(subBuilder);
+            Image = subBuilder;
+            break;
+          }
+          case 50: {
+            global::Whatsmeow.Protocol.V1.VideoMetadata subBuilder = new global::Whatsmeow.Protocol.V1.VideoMetadata();
+            if (metadataCase_ == MetadataOneofCase.Video) {
+              subBuilder.MergeFrom(Video);
+            }
+            input.ReadMessage(subBuilder);
+            Video = subBuilder;
+            break;
+          }
+          case 58: {
+            global::Whatsmeow.Protocol.V1.AudioMetadata subBuilder = new global::Whatsmeow.Protocol.V1.AudioMetadata();
+            if (metadataCase_ == MetadataOneofCase.Audio) {
+              subBuilder.MergeFrom(Audio);
+            }
+            input.ReadMessage(subBuilder);
+            Audio = subBuilder;
+            break;
+          }
+          case 66: {
+            global::Whatsmeow.Protocol.V1.DocumentMetadata subBuilder = new global::Whatsmeow.Protocol.V1.DocumentMetadata();
+            if (metadataCase_ == MetadataOneofCase.Document) {
+              subBuilder.MergeFrom(Document);
+            }
+            input.ReadMessage(subBuilder);
+            Document = subBuilder;
+            break;
+          }
+          case 74: {
+            global::Whatsmeow.Protocol.V1.StickerMetadata subBuilder = new global::Whatsmeow.Protocol.V1.StickerMetadata();
+            if (metadataCase_ == MetadataOneofCase.Sticker) {
+              subBuilder.MergeFrom(Sticker);
+            }
+            input.ReadMessage(subBuilder);
+            Sticker = subBuilder;
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            SessionId = input.ReadString();
+            break;
+          }
+          case 18: {
+            Chat = input.ReadString();
+            break;
+          }
+          case 26: {
+            ClientMessageId = input.ReadString();
+            break;
+          }
+          case 34: {
+            if (media_ == null) {
+              Media = new global::Whatsmeow.Protocol.V1.MediaRef();
+            }
+            input.ReadMessage(Media);
+            break;
+          }
+          case 42: {
+            global::Whatsmeow.Protocol.V1.ImageMetadata subBuilder = new global::Whatsmeow.Protocol.V1.ImageMetadata();
+            if (metadataCase_ == MetadataOneofCase.Image) {
+              subBuilder.MergeFrom(Image);
+            }
+            input.ReadMessage(subBuilder);
+            Image = subBuilder;
+            break;
+          }
+          case 50: {
+            global::Whatsmeow.Protocol.V1.VideoMetadata subBuilder = new global::Whatsmeow.Protocol.V1.VideoMetadata();
+            if (metadataCase_ == MetadataOneofCase.Video) {
+              subBuilder.MergeFrom(Video);
+            }
+            input.ReadMessage(subBuilder);
+            Video = subBuilder;
+            break;
+          }
+          case 58: {
+            global::Whatsmeow.Protocol.V1.AudioMetadata subBuilder = new global::Whatsmeow.Protocol.V1.AudioMetadata();
+            if (metadataCase_ == MetadataOneofCase.Audio) {
+              subBuilder.MergeFrom(Audio);
+            }
+            input.ReadMessage(subBuilder);
+            Audio = subBuilder;
+            break;
+          }
+          case 66: {
+            global::Whatsmeow.Protocol.V1.DocumentMetadata subBuilder = new global::Whatsmeow.Protocol.V1.DocumentMetadata();
+            if (metadataCase_ == MetadataOneofCase.Document) {
+              subBuilder.MergeFrom(Document);
+            }
+            input.ReadMessage(subBuilder);
+            Document = subBuilder;
+            break;
+          }
+          case 74: {
+            global::Whatsmeow.Protocol.V1.StickerMetadata subBuilder = new global::Whatsmeow.Protocol.V1.StickerMetadata();
+            if (metadataCase_ == MetadataOneofCase.Sticker) {
+              subBuilder.MergeFrom(Sticker);
+            }
+            input.ReadMessage(subBuilder);
+            Sticker = subBuilder;
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// SendMediaResponse is a successful send.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  internal sealed partial class SendMediaResponse : pb::IMessage<SendMediaResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<SendMediaResponse> _parser = new pb::MessageParser<SendMediaResponse>(() => new SendMediaResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<SendMediaResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Protocol.V1.MessageReflection.Descriptor.MessageTypes[5]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SendMediaResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SendMediaResponse(SendMediaResponse other) : this() {
+      chat_ = other.chat_;
+      messageTime_ = other.messageTime_ != null ? other.messageTime_.Clone() : null;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SendMediaResponse Clone() {
+      return new SendMediaResponse(this);
+    }
+
+    /// <summary>Field number for the "chat" field.</summary>
+    public const int ChatFieldNumber = 1;
+    private string chat_ = "";
+    /// <summary>
+    /// The chat it was sent to, which can be the recipient's LID when a phone-number JID was requested.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Chat {
+      get { return chat_; }
+      set {
+        chat_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "message_time" field.</summary>
+    public const int MessageTimeFieldNumber = 2;
+    private global::Google.Protobuf.WellKnownTypes.Timestamp messageTime_;
+    /// <summary>
+    /// The message's WhatsApp timestamp.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Google.Protobuf.WellKnownTypes.Timestamp MessageTime {
+      get { return messageTime_; }
+      set {
+        messageTime_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as SendMediaResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(SendMediaResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Chat != other.Chat) return false;
+      if (!object.Equals(MessageTime, other.MessageTime)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Chat.Length != 0) hash ^= Chat.GetHashCode();
+      if (messageTime_ != null) hash ^= MessageTime.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Chat.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Chat);
+      }
+      if (messageTime_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(MessageTime);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Chat.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Chat);
+      }
+      if (messageTime_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(MessageTime);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Chat.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Chat);
+      }
+      if (messageTime_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(MessageTime);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(SendMediaResponse other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Chat.Length != 0) {
+        Chat = other.Chat;
+      }
+      if (other.messageTime_ != null) {
+        if (messageTime_ == null) {
+          MessageTime = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+        }
+        MessageTime.MergeFrom(other.MessageTime);
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Chat = input.ReadString();
+            break;
+          }
+          case 18: {
+            if (messageTime_ == null) {
+              MessageTime = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+            }
+            input.ReadMessage(MessageTime);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Chat = input.ReadString();
+            break;
+          }
+          case 18: {
+            if (messageTime_ == null) {
+              MessageTime = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+            }
+            input.ReadMessage(MessageTime);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// ImageMetadata is what an image message says about its file. Empty is not sent.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  internal sealed partial class ImageMetadata : pb::IMessage<ImageMetadata>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<ImageMetadata> _parser = new pb::MessageParser<ImageMetadata>(() => new ImageMetadata());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<ImageMetadata> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Protocol.V1.MessageReflection.Descriptor.MessageTypes[6]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ImageMetadata() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ImageMetadata(ImageMetadata other) : this() {
+      _hasBits0 = other._hasBits0;
+      mimetype_ = other.mimetype_;
+      caption_ = other.caption_;
+      width_ = other.width_;
+      height_ = other.height_;
+      jpegThumbnail_ = other.jpegThumbnail_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ImageMetadata Clone() {
+      return new ImageMetadata(this);
+    }
+
+    /// <summary>Field number for the "mimetype" field.</summary>
+    public const int MimetypeFieldNumber = 1;
+    private string mimetype_ = "";
+    /// <summary>
+    /// The file's MIME type.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Mimetype {
+      get { return mimetype_; }
+      set {
+        mimetype_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "caption" field.</summary>
+    public const int CaptionFieldNumber = 2;
+    private string caption_ = "";
+    /// <summary>
+    /// The caption.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Caption {
+      get { return caption_; }
+      set {
+        caption_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "width" field.</summary>
+    public const int WidthFieldNumber = 3;
+    private readonly static uint WidthDefaultValue = 0;
+
+    private uint width_;
+    /// <summary>
+    /// The width in pixels.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public uint Width {
+      get { if ((_hasBits0 & 1) != 0) { return width_; } else { return WidthDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        width_ = value;
+      }
+    }
+    /// <summary>Gets whether the "width" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasWidth {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "width" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearWidth() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "height" field.</summary>
+    public const int HeightFieldNumber = 4;
+    private readonly static uint HeightDefaultValue = 0;
+
+    private uint height_;
+    /// <summary>
+    /// The height in pixels.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public uint Height {
+      get { if ((_hasBits0 & 2) != 0) { return height_; } else { return HeightDefaultValue; } }
+      set {
+        _hasBits0 |= 2;
+        height_ = value;
+      }
+    }
+    /// <summary>Gets whether the "height" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasHeight {
+      get { return (_hasBits0 & 2) != 0; }
+    }
+    /// <summary>Clears the value of the "height" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearHeight() {
+      _hasBits0 &= ~2;
+    }
+
+    /// <summary>Field number for the "jpeg_thumbnail" field.</summary>
+    public const int JpegThumbnailFieldNumber = 5;
+    private pb::ByteString jpegThumbnail_ = pb::ByteString.Empty;
+    /// <summary>
+    /// A JPEG thumbnail.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString JpegThumbnail {
+      get { return jpegThumbnail_; }
+      set {
+        jpegThumbnail_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as ImageMetadata);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(ImageMetadata other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Mimetype != other.Mimetype) return false;
+      if (Caption != other.Caption) return false;
+      if (Width != other.Width) return false;
+      if (Height != other.Height) return false;
+      if (JpegThumbnail != other.JpegThumbnail) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Mimetype.Length != 0) hash ^= Mimetype.GetHashCode();
+      if (Caption.Length != 0) hash ^= Caption.GetHashCode();
+      if (HasWidth) hash ^= Width.GetHashCode();
+      if (HasHeight) hash ^= Height.GetHashCode();
+      if (JpegThumbnail.Length != 0) hash ^= JpegThumbnail.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Mimetype.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Mimetype);
+      }
+      if (Caption.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Caption);
+      }
+      if (HasWidth) {
+        output.WriteRawTag(24);
+        output.WriteUInt32(Width);
+      }
+      if (HasHeight) {
+        output.WriteRawTag(32);
+        output.WriteUInt32(Height);
+      }
+      if (JpegThumbnail.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteBytes(JpegThumbnail);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Mimetype.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Mimetype);
+      }
+      if (Caption.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Caption);
+      }
+      if (HasWidth) {
+        output.WriteRawTag(24);
+        output.WriteUInt32(Width);
+      }
+      if (HasHeight) {
+        output.WriteRawTag(32);
+        output.WriteUInt32(Height);
+      }
+      if (JpegThumbnail.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteBytes(JpegThumbnail);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Mimetype.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Mimetype);
+      }
+      if (Caption.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Caption);
+      }
+      if (HasWidth) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(Width);
+      }
+      if (HasHeight) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(Height);
+      }
+      if (JpegThumbnail.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(JpegThumbnail);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(ImageMetadata other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Mimetype.Length != 0) {
+        Mimetype = other.Mimetype;
+      }
+      if (other.Caption.Length != 0) {
+        Caption = other.Caption;
+      }
+      if (other.HasWidth) {
+        Width = other.Width;
+      }
+      if (other.HasHeight) {
+        Height = other.Height;
+      }
+      if (other.JpegThumbnail.Length != 0) {
+        JpegThumbnail = other.JpegThumbnail;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Mimetype = input.ReadString();
+            break;
+          }
+          case 18: {
+            Caption = input.ReadString();
+            break;
+          }
+          case 24: {
+            Width = input.ReadUInt32();
+            break;
+          }
+          case 32: {
+            Height = input.ReadUInt32();
+            break;
+          }
+          case 42: {
+            JpegThumbnail = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Mimetype = input.ReadString();
+            break;
+          }
+          case 18: {
+            Caption = input.ReadString();
+            break;
+          }
+          case 24: {
+            Width = input.ReadUInt32();
+            break;
+          }
+          case 32: {
+            Height = input.ReadUInt32();
+            break;
+          }
+          case 42: {
+            JpegThumbnail = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// VideoMetadata is what a video message says about its file. Empty or unset is not sent.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  internal sealed partial class VideoMetadata : pb::IMessage<VideoMetadata>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<VideoMetadata> _parser = new pb::MessageParser<VideoMetadata>(() => new VideoMetadata());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<VideoMetadata> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Protocol.V1.MessageReflection.Descriptor.MessageTypes[7]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public VideoMetadata() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public VideoMetadata(VideoMetadata other) : this() {
+      _hasBits0 = other._hasBits0;
+      mimetype_ = other.mimetype_;
+      caption_ = other.caption_;
+      width_ = other.width_;
+      height_ = other.height_;
+      duration_ = other.duration_ != null ? other.duration_.Clone() : null;
+      jpegThumbnail_ = other.jpegThumbnail_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public VideoMetadata Clone() {
+      return new VideoMetadata(this);
+    }
+
+    /// <summary>Field number for the "mimetype" field.</summary>
+    public const int MimetypeFieldNumber = 1;
+    private string mimetype_ = "";
+    /// <summary>
+    /// The file's MIME type.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Mimetype {
+      get { return mimetype_; }
+      set {
+        mimetype_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "caption" field.</summary>
+    public const int CaptionFieldNumber = 2;
+    private string caption_ = "";
+    /// <summary>
+    /// The caption.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Caption {
+      get { return caption_; }
+      set {
+        caption_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "width" field.</summary>
+    public const int WidthFieldNumber = 3;
+    private readonly static uint WidthDefaultValue = 0;
+
+    private uint width_;
+    /// <summary>
+    /// The width in pixels.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public uint Width {
+      get { if ((_hasBits0 & 1) != 0) { return width_; } else { return WidthDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        width_ = value;
+      }
+    }
+    /// <summary>Gets whether the "width" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasWidth {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "width" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearWidth() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "height" field.</summary>
+    public const int HeightFieldNumber = 4;
+    private readonly static uint HeightDefaultValue = 0;
+
+    private uint height_;
+    /// <summary>
+    /// The height in pixels.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public uint Height {
+      get { if ((_hasBits0 & 2) != 0) { return height_; } else { return HeightDefaultValue; } }
+      set {
+        _hasBits0 |= 2;
+        height_ = value;
+      }
+    }
+    /// <summary>Gets whether the "height" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasHeight {
+      get { return (_hasBits0 & 2) != 0; }
+    }
+    /// <summary>Clears the value of the "height" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearHeight() {
+      _hasBits0 &= ~2;
+    }
+
+    /// <summary>Field number for the "duration" field.</summary>
+    public const int DurationFieldNumber = 5;
+    private global::Google.Protobuf.WellKnownTypes.Duration duration_;
+    /// <summary>
+    /// The length, sent in whole seconds: the fraction is dropped.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Google.Protobuf.WellKnownTypes.Duration Duration {
+      get { return duration_; }
+      set {
+        duration_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "jpeg_thumbnail" field.</summary>
+    public const int JpegThumbnailFieldNumber = 6;
+    private pb::ByteString jpegThumbnail_ = pb::ByteString.Empty;
+    /// <summary>
+    /// A JPEG thumbnail.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString JpegThumbnail {
+      get { return jpegThumbnail_; }
+      set {
+        jpegThumbnail_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as VideoMetadata);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(VideoMetadata other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Mimetype != other.Mimetype) return false;
+      if (Caption != other.Caption) return false;
+      if (Width != other.Width) return false;
+      if (Height != other.Height) return false;
+      if (!object.Equals(Duration, other.Duration)) return false;
+      if (JpegThumbnail != other.JpegThumbnail) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Mimetype.Length != 0) hash ^= Mimetype.GetHashCode();
+      if (Caption.Length != 0) hash ^= Caption.GetHashCode();
+      if (HasWidth) hash ^= Width.GetHashCode();
+      if (HasHeight) hash ^= Height.GetHashCode();
+      if (duration_ != null) hash ^= Duration.GetHashCode();
+      if (JpegThumbnail.Length != 0) hash ^= JpegThumbnail.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Mimetype.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Mimetype);
+      }
+      if (Caption.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Caption);
+      }
+      if (HasWidth) {
+        output.WriteRawTag(24);
+        output.WriteUInt32(Width);
+      }
+      if (HasHeight) {
+        output.WriteRawTag(32);
+        output.WriteUInt32(Height);
+      }
+      if (duration_ != null) {
+        output.WriteRawTag(42);
+        output.WriteMessage(Duration);
+      }
+      if (JpegThumbnail.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteBytes(JpegThumbnail);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Mimetype.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Mimetype);
+      }
+      if (Caption.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Caption);
+      }
+      if (HasWidth) {
+        output.WriteRawTag(24);
+        output.WriteUInt32(Width);
+      }
+      if (HasHeight) {
+        output.WriteRawTag(32);
+        output.WriteUInt32(Height);
+      }
+      if (duration_ != null) {
+        output.WriteRawTag(42);
+        output.WriteMessage(Duration);
+      }
+      if (JpegThumbnail.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteBytes(JpegThumbnail);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Mimetype.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Mimetype);
+      }
+      if (Caption.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Caption);
+      }
+      if (HasWidth) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(Width);
+      }
+      if (HasHeight) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(Height);
+      }
+      if (duration_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Duration);
+      }
+      if (JpegThumbnail.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(JpegThumbnail);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(VideoMetadata other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Mimetype.Length != 0) {
+        Mimetype = other.Mimetype;
+      }
+      if (other.Caption.Length != 0) {
+        Caption = other.Caption;
+      }
+      if (other.HasWidth) {
+        Width = other.Width;
+      }
+      if (other.HasHeight) {
+        Height = other.Height;
+      }
+      if (other.duration_ != null) {
+        if (duration_ == null) {
+          Duration = new global::Google.Protobuf.WellKnownTypes.Duration();
+        }
+        Duration.MergeFrom(other.Duration);
+      }
+      if (other.JpegThumbnail.Length != 0) {
+        JpegThumbnail = other.JpegThumbnail;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Mimetype = input.ReadString();
+            break;
+          }
+          case 18: {
+            Caption = input.ReadString();
+            break;
+          }
+          case 24: {
+            Width = input.ReadUInt32();
+            break;
+          }
+          case 32: {
+            Height = input.ReadUInt32();
+            break;
+          }
+          case 42: {
+            if (duration_ == null) {
+              Duration = new global::Google.Protobuf.WellKnownTypes.Duration();
+            }
+            input.ReadMessage(Duration);
+            break;
+          }
+          case 50: {
+            JpegThumbnail = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Mimetype = input.ReadString();
+            break;
+          }
+          case 18: {
+            Caption = input.ReadString();
+            break;
+          }
+          case 24: {
+            Width = input.ReadUInt32();
+            break;
+          }
+          case 32: {
+            Height = input.ReadUInt32();
+            break;
+          }
+          case 42: {
+            if (duration_ == null) {
+              Duration = new global::Google.Protobuf.WellKnownTypes.Duration();
+            }
+            input.ReadMessage(Duration);
+            break;
+          }
+          case 50: {
+            JpegThumbnail = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// AudioMetadata is what an audio message says about its file. Empty or unset is not sent.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  internal sealed partial class AudioMetadata : pb::IMessage<AudioMetadata>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<AudioMetadata> _parser = new pb::MessageParser<AudioMetadata>(() => new AudioMetadata());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<AudioMetadata> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Protocol.V1.MessageReflection.Descriptor.MessageTypes[8]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public AudioMetadata() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public AudioMetadata(AudioMetadata other) : this() {
+      mimetype_ = other.mimetype_;
+      duration_ = other.duration_ != null ? other.duration_.Clone() : null;
+      voiceNote_ = other.voiceNote_;
+      waveform_ = other.waveform_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public AudioMetadata Clone() {
+      return new AudioMetadata(this);
+    }
+
+    /// <summary>Field number for the "mimetype" field.</summary>
+    public const int MimetypeFieldNumber = 1;
+    private string mimetype_ = "";
+    /// <summary>
+    /// The file's MIME type. Phones play a voice note as audio/ogg; codecs=opus; the sidecar does not check it.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Mimetype {
+      get { return mimetype_; }
+      set {
+        mimetype_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "duration" field.</summary>
+    public const int DurationFieldNumber = 2;
+    private global::Google.Protobuf.WellKnownTypes.Duration duration_;
+    /// <summary>
+    /// The length, sent in whole seconds: the fraction is dropped.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Google.Protobuf.WellKnownTypes.Duration Duration {
+      get { return duration_; }
+      set {
+        duration_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "voice_note" field.</summary>
+    public const int VoiceNoteFieldNumber = 3;
+    private bool voiceNote_;
+    /// <summary>
+    /// True for a voice note (PTT), false for an audio file; always sent.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool VoiceNote {
+      get { return voiceNote_; }
+      set {
+        voiceNote_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "waveform" field.</summary>
+    public const int WaveformFieldNumber = 4;
+    private pb::ByteString waveform_ = pb::ByteString.Empty;
+    /// <summary>
+    /// A voice note's waveform, sent unchanged.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString Waveform {
+      get { return waveform_; }
+      set {
+        waveform_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as AudioMetadata);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(AudioMetadata other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Mimetype != other.Mimetype) return false;
+      if (!object.Equals(Duration, other.Duration)) return false;
+      if (VoiceNote != other.VoiceNote) return false;
+      if (Waveform != other.Waveform) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Mimetype.Length != 0) hash ^= Mimetype.GetHashCode();
+      if (duration_ != null) hash ^= Duration.GetHashCode();
+      if (VoiceNote != false) hash ^= VoiceNote.GetHashCode();
+      if (Waveform.Length != 0) hash ^= Waveform.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Mimetype.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Mimetype);
+      }
+      if (duration_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(Duration);
+      }
+      if (VoiceNote != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(VoiceNote);
+      }
+      if (Waveform.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(Waveform);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Mimetype.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Mimetype);
+      }
+      if (duration_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(Duration);
+      }
+      if (VoiceNote != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(VoiceNote);
+      }
+      if (Waveform.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(Waveform);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Mimetype.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Mimetype);
+      }
+      if (duration_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Duration);
+      }
+      if (VoiceNote != false) {
+        size += 1 + 1;
+      }
+      if (Waveform.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Waveform);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(AudioMetadata other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Mimetype.Length != 0) {
+        Mimetype = other.Mimetype;
+      }
+      if (other.duration_ != null) {
+        if (duration_ == null) {
+          Duration = new global::Google.Protobuf.WellKnownTypes.Duration();
+        }
+        Duration.MergeFrom(other.Duration);
+      }
+      if (other.VoiceNote != false) {
+        VoiceNote = other.VoiceNote;
+      }
+      if (other.Waveform.Length != 0) {
+        Waveform = other.Waveform;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Mimetype = input.ReadString();
+            break;
+          }
+          case 18: {
+            if (duration_ == null) {
+              Duration = new global::Google.Protobuf.WellKnownTypes.Duration();
+            }
+            input.ReadMessage(Duration);
+            break;
+          }
+          case 24: {
+            VoiceNote = input.ReadBool();
+            break;
+          }
+          case 34: {
+            Waveform = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Mimetype = input.ReadString();
+            break;
+          }
+          case 18: {
+            if (duration_ == null) {
+              Duration = new global::Google.Protobuf.WellKnownTypes.Duration();
+            }
+            input.ReadMessage(Duration);
+            break;
+          }
+          case 24: {
+            VoiceNote = input.ReadBool();
+            break;
+          }
+          case 34: {
+            Waveform = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// DocumentMetadata is what a document message says about its file. Empty is not sent.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  internal sealed partial class DocumentMetadata : pb::IMessage<DocumentMetadata>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<DocumentMetadata> _parser = new pb::MessageParser<DocumentMetadata>(() => new DocumentMetadata());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<DocumentMetadata> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Protocol.V1.MessageReflection.Descriptor.MessageTypes[9]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DocumentMetadata() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DocumentMetadata(DocumentMetadata other) : this() {
+      mimetype_ = other.mimetype_;
+      fileName_ = other.fileName_;
+      caption_ = other.caption_;
+      jpegThumbnail_ = other.jpegThumbnail_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DocumentMetadata Clone() {
+      return new DocumentMetadata(this);
+    }
+
+    /// <summary>Field number for the "mimetype" field.</summary>
+    public const int MimetypeFieldNumber = 1;
+    private string mimetype_ = "";
+    /// <summary>
+    /// The file's MIME type.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Mimetype {
+      get { return mimetype_; }
+      set {
+        mimetype_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "file_name" field.</summary>
+    public const int FileNameFieldNumber = 2;
+    private string fileName_ = "";
+    /// <summary>
+    /// The file name the recipient sees.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string FileName {
+      get { return fileName_; }
+      set {
+        fileName_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "caption" field.</summary>
+    public const int CaptionFieldNumber = 3;
+    private string caption_ = "";
+    /// <summary>
+    /// The caption.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Caption {
+      get { return caption_; }
+      set {
+        caption_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "jpeg_thumbnail" field.</summary>
+    public const int JpegThumbnailFieldNumber = 4;
+    private pb::ByteString jpegThumbnail_ = pb::ByteString.Empty;
+    /// <summary>
+    /// A JPEG thumbnail.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString JpegThumbnail {
+      get { return jpegThumbnail_; }
+      set {
+        jpegThumbnail_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as DocumentMetadata);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(DocumentMetadata other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Mimetype != other.Mimetype) return false;
+      if (FileName != other.FileName) return false;
+      if (Caption != other.Caption) return false;
+      if (JpegThumbnail != other.JpegThumbnail) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Mimetype.Length != 0) hash ^= Mimetype.GetHashCode();
+      if (FileName.Length != 0) hash ^= FileName.GetHashCode();
+      if (Caption.Length != 0) hash ^= Caption.GetHashCode();
+      if (JpegThumbnail.Length != 0) hash ^= JpegThumbnail.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Mimetype.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Mimetype);
+      }
+      if (FileName.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(FileName);
+      }
+      if (Caption.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Caption);
+      }
+      if (JpegThumbnail.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(JpegThumbnail);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Mimetype.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Mimetype);
+      }
+      if (FileName.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(FileName);
+      }
+      if (Caption.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Caption);
+      }
+      if (JpegThumbnail.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(JpegThumbnail);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Mimetype.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Mimetype);
+      }
+      if (FileName.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(FileName);
+      }
+      if (Caption.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Caption);
+      }
+      if (JpegThumbnail.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(JpegThumbnail);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(DocumentMetadata other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Mimetype.Length != 0) {
+        Mimetype = other.Mimetype;
+      }
+      if (other.FileName.Length != 0) {
+        FileName = other.FileName;
+      }
+      if (other.Caption.Length != 0) {
+        Caption = other.Caption;
+      }
+      if (other.JpegThumbnail.Length != 0) {
+        JpegThumbnail = other.JpegThumbnail;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Mimetype = input.ReadString();
+            break;
+          }
+          case 18: {
+            FileName = input.ReadString();
+            break;
+          }
+          case 26: {
+            Caption = input.ReadString();
+            break;
+          }
+          case 34: {
+            JpegThumbnail = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Mimetype = input.ReadString();
+            break;
+          }
+          case 18: {
+            FileName = input.ReadString();
+            break;
+          }
+          case 26: {
+            Caption = input.ReadString();
+            break;
+          }
+          case 34: {
+            JpegThumbnail = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// StickerMetadata is what a sticker message says about its file. Empty or unset is not sent.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  internal sealed partial class StickerMetadata : pb::IMessage<StickerMetadata>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<StickerMetadata> _parser = new pb::MessageParser<StickerMetadata>(() => new StickerMetadata());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<StickerMetadata> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Protocol.V1.MessageReflection.Descriptor.MessageTypes[10]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public StickerMetadata() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public StickerMetadata(StickerMetadata other) : this() {
+      _hasBits0 = other._hasBits0;
+      mimetype_ = other.mimetype_;
+      width_ = other.width_;
+      height_ = other.height_;
+      pngThumbnail_ = other.pngThumbnail_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public StickerMetadata Clone() {
+      return new StickerMetadata(this);
+    }
+
+    /// <summary>Field number for the "mimetype" field.</summary>
+    public const int MimetypeFieldNumber = 1;
+    private string mimetype_ = "";
+    /// <summary>
+    /// The file's MIME type.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Mimetype {
+      get { return mimetype_; }
+      set {
+        mimetype_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "width" field.</summary>
+    public const int WidthFieldNumber = 2;
+    private readonly static uint WidthDefaultValue = 0;
+
+    private uint width_;
+    /// <summary>
+    /// The width in pixels.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public uint Width {
+      get { if ((_hasBits0 & 1) != 0) { return width_; } else { return WidthDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        width_ = value;
+      }
+    }
+    /// <summary>Gets whether the "width" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasWidth {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "width" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearWidth() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "height" field.</summary>
+    public const int HeightFieldNumber = 3;
+    private readonly static uint HeightDefaultValue = 0;
+
+    private uint height_;
+    /// <summary>
+    /// The height in pixels.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public uint Height {
+      get { if ((_hasBits0 & 2) != 0) { return height_; } else { return HeightDefaultValue; } }
+      set {
+        _hasBits0 |= 2;
+        height_ = value;
+      }
+    }
+    /// <summary>Gets whether the "height" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasHeight {
+      get { return (_hasBits0 & 2) != 0; }
+    }
+    /// <summary>Clears the value of the "height" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearHeight() {
+      _hasBits0 &= ~2;
+    }
+
+    /// <summary>Field number for the "png_thumbnail" field.</summary>
+    public const int PngThumbnailFieldNumber = 4;
+    private pb::ByteString pngThumbnail_ = pb::ByteString.Empty;
+    /// <summary>
+    /// A PNG thumbnail: stickers carry a PNG one, never a JPEG one.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString PngThumbnail {
+      get { return pngThumbnail_; }
+      set {
+        pngThumbnail_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as StickerMetadata);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(StickerMetadata other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Mimetype != other.Mimetype) return false;
+      if (Width != other.Width) return false;
+      if (Height != other.Height) return false;
+      if (PngThumbnail != other.PngThumbnail) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Mimetype.Length != 0) hash ^= Mimetype.GetHashCode();
+      if (HasWidth) hash ^= Width.GetHashCode();
+      if (HasHeight) hash ^= Height.GetHashCode();
+      if (PngThumbnail.Length != 0) hash ^= PngThumbnail.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Mimetype.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Mimetype);
+      }
+      if (HasWidth) {
+        output.WriteRawTag(16);
+        output.WriteUInt32(Width);
+      }
+      if (HasHeight) {
+        output.WriteRawTag(24);
+        output.WriteUInt32(Height);
+      }
+      if (PngThumbnail.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(PngThumbnail);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Mimetype.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Mimetype);
+      }
+      if (HasWidth) {
+        output.WriteRawTag(16);
+        output.WriteUInt32(Width);
+      }
+      if (HasHeight) {
+        output.WriteRawTag(24);
+        output.WriteUInt32(Height);
+      }
+      if (PngThumbnail.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(PngThumbnail);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Mimetype.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Mimetype);
+      }
+      if (HasWidth) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(Width);
+      }
+      if (HasHeight) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(Height);
+      }
+      if (PngThumbnail.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(PngThumbnail);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(StickerMetadata other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Mimetype.Length != 0) {
+        Mimetype = other.Mimetype;
+      }
+      if (other.HasWidth) {
+        Width = other.Width;
+      }
+      if (other.HasHeight) {
+        Height = other.Height;
+      }
+      if (other.PngThumbnail.Length != 0) {
+        PngThumbnail = other.PngThumbnail;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Mimetype = input.ReadString();
+            break;
+          }
+          case 16: {
+            Width = input.ReadUInt32();
+            break;
+          }
+          case 24: {
+            Height = input.ReadUInt32();
+            break;
+          }
+          case 34: {
+            PngThumbnail = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Mimetype = input.ReadString();
+            break;
+          }
+          case 16: {
+            Width = input.ReadUInt32();
+            break;
+          }
+          case 24: {
+            Height = input.ReadUInt32();
+            break;
+          }
+          case 34: {
+            PngThumbnail = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
   /// MarkReadRequest marks messages of one chat as read.
   /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
@@ -1248,7 +4037,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.MessageReflection.Descriptor.MessageTypes[4]; }
+      get { return global::Whatsmeow.Protocol.V1.MessageReflection.Descriptor.MessageTypes[11]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1561,7 +4350,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.MessageReflection.Descriptor.MessageTypes[5]; }
+      get { return global::Whatsmeow.Protocol.V1.MessageReflection.Descriptor.MessageTypes[12]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

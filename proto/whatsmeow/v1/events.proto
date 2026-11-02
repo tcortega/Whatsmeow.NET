@@ -91,6 +91,8 @@ message MessageEvent {
   MessageInfo info = 1;
   // The content as whatsmeow unwraps it (device-sent, ephemeral, view-once, edit and similar wrappers removed).
   WAWebProtobufsE2E.Message message = 2;
+  // True when whatsmeow unwrapped the content from a view-once wrapper (ViewOnceMessage, V2 or V2Extension).
+  bool view_once = 3;
 }
 
 // ReceiptEvent is a receipt for one or more messages of a chat.
@@ -140,6 +142,20 @@ message UndecryptableMessageEvent {
   MessageInfo info = 1;
   // True when the sender asked not to show a "waiting for this message" placeholder.
   bool hide_placeholder = 2;
+  // True when the sender's device sent this device no ciphertext at all. whatsmeow then asks the account's phone for
+  // it, and acknowledges the message whatever the handler does (message.go:324-333), so it is best effort.
+  bool unavailable = 3;
+  // Why it is unavailable, when WhatsApp said; unspecified when it did not, or for a message that is not unavailable.
+  UnavailableType unavailable_type = 4;
+}
+
+// UnavailableType is why WhatsApp sent this device no ciphertext for a message.
+enum UnavailableType {
+  // No type, or a type this list does not have.
+  UNAVAILABLE_TYPE_UNSPECIFIED = 0;
+  // A view-once message. whatsmeow asks the phone for it (message.go:327-330) and dispatches an answer as a normal
+  // message (message.go:870-877); whether the phone answers for a view-once is unknown, #36 checks it live.
+  UNAVAILABLE_TYPE_VIEW_ONCE = 1;
 }
 
 // ConnectionStateEvent is a session state transition, in order with the session's other events.

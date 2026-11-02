@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	MessageService_SendMessage_FullMethodName = "/whatsmeow.v1.MessageService/SendMessage"
 	MessageService_SendText_FullMethodName    = "/whatsmeow.v1.MessageService/SendText"
+	MessageService_SendMedia_FullMethodName   = "/whatsmeow.v1.MessageService/SendMedia"
 	MessageService_MarkRead_FullMethodName    = "/whatsmeow.v1.MessageService/MarkRead"
 )
 
@@ -57,6 +58,16 @@ type MessageServiceClient interface {
 	// SendText sends a text message.
 	// Errors: as SendMessage, and INVALID_ARGUMENT for empty text.
 	SendText(ctx context.Context, in *SendTextRequest, opts ...grpc.CallOption) (*SendTextResponse, error)
+	// SendMedia sends an image, video, audio file or voice note, document or sticker message of an uploaded or received
+	// MediaRef, so re-sending a MediaRef uploads nothing. The metadata is sent as given: the sidecar never decodes the
+	// media to check it, and an empty or unset field is not sent. A video or audio MediaRef's streaming sidecar goes into
+	// the message; a document with a caption is sent wrapped in a DocumentWithCaptionMessage, which is how WhatsApp
+	// shows both.
+	// Errors: as SendMessage, and INVALID_ARGUMENT for no or an incomplete media (field "media": a direct path that does
+	// not start with "/", a media key or a hash that is not 32 bytes), a media type the kind does not take (field
+	// "media.media_type": IMAGE for an image or a sticker, VIDEO, AUDIO, DOCUMENT for the others), no metadata (field
+	// "metadata"), or a duration that is negative or over 2^32-1 seconds (field "<kind>.duration").
+	SendMedia(ctx context.Context, in *SendMediaRequest, opts ...grpc.CallOption) (*SendMediaResponse, error)
 	// MarkRead sends a read receipt, timestamped now, for messages of one chat.
 	// Errors: INVALID_ARGUMENT (no message ids; a group chat without sender), SESSION_NOT_FOUND, NOT_LOGGED_IN,
 	// LOGGED_OUT, NOT_CONNECTED, TEMPORARILY_BANNED.
@@ -85,6 +96,16 @@ func (c *messageServiceClient) SendText(ctx context.Context, in *SendTextRequest
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SendTextResponse)
 	err := c.cc.Invoke(ctx, MessageService_SendText_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *messageServiceClient) SendMedia(ctx context.Context, in *SendMediaRequest, opts ...grpc.CallOption) (*SendMediaResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendMediaResponse)
+	err := c.cc.Invoke(ctx, MessageService_SendMedia_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -134,6 +155,16 @@ type MessageServiceServer interface {
 	// SendText sends a text message.
 	// Errors: as SendMessage, and INVALID_ARGUMENT for empty text.
 	SendText(context.Context, *SendTextRequest) (*SendTextResponse, error)
+	// SendMedia sends an image, video, audio file or voice note, document or sticker message of an uploaded or received
+	// MediaRef, so re-sending a MediaRef uploads nothing. The metadata is sent as given: the sidecar never decodes the
+	// media to check it, and an empty or unset field is not sent. A video or audio MediaRef's streaming sidecar goes into
+	// the message; a document with a caption is sent wrapped in a DocumentWithCaptionMessage, which is how WhatsApp
+	// shows both.
+	// Errors: as SendMessage, and INVALID_ARGUMENT for no or an incomplete media (field "media": a direct path that does
+	// not start with "/", a media key or a hash that is not 32 bytes), a media type the kind does not take (field
+	// "media.media_type": IMAGE for an image or a sticker, VIDEO, AUDIO, DOCUMENT for the others), no metadata (field
+	// "metadata"), or a duration that is negative or over 2^32-1 seconds (field "<kind>.duration").
+	SendMedia(context.Context, *SendMediaRequest) (*SendMediaResponse, error)
 	// MarkRead sends a read receipt, timestamped now, for messages of one chat.
 	// Errors: INVALID_ARGUMENT (no message ids; a group chat without sender), SESSION_NOT_FOUND, NOT_LOGGED_IN,
 	// LOGGED_OUT, NOT_CONNECTED, TEMPORARILY_BANNED.
@@ -153,6 +184,9 @@ func (UnimplementedMessageServiceServer) SendMessage(context.Context, *SendMessa
 }
 func (UnimplementedMessageServiceServer) SendText(context.Context, *SendTextRequest) (*SendTextResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SendText not implemented")
+}
+func (UnimplementedMessageServiceServer) SendMedia(context.Context, *SendMediaRequest) (*SendMediaResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendMedia not implemented")
 }
 func (UnimplementedMessageServiceServer) MarkRead(context.Context, *MarkReadRequest) (*MarkReadResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method MarkRead not implemented")
@@ -214,6 +248,24 @@ func _MessageService_SendText_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MessageService_SendMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendMediaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageServiceServer).SendMedia(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MessageService_SendMedia_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageServiceServer).SendMedia(ctx, req.(*SendMediaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MessageService_MarkRead_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MarkReadRequest)
 	if err := dec(in); err != nil {
@@ -246,6 +298,10 @@ var MessageService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendText",
 			Handler:    _MessageService_SendText_Handler,
+		},
+		{
+			MethodName: "SendMedia",
+			Handler:    _MessageService_SendMedia_Handler,
 		},
 		{
 			MethodName: "MarkRead",

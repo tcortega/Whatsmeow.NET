@@ -1351,3 +1351,180 @@ Whatsmeow.IWhatsAppClient.UnmuteChatAsync(Whatsmeow.Jid chat, System.Threading.C
 Whatsmeow.IWhatsAppClient.UnpinChatAsync(Whatsmeow.Jid chat, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Whatsmeow.IWhatsAppClient.StarMessageAsync(Whatsmeow.MessageId id, Whatsmeow.Events.MessageSource! source, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Whatsmeow.IWhatsAppClient.UnstarMessageAsync(Whatsmeow.MessageId id, Whatsmeow.Events.MessageSource! source, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+override sealed Whatsmeow.Events.AudioContent.Equals(Whatsmeow.Events.MessageContent? other) -> bool
+override sealed Whatsmeow.Events.DocumentContent.Equals(Whatsmeow.Events.MessageContent? other) -> bool
+override sealed Whatsmeow.Events.ImageContent.Equals(Whatsmeow.Events.MessageContent? other) -> bool
+override sealed Whatsmeow.Events.StickerContent.Equals(Whatsmeow.Events.MessageContent? other) -> bool
+override sealed Whatsmeow.Events.VideoContent.Equals(Whatsmeow.Events.MessageContent? other) -> bool
+override Whatsmeow.Events.AudioContent.<Clone>$() -> Whatsmeow.Events.AudioContent!
+override Whatsmeow.Events.AudioContent.Equals(object? obj) -> bool
+override Whatsmeow.Events.AudioContent.GetHashCode() -> int
+override Whatsmeow.Events.AudioContent.ToString() -> string!
+override Whatsmeow.Events.DocumentContent.<Clone>$() -> Whatsmeow.Events.DocumentContent!
+override Whatsmeow.Events.DocumentContent.Equals(object? obj) -> bool
+override Whatsmeow.Events.DocumentContent.GetHashCode() -> int
+override Whatsmeow.Events.DocumentContent.ToString() -> string!
+override Whatsmeow.Events.ImageContent.<Clone>$() -> Whatsmeow.Events.ImageContent!
+override Whatsmeow.Events.ImageContent.Equals(object? obj) -> bool
+override Whatsmeow.Events.ImageContent.GetHashCode() -> int
+override Whatsmeow.Events.ImageContent.ToString() -> string!
+override Whatsmeow.Events.StickerContent.<Clone>$() -> Whatsmeow.Events.StickerContent!
+override Whatsmeow.Events.StickerContent.Equals(object? obj) -> bool
+override Whatsmeow.Events.StickerContent.GetHashCode() -> int
+override Whatsmeow.Events.StickerContent.ToString() -> string!
+override Whatsmeow.Events.VideoContent.<Clone>$() -> Whatsmeow.Events.VideoContent!
+override Whatsmeow.Events.VideoContent.Equals(object? obj) -> bool
+override Whatsmeow.Events.VideoContent.GetHashCode() -> int
+override Whatsmeow.Events.VideoContent.ToString() -> string!
+override Whatsmeow.Messaging.AudioMetadata.Equals(object? obj) -> bool
+override Whatsmeow.Messaging.AudioMetadata.GetHashCode() -> int
+override Whatsmeow.Messaging.AudioMetadata.ToString() -> string!
+override Whatsmeow.Messaging.DocumentMetadata.Equals(object? obj) -> bool
+override Whatsmeow.Messaging.DocumentMetadata.GetHashCode() -> int
+override Whatsmeow.Messaging.DocumentMetadata.ToString() -> string!
+override Whatsmeow.Messaging.ImageMetadata.Equals(object? obj) -> bool
+override Whatsmeow.Messaging.ImageMetadata.GetHashCode() -> int
+override Whatsmeow.Messaging.ImageMetadata.ToString() -> string!
+override Whatsmeow.Messaging.StickerMetadata.Equals(object? obj) -> bool
+override Whatsmeow.Messaging.StickerMetadata.GetHashCode() -> int
+override Whatsmeow.Messaging.StickerMetadata.ToString() -> string!
+override Whatsmeow.Messaging.VideoMetadata.Equals(object? obj) -> bool
+override Whatsmeow.Messaging.VideoMetadata.GetHashCode() -> int
+override Whatsmeow.Messaging.VideoMetadata.ToString() -> string!
+static Whatsmeow.Events.AudioContent.operator !=(Whatsmeow.Events.AudioContent? left, Whatsmeow.Events.AudioContent? right) -> bool
+static Whatsmeow.Events.AudioContent.operator ==(Whatsmeow.Events.AudioContent? left, Whatsmeow.Events.AudioContent? right) -> bool
+static Whatsmeow.Events.DocumentContent.operator !=(Whatsmeow.Events.DocumentContent? left, Whatsmeow.Events.DocumentContent? right) -> bool
+static Whatsmeow.Events.DocumentContent.operator ==(Whatsmeow.Events.DocumentContent? left, Whatsmeow.Events.DocumentContent? right) -> bool
+static Whatsmeow.Events.ImageContent.operator !=(Whatsmeow.Events.ImageContent? left, Whatsmeow.Events.ImageContent? right) -> bool
+static Whatsmeow.Events.ImageContent.operator ==(Whatsmeow.Events.ImageContent? left, Whatsmeow.Events.ImageContent? right) -> bool
+static Whatsmeow.Events.StickerContent.operator !=(Whatsmeow.Events.StickerContent? left, Whatsmeow.Events.StickerContent? right) -> bool
+static Whatsmeow.Events.StickerContent.operator ==(Whatsmeow.Events.StickerContent? left, Whatsmeow.Events.StickerContent? right) -> bool
+static Whatsmeow.Events.VideoContent.operator !=(Whatsmeow.Events.VideoContent? left, Whatsmeow.Events.VideoContent? right) -> bool
+static Whatsmeow.Events.VideoContent.operator ==(Whatsmeow.Events.VideoContent? left, Whatsmeow.Events.VideoContent? right) -> bool
+static Whatsmeow.Messaging.AudioMetadata.operator !=(Whatsmeow.Messaging.AudioMetadata? left, Whatsmeow.Messaging.AudioMetadata? right) -> bool
+static Whatsmeow.Messaging.AudioMetadata.operator ==(Whatsmeow.Messaging.AudioMetadata? left, Whatsmeow.Messaging.AudioMetadata? right) -> bool
+static Whatsmeow.Messaging.DocumentMetadata.operator !=(Whatsmeow.Messaging.DocumentMetadata? left, Whatsmeow.Messaging.DocumentMetadata? right) -> bool
+static Whatsmeow.Messaging.DocumentMetadata.operator ==(Whatsmeow.Messaging.DocumentMetadata? left, Whatsmeow.Messaging.DocumentMetadata? right) -> bool
+static Whatsmeow.Messaging.ImageMetadata.operator !=(Whatsmeow.Messaging.ImageMetadata? left, Whatsmeow.Messaging.ImageMetadata? right) -> bool
+static Whatsmeow.Messaging.ImageMetadata.operator ==(Whatsmeow.Messaging.ImageMetadata? left, Whatsmeow.Messaging.ImageMetadata? right) -> bool
+static Whatsmeow.Messaging.StickerMetadata.operator !=(Whatsmeow.Messaging.StickerMetadata? left, Whatsmeow.Messaging.StickerMetadata? right) -> bool
+static Whatsmeow.Messaging.StickerMetadata.operator ==(Whatsmeow.Messaging.StickerMetadata? left, Whatsmeow.Messaging.StickerMetadata? right) -> bool
+static Whatsmeow.Messaging.VideoMetadata.operator !=(Whatsmeow.Messaging.VideoMetadata? left, Whatsmeow.Messaging.VideoMetadata? right) -> bool
+static Whatsmeow.Messaging.VideoMetadata.operator ==(Whatsmeow.Messaging.VideoMetadata? left, Whatsmeow.Messaging.VideoMetadata? right) -> bool
+Whatsmeow.Events.AudioContent
+Whatsmeow.Events.AudioContent.AudioContent() -> void
+Whatsmeow.Events.AudioContent.Equals(Whatsmeow.Events.AudioContent? other) -> bool
+Whatsmeow.Events.AudioContent.IsViewOnce.get -> bool
+Whatsmeow.Events.AudioContent.IsViewOnce.init -> void
+Whatsmeow.Events.AudioContent.Media.get -> Whatsmeow.MediaRef!
+Whatsmeow.Events.AudioContent.Media.init -> void
+Whatsmeow.Events.AudioContent.Metadata.get -> Whatsmeow.Messaging.AudioMetadata!
+Whatsmeow.Events.AudioContent.Metadata.init -> void
+Whatsmeow.Events.DocumentContent
+Whatsmeow.Events.DocumentContent.DocumentContent() -> void
+Whatsmeow.Events.DocumentContent.Equals(Whatsmeow.Events.DocumentContent? other) -> bool
+Whatsmeow.Events.DocumentContent.Media.get -> Whatsmeow.MediaRef!
+Whatsmeow.Events.DocumentContent.Media.init -> void
+Whatsmeow.Events.DocumentContent.Metadata.get -> Whatsmeow.Messaging.DocumentMetadata!
+Whatsmeow.Events.DocumentContent.Metadata.init -> void
+Whatsmeow.Events.ImageContent
+Whatsmeow.Events.ImageContent.Equals(Whatsmeow.Events.ImageContent? other) -> bool
+Whatsmeow.Events.ImageContent.ImageContent() -> void
+Whatsmeow.Events.ImageContent.IsViewOnce.get -> bool
+Whatsmeow.Events.ImageContent.IsViewOnce.init -> void
+Whatsmeow.Events.ImageContent.Media.get -> Whatsmeow.MediaRef!
+Whatsmeow.Events.ImageContent.Media.init -> void
+Whatsmeow.Events.ImageContent.Metadata.get -> Whatsmeow.Messaging.ImageMetadata!
+Whatsmeow.Events.ImageContent.Metadata.init -> void
+Whatsmeow.Events.StickerContent
+Whatsmeow.Events.StickerContent.Equals(Whatsmeow.Events.StickerContent? other) -> bool
+Whatsmeow.Events.StickerContent.Media.get -> Whatsmeow.MediaRef!
+Whatsmeow.Events.StickerContent.Media.init -> void
+Whatsmeow.Events.StickerContent.Metadata.get -> Whatsmeow.Messaging.StickerMetadata!
+Whatsmeow.Events.StickerContent.Metadata.init -> void
+Whatsmeow.Events.StickerContent.StickerContent() -> void
+Whatsmeow.Events.UnavailableType
+Whatsmeow.Events.UnavailableType.Unknown = 0 -> Whatsmeow.Events.UnavailableType
+Whatsmeow.Events.UnavailableType.ViewOnce = 1 -> Whatsmeow.Events.UnavailableType
+Whatsmeow.Events.UndecryptableMessageReceived.Unavailable.get -> Whatsmeow.Events.UnavailableType?
+Whatsmeow.Events.UndecryptableMessageReceived.Unavailable.init -> void
+Whatsmeow.Events.VideoContent
+Whatsmeow.Events.VideoContent.Equals(Whatsmeow.Events.VideoContent? other) -> bool
+Whatsmeow.Events.VideoContent.IsViewOnce.get -> bool
+Whatsmeow.Events.VideoContent.IsViewOnce.init -> void
+Whatsmeow.Events.VideoContent.Media.get -> Whatsmeow.MediaRef!
+Whatsmeow.Events.VideoContent.Media.init -> void
+Whatsmeow.Events.VideoContent.Metadata.get -> Whatsmeow.Messaging.VideoMetadata!
+Whatsmeow.Events.VideoContent.Metadata.init -> void
+Whatsmeow.Events.VideoContent.VideoContent() -> void
+Whatsmeow.IWhatsAppClient.SendAudioAsync(Whatsmeow.Jid chat, Whatsmeow.MediaRef! audio, Whatsmeow.Messaging.AudioMetadata! metadata, Whatsmeow.MessageId? id = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
+Whatsmeow.IWhatsAppClient.SendDocumentAsync(Whatsmeow.Jid chat, Whatsmeow.MediaRef! document, Whatsmeow.Messaging.DocumentMetadata! metadata, Whatsmeow.MessageId? id = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
+Whatsmeow.IWhatsAppClient.SendImageAsync(Whatsmeow.Jid chat, Whatsmeow.MediaRef! image, Whatsmeow.Messaging.ImageMetadata! metadata, Whatsmeow.MessageId? id = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
+Whatsmeow.IWhatsAppClient.SendStickerAsync(Whatsmeow.Jid chat, Whatsmeow.MediaRef! sticker, Whatsmeow.Messaging.StickerMetadata! metadata, Whatsmeow.MessageId? id = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
+Whatsmeow.IWhatsAppClient.SendVideoAsync(Whatsmeow.Jid chat, Whatsmeow.MediaRef! video, Whatsmeow.Messaging.VideoMetadata! metadata, Whatsmeow.MessageId? id = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
+Whatsmeow.Messaging.AudioMetadata
+Whatsmeow.Messaging.AudioMetadata.<Clone>$() -> Whatsmeow.Messaging.AudioMetadata!
+Whatsmeow.Messaging.AudioMetadata.AudioMetadata() -> void
+Whatsmeow.Messaging.AudioMetadata.Duration.get -> System.TimeSpan?
+Whatsmeow.Messaging.AudioMetadata.Duration.init -> void
+Whatsmeow.Messaging.AudioMetadata.Equals(Whatsmeow.Messaging.AudioMetadata? other) -> bool
+Whatsmeow.Messaging.AudioMetadata.IsVoiceNote.get -> bool
+Whatsmeow.Messaging.AudioMetadata.IsVoiceNote.init -> void
+Whatsmeow.Messaging.AudioMetadata.Mimetype.get -> string?
+Whatsmeow.Messaging.AudioMetadata.Mimetype.init -> void
+Whatsmeow.Messaging.AudioMetadata.Waveform.get -> System.Collections.Immutable.ImmutableArray<byte>
+Whatsmeow.Messaging.AudioMetadata.Waveform.init -> void
+Whatsmeow.Messaging.DocumentMetadata
+Whatsmeow.Messaging.DocumentMetadata.<Clone>$() -> Whatsmeow.Messaging.DocumentMetadata!
+Whatsmeow.Messaging.DocumentMetadata.Caption.get -> string?
+Whatsmeow.Messaging.DocumentMetadata.Caption.init -> void
+Whatsmeow.Messaging.DocumentMetadata.DocumentMetadata() -> void
+Whatsmeow.Messaging.DocumentMetadata.Equals(Whatsmeow.Messaging.DocumentMetadata? other) -> bool
+Whatsmeow.Messaging.DocumentMetadata.FileName.get -> string?
+Whatsmeow.Messaging.DocumentMetadata.FileName.init -> void
+Whatsmeow.Messaging.DocumentMetadata.JpegThumbnail.get -> System.Collections.Immutable.ImmutableArray<byte>
+Whatsmeow.Messaging.DocumentMetadata.JpegThumbnail.init -> void
+Whatsmeow.Messaging.DocumentMetadata.Mimetype.get -> string?
+Whatsmeow.Messaging.DocumentMetadata.Mimetype.init -> void
+Whatsmeow.Messaging.ImageMetadata
+Whatsmeow.Messaging.ImageMetadata.<Clone>$() -> Whatsmeow.Messaging.ImageMetadata!
+Whatsmeow.Messaging.ImageMetadata.Caption.get -> string?
+Whatsmeow.Messaging.ImageMetadata.Caption.init -> void
+Whatsmeow.Messaging.ImageMetadata.Equals(Whatsmeow.Messaging.ImageMetadata? other) -> bool
+Whatsmeow.Messaging.ImageMetadata.Height.get -> int?
+Whatsmeow.Messaging.ImageMetadata.Height.init -> void
+Whatsmeow.Messaging.ImageMetadata.ImageMetadata() -> void
+Whatsmeow.Messaging.ImageMetadata.JpegThumbnail.get -> System.Collections.Immutable.ImmutableArray<byte>
+Whatsmeow.Messaging.ImageMetadata.JpegThumbnail.init -> void
+Whatsmeow.Messaging.ImageMetadata.Mimetype.get -> string?
+Whatsmeow.Messaging.ImageMetadata.Mimetype.init -> void
+Whatsmeow.Messaging.ImageMetadata.Width.get -> int?
+Whatsmeow.Messaging.ImageMetadata.Width.init -> void
+Whatsmeow.Messaging.StickerMetadata
+Whatsmeow.Messaging.StickerMetadata.<Clone>$() -> Whatsmeow.Messaging.StickerMetadata!
+Whatsmeow.Messaging.StickerMetadata.Equals(Whatsmeow.Messaging.StickerMetadata? other) -> bool
+Whatsmeow.Messaging.StickerMetadata.Height.get -> int?
+Whatsmeow.Messaging.StickerMetadata.Height.init -> void
+Whatsmeow.Messaging.StickerMetadata.Mimetype.get -> string?
+Whatsmeow.Messaging.StickerMetadata.Mimetype.init -> void
+Whatsmeow.Messaging.StickerMetadata.PngThumbnail.get -> System.Collections.Immutable.ImmutableArray<byte>
+Whatsmeow.Messaging.StickerMetadata.PngThumbnail.init -> void
+Whatsmeow.Messaging.StickerMetadata.StickerMetadata() -> void
+Whatsmeow.Messaging.StickerMetadata.Width.get -> int?
+Whatsmeow.Messaging.StickerMetadata.Width.init -> void
+Whatsmeow.Messaging.VideoMetadata
+Whatsmeow.Messaging.VideoMetadata.<Clone>$() -> Whatsmeow.Messaging.VideoMetadata!
+Whatsmeow.Messaging.VideoMetadata.Caption.get -> string?
+Whatsmeow.Messaging.VideoMetadata.Caption.init -> void
+Whatsmeow.Messaging.VideoMetadata.Duration.get -> System.TimeSpan?
+Whatsmeow.Messaging.VideoMetadata.Duration.init -> void
+Whatsmeow.Messaging.VideoMetadata.Equals(Whatsmeow.Messaging.VideoMetadata? other) -> bool
+Whatsmeow.Messaging.VideoMetadata.Height.get -> int?
+Whatsmeow.Messaging.VideoMetadata.Height.init -> void
+Whatsmeow.Messaging.VideoMetadata.JpegThumbnail.get -> System.Collections.Immutable.ImmutableArray<byte>
+Whatsmeow.Messaging.VideoMetadata.JpegThumbnail.init -> void
+Whatsmeow.Messaging.VideoMetadata.Mimetype.get -> string?
+Whatsmeow.Messaging.VideoMetadata.Mimetype.init -> void
+Whatsmeow.Messaging.VideoMetadata.VideoMetadata() -> void
+Whatsmeow.Messaging.VideoMetadata.Width.get -> int?
+Whatsmeow.Messaging.VideoMetadata.Width.init -> void
