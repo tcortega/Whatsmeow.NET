@@ -195,6 +195,36 @@ func TestResetConnectionDropsTheConnectionThenLogsInAgainAndDeliversWhatWasUnans
 	}
 }
 
+// The reconnect after a reset logs in as any connect does, so HoldNextLogin holds it too: the session stays
+// reconnecting until ReleaseLogin, as one whose reconnect waits on the network.
+func TestHoldNextLoginHoldsTheLoginOfAResetsReconnect(t *testing.T) {
+	t.Parallel()
+
+	whatsApp, control, ctx, client, got := withholding(t)
+
+	if _, err := control.HoldNextLogin(ctx, &fakev1.HoldNextLoginRequest{SessionId: "s1"}); err != nil {
+		t.Fatalf("HoldNextLogin: %v", err)
+	}
+
+	client.ResetConnection()
+	then[*events.Disconnected](ctx, t, got)
+
+	// Nothing dispatched off the queue is still running: the login is held.
+	whatsApp.Wait()
+
+	select {
+	case evt := <-got:
+		t.Fatalf("event = %T, want none until ReleaseLogin", evt)
+	default:
+	}
+
+	if _, err := control.ReleaseLogin(ctx, &fakev1.ReleaseLoginRequest{SessionId: "s1"}); err != nil {
+		t.Fatalf("ReleaseLogin: %v", err)
+	}
+
+	then[*events.Connected](ctx, t, got)
+}
+
 func TestResetConnectionDoesNothingWithoutAConnectionAndADisconnectStopsItsReconnect(t *testing.T) {
 	t.Parallel()
 
