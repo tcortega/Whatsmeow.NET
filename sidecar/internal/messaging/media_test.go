@@ -205,8 +205,8 @@ func TestAMalformedMediaSendIsInvalidAndSendsNothing(t *testing.T) {
 		}
 	}
 
-	// The send's own rules hold too.
-	_, err := h.client.SendMedia(h.ctx, &whatsmeowv1.SendMediaRequest{SessionId: "s1", Chat: "111@lid", ClientMessageId: "1", Media: ref(whatsmeowv1.MediaType_MEDIA_TYPE_IMAGE, nil), Metadata: &whatsmeowv1.SendMediaRequest_Image{Image: &whatsmeowv1.ImageMetadata{}}})
+	// The send's own rules hold too; this id is malformed in the live tests' build as well (ADR 0032).
+	_, err := h.client.SendMedia(h.ctx, &whatsmeowv1.SendMediaRequest{SessionId: "s1", Chat: "111@lid", ClientMessageId: "3EB0-0001", Media: ref(whatsmeowv1.MediaType_MEDIA_TYPE_IMAGE, nil), Metadata: &whatsmeowv1.SendMediaRequest_Image{Image: &whatsmeowv1.ImageMetadata{}}})
 	wantReason(t, err, codes.InvalidArgument, "INVALID_ARGUMENT", map[string]string{"field": "client_message_id"})
 
 	if exists, _, _, _ := h.record(1); exists || len(h.stub.sent()) != 0 {
