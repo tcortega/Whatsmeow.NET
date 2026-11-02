@@ -58,7 +58,10 @@ func (c *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E.M
 		return whatsmeow.SendResponse{}, fmt.Errorf("failed to marshal message: %w", err)
 	}
 
-	var held chan struct{}
+	var (
+		held    chan struct{}
+		refusal int32
+	)
 
 	c.whatsApp.take(c.sessionID, func(s *script) bool { return s.holdSend }, func(s *script) { s.holdSend, held = false, s.held })
 
@@ -74,6 +77,11 @@ func (c *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E.M
 	c.whatsApp.append(&fakev1.Sent{SessionId: c.sessionID, Kind: &fakev1.Sent_Message{Message: &fakev1.SentMessage{
 		Id: req.ID, Chat: to.String(), Message: message, MessageTime: timestamppb.New(at),
 	}}})
+
+	if c.whatsApp.take(c.sessionID, func(s *script) bool { return s.refuseSend != 0 }, func(s *script) { refusal, s.refuseSend = s.refuseSend, 0 }) {
+		// An answer with an error attribute, as whatsmeow reads it (send.go:468-470).
+		return whatsmeow.SendResponse{ID: req.ID, Timestamp: at, Chat: to}, fmt.Errorf("%w %d", whatsmeow.ErrServerReturnedError, refusal)
+	}
 
 	if held != nil {
 		// Once it ended, however it ended, nothing is held any more.

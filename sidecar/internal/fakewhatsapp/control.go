@@ -369,6 +369,12 @@ func (c *Control) DeliverReceipt(_ context.Context, req *fakev1.DeliverReceiptRe
 
 	source.IsFromMe = req.GetIsFromMe()
 	evt := &events.Receipt{MessageSource: source, MessageIDs: req.GetMessageIds(), Timestamp: timeOf(req.GetReceiptTime()), Type: types.ReceiptType(req.GetType())}
+	if req.GetMessageSender() != "" {
+		if evt.MessageSender, err = types.ParseJID(req.GetMessageSender()); err != nil {
+			return nil, fmt.Errorf("deliver a receipt: the messages' sender: %w", err)
+		}
+	}
+
 	ack := &fakev1.Sent{SessionId: req.GetSessionId(), Kind: &fakev1.Sent_Ack{Ack: &fakev1.Ack{Class: "receipt", Id: req.GetMessageIds()[0], Type: req.GetType()}}}
 
 	// A retry receipt is acked inside whatsmeow's retry handler, before the dispatch (receipt.go:34-38).
@@ -398,6 +404,17 @@ func (c *Control) HoldNextSend(_ context.Context, req *fakev1.HoldNextSendReques
 	c.whatsApp.setScript(req.GetSessionId(), func(s *script) { s.holdSend, s.held = true, make(chan struct{}) })
 
 	return &fakev1.HoldNextSendResponse{}, nil
+}
+
+// RefuseNextSend makes WhatsApp answer the session's next message node with an error code.
+func (c *Control) RefuseNextSend(_ context.Context, req *fakev1.RefuseNextSendRequest) (*fakev1.RefuseNextSendResponse, error) {
+	if req.GetCode() == 0 {
+		return nil, errors.New("refuse the next send: no error code; whatsmeow reads 0 as none (send.go:468)") //nolint:err113 // a misuse of the control
+	}
+
+	c.whatsApp.setScript(req.GetSessionId(), func(s *script) { s.refuseSend = req.GetCode() })
+
+	return &fakev1.RefuseNextSendResponse{}, nil
 }
 
 // ReleaseSend makes WhatsApp accept the session's held send.

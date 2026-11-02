@@ -55,9 +55,21 @@ func unavailableType(t waevents.UnavailableType) whatsmeowv1.UnavailableType {
 }
 
 // MessageEvent is a whatsmeow message as the contract's MessageEvent: a live one's, and a history message's, which the
-// History slice maps with it (internal/history), so a history message carries what a live one does.
+// History slice maps with it (internal/history), so a history message carries what a live one does. It carries what
+// the message's wrappers said (UnwrapRaw, types/events/events.go:377-425): view-once, ephemeral, and the destination a
+// device-sent message names. The raw message goes along only when whatsmeow unwrapped something, so a message without
+// wrappers is not recorded twice.
 func MessageEvent(e *waevents.Message) *whatsmeowv1.MessageEvent {
-	return &whatsmeowv1.MessageEvent{Info: info(&e.Info), Message: e.Message, ViewOnce: e.IsViewOnce}
+	event := &whatsmeowv1.MessageEvent{Info: info(&e.Info), Message: e.Message, ViewOnce: e.IsViewOnce, Ephemeral: e.IsEphemeral}
+	if e.Info.DeviceSentMeta != nil {
+		event.DeviceSentDestination = server.Text(e.Info.DeviceSentMeta.DestinationJID)
+	}
+
+	if e.RawMessage != nil && e.RawMessage != e.Message {
+		event.RawMessage = e.RawMessage
+	}
+
+	return event
 }
 
 // onlySenderKey is a message with nothing but a sender key and its context info: the part of a group stanza that

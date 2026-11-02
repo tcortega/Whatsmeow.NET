@@ -1,6 +1,9 @@
+using System.Collections.Immutable;
 using Google.Protobuf;
 using Whatsmeow.Messaging;
 using E2E = Whatsmeow.Proto.WAWebProtobufsE2E;
+using ProtocolType = Whatsmeow.Proto.WAWebProtobufsE2E.ProtocolMessage.Types.Type;
+using WACommon = Whatsmeow.Proto.WACommon;
 
 namespace Whatsmeow.Events;
 
@@ -12,9 +15,18 @@ internal static class ContentMapping
 {
 	/// <param name="message">The message as whatsmeow unwrapped it.</param>
 	/// <param name="viewOnce">True when whatsmeow unwrapped it from a view-once wrapper.</param>
-	public static MessageContent ToContent(E2E.Message? message, bool viewOnce) =>
+	/// <param name="source">Who sent it and where, which names the message a reaction, an edit or a revoke targets.</param>
+	public static MessageContent ToContent(E2E.Message? message, bool viewOnce, MessageSource source) =>
 		message switch
 		{
+			// REVOKE is the type's zero value (WAWebProtobufsE2E.proto), so only a set type is one.
+			{ ReactionMessage: { Key.ID.Length: > 0 } reaction } => new ReactionContent { Target = ToKey(reaction.Key, source), Emoji = reaction.Text },
+			{ ProtocolMessage: { HasType: true, Type: ProtocolType.Revoke, Key.ID.Length: > 0 } revoke } => new RevokeContent { Target = ToKey(revoke.Key, source) },
+			{ ProtocolMessage: { HasType: true, Type: ProtocolType.MessageEdit, Key.ID.Length: > 0, EditedMessage: { } edited } edit } => new EditContent
+			{
+				Target = ToKey(edit.Key, source),
+				Content = ToContent(edited, viewOnce: false, source),
+			},
 			{ HasConversation: true } => new TextContent { Text = message.Conversation },
 			{ ExtendedTextMessage.HasText: true } => new TextContent { Text = message.ExtendedTextMessage.Text },
 			{ ImageMessage: { } image } => ToImage(image, viewOnce),
@@ -128,6 +140,56 @@ internal static class ContentMapping
 			FileEncSha256 = [.. fileEncSha256.Span],
 			FileLength = (long)Math.Min(fileLength, long.MaxValue),
 			StreamingSidecar = [.. streamingSidecar.Span],
+		};
+
+	/// <summary>
+	/// The message a key names, as mautrix reads one (pkg/msgconv/msgconv.go:97-132 at 5dd621f): a key that names a
+	/// participant names its sender; one the actor marks as its own names the actor; otherwise, in a direct chat, the
+	/// other side: the chat when the account acted, else the account itself, which is null.
+	/// </summary>
+	private static MessageKey ToKey(WACommon.MessageKey key, MessageSource source) =>
+		new()
+		{
+			Id = MessageId.From(key.ID),
+			Sender = key.HasParticipant && Jid.TryParse(key.Participant, out var participant) ? participant
+				: key.FromMe ? source.Sender
+				: source.IsFromMe ? source.Chat
+				: null,
+		};
+
+	/// <summary>The message a received one replies to, from its content's context; null for no reply.</summary>
+	public static QuotedMessage? ToReplyTo(E2E.Message? message, MessageSource source) =>
+		ContextOf(message) is { StanzaID.Length: > 0 } context
+			? new QuotedMessage
+			{
+				Id = MessageId.From(context.StanzaID),
+				Sender = Jid.TryParse(context.Participant, out var sender) ? sender : null,
+				Content = context.QuotedMessage is { } quoted ? ToContent(quoted, viewOnce: false, source) : null,
+			}
+			: null;
+
+	/// <summary>The users a received message mentions, from its content's context; one that does not parse is left out.</summary>
+	public static ImmutableArray<Jid> ToMentions(E2E.Message? message) =>
+		ContextOf(message) is { } context ? [.. context.MentionedJID.Select(m => Jid.TryParse(m, out var jid) ? (Jid?)jid : null).OfType<Jid>()] : [];
+
+	/// <summary>
+	/// True for a disappearing message: one whatsmeow unwrapped from an ephemeral wrapper, or whose context sets an
+	/// expiration, as mautrix reads it (pkg/msgconv/from-whatsapp.go:257-260 at 5dd621f).
+	/// </summary>
+	public static bool IsEphemeral(E2E.Message? message, bool unwrapped) => unwrapped || ContextOf(message) is { Expiration: > 0 };
+
+	/// <summary>The context of the content kinds this client maps; an edit's is its new content's.</summary>
+	private static E2E.ContextInfo? ContextOf(E2E.Message? message) =>
+		message switch
+		{
+			{ ProtocolMessage: { HasType: true, Type: ProtocolType.MessageEdit, EditedMessage: { } edited } } => ContextOf(edited),
+			{ ExtendedTextMessage.ContextInfo: { } context } => context,
+			{ ImageMessage.ContextInfo: { } context } => context,
+			{ VideoMessage.ContextInfo: { } context } => context,
+			{ AudioMessage.ContextInfo: { } context } => context,
+			{ DocumentMessage.ContextInfo: { } context } => context,
+			{ StickerMessage.ContextInfo: { } context } => context,
+			_ => null,
 		};
 
 	/// <summary>Pixels as an <see cref="int"/>, clamped: WhatsApp's are unsigned.</summary>

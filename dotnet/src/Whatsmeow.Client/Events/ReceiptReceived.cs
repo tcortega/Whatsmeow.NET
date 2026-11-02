@@ -22,6 +22,13 @@ public sealed record ReceiptReceived : WhatsAppEvent
 	public required ReceiptType Type { get; init; }
 
 	/// <summary>
+	/// Who sent the messages it covers, when WhatsApp said: in a group, for a receipt from another of the account's
+	/// devices (<see cref="ReceiptType.ReadSelf"/>, <see cref="ReceiptType.PlayedSelf"/>), the member whose messages were
+	/// read; for a receipt from another user, usually the account itself. Null when WhatsApp did not say.
+	/// </summary>
+	public Jid? MessageSender { get; init; }
+
+	/// <summary>
 	/// Compares every field, the message ids by content: a receipt that comes again equals the first
 	/// (<see cref="ImmutableArray{T}"/> alone compares the arrays it wraps).
 	/// </summary>
@@ -30,7 +37,8 @@ public sealed record ReceiptReceived : WhatsAppEvent
 		&& Source.Equals(other.Source)
 		&& MessageIds.AsSpan().SequenceEqual(other.MessageIds.AsSpan())
 		&& Timestamp.Equals(other.Timestamp)
-		&& Type == other.Type;
+		&& Type == other.Type
+		&& Nullable.Equals(MessageSender, other.MessageSender);
 
 	/// <inheritdoc/>
 	public override int GetHashCode()
@@ -42,6 +50,7 @@ public sealed record ReceiptReceived : WhatsAppEvent
 			hash.Add(id);
 		hash.Add(Timestamp);
 		hash.Add(Type);
+		hash.Add(MessageSender);
 		return hash.ToHashCode();
 	}
 }

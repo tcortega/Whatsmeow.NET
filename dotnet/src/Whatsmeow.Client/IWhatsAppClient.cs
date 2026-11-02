@@ -455,6 +455,7 @@ public interface IWhatsAppClient
 	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
 	Task UnblockAsync(Jid user, CancellationToken cancellationToken = default);
 
+#pragma warning disable RS0026 // Justification: each options overload requires its options, so no call binds to both overloads, and the overloads without options keep their shape (ADR 0038)
 	/// <summary>
 	/// Sends a text message to <paramref name="chat"/>, a user (by phone number or LID, without a device) or a group, once
 	/// the sends of this session queued before it went out; the session's sends are paced. It never waits for a
@@ -494,19 +495,19 @@ public interface IWhatsAppClient
 	/// <summary>
 	/// Sends an image message. The metadata goes out as given, and the file is never decoded to check it; what is null or
 	/// empty is left out. A <see cref="MediaRef"/> from an upload or from a received message is sent without uploading
-	/// again. The send is queued, paced and at most once per id with text sends, as <see cref="SendTextAsync"/> is.
+	/// again. The send is queued, paced and at most once per id with text sends, as <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/> is.
 	/// </summary>
 	/// <param name="chat">The recipient.</param>
 	/// <param name="image">The file, uploaded as <see cref="MediaType.Image"/>.</param>
 	/// <param name="metadata">What the message says about the file.</param>
 	/// <param name="id">The message's id, in <see cref="MessageId.New"/>'s format; null makes a new one.</param>
-	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync"/>.</param>
-	/// <returns>As for <see cref="SendTextAsync"/>.</returns>
+	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>.</param>
+	/// <returns>As for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>.</returns>
 	/// <exception cref="WhatsmeowValidationException">
 	/// The chat or the id is malformed, the reference is incomplete (no direct path, a media key or a hash that is not 32
 	/// bytes), or its <see cref="MediaRef.Type"/> is not <see cref="MediaType.Image"/>; nothing was sent.
 	/// </exception>
-	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync"/>, with the same subtypes.</exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>, with the same subtypes.</exception>
 	/// <exception cref="ArgumentNullException"><paramref name="image"/> or <paramref name="metadata"/> is null.</exception>
 	/// <exception cref="ArgumentOutOfRangeException">
 	/// The width or the height is negative, the reference's <see cref="MediaRef.FileLength"/> is negative, or its
@@ -517,21 +518,21 @@ public interface IWhatsAppClient
 	/// <summary>
 	/// Sends a video message. The metadata goes out as given, and the file is never decoded to check it; what is null or
 	/// empty is left out. A <see cref="MediaRef"/> from an upload or from a received message is sent without uploading
-	/// again. The send is queued, paced and at most once per id with text sends, as <see cref="SendTextAsync"/> is. The
+	/// again. The send is queued, paced and at most once per id with text sends, as <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/> is. The
 	/// streaming sidecar of <paramref name="video"/> goes into the message.
 	/// </summary>
 	/// <param name="chat">The recipient.</param>
 	/// <param name="video">The file, uploaded as <see cref="MediaType.Video"/>.</param>
 	/// <param name="metadata">What the message says about the file.</param>
 	/// <param name="id">The message's id, in <see cref="MessageId.New"/>'s format; null makes a new one.</param>
-	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync"/>.</param>
-	/// <returns>As for <see cref="SendTextAsync"/>.</returns>
+	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>.</param>
+	/// <returns>As for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>.</returns>
 	/// <exception cref="WhatsmeowValidationException">
 	/// The chat or the id is malformed, the reference is incomplete (no direct path, a media key or a hash that is not 32
 	/// bytes), or its <see cref="MediaRef.Type"/> is not <see cref="MediaType.Video"/>, or the duration is negative or over
 	/// 2^32-1 seconds (the field <c>video.duration</c>); nothing was sent.
 	/// </exception>
-	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync"/>, with the same subtypes.</exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>, with the same subtypes.</exception>
 	/// <exception cref="ArgumentNullException"><paramref name="video"/> or <paramref name="metadata"/> is null.</exception>
 	/// <exception cref="ArgumentOutOfRangeException">
 	/// The width or the height is negative, the reference's <see cref="MediaRef.FileLength"/> is negative, or its
@@ -543,21 +544,21 @@ public interface IWhatsAppClient
 	/// Sends an audio file, or a voice note when <see cref="AudioMetadata.IsVoiceNote"/> is set. The metadata goes out as
 	/// given, and the file is never decoded to check it; what is null or empty is left out. A <see cref="MediaRef"/> from
 	/// an upload or from a received message is sent without uploading again. The send is queued, paced and at most once
-	/// per id with text sends, as <see cref="SendTextAsync"/> is. A voice note is reported to play on phones only as
+	/// per id with text sends, as <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/> is. A voice note is reported to play on phones only as
 	/// <c>audio/ogg; codecs=opus</c>; the library does not check it.
 	/// </summary>
 	/// <param name="chat">The recipient.</param>
 	/// <param name="audio">The file, uploaded as <see cref="MediaType.Audio"/>.</param>
 	/// <param name="metadata">What the message says about the file.</param>
 	/// <param name="id">The message's id, in <see cref="MessageId.New"/>'s format; null makes a new one.</param>
-	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync"/>.</param>
-	/// <returns>As for <see cref="SendTextAsync"/>.</returns>
+	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>.</param>
+	/// <returns>As for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>.</returns>
 	/// <exception cref="WhatsmeowValidationException">
 	/// The chat or the id is malformed, the reference is incomplete (no direct path, a media key or a hash that is not 32
 	/// bytes), or its <see cref="MediaRef.Type"/> is not <see cref="MediaType.Audio"/>, or the duration is negative or over
 	/// 2^32-1 seconds (the field <c>audio.duration</c>); nothing was sent.
 	/// </exception>
-	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync"/>, with the same subtypes.</exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>, with the same subtypes.</exception>
 	/// <exception cref="ArgumentNullException"><paramref name="audio"/> or <paramref name="metadata"/> is null.</exception>
 	/// <exception cref="ArgumentOutOfRangeException">
 	/// The reference's <see cref="MediaRef.FileLength"/> is negative, or its <see cref="MediaRef.Type"/> is not a
@@ -569,19 +570,19 @@ public interface IWhatsAppClient
 	/// Sends a document message, with its caption when it has one. The metadata goes out as given, and the file is never
 	/// decoded to check it; what is null or empty is left out. A <see cref="MediaRef"/> from an upload or from a received
 	/// message is sent without uploading again. The send is queued, paced and at most once per id with text sends, as <see
-	/// cref="SendTextAsync"/> is.
+	/// cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/> is.
 	/// </summary>
 	/// <param name="chat">The recipient.</param>
 	/// <param name="document">The file, uploaded as <see cref="MediaType.Document"/>.</param>
 	/// <param name="metadata">What the message says about the file.</param>
 	/// <param name="id">The message's id, in <see cref="MessageId.New"/>'s format; null makes a new one.</param>
-	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync"/>.</param>
-	/// <returns>As for <see cref="SendTextAsync"/>.</returns>
+	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>.</param>
+	/// <returns>As for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>.</returns>
 	/// <exception cref="WhatsmeowValidationException">
 	/// The chat or the id is malformed, the reference is incomplete (no direct path, a media key or a hash that is not 32
 	/// bytes), or its <see cref="MediaRef.Type"/> is not <see cref="MediaType.Document"/>; nothing was sent.
 	/// </exception>
-	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync"/>, with the same subtypes.</exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>, with the same subtypes.</exception>
 	/// <exception cref="ArgumentNullException"><paramref name="document"/> or <paramref name="metadata"/> is null.</exception>
 	/// <exception cref="ArgumentOutOfRangeException">
 	/// The reference's <see cref="MediaRef.FileLength"/> is negative, or its <see cref="MediaRef.Type"/> is not a
@@ -593,19 +594,19 @@ public interface IWhatsAppClient
 	/// Sends a sticker message. Its thumbnail, when given, is PNG (<see cref="StickerMetadata.PngThumbnail"/>). The
 	/// metadata goes out as given, and the file is never decoded to check it; what is null or empty is left out. A <see cref="MediaRef"/> from an upload or from a received message is
 	/// sent without uploading again. The send is queued, paced and at most once per id with text sends, as <see
-	/// cref="SendTextAsync"/> is.
+	/// cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/> is.
 	/// </summary>
 	/// <param name="chat">The recipient.</param>
 	/// <param name="sticker">The file, uploaded as <see cref="MediaType.Image"/>.</param>
 	/// <param name="metadata">What the message says about the file.</param>
 	/// <param name="id">The message's id, in <see cref="MessageId.New"/>'s format; null makes a new one.</param>
-	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync"/>.</param>
-	/// <returns>As for <see cref="SendTextAsync"/>.</returns>
+	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>.</param>
+	/// <returns>As for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>.</returns>
 	/// <exception cref="WhatsmeowValidationException">
 	/// The chat or the id is malformed, the reference is incomplete (no direct path, a media key or a hash that is not 32
 	/// bytes), or its <see cref="MediaRef.Type"/> is not <see cref="MediaType.Image"/>; nothing was sent.
 	/// </exception>
-	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync"/>, with the same subtypes.</exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>, with the same subtypes.</exception>
 	/// <exception cref="ArgumentNullException"><paramref name="sticker"/> or <paramref name="metadata"/> is null.</exception>
 	/// <exception cref="ArgumentOutOfRangeException">
 	/// The width or the height is negative, the reference's <see cref="MediaRef.FileLength"/> is negative, or its
@@ -614,17 +615,117 @@ public interface IWhatsAppClient
 	Task<SendResult> SendStickerAsync(Jid chat, MediaRef sticker, StickerMetadata metadata, MessageId? id = null, CancellationToken cancellationToken = default);
 
 	/// <summary>
-	/// Sends <paramref name="message"/> exactly as given, as <see cref="SendTextAsync"/> sends a text: once per id, queued,
+	/// Sends a text message, as <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/> does, in reply to a
+	/// message and mentioning users as <paramref name="options"/> says.
+	/// </summary>
+	/// <param name="chat">The recipient.</param>
+	/// <param name="text">The text; not empty. It names each mentioned user as <c>@</c> and the JID's user part.</param>
+	/// <param name="options">The message it replies to, and the users it mentions.</param>
+	/// <param name="id">The message's id, in <see cref="MessageId.New"/>'s format; null makes a new one.</param>
+	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>.</param>
+	/// <returns>As for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>.</returns>
+	/// <exception cref="WhatsmeowValidationException">
+	/// As for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>, or a mention or the quoted
+	/// message's sender is not a user; nothing was sent.
+	/// </exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>, with the same subtypes.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="text"/> or <paramref name="options"/> is null.</exception>
+	Task<SendResult> SendTextAsync(Jid chat, string text, SendOptions options, MessageId? id = null, CancellationToken cancellationToken = default);
+
+	/// <summary>Sends an image message, as the overload without options does, in reply to a message and mentioning users in its caption as <paramref name="options"/> says.</summary>
+	/// <inheritdoc cref="SendImageAsync(Jid, MediaRef, ImageMetadata, MessageId?, CancellationToken)"/>
+	/// <param name="options">The message it replies to, and the users its caption mentions.</param>
+	/// <exception cref="ArgumentNullException"><paramref name="image"/>, <paramref name="metadata"/> or <paramref name="options"/> is null.</exception>
+	Task<SendResult> SendImageAsync(Jid chat, MediaRef image, ImageMetadata metadata, SendOptions options, MessageId? id = null, CancellationToken cancellationToken = default);
+
+	/// <summary>Sends a video message, as the overload without options does, in reply to a message and mentioning users in its caption as <paramref name="options"/> says.</summary>
+	/// <inheritdoc cref="SendVideoAsync(Jid, MediaRef, VideoMetadata, MessageId?, CancellationToken)"/>
+	/// <param name="options">The message it replies to, and the users its caption mentions.</param>
+	/// <exception cref="ArgumentNullException"><paramref name="video"/>, <paramref name="metadata"/> or <paramref name="options"/> is null.</exception>
+	Task<SendResult> SendVideoAsync(Jid chat, MediaRef video, VideoMetadata metadata, SendOptions options, MessageId? id = null, CancellationToken cancellationToken = default);
+
+	/// <summary>Sends an audio file or a voice note, as the overload without options does, in reply to a message as <paramref name="options"/> says.</summary>
+	/// <inheritdoc cref="SendAudioAsync(Jid, MediaRef, AudioMetadata, MessageId?, CancellationToken)"/>
+	/// <param name="options">The message it replies to, and the users it mentions.</param>
+	/// <exception cref="ArgumentNullException"><paramref name="audio"/>, <paramref name="metadata"/> or <paramref name="options"/> is null.</exception>
+	Task<SendResult> SendAudioAsync(Jid chat, MediaRef audio, AudioMetadata metadata, SendOptions options, MessageId? id = null, CancellationToken cancellationToken = default);
+
+	/// <summary>Sends a document message, as the overload without options does, in reply to a message and mentioning users in its caption as <paramref name="options"/> says.</summary>
+	/// <inheritdoc cref="SendDocumentAsync(Jid, MediaRef, DocumentMetadata, MessageId?, CancellationToken)"/>
+	/// <param name="options">The message it replies to, and the users its caption mentions.</param>
+	/// <exception cref="ArgumentNullException"><paramref name="document"/>, <paramref name="metadata"/> or <paramref name="options"/> is null.</exception>
+	Task<SendResult> SendDocumentAsync(Jid chat, MediaRef document, DocumentMetadata metadata, SendOptions options, MessageId? id = null, CancellationToken cancellationToken = default);
+
+	/// <summary>Sends a sticker message, as the overload without options does, in reply to a message as <paramref name="options"/> says.</summary>
+	/// <inheritdoc cref="SendStickerAsync(Jid, MediaRef, StickerMetadata, MessageId?, CancellationToken)"/>
+	/// <param name="options">The message it replies to, and the users it mentions.</param>
+	/// <exception cref="ArgumentNullException"><paramref name="sticker"/>, <paramref name="metadata"/> or <paramref name="options"/> is null.</exception>
+	Task<SendResult> SendStickerAsync(Jid chat, MediaRef sticker, StickerMetadata metadata, SendOptions options, MessageId? id = null, CancellationToken cancellationToken = default);
+#pragma warning restore RS0026
+
+	/// <summary>
+	/// Reacts to a message with an emoji, or removes the account's reaction to it with an empty one. The reaction is a send
+	/// like a text: queued, paced and at most once per <paramref name="id"/>, the reaction's own id, as
+	/// <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/> is. The library keeps no messages, so the
+	/// target is never checked.
+	/// </summary>
+	/// <param name="chat">The message's chat: a user (by phone number or LID, without a device) or a group.</param>
+	/// <param name="target">The message, with its sender; in a group a message from someone else needs it.</param>
+	/// <param name="emoji">The emoji; empty removes the account's reaction.</param>
+	/// <param name="id">The reaction's own id, in <see cref="MessageId.New"/>'s format; null makes a new one.</param>
+	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>.</param>
+	/// <returns>The reaction's id, the chat it went to, and WhatsApp's timestamp.</returns>
+	/// <exception cref="WhatsmeowValidationException">The chat or the id is malformed, or the target's sender is not a user; nothing was sent.</exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>, with the same subtypes.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="target"/> or <paramref name="emoji"/> is null.</exception>
+	Task<SendResult> SendReactionAsync(Jid chat, MessageKey target, string emoji, MessageId? id = null, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Replaces the text of a message the account sent. The edit is a send like a text: queued, paced and at most once per
+	/// <paramref name="id"/>, the edit's own id, as <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>
+	/// is. The library keeps no messages, so it checks neither the target nor an edit window; whether WhatsApp refuses or
+	/// drops a late edit is unknown.
+	/// </summary>
+	/// <param name="chat">The message's chat: a user (by phone number or LID, without a device) or a group.</param>
+	/// <param name="target">The message the account sent.</param>
+	/// <param name="text">The new text; not empty.</param>
+	/// <param name="id">The edit's own id, in <see cref="MessageId.New"/>'s format; null makes a new one.</param>
+	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>.</param>
+	/// <returns>As for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>, with the edit's id.</returns>
+	/// <exception cref="WhatsmeowValidationException">The chat, the text or the id is malformed; nothing was sent.</exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>, with the same subtypes.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="text"/> is null.</exception>
+	Task<SendResult> EditMessageAsync(Jid chat, MessageId target, string text, MessageId? id = null, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Deletes a message for everyone: the account's own, or, as a group admin, another member's. The revoke is a send
+	/// like a text: queued, paced and at most once per <paramref name="id"/>, the revoke's own id, as
+	/// <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/> is. The library keeps no messages, so the
+	/// target is never checked.
+	/// </summary>
+	/// <param name="chat">The message's chat: a user (by phone number or LID, without a device) or a group.</param>
+	/// <param name="target">The message: no sender, or the account's own, for the account's message; another member's for an admin revoke.</param>
+	/// <param name="id">The revoke's own id, in <see cref="MessageId.New"/>'s format; null makes a new one.</param>
+	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>.</param>
+	/// <returns>As for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>, with the revoke's id.</returns>
+	/// <exception cref="WhatsmeowValidationException">The chat or the id is malformed, or the target's sender is not a user; nothing was sent.</exception>
+	/// <exception cref="WhatsAppErrorException">WhatsApp refused the revoke, as it may refuse an admin revoke, with its <see cref="WhatsAppErrorException.Code"/>; a repeat of the id throws the same.</exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>, with the same subtypes.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="target"/> is null.</exception>
+	Task<SendResult> RevokeMessageAsync(Jid chat, MessageKey target, MessageId? id = null, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Sends <paramref name="message"/> exactly as given, as <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/> sends a text: once per id, queued,
 	/// never waiting for a connection. The message type is WhatsApp's own protobuf, which changes with every whatsmeow
 	/// version, so this member is experimental (<c>WMN1001</c>): it has no stability promise.
 	/// </summary>
 	/// <param name="chat">The recipient.</param>
 	/// <param name="message">The message. One with an unset proto2 required field is refused before anything is sent.</param>
 	/// <param name="id">The message's id, in <see cref="MessageId.New"/>'s format; null makes a new one.</param>
-	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync"/>.</param>
-	/// <returns>As for <see cref="SendTextAsync"/>.</returns>
+	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>.</param>
+	/// <returns>As for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>.</returns>
 	/// <exception cref="WhatsmeowValidationException">The chat or the id is malformed, or the message misses a required field; nothing was sent.</exception>
-	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync"/>, with the same subtypes.</exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync(Jid, string, MessageId?, CancellationToken)"/>, with the same subtypes.</exception>
 	/// <exception cref="ArgumentNullException"><paramref name="message"/> is null.</exception>
 	[Experimental("WMN1001")]
 	Task<SendResult> SendRawAsync(Jid chat, E2E.Message message, MessageId? id = null, CancellationToken cancellationToken = default);

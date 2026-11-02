@@ -30,15 +30,7 @@ internal static class EventMapping
 	public static WhatsAppEvent? ToEvent(SessionId sessionId, StreamEventsResponse response, ILogger? log = null) =>
 		response.PayloadCase switch
 		{
-			Payload.Message => new MessageReceived
-			{
-				SessionId = sessionId,
-				Id = MessageId.From(response.Message.Info.Id),
-				Source = ToSource(response.Message.Info.Source),
-				PushName = NullIfEmpty(response.Message.Info.PushName),
-				Timestamp = ToTime(response.Message.Info.MessageTime),
-				Content = ContentMapping.ToContent(response.Message.Message, response.Message.ViewOnce),
-			},
+			Payload.Message => ToMessage(sessionId, response.Message),
 			Payload.UndecryptableMessage => new UndecryptableMessageReceived
 			{
 				SessionId = sessionId,
@@ -77,6 +69,7 @@ internal static class EventMapping
 				MessageIds = [.. response.Receipt.MessageIds.Select(MessageId.From)],
 				Timestamp = ToTime(response.Receipt.ReceiptTime),
 				Type = ToType(response.Receipt.Type),
+				MessageSender = ToJid(response.Receipt.MessageSender),
 			},
 			Payload.Group => GroupMapping.ToEvent(sessionId, response.Group),
 			Payload.HistoryMessages => HistoryMapping.ToEvent(sessionId, response.HistoryMessages, log ?? NullLogger.Instance),
@@ -146,6 +139,27 @@ internal static class EventMapping
 			EphemeralPayload.Presence or EphemeralPayload.ChatPresence or EphemeralPayload.None => null,
 			_ => null,
 		};
+
+	private static MessageReceived ToMessage(SessionId sessionId, MessageEvent message)
+	{
+		var source = ToSource(message.Info.Source);
+		return new MessageReceived
+		{
+			SessionId = sessionId,
+			Id = MessageId.From(message.Info.Id),
+			Source = source,
+			PushName = NullIfEmpty(message.Info.PushName),
+			Timestamp = ToTime(message.Info.MessageTime),
+			Content = ContentMapping.ToContent(message.Message, message.ViewOnce, source),
+			ReplyTo = ContentMapping.ToReplyTo(message.Message, source),
+			Mentions = ContentMapping.ToMentions(message.Message),
+			IsEphemeral = ContentMapping.IsEphemeral(message.Message, message.Ephemeral),
+			DestinationChat = ToJid(message.DeviceSentDestination),
+#pragma warning disable WMN1001 // Justification: the library fills its own experimental member; only its readers opt in
+			Raw = message.RawMessage ?? message.Message,
+#pragma warning restore WMN1001
+		};
+	}
 
 	internal static MessageSource ToSource(Protocol.V1.MessageSource source) =>
 		new()

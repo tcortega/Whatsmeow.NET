@@ -48,6 +48,7 @@ const (
 	FakeWhatsAppService_RateLimitNextSends_FullMethodName          = "/whatsmeow.fake.v1.FakeWhatsAppService/RateLimitNextSends"
 	FakeWhatsAppService_HoldNextSend_FullMethodName                = "/whatsmeow.fake.v1.FakeWhatsAppService/HoldNextSend"
 	FakeWhatsAppService_ReleaseSend_FullMethodName                 = "/whatsmeow.fake.v1.FakeWhatsAppService/ReleaseSend"
+	FakeWhatsAppService_RefuseNextSend_FullMethodName              = "/whatsmeow.fake.v1.FakeWhatsAppService/RefuseNextSend"
 	FakeWhatsAppService_AddGroup_FullMethodName                    = "/whatsmeow.fake.v1.FakeWhatsAppService/AddGroup"
 	FakeWhatsAppService_DeliverGroupNotification_FullMethodName    = "/whatsmeow.fake.v1.FakeWhatsAppService/DeliverGroupNotification"
 	FakeWhatsAppService_RefuseGroupAdd_FullMethodName              = "/whatsmeow.fake.v1.FakeWhatsAppService/RefuseGroupAdd"
@@ -183,6 +184,9 @@ type FakeWhatsAppServiceClient interface {
 	HoldNextSend(ctx context.Context, in *HoldNextSendRequest, opts ...grpc.CallOption) (*HoldNextSendResponse, error)
 	// ReleaseSend makes WhatsApp answer the session's held send: it succeeds. No held send is an error.
 	ReleaseSend(ctx context.Context, in *ReleaseSendRequest, opts ...grpc.CallOption) (*ReleaseSendResponse, error)
+	// RefuseNextSend makes WhatsApp answer the session's next message node, which WaitForSent shows, with an error code,
+	// as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470).
+	RefuseNextSend(ctx context.Context, in *RefuseNextSendRequest, opts ...grpc.CallOption) (*RefuseNextSendResponse, error)
 	// AddGroup puts a group on WhatsApp's side, which every session's group calls read and change. Its members are
 	// phone-number JIDs; in a LID-addressed group WhatsApp answers each by the LID RegisterUser gave it, with the phone
 	// number beside it, and by the phone number when it has none. Adding a jid again replaces the group.
@@ -547,6 +551,16 @@ func (c *fakeWhatsAppServiceClient) ReleaseSend(ctx context.Context, in *Release
 	return out, nil
 }
 
+func (c *fakeWhatsAppServiceClient) RefuseNextSend(ctx context.Context, in *RefuseNextSendRequest, opts ...grpc.CallOption) (*RefuseNextSendResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RefuseNextSendResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_RefuseNextSend_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *fakeWhatsAppServiceClient) AddGroup(ctx context.Context, in *AddGroupRequest, opts ...grpc.CallOption) (*AddGroupResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AddGroupResponse)
@@ -779,6 +793,9 @@ type FakeWhatsAppServiceServer interface {
 	HoldNextSend(context.Context, *HoldNextSendRequest) (*HoldNextSendResponse, error)
 	// ReleaseSend makes WhatsApp answer the session's held send: it succeeds. No held send is an error.
 	ReleaseSend(context.Context, *ReleaseSendRequest) (*ReleaseSendResponse, error)
+	// RefuseNextSend makes WhatsApp answer the session's next message node, which WaitForSent shows, with an error code,
+	// as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470).
+	RefuseNextSend(context.Context, *RefuseNextSendRequest) (*RefuseNextSendResponse, error)
 	// AddGroup puts a group on WhatsApp's side, which every session's group calls read and change. Its members are
 	// phone-number JIDs; in a LID-addressed group WhatsApp answers each by the LID RegisterUser gave it, with the phone
 	// number beside it, and by the phone number when it has none. Adding a jid again replaces the group.
@@ -939,6 +956,9 @@ func (UnimplementedFakeWhatsAppServiceServer) HoldNextSend(context.Context, *Hol
 }
 func (UnimplementedFakeWhatsAppServiceServer) ReleaseSend(context.Context, *ReleaseSendRequest) (*ReleaseSendResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReleaseSend not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) RefuseNextSend(context.Context, *RefuseNextSendRequest) (*RefuseNextSendResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RefuseNextSend not implemented")
 }
 func (UnimplementedFakeWhatsAppServiceServer) AddGroup(context.Context, *AddGroupRequest) (*AddGroupResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddGroup not implemented")
@@ -1516,6 +1536,24 @@ func _FakeWhatsAppService_ReleaseSend_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FakeWhatsAppService_RefuseNextSend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RefuseNextSendRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).RefuseNextSend(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_RefuseNextSend_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).RefuseNextSend(ctx, req.(*RefuseNextSendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FakeWhatsAppService_AddGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddGroupRequest)
 	if err := dec(in); err != nil {
@@ -1836,6 +1874,10 @@ var FakeWhatsAppService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReleaseSend",
 			Handler:    _FakeWhatsAppService_ReleaseSend_Handler,
+		},
+		{
+			MethodName: "RefuseNextSend",
+			Handler:    _FakeWhatsAppService_RefuseNextSend_Handler,
 		},
 		{
 			MethodName: "AddGroup",

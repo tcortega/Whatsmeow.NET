@@ -732,7 +732,7 @@ func TestAViewOnceMessageAndAnUnavailableOneSayWhatTheyAre(t *testing.T) {
 		want *whatsmeowv1.StreamEventsResponse
 	}{
 		{viewOnce, &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_Message{
-			Message: &whatsmeowv1.MessageEvent{Info: info, Message: image, ViewOnce: true},
+			Message: &whatsmeowv1.MessageEvent{Info: info, Message: image, ViewOnce: true, RawMessage: viewOnce.RawMessage},
 		}}},
 		{unavailable(waevents.UnavailableTypeViewOnce), undecryptable(&whatsmeowv1.UndecryptableMessageEvent{
 			Info: info, Unavailable: true, UnavailableType: whatsmeowv1.UnavailableType_UNAVAILABLE_TYPE_VIEW_ONCE,
@@ -745,6 +745,46 @@ func TestAViewOnceMessageAndAnUnavailableOneSayWhatTheyAre(t *testing.T) {
 	for _, c := range cases {
 		if _, got, ok := toEvent(c.evt); !ok || !proto.Equal(got, c.want) {
 			t.Errorf("%+v: %v, %v; want %v", c.evt, got, ok, c.want)
+		}
+	}
+}
+
+func TestAMessagesWrappersSayWhatTheyWere_AndTheRawMessageIsKeptWhenUnwrapped(t *testing.T) {
+	t.Parallel()
+
+	own := types.MessageSource{Chat: jid("111@lid"), Sender: jid("999:4@lid"), IsFromMe: true}
+	text := &waE2E.Message{ExtendedTextMessage: &waE2E.ExtendedTextMessage{Text: proto.String("hi")}}
+	unwrap := func(raw *waE2E.Message) *waevents.Message {
+		return (&waevents.Message{Info: types.MessageInfo{MessageSource: own, ID: "M1"}, RawMessage: raw}).UnwrapRaw()
+	}
+	event := func(e *whatsmeowv1.MessageEvent) *whatsmeowv1.StreamEventsResponse {
+		e.Info = &whatsmeowv1.MessageInfo{Source: &whatsmeowv1.MessageSource{Chat: "111@lid", Sender: "999:4@lid", IsFromMe: true}, Id: "M1", MessageTime: timestamppb.New(time.Time{})}
+
+		return &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_Message{Message: e}}
+	}
+	ephemeral := &waE2E.Message{EphemeralMessage: &waE2E.FutureProofMessage{Message: text}}
+	deviceSent := &waE2E.Message{DeviceSentMessage: &waE2E.DeviceSentMessage{DestinationJID: proto.String("222@lid"), Message: ephemeral}}
+	plain := &waE2E.Message{Conversation: proto.String("hi")}
+	plainDSM := &waE2E.Message{Conversation: proto.String("sent")}
+	badDestination := &waE2E.Message{DeviceSentMessage: &waE2E.DeviceSentMessage{DestinationJID: proto.String("222\xff@lid"), Message: plainDSM}}
+
+	cases := []struct {
+		evt  *waevents.Message
+		want *whatsmeowv1.StreamEventsResponse
+	}{
+		// A disappearing message (types/events/events.go:390-393).
+		{unwrap(ephemeral), event(&whatsmeowv1.MessageEvent{Message: text, Ephemeral: true, RawMessage: ephemeral})},
+		// Sent from the account's phone: the chat it went to is in the device-sent wrapper (events.go:378-384).
+		{unwrap(deviceSent), event(&whatsmeowv1.MessageEvent{Message: text, Ephemeral: true, DeviceSentDestination: "222@lid", RawMessage: deviceSent})},
+		// The destination is WhatsApp data in a proto2 string: invalid UTF-8 becomes U+FFFD (server.Text).
+		{unwrap(badDestination), event(&whatsmeowv1.MessageEvent{Message: plainDSM, DeviceSentDestination: "222\uFFFD@lid", RawMessage: badDestination})},
+		// Nothing to unwrap: the message is what was received, sent once.
+		{unwrap(plain), event(&whatsmeowv1.MessageEvent{Message: plain})},
+	}
+
+	for _, c := range cases {
+		if _, got, ok := toEvent(c.evt); !ok || !proto.Equal(got, c.want) {
+			t.Errorf("%v: %v, %v; want %v", c.evt.RawMessage, got, ok, c.want)
 		}
 	}
 }

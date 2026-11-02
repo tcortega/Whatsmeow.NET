@@ -169,6 +169,10 @@ namespace Whatsmeow.IntegrationTests.Fake {
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.ReleaseSendResponse> __Marshaller_whatsmeow_fake_v1_ReleaseSendResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.ReleaseSendResponse.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.RefuseNextSendRequest> __Marshaller_whatsmeow_fake_v1_RefuseNextSendRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.RefuseNextSendRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.RefuseNextSendResponse> __Marshaller_whatsmeow_fake_v1_RefuseNextSendResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.RefuseNextSendResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.AddGroupRequest> __Marshaller_whatsmeow_fake_v1_AddGroupRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.AddGroupRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.AddGroupResponse> __Marshaller_whatsmeow_fake_v1_AddGroupResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.AddGroupResponse.Parser));
@@ -444,6 +448,14 @@ namespace Whatsmeow.IntegrationTests.Fake {
         "ReleaseSend",
         __Marshaller_whatsmeow_fake_v1_ReleaseSendRequest,
         __Marshaller_whatsmeow_fake_v1_ReleaseSendResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.RefuseNextSendRequest, global::Whatsmeow.IntegrationTests.Fake.RefuseNextSendResponse> __Method_RefuseNextSend = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.RefuseNextSendRequest, global::Whatsmeow.IntegrationTests.Fake.RefuseNextSendResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "RefuseNextSend",
+        __Marshaller_whatsmeow_fake_v1_RefuseNextSendRequest,
+        __Marshaller_whatsmeow_fake_v1_RefuseNextSendResponse);
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.AddGroupRequest, global::Whatsmeow.IntegrationTests.Fake.AddGroupResponse> __Method_AddGroup = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.AddGroupRequest, global::Whatsmeow.IntegrationTests.Fake.AddGroupResponse>(
@@ -2173,6 +2185,58 @@ namespace Whatsmeow.IntegrationTests.Fake {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.ReleaseSendResponse> ReleaseSendAsync(global::Whatsmeow.IntegrationTests.Fake.ReleaseSendRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_ReleaseSend, null, options, request);
+      }
+      /// <summary>
+      /// RefuseNextSend makes WhatsApp answer the session's next message node, which WaitForSent shows, with an error code,
+      /// as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.RefuseNextSendResponse RefuseNextSend(global::Whatsmeow.IntegrationTests.Fake.RefuseNextSendRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return RefuseNextSend(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// RefuseNextSend makes WhatsApp answer the session's next message node, which WaitForSent shows, with an error code,
+      /// as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.RefuseNextSendResponse RefuseNextSend(global::Whatsmeow.IntegrationTests.Fake.RefuseNextSendRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_RefuseNextSend, null, options, request);
+      }
+      /// <summary>
+      /// RefuseNextSend makes WhatsApp answer the session's next message node, which WaitForSent shows, with an error code,
+      /// as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.RefuseNextSendResponse> RefuseNextSendAsync(global::Whatsmeow.IntegrationTests.Fake.RefuseNextSendRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return RefuseNextSendAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// RefuseNextSend makes WhatsApp answer the session's next message node, which WaitForSent shows, with an error code,
+      /// as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.RefuseNextSendResponse> RefuseNextSendAsync(global::Whatsmeow.IntegrationTests.Fake.RefuseNextSendRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_RefuseNextSend, null, options, request);
       }
       /// <summary>
       /// AddGroup puts a group on WhatsApp's side, which every session's group calls read and change. Its members are

@@ -17,6 +17,7 @@ import (
 	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/proto/waE2E"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -31,13 +32,19 @@ import (
 type whatsApp interface {
 	SendMessage(ctx context.Context, to types.JID, message *waE2E.Message, extra ...whatsmeow.SendRequestExtra) (whatsmeow.SendResponse, error)
 	MarkRead(ctx context.Context, ids []types.MessageID, timestamp time.Time, chat, sender types.JID, receiptTypeExtra ...types.ReceiptType) error
+	// whatsmeow's builders of a reaction, a revoke and an edit, which name the account through its device (send.go:511-635).
+	BuildReaction(chat, sender types.JID, id types.MessageID, reaction string) *waE2E.Message
+	BuildRevoke(chat, sender types.JID, id types.MessageID) *waE2E.Message
+	BuildEdit(chat types.JID, id types.MessageID, newContent *waE2E.Message) *waE2E.Message
 }
 
 var _ whatsApp = (*whatsmeow.Client)(nil)
 
-// Sessions finds the client of a session that is online: session.(*Service).Online.
+// Sessions finds the client of a session that is online, and a paired session's device: session.(*Service).Online
+// and Device.
 type Sessions interface {
 	Online(id string) (session.Client, <-chan struct{}, error)
+	Device(id string) (*store.Device, error)
 }
 
 // The pacing of a session's sends: a burst of up to burst, then one every pace (ADR 0025). Tuning it is Phase 2.
@@ -107,7 +114,18 @@ func (svc *Service) SendText(ctx context.Context, req *whatsmeowv1.SendTextReque
 		return nil, invalid("text", "the text is empty")
 	}
 
-	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), &waE2E.Message{Conversation: proto.String(req.GetText())})
+	info, err := svc.contextInfo(req.GetSessionId(), req.GetReplyTo(), req.GetMentions())
+	if err != nil {
+		return nil, err
+	}
+
+	message := &waE2E.Message{Conversation: proto.String(req.GetText())}
+	if info != nil {
+		// A conversation carries no context; an extended text does, as mautrix sends it (from-matrix.go:358-375).
+		message = &waE2E.Message{ExtendedTextMessage: &waE2E.ExtendedTextMessage{Text: proto.String(req.GetText()), ContextInfo: info}}
+	}
+
+	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), as(message))
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +146,7 @@ func (svc *Service) SendMessage(ctx context.Context, req *whatsmeowv1.SendMessag
 		return nil, invalid("message", "%v", err)
 	}
 
-	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), message)
+	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), as(message))
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +246,7 @@ func recipient(field, chat string) (types.JID, error) {
 func user(field, value string) (types.JID, error) {
 	j, err := types.ParseJID(value)
 	if err != nil || j.User == "" || (j.Server != types.DefaultUserServer && j.Server != types.HiddenUserServer) {
-		return types.JID{}, invalid(field, "%q is not a user's JID", value)
+		return types.JID{}, invalid(field, "not a user's JID")
 	}
 
 	return j, nil

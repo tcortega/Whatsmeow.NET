@@ -152,6 +152,10 @@ service FakeWhatsAppService {
   // ReleaseSend makes WhatsApp answer the session's held send: it succeeds. No held send is an error.
   rpc ReleaseSend(ReleaseSendRequest) returns (ReleaseSendResponse);
 
+  // RefuseNextSend makes WhatsApp answer the session's next message node, which WaitForSent shows, with an error code,
+  // as whatsmeow reads such an answer (ErrServerReturnedError, send.go:468-470).
+  rpc RefuseNextSend(RefuseNextSendRequest) returns (RefuseNextSendResponse);
+
   // AddGroup puts a group on WhatsApp's side, which every session's group calls read and change. Its members are
   // phone-number JIDs; in a LID-addressed group WhatsApp answers each by the LID RegisterUser gave it, with the phone
   // number beside it, and by the phone number when it has none. Adding a jid again replaces the group.
@@ -700,6 +704,8 @@ message DeliverReceiptRequest {
   string type = 8;
   // The receipt's WhatsApp timestamp; unset is the zero time.
   google.protobuf.Timestamp receipt_time = 9;
+  // The sender of the messages it covers, the receipt's recipient attribute (receipt.go:77); empty for none.
+  string message_sender = 10;
 }
 
 // DeliverReceiptResponse has no fields.
@@ -733,6 +739,17 @@ message ReleaseSendRequest {
 
 // ReleaseSendResponse has no fields.
 message ReleaseSendResponse {}
+
+// RefuseNextSendRequest names the session and the code WhatsApp answers with.
+message RefuseNextSendRequest {
+  // The session whose next send is refused.
+  string session_id = 1;
+  // WhatsApp's error code; not 0.
+  int32 code = 2;
+}
+
+// RefuseNextSendResponse has no fields.
+message RefuseNextSendResponse {}
 
 // Disconnect is the client closing a connection that was open.
 message Disconnect {}

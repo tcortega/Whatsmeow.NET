@@ -162,7 +162,13 @@ type SendTextRequest struct {
 	// The WhatsApp message id to send with; required.
 	ClientMessageId string `protobuf:"bytes,3,opt,name=client_message_id,json=clientMessageId,proto3" json:"client_message_id,omitempty"`
 	// The text; not empty.
-	Text          string `protobuf:"bytes,4,opt,name=text,proto3" json:"text,omitempty"`
+	Text string `protobuf:"bytes,4,opt,name=text,proto3" json:"text,omitempty"`
+	// The message this one replies to, which the recipient sees quoted.
+	ReplyTo *MessageReply `protobuf:"bytes,5,opt,name=reply_to,json=replyTo,proto3" json:"reply_to,omitempty"`
+	// The users mentioned, by phone-number JID or LID; a device is dropped. The text names each as "@" and the JID's
+	// user part, which is how WhatsApp shows a mention; the sidecar does not change the text. One that is not a user's
+	// JID is INVALID_ARGUMENT (field "mentions").
+	Mentions      []string `protobuf:"bytes,6,rep,name=mentions,proto3" json:"mentions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -225,6 +231,86 @@ func (x *SendTextRequest) GetText() string {
 	return ""
 }
 
+func (x *SendTextRequest) GetReplyTo() *MessageReply {
+	if x != nil {
+		return x.ReplyTo
+	}
+	return nil
+}
+
+func (x *SendTextRequest) GetMentions() []string {
+	if x != nil {
+		return x.Mentions
+	}
+	return nil
+}
+
+// MessageReply is the message a reply quotes. Which address form a LID-addressed group needs is unknown.
+type MessageReply struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The quoted message's WhatsApp id; required (field "reply_to.id").
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// The quoted message's sender, a user's JID; a device is dropped. Empty is the account itself: the sidecar names
+	// its own JID. Whether WhatsApp needs the sender is unknown. One that is not a user's JID is INVALID_ARGUMENT
+	// (field "reply_to.sender").
+	Sender string `protobuf:"bytes,2,opt,name=sender,proto3" json:"sender,omitempty"`
+	// The text the quote shows; empty shows none. The recipient's phone may show its own copy of the message instead.
+	QuotedText    string `protobuf:"bytes,3,opt,name=quoted_text,json=quotedText,proto3" json:"quoted_text,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MessageReply) Reset() {
+	*x = MessageReply{}
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MessageReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MessageReply) ProtoMessage() {}
+
+func (x *MessageReply) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MessageReply.ProtoReflect.Descriptor instead.
+func (*MessageReply) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *MessageReply) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *MessageReply) GetSender() string {
+	if x != nil {
+		return x.Sender
+	}
+	return ""
+}
+
+func (x *MessageReply) GetQuotedText() string {
+	if x != nil {
+		return x.QuotedText
+	}
+	return ""
+}
+
 // SendTextResponse is a successful send.
 type SendTextResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -238,7 +324,7 @@ type SendTextResponse struct {
 
 func (x *SendTextResponse) Reset() {
 	*x = SendTextResponse{}
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[3]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -250,7 +336,7 @@ func (x *SendTextResponse) String() string {
 func (*SendTextResponse) ProtoMessage() {}
 
 func (x *SendTextResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[3]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -263,7 +349,7 @@ func (x *SendTextResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendTextResponse.ProtoReflect.Descriptor instead.
 func (*SendTextResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{3}
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SendTextResponse) GetChat() string {
@@ -300,14 +386,18 @@ type SendMediaRequest struct {
 	//	*SendMediaRequest_Audio
 	//	*SendMediaRequest_Document
 	//	*SendMediaRequest_Sticker
-	Metadata      isSendMediaRequest_Metadata `protobuf_oneof:"metadata"`
+	Metadata isSendMediaRequest_Metadata `protobuf_oneof:"metadata"`
+	// The message this one replies to, as for SendTextRequest.reply_to.
+	ReplyTo *MessageReply `protobuf:"bytes,10,opt,name=reply_to,json=replyTo,proto3" json:"reply_to,omitempty"`
+	// The users mentioned in the caption, as for SendTextRequest.mentions.
+	Mentions      []string `protobuf:"bytes,11,rep,name=mentions,proto3" json:"mentions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SendMediaRequest) Reset() {
 	*x = SendMediaRequest{}
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[4]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -319,7 +409,7 @@ func (x *SendMediaRequest) String() string {
 func (*SendMediaRequest) ProtoMessage() {}
 
 func (x *SendMediaRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[4]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -332,7 +422,7 @@ func (x *SendMediaRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendMediaRequest.ProtoReflect.Descriptor instead.
 func (*SendMediaRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{4}
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SendMediaRequest) GetSessionId() string {
@@ -415,6 +505,20 @@ func (x *SendMediaRequest) GetSticker() *StickerMetadata {
 	return nil
 }
 
+func (x *SendMediaRequest) GetReplyTo() *MessageReply {
+	if x != nil {
+		return x.ReplyTo
+	}
+	return nil
+}
+
+func (x *SendMediaRequest) GetMentions() []string {
+	if x != nil {
+		return x.Mentions
+	}
+	return nil
+}
+
 type isSendMediaRequest_Metadata interface {
 	isSendMediaRequest_Metadata()
 }
@@ -467,7 +571,7 @@ type SendMediaResponse struct {
 
 func (x *SendMediaResponse) Reset() {
 	*x = SendMediaResponse{}
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[5]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -479,7 +583,7 @@ func (x *SendMediaResponse) String() string {
 func (*SendMediaResponse) ProtoMessage() {}
 
 func (x *SendMediaResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[5]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -492,7 +596,7 @@ func (x *SendMediaResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendMediaResponse.ProtoReflect.Descriptor instead.
 func (*SendMediaResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{5}
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *SendMediaResponse) GetChat() string {
@@ -503,6 +607,428 @@ func (x *SendMediaResponse) GetChat() string {
 }
 
 func (x *SendMediaResponse) GetMessageTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.MessageTime
+	}
+	return nil
+}
+
+// SendReactionRequest reacts to a message.
+type SendReactionRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The session id.
+	SessionId string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// The chat of the message: a user JID without a device, or a group JID.
+	Chat string `protobuf:"bytes,2,opt,name=chat,proto3" json:"chat,omitempty"`
+	// The WhatsApp id of the reaction itself; required.
+	ClientMessageId string `protobuf:"bytes,3,opt,name=client_message_id,json=clientMessageId,proto3" json:"client_message_id,omitempty"`
+	// The message reacted to; required.
+	TargetId string `protobuf:"bytes,4,opt,name=target_id,json=targetId,proto3" json:"target_id,omitempty"`
+	// That message's sender, a user's JID; empty, or the account's own JID, for a message the account sent. In a group
+	// a message from someone else needs it.
+	TargetSender string `protobuf:"bytes,5,opt,name=target_sender,json=targetSender,proto3" json:"target_sender,omitempty"`
+	// The emoji; empty removes the account's reaction.
+	Emoji         string `protobuf:"bytes,6,opt,name=emoji,proto3" json:"emoji,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendReactionRequest) Reset() {
+	*x = SendReactionRequest{}
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendReactionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendReactionRequest) ProtoMessage() {}
+
+func (x *SendReactionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendReactionRequest.ProtoReflect.Descriptor instead.
+func (*SendReactionRequest) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *SendReactionRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *SendReactionRequest) GetChat() string {
+	if x != nil {
+		return x.Chat
+	}
+	return ""
+}
+
+func (x *SendReactionRequest) GetClientMessageId() string {
+	if x != nil {
+		return x.ClientMessageId
+	}
+	return ""
+}
+
+func (x *SendReactionRequest) GetTargetId() string {
+	if x != nil {
+		return x.TargetId
+	}
+	return ""
+}
+
+func (x *SendReactionRequest) GetTargetSender() string {
+	if x != nil {
+		return x.TargetSender
+	}
+	return ""
+}
+
+func (x *SendReactionRequest) GetEmoji() string {
+	if x != nil {
+		return x.Emoji
+	}
+	return ""
+}
+
+// SendReactionResponse is a successful send.
+type SendReactionResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The chat it was sent to, which can be the recipient's LID when a phone-number JID was requested.
+	Chat string `protobuf:"bytes,1,opt,name=chat,proto3" json:"chat,omitempty"`
+	// The reaction's WhatsApp timestamp.
+	MessageTime   *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=message_time,json=messageTime,proto3" json:"message_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendReactionResponse) Reset() {
+	*x = SendReactionResponse{}
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendReactionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendReactionResponse) ProtoMessage() {}
+
+func (x *SendReactionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendReactionResponse.ProtoReflect.Descriptor instead.
+func (*SendReactionResponse) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *SendReactionResponse) GetChat() string {
+	if x != nil {
+		return x.Chat
+	}
+	return ""
+}
+
+func (x *SendReactionResponse) GetMessageTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.MessageTime
+	}
+	return nil
+}
+
+// SendEditRequest replaces the text of a message the account sent.
+type SendEditRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The session id.
+	SessionId string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// The chat of the message: a user JID without a device, or a group JID.
+	Chat string `protobuf:"bytes,2,opt,name=chat,proto3" json:"chat,omitempty"`
+	// The WhatsApp id of the edit itself; required.
+	ClientMessageId string `protobuf:"bytes,3,opt,name=client_message_id,json=clientMessageId,proto3" json:"client_message_id,omitempty"`
+	// The message edited; required.
+	TargetId string `protobuf:"bytes,4,opt,name=target_id,json=targetId,proto3" json:"target_id,omitempty"`
+	// The new text; not empty.
+	Text          string `protobuf:"bytes,5,opt,name=text,proto3" json:"text,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendEditRequest) Reset() {
+	*x = SendEditRequest{}
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendEditRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendEditRequest) ProtoMessage() {}
+
+func (x *SendEditRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendEditRequest.ProtoReflect.Descriptor instead.
+func (*SendEditRequest) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *SendEditRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *SendEditRequest) GetChat() string {
+	if x != nil {
+		return x.Chat
+	}
+	return ""
+}
+
+func (x *SendEditRequest) GetClientMessageId() string {
+	if x != nil {
+		return x.ClientMessageId
+	}
+	return ""
+}
+
+func (x *SendEditRequest) GetTargetId() string {
+	if x != nil {
+		return x.TargetId
+	}
+	return ""
+}
+
+func (x *SendEditRequest) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
+// SendEditResponse is a successful send.
+type SendEditResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The chat it was sent to, which can be the recipient's LID when a phone-number JID was requested.
+	Chat string `protobuf:"bytes,1,opt,name=chat,proto3" json:"chat,omitempty"`
+	// The edit's WhatsApp timestamp.
+	MessageTime   *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=message_time,json=messageTime,proto3" json:"message_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendEditResponse) Reset() {
+	*x = SendEditResponse{}
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendEditResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendEditResponse) ProtoMessage() {}
+
+func (x *SendEditResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendEditResponse.ProtoReflect.Descriptor instead.
+func (*SendEditResponse) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *SendEditResponse) GetChat() string {
+	if x != nil {
+		return x.Chat
+	}
+	return ""
+}
+
+func (x *SendEditResponse) GetMessageTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.MessageTime
+	}
+	return nil
+}
+
+// SendRevokeRequest deletes a message for everyone.
+type SendRevokeRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The session id.
+	SessionId string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// The chat of the message: a user JID without a device, or a group JID.
+	Chat string `protobuf:"bytes,2,opt,name=chat,proto3" json:"chat,omitempty"`
+	// The WhatsApp id of the revoke itself; required.
+	ClientMessageId string `protobuf:"bytes,3,opt,name=client_message_id,json=clientMessageId,proto3" json:"client_message_id,omitempty"`
+	// The message deleted; required.
+	TargetId string `protobuf:"bytes,4,opt,name=target_id,json=targetId,proto3" json:"target_id,omitempty"`
+	// That message's sender, a user's JID: empty, or the account's own JID, for a message the account sent; another
+	// member's for an admin revoke in a group.
+	TargetSender  string `protobuf:"bytes,5,opt,name=target_sender,json=targetSender,proto3" json:"target_sender,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendRevokeRequest) Reset() {
+	*x = SendRevokeRequest{}
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendRevokeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendRevokeRequest) ProtoMessage() {}
+
+func (x *SendRevokeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendRevokeRequest.ProtoReflect.Descriptor instead.
+func (*SendRevokeRequest) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *SendRevokeRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *SendRevokeRequest) GetChat() string {
+	if x != nil {
+		return x.Chat
+	}
+	return ""
+}
+
+func (x *SendRevokeRequest) GetClientMessageId() string {
+	if x != nil {
+		return x.ClientMessageId
+	}
+	return ""
+}
+
+func (x *SendRevokeRequest) GetTargetId() string {
+	if x != nil {
+		return x.TargetId
+	}
+	return ""
+}
+
+func (x *SendRevokeRequest) GetTargetSender() string {
+	if x != nil {
+		return x.TargetSender
+	}
+	return ""
+}
+
+// SendRevokeResponse is a successful send.
+type SendRevokeResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The chat it was sent to, which can be the recipient's LID when a phone-number JID was requested.
+	Chat string `protobuf:"bytes,1,opt,name=chat,proto3" json:"chat,omitempty"`
+	// The revoke's WhatsApp timestamp.
+	MessageTime   *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=message_time,json=messageTime,proto3" json:"message_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendRevokeResponse) Reset() {
+	*x = SendRevokeResponse{}
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendRevokeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendRevokeResponse) ProtoMessage() {}
+
+func (x *SendRevokeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendRevokeResponse.ProtoReflect.Descriptor instead.
+func (*SendRevokeResponse) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *SendRevokeResponse) GetChat() string {
+	if x != nil {
+		return x.Chat
+	}
+	return ""
+}
+
+func (x *SendRevokeResponse) GetMessageTime() *timestamppb.Timestamp {
 	if x != nil {
 		return x.MessageTime
 	}
@@ -528,7 +1054,7 @@ type ImageMetadata struct {
 
 func (x *ImageMetadata) Reset() {
 	*x = ImageMetadata{}
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[6]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -540,7 +1066,7 @@ func (x *ImageMetadata) String() string {
 func (*ImageMetadata) ProtoMessage() {}
 
 func (x *ImageMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[6]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -553,7 +1079,7 @@ func (x *ImageMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImageMetadata.ProtoReflect.Descriptor instead.
 func (*ImageMetadata) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{6}
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ImageMetadata) GetMimetype() string {
@@ -612,7 +1138,7 @@ type VideoMetadata struct {
 
 func (x *VideoMetadata) Reset() {
 	*x = VideoMetadata{}
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[7]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -624,7 +1150,7 @@ func (x *VideoMetadata) String() string {
 func (*VideoMetadata) ProtoMessage() {}
 
 func (x *VideoMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[7]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -637,7 +1163,7 @@ func (x *VideoMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VideoMetadata.ProtoReflect.Descriptor instead.
 func (*VideoMetadata) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{7}
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *VideoMetadata) GetMimetype() string {
@@ -699,7 +1225,7 @@ type AudioMetadata struct {
 
 func (x *AudioMetadata) Reset() {
 	*x = AudioMetadata{}
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[8]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -711,7 +1237,7 @@ func (x *AudioMetadata) String() string {
 func (*AudioMetadata) ProtoMessage() {}
 
 func (x *AudioMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[8]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -724,7 +1250,7 @@ func (x *AudioMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AudioMetadata.ProtoReflect.Descriptor instead.
 func (*AudioMetadata) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{8}
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *AudioMetadata) GetMimetype() string {
@@ -772,7 +1298,7 @@ type DocumentMetadata struct {
 
 func (x *DocumentMetadata) Reset() {
 	*x = DocumentMetadata{}
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[9]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -784,7 +1310,7 @@ func (x *DocumentMetadata) String() string {
 func (*DocumentMetadata) ProtoMessage() {}
 
 func (x *DocumentMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[9]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -797,7 +1323,7 @@ func (x *DocumentMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DocumentMetadata.ProtoReflect.Descriptor instead.
 func (*DocumentMetadata) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{9}
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *DocumentMetadata) GetMimetype() string {
@@ -845,7 +1371,7 @@ type StickerMetadata struct {
 
 func (x *StickerMetadata) Reset() {
 	*x = StickerMetadata{}
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[10]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -857,7 +1383,7 @@ func (x *StickerMetadata) String() string {
 func (*StickerMetadata) ProtoMessage() {}
 
 func (x *StickerMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[10]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -870,7 +1396,7 @@ func (x *StickerMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StickerMetadata.ProtoReflect.Descriptor instead.
 func (*StickerMetadata) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{10}
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *StickerMetadata) GetMimetype() string {
@@ -918,7 +1444,7 @@ type MarkReadRequest struct {
 
 func (x *MarkReadRequest) Reset() {
 	*x = MarkReadRequest{}
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[11]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -930,7 +1456,7 @@ func (x *MarkReadRequest) String() string {
 func (*MarkReadRequest) ProtoMessage() {}
 
 func (x *MarkReadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[11]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -943,7 +1469,7 @@ func (x *MarkReadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MarkReadRequest.ProtoReflect.Descriptor instead.
 func (*MarkReadRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{11}
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *MarkReadRequest) GetSessionId() string {
@@ -983,7 +1509,7 @@ type MarkReadResponse struct {
 
 func (x *MarkReadResponse) Reset() {
 	*x = MarkReadResponse{}
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[12]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -995,7 +1521,7 @@ func (x *MarkReadResponse) String() string {
 func (*MarkReadResponse) ProtoMessage() {}
 
 func (x *MarkReadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_message_proto_msgTypes[12]
+	mi := &file_whatsmeow_v1_message_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1008,7 +1534,7 @@ func (x *MarkReadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MarkReadResponse.ProtoReflect.Descriptor instead.
 func (*MarkReadResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{12}
+	return file_whatsmeow_v1_message_proto_rawDescGZIP(), []int{19}
 }
 
 var File_whatsmeow_v1_message_proto protoreflect.FileDescriptor
@@ -1024,16 +1550,23 @@ const file_whatsmeow_v1_message_proto_rawDesc = "" +
 	"\amessage\x18\x04 \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\"h\n" +
 	"\x13SendMessageResponse\x12\x12\n" +
 	"\x04chat\x18\x01 \x01(\tR\x04chat\x12=\n" +
-	"\fmessage_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\vmessageTime\"\x84\x01\n" +
+	"\fmessage_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\vmessageTime\"\xd7\x01\n" +
 	"\x0fSendTextRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x12\n" +
 	"\x04chat\x18\x02 \x01(\tR\x04chat\x12*\n" +
 	"\x11client_message_id\x18\x03 \x01(\tR\x0fclientMessageId\x12\x12\n" +
-	"\x04text\x18\x04 \x01(\tR\x04text\"e\n" +
+	"\x04text\x18\x04 \x01(\tR\x04text\x125\n" +
+	"\breply_to\x18\x05 \x01(\v2\x1a.whatsmeow.v1.MessageReplyR\areplyTo\x12\x1a\n" +
+	"\bmentions\x18\x06 \x03(\tR\bmentions\"W\n" +
+	"\fMessageReply\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
+	"\x06sender\x18\x02 \x01(\tR\x06sender\x12\x1f\n" +
+	"\vquoted_text\x18\x03 \x01(\tR\n" +
+	"quotedText\"e\n" +
 	"\x10SendTextResponse\x12\x12\n" +
 	"\x04chat\x18\x01 \x01(\tR\x04chat\x12=\n" +
-	"\fmessage_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\vmessageTime\"\xc3\x03\n" +
+	"\fmessage_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\vmessageTime\"\x96\x04\n" +
 	"\x10SendMediaRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x12\n" +
@@ -1044,10 +1577,44 @@ const file_whatsmeow_v1_message_proto_rawDesc = "" +
 	"\x05video\x18\x06 \x01(\v2\x1b.whatsmeow.v1.VideoMetadataH\x00R\x05video\x123\n" +
 	"\x05audio\x18\a \x01(\v2\x1b.whatsmeow.v1.AudioMetadataH\x00R\x05audio\x12<\n" +
 	"\bdocument\x18\b \x01(\v2\x1e.whatsmeow.v1.DocumentMetadataH\x00R\bdocument\x129\n" +
-	"\asticker\x18\t \x01(\v2\x1d.whatsmeow.v1.StickerMetadataH\x00R\astickerB\n" +
+	"\asticker\x18\t \x01(\v2\x1d.whatsmeow.v1.StickerMetadataH\x00R\asticker\x125\n" +
+	"\breply_to\x18\n" +
+	" \x01(\v2\x1a.whatsmeow.v1.MessageReplyR\areplyTo\x12\x1a\n" +
+	"\bmentions\x18\v \x03(\tR\bmentionsB\n" +
 	"\n" +
 	"\bmetadata\"f\n" +
 	"\x11SendMediaResponse\x12\x12\n" +
+	"\x04chat\x18\x01 \x01(\tR\x04chat\x12=\n" +
+	"\fmessage_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\vmessageTime\"\xcc\x01\n" +
+	"\x13SendReactionRequest\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x12\n" +
+	"\x04chat\x18\x02 \x01(\tR\x04chat\x12*\n" +
+	"\x11client_message_id\x18\x03 \x01(\tR\x0fclientMessageId\x12\x1b\n" +
+	"\ttarget_id\x18\x04 \x01(\tR\btargetId\x12#\n" +
+	"\rtarget_sender\x18\x05 \x01(\tR\ftargetSender\x12\x14\n" +
+	"\x05emoji\x18\x06 \x01(\tR\x05emoji\"i\n" +
+	"\x14SendReactionResponse\x12\x12\n" +
+	"\x04chat\x18\x01 \x01(\tR\x04chat\x12=\n" +
+	"\fmessage_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\vmessageTime\"\xa1\x01\n" +
+	"\x0fSendEditRequest\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x12\n" +
+	"\x04chat\x18\x02 \x01(\tR\x04chat\x12*\n" +
+	"\x11client_message_id\x18\x03 \x01(\tR\x0fclientMessageId\x12\x1b\n" +
+	"\ttarget_id\x18\x04 \x01(\tR\btargetId\x12\x12\n" +
+	"\x04text\x18\x05 \x01(\tR\x04text\"e\n" +
+	"\x10SendEditResponse\x12\x12\n" +
+	"\x04chat\x18\x01 \x01(\tR\x04chat\x12=\n" +
+	"\fmessage_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\vmessageTime\"\xb4\x01\n" +
+	"\x11SendRevokeRequest\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x12\n" +
+	"\x04chat\x18\x02 \x01(\tR\x04chat\x12*\n" +
+	"\x11client_message_id\x18\x03 \x01(\tR\x0fclientMessageId\x12\x1b\n" +
+	"\ttarget_id\x18\x04 \x01(\tR\btargetId\x12#\n" +
+	"\rtarget_sender\x18\x05 \x01(\tR\ftargetSender\"g\n" +
+	"\x12SendRevokeResponse\x12\x12\n" +
 	"\x04chat\x18\x01 \x01(\tR\x04chat\x12=\n" +
 	"\fmessage_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\vmessageTime\"\xb9\x01\n" +
 	"\rImageMetadata\x12\x1a\n" +
@@ -1092,11 +1659,15 @@ const file_whatsmeow_v1_message_proto_rawDesc = "" +
 	"\x06sender\x18\x03 \x01(\tR\x06sender\x12\x1f\n" +
 	"\vmessage_ids\x18\x04 \x03(\tR\n" +
 	"messageIds\"\x12\n" +
-	"\x10MarkReadResponse2\xc8\x02\n" +
+	"\x10MarkReadResponse2\xbb\x04\n" +
 	"\x0eMessageService\x12R\n" +
 	"\vSendMessage\x12 .whatsmeow.v1.SendMessageRequest\x1a!.whatsmeow.v1.SendMessageResponse\x12I\n" +
 	"\bSendText\x12\x1d.whatsmeow.v1.SendTextRequest\x1a\x1e.whatsmeow.v1.SendTextResponse\x12L\n" +
-	"\tSendMedia\x12\x1e.whatsmeow.v1.SendMediaRequest\x1a\x1f.whatsmeow.v1.SendMediaResponse\x12I\n" +
+	"\tSendMedia\x12\x1e.whatsmeow.v1.SendMediaRequest\x1a\x1f.whatsmeow.v1.SendMediaResponse\x12U\n" +
+	"\fSendReaction\x12!.whatsmeow.v1.SendReactionRequest\x1a\".whatsmeow.v1.SendReactionResponse\x12I\n" +
+	"\bSendEdit\x12\x1d.whatsmeow.v1.SendEditRequest\x1a\x1e.whatsmeow.v1.SendEditResponse\x12O\n" +
+	"\n" +
+	"SendRevoke\x12\x1f.whatsmeow.v1.SendRevokeRequest\x1a .whatsmeow.v1.SendRevokeResponse\x12I\n" +
 	"\bMarkRead\x12\x1d.whatsmeow.v1.MarkReadRequest\x1a\x1e.whatsmeow.v1.MarkReadResponseB\xc2\x01\n" +
 	"\x10com.whatsmeow.v1B\fMessageProtoP\x01ZFgithub.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1;whatsmeowv1\xa2\x02\x03WXX\xaa\x02\x15Whatsmeow.Protocol.V1\xca\x02\fWhatsmeow\\V1\xe2\x02\x18Whatsmeow\\V1\\GPBMetadata\xea\x02\rWhatsmeow::V1b\x06proto3"
 
@@ -1112,52 +1683,70 @@ func file_whatsmeow_v1_message_proto_rawDescGZIP() []byte {
 	return file_whatsmeow_v1_message_proto_rawDescData
 }
 
-var file_whatsmeow_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_whatsmeow_v1_message_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_whatsmeow_v1_message_proto_goTypes = []any{
 	(*SendMessageRequest)(nil),    // 0: whatsmeow.v1.SendMessageRequest
 	(*SendMessageResponse)(nil),   // 1: whatsmeow.v1.SendMessageResponse
 	(*SendTextRequest)(nil),       // 2: whatsmeow.v1.SendTextRequest
-	(*SendTextResponse)(nil),      // 3: whatsmeow.v1.SendTextResponse
-	(*SendMediaRequest)(nil),      // 4: whatsmeow.v1.SendMediaRequest
-	(*SendMediaResponse)(nil),     // 5: whatsmeow.v1.SendMediaResponse
-	(*ImageMetadata)(nil),         // 6: whatsmeow.v1.ImageMetadata
-	(*VideoMetadata)(nil),         // 7: whatsmeow.v1.VideoMetadata
-	(*AudioMetadata)(nil),         // 8: whatsmeow.v1.AudioMetadata
-	(*DocumentMetadata)(nil),      // 9: whatsmeow.v1.DocumentMetadata
-	(*StickerMetadata)(nil),       // 10: whatsmeow.v1.StickerMetadata
-	(*MarkReadRequest)(nil),       // 11: whatsmeow.v1.MarkReadRequest
-	(*MarkReadResponse)(nil),      // 12: whatsmeow.v1.MarkReadResponse
-	(*waE2E.Message)(nil),         // 13: WAWebProtobufsE2E.Message
-	(*timestamppb.Timestamp)(nil), // 14: google.protobuf.Timestamp
-	(*MediaRef)(nil),              // 15: whatsmeow.v1.MediaRef
-	(*durationpb.Duration)(nil),   // 16: google.protobuf.Duration
+	(*MessageReply)(nil),          // 3: whatsmeow.v1.MessageReply
+	(*SendTextResponse)(nil),      // 4: whatsmeow.v1.SendTextResponse
+	(*SendMediaRequest)(nil),      // 5: whatsmeow.v1.SendMediaRequest
+	(*SendMediaResponse)(nil),     // 6: whatsmeow.v1.SendMediaResponse
+	(*SendReactionRequest)(nil),   // 7: whatsmeow.v1.SendReactionRequest
+	(*SendReactionResponse)(nil),  // 8: whatsmeow.v1.SendReactionResponse
+	(*SendEditRequest)(nil),       // 9: whatsmeow.v1.SendEditRequest
+	(*SendEditResponse)(nil),      // 10: whatsmeow.v1.SendEditResponse
+	(*SendRevokeRequest)(nil),     // 11: whatsmeow.v1.SendRevokeRequest
+	(*SendRevokeResponse)(nil),    // 12: whatsmeow.v1.SendRevokeResponse
+	(*ImageMetadata)(nil),         // 13: whatsmeow.v1.ImageMetadata
+	(*VideoMetadata)(nil),         // 14: whatsmeow.v1.VideoMetadata
+	(*AudioMetadata)(nil),         // 15: whatsmeow.v1.AudioMetadata
+	(*DocumentMetadata)(nil),      // 16: whatsmeow.v1.DocumentMetadata
+	(*StickerMetadata)(nil),       // 17: whatsmeow.v1.StickerMetadata
+	(*MarkReadRequest)(nil),       // 18: whatsmeow.v1.MarkReadRequest
+	(*MarkReadResponse)(nil),      // 19: whatsmeow.v1.MarkReadResponse
+	(*waE2E.Message)(nil),         // 20: WAWebProtobufsE2E.Message
+	(*timestamppb.Timestamp)(nil), // 21: google.protobuf.Timestamp
+	(*MediaRef)(nil),              // 22: whatsmeow.v1.MediaRef
+	(*durationpb.Duration)(nil),   // 23: google.protobuf.Duration
 }
 var file_whatsmeow_v1_message_proto_depIdxs = []int32{
-	13, // 0: whatsmeow.v1.SendMessageRequest.message:type_name -> WAWebProtobufsE2E.Message
-	14, // 1: whatsmeow.v1.SendMessageResponse.message_time:type_name -> google.protobuf.Timestamp
-	14, // 2: whatsmeow.v1.SendTextResponse.message_time:type_name -> google.protobuf.Timestamp
-	15, // 3: whatsmeow.v1.SendMediaRequest.media:type_name -> whatsmeow.v1.MediaRef
-	6,  // 4: whatsmeow.v1.SendMediaRequest.image:type_name -> whatsmeow.v1.ImageMetadata
-	7,  // 5: whatsmeow.v1.SendMediaRequest.video:type_name -> whatsmeow.v1.VideoMetadata
-	8,  // 6: whatsmeow.v1.SendMediaRequest.audio:type_name -> whatsmeow.v1.AudioMetadata
-	9,  // 7: whatsmeow.v1.SendMediaRequest.document:type_name -> whatsmeow.v1.DocumentMetadata
-	10, // 8: whatsmeow.v1.SendMediaRequest.sticker:type_name -> whatsmeow.v1.StickerMetadata
-	14, // 9: whatsmeow.v1.SendMediaResponse.message_time:type_name -> google.protobuf.Timestamp
-	16, // 10: whatsmeow.v1.VideoMetadata.duration:type_name -> google.protobuf.Duration
-	16, // 11: whatsmeow.v1.AudioMetadata.duration:type_name -> google.protobuf.Duration
-	0,  // 12: whatsmeow.v1.MessageService.SendMessage:input_type -> whatsmeow.v1.SendMessageRequest
-	2,  // 13: whatsmeow.v1.MessageService.SendText:input_type -> whatsmeow.v1.SendTextRequest
-	4,  // 14: whatsmeow.v1.MessageService.SendMedia:input_type -> whatsmeow.v1.SendMediaRequest
-	11, // 15: whatsmeow.v1.MessageService.MarkRead:input_type -> whatsmeow.v1.MarkReadRequest
-	1,  // 16: whatsmeow.v1.MessageService.SendMessage:output_type -> whatsmeow.v1.SendMessageResponse
-	3,  // 17: whatsmeow.v1.MessageService.SendText:output_type -> whatsmeow.v1.SendTextResponse
-	5,  // 18: whatsmeow.v1.MessageService.SendMedia:output_type -> whatsmeow.v1.SendMediaResponse
-	12, // 19: whatsmeow.v1.MessageService.MarkRead:output_type -> whatsmeow.v1.MarkReadResponse
-	16, // [16:20] is the sub-list for method output_type
-	12, // [12:16] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	20, // 0: whatsmeow.v1.SendMessageRequest.message:type_name -> WAWebProtobufsE2E.Message
+	21, // 1: whatsmeow.v1.SendMessageResponse.message_time:type_name -> google.protobuf.Timestamp
+	3,  // 2: whatsmeow.v1.SendTextRequest.reply_to:type_name -> whatsmeow.v1.MessageReply
+	21, // 3: whatsmeow.v1.SendTextResponse.message_time:type_name -> google.protobuf.Timestamp
+	22, // 4: whatsmeow.v1.SendMediaRequest.media:type_name -> whatsmeow.v1.MediaRef
+	13, // 5: whatsmeow.v1.SendMediaRequest.image:type_name -> whatsmeow.v1.ImageMetadata
+	14, // 6: whatsmeow.v1.SendMediaRequest.video:type_name -> whatsmeow.v1.VideoMetadata
+	15, // 7: whatsmeow.v1.SendMediaRequest.audio:type_name -> whatsmeow.v1.AudioMetadata
+	16, // 8: whatsmeow.v1.SendMediaRequest.document:type_name -> whatsmeow.v1.DocumentMetadata
+	17, // 9: whatsmeow.v1.SendMediaRequest.sticker:type_name -> whatsmeow.v1.StickerMetadata
+	3,  // 10: whatsmeow.v1.SendMediaRequest.reply_to:type_name -> whatsmeow.v1.MessageReply
+	21, // 11: whatsmeow.v1.SendMediaResponse.message_time:type_name -> google.protobuf.Timestamp
+	21, // 12: whatsmeow.v1.SendReactionResponse.message_time:type_name -> google.protobuf.Timestamp
+	21, // 13: whatsmeow.v1.SendEditResponse.message_time:type_name -> google.protobuf.Timestamp
+	21, // 14: whatsmeow.v1.SendRevokeResponse.message_time:type_name -> google.protobuf.Timestamp
+	23, // 15: whatsmeow.v1.VideoMetadata.duration:type_name -> google.protobuf.Duration
+	23, // 16: whatsmeow.v1.AudioMetadata.duration:type_name -> google.protobuf.Duration
+	0,  // 17: whatsmeow.v1.MessageService.SendMessage:input_type -> whatsmeow.v1.SendMessageRequest
+	2,  // 18: whatsmeow.v1.MessageService.SendText:input_type -> whatsmeow.v1.SendTextRequest
+	5,  // 19: whatsmeow.v1.MessageService.SendMedia:input_type -> whatsmeow.v1.SendMediaRequest
+	7,  // 20: whatsmeow.v1.MessageService.SendReaction:input_type -> whatsmeow.v1.SendReactionRequest
+	9,  // 21: whatsmeow.v1.MessageService.SendEdit:input_type -> whatsmeow.v1.SendEditRequest
+	11, // 22: whatsmeow.v1.MessageService.SendRevoke:input_type -> whatsmeow.v1.SendRevokeRequest
+	18, // 23: whatsmeow.v1.MessageService.MarkRead:input_type -> whatsmeow.v1.MarkReadRequest
+	1,  // 24: whatsmeow.v1.MessageService.SendMessage:output_type -> whatsmeow.v1.SendMessageResponse
+	4,  // 25: whatsmeow.v1.MessageService.SendText:output_type -> whatsmeow.v1.SendTextResponse
+	6,  // 26: whatsmeow.v1.MessageService.SendMedia:output_type -> whatsmeow.v1.SendMediaResponse
+	8,  // 27: whatsmeow.v1.MessageService.SendReaction:output_type -> whatsmeow.v1.SendReactionResponse
+	10, // 28: whatsmeow.v1.MessageService.SendEdit:output_type -> whatsmeow.v1.SendEditResponse
+	12, // 29: whatsmeow.v1.MessageService.SendRevoke:output_type -> whatsmeow.v1.SendRevokeResponse
+	19, // 30: whatsmeow.v1.MessageService.MarkRead:output_type -> whatsmeow.v1.MarkReadResponse
+	24, // [24:31] is the sub-list for method output_type
+	17, // [17:24] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_whatsmeow_v1_message_proto_init() }
@@ -1166,23 +1755,23 @@ func file_whatsmeow_v1_message_proto_init() {
 		return
 	}
 	file_whatsmeow_v1_media_proto_init()
-	file_whatsmeow_v1_message_proto_msgTypes[4].OneofWrappers = []any{
+	file_whatsmeow_v1_message_proto_msgTypes[5].OneofWrappers = []any{
 		(*SendMediaRequest_Image)(nil),
 		(*SendMediaRequest_Video)(nil),
 		(*SendMediaRequest_Audio)(nil),
 		(*SendMediaRequest_Document)(nil),
 		(*SendMediaRequest_Sticker)(nil),
 	}
-	file_whatsmeow_v1_message_proto_msgTypes[6].OneofWrappers = []any{}
-	file_whatsmeow_v1_message_proto_msgTypes[7].OneofWrappers = []any{}
-	file_whatsmeow_v1_message_proto_msgTypes[10].OneofWrappers = []any{}
+	file_whatsmeow_v1_message_proto_msgTypes[13].OneofWrappers = []any{}
+	file_whatsmeow_v1_message_proto_msgTypes[14].OneofWrappers = []any{}
+	file_whatsmeow_v1_message_proto_msgTypes[17].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_whatsmeow_v1_message_proto_rawDesc), len(file_whatsmeow_v1_message_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -32,9 +32,10 @@ func Receipt(_ string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool
 				RecipientAlt: server.Text(e.RecipientAlt.String()),
 				IsFromMe:     e.IsFromMe,
 			},
-			MessageIds:  server.Texts(e.MessageIDs),
-			ReceiptTime: timestamppb.New(e.Timestamp),
-			Type:        receiptType(e.Type),
+			MessageIds:    server.Texts(e.MessageIDs),
+			ReceiptTime:   timestamppb.New(e.Timestamp),
+			Type:          receiptType(e.Type),
+			MessageSender: server.Text(e.MessageSender.String()),
 		},
 	}}, true
 }

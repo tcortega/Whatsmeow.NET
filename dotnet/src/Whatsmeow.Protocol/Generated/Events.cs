@@ -37,107 +37,111 @@ namespace Whatsmeow.Protocol.V1 {
             "CgZzb3VyY2UYASABKAsyGy53aGF0c21lb3cudjEuTWVzc2FnZVNvdXJjZVIG",
             "c291cmNlEg4KAmlkGAIgASgJUgJpZBIbCglwdXNoX25hbWUYAyABKAlSCHB1",
             "c2hOYW1lEj0KDG1lc3NhZ2VfdGltZRgEIAEoCzIaLmdvb2dsZS5wcm90b2J1",
-            "Zi5UaW1lc3RhbXBSC21lc3NhZ2VUaW1lIpABCgxNZXNzYWdlRXZlbnQSLQoE",
+            "Zi5UaW1lc3RhbXBSC21lc3NhZ2VUaW1lIqMCCgxNZXNzYWdlRXZlbnQSLQoE",
             "aW5mbxgBIAEoCzIZLndoYXRzbWVvdy52MS5NZXNzYWdlSW5mb1IEaW5mbxI0",
             "CgdtZXNzYWdlGAIgASgLMhouV0FXZWJQcm90b2J1ZnNFMkUuTWVzc2FnZVIH",
-            "bWVzc2FnZRIbCgl2aWV3X29uY2UYAyABKAhSCHZpZXdPbmNlItIBCgxSZWNl",
-            "aXB0RXZlbnQSMwoGc291cmNlGAEgASgLMhsud2hhdHNtZW93LnYxLk1lc3Nh",
-            "Z2VTb3VyY2VSBnNvdXJjZRIfCgttZXNzYWdlX2lkcxgCIAMoCVIKbWVzc2Fn",
-            "ZUlkcxI9CgxyZWNlaXB0X3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYu",
-            "VGltZXN0YW1wUgtyZWNlaXB0VGltZRItCgR0eXBlGAQgASgOMhkud2hhdHNt",
-            "ZW93LnYxLlJlY2VpcHRUeXBlUgR0eXBlIuEBChlVbmRlY3J5cHRhYmxlTWVz",
-            "c2FnZUV2ZW50Ei0KBGluZm8YASABKAsyGS53aGF0c21lb3cudjEuTWVzc2Fn",
-            "ZUluZm9SBGluZm8SKQoQaGlkZV9wbGFjZWhvbGRlchgCIAEoCFIPaGlkZVBs",
-            "YWNlaG9sZGVyEiAKC3VuYXZhaWxhYmxlGAMgASgIUgt1bmF2YWlsYWJsZRJI",
-            "ChB1bmF2YWlsYWJsZV90eXBlGAQgASgOMh0ud2hhdHNtZW93LnYxLlVuYXZh",
-            "aWxhYmxlVHlwZVIPdW5hdmFpbGFibGVUeXBlIkgKFENvbm5lY3Rpb25TdGF0",
-            "ZUV2ZW50EjAKBXN0YXRlGAEgASgLMhoud2hhdHNtZW93LnYxLlNlc3Npb25T",
-            "dGF0ZVIFc3RhdGUibQoTU3RyZWFtRXZlbnRzUmVxdWVzdBIdCgpzZXNzaW9u",
-            "X2lkGAEgASgJUglzZXNzaW9uSWQSGgoIY29uc3VtZXIYAiABKAlSCGNvbnN1",
-            "bWVyEhsKCWFmdGVyX3NlcRgDIAEoBFIIYWZ0ZXJTZXEi5QUKFFN0cmVhbUV2",
-            "ZW50c1Jlc3BvbnNlEhAKA3NlcRgBIAEoBFIDc2VxEjYKB21lc3NhZ2UYCiAB",
-            "KAsyGi53aGF0c21lb3cudjEuTWVzc2FnZUV2ZW50SABSB21lc3NhZ2USNgoH",
-            "cmVjZWlwdBgLIAEoCzIaLndoYXRzbWVvdy52MS5SZWNlaXB0RXZlbnRIAFIH",
-            "cmVjZWlwdBJeChV1bmRlY3J5cHRhYmxlX21lc3NhZ2UYDCABKAsyJy53aGF0",
-            "c21lb3cudjEuVW5kZWNyeXB0YWJsZU1lc3NhZ2VFdmVudEgAUhR1bmRlY3J5",
-            "cHRhYmxlTWVzc2FnZRJPChBjb25uZWN0aW9uX3N0YXRlGA0gASgLMiIud2hh",
-            "dHNtZW93LnYxLkNvbm5lY3Rpb25TdGF0ZUV2ZW50SABSD2Nvbm5lY3Rpb25T",
-            "dGF0ZRI2Cgdjb250YWN0GA4gASgLMhoud2hhdHNtZW93LnYxLkNvbnRhY3RF",
-            "dmVudEgAUgdjb250YWN0EkAKC21lZGlhX3JldHJ5GA8gASgLMh0ud2hhdHNt",
-            "ZW93LnYxLk1lZGlhUmV0cnlFdmVudEgAUgptZWRpYVJldHJ5EjAKBWdyb3Vw",
-            "GBAgASgLMhgud2hhdHNtZW93LnYxLkdyb3VwRXZlbnRIAFIFZ3JvdXASPQoK",
-            "Y2hhdF9zdGF0ZRgRIAEoCzIcLndoYXRzbWVvdy52MS5DaGF0U3RhdGVFdmVu",
-            "dEgAUgljaGF0U3RhdGUSTwoQaGlzdG9yeV9tZXNzYWdlcxgSIAEoCzIiLndo",
-            "YXRzbWVvdy52MS5IaXN0b3J5TWVzc2FnZXNFdmVudEgAUg9oaXN0b3J5TWVz",
-            "c2FnZXMSUwoQaGlzdG9yeV9wcm9ncmVzcxgTIAEoCzImLndoYXRzbWVvdy52",
-            "MS5IaXN0b3J5U3luY1Byb2dyZXNzRXZlbnRIAFIPaGlzdG9yeVByb2dyZXNz",
-            "QgkKB3BheWxvYWQiigEKFEhpc3RvcnlNZXNzYWdlc0V2ZW50EjoKCXN5bmNf",
-            "dHlwZRgBIAEoDjIdLndoYXRzbWVvdy52MS5IaXN0b3J5U3luY1R5cGVSCHN5",
-            "bmNUeXBlEjYKCG1lc3NhZ2VzGAIgAygLMhoud2hhdHNtZW93LnYxLk1lc3Nh",
-            "Z2VFdmVudFIIbWVzc2FnZXMimQIKGEhpc3RvcnlTeW5jUHJvZ3Jlc3NFdmVu",
-            "dBI6CglzeW5jX3R5cGUYASABKA4yHS53aGF0c21lb3cudjEuSGlzdG9yeVN5",
-            "bmNUeXBlUghzeW5jVHlwZRIfCgtjaHVua19vcmRlchgCIAEoDVIKY2h1bmtP",
-            "cmRlchIaCghwcm9ncmVzcxgDIAEoDVIIcHJvZ3Jlc3MSIwoNbWVzc2FnZV9j",
-            "b3VudBgEIAEoDVIMbWVzc2FnZUNvdW50EiMKDXNraXBwZWRfY291bnQYBSAB",
-            "KA1SDHNraXBwZWRDb3VudBI6CgdmYWlsdXJlGAYgASgOMiAud2hhdHNtZW93",
-            "LnYxLkhpc3RvcnlTeW5jRmFpbHVyZVIHZmFpbHVyZSJpChBBY2tFdmVudHNS",
-            "ZXF1ZXN0Eh0KCnNlc3Npb25faWQYASABKAlSCXNlc3Npb25JZBIaCghjb25z",
-            "dW1lchgCIAEoCVIIY29uc3VtZXISGgoJdXBfdG9fc2VxGAMgASgEUgd1cFRv",
-            "U2VxIhMKEUFja0V2ZW50c1Jlc3BvbnNlIo8BCg1QcmVzZW5jZUV2ZW50EhIK",
-            "BGZyb20YASABKAlSBGZyb20SMQoFc3RhdGUYAiABKA4yGy53aGF0c21lb3cu",
-            "djEuUHJlc2VuY2VTdGF0ZVIFc3RhdGUSNwoJbGFzdF9zZWVuGAMgASgLMhou",
-            "Z29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcFIIbGFzdFNlZW4ifwoRQ2hhdFBy",
-            "ZXNlbmNlRXZlbnQSMwoGc291cmNlGAEgASgLMhsud2hhdHNtZW93LnYxLk1l",
-            "c3NhZ2VTb3VyY2VSBnNvdXJjZRI1CgVzdGF0ZRgCIAEoDjIfLndoYXRzbWVv",
-            "dy52MS5DaGF0UHJlc2VuY2VTdGF0ZVIFc3RhdGUiLgoSUXVldWVPdmVyZmxv",
-            "d0V2ZW50EhgKB2Ryb3BwZWQYASABKARSB2Ryb3BwZWQiPQocU3RyZWFtRXBo",
-            "ZW1lcmFsRXZlbnRzUmVxdWVzdBIdCgpzZXNzaW9uX2lkGAEgASgJUglzZXNz",
-            "aW9uSWQi+AEKHVN0cmVhbUVwaGVtZXJhbEV2ZW50c1Jlc3BvbnNlEjkKCHBy",
-            "ZXNlbmNlGAogASgLMhsud2hhdHNtZW93LnYxLlByZXNlbmNlRXZlbnRIAFII",
-            "cHJlc2VuY2USRgoNY2hhdF9wcmVzZW5jZRgLIAEoCzIfLndoYXRzbWVvdy52",
-            "MS5DaGF0UHJlc2VuY2VFdmVudEgAUgxjaGF0UHJlc2VuY2USSQoOcXVldWVf",
-            "b3ZlcmZsb3cYDCABKAsyIC53aGF0c21lb3cudjEuUXVldWVPdmVyZmxvd0V2",
-            "ZW50SABSDXF1ZXVlT3ZlcmZsb3dCCQoHcGF5bG9hZCrWAgoLUmVjZWlwdFR5",
-            "cGUSHAoYUkVDRUlQVF9UWVBFX1VOU1BFQ0lGSUVEEAASGgoWUkVDRUlQVF9U",
-            "WVBFX0RFTElWRVJFRBABEhcKE1JFQ0VJUFRfVFlQRV9TRU5ERVIQAhIWChJS",
-            "RUNFSVBUX1RZUEVfUkVUUlkQAxIVChFSRUNFSVBUX1RZUEVfUkVBRBAEEhoK",
-            "FlJFQ0VJUFRfVFlQRV9SRUFEX1NFTEYQBRIXChNSRUNFSVBUX1RZUEVfUExB",
-            "WUVEEAYSHAoYUkVDRUlQVF9UWVBFX1BMQVlFRF9TRUxGEAcSHQoZUkVDRUlQ",
-            "VF9UWVBFX1NFUlZFUl9FUlJPUhAIEhkKFVJFQ0VJUFRfVFlQRV9JTkFDVElW",
-            "RRAJEhkKFVJFQ0VJUFRfVFlQRV9QRUVSX01TRxAKEh0KGVJFQ0VJUFRfVFlQ",
-            "RV9ISVNUT1JZX1NZTkMQCypTCg9VbmF2YWlsYWJsZVR5cGUSIAocVU5BVkFJ",
-            "TEFCTEVfVFlQRV9VTlNQRUNJRklFRBAAEh4KGlVOQVZBSUxBQkxFX1RZUEVf",
-            "VklFV19PTkNFEAEq+gIKD0hpc3RvcnlTeW5jVHlwZRIhCh1ISVNUT1JZX1NZ",
-            "TkNfVFlQRV9VTlNQRUNJRklFRBAAEicKI0hJU1RPUllfU1lOQ19UWVBFX0lO",
-            "SVRJQUxfQk9PVFNUUkFQEAESJwojSElTVE9SWV9TWU5DX1RZUEVfSU5JVElB",
-            "TF9TVEFUVVNfVjMQAhIaChZISVNUT1JZX1NZTkNfVFlQRV9GVUxMEAMSHAoY",
-            "SElTVE9SWV9TWU5DX1RZUEVfUkVDRU5UEAQSHwobSElTVE9SWV9TWU5DX1RZ",
-            "UEVfUFVTSF9OQU1FEAUSJwojSElTVE9SWV9TWU5DX1RZUEVfTk9OX0JMT0NL",
-            "SU5HX0RBVEEQBhIfChtISVNUT1JZX1NZTkNfVFlQRV9PTl9ERU1BTkQQBxIg",
-            "ChxISVNUT1JZX1NZTkNfVFlQRV9OT19ISVNUT1JZEAgSKwonSElTVE9SWV9T",
-            "WU5DX1RZUEVfTUVTU0FHRV9BQ0NFU1NfU1RBVFVTEAkqpAEKEkhpc3RvcnlT",
-            "eW5jRmFpbHVyZRIkCiBISVNUT1JZX1NZTkNfRkFJTFVSRV9VTlNQRUNJRklF",
-            "RBAAEiAKHEhJU1RPUllfU1lOQ19GQUlMVVJFX0VYUElSRUQQARIgChxISVNU",
-            "T1JZX1NZTkNfRkFJTFVSRV9JTlZBTElEEAISJAogSElTVE9SWV9TWU5DX0ZB",
-            "SUxVUkVfVU5BVkFJTEFCTEUQAzKpAgoMRXZlbnRTZXJ2aWNlElcKDFN0cmVh",
-            "bUV2ZW50cxIhLndoYXRzbWVvdy52MS5TdHJlYW1FdmVudHNSZXF1ZXN0GiIu",
-            "d2hhdHNtZW93LnYxLlN0cmVhbUV2ZW50c1Jlc3BvbnNlMAESTAoJQWNrRXZl",
-            "bnRzEh4ud2hhdHNtZW93LnYxLkFja0V2ZW50c1JlcXVlc3QaHy53aGF0c21l",
-            "b3cudjEuQWNrRXZlbnRzUmVzcG9uc2UScgoVU3RyZWFtRXBoZW1lcmFsRXZl",
-            "bnRzEioud2hhdHNtZW93LnYxLlN0cmVhbUVwaGVtZXJhbEV2ZW50c1JlcXVl",
-            "c3QaKy53aGF0c21lb3cudjEuU3RyZWFtRXBoZW1lcmFsRXZlbnRzUmVzcG9u",
-            "c2UwAULBAQoQY29tLndoYXRzbWVvdy52MUILRXZlbnRzUHJvdG9QAVpGZ2l0",
-            "aHViLmNvbS90Y29ydGVnYS9XaGF0c21lb3cuTkVUL3NpZGVjYXIvZ2VuL3do",
-            "YXRzbWVvdy92MTt3aGF0c21lb3d2MaICA1dYWKoCFVdoYXRzbWVvdy5Qcm90",
-            "b2NvbC5WMcoCDFdoYXRzbWVvd1xWMeICGFdoYXRzbWVvd1xWMVxHUEJNZXRh",
-            "ZGF0YeoCDVdoYXRzbWVvdzo6VjFiBnByb3RvMw=="));
+            "bWVzc2FnZRIbCgl2aWV3X29uY2UYAyABKAhSCHZpZXdPbmNlEhwKCWVwaGVt",
+            "ZXJhbBgEIAEoCFIJZXBoZW1lcmFsEjYKF2RldmljZV9zZW50X2Rlc3RpbmF0",
+            "aW9uGAUgASgJUhVkZXZpY2VTZW50RGVzdGluYXRpb24SOwoLcmF3X21lc3Nh",
+            "Z2UYBiABKAsyGi5XQVdlYlByb3RvYnVmc0UyRS5NZXNzYWdlUgpyYXdNZXNz",
+            "YWdlIvkBCgxSZWNlaXB0RXZlbnQSMwoGc291cmNlGAEgASgLMhsud2hhdHNt",
+            "ZW93LnYxLk1lc3NhZ2VTb3VyY2VSBnNvdXJjZRIfCgttZXNzYWdlX2lkcxgC",
+            "IAMoCVIKbWVzc2FnZUlkcxI9CgxyZWNlaXB0X3RpbWUYAyABKAsyGi5nb29n",
+            "bGUucHJvdG9idWYuVGltZXN0YW1wUgtyZWNlaXB0VGltZRItCgR0eXBlGAQg",
+            "ASgOMhkud2hhdHNtZW93LnYxLlJlY2VpcHRUeXBlUgR0eXBlEiUKDm1lc3Nh",
+            "Z2Vfc2VuZGVyGAUgASgJUg1tZXNzYWdlU2VuZGVyIuEBChlVbmRlY3J5cHRh",
+            "YmxlTWVzc2FnZUV2ZW50Ei0KBGluZm8YASABKAsyGS53aGF0c21lb3cudjEu",
+            "TWVzc2FnZUluZm9SBGluZm8SKQoQaGlkZV9wbGFjZWhvbGRlchgCIAEoCFIP",
+            "aGlkZVBsYWNlaG9sZGVyEiAKC3VuYXZhaWxhYmxlGAMgASgIUgt1bmF2YWls",
+            "YWJsZRJIChB1bmF2YWlsYWJsZV90eXBlGAQgASgOMh0ud2hhdHNtZW93LnYx",
+            "LlVuYXZhaWxhYmxlVHlwZVIPdW5hdmFpbGFibGVUeXBlIkgKFENvbm5lY3Rp",
+            "b25TdGF0ZUV2ZW50EjAKBXN0YXRlGAEgASgLMhoud2hhdHNtZW93LnYxLlNl",
+            "c3Npb25TdGF0ZVIFc3RhdGUibQoTU3RyZWFtRXZlbnRzUmVxdWVzdBIdCgpz",
+            "ZXNzaW9uX2lkGAEgASgJUglzZXNzaW9uSWQSGgoIY29uc3VtZXIYAiABKAlS",
+            "CGNvbnN1bWVyEhsKCWFmdGVyX3NlcRgDIAEoBFIIYWZ0ZXJTZXEi5QUKFFN0",
+            "cmVhbUV2ZW50c1Jlc3BvbnNlEhAKA3NlcRgBIAEoBFIDc2VxEjYKB21lc3Nh",
+            "Z2UYCiABKAsyGi53aGF0c21lb3cudjEuTWVzc2FnZUV2ZW50SABSB21lc3Nh",
+            "Z2USNgoHcmVjZWlwdBgLIAEoCzIaLndoYXRzbWVvdy52MS5SZWNlaXB0RXZl",
+            "bnRIAFIHcmVjZWlwdBJeChV1bmRlY3J5cHRhYmxlX21lc3NhZ2UYDCABKAsy",
+            "Jy53aGF0c21lb3cudjEuVW5kZWNyeXB0YWJsZU1lc3NhZ2VFdmVudEgAUhR1",
+            "bmRlY3J5cHRhYmxlTWVzc2FnZRJPChBjb25uZWN0aW9uX3N0YXRlGA0gASgL",
+            "MiIud2hhdHNtZW93LnYxLkNvbm5lY3Rpb25TdGF0ZUV2ZW50SABSD2Nvbm5l",
+            "Y3Rpb25TdGF0ZRI2Cgdjb250YWN0GA4gASgLMhoud2hhdHNtZW93LnYxLkNv",
+            "bnRhY3RFdmVudEgAUgdjb250YWN0EkAKC21lZGlhX3JldHJ5GA8gASgLMh0u",
+            "d2hhdHNtZW93LnYxLk1lZGlhUmV0cnlFdmVudEgAUgptZWRpYVJldHJ5EjAK",
+            "BWdyb3VwGBAgASgLMhgud2hhdHNtZW93LnYxLkdyb3VwRXZlbnRIAFIFZ3Jv",
+            "dXASPQoKY2hhdF9zdGF0ZRgRIAEoCzIcLndoYXRzbWVvdy52MS5DaGF0U3Rh",
+            "dGVFdmVudEgAUgljaGF0U3RhdGUSTwoQaGlzdG9yeV9tZXNzYWdlcxgSIAEo",
+            "CzIiLndoYXRzbWVvdy52MS5IaXN0b3J5TWVzc2FnZXNFdmVudEgAUg9oaXN0",
+            "b3J5TWVzc2FnZXMSUwoQaGlzdG9yeV9wcm9ncmVzcxgTIAEoCzImLndoYXRz",
+            "bWVvdy52MS5IaXN0b3J5U3luY1Byb2dyZXNzRXZlbnRIAFIPaGlzdG9yeVBy",
+            "b2dyZXNzQgkKB3BheWxvYWQiigEKFEhpc3RvcnlNZXNzYWdlc0V2ZW50EjoK",
+            "CXN5bmNfdHlwZRgBIAEoDjIdLndoYXRzbWVvdy52MS5IaXN0b3J5U3luY1R5",
+            "cGVSCHN5bmNUeXBlEjYKCG1lc3NhZ2VzGAIgAygLMhoud2hhdHNtZW93LnYx",
+            "Lk1lc3NhZ2VFdmVudFIIbWVzc2FnZXMimQIKGEhpc3RvcnlTeW5jUHJvZ3Jl",
+            "c3NFdmVudBI6CglzeW5jX3R5cGUYASABKA4yHS53aGF0c21lb3cudjEuSGlz",
+            "dG9yeVN5bmNUeXBlUghzeW5jVHlwZRIfCgtjaHVua19vcmRlchgCIAEoDVIK",
+            "Y2h1bmtPcmRlchIaCghwcm9ncmVzcxgDIAEoDVIIcHJvZ3Jlc3MSIwoNbWVz",
+            "c2FnZV9jb3VudBgEIAEoDVIMbWVzc2FnZUNvdW50EiMKDXNraXBwZWRfY291",
+            "bnQYBSABKA1SDHNraXBwZWRDb3VudBI6CgdmYWlsdXJlGAYgASgOMiAud2hh",
+            "dHNtZW93LnYxLkhpc3RvcnlTeW5jRmFpbHVyZVIHZmFpbHVyZSJpChBBY2tF",
+            "dmVudHNSZXF1ZXN0Eh0KCnNlc3Npb25faWQYASABKAlSCXNlc3Npb25JZBIa",
+            "Cghjb25zdW1lchgCIAEoCVIIY29uc3VtZXISGgoJdXBfdG9fc2VxGAMgASgE",
+            "Ugd1cFRvU2VxIhMKEUFja0V2ZW50c1Jlc3BvbnNlIo8BCg1QcmVzZW5jZUV2",
+            "ZW50EhIKBGZyb20YASABKAlSBGZyb20SMQoFc3RhdGUYAiABKA4yGy53aGF0",
+            "c21lb3cudjEuUHJlc2VuY2VTdGF0ZVIFc3RhdGUSNwoJbGFzdF9zZWVuGAMg",
+            "ASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcFIIbGFzdFNlZW4ifwoR",
+            "Q2hhdFByZXNlbmNlRXZlbnQSMwoGc291cmNlGAEgASgLMhsud2hhdHNtZW93",
+            "LnYxLk1lc3NhZ2VTb3VyY2VSBnNvdXJjZRI1CgVzdGF0ZRgCIAEoDjIfLndo",
+            "YXRzbWVvdy52MS5DaGF0UHJlc2VuY2VTdGF0ZVIFc3RhdGUiLgoSUXVldWVP",
+            "dmVyZmxvd0V2ZW50EhgKB2Ryb3BwZWQYASABKARSB2Ryb3BwZWQiPQocU3Ry",
+            "ZWFtRXBoZW1lcmFsRXZlbnRzUmVxdWVzdBIdCgpzZXNzaW9uX2lkGAEgASgJ",
+            "UglzZXNzaW9uSWQi+AEKHVN0cmVhbUVwaGVtZXJhbEV2ZW50c1Jlc3BvbnNl",
+            "EjkKCHByZXNlbmNlGAogASgLMhsud2hhdHNtZW93LnYxLlByZXNlbmNlRXZl",
+            "bnRIAFIIcHJlc2VuY2USRgoNY2hhdF9wcmVzZW5jZRgLIAEoCzIfLndoYXRz",
+            "bWVvdy52MS5DaGF0UHJlc2VuY2VFdmVudEgAUgxjaGF0UHJlc2VuY2USSQoO",
+            "cXVldWVfb3ZlcmZsb3cYDCABKAsyIC53aGF0c21lb3cudjEuUXVldWVPdmVy",
+            "Zmxvd0V2ZW50SABSDXF1ZXVlT3ZlcmZsb3dCCQoHcGF5bG9hZCrWAgoLUmVj",
+            "ZWlwdFR5cGUSHAoYUkVDRUlQVF9UWVBFX1VOU1BFQ0lGSUVEEAASGgoWUkVD",
+            "RUlQVF9UWVBFX0RFTElWRVJFRBABEhcKE1JFQ0VJUFRfVFlQRV9TRU5ERVIQ",
+            "AhIWChJSRUNFSVBUX1RZUEVfUkVUUlkQAxIVChFSRUNFSVBUX1RZUEVfUkVB",
+            "RBAEEhoKFlJFQ0VJUFRfVFlQRV9SRUFEX1NFTEYQBRIXChNSRUNFSVBUX1RZ",
+            "UEVfUExBWUVEEAYSHAoYUkVDRUlQVF9UWVBFX1BMQVlFRF9TRUxGEAcSHQoZ",
+            "UkVDRUlQVF9UWVBFX1NFUlZFUl9FUlJPUhAIEhkKFVJFQ0VJUFRfVFlQRV9J",
+            "TkFDVElWRRAJEhkKFVJFQ0VJUFRfVFlQRV9QRUVSX01TRxAKEh0KGVJFQ0VJ",
+            "UFRfVFlQRV9ISVNUT1JZX1NZTkMQCypTCg9VbmF2YWlsYWJsZVR5cGUSIAoc",
+            "VU5BVkFJTEFCTEVfVFlQRV9VTlNQRUNJRklFRBAAEh4KGlVOQVZBSUxBQkxF",
+            "X1RZUEVfVklFV19PTkNFEAEq+gIKD0hpc3RvcnlTeW5jVHlwZRIhCh1ISVNU",
+            "T1JZX1NZTkNfVFlQRV9VTlNQRUNJRklFRBAAEicKI0hJU1RPUllfU1lOQ19U",
+            "WVBFX0lOSVRJQUxfQk9PVFNUUkFQEAESJwojSElTVE9SWV9TWU5DX1RZUEVf",
+            "SU5JVElBTF9TVEFUVVNfVjMQAhIaChZISVNUT1JZX1NZTkNfVFlQRV9GVUxM",
+            "EAMSHAoYSElTVE9SWV9TWU5DX1RZUEVfUkVDRU5UEAQSHwobSElTVE9SWV9T",
+            "WU5DX1RZUEVfUFVTSF9OQU1FEAUSJwojSElTVE9SWV9TWU5DX1RZUEVfTk9O",
+            "X0JMT0NLSU5HX0RBVEEQBhIfChtISVNUT1JZX1NZTkNfVFlQRV9PTl9ERU1B",
+            "TkQQBxIgChxISVNUT1JZX1NZTkNfVFlQRV9OT19ISVNUT1JZEAgSKwonSElT",
+            "VE9SWV9TWU5DX1RZUEVfTUVTU0FHRV9BQ0NFU1NfU1RBVFVTEAkqpAEKEkhp",
+            "c3RvcnlTeW5jRmFpbHVyZRIkCiBISVNUT1JZX1NZTkNfRkFJTFVSRV9VTlNQ",
+            "RUNJRklFRBAAEiAKHEhJU1RPUllfU1lOQ19GQUlMVVJFX0VYUElSRUQQARIg",
+            "ChxISVNUT1JZX1NZTkNfRkFJTFVSRV9JTlZBTElEEAISJAogSElTVE9SWV9T",
+            "WU5DX0ZBSUxVUkVfVU5BVkFJTEFCTEUQAzKpAgoMRXZlbnRTZXJ2aWNlElcK",
+            "DFN0cmVhbUV2ZW50cxIhLndoYXRzbWVvdy52MS5TdHJlYW1FdmVudHNSZXF1",
+            "ZXN0GiIud2hhdHNtZW93LnYxLlN0cmVhbUV2ZW50c1Jlc3BvbnNlMAESTAoJ",
+            "QWNrRXZlbnRzEh4ud2hhdHNtZW93LnYxLkFja0V2ZW50c1JlcXVlc3QaHy53",
+            "aGF0c21lb3cudjEuQWNrRXZlbnRzUmVzcG9uc2UScgoVU3RyZWFtRXBoZW1l",
+            "cmFsRXZlbnRzEioud2hhdHNtZW93LnYxLlN0cmVhbUVwaGVtZXJhbEV2ZW50",
+            "c1JlcXVlc3QaKy53aGF0c21lb3cudjEuU3RyZWFtRXBoZW1lcmFsRXZlbnRz",
+            "UmVzcG9uc2UwAULBAQoQY29tLndoYXRzbWVvdy52MUILRXZlbnRzUHJvdG9Q",
+            "AVpGZ2l0aHViLmNvbS90Y29ydGVnYS9XaGF0c21lb3cuTkVUL3NpZGVjYXIv",
+            "Z2VuL3doYXRzbWVvdy92MTt3aGF0c21lb3d2MaICA1dYWKoCFVdoYXRzbWVv",
+            "dy5Qcm90b2NvbC5WMcoCDFdoYXRzbWVvd1xWMeICGFdoYXRzbWVvd1xWMVxH",
+            "UEJNZXRhZGF0YeoCDVdoYXRzbWVvdzo6VjFiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, global::Whatsmeow.Proto.WAWebProtobufsE2E.WAWebProtobufsE2EReflection.Descriptor, global::Whatsmeow.Protocol.V1.ChatstateReflection.Descriptor, global::Whatsmeow.Protocol.V1.ContactReflection.Descriptor, global::Whatsmeow.Protocol.V1.MediaReflection.Descriptor, global::Whatsmeow.Protocol.V1.PresenceReflection.Descriptor, global::Whatsmeow.Protocol.V1.GroupReflection.Descriptor, global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Whatsmeow.Protocol.V1.ReceiptType), typeof(global::Whatsmeow.Protocol.V1.UnavailableType), typeof(global::Whatsmeow.Protocol.V1.HistorySyncType), typeof(global::Whatsmeow.Protocol.V1.HistorySyncFailure), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.MessageSource), global::Whatsmeow.Protocol.V1.MessageSource.Parser, new[]{ "Chat", "Sender", "SenderAlt", "RecipientAlt", "IsFromMe" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.MessageInfo), global::Whatsmeow.Protocol.V1.MessageInfo.Parser, new[]{ "Source", "Id", "PushName", "MessageTime" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.MessageEvent), global::Whatsmeow.Protocol.V1.MessageEvent.Parser, new[]{ "Info", "Message", "ViewOnce" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.ReceiptEvent), global::Whatsmeow.Protocol.V1.ReceiptEvent.Parser, new[]{ "Source", "MessageIds", "ReceiptTime", "Type" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.MessageEvent), global::Whatsmeow.Protocol.V1.MessageEvent.Parser, new[]{ "Info", "Message", "ViewOnce", "Ephemeral", "DeviceSentDestination", "RawMessage" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.ReceiptEvent), global::Whatsmeow.Protocol.V1.ReceiptEvent.Parser, new[]{ "Source", "MessageIds", "ReceiptTime", "Type", "MessageSender" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.UndecryptableMessageEvent), global::Whatsmeow.Protocol.V1.UndecryptableMessageEvent.Parser, new[]{ "Info", "HidePlaceholder", "Unavailable", "UnavailableType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.ConnectionStateEvent), global::Whatsmeow.Protocol.V1.ConnectionStateEvent.Parser, new[]{ "State" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.StreamEventsRequest), global::Whatsmeow.Protocol.V1.StreamEventsRequest.Parser, new[]{ "SessionId", "Consumer", "AfterSeq" }, null, null, null, null),
@@ -1046,6 +1050,9 @@ namespace Whatsmeow.Protocol.V1 {
       info_ = other.info_ != null ? other.info_.Clone() : null;
       message_ = other.message_ != null ? other.message_.Clone() : null;
       viewOnce_ = other.viewOnce_;
+      ephemeral_ = other.ephemeral_;
+      deviceSentDestination_ = other.deviceSentDestination_;
+      rawMessage_ = other.rawMessage_ != null ? other.rawMessage_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -1100,6 +1107,53 @@ namespace Whatsmeow.Protocol.V1 {
       }
     }
 
+    /// <summary>Field number for the "ephemeral" field.</summary>
+    public const int EphemeralFieldNumber = 4;
+    private bool ephemeral_;
+    /// <summary>
+    /// True when whatsmeow unwrapped the content from an ephemeral wrapper (EphemeralMessage): a disappearing message.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Ephemeral {
+      get { return ephemeral_; }
+      set {
+        ephemeral_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "device_sent_destination" field.</summary>
+    public const int DeviceSentDestinationFieldNumber = 5;
+    private string deviceSentDestination_ = "";
+    /// <summary>
+    /// For a message the account sent from another of its devices to a user, the chat it went to, as that device said in
+    /// its DeviceSentMessage wrapper; empty for every other message.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string DeviceSentDestination {
+      get { return deviceSentDestination_; }
+      set {
+        deviceSentDestination_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "raw_message" field.</summary>
+    public const int RawMessageFieldNumber = 6;
+    private global::Whatsmeow.Proto.WAWebProtobufsE2E.Message rawMessage_;
+    /// <summary>
+    /// The message as received, wrappers included, when whatsmeow unwrapped any; unset when it unwrapped none, as the
+    /// message is then what was received.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebProtobufsE2E.Message RawMessage {
+      get { return rawMessage_; }
+      set {
+        rawMessage_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -1118,6 +1172,9 @@ namespace Whatsmeow.Protocol.V1 {
       if (!object.Equals(Info, other.Info)) return false;
       if (!object.Equals(Message, other.Message)) return false;
       if (ViewOnce != other.ViewOnce) return false;
+      if (Ephemeral != other.Ephemeral) return false;
+      if (DeviceSentDestination != other.DeviceSentDestination) return false;
+      if (!object.Equals(RawMessage, other.RawMessage)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -1128,6 +1185,9 @@ namespace Whatsmeow.Protocol.V1 {
       if (info_ != null) hash ^= Info.GetHashCode();
       if (message_ != null) hash ^= Message.GetHashCode();
       if (ViewOnce != false) hash ^= ViewOnce.GetHashCode();
+      if (Ephemeral != false) hash ^= Ephemeral.GetHashCode();
+      if (DeviceSentDestination.Length != 0) hash ^= DeviceSentDestination.GetHashCode();
+      if (rawMessage_ != null) hash ^= RawMessage.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1158,6 +1218,18 @@ namespace Whatsmeow.Protocol.V1 {
         output.WriteRawTag(24);
         output.WriteBool(ViewOnce);
       }
+      if (Ephemeral != false) {
+        output.WriteRawTag(32);
+        output.WriteBool(Ephemeral);
+      }
+      if (DeviceSentDestination.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(DeviceSentDestination);
+      }
+      if (rawMessage_ != null) {
+        output.WriteRawTag(50);
+        output.WriteMessage(RawMessage);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -1180,6 +1252,18 @@ namespace Whatsmeow.Protocol.V1 {
         output.WriteRawTag(24);
         output.WriteBool(ViewOnce);
       }
+      if (Ephemeral != false) {
+        output.WriteRawTag(32);
+        output.WriteBool(Ephemeral);
+      }
+      if (DeviceSentDestination.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(DeviceSentDestination);
+      }
+      if (rawMessage_ != null) {
+        output.WriteRawTag(50);
+        output.WriteMessage(RawMessage);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -1198,6 +1282,15 @@ namespace Whatsmeow.Protocol.V1 {
       }
       if (ViewOnce != false) {
         size += 1 + 1;
+      }
+      if (Ephemeral != false) {
+        size += 1 + 1;
+      }
+      if (DeviceSentDestination.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(DeviceSentDestination);
+      }
+      if (rawMessage_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(RawMessage);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -1225,6 +1318,18 @@ namespace Whatsmeow.Protocol.V1 {
       }
       if (other.ViewOnce != false) {
         ViewOnce = other.ViewOnce;
+      }
+      if (other.Ephemeral != false) {
+        Ephemeral = other.Ephemeral;
+      }
+      if (other.DeviceSentDestination.Length != 0) {
+        DeviceSentDestination = other.DeviceSentDestination;
+      }
+      if (other.rawMessage_ != null) {
+        if (rawMessage_ == null) {
+          RawMessage = new global::Whatsmeow.Proto.WAWebProtobufsE2E.Message();
+        }
+        RawMessage.MergeFrom(other.RawMessage);
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -1263,6 +1368,21 @@ namespace Whatsmeow.Protocol.V1 {
             ViewOnce = input.ReadBool();
             break;
           }
+          case 32: {
+            Ephemeral = input.ReadBool();
+            break;
+          }
+          case 42: {
+            DeviceSentDestination = input.ReadString();
+            break;
+          }
+          case 50: {
+            if (rawMessage_ == null) {
+              RawMessage = new global::Whatsmeow.Proto.WAWebProtobufsE2E.Message();
+            }
+            input.ReadMessage(RawMessage);
+            break;
+          }
         }
       }
     #endif
@@ -1298,6 +1418,21 @@ namespace Whatsmeow.Protocol.V1 {
           }
           case 24: {
             ViewOnce = input.ReadBool();
+            break;
+          }
+          case 32: {
+            Ephemeral = input.ReadBool();
+            break;
+          }
+          case 42: {
+            DeviceSentDestination = input.ReadString();
+            break;
+          }
+          case 50: {
+            if (rawMessage_ == null) {
+              RawMessage = new global::Whatsmeow.Proto.WAWebProtobufsE2E.Message();
+            }
+            input.ReadMessage(RawMessage);
             break;
           }
         }
@@ -1349,6 +1484,7 @@ namespace Whatsmeow.Protocol.V1 {
       messageIds_ = other.messageIds_.Clone();
       receiptTime_ = other.receiptTime_ != null ? other.receiptTime_.Clone() : null;
       type_ = other.type_;
+      messageSender_ = other.messageSender_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -1417,6 +1553,23 @@ namespace Whatsmeow.Protocol.V1 {
       }
     }
 
+    /// <summary>Field number for the "message_sender" field.</summary>
+    public const int MessageSenderFieldNumber = 5;
+    private string messageSender_ = "";
+    /// <summary>
+    /// The sender of the messages it covers, when WhatsApp said: in a group, for a receipt from another of the account's
+    /// devices (READ_SELF, PLAYED_SELF), the member whose messages were read; for a receipt from another user, usually
+    /// the account itself. Empty when WhatsApp did not say.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string MessageSender {
+      get { return messageSender_; }
+      set {
+        messageSender_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -1436,6 +1589,7 @@ namespace Whatsmeow.Protocol.V1 {
       if(!messageIds_.Equals(other.messageIds_)) return false;
       if (!object.Equals(ReceiptTime, other.ReceiptTime)) return false;
       if (Type != other.Type) return false;
+      if (MessageSender != other.MessageSender) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -1447,6 +1601,7 @@ namespace Whatsmeow.Protocol.V1 {
       hash ^= messageIds_.GetHashCode();
       if (receiptTime_ != null) hash ^= ReceiptTime.GetHashCode();
       if (Type != global::Whatsmeow.Protocol.V1.ReceiptType.Unspecified) hash ^= Type.GetHashCode();
+      if (MessageSender.Length != 0) hash ^= MessageSender.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1478,6 +1633,10 @@ namespace Whatsmeow.Protocol.V1 {
         output.WriteRawTag(32);
         output.WriteEnum((int) Type);
       }
+      if (MessageSender.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(MessageSender);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -1501,6 +1660,10 @@ namespace Whatsmeow.Protocol.V1 {
         output.WriteRawTag(32);
         output.WriteEnum((int) Type);
       }
+      if (MessageSender.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(MessageSender);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -1520,6 +1683,9 @@ namespace Whatsmeow.Protocol.V1 {
       }
       if (Type != global::Whatsmeow.Protocol.V1.ReceiptType.Unspecified) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Type);
+      }
+      if (MessageSender.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(MessageSender);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -1548,6 +1714,9 @@ namespace Whatsmeow.Protocol.V1 {
       }
       if (other.Type != global::Whatsmeow.Protocol.V1.ReceiptType.Unspecified) {
         Type = other.Type;
+      }
+      if (other.MessageSender.Length != 0) {
+        MessageSender = other.MessageSender;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -1590,6 +1759,10 @@ namespace Whatsmeow.Protocol.V1 {
             Type = (global::Whatsmeow.Protocol.V1.ReceiptType) input.ReadEnum();
             break;
           }
+          case 42: {
+            MessageSender = input.ReadString();
+            break;
+          }
         }
       }
     #endif
@@ -1629,6 +1802,10 @@ namespace Whatsmeow.Protocol.V1 {
           }
           case 32: {
             Type = (global::Whatsmeow.Protocol.V1.ReceiptType) input.ReadEnum();
+            break;
+          }
+          case 42: {
+            MessageSender = input.ReadString();
             break;
           }
         }

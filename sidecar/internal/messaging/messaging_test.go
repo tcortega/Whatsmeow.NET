@@ -17,6 +17,7 @@ import (
 	"go.mau.fi/whatsmeow"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waE2E"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc"
@@ -80,6 +81,26 @@ type stub struct {
 	readErr error
 	// got gets each call as it starts.
 	got chan call
+	// wa is a real whatsmeow client of self's device, never connected: the builders are whatsmeow's own.
+	wa *whatsmeow.Client
+}
+
+// The account the stub's device is: its device JID and LID, as WhatsApp assigns them.
+const (
+	self    = "5511900000001:3@s.whatsapp.net"
+	selfLID = "900000001:3@lid"
+)
+
+func (s *stub) BuildReaction(chat, sender types.JID, id types.MessageID, reaction string) *waE2E.Message {
+	return s.wa.BuildReaction(chat, sender, id, reaction)
+}
+
+func (s *stub) BuildRevoke(chat, sender types.JID, id types.MessageID) *waE2E.Message {
+	return s.wa.BuildRevoke(chat, sender, id)
+}
+
+func (s *stub) BuildEdit(chat types.JID, id types.MessageID, newContent *waE2E.Message) *waE2E.Message {
+	return s.wa.BuildEdit(chat, id, newContent)
 }
 
 func (s *stub) SendMessage(ctx context.Context, to types.JID, message *waE2E.Message, extra ...whatsmeow.SendRequestExtra) (whatsmeow.SendResponse, error) {
@@ -149,6 +170,15 @@ func (s *sessions) Online(id string) (session.Client, <-chan struct{}, error) {
 	}
 
 	return s.client, s.left, nil
+}
+
+// Device is the device of s1 and s3, the stub's; another session is not found.
+func (s *sessions) Device(id string) (*store.Device, error) {
+	if id != "s1" && id != "s3" {
+		return nil, fmt.Errorf("session %q: %w", id, server.ErrSessionNotFound)
+	}
+
+	return s.client.wa.Store, nil
 }
 
 // leave makes s1 stop being online, for the reason why.
@@ -229,7 +259,7 @@ func start(t *testing.T) *harness {
 	}
 
 	h := &harness{
-		t: t, db: db.DB, stub: &stub{got: make(chan call, 64)},
+		t: t, db: db.DB, stub: &stub{got: make(chan call, 64), wa: whatsmeow.NewClient(&store.Device{ID: new(jid(self)), LID: jid(selfLID)}, nil)},
 		queued: make(chan struct{}, 64), waiting: make(chan struct{}, 64), logs: &logs{},
 	}
 	// The sidecar logs at info level and above (ARCHITECTURE §7.8).

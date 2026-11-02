@@ -93,6 +93,14 @@ message MessageEvent {
   WAWebProtobufsE2E.Message message = 2;
   // True when whatsmeow unwrapped the content from a view-once wrapper (ViewOnceMessage, V2 or V2Extension).
   bool view_once = 3;
+  // True when whatsmeow unwrapped the content from an ephemeral wrapper (EphemeralMessage): a disappearing message.
+  bool ephemeral = 4;
+  // For a message the account sent from another of its devices to a user, the chat it went to, as that device said in
+  // its DeviceSentMessage wrapper; empty for every other message.
+  string device_sent_destination = 5;
+  // The message as received, wrappers included, when whatsmeow unwrapped any; unset when it unwrapped none, as the
+  // message is then what was received.
+  WAWebProtobufsE2E.Message raw_message = 6;
 }
 
 // ReceiptEvent is a receipt for one or more messages of a chat.
@@ -105,6 +113,10 @@ message ReceiptEvent {
   google.protobuf.Timestamp receipt_time = 3;
   // The kind of receipt.
   ReceiptType type = 4;
+  // The sender of the messages it covers, when WhatsApp said: in a group, for a receipt from another of the account's
+  // devices (READ_SELF, PLAYED_SELF), the member whose messages were read; for a receipt from another user, usually
+  // the account itself. Empty when WhatsApp did not say.
+  string message_sender = 5;
 }
 
 // ReceiptType is the kind of a receipt.

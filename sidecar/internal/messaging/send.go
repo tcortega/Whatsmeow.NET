@@ -72,8 +72,17 @@ type job struct {
 	outcome outcome
 }
 
-// send sends message to chat as id, at most once per (session, id) (message.proto).
-func (svc *Service) send(ctx context.Context, sessionID, chat, id string, message *waE2E.Message) (sent, error) {
+// build makes a send's message with the session's whatsmeow client, once the session is known to be online: a
+// reaction, a revoke and an edit are whatsmeow's own, which name the account through its device.
+type build func(wa whatsApp, chat types.JID) *waE2E.Message
+
+// as is the build of a message made already.
+func as(message *waE2E.Message) build {
+	return func(whatsApp, types.JID) *waE2E.Message { return message }
+}
+
+// send sends the message build makes to chat as id, at most once per (session, id) (message.proto).
+func (svc *Service) send(ctx context.Context, sessionID, chat, id string, message build) (sent, error) {
 	if err := validateSession(sessionID); err != nil {
 		return sent{}, err
 	}
@@ -142,7 +151,7 @@ func (svc *Service) land(key flightKey, f *flight, o outcome) {
 }
 
 // sendOnce answers a repeat from its record, or queues the send.
-func (svc *Service) sendOnce(ctx context.Context, sessionID string, to types.JID, id string, message *waE2E.Message) outcome {
+func (svc *Service) sendOnce(ctx context.Context, sessionID string, to types.JID, id string, message build) outcome {
 	if o, found, err := svc.recorded(ctx, sessionID, id); err != nil || found {
 		return outcome{sent: o.sent, err: errors.Join(o.err, err), sentNothing: err != nil}
 	}
@@ -158,7 +167,7 @@ func (svc *Service) sendOnce(ctx context.Context, sessionID string, to types.JID
 		return outcome{err: fmt.Errorf("send: the client %T of session %q cannot send", client, sessionID), sentNothing: true}
 	}
 
-	j := &job{ctx: ctx, session: sessionID, client: wa, left: left, chat: to, id: id, message: message, done: make(chan struct{})}
+	j := &job{ctx: ctx, session: sessionID, client: wa, left: left, chat: to, id: id, message: message(wa, to), done: make(chan struct{})}
 	svc.enqueue(j) //nolint:contextcheck // the job carries ctx, and its queue runs it under ctx
 
 	return svc.await(j)

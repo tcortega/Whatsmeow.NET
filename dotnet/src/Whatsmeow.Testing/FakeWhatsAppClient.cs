@@ -80,6 +80,9 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 		nameof(SendDocumentAsync),
 		nameof(SendStickerAsync),
 		nameof(SendRawAsync),
+		nameof(SendReactionAsync),
+		nameof(EditMessageAsync),
+		nameof(RevokeMessageAsync),
 		nameof(MarkReadAsync),
 		nameof(GetGroupsAsync),
 		nameof(GetGroupInfoAsync),
@@ -441,6 +444,7 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 	/// <inheritdoc/>
 	public Task UnblockAsync(Jid user, CancellationToken cancellationToken = default) => CallAsync(nameof(UnblockAsync), [(nameof(user), user)], cancellationToken);
 
+#pragma warning disable RS0026 // Justification: as on IWhatsAppClient, each options overload requires its options, so no call binds to both overloads (ADR 0038)
 	/// <inheritdoc/>
 	public Task<SendResult> SendTextAsync(Jid chat, string text, MessageId? id = null, CancellationToken cancellationToken = default)
 	{
@@ -498,6 +502,69 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 			id,
 			cancellationToken
 		);
+	}
+
+	/// <inheritdoc/>
+	public Task<SendResult> SendTextAsync(Jid chat, string text, SendOptions options, MessageId? id = null, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(text);
+		ArgumentNullException.ThrowIfNull(options);
+		return SendAsync(nameof(SendTextAsync), [(nameof(chat), chat), (nameof(text), text), (nameof(options), options), (nameof(id), id)], chat, id, cancellationToken);
+	}
+
+	/// <inheritdoc/>
+	public Task<SendResult> SendImageAsync(Jid chat, MediaRef image, ImageMetadata metadata, SendOptions options, MessageId? id = null, CancellationToken cancellationToken = default) =>
+		SendMediaAsync(nameof(SendImageAsync), chat, (nameof(image), image), metadata, options, id, cancellationToken);
+
+	/// <inheritdoc/>
+	public Task<SendResult> SendVideoAsync(Jid chat, MediaRef video, VideoMetadata metadata, SendOptions options, MessageId? id = null, CancellationToken cancellationToken = default) =>
+		SendMediaAsync(nameof(SendVideoAsync), chat, (nameof(video), video), metadata, options, id, cancellationToken);
+
+	/// <inheritdoc/>
+	public Task<SendResult> SendAudioAsync(Jid chat, MediaRef audio, AudioMetadata metadata, SendOptions options, MessageId? id = null, CancellationToken cancellationToken = default) =>
+		SendMediaAsync(nameof(SendAudioAsync), chat, (nameof(audio), audio), metadata, options, id, cancellationToken);
+
+	/// <inheritdoc/>
+	public Task<SendResult> SendDocumentAsync(
+		Jid chat,
+		MediaRef document,
+		DocumentMetadata metadata,
+		SendOptions options,
+		MessageId? id = null,
+		CancellationToken cancellationToken = default
+	) => SendMediaAsync(nameof(SendDocumentAsync), chat, (nameof(document), document), metadata, options, id, cancellationToken);
+
+	/// <inheritdoc/>
+	public Task<SendResult> SendStickerAsync(
+		Jid chat,
+		MediaRef sticker,
+		StickerMetadata metadata,
+		SendOptions options,
+		MessageId? id = null,
+		CancellationToken cancellationToken = default
+	) => SendMediaAsync(nameof(SendStickerAsync), chat, (nameof(sticker), sticker), metadata, options, id, cancellationToken);
+#pragma warning restore RS0026
+
+	/// <inheritdoc/>
+	public Task<SendResult> SendReactionAsync(Jid chat, MessageKey target, string emoji, MessageId? id = null, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(target);
+		ArgumentNullException.ThrowIfNull(emoji);
+		return SendAsync(nameof(SendReactionAsync), [(nameof(chat), chat), (nameof(target), target), (nameof(emoji), emoji), (nameof(id), id)], chat, id, cancellationToken);
+	}
+
+	/// <inheritdoc/>
+	public Task<SendResult> EditMessageAsync(Jid chat, MessageId target, string text, MessageId? id = null, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(text);
+		return SendAsync(nameof(EditMessageAsync), [(nameof(chat), chat), (nameof(target), target), (nameof(text), text), (nameof(id), id)], chat, id, cancellationToken);
+	}
+
+	/// <inheritdoc/>
+	public Task<SendResult> RevokeMessageAsync(Jid chat, MessageKey target, MessageId? id = null, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(target);
+		return SendAsync(nameof(RevokeMessageAsync), [(nameof(chat), chat), (nameof(target), target), (nameof(id), id)], chat, id, cancellationToken);
 	}
 
 	/// <inheritdoc/>
@@ -720,6 +787,23 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 			},
 			cancellationToken
 		);
+
+	/// <summary>A media send with options, recorded as the overload without options records one, with the options after the metadata.</summary>
+	private Task<SendResult> SendMediaAsync(
+		string member,
+		Jid chat,
+		(string Name, MediaRef? Value) media,
+		object? metadata,
+		SendOptions options,
+		MessageId? id,
+		CancellationToken cancellationToken
+	)
+	{
+		ArgumentNullException.ThrowIfNull(media.Value, media.Name);
+		ArgumentNullException.ThrowIfNull(metadata);
+		ArgumentNullException.ThrowIfNull(options);
+		return SendAsync(member, [(nameof(chat), chat), (media.Name, media.Value), (nameof(metadata), metadata), (nameof(options), options), (nameof(id), id)], chat, id, cancellationToken);
+	}
 
 	private Task<ImmutableArray<ParticipantResult>> ParticipantsAsync(string member, Jid group, IReadOnlyList<Jid> users, CancellationToken cancellationToken)
 	{

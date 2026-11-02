@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Google.Protobuf.WellKnownTypes;
 using Whatsmeow.Protocol.V1;
 
@@ -13,6 +14,18 @@ internal static class MessagingMapping
 			Chat = Jid.Parse(chat),
 			Timestamp = messageTime.ToDateTimeOffset(),
 		};
+
+	public static Protocol.V1.MessageReply? ToProto(MessageReply? reply) =>
+		reply is null
+			? null
+			: new()
+			{
+				Id = reply.Id.Value,
+				Sender = reply.Sender?.ToString() ?? "",
+				QuotedText = reply.QuotedText ?? "",
+			};
+
+	public static IEnumerable<string> ToProto(ImmutableArray<Jid> mentions) => mentions.Select(m => m.ToString());
 
 	public static MarkReadRequest ToMarkRead(SessionId sessionId, Jid chat, IReadOnlyCollection<MessageId> messageIds, Jid? sender)
 	{
