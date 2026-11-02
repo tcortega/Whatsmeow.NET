@@ -11,9 +11,12 @@ internal static class SessionMapping
 		{
 			Id = SessionId.From(session.Id),
 			State = ToState(session.State),
-			Jid = session.Jid.Length > 0 ? Jid.Parse(session.Jid) : null,
-			Lid = session.Lid.Length > 0 ? Jid.Parse(session.Lid) : null,
+			Jid = ToJid(session.Jid),
+			Lid = ToJid(session.Lid),
 		};
+
+	/// <summary>An informational JID: empty or malformed is null, so a bad value never fails a call that lists sessions.</summary>
+	private static Jid? ToJid(string value) => Jid.TryParse(value, out var jid) ? jid : null;
 
 	public static SessionState ToState(ProtoState? state) =>
 		state?.KindCase switch
