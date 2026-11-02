@@ -11,17 +11,27 @@ import (
 )
 
 // Online returns the client of a session that is logged in to WhatsApp right now (Connected or CaughtUp), for another
-// slice's call to WhatsApp, and a channel closed once the session leaves those states or is deleted. A call never waits for a
-// connection (ARCHITECTURE §7.5): a session in any other state fails at once with its reason, NOT_LOGGED_IN,
-// LOGGED_OUT, TEMPORARILY_BANNED (with its end when known) or NOT_CONNECTED.
+// slice's call to WhatsApp, and a channel closed once the session leaves those states or is deleted. A call never
+// waits for a connection (ARCHITECTURE §7.5): a session in any other state fails at once with its reason,
+// NOT_LOGGED_IN, LOGGED_OUT, TEMPORARILY_BANNED (with its end when known) or NOT_CONNECTED.
 func (svc *Service) Online(id string) (Client, <-chan struct{}, error) {
 	s, err := svc.get(id)
 	if err != nil {
 		return nil, nil, err
 	}
 
+	return s.clientOnline()
+}
+
+// clientOnline is Online for a session get found. DeleteSession may have run since: its channel is closed, and one made
+// now would never close, so a deleted session fails as get does.
+func (s *session) clientOnline() (Client, <-chan struct{}, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	if s.gone() {
+		return nil, nil, fmt.Errorf("session %q: %w", s.id, server.ErrSessionNotFound)
+	}
 
 	if up(s.state) {
 		if s.online == nil {

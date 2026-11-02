@@ -137,6 +137,33 @@ func TestOnlinesChannelClosesWhenTheSessionIsDeleted(t *testing.T) {
 	}
 }
 
+func TestOnlineOfASessionDeletedAfterItWasFoundIsSessionNotFound(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.connected("s1")
+
+	// Online found the session, then DeleteSession ran before it took s.mu: the session still says Connected, because
+	// the stub's Disconnect dispatches nothing.
+	s := h.svc.sessions["s1"]
+	if _, err := h.client.DeleteSession(h.ctx, &whatsmeowv1.DeleteSessionRequest{SessionId: "s1"}); err != nil {
+		t.Fatalf("DeleteSession: %v", err)
+	}
+
+	client, gone, err := s.clientOnline()
+	if !errors.Is(err, server.ErrSessionNotFound) || client != nil || gone != nil {
+		t.Fatalf("clientOnline = %v, %v, %v; want SESSION_NOT_FOUND and no channel, which would never close", client, gone, err)
+	}
+
+	s.mu.Lock()
+	made := s.online != nil
+	s.mu.Unlock()
+
+	if made {
+		t.Fatal("clientOnline made a channel for a deleted session")
+	}
+}
+
 func TestOnlineOfAnUnknownSessionIsSessionNotFound(t *testing.T) {
 	t.Parallel()
 
