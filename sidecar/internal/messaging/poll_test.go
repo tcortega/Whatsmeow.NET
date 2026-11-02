@@ -75,6 +75,45 @@ func TestSendPollSendsWhatsmeowsPollCreation(t *testing.T) {
 	}
 }
 
+// whatsmeow's SendMessage stores a poll's secret before its device lookup (send.go:403-410, 1198) and its store keeps
+// the first secret of an id (store.go:882-885), so a poll sent again after a send that sent nothing carries the secret
+// stored first, the one votes on it are decrypted with.
+func TestAPollSentAgainCarriesTheSecretStoredForItsId(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name, chat, storedChat, sender string
+	}{
+		{"a LID chat", "111@lid", "111@lid", "900000001@lid"},
+		{"a phone number's chat, which whatsmeow sent to its LID", "5511900000009@s.whatsapp.net", "900000009@lid", "900000001@lid"},
+		{"a group", group, group, "5511900000001@s.whatsapp.net"},
+		{"a LID-addressed group", lidGroup, lidGroup, "900000001@lid"},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
+			h := start(t)
+			if err := h.stub.wa.Store.LIDs.PutLIDMapping(h.ctx, jid("900000009@lid"), jid("5511900000009@s.whatsapp.net")); err != nil {
+				t.Fatalf("PutLIDMapping: %v", err)
+			}
+
+			h.secret(c.storedChat, c.sender, id(1))
+
+			if _, err := h.client.SendPoll(h.ctx, &whatsmeowv1.SendPollRequest{
+				SessionId: "s1", Chat: c.chat, ClientMessageId: id(1), Question: "Lunch?", Options: []string{"Pizza", "Sushi"}, MaxSelectable: 1,
+			}); err != nil {
+				t.Fatalf("SendPoll: %v", err)
+			}
+
+			if got := h.only(t).message.GetMessageContextInfo().GetMessageSecret(); !bytes.Equal(got, bytes.Repeat([]byte{7}, 32)) {
+				t.Fatalf("the poll's secret is %x, want the one stored for its id", got)
+			}
+		})
+	}
+}
+
 func TestAPollCarriesItsReplyAndMentionsOnThePoll(t *testing.T) {
 	t.Parallel()
 
@@ -176,6 +215,47 @@ func TestAVoteOnAPollWithoutItsSecretFailsAndSendsNothing(t *testing.T) {
 
 	if _, err := h.client.SendPollVote(h.ctx, vote); err != nil || len(h.stub.sent()) != 1 {
 		t.Fatalf("the repeat = %v with %v sent; want the vote sent once", err, h.stub.ids())
+	}
+}
+
+// whatsmeow votes as the account's LID on a LID's poll and by its phone number otherwise, and fails with
+// ErrNotLoggedIn when the device has no such JID (msgsecret.go:207-208, 429-432): with neither, the device was deleted,
+// as a logout deletes it (store.go:286-298), which a send reads as LOGGED_OUT too (classify); with only the LID
+// missing no reason says why, so it stays INTERNAL (ADR 0041). Either way nothing is sent.
+func TestAVoteWhatsmeowHasNoJIDToSendAsSendsNothing(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name, pollSender string
+		deleted          bool
+		code             codes.Code
+		reason           string
+	}{
+		{"the device deleted, as at a logout", member, true, codes.FailedPrecondition, "LOGGED_OUT"},
+		{"a LID's poll on a session without a LID", "900000002@lid", false, codes.Internal, "INTERNAL"},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
+			h := start(t)
+			h.secret(group, c.pollSender, "POLL1")
+
+			h.stub.wa.Store.LID = types.EmptyJID
+			if c.deleted {
+				h.stub.wa.Store.ID = nil
+			}
+
+			_, err := h.client.SendPollVote(h.ctx, &whatsmeowv1.SendPollVoteRequest{
+				SessionId: "s1", Chat: group, ClientMessageId: id(1), PollId: "POLL1", PollSender: c.pollSender, Options: []string{"Pizza"},
+			})
+			wantReason(t, err, c.code, c.reason, nil)
+
+			if exists, _, _, _ := h.record(1); exists || len(h.stub.sent()) != 0 {
+				t.Fatal("the vote left a record or reached whatsmeow")
+			}
+		})
 	}
 }
 

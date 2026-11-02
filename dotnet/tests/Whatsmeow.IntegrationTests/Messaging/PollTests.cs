@@ -4,16 +4,20 @@ using System.Text;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Whatsmeow.Events;
+using Whatsmeow.History;
 using Whatsmeow.IntegrationTests.Events;
 using Whatsmeow.IntegrationTests.Fake;
+using Whatsmeow.IntegrationTests.History;
 using Whatsmeow.IntegrationTests.Sessions;
 using Whatsmeow.IntegrationTests.Support;
 using Whatsmeow.Messaging;
 using Whatsmeow.Sessions;
+using Conversation = Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncRequest.Types.Conversation;
 using E2E = Whatsmeow.Proto.WAWebProtobufsE2E;
 using MessageKey = Whatsmeow.Messaging.MessageKey;
 using MessageSource = Whatsmeow.Events.MessageSource;
 using WACommon = Whatsmeow.Proto.WACommon;
+using WebMessage = Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncRequest.Types.Message;
 
 namespace Whatsmeow.IntegrationTests.Messaging;
 
@@ -258,6 +262,64 @@ public sealed class PollTests(FakeSidecar fixture)
 		var next = await client.SendTextAsync(s_peer, "next", cancellationToken: ct);
 		var sent = await NextAsync(Session, 0, 3, ct);
 		Assert.Equal<MessageId>([pollId, voteId, next.Id], sent.Select(static s => MessageId.From(s.Message.Id)));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task SendPoll_RateLimited_ThenRepeated_TheVotesOnItDecrypt()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "polls-rate-limited";
+		var client = await LinkedAsync(Session, 10, ct);
+		using var received = new Received<MessageReceived>(client);
+		await ConnectAsync(client, ct);
+		var id = MessageId.New();
+		// whatsmeow stored the poll's secret before WhatsApp rate limited its device lookup, every try of the backoff.
+		_ = await fixture.Fake.RateLimitNextSendsAsync(new RateLimitNextSendsRequest { SessionId = Session, Count = 4 }, cancellationToken: ct);
+		_ = await Assert.ThrowsAsync<RateLimitedException>(() => client.SendPollAsync(s_peer, s_lunch, id, cancellationToken: ct));
+
+		var poll = await client.SendPollAsync(s_peer, s_lunch, id, cancellationToken: ct);
+
+		// The peer votes with the secret of the poll WhatsApp delivered to it.
+		await DeliverVoteAsync(Session, "V1", s_peer, s_peer, poll.Id, Lid(10), ["Pizza"], ct);
+		Assert.Equal(
+			Received(Session, "V1", s_peer, s_peer, new PollVoteContent { Poll = new MessageKey { Id = id }, SelectedOptionHashes = [Hash("Pizza")] }),
+			await received.NextAsync(ct)
+		);
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Vote_OnAPollKnownOnlyFromHistory_WhatsAppGetsTheVote()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "polls-vote-history";
+		var client = await ConnectedAsync(Session, 11, ct);
+		_ = await Histories.CompleteOfflineSyncAsync(fixture, client, Session, ct);
+		using var batches = new Received<HistoryReceived>(client);
+
+		// A poll from before this device was linked: only the history blob carried its secret.
+		var poll = PollMessage(2);
+		var conversation = new Conversation { Chat = s_group.ToString() };
+		conversation.Messages.Add(
+			new WebMessage
+			{
+				Id = "H1",
+				Participant = s_member.ToString(),
+				Message_ = poll,
+				MessageSecret = poll.MessageContextInfo.MessageSecret,
+				MessageTime = Timestamp.FromDateTimeOffset(Histories.At),
+			}
+		);
+		_ = await fixture.Fake.DeliverHistorySyncAsync(Histories.Blob(Session, "N1", Histories.Recent, conversation), cancellationToken: ct);
+		_ = await batches.NextAsync(ct);
+
+		var vote = await client.SendPollVoteAsync(s_group, new MessageKey { Id = MessageId.From("H1"), Sender = s_member }, ["Pizza"], cancellationToken: ct);
+
+		var sent = (await NextAsync(Session, 0, 1, ct))[0].Message;
+		Assert.Equal(vote.Id.Value, sent.Id);
+		Assert.Equal(
+			new WACommon.MessageKey { RemoteJID = s_group.ToString(), FromMe = false, ID = "H1", Participant = s_member.ToString() },
+			sent.Message.PollUpdateMessage.PollCreationMessageKey
+		);
 	}
 
 	private static ImmutableArray<byte> Hash(string option) => [.. SHA256.HashData(Encoding.UTF8.GetBytes(option))];
