@@ -11,7 +11,7 @@ using Whatsmeow.Sessions;
 namespace Whatsmeow.LiveTests;
 
 /// <summary>
-/// The live tests' <c>whatsmeow-net</c>, a release build with the live seams (<c>-tags livetest</c>, ADR 0029), against
+/// The live tests' <c>whatsmeow-net</c>, a release build with the live seams (<c>-tags livetest</c>, ADR 0032), against
 /// real WhatsApp on the persistent live database (<see cref="LiveSettings.DatabaseVariable"/>), started when a live
 /// test first needs it; nothing starts while the live tests are off. The database holds the
 /// <see cref="LiveSessionId"/> session, paired once and reused by every run: it is never logged out, deleted or copied.
@@ -109,7 +109,7 @@ public sealed class LiveSidecar : IAsyncLifetime
 		return client;
 	}
 
-	/// <summary>The release build with the live seams, built once: <c>-tags livetest</c> (ADR 0029).</summary>
+	/// <summary>The release build with the live seams, built once: <c>-tags livetest</c> (ADR 0032).</summary>
 	public async Task<string> BinaryAsync(CancellationToken cancellationToken)
 	{
 		await _starting.WaitAsync(cancellationToken).ConfigureAwait(false);

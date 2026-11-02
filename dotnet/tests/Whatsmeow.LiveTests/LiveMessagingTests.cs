@@ -73,7 +73,7 @@ public sealed class LiveMessagingTests(LiveSidecar live)
 
 	/// <summary>
 	/// One text whose id is in the format the phone made the ping's, not whatsmeow's 3EB0 (ADR 0025): whether WhatsApp
-	/// takes it is recorded either way; the live build's id rule lets it through (ADR 0029).
+	/// takes it is recorded either way; the live build's id rule lets it through (ADR 0032).
 	/// </summary>
 	[LiveFact]
 	public async Task Live_SendTextWithAnIdInThePhonesFormat_TheAnswerIsRecorded()

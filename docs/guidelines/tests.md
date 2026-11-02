@@ -176,11 +176,11 @@ If the phone logs the session out, that run fails with `LoggedOut`, and the next
 The phone-code test pairs a throwaway session, `live-phone`, and logs it out and deletes it at the end, so the phone keeps only the live session's device.
 Same assertions as the fake-mode suite: a live test calls the fake-mode tests' own checks (`Whatsmeow.IntegrationTests/Pairing/PairingChecks.cs`, through a project reference), and only the person replaces the fake. No live-only skips and no weakened equals.
 The number and the database path are secrets: keep them in `~/secrets.env` and never print them; the live sidecar log redacts the number.
-Run, from the repository root:
+Run, from the repository root, exporting only the variables the tests need (never source `~/secrets.env`; for the phone-code test, export `WHATSMEOW_LIVE_PHONE_NUMBER` the same way):
 
 ```sh
 eval "$(mise env -s bash)"
-set -a; source ~/secrets.env; set +a
+export WHATSMEOW_LIVE_DATABASE="$(grep '^WHATSMEOW_LIVE_DATABASE=' ~/secrets.env | cut -d= -f2-)"
 dotnet test --project dotnet/tests/Whatsmeow.LiveTests -c Release
 ```
 
@@ -188,7 +188,7 @@ The person watches `dotnet/artifacts/live/`: `qr.png` is the QR code to scan (re
 The QR test stays connected until the live session is `CaughtUp`, at most two minutes, and prints how long that took: a device that went offline right after pairing stayed "connecting" on the phone (ADR 0021).
 
 Every live test is in the `Live` collection: one after the other, on one `LiveSidecar` and one `LiveSender`.
-The live sidecar is a release build with `-tags livetest`, the live tests' seams ([ADR 0029](../adr/0029-live-test-seams-and-the-throwaway-sender.md)): a loose id rule, and a handler that withholds the first answer to a text starting `wmn-withhold `. CI proves no release binary links them.
+The live sidecar is a release build with `-tags livetest`, the live tests' seams ([ADR 0032](../adr/0032-live-test-seams-and-the-throwaway-sender.md)): a loose id rule, and a handler that withholds the first answer to a text starting `wmn-withhold `. CI proves no release binary links them.
 The incoming bursts come from `live-sender`, a throwaway second companion of the same account in a sidecar and a temporary database of its own: paired by QR code (`qr.png`) when a test first needs it, it sends to the account's own chat, and at the end it is logged out, deleted, checked gone, and its database deleted, also when a test failed.
 The account's own JID comes from the owner's ping: `wmn ping` sent from the phone to "Message yourself", before the run or within five minutes of the first test that needs it.
 The kill tests call the fake-mode kill tests' checks (`Whatsmeow.IntegrationTests/Events/DeliveryChecks.cs`); the .NET kill runs `SidecarHost events-live` on the live database, so the live sidecar stops first and starts again after it.

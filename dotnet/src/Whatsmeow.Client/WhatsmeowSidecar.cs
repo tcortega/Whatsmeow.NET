@@ -92,7 +92,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 
 	/// <summary>
 	/// Starts the sidecar on <paramref name="timeProvider"/>, so the live tests' host can hold the clock still and ack
-	/// exactly once (ADR 0029).
+	/// exactly once (ADR 0032).
 	/// </summary>
 	internal static Task<WhatsmeowSidecar> StartAsync(
 		WhatsmeowSidecarOptions options,

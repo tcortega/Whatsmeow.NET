@@ -172,7 +172,7 @@ release_links_no_fake() {
 	echo "whatsmeow-net without -tags fakewhatsapp links no fake package"
 }
 
-# The release build must not link the live tests' seams (ADR 0029): they are the files named livetest_* behind the
+# The release build must not link the live tests' seams (ADR 0032): they are the files named livetest_* behind the
 # livetest tag (tools/check-repo allows the tag nowhere else). The same listing with the tag must show them, so this
 # check can see them at all.
 release_links_no_livetest() {
@@ -213,7 +213,7 @@ job_go() {
 		done
 	done
 	check "sidecar: the release build links no fake WhatsApp (ADR 0019)" release_links_no_fake
-	check "sidecar: the release build links no live test seam (ADR 0029)" release_links_no_livetest
+	check "sidecar: the release build links no live test seam (ADR 0032)" release_links_no_livetest
 	check "sidecar: linked modules and licence files match sidecar/licenses.allow (ADR 0016)" go -C tools run ./check-licenses
 	check "the go job left the tree unchanged" tree_unchanged "$before" "the go job"
 }
@@ -664,7 +664,7 @@ packaged_binaries() {
 			rc=1
 		fi
 		if grep -E '^[[:space:]]+build[[:space:]]+-tags=' <<<"$info" | grep -qF livetest; then
-			annotate error "livetest in a packaged binary" "runtimes/$r/native/whatsmeow-net was built with -tags livetest (ADR 0029)"
+			annotate error "livetest in a packaged binary" "runtimes/$r/native/whatsmeow-net was built with -tags livetest (ADR 0032)"
 			rc=1
 		fi
 	done
@@ -900,7 +900,7 @@ job_install() { # feed
 	check "install: each native package holds exactly its binaries, its buildTransitive targets, its README and the GPL files" packaged_files
 	check "install: each native package's README and GPL files are the repository's, and COPYING is the GPL-3.0 text (ADR 0016)" packaged_notices
 	check "install: GPL-3.0-only on the native packages, MPL-2.0 on the .NET packages (ADR 0016)" packaged_licences
-	check "install: every packaged binary is a CGO-free -trimpath release build of its target, none with -tags fakewhatsapp or livetest (ADR 0019, 0029)" packaged_binaries
+	check "install: every packaged binary is a CGO-free -trimpath release build of its target, none with -tags fakewhatsapp or livetest (ADR 0019, 0032)" packaged_binaries
 	check "install: the packaged binary refuses --fake-whatsapp" packaged_refuses_fake
 	check "consumer: portable build and dotnet run" install_portable
 	check "consumer: RID-specific framework-dependent publish" install_rid "RID-specific framework-dependent publish" fd -r "$host_rid" --self-contained false

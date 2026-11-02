@@ -10,7 +10,7 @@ import (
 	waevents "go.mau.fi/whatsmeow/types/events"
 )
 
-// WithholdPrefix marks a text message whose first answer the live tests' build withholds (ADR 0029).
+// WithholdPrefix marks a text message whose first answer the live tests' build withholds (ADR 0032).
 const WithholdPrefix = "wmn-withhold "
 
 // withheld is the live tests' seam only: it withholds the answer to the first delivery of each message whose text

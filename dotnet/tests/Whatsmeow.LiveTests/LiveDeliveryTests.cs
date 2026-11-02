@@ -148,7 +148,7 @@ public sealed class LiveDeliveryTests(LiveSidecar live, LiveSender sender)
 	/// <summary>
 	/// How long WhatsApp takes to deliver a message again whose answer was withheld, as a failed outbox write withholds
 	/// it (ARCHITECTURE §7.3) [unknown before this test]: the live seam withholds the first answer to a marked message
-	/// (ADR 0029). The session stays connected for up to ten minutes; if nothing came by then, it reconnects and measures
+	/// (ADR 0032). The session stays connected for up to ten minutes; if nothing came by then, it reconnects and measures
 	/// from Connected. Either way the message must come, with its id.
 	/// </summary>
 	[LiveFact(Timeout = 1_200_000)]

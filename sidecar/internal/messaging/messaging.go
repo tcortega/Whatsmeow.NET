@@ -56,7 +56,7 @@ const tryMargin = time.Second
 
 // clientMessageID is the only id format accepted (clientMessageIDPattern): in a release build the one whatsmeow
 // generates (send.go:41, 47-61). Whether WhatsApp accepts others is unknown, so the rule is strict until it is
-// measured (ADR 0025); the live tests' build loosens it to measure that (livetest_on.go, ADR 0029).
+// measured (ADR 0025); the live tests' build loosens it to measure that (livetest_on.go, ADR 0032).
 var clientMessageID = regexp.MustCompile(clientMessageIDPattern)
 
 // Service implements whatsmeowv1.MessageServiceServer.

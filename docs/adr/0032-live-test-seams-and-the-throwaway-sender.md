@@ -1,4 +1,4 @@
-# 0029. Live test seams and the throwaway sender
+# 0032. Live test seams and the throwaway sender
 
 - Status: Accepted
 - Date: 2026-11-02

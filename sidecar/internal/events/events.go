@@ -36,7 +36,7 @@ type Service struct {
 	// rings are the sessions' ephemeral events (ring.go).
 	rings map[string]*ring
 	// held is the live tests' seam, which withholds the first answer to a marked message; a release build's never
-	// does (livetest_off.go, ADR 0029).
+	// does (livetest_off.go, ADR 0032).
 	held withheld
 }
 

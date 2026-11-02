@@ -12,7 +12,7 @@ namespace Whatsmeow.LiveTests;
 /// send.go:889, 1314-1316) [inferred until the first live run]. It runs in a sidecar process and a database of its
 /// own, so killing the live sidecar never touches it. It is paired by QR code (<c>qr.png</c>) when a test first needs
 /// it, the owner's scan being the consent, and at the end it is logged out, deleted and checked gone, and its database
-/// deleted, also when a test failed (ADR 0029).
+/// deleted, also when a test failed (ADR 0032).
 /// </summary>
 public sealed class LiveSender : IAsyncLifetime
 {
