@@ -73,6 +73,7 @@ Legal review is still [unknown] (ADR 0016); none of these is answered here:
 - How long a GitHub release must stay up to keep the source "available for as long as needed" (GPLv3 §6(d)) is [unknown]; we never delete one.
 - Whether the nuspec's repository URL and commit inform recipients of the .NET packages' Executable Form where the Source Code Form is, as MPL-2.0 §3.2(a) asks, is [unknown].
 - Whether the native packages' licence expression should be `GPL-3.0-only` alone, or an expression that also names the MPL-2.0, MIT, BSD-3-Clause, ISC and Apache-2.0 components bundled in the binary, is [unknown].
+- Whether the opaque libsignal-serialized bytes that `waE2E.SenderKeyDistributionMessage` can carry in the contract matter to ADR 0016's separate-programs reading is [unknown].
 - Whether to publish README text that carries `[inferred]` and `[unknown]` tags at all is the owner's decision.
 
 ## Consequences
