@@ -159,7 +159,7 @@ func TestAMalformedActionIsInvalidAndSendsNothing(t *testing.T) {
 		{reaction(func(r *whatsmeowv1.SendReactionRequest) { r.TargetId = "" }), "target_id"},
 		{reaction(func(r *whatsmeowv1.SendReactionRequest) { r.TargetSender = group }), "target_sender"},
 		{reaction(func(r *whatsmeowv1.SendReactionRequest) { r.TargetSender = "not a jid@" }), "target_sender"},
-		{reaction(func(r *whatsmeowv1.SendReactionRequest) { r.ClientMessageId = "1" }), "client_message_id"},
+		{reaction(func(r *whatsmeowv1.SendReactionRequest) { r.ClientMessageId = "3EB0-0001" }), "client_message_id"},
 		{revoke(func(r *whatsmeowv1.SendRevokeRequest) { r.TargetId = "" }), "target_id"},
 		{revoke(func(r *whatsmeowv1.SendRevokeRequest) { r.TargetSender = group }), "target_sender"},
 		{revoke(func(r *whatsmeowv1.SendRevokeRequest) { r.Chat = "111:2@lid" }), "chat"},

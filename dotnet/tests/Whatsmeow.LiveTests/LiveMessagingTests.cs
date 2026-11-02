@@ -62,8 +62,8 @@ public sealed class LiveMessagingTests(LiveSidecar live, LivePeer peer)
 			}
 		);
 
-		var first = await client.SendTextAsync(account, $"wmn self {id} (one message expected)", id, ct);
-		var repeat = await client.SendTextAsync(account, $"wmn self {id} (one message expected)", id, ct);
+		var first = await client.SendTextAsync(account, $"wmn self {id} (one message expected)", id, cancellationToken: ct);
+		var repeat = await client.SendTextAsync(account, $"wmn self {id} (one message expected)", id, cancellationToken: ct);
 		Assert.Equal(first, repeat);
 		live.Write($"live: sent to self as {first.Chat} (the account's chat {account}), at {first.Timestamp:O}");
 
@@ -109,7 +109,7 @@ public sealed class LiveMessagingTests(LiveSidecar live, LivePeer peer)
 		);
 
 		var started = LiveClock.Time.GetTimestamp();
-		var sent = await client.SendTextAsync(to, text, id, ct);
+		var sent = await client.SendTextAsync(to, text, id, cancellationToken: ct);
 		var message = await arrived.Task.WaitAsync(s_watch, LiveClock.Time, ct);
 		var arrivedAt = LiveClock.Time.GetElapsedTime(started);
 		var receipt = await delivered.Task.WaitAsync(s_watch, LiveClock.Time, ct);
@@ -148,7 +148,7 @@ public sealed class LiveMessagingTests(LiveSidecar live, LivePeer peer)
 
 		try
 		{
-			var result = await client.SendTextAsync(ping.Source.Chat, $"wmn phone-style id {id}", id, ct);
+			var result = await client.SendTextAsync(ping.Source.Chat, $"wmn phone-style id {id}", id, cancellationToken: ct);
 			Assert.Equal(id, result.Id);
 			live.Write($"live: WhatsApp took the phone-style id {id} ({id.Value.Length} characters) at {result.Timestamp:O}");
 		}
