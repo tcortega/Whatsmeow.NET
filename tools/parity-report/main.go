@@ -6,10 +6,12 @@
 //   - excluded: sidecar/parity.excluded gives the reason it is not called;
 //   - missing: neither, which is what a whatsmeow bump that adds a method shows.
 //
-// Coverage is read from the sidecar's code, never from a list: a static call graph (CHA over SSA) from each method
-// that implements a whatsmeow.v1 service, through static calls and interface calls only, and into each closure a
-// function creates, up to the first call into whatsmeow's Client. A call through a function value is not followed: it
-// would credit every closure of that signature to every RPC; the RPC that made the closure gets it instead.
+// Coverage is read from the sidecar's code, never from a list: a static call graph (CHA over SSA) of the release build
+// (no build tags, no tests), walked from each method that implements a whatsmeow.v1 service, then from each main
+// function, through static calls and interface calls only, and into each function a reached function takes as a value
+// (a closure it makes, a method value it hands on), up to the first call into whatsmeow's Client. A call through a
+// function value is not followed: it would credit every closure of that signature to every RPC; the function that took
+// the closure gets it instead. Code main never reaches, such as a package the build does not link, credits nothing.
 //
 // It never fails on a missing method; build/ci.sh shows the report and never fails the build on it. Run it from the
 // tools module: go -C tools run ./parity-report.
@@ -19,7 +21,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"go/constant"
 	"go/token"
 	"go/types"
 	"io"
@@ -30,8 +31,6 @@ import (
 	"slices"
 	"strings"
 
-	"golang.org/x/tools/go/callgraph"
-	"golang.org/x/tools/go/callgraph/cha"
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/go/ssa"
 	"golang.org/x/tools/go/ssa/ssautil"
@@ -42,6 +41,7 @@ import (
 const (
 	modulePath   = "go.mau.fi/whatsmeow"
 	contractDir  = "gen/whatsmeow/v1"
+	protoPackage = "whatsmeow.v1"
 	excludedName = "parity.excluded"
 )
 
@@ -142,13 +142,16 @@ func parseExcluded(raw []byte) (map[string]string, error) {
 
 // sidecar is the sidecar's release build as SSA, and the whatsmeow it links.
 type sidecar struct {
-	prog             *ssa.Program
-	module           string
+	prog   *ssa.Program
+	module string
+	client *types.Pointer
+	// types is every type the sidecar declares, and its pointer: what an interface call may reach.
+	types            []types.Type
 	whatsmeowDir     string
 	whatsmeowVersion string
 }
 
-// load type-checks every package of the sidecar module, without build tags: the release build.
+// load type-checks the sidecar module's packages as the release build links them: no build tags and no tests.
 func load(ctx context.Context, dir string) (sidecar, error) {
 	cfg := &packages.Config{Context: ctx, Dir: dir, Mode: packages.LoadAllSyntax | packages.NeedModule}
 
@@ -159,7 +162,7 @@ func load(ctx context.Context, dir string) (sidecar, error) {
 
 	var (
 		errs     []error
-		upstream *packages.Module
+		upstream *packages.Package
 	)
 
 	packages.Visit(pkgs, nil, func(pkg *packages.Package) {
@@ -168,7 +171,7 @@ func load(ctx context.Context, dir string) (sidecar, error) {
 		}
 
 		if pkg.PkgPath == modulePath {
-			upstream = pkg.Module
+			upstream = pkg
 		}
 	})
 
@@ -176,19 +179,35 @@ func load(ctx context.Context, dir string) (sidecar, error) {
 		return sidecar{}, fmt.Errorf("load the sidecar: %w", errors.Join(errs...))
 	}
 
-	if len(pkgs) == 0 || pkgs[0].Module == nil || upstream == nil {
-		return sidecar{}, fmt.Errorf("load the sidecar: no module, or no %s in its build", modulePath)
-	}
-
-	whatsmeowDir := upstream.Dir
-	if upstream.Replace != nil && upstream.Replace.Dir != "" {
-		whatsmeowDir = upstream.Replace.Dir
+	if len(pkgs) == 0 || pkgs[0].Module == nil || upstream == nil || upstream.Types.Scope().Lookup("Client") == nil {
+		return sidecar{}, fmt.Errorf("load the sidecar: no module, or no %s.Client in its build", modulePath)
 	}
 
 	prog, _ := ssautil.AllPackages(pkgs, ssa.InstantiateGenerics)
 	prog.Build()
 
-	return sidecar{prog: prog, module: pkgs[0].Module.Path, whatsmeowDir: whatsmeowDir, whatsmeowVersion: upstream.Version}, nil
+	var declared []types.Type
+
+	module := pkgs[0].Module.Path
+	for _, pkg := range prog.AllPackages() {
+		for _, member := range pkg.Members {
+			typ, ok := member.(*ssa.Type)
+			// An interface type implements an interface too, with no method of its own to reach; whatsmeow's own types
+			// are not the sidecar's code.
+			if ok && !types.IsInterface(typ.Type()) && (pkg.Pkg.Path() == module || strings.HasPrefix(pkg.Pkg.Path(), module+"/")) {
+				declared = append(declared, typ.Type(), types.NewPointer(typ.Type()))
+			}
+		}
+	}
+
+	return sidecar{
+		prog:             prog,
+		module:           module,
+		client:           types.NewPointer(upstream.Types.Scope().Lookup("Client").Type()),
+		types:            declared,
+		whatsmeowDir:     upstream.Module.Dir,
+		whatsmeowVersion: upstream.Module.Version,
+	}, nil
 }
 
 // covered is what reaches one Client method: the RPCs, else the sidecar functions that call it.
@@ -197,15 +216,14 @@ type covered struct {
 	callers map[string]bool
 }
 
+// coverage walks from each RPC, then from each main function for what no RPC reaches.
 func coverage(side sidecar) (map[string]*covered, error) {
 	rpcs, err := roots(side)
 	if err != nil {
 		return nil, err
 	}
 
-	graph := cha.CallGraph(side.prog)
 	found := map[string]*covered{}
-	reached := map[*ssa.Function]bool{}
 
 	at := func(name string) *covered {
 		if found[name] == nil {
@@ -215,57 +233,73 @@ func coverage(side sidecar) (map[string]*covered, error) {
 		return found[name]
 	}
 
-	for _, fn := range slices.SortedFunc(maps.Keys(rpcs), func(a, b *ssa.Function) int { return strings.Compare(a.String(), b.String()) }) {
-		rpc := rpcs[fn]
-		seen := map[*ssa.Function]bool{}
-
-		var walk func(fn *ssa.Function)
-
-		walk = func(fn *ssa.Function) {
-			if seen[fn] || graph.Nodes[fn] == nil {
-				return
-			}
-
-			seen[fn] = true
-			reached[fn] = true
-
-			for _, anon := range fn.AnonFuncs {
-				walk(anon)
-			}
-
-			for _, edge := range graph.Nodes[fn].Out {
-				if !followed(edge) {
-					continue
-				}
-
-				if name, ok := clientMethod(edge.Callee.Func); ok {
-					at(name).rpcs[rpc] = true
-
-					continue
-				}
-
-				if side.owns(edge.Callee.Func) {
-					walk(edge.Callee.Func)
-				}
-			}
-		}
-
-		walk(fn)
+	for fn, rpc := range rpcs {
+		side.walk(fn, func(_ *ssa.Function, name string) { at(name).rpcs[rpc] = true })
 	}
 
-	for fn, node := range graph.Nodes {
-		if fn == nil || reached[fn] || !side.owns(fn) {
-			continue
-		}
-
-		for _, edge := range node.Out {
-			if name, ok := clientMethod(edge.Callee.Func); ok && followed(edge) {
-				at(name).callers[side.short(fn)] = true
-			}
+	for _, pkg := range side.prog.AllPackages() {
+		if side.ownsPath(pkg.Pkg.Path()) && pkg.Pkg.Name() == "main" {
+			side.walk(pkg.Func("main"), func(caller *ssa.Function, name string) { at(name).callers[side.short(caller)] = true })
 		}
 	}
 
 	return found, nil
+}
+
+// walk visits each Client method the sidecar's code reachable from a function calls or takes as a value. It follows
+// each function a reached function calls statically or takes as a value (a closure it makes, a method value it hands
+// on, since what it hands over is called later), and each interface call to every type of the sidecar that
+// implements the interface, as CHA does, and to whatsmeow's Client when it does. A call through a function value is
+// not followed: it would reach every function of that signature, crediting every closure to every RPC.
+func (s sidecar) walk(root *ssa.Function, visit func(caller *ssa.Function, method string)) {
+	seen := map[*ssa.Function]bool{}
+	next := []*ssa.Function{root}
+
+	for len(next) > 0 {
+		fn := next[len(next)-1]
+		next = next[:len(next)-1]
+
+		if seen[fn] {
+			continue
+		}
+
+		seen[fn] = true
+
+		for _, block := range fn.Blocks {
+			for _, instr := range block.Instrs {
+				for _, op := range instr.Operands(nil) {
+					value, ok := (*op).(*ssa.Function)
+
+					switch {
+					case !ok:
+					case s.clientMethod(value):
+						visit(fn, top(value).Object().Name())
+					case s.owns(value):
+						next = append(next, value)
+					}
+				}
+
+				call, ok := instr.(ssa.CallInstruction)
+				if !ok || !call.Common().IsInvoke() {
+					continue
+				}
+
+				method := call.Common().Method
+				// An invoke's value is an interface.
+				iface := call.Common().Value.Type().Underlying().(*types.Interface)
+
+				if types.Implements(s.client, iface) {
+					visit(fn, method.Name())
+				}
+
+				for _, typ := range s.types {
+					if types.Implements(typ, iface) {
+						next = append(next, s.prog.MethodValue(s.prog.MethodSets.MethodSet(typ).Lookup(method.Pkg(), method.Name())))
+					}
+				}
+			}
+		}
+	}
 }
 
 // roots maps each method that implements an RPC of the generated whatsmeow.v1 services to the RPC's full name.
@@ -279,44 +313,26 @@ func roots(side sidecar) (map[*ssa.Function]string, error) {
 	found := map[*ssa.Function]string{}
 
 	for _, name := range scope.Names() {
-		service, ok := strings.CutSuffix(name, "Server")
-		if !ok || strings.HasPrefix(name, "Unsafe") {
-			continue
-		}
-
+		// A service's server interface; its client interface is implemented by the generated client only.
 		iface, ok := scope.Lookup(name).Type().Underlying().(*types.Interface)
 		if !ok {
 			continue
 		}
 
-		for _, impl := range side.prog.AllPackages() {
-			if !side.ownsPackage(impl) {
-				continue
-			}
+		service := strings.TrimSuffix(name, "Server")
 
+		for _, impl := range side.prog.AllPackages() {
 			for _, member := range impl.Members {
 				typ, ok := member.(*ssa.Type)
-				if !ok || types.IsInterface(typ.Type()) {
+				if !ok || !types.Implements(types.NewPointer(typ.Type()), iface) {
 					continue
 				}
 
 				ptr := types.NewPointer(typ.Type())
-				if !types.Implements(ptr, iface) {
-					continue
-				}
 
 				for method := range iface.Methods() {
-					if !method.Exported() {
-						continue
-					}
-
 					sel := side.prog.MethodSets.MethodSet(ptr).Lookup(method.Pkg(), method.Name())
-					// A method promoted from an embedded field is the Unimplemented one, which reaches nothing.
-					if sel == nil || len(sel.Index()) > 1 {
-						continue
-					}
-
-					found[side.prog.MethodValue(sel)] = fullName(scope, service, method.Name())
+					found[side.prog.MethodValue(sel)] = protoPackage + "." + service + "/" + method.Name()
 				}
 			}
 		}
@@ -325,66 +341,40 @@ func roots(side sidecar) (map[*ssa.Function]string, error) {
 	return found, nil
 }
 
-// fullName is protoc-gen-go-grpc's `<Service>_<Method>_FullMethodName`, without its leading slash.
-func fullName(scope *types.Scope, service, method string) string {
-	if c, ok := scope.Lookup(service + "_" + method + "_FullMethodName").(*types.Const); ok && c.Val().Kind() == constant.String {
-		return strings.TrimPrefix(constant.StringVal(c.Val()), "/")
-	}
-
-	return service + "/" + method
+func (s sidecar) ownsPath(path string) bool {
+	return path == s.module || strings.HasPrefix(path, s.module+"/")
 }
 
-// followed is whether an edge is a static call or an interface call: a call through a function value is not.
-func followed(edge *callgraph.Edge) bool {
-	if edge.Site == nil {
-		return false
+// top is the named function a closure is in, or the function itself.
+func top(fn *ssa.Function) *ssa.Function {
+	for fn.Parent() != nil {
+		fn = fn.Parent()
 	}
 
-	common := edge.Site.Common()
-
-	return common.StaticCallee() != nil || common.IsInvoke()
+	return fn
 }
 
-// clientMethod is the name of an exported method of whatsmeow's Client.
-func clientMethod(fn *ssa.Function) (string, bool) {
-	recv := fn.Signature.Recv()
-	if recv == nil || !token.IsExported(fn.Name()) {
-		return "", false
-	}
+// clientMethod is whether a function is a method of whatsmeow's Client, or a method value of one.
+func (s sidecar) clientMethod(fn *ssa.Function) bool {
+	obj, ok := top(fn).Object().(*types.Func)
 
-	typ := recv.Type()
-	if ptr, ok := typ.(*types.Pointer); ok {
-		typ = ptr.Elem()
-	}
-
-	named, ok := typ.(*types.Named)
-	if !ok || named.Obj().Pkg() == nil || named.Obj().Pkg().Path() != modulePath || named.Obj().Name() != "Client" {
-		return "", false
-	}
-
-	return fn.Name(), true
+	return ok && obj.Signature().Recv() != nil && types.Identical(obj.Signature().Recv().Type(), s.client)
 }
 
-func (s sidecar) ownsPackage(pkg *ssa.Package) bool {
-	return pkg != nil && (pkg.Pkg.Path() == s.module || strings.HasPrefix(pkg.Pkg.Path(), s.module+"/"))
-}
-
-// owns is whether a function is the sidecar's own code; a generic one's instance is its origin's.
+// owns is whether a function is the sidecar's own code: by the declaration it comes from, so a generic function's
+// instance and a method value's wrapper are their declaration's.
 func (s sidecar) owns(fn *ssa.Function) bool {
-	if fn.Pkg == nil && fn.Origin() != nil {
-		fn = fn.Origin()
-	}
+	obj := top(fn).Object()
 
-	return s.ownsPackage(fn.Pkg)
+	// A method value of a universe method, such as error's, has no package.
+	return obj.Pkg() != nil && s.ownsPath(obj.Pkg().Path())
 }
 
 // short is a function as `package.(*Type).method`.
 func (s sidecar) short(fn *ssa.Function) string {
-	if fn.Pkg == nil && fn.Origin() != nil {
-		fn = fn.Origin()
-	}
+	pkg := top(fn).Object().Pkg()
 
-	return fn.Pkg.Pkg.Name() + "." + fn.RelString(fn.Pkg.Pkg)
+	return pkg.Name() + "." + fn.RelString(pkg)
 }
 
 // write is the report: a summary line, then a table per whatsmeow file, then the exclusions to update.
