@@ -19,18 +19,21 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	GroupService_ListGroups_FullMethodName         = "/whatsmeow.v1.GroupService/ListGroups"
-	GroupService_GetGroup_FullMethodName           = "/whatsmeow.v1.GroupService/GetGroup"
-	GroupService_CreateGroup_FullMethodName        = "/whatsmeow.v1.GroupService/CreateGroup"
-	GroupService_UpdateParticipants_FullMethodName = "/whatsmeow.v1.GroupService/UpdateParticipants"
-	GroupService_SetGroupName_FullMethodName       = "/whatsmeow.v1.GroupService/SetGroupName"
-	GroupService_SetGroupTopic_FullMethodName      = "/whatsmeow.v1.GroupService/SetGroupTopic"
-	GroupService_SetGroupAnnounce_FullMethodName   = "/whatsmeow.v1.GroupService/SetGroupAnnounce"
-	GroupService_SetGroupLocked_FullMethodName     = "/whatsmeow.v1.GroupService/SetGroupLocked"
-	GroupService_GetInviteLink_FullMethodName      = "/whatsmeow.v1.GroupService/GetInviteLink"
-	GroupService_ResetInviteLink_FullMethodName    = "/whatsmeow.v1.GroupService/ResetInviteLink"
-	GroupService_JoinGroupWithLink_FullMethodName  = "/whatsmeow.v1.GroupService/JoinGroupWithLink"
-	GroupService_LeaveGroup_FullMethodName         = "/whatsmeow.v1.GroupService/LeaveGroup"
+	GroupService_ListGroups_FullMethodName                = "/whatsmeow.v1.GroupService/ListGroups"
+	GroupService_GetGroup_FullMethodName                  = "/whatsmeow.v1.GroupService/GetGroup"
+	GroupService_CreateGroup_FullMethodName               = "/whatsmeow.v1.GroupService/CreateGroup"
+	GroupService_UpdateParticipants_FullMethodName        = "/whatsmeow.v1.GroupService/UpdateParticipants"
+	GroupService_SetGroupName_FullMethodName              = "/whatsmeow.v1.GroupService/SetGroupName"
+	GroupService_SetGroupTopic_FullMethodName             = "/whatsmeow.v1.GroupService/SetGroupTopic"
+	GroupService_SetGroupAnnounce_FullMethodName          = "/whatsmeow.v1.GroupService/SetGroupAnnounce"
+	GroupService_SetGroupLocked_FullMethodName            = "/whatsmeow.v1.GroupService/SetGroupLocked"
+	GroupService_SetGroupMemberAddMode_FullMethodName     = "/whatsmeow.v1.GroupService/SetGroupMemberAddMode"
+	GroupService_SetGroupDisappearingTimer_FullMethodName = "/whatsmeow.v1.GroupService/SetGroupDisappearingTimer"
+	GroupService_GetInviteLink_FullMethodName             = "/whatsmeow.v1.GroupService/GetInviteLink"
+	GroupService_ResetInviteLink_FullMethodName           = "/whatsmeow.v1.GroupService/ResetInviteLink"
+	GroupService_JoinGroupWithLink_FullMethodName         = "/whatsmeow.v1.GroupService/JoinGroupWithLink"
+	GroupService_GetGroupInfoFromLink_FullMethodName      = "/whatsmeow.v1.GroupService/GetGroupInfoFromLink"
+	GroupService_LeaveGroup_FullMethodName                = "/whatsmeow.v1.GroupService/LeaveGroup"
 )
 
 // GroupServiceClient is the client API for GroupService service.
@@ -86,6 +89,18 @@ type GroupServiceClient interface {
 	// SetGroupLocked sets whether only admins can change the group's info.
 	// Errors: as CreateGroup; INVALID_ARGUMENT (field "group").
 	SetGroupLocked(ctx context.Context, in *SetGroupLockedRequest, opts ...grpc.CallOption) (*SetGroupLockedResponse, error)
+	// SetGroupMemberAddMode sets who can add participants: only admins, or every member. Members get a GroupEvent with
+	// the change.
+	// Errors: as CreateGroup; INVALID_ARGUMENT (field "group", or "mode" for an unspecified one).
+	SetGroupMemberAddMode(ctx context.Context, in *SetGroupMemberAddModeRequest, opts ...grpc.CallOption) (*SetGroupMemberAddModeResponse, error)
+	// SetGroupDisappearingTimer sets how long the group's new messages last, or turns disappearing messages off with a
+	// zero timer; members get a GroupEvent with the change. The timer is one WhatsApp's phones offer: 24 hours, 7 days or
+	// 90 days, or zero; whether WhatsApp accepts others is [unknown], so any other is INVALID_ARGUMENT and nothing is
+	// asked. The session's later messages do not carry the timer: whatsmeow sets none on a send [observed: whatsmeow
+	// send.go], so a message that should disappear sets its own (SendMessage, ContextInfo.expiration). A direct chat's
+	// timer is a message instead, MessageService.SendDisappearingTimer.
+	// Errors: as CreateGroup; INVALID_ARGUMENT (field "group", or "timer").
+	SetGroupDisappearingTimer(ctx context.Context, in *SetGroupDisappearingTimerRequest, opts ...grpc.CallOption) (*SetGroupDisappearingTimerResponse, error)
 	// GetInviteLink reads the group's invite link.
 	// Errors: as GetGroup.
 	GetInviteLink(ctx context.Context, in *GetInviteLinkRequest, opts ...grpc.CallOption) (*GetInviteLinkResponse, error)
@@ -96,6 +111,11 @@ type GroupServiceClient interface {
 	// the group too, while the session only asked to join and is not a member yet.
 	// Errors: as CreateGroup; INVALID_ARGUMENT (field "link" for an empty one), INVITE_LINK_INVALID.
 	JoinGroupWithLink(ctx context.Context, in *JoinGroupWithLinkRequest, opts ...grpc.CallOption) (*JoinGroupWithLinkResponse, error)
+	// GetGroupInfoFromLink reads the group of an invite link, as WhatsApp shows it to someone who is not a member, without
+	// joining it. Which participants WhatsApp lists for a non-member, and in which address form, is [unknown]. A link
+	// WhatsApp does not accept fails as JoinGroupWithLink fails with it.
+	// Errors: as GetGroup but INVALID_ARGUMENT (field "link" for an empty one); INVITE_LINK_INVALID.
+	GetGroupInfoFromLink(ctx context.Context, in *GetGroupInfoFromLinkRequest, opts ...grpc.CallOption) (*GetGroupInfoFromLinkResponse, error)
 	// LeaveGroup leaves the group.
 	// Errors: as CreateGroup; INVALID_ARGUMENT (field "group").
 	LeaveGroup(ctx context.Context, in *LeaveGroupRequest, opts ...grpc.CallOption) (*LeaveGroupResponse, error)
@@ -189,6 +209,26 @@ func (c *groupServiceClient) SetGroupLocked(ctx context.Context, in *SetGroupLoc
 	return out, nil
 }
 
+func (c *groupServiceClient) SetGroupMemberAddMode(ctx context.Context, in *SetGroupMemberAddModeRequest, opts ...grpc.CallOption) (*SetGroupMemberAddModeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetGroupMemberAddModeResponse)
+	err := c.cc.Invoke(ctx, GroupService_SetGroupMemberAddMode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *groupServiceClient) SetGroupDisappearingTimer(ctx context.Context, in *SetGroupDisappearingTimerRequest, opts ...grpc.CallOption) (*SetGroupDisappearingTimerResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetGroupDisappearingTimerResponse)
+	err := c.cc.Invoke(ctx, GroupService_SetGroupDisappearingTimer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *groupServiceClient) GetInviteLink(ctx context.Context, in *GetInviteLinkRequest, opts ...grpc.CallOption) (*GetInviteLinkResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetInviteLinkResponse)
@@ -213,6 +253,16 @@ func (c *groupServiceClient) JoinGroupWithLink(ctx context.Context, in *JoinGrou
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(JoinGroupWithLinkResponse)
 	err := c.cc.Invoke(ctx, GroupService_JoinGroupWithLink_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *groupServiceClient) GetGroupInfoFromLink(ctx context.Context, in *GetGroupInfoFromLinkRequest, opts ...grpc.CallOption) (*GetGroupInfoFromLinkResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetGroupInfoFromLinkResponse)
+	err := c.cc.Invoke(ctx, GroupService_GetGroupInfoFromLink_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -282,6 +332,18 @@ type GroupServiceServer interface {
 	// SetGroupLocked sets whether only admins can change the group's info.
 	// Errors: as CreateGroup; INVALID_ARGUMENT (field "group").
 	SetGroupLocked(context.Context, *SetGroupLockedRequest) (*SetGroupLockedResponse, error)
+	// SetGroupMemberAddMode sets who can add participants: only admins, or every member. Members get a GroupEvent with
+	// the change.
+	// Errors: as CreateGroup; INVALID_ARGUMENT (field "group", or "mode" for an unspecified one).
+	SetGroupMemberAddMode(context.Context, *SetGroupMemberAddModeRequest) (*SetGroupMemberAddModeResponse, error)
+	// SetGroupDisappearingTimer sets how long the group's new messages last, or turns disappearing messages off with a
+	// zero timer; members get a GroupEvent with the change. The timer is one WhatsApp's phones offer: 24 hours, 7 days or
+	// 90 days, or zero; whether WhatsApp accepts others is [unknown], so any other is INVALID_ARGUMENT and nothing is
+	// asked. The session's later messages do not carry the timer: whatsmeow sets none on a send [observed: whatsmeow
+	// send.go], so a message that should disappear sets its own (SendMessage, ContextInfo.expiration). A direct chat's
+	// timer is a message instead, MessageService.SendDisappearingTimer.
+	// Errors: as CreateGroup; INVALID_ARGUMENT (field "group", or "timer").
+	SetGroupDisappearingTimer(context.Context, *SetGroupDisappearingTimerRequest) (*SetGroupDisappearingTimerResponse, error)
 	// GetInviteLink reads the group's invite link.
 	// Errors: as GetGroup.
 	GetInviteLink(context.Context, *GetInviteLinkRequest) (*GetInviteLinkResponse, error)
@@ -292,6 +354,11 @@ type GroupServiceServer interface {
 	// the group too, while the session only asked to join and is not a member yet.
 	// Errors: as CreateGroup; INVALID_ARGUMENT (field "link" for an empty one), INVITE_LINK_INVALID.
 	JoinGroupWithLink(context.Context, *JoinGroupWithLinkRequest) (*JoinGroupWithLinkResponse, error)
+	// GetGroupInfoFromLink reads the group of an invite link, as WhatsApp shows it to someone who is not a member, without
+	// joining it. Which participants WhatsApp lists for a non-member, and in which address form, is [unknown]. A link
+	// WhatsApp does not accept fails as JoinGroupWithLink fails with it.
+	// Errors: as GetGroup but INVALID_ARGUMENT (field "link" for an empty one); INVITE_LINK_INVALID.
+	GetGroupInfoFromLink(context.Context, *GetGroupInfoFromLinkRequest) (*GetGroupInfoFromLinkResponse, error)
 	// LeaveGroup leaves the group.
 	// Errors: as CreateGroup; INVALID_ARGUMENT (field "group").
 	LeaveGroup(context.Context, *LeaveGroupRequest) (*LeaveGroupResponse, error)
@@ -329,6 +396,12 @@ func (UnimplementedGroupServiceServer) SetGroupAnnounce(context.Context, *SetGro
 func (UnimplementedGroupServiceServer) SetGroupLocked(context.Context, *SetGroupLockedRequest) (*SetGroupLockedResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetGroupLocked not implemented")
 }
+func (UnimplementedGroupServiceServer) SetGroupMemberAddMode(context.Context, *SetGroupMemberAddModeRequest) (*SetGroupMemberAddModeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetGroupMemberAddMode not implemented")
+}
+func (UnimplementedGroupServiceServer) SetGroupDisappearingTimer(context.Context, *SetGroupDisappearingTimerRequest) (*SetGroupDisappearingTimerResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetGroupDisappearingTimer not implemented")
+}
 func (UnimplementedGroupServiceServer) GetInviteLink(context.Context, *GetInviteLinkRequest) (*GetInviteLinkResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetInviteLink not implemented")
 }
@@ -337,6 +410,9 @@ func (UnimplementedGroupServiceServer) ResetInviteLink(context.Context, *ResetIn
 }
 func (UnimplementedGroupServiceServer) JoinGroupWithLink(context.Context, *JoinGroupWithLinkRequest) (*JoinGroupWithLinkResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method JoinGroupWithLink not implemented")
+}
+func (UnimplementedGroupServiceServer) GetGroupInfoFromLink(context.Context, *GetGroupInfoFromLinkRequest) (*GetGroupInfoFromLinkResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetGroupInfoFromLink not implemented")
 }
 func (UnimplementedGroupServiceServer) LeaveGroup(context.Context, *LeaveGroupRequest) (*LeaveGroupResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method LeaveGroup not implemented")
@@ -506,6 +582,42 @@ func _GroupService_SetGroupLocked_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GroupService_SetGroupMemberAddMode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetGroupMemberAddModeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GroupServiceServer).SetGroupMemberAddMode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GroupService_SetGroupMemberAddMode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GroupServiceServer).SetGroupMemberAddMode(ctx, req.(*SetGroupMemberAddModeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GroupService_SetGroupDisappearingTimer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetGroupDisappearingTimerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GroupServiceServer).SetGroupDisappearingTimer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GroupService_SetGroupDisappearingTimer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GroupServiceServer).SetGroupDisappearingTimer(ctx, req.(*SetGroupDisappearingTimerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _GroupService_GetInviteLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetInviteLinkRequest)
 	if err := dec(in); err != nil {
@@ -556,6 +668,24 @@ func _GroupService_JoinGroupWithLink_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GroupServiceServer).JoinGroupWithLink(ctx, req.(*JoinGroupWithLinkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GroupService_GetGroupInfoFromLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGroupInfoFromLinkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GroupServiceServer).GetGroupInfoFromLink(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GroupService_GetGroupInfoFromLink_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GroupServiceServer).GetGroupInfoFromLink(ctx, req.(*GetGroupInfoFromLinkRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -618,6 +748,14 @@ var GroupService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _GroupService_SetGroupLocked_Handler,
 		},
 		{
+			MethodName: "SetGroupMemberAddMode",
+			Handler:    _GroupService_SetGroupMemberAddMode_Handler,
+		},
+		{
+			MethodName: "SetGroupDisappearingTimer",
+			Handler:    _GroupService_SetGroupDisappearingTimer_Handler,
+		},
+		{
 			MethodName: "GetInviteLink",
 			Handler:    _GroupService_GetInviteLink_Handler,
 		},
@@ -628,6 +766,10 @@ var GroupService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "JoinGroupWithLink",
 			Handler:    _GroupService_JoinGroupWithLink_Handler,
+		},
+		{
+			MethodName: "GetGroupInfoFromLink",
+			Handler:    _GroupService_GetGroupInfoFromLink_Handler,
 		},
 		{
 			MethodName: "LeaveGroup",

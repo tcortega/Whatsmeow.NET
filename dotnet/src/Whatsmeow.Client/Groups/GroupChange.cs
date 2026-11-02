@@ -39,6 +39,24 @@ public abstract record GroupChange
 		public required bool IsLocked { get; init; }
 	}
 
+	/// <summary>Who can add participants changed.</summary>
+	public sealed record MemberAddModeChanged : GroupChange
+	{
+		/// <summary>The new mode.</summary>
+		public required GroupMemberAddMode Mode { get; init; }
+	}
+
+	/// <summary>
+	/// The disappearing messages timer changed. The session's later messages do not carry it: the library sets no
+	/// timer on a send, so a message that should disappear sets its own (<see cref="IWhatsAppClient.SendRawAsync"/>,
+	/// <c>ContextInfo.Expiration</c>).
+	/// </summary>
+	public sealed record DisappearingTimerChanged : GroupChange
+	{
+		/// <summary>How long new messages last; <see cref="TimeSpan.Zero"/> when disappearing messages were turned off.</summary>
+		public required TimeSpan Timer { get; init; }
+	}
+
 	/// <summary>A user joined or was added.</summary>
 	public sealed record ParticipantJoined : GroupChange
 	{

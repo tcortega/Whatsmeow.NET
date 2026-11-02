@@ -37,6 +37,10 @@ internal static class ContentMapping
 				Target = key,
 				Content = ToContent(edited, viewOnce: false, target: null, pollVote: null),
 			},
+			({ ProtocolMessage: { HasType: true, Type: ProtocolType.EphemeralSetting } setting }, _) => new DisappearingTimerContent
+			{
+				Timer = TimeSpan.FromSeconds(setting.EphemeralExpiration),
+			},
 			({ PollUpdateMessage: not null }, { } key) => ToVote(key, pollVote),
 			// A history poll's vote carries no message: history has it decrypted on its poll (ADR 0047).
 			(null, { } key) when pollVote is not null => ToVote(key, pollVote),

@@ -45,8 +45,8 @@ func Event(_ string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) 
 	return "", &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_Group{Group: event}}, true
 }
 
-// changesOf is the contract's changes of e, in the contract's order. Ephemeral, approval mode, link, unlink, invite
-// link, delete and suspension changes have no case and are left out.
+// changesOf is the contract's changes of e, in the contract's order. Approval mode, link, unlink, invite link, delete
+// and suspension changes have no case and are left out.
 func changesOf(e *events.GroupInfo) []*whatsmeowv1.GroupChange {
 	var changes []*whatsmeowv1.GroupChange
 
@@ -67,6 +67,24 @@ func changesOf(e *events.GroupInfo) []*whatsmeowv1.GroupChange {
 
 	if e.Locked != nil {
 		add(&whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_LockedChanged_{LockedChanged: &whatsmeowv1.GroupChange_LockedChanged{Locked: e.Locked.IsLocked}}})
+	}
+
+	// whatsmeow has no case for a member_add_mode child and keeps it in UnknownChanges as it came (group.go:1006-1007);
+	// its content is the mode, as in the IQ that sets it and in a group's info (group.go:785-787,
+	// 1084-1097) [inferred: WhatsApp's notification names and fills it the same way]. A mode the contract does not have
+	// is left out.
+	for _, node := range e.UnknownChanges {
+		content, _ := node.Content.([]byte)
+		if mode := addMode(types.GroupMemberAddMode(content)); node.Tag == "member_add_mode" && mode != whatsmeowv1.GroupMemberAddMode_GROUP_MEMBER_ADD_MODE_UNSPECIFIED {
+			add(&whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_MemberAddModeChanged_{MemberAddModeChanged: &whatsmeowv1.GroupChange_MemberAddModeChanged{Mode: mode}}})
+
+			break
+		}
+	}
+
+	if e.Ephemeral != nil {
+		// not_ephemeral leaves the timer zero (group.go:963-970).
+		add(&whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_DisappearingTimerChanged_{DisappearingTimerChanged: &whatsmeowv1.GroupChange_DisappearingTimerChanged{Timer: timer(e.Ephemeral.DisappearingTimer)}}})
 	}
 
 	if len(e.Join) > 0 {

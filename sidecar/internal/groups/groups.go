@@ -12,10 +12,12 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"time"
 
 	"go.mau.fi/whatsmeow"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
@@ -41,6 +43,9 @@ type Client interface {
 	GetGroupInviteLink(ctx context.Context, jid types.JID, reset bool) (string, error)
 	JoinGroupWithLink(ctx context.Context, code string) (types.JID, error)
 	LeaveGroup(ctx context.Context, jid types.JID) error
+	SetGroupMemberAddMode(ctx context.Context, jid types.JID, mode types.GroupMemberAddMode) error
+	SetDisappearingTimer(ctx context.Context, chat types.JID, timer time.Duration, settingTS time.Time) error
+	GetGroupInfoFromLink(ctx context.Context, code string) (*types.GroupInfo, error)
 }
 
 var _ Client = (*whatsmeow.Client)(nil)
@@ -296,6 +301,69 @@ func (svc *Service) SetGroupLocked(ctx context.Context, req *whatsmeowv1.SetGrou
 	return &whatsmeowv1.SetGroupLockedResponse{}, nil
 }
 
+// addModes are the contract's member add modes as whatsmeow's (types/group.go:13-18).
+var addModes = map[whatsmeowv1.GroupMemberAddMode]types.GroupMemberAddMode{ //nolint:gochecknoglobals // a read-only table
+	whatsmeowv1.GroupMemberAddMode_GROUP_MEMBER_ADD_MODE_ADMINS:      types.GroupMemberAddModeAdmin,
+	whatsmeowv1.GroupMemberAddMode_GROUP_MEMBER_ADD_MODE_ALL_MEMBERS: types.GroupMemberAddModeAllMember,
+}
+
+// SetGroupMemberAddMode sets who can add participants (group.proto).
+func (svc *Service) SetGroupMemberAddMode(ctx context.Context, req *whatsmeowv1.SetGroupMemberAddModeRequest) (*whatsmeowv1.SetGroupMemberAddModeResponse, error) {
+	if err := checkSession(req.GetSessionId()); err != nil {
+		return nil, err
+	}
+
+	jid, err := groupJID(req.GetGroup())
+	if err != nil {
+		return nil, err
+	}
+
+	mode, ok := addModes[req.GetMode()]
+	if !ok {
+		return nil, fmt.Errorf("set a group's member add mode: %w", server.InvalidArgument("mode", "admins or all members"))
+	}
+
+	client, err := svc.client(req.GetSessionId())
+	if err != nil {
+		return nil, err
+	}
+
+	if err := client.SetGroupMemberAddMode(ctx, jid, mode); err != nil {
+		return nil, classify("set a group's member add mode", err, true)
+	}
+
+	return &whatsmeowv1.SetGroupMemberAddModeResponse{}, nil
+}
+
+// SetGroupDisappearingTimer sets or turns off a group's disappearing messages timer (group.proto). whatsmeow sends a
+// group's as an IQ, which takes no setting time (send.go:679-691).
+func (svc *Service) SetGroupDisappearingTimer(ctx context.Context, req *whatsmeowv1.SetGroupDisappearingTimerRequest) (*whatsmeowv1.SetGroupDisappearingTimerResponse, error) {
+	if err := checkSession(req.GetSessionId()); err != nil {
+		return nil, err
+	}
+
+	jid, err := groupJID(req.GetGroup())
+	if err != nil {
+		return nil, err
+	}
+
+	timer, err := server.DisappearingTimer("timer", req.GetTimer())
+	if err != nil {
+		return nil, fmt.Errorf("set a group's disappearing timer: %w", err)
+	}
+
+	client, err := svc.client(req.GetSessionId())
+	if err != nil {
+		return nil, err
+	}
+
+	if err := client.SetDisappearingTimer(ctx, jid, timer, time.Time{}); err != nil {
+		return nil, classify("set a group's disappearing timer", err, true)
+	}
+
+	return &whatsmeowv1.SetGroupDisappearingTimerResponse{}, nil
+}
+
 // GetInviteLink reads a group's invite link (group.proto).
 func (svc *Service) GetInviteLink(ctx context.Context, req *whatsmeowv1.GetInviteLinkRequest) (*whatsmeowv1.GetInviteLinkResponse, error) {
 	client, jid, err := svc.clientFor(req.GetSessionId(), req.GetGroup())
@@ -355,6 +423,31 @@ func (svc *Service) JoinGroupWithLink(ctx context.Context, req *whatsmeowv1.Join
 	}
 
 	return &whatsmeowv1.JoinGroupWithLinkResponse{Group: text(jid)}, nil
+}
+
+// GetGroupInfoFromLink reads the group of an invite link without joining it: an IQ get, where the join is a set
+// (group.go:488-536) (group.proto).
+func (svc *Service) GetGroupInfoFromLink(ctx context.Context, req *whatsmeowv1.GetGroupInfoFromLinkRequest) (*whatsmeowv1.GetGroupInfoFromLinkResponse, error) {
+	if err := checkSession(req.GetSessionId()); err != nil {
+		return nil, err
+	}
+
+	if req.GetLink() == "" {
+		return nil, fmt.Errorf("read a link's group: %w", server.InvalidArgument("link", "empty"))
+	}
+
+	client, err := svc.client(req.GetSessionId())
+	if err != nil {
+		return nil, err
+	}
+
+	// whatsmeow takes the link or its code, and names a link it does not accept as the join does (group.go:490-502).
+	info, err := client.GetGroupInfoFromLink(ctx, req.GetLink())
+	if err != nil {
+		return nil, classify("read a link's group", err, false)
+	}
+
+	return &whatsmeowv1.GetGroupInfoFromLinkResponse{Group: toGroup(info)}, nil
 }
 
 // LeaveGroup leaves a group (group.proto).
@@ -430,6 +523,8 @@ func toGroup(info *types.GroupInfo) *whatsmeowv1.Group {
 		group.CreateTime = timestamppb.New(info.GroupCreated)
 	}
 
+	group.MemberAddMode = addMode(info.MemberAddMode)
+
 	for _, p := range info.Participants {
 		if p.Error != 0 {
 			continue
@@ -448,6 +543,23 @@ func toGroup(info *types.GroupInfo) *whatsmeowv1.Group {
 	}
 
 	return group
+}
+
+// addMode is whatsmeow's member add mode as the contract's: unspecified for none (group.go:785-787 sets it from its
+// child only) and for a mode the contract does not have.
+func addMode(mode types.GroupMemberAddMode) whatsmeowv1.GroupMemberAddMode {
+	for contract, whatsmeows := range addModes {
+		if whatsmeows == mode {
+			return contract
+		}
+	}
+
+	return whatsmeowv1.GroupMemberAddMode_GROUP_MEMBER_ADD_MODE_UNSPECIFIED
+}
+
+// timer is a disappearing timer of seconds as the contract's.
+func timer(seconds uint32) *durationpb.Duration {
+	return durationpb.New(time.Duration(seconds) * time.Second)
 }
 
 // toResult maps what WhatsApp answered for one participant (group.go:713-740).

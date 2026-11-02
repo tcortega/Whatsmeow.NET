@@ -84,6 +84,17 @@ service MessageService {
   // or a repeated option (field "options"); POLL_SECRET_NOT_FOUND when this device has no secret for the poll.
   rpc SendPollVote(SendPollVoteRequest) returns (SendPollVoteResponse);
 
+  // SendDisappearingTimer sets a direct chat's disappearing messages timer, or turns disappearing messages off with a
+  // zero timer: a protocol message the other side's phone applies, built as whatsmeow builds it (EPHEMERAL_SETTING,
+  // whatsmeow send.go), timestamped by the sidecar's clock. Its client_message_id is the setting's own id. The timer is
+  // one WhatsApp's phones offer: 24 hours, 7 days or 90 days, or zero; whether WhatsApp accepts others is [unknown], so
+  // any other is INVALID_ARGUMENT and nothing is sent. The session's later messages do not carry the timer: whatsmeow
+  // sets none on a send [observed: whatsmeow send.go], so a message that should disappear sets its own (SendMessage,
+  // ContextInfo.expiration). A group's timer is a group setting instead, GroupService.SetGroupDisappearingTimer.
+  // Errors: as SendMessage, and INVALID_ARGUMENT for a group chat (field "chat") or a timer not offered (field
+  // "timer").
+  rpc SendDisappearingTimer(SendDisappearingTimerRequest) returns (SendDisappearingTimerResponse);
+
   // MarkRead sends a read receipt, timestamped now, for messages of one chat.
   // Errors: INVALID_ARGUMENT (no message ids; a group chat without sender), SESSION_NOT_FOUND, NOT_LOGGED_IN,
   // LOGGED_OUT, NOT_CONNECTED, TEMPORARILY_BANNED.
@@ -308,6 +319,26 @@ message SendPollVoteResponse {
   // The chat it was sent to, which can be the recipient's LID when a phone-number JID was requested.
   string chat = 1;
   // The vote's WhatsApp timestamp.
+  google.protobuf.Timestamp message_time = 2;
+}
+
+// SendDisappearingTimerRequest sets a direct chat's disappearing messages timer.
+message SendDisappearingTimerRequest {
+  // The session id.
+  string session_id = 1;
+  // The other user: a user JID without a device.
+  string chat = 2;
+  // The WhatsApp id of the setting's message; required.
+  string client_message_id = 3;
+  // How long new messages last: 24 hours, 7 days or 90 days, or zero to turn disappearing messages off; required.
+  google.protobuf.Duration timer = 4;
+}
+
+// SendDisappearingTimerResponse is a successful send.
+message SendDisappearingTimerResponse {
+  // The chat it was sent to, which can be the recipient's LID when a phone-number JID was requested.
+  string chat = 1;
+  // The setting's WhatsApp timestamp.
   google.protobuf.Timestamp message_time = 2;
 }
 

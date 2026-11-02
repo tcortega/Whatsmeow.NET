@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	fakev1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/fake/v1"
@@ -275,5 +277,210 @@ func TestFailNextGroupQueryFailsTheNextGroupCallOnly(t *testing.T) {
 
 	if _, err := client.GetJoinedGroups(ctx); err != nil {
 		t.Fatalf("the next call = %v", err)
+	}
+}
+
+func TestTheMemberAddModeDecidesWhoAddsAndEveryMemberIsNotified(t *testing.T) {
+	t.Parallel()
+
+	whatsApp, control, ctx, owner, ownerGot, db := linked(t)
+	member, memberGot := second(ctx, t, whatsApp, control, db)
+
+	created, err := owner.CreateGroup(ctx, whatsmeow.ReqCreateGroup{Name: "Team", Participants: []types.JID{parse(t, "1666@s.whatsapp.net")}})
+	if err != nil {
+		t.Fatalf("CreateGroup: %v", err)
+	}
+
+	_ = next[*events.JoinedGroup](t, memberGot)
+	add := func(c *Client, user string) error {
+		_, err := c.UpdateGroupParticipants(ctx, created.JID, []types.JID{parse(t, user)}, whatsmeow.ParticipantChangeAdd)
+
+		return err
+	}
+
+	// No mode answered after a create, and only admins add [inferred].
+	if info, err := member.GetGroupInfo(ctx, created.JID); err != nil || info.MemberAddMode != "" {
+		t.Fatalf("the member reads %+v, %v", info, err)
+	}
+
+	if err := add(member, "5511900000002@s.whatsapp.net"); !errors.Is(err, whatsmeow.ErrIQForbidden) {
+		t.Fatalf("a member's add with no mode = %v, want 403", err)
+	}
+
+	// Only an admin sets it [inferred: 403].
+	if err := member.SetGroupMemberAddMode(ctx, created.JID, types.GroupMemberAddModeAllMember); !errors.Is(err, whatsmeow.ErrIQForbidden) {
+		t.Fatalf("a member's SetGroupMemberAddMode = %v, want 403", err)
+	}
+
+	for _, mode := range []types.GroupMemberAddMode{types.GroupMemberAddModeAllMember, types.GroupMemberAddModeAdmin} {
+		if err := owner.SetGroupMemberAddMode(ctx, created.JID, mode); err != nil {
+			t.Fatalf("SetGroupMemberAddMode(%s): %v", mode, err)
+		}
+
+		// A member_add_mode child, which whatsmeow leaves in UnknownChanges [inferred: as the IQ, group.go:1084-1097].
+		for _, got := range []chan any{ownerGot, memberGot} {
+			change := next[*events.GroupInfo](t, got)
+			if len(change.UnknownChanges) != 1 || change.UnknownChanges[0].Tag != "member_add_mode" ||
+				string(change.UnknownChanges[0].Content.([]byte)) != string(mode) || change.Sender.String() != "1555@s.whatsapp.net" {
+				t.Fatalf("a member got %+v", change)
+			}
+		}
+
+		if info, err := member.GetGroupInfo(ctx, created.JID); err != nil || info.MemberAddMode != mode {
+			t.Fatalf("the member reads %+v, %v; want %s", info, err, mode)
+		}
+
+		if mode == types.GroupMemberAddModeAllMember {
+			if err := add(member, "5511900000002@s.whatsapp.net"); err != nil {
+				t.Fatalf("a member's add with every member adding: %v", err)
+			}
+
+			_ = next[*events.GroupInfo](t, ownerGot)
+			_ = next[*events.GroupInfo](t, memberGot)
+		}
+	}
+
+	if err := add(member, "5511900000004@s.whatsapp.net"); !errors.Is(err, whatsmeow.ErrIQForbidden) {
+		t.Fatalf("a member's add with only admins adding = %v, want 403", err)
+	}
+
+	// As whatsmeow refuses it before asking (group.go:1086-1088).
+	if err := owner.SetGroupMemberAddMode(ctx, created.JID, "owner_add"); err == nil {
+		t.Fatal("an invalid mode was set")
+	}
+}
+
+func TestADisappearingTimerIsChangedAsTheGroupsInfoAndEveryMemberIsNotified(t *testing.T) {
+	t.Parallel()
+
+	whatsApp, control, ctx, owner, ownerGot, db := linked(t)
+	member, memberGot := second(ctx, t, whatsApp, control, db)
+
+	created, err := owner.CreateGroup(ctx, whatsmeow.ReqCreateGroup{Name: "Team", Participants: []types.JID{parse(t, "1666@s.whatsapp.net")}})
+	if err != nil {
+		t.Fatalf("CreateGroup: %v", err)
+	}
+
+	_ = next[*events.JoinedGroup](t, memberGot)
+
+	for _, tc := range []struct {
+		by    *Client
+		timer time.Duration
+		want  types.GroupEphemeral
+	}{
+		{member, whatsmeow.DisappearingTimer7Days, types.GroupEphemeral{IsEphemeral: true, DisappearingTimer: 604800}},
+		{owner, whatsmeow.DisappearingTimerOff, types.GroupEphemeral{}},
+	} {
+		if err := tc.by.SetDisappearingTimer(ctx, created.JID, tc.timer, time.Time{}); err != nil {
+			t.Fatalf("SetDisappearingTimer(%v): %v", tc.timer, err)
+		}
+
+		for _, got := range []chan any{ownerGot, memberGot} {
+			if change := next[*events.GroupInfo](t, got); change.Ephemeral == nil || *change.Ephemeral != tc.want {
+				t.Fatalf("a member got %+v, want %+v", change, tc.want)
+			}
+		}
+	}
+
+	// A timer not offered is 400, as whatsmeow names it (send.go:687-690).
+	if err := owner.SetDisappearingTimer(ctx, created.JID, 48*time.Hour, time.Time{}); !errors.Is(err, whatsmeow.ErrInvalidDisappearingTimer) || !errors.Is(err, whatsmeow.ErrIQBadRequest) {
+		t.Fatalf("a timer not offered = %v, want 400", err)
+	}
+
+	// The group's info: once it is locked, only an admin changes it [inferred: 403].
+	if err := owner.SetGroupLocked(ctx, created.JID, true); err != nil {
+		t.Fatalf("SetGroupLocked: %v", err)
+	}
+
+	if err := member.SetDisappearingTimer(ctx, created.JID, whatsmeow.DisappearingTimer24Hours, time.Time{}); !errors.Is(err, whatsmeow.ErrIQForbidden) {
+		t.Fatalf("a member's timer in a locked group = %v, want 403", err)
+	}
+
+	// A direct chat's timer is a message the sidecar sends itself.
+	if err := owner.SetDisappearingTimer(ctx, parse(t, "1666@s.whatsapp.net"), whatsmeow.DisappearingTimer24Hours, time.Time{}); err == nil {
+		t.Fatal("the fake set a direct chat's timer")
+	}
+}
+
+func TestALinksGroupInfoJoinsNothing(t *testing.T) {
+	t.Parallel()
+
+	whatsApp, control, ctx, owner, ownerGot, db := linked(t)
+	outsider, outsiderGot := second(ctx, t, whatsApp, control, db)
+
+	created, err := owner.CreateGroup(ctx, whatsmeow.ReqCreateGroup{Name: "Team", Participants: []types.JID{parse(t, "5511900000002@s.whatsapp.net")}})
+	if err != nil {
+		t.Fatalf("CreateGroup: %v", err)
+	}
+
+	link, err := owner.GetGroupInviteLink(ctx, created.JID, false)
+	if err != nil {
+		t.Fatalf("GetGroupInviteLink: %v", err)
+	}
+
+	want, err := owner.GetGroupInfo(ctx, created.JID)
+	if err != nil {
+		t.Fatalf("GetGroupInfo: %v", err)
+	}
+
+	before := []int{len(ownerGot), len(outsiderGot)}
+
+	// The link or its code, as whatsmeow strips it (group.go:494).
+	for _, code := range []string{link, strings.TrimPrefix(link, whatsmeow.InviteLinkPrefix)} {
+		info, err := outsider.GetGroupInfoFromLink(ctx, code)
+		if err != nil || fmt.Sprint(info) != fmt.Sprint(want) {
+			t.Fatalf("GetGroupInfoFromLink(%s) = %+v, %v; want %+v", code, info, err, want)
+		}
+	}
+
+	if _, err := outsider.GetGroupInfo(ctx, created.JID); !errors.Is(err, whatsmeow.ErrNotInGroup) {
+		t.Fatalf("the outsider joined: %v", err)
+	}
+
+	if after := []int{len(ownerGot), len(outsiderGot)}; fmt.Sprint(after) != fmt.Sprint(before) {
+		t.Fatalf("a link's info notified: the events went from %v to %v", before, after)
+	}
+
+	if _, err := owner.GetGroupInviteLink(ctx, created.JID, true); err != nil {
+		t.Fatalf("reset: %v", err)
+	}
+
+	// As a join names them (group.go:497-502).
+	if _, err := outsider.GetGroupInfoFromLink(ctx, link); !errors.Is(err, whatsmeow.ErrInviteLinkRevoked) || !errors.Is(err, whatsmeow.ErrIQGone) {
+		t.Fatalf("the reset link's info = %v", err)
+	}
+
+	if _, err := outsider.GetGroupInfoFromLink(ctx, "NOPE"); !errors.Is(err, whatsmeow.ErrInviteLinkInvalid) || !errors.Is(err, whatsmeow.ErrIQNotAcceptable) {
+		t.Fatalf("an unknown link's info = %v", err)
+	}
+}
+
+func TestDeliverGroupNotificationDispatchesAModeATimerAndAnApprovalChange(t *testing.T) {
+	t.Parallel()
+
+	_, control, ctx, _, got, _ := linked(t)
+
+	if _, err := control.DeliverGroupNotification(ctx, &fakev1.DeliverGroupNotificationRequest{
+		SessionId: "s1", Group: "120363000000000008@g.us", Sender: lid,
+		MemberAddMode: proto.String("admin_add"), DisappearingTimer: durationpb.New(24 * time.Hour), MembershipApproval: true,
+	}); err != nil {
+		t.Fatalf("DeliverGroupNotification: %v", err)
+	}
+
+	change := next[*events.GroupInfo](t, got)
+	if len(change.UnknownChanges) != 1 || change.UnknownChanges[0].Tag != "member_add_mode" || string(change.UnknownChanges[0].Content.([]byte)) != "admin_add" ||
+		change.Ephemeral == nil || *change.Ephemeral != (types.GroupEphemeral{IsEphemeral: true, DisappearingTimer: 86400}) ||
+		change.MembershipApprovalMode == nil || !change.MembershipApprovalMode.IsJoinApprovalRequired {
+		t.Fatalf("the client got %+v", change)
+	}
+
+	if _, err := control.DeliverGroupNotification(ctx, &fakev1.DeliverGroupNotificationRequest{
+		SessionId: "s1", Group: "120363000000000008@g.us", DisappearingTimer: durationpb.New(0),
+	}); err != nil {
+		t.Fatalf("DeliverGroupNotification: %v", err)
+	}
+
+	if change := next[*events.GroupInfo](t, got); change.Ephemeral == nil || *change.Ephemeral != (types.GroupEphemeral{}) || change.UnknownChanges != nil {
+		t.Fatalf("the client got %+v", change)
 	}
 }

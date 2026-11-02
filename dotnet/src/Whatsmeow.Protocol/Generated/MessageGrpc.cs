@@ -100,6 +100,10 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SendPollVoteResponse> __Marshaller_whatsmeow_v1_SendPollVoteResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SendPollVoteResponse.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SendDisappearingTimerRequest> __Marshaller_whatsmeow_v1_SendDisappearingTimerRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SendDisappearingTimerRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SendDisappearingTimerResponse> __Marshaller_whatsmeow_v1_SendDisappearingTimerResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SendDisappearingTimerResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.MarkReadRequest> __Marshaller_whatsmeow_v1_MarkReadRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.MarkReadRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.MarkReadResponse> __Marshaller_whatsmeow_v1_MarkReadResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.MarkReadResponse.Parser));
@@ -167,6 +171,14 @@ namespace Whatsmeow.Protocol.V1 {
         "SendPollVote",
         __Marshaller_whatsmeow_v1_SendPollVoteRequest,
         __Marshaller_whatsmeow_v1_SendPollVoteResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.Protocol.V1.SendDisappearingTimerRequest, global::Whatsmeow.Protocol.V1.SendDisappearingTimerResponse> __Method_SendDisappearingTimer = new grpc::Method<global::Whatsmeow.Protocol.V1.SendDisappearingTimerRequest, global::Whatsmeow.Protocol.V1.SendDisappearingTimerResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "SendDisappearingTimer",
+        __Marshaller_whatsmeow_v1_SendDisappearingTimerRequest,
+        __Marshaller_whatsmeow_v1_SendDisappearingTimerResponse);
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.Protocol.V1.MarkReadRequest, global::Whatsmeow.Protocol.V1.MarkReadResponse> __Method_MarkRead = new grpc::Method<global::Whatsmeow.Protocol.V1.MarkReadRequest, global::Whatsmeow.Protocol.V1.MarkReadResponse>(
@@ -720,6 +732,86 @@ namespace Whatsmeow.Protocol.V1 {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SendPollVoteResponse> SendPollVoteAsync(global::Whatsmeow.Protocol.V1.SendPollVoteRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_SendPollVote, null, options, request);
+      }
+      /// <summary>
+      /// SendDisappearingTimer sets a direct chat's disappearing messages timer, or turns disappearing messages off with a
+      /// zero timer: a protocol message the other side's phone applies, built as whatsmeow builds it (EPHEMERAL_SETTING,
+      /// whatsmeow send.go), timestamped by the sidecar's clock. Its client_message_id is the setting's own id. The timer is
+      /// one WhatsApp's phones offer: 24 hours, 7 days or 90 days, or zero; whether WhatsApp accepts others is [unknown], so
+      /// any other is INVALID_ARGUMENT and nothing is sent. The session's later messages do not carry the timer: whatsmeow
+      /// sets none on a send [observed: whatsmeow send.go], so a message that should disappear sets its own (SendMessage,
+      /// ContextInfo.expiration). A group's timer is a group setting instead, GroupService.SetGroupDisappearingTimer.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for a group chat (field "chat") or a timer not offered (field
+      /// "timer").
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.SendDisappearingTimerResponse SendDisappearingTimer(global::Whatsmeow.Protocol.V1.SendDisappearingTimerRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SendDisappearingTimer(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SendDisappearingTimer sets a direct chat's disappearing messages timer, or turns disappearing messages off with a
+      /// zero timer: a protocol message the other side's phone applies, built as whatsmeow builds it (EPHEMERAL_SETTING,
+      /// whatsmeow send.go), timestamped by the sidecar's clock. Its client_message_id is the setting's own id. The timer is
+      /// one WhatsApp's phones offer: 24 hours, 7 days or 90 days, or zero; whether WhatsApp accepts others is [unknown], so
+      /// any other is INVALID_ARGUMENT and nothing is sent. The session's later messages do not carry the timer: whatsmeow
+      /// sets none on a send [observed: whatsmeow send.go], so a message that should disappear sets its own (SendMessage,
+      /// ContextInfo.expiration). A group's timer is a group setting instead, GroupService.SetGroupDisappearingTimer.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for a group chat (field "chat") or a timer not offered (field
+      /// "timer").
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.SendDisappearingTimerResponse SendDisappearingTimer(global::Whatsmeow.Protocol.V1.SendDisappearingTimerRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_SendDisappearingTimer, null, options, request);
+      }
+      /// <summary>
+      /// SendDisappearingTimer sets a direct chat's disappearing messages timer, or turns disappearing messages off with a
+      /// zero timer: a protocol message the other side's phone applies, built as whatsmeow builds it (EPHEMERAL_SETTING,
+      /// whatsmeow send.go), timestamped by the sidecar's clock. Its client_message_id is the setting's own id. The timer is
+      /// one WhatsApp's phones offer: 24 hours, 7 days or 90 days, or zero; whether WhatsApp accepts others is [unknown], so
+      /// any other is INVALID_ARGUMENT and nothing is sent. The session's later messages do not carry the timer: whatsmeow
+      /// sets none on a send [observed: whatsmeow send.go], so a message that should disappear sets its own (SendMessage,
+      /// ContextInfo.expiration). A group's timer is a group setting instead, GroupService.SetGroupDisappearingTimer.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for a group chat (field "chat") or a timer not offered (field
+      /// "timer").
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SendDisappearingTimerResponse> SendDisappearingTimerAsync(global::Whatsmeow.Protocol.V1.SendDisappearingTimerRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SendDisappearingTimerAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SendDisappearingTimer sets a direct chat's disappearing messages timer, or turns disappearing messages off with a
+      /// zero timer: a protocol message the other side's phone applies, built as whatsmeow builds it (EPHEMERAL_SETTING,
+      /// whatsmeow send.go), timestamped by the sidecar's clock. Its client_message_id is the setting's own id. The timer is
+      /// one WhatsApp's phones offer: 24 hours, 7 days or 90 days, or zero; whether WhatsApp accepts others is [unknown], so
+      /// any other is INVALID_ARGUMENT and nothing is sent. The session's later messages do not carry the timer: whatsmeow
+      /// sets none on a send [observed: whatsmeow send.go], so a message that should disappear sets its own (SendMessage,
+      /// ContextInfo.expiration). A group's timer is a group setting instead, GroupService.SetGroupDisappearingTimer.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for a group chat (field "chat") or a timer not offered (field
+      /// "timer").
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SendDisappearingTimerResponse> SendDisappearingTimerAsync(global::Whatsmeow.Protocol.V1.SendDisappearingTimerRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_SendDisappearingTimer, null, options, request);
       }
       /// <summary>
       /// MarkRead sends a read receipt, timestamped now, for messages of one chat.

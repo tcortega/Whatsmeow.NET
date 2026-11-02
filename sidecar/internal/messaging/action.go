@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 )
 
 // SendReaction reacts to a message, or removes the account's reaction with an empty emoji (message.proto), through the
@@ -70,6 +71,33 @@ func (svc *Service) SendRevoke(ctx context.Context, req *whatsmeowv1.SendRevokeR
 	}
 
 	return &whatsmeowv1.SendRevokeResponse{Chat: sent.chat, MessageTime: timestamppb.New(sent.at)}, nil
+}
+
+// SendDisappearingTimer sets a direct chat's disappearing messages timer (message.proto): the protocol message whatsmeow
+// sends for one (SetDisappearingTimer, send.go:668-678), built here so it is paced and recorded as every send is;
+// whatsmeow's own sends it without an id the queue could give. Its setting time is the slice's clock in its turn.
+func (svc *Service) SendDisappearingTimer(ctx context.Context, req *whatsmeowv1.SendDisappearingTimerRequest) (*whatsmeowv1.SendDisappearingTimerResponse, error) {
+	if to, err := types.ParseJID(req.GetChat()); err == nil && to.Server == types.GroupServer {
+		return nil, invalid("chat", "a group's timer is GroupService.SetGroupDisappearingTimer")
+	}
+
+	timer, err := server.DisappearingTimer("timer", req.GetTimer())
+	if err != nil {
+		return nil, fmt.Errorf("invalid request: %w", err)
+	}
+
+	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), func(context.Context, whatsApp, types.JID) (*waE2E.Message, error) {
+		return &waE2E.Message{ProtocolMessage: &waE2E.ProtocolMessage{
+			Type:                      waE2E.ProtocolMessage_EPHEMERAL_SETTING.Enum(),
+			EphemeralExpiration:       proto.Uint32(uint32(timer.Seconds())),
+			EphemeralSettingTimestamp: proto.Int64(svc.now().Unix()),
+		}}, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &whatsmeowv1.SendDisappearingTimerResponse{Chat: sent.chat, MessageTime: timestamppb.New(sent.at)}, nil
 }
 
 // target checks a target message's id and sender; no sender is the empty JID, the account's own message.

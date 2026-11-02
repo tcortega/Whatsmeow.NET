@@ -4881,10 +4881,14 @@ type DeliverGroupNotificationRequest struct {
 	Promote []string `protobuf:"bytes,12,rep,name=promote,proto3" json:"promote,omitempty"`
 	// Users who stopped being admins.
 	Demote []string `protobuf:"bytes,13,rep,name=demote,proto3" json:"demote,omitempty"`
-	// A disappearing messages change, which the contract has no case for.
-	Ephemeral bool `protobuf:"varint,14,opt,name=ephemeral,proto3" json:"ephemeral,omitempty"`
 	// The notification's stanza id, which its ack names.
 	Id string `protobuf:"bytes,15,opt,name=id,proto3" json:"id,omitempty"`
+	// The new member add mode, as WhatsApp names it ("admin_add", "all_member_add"): a member_add_mode child, which
+	// whatsmeow does not parse and leaves in UnknownChanges with the mode as its content (group.go:1006-1007)
+	// [inferred: the child is named and filled as the IQ that sets it, group.go:1084-1097].
+	MemberAddMode *string `protobuf:"bytes,16,opt,name=member_add_mode,json=memberAddMode,proto3,oneof" json:"member_add_mode,omitempty"`
+	// The new disappearing messages timer; zero turns them off.
+	DisappearingTimer *durationpb.Duration `protobuf:"bytes,17,opt,name=disappearing_timer,json=disappearingTimer,proto3,oneof" json:"disappearing_timer,omitempty"`
 	// A join approval mode change, which the contract has no case for.
 	MembershipApproval bool `protobuf:"varint,18,opt,name=membership_approval,json=membershipApproval,proto3" json:"membership_approval,omitempty"`
 	unknownFields      protoimpl.UnknownFields
@@ -5012,18 +5016,25 @@ func (x *DeliverGroupNotificationRequest) GetDemote() []string {
 	return nil
 }
 
-func (x *DeliverGroupNotificationRequest) GetEphemeral() bool {
-	if x != nil {
-		return x.Ephemeral
-	}
-	return false
-}
-
 func (x *DeliverGroupNotificationRequest) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
+}
+
+func (x *DeliverGroupNotificationRequest) GetMemberAddMode() string {
+	if x != nil && x.MemberAddMode != nil {
+		return *x.MemberAddMode
+	}
+	return ""
+}
+
+func (x *DeliverGroupNotificationRequest) GetDisappearingTimer() *durationpb.Duration {
+	if x != nil {
+		return x.DisappearingTimer
+	}
+	return nil
 }
 
 func (x *DeliverGroupNotificationRequest) GetMembershipApproval() bool {
@@ -7486,7 +7497,7 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"\x06Member\x12\x10\n" +
 	"\x03jid\x18\x01 \x01(\tR\x03jid\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\"\x12\n" +
-	"\x10AddGroupResponse\"\x93\x04\n" +
+	"\x10AddGroupResponse\"\xad\x05\n" +
 	"\x1fDeliverGroupNotificationRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
@@ -7502,14 +7513,17 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	" \x03(\tR\x04join\x12\x14\n" +
 	"\x05leave\x18\v \x03(\tR\x05leave\x12\x18\n" +
 	"\apromote\x18\f \x03(\tR\apromote\x12\x16\n" +
-	"\x06demote\x18\r \x03(\tR\x06demote\x12\x1c\n" +
-	"\tephemeral\x18\x0e \x01(\bR\tephemeral\x12\x0e\n" +
-	"\x02id\x18\x0f \x01(\tR\x02id\x12/\n" +
+	"\x06demote\x18\r \x03(\tR\x06demote\x12\x0e\n" +
+	"\x02id\x18\x0f \x01(\tR\x02id\x12+\n" +
+	"\x0fmember_add_mode\x18\x10 \x01(\tH\x04R\rmemberAddMode\x88\x01\x01\x12M\n" +
+	"\x12disappearing_timer\x18\x11 \x01(\v2\x19.google.protobuf.DurationH\x05R\x11disappearingTimer\x88\x01\x01\x12/\n" +
 	"\x13membership_approval\x18\x12 \x01(\bR\x12membershipApprovalB\a\n" +
 	"\x05_nameB\b\n" +
 	"\x06_topicB\v\n" +
 	"\t_announceB\t\n" +
-	"\a_locked\"\"\n" +
+	"\a_lockedB\x12\n" +
+	"\x10_member_add_modeB\x15\n" +
+	"\x13_disappearing_timerJ\x04\b\x0e\x10\x0fR\tephemeral\"\"\n" +
 	" DeliverGroupNotificationResponse\"U\n" +
 	"\x15RefuseGroupAddRequest\x12\x10\n" +
 	"\x03jid\x18\x01 \x01(\tR\x03jid\x12\x12\n" +
@@ -7848,112 +7862,113 @@ var file_whatsmeow_fake_v1_fake_proto_depIdxs = []int32{
 	120, // 34: whatsmeow.fake.v1.AddGroupRequest.create_time:type_name -> google.protobuf.Timestamp
 	114, // 35: whatsmeow.fake.v1.AddGroupRequest.members:type_name -> whatsmeow.fake.v1.AddGroupRequest.Member
 	120, // 36: whatsmeow.fake.v1.DeliverGroupNotificationRequest.time:type_name -> google.protobuf.Timestamp
-	115, // 37: whatsmeow.fake.v1.PhoneChatChange.mute:type_name -> whatsmeow.fake.v1.PhoneChatChange.Mute
-	116, // 38: whatsmeow.fake.v1.PhoneChatChange.star:type_name -> whatsmeow.fake.v1.PhoneChatChange.Star
-	89,  // 39: whatsmeow.fake.v1.SyncChatStateRequest.change:type_name -> whatsmeow.fake.v1.PhoneChatChange
-	120, // 40: whatsmeow.fake.v1.SyncChatStateRequest.change_time:type_name -> google.protobuf.Timestamp
-	120, // 41: whatsmeow.fake.v1.GetPhoneChatStateResponse.mute_until:type_name -> google.protobuf.Timestamp
-	117, // 42: whatsmeow.fake.v1.GetPhoneChatStateResponse.starred:type_name -> whatsmeow.fake.v1.GetPhoneChatStateResponse.StarredMessage
-	118, // 43: whatsmeow.fake.v1.DeliverHistorySyncRequest.conversations:type_name -> whatsmeow.fake.v1.DeliverHistorySyncRequest.Conversation
-	122, // 44: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.TemporaryBan.expire:type_name -> google.protobuf.Duration
-	120, // 45: whatsmeow.fake.v1.PhoneChatChange.Mute.until:type_name -> google.protobuf.Timestamp
-	119, // 46: whatsmeow.fake.v1.DeliverHistorySyncRequest.Conversation.messages:type_name -> whatsmeow.fake.v1.DeliverHistorySyncRequest.Message
-	120, // 47: whatsmeow.fake.v1.DeliverHistorySyncRequest.Message.message_time:type_name -> google.protobuf.Timestamp
-	121, // 48: whatsmeow.fake.v1.DeliverHistorySyncRequest.Message.message:type_name -> WAWebProtobufsE2E.Message
-	123, // 49: whatsmeow.fake.v1.DeliverHistorySyncRequest.Message.poll_updates:type_name -> WAWebProtobufsWeb.PollUpdate
-	28,  // 50: whatsmeow.fake.v1.FakeWhatsAppService.DeliverMessage:input_type -> whatsmeow.fake.v1.DeliverMessageRequest
-	29,  // 51: whatsmeow.fake.v1.FakeWhatsAppService.DeliverPollVote:input_type -> whatsmeow.fake.v1.DeliverPollVoteRequest
-	31,  // 52: whatsmeow.fake.v1.FakeWhatsAppService.DeliverUndecryptableMessage:input_type -> whatsmeow.fake.v1.DeliverUndecryptableMessageRequest
-	34,  // 53: whatsmeow.fake.v1.FakeWhatsAppService.WaitForSent:input_type -> whatsmeow.fake.v1.WaitForSentRequest
-	10,  // 54: whatsmeow.fake.v1.FakeWhatsAppService.LinkDevice:input_type -> whatsmeow.fake.v1.LinkDeviceRequest
-	12,  // 55: whatsmeow.fake.v1.FakeWhatsAppService.RotateQrCode:input_type -> whatsmeow.fake.v1.RotateQrCodeRequest
-	14,  // 56: whatsmeow.fake.v1.FakeWhatsAppService.ExpireQrCodes:input_type -> whatsmeow.fake.v1.ExpireQrCodesRequest
-	16,  // 57: whatsmeow.fake.v1.FakeWhatsAppService.DropConnection:input_type -> whatsmeow.fake.v1.DropConnectionRequest
-	58,  // 58: whatsmeow.fake.v1.FakeWhatsAppService.HoldNextLogin:input_type -> whatsmeow.fake.v1.HoldNextLoginRequest
-	60,  // 59: whatsmeow.fake.v1.FakeWhatsAppService.ReleaseLogin:input_type -> whatsmeow.fake.v1.ReleaseLoginRequest
-	18,  // 60: whatsmeow.fake.v1.FakeWhatsAppService.FailNextPreKeyUpload:input_type -> whatsmeow.fake.v1.FailNextPreKeyUploadRequest
-	20,  // 61: whatsmeow.fake.v1.FakeWhatsAppService.FailNextPairPhone:input_type -> whatsmeow.fake.v1.FailNextPairPhoneRequest
-	22,  // 62: whatsmeow.fake.v1.FakeWhatsAppService.FailNextConnect:input_type -> whatsmeow.fake.v1.FailNextConnectRequest
-	24,  // 63: whatsmeow.fake.v1.FakeWhatsAppService.FailNextLogout:input_type -> whatsmeow.fake.v1.FailNextLogoutRequest
-	26,  // 64: whatsmeow.fake.v1.FakeWhatsAppService.RaisePermanentDisconnect:input_type -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest
-	71,  // 65: whatsmeow.fake.v1.FakeWhatsAppService.RegisterUser:input_type -> whatsmeow.fake.v1.RegisterUserRequest
-	73,  // 66: whatsmeow.fake.v1.FakeWhatsAppService.SetProfilePicture:input_type -> whatsmeow.fake.v1.SetProfilePictureRequest
-	75,  // 67: whatsmeow.fake.v1.FakeWhatsAppService.DeliverContactNotification:input_type -> whatsmeow.fake.v1.DeliverContactNotificationRequest
-	77,  // 68: whatsmeow.fake.v1.FakeWhatsAppService.SyncContact:input_type -> whatsmeow.fake.v1.SyncContactRequest
-	79,  // 69: whatsmeow.fake.v1.FakeWhatsAppService.FailNextContactQuery:input_type -> whatsmeow.fake.v1.FailNextContactQueryRequest
-	42,  // 70: whatsmeow.fake.v1.FakeWhatsAppService.DeliverPresence:input_type -> whatsmeow.fake.v1.DeliverPresenceRequest
-	44,  // 71: whatsmeow.fake.v1.FakeWhatsAppService.DeliverChatPresence:input_type -> whatsmeow.fake.v1.DeliverChatPresenceRequest
-	46,  // 72: whatsmeow.fake.v1.FakeWhatsAppService.SetPushName:input_type -> whatsmeow.fake.v1.SetPushNameRequest
-	0,   // 73: whatsmeow.fake.v1.FakeWhatsAppService.FailNextUploads:input_type -> whatsmeow.fake.v1.FailNextUploadsRequest
-	2,   // 74: whatsmeow.fake.v1.FakeWhatsAppService.ExpireMedia:input_type -> whatsmeow.fake.v1.ExpireMediaRequest
-	4,   // 75: whatsmeow.fake.v1.FakeWhatsAppService.CorruptMedia:input_type -> whatsmeow.fake.v1.CorruptMediaRequest
-	6,   // 76: whatsmeow.fake.v1.FakeWhatsAppService.HoldNextDownload:input_type -> whatsmeow.fake.v1.HoldNextDownloadRequest
-	8,   // 77: whatsmeow.fake.v1.FakeWhatsAppService.AnswerMediaRetry:input_type -> whatsmeow.fake.v1.AnswerMediaRetryRequest
-	54,  // 78: whatsmeow.fake.v1.FakeWhatsAppService.DeliverReceipt:input_type -> whatsmeow.fake.v1.DeliverReceiptRequest
-	56,  // 79: whatsmeow.fake.v1.FakeWhatsAppService.RateLimitNextSends:input_type -> whatsmeow.fake.v1.RateLimitNextSendsRequest
-	62,  // 80: whatsmeow.fake.v1.FakeWhatsAppService.HoldNextSend:input_type -> whatsmeow.fake.v1.HoldNextSendRequest
-	64,  // 81: whatsmeow.fake.v1.FakeWhatsAppService.ReleaseSend:input_type -> whatsmeow.fake.v1.ReleaseSendRequest
-	66,  // 82: whatsmeow.fake.v1.FakeWhatsAppService.RefuseNextSend:input_type -> whatsmeow.fake.v1.RefuseNextSendRequest
-	81,  // 83: whatsmeow.fake.v1.FakeWhatsAppService.AddGroup:input_type -> whatsmeow.fake.v1.AddGroupRequest
-	83,  // 84: whatsmeow.fake.v1.FakeWhatsAppService.DeliverGroupNotification:input_type -> whatsmeow.fake.v1.DeliverGroupNotificationRequest
-	85,  // 85: whatsmeow.fake.v1.FakeWhatsAppService.RefuseGroupAdd:input_type -> whatsmeow.fake.v1.RefuseGroupAddRequest
-	87,  // 86: whatsmeow.fake.v1.FakeWhatsAppService.FailNextGroupQuery:input_type -> whatsmeow.fake.v1.FailNextGroupQueryRequest
-	90,  // 87: whatsmeow.fake.v1.FakeWhatsAppService.SyncChatState:input_type -> whatsmeow.fake.v1.SyncChatStateRequest
-	92,  // 88: whatsmeow.fake.v1.FakeWhatsAppService.GetPhoneChatState:input_type -> whatsmeow.fake.v1.GetPhoneChatStateRequest
-	94,  // 89: whatsmeow.fake.v1.FakeWhatsAppService.CorruptAppState:input_type -> whatsmeow.fake.v1.CorruptAppStateRequest
-	96,  // 90: whatsmeow.fake.v1.FakeWhatsAppService.HoldFullSync:input_type -> whatsmeow.fake.v1.HoldFullSyncRequest
-	98,  // 91: whatsmeow.fake.v1.FakeWhatsAppService.CompleteOfflineSync:input_type -> whatsmeow.fake.v1.CompleteOfflineSyncRequest
-	100, // 92: whatsmeow.fake.v1.FakeWhatsAppService.DeliverHistorySync:input_type -> whatsmeow.fake.v1.DeliverHistorySyncRequest
-	102, // 93: whatsmeow.fake.v1.FakeWhatsAppService.GetPairingDeviceProps:input_type -> whatsmeow.fake.v1.GetPairingDevicePropsRequest
-	33,  // 94: whatsmeow.fake.v1.FakeWhatsAppService.DeliverMessage:output_type -> whatsmeow.fake.v1.DeliverMessageResponse
-	30,  // 95: whatsmeow.fake.v1.FakeWhatsAppService.DeliverPollVote:output_type -> whatsmeow.fake.v1.DeliverPollVoteResponse
-	32,  // 96: whatsmeow.fake.v1.FakeWhatsAppService.DeliverUndecryptableMessage:output_type -> whatsmeow.fake.v1.DeliverUndecryptableMessageResponse
-	35,  // 97: whatsmeow.fake.v1.FakeWhatsAppService.WaitForSent:output_type -> whatsmeow.fake.v1.WaitForSentResponse
-	11,  // 98: whatsmeow.fake.v1.FakeWhatsAppService.LinkDevice:output_type -> whatsmeow.fake.v1.LinkDeviceResponse
-	13,  // 99: whatsmeow.fake.v1.FakeWhatsAppService.RotateQrCode:output_type -> whatsmeow.fake.v1.RotateQrCodeResponse
-	15,  // 100: whatsmeow.fake.v1.FakeWhatsAppService.ExpireQrCodes:output_type -> whatsmeow.fake.v1.ExpireQrCodesResponse
-	17,  // 101: whatsmeow.fake.v1.FakeWhatsAppService.DropConnection:output_type -> whatsmeow.fake.v1.DropConnectionResponse
-	59,  // 102: whatsmeow.fake.v1.FakeWhatsAppService.HoldNextLogin:output_type -> whatsmeow.fake.v1.HoldNextLoginResponse
-	61,  // 103: whatsmeow.fake.v1.FakeWhatsAppService.ReleaseLogin:output_type -> whatsmeow.fake.v1.ReleaseLoginResponse
-	19,  // 104: whatsmeow.fake.v1.FakeWhatsAppService.FailNextPreKeyUpload:output_type -> whatsmeow.fake.v1.FailNextPreKeyUploadResponse
-	21,  // 105: whatsmeow.fake.v1.FakeWhatsAppService.FailNextPairPhone:output_type -> whatsmeow.fake.v1.FailNextPairPhoneResponse
-	23,  // 106: whatsmeow.fake.v1.FakeWhatsAppService.FailNextConnect:output_type -> whatsmeow.fake.v1.FailNextConnectResponse
-	25,  // 107: whatsmeow.fake.v1.FakeWhatsAppService.FailNextLogout:output_type -> whatsmeow.fake.v1.FailNextLogoutResponse
-	27,  // 108: whatsmeow.fake.v1.FakeWhatsAppService.RaisePermanentDisconnect:output_type -> whatsmeow.fake.v1.RaisePermanentDisconnectResponse
-	72,  // 109: whatsmeow.fake.v1.FakeWhatsAppService.RegisterUser:output_type -> whatsmeow.fake.v1.RegisterUserResponse
-	74,  // 110: whatsmeow.fake.v1.FakeWhatsAppService.SetProfilePicture:output_type -> whatsmeow.fake.v1.SetProfilePictureResponse
-	76,  // 111: whatsmeow.fake.v1.FakeWhatsAppService.DeliverContactNotification:output_type -> whatsmeow.fake.v1.DeliverContactNotificationResponse
-	78,  // 112: whatsmeow.fake.v1.FakeWhatsAppService.SyncContact:output_type -> whatsmeow.fake.v1.SyncContactResponse
-	80,  // 113: whatsmeow.fake.v1.FakeWhatsAppService.FailNextContactQuery:output_type -> whatsmeow.fake.v1.FailNextContactQueryResponse
-	43,  // 114: whatsmeow.fake.v1.FakeWhatsAppService.DeliverPresence:output_type -> whatsmeow.fake.v1.DeliverPresenceResponse
-	45,  // 115: whatsmeow.fake.v1.FakeWhatsAppService.DeliverChatPresence:output_type -> whatsmeow.fake.v1.DeliverChatPresenceResponse
-	47,  // 116: whatsmeow.fake.v1.FakeWhatsAppService.SetPushName:output_type -> whatsmeow.fake.v1.SetPushNameResponse
-	1,   // 117: whatsmeow.fake.v1.FakeWhatsAppService.FailNextUploads:output_type -> whatsmeow.fake.v1.FailNextUploadsResponse
-	3,   // 118: whatsmeow.fake.v1.FakeWhatsAppService.ExpireMedia:output_type -> whatsmeow.fake.v1.ExpireMediaResponse
-	5,   // 119: whatsmeow.fake.v1.FakeWhatsAppService.CorruptMedia:output_type -> whatsmeow.fake.v1.CorruptMediaResponse
-	7,   // 120: whatsmeow.fake.v1.FakeWhatsAppService.HoldNextDownload:output_type -> whatsmeow.fake.v1.HoldNextDownloadResponse
-	9,   // 121: whatsmeow.fake.v1.FakeWhatsAppService.AnswerMediaRetry:output_type -> whatsmeow.fake.v1.AnswerMediaRetryResponse
-	55,  // 122: whatsmeow.fake.v1.FakeWhatsAppService.DeliverReceipt:output_type -> whatsmeow.fake.v1.DeliverReceiptResponse
-	57,  // 123: whatsmeow.fake.v1.FakeWhatsAppService.RateLimitNextSends:output_type -> whatsmeow.fake.v1.RateLimitNextSendsResponse
-	63,  // 124: whatsmeow.fake.v1.FakeWhatsAppService.HoldNextSend:output_type -> whatsmeow.fake.v1.HoldNextSendResponse
-	65,  // 125: whatsmeow.fake.v1.FakeWhatsAppService.ReleaseSend:output_type -> whatsmeow.fake.v1.ReleaseSendResponse
-	67,  // 126: whatsmeow.fake.v1.FakeWhatsAppService.RefuseNextSend:output_type -> whatsmeow.fake.v1.RefuseNextSendResponse
-	82,  // 127: whatsmeow.fake.v1.FakeWhatsAppService.AddGroup:output_type -> whatsmeow.fake.v1.AddGroupResponse
-	84,  // 128: whatsmeow.fake.v1.FakeWhatsAppService.DeliverGroupNotification:output_type -> whatsmeow.fake.v1.DeliverGroupNotificationResponse
-	86,  // 129: whatsmeow.fake.v1.FakeWhatsAppService.RefuseGroupAdd:output_type -> whatsmeow.fake.v1.RefuseGroupAddResponse
-	88,  // 130: whatsmeow.fake.v1.FakeWhatsAppService.FailNextGroupQuery:output_type -> whatsmeow.fake.v1.FailNextGroupQueryResponse
-	91,  // 131: whatsmeow.fake.v1.FakeWhatsAppService.SyncChatState:output_type -> whatsmeow.fake.v1.SyncChatStateResponse
-	93,  // 132: whatsmeow.fake.v1.FakeWhatsAppService.GetPhoneChatState:output_type -> whatsmeow.fake.v1.GetPhoneChatStateResponse
-	95,  // 133: whatsmeow.fake.v1.FakeWhatsAppService.CorruptAppState:output_type -> whatsmeow.fake.v1.CorruptAppStateResponse
-	97,  // 134: whatsmeow.fake.v1.FakeWhatsAppService.HoldFullSync:output_type -> whatsmeow.fake.v1.HoldFullSyncResponse
-	99,  // 135: whatsmeow.fake.v1.FakeWhatsAppService.CompleteOfflineSync:output_type -> whatsmeow.fake.v1.CompleteOfflineSyncResponse
-	101, // 136: whatsmeow.fake.v1.FakeWhatsAppService.DeliverHistorySync:output_type -> whatsmeow.fake.v1.DeliverHistorySyncResponse
-	103, // 137: whatsmeow.fake.v1.FakeWhatsAppService.GetPairingDeviceProps:output_type -> whatsmeow.fake.v1.GetPairingDevicePropsResponse
-	94,  // [94:138] is the sub-list for method output_type
-	50,  // [50:94] is the sub-list for method input_type
-	50,  // [50:50] is the sub-list for extension type_name
-	50,  // [50:50] is the sub-list for extension extendee
-	0,   // [0:50] is the sub-list for field type_name
+	122, // 37: whatsmeow.fake.v1.DeliverGroupNotificationRequest.disappearing_timer:type_name -> google.protobuf.Duration
+	115, // 38: whatsmeow.fake.v1.PhoneChatChange.mute:type_name -> whatsmeow.fake.v1.PhoneChatChange.Mute
+	116, // 39: whatsmeow.fake.v1.PhoneChatChange.star:type_name -> whatsmeow.fake.v1.PhoneChatChange.Star
+	89,  // 40: whatsmeow.fake.v1.SyncChatStateRequest.change:type_name -> whatsmeow.fake.v1.PhoneChatChange
+	120, // 41: whatsmeow.fake.v1.SyncChatStateRequest.change_time:type_name -> google.protobuf.Timestamp
+	120, // 42: whatsmeow.fake.v1.GetPhoneChatStateResponse.mute_until:type_name -> google.protobuf.Timestamp
+	117, // 43: whatsmeow.fake.v1.GetPhoneChatStateResponse.starred:type_name -> whatsmeow.fake.v1.GetPhoneChatStateResponse.StarredMessage
+	118, // 44: whatsmeow.fake.v1.DeliverHistorySyncRequest.conversations:type_name -> whatsmeow.fake.v1.DeliverHistorySyncRequest.Conversation
+	122, // 45: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.TemporaryBan.expire:type_name -> google.protobuf.Duration
+	120, // 46: whatsmeow.fake.v1.PhoneChatChange.Mute.until:type_name -> google.protobuf.Timestamp
+	119, // 47: whatsmeow.fake.v1.DeliverHistorySyncRequest.Conversation.messages:type_name -> whatsmeow.fake.v1.DeliverHistorySyncRequest.Message
+	120, // 48: whatsmeow.fake.v1.DeliverHistorySyncRequest.Message.message_time:type_name -> google.protobuf.Timestamp
+	121, // 49: whatsmeow.fake.v1.DeliverHistorySyncRequest.Message.message:type_name -> WAWebProtobufsE2E.Message
+	123, // 50: whatsmeow.fake.v1.DeliverHistorySyncRequest.Message.poll_updates:type_name -> WAWebProtobufsWeb.PollUpdate
+	28,  // 51: whatsmeow.fake.v1.FakeWhatsAppService.DeliverMessage:input_type -> whatsmeow.fake.v1.DeliverMessageRequest
+	29,  // 52: whatsmeow.fake.v1.FakeWhatsAppService.DeliverPollVote:input_type -> whatsmeow.fake.v1.DeliverPollVoteRequest
+	31,  // 53: whatsmeow.fake.v1.FakeWhatsAppService.DeliverUndecryptableMessage:input_type -> whatsmeow.fake.v1.DeliverUndecryptableMessageRequest
+	34,  // 54: whatsmeow.fake.v1.FakeWhatsAppService.WaitForSent:input_type -> whatsmeow.fake.v1.WaitForSentRequest
+	10,  // 55: whatsmeow.fake.v1.FakeWhatsAppService.LinkDevice:input_type -> whatsmeow.fake.v1.LinkDeviceRequest
+	12,  // 56: whatsmeow.fake.v1.FakeWhatsAppService.RotateQrCode:input_type -> whatsmeow.fake.v1.RotateQrCodeRequest
+	14,  // 57: whatsmeow.fake.v1.FakeWhatsAppService.ExpireQrCodes:input_type -> whatsmeow.fake.v1.ExpireQrCodesRequest
+	16,  // 58: whatsmeow.fake.v1.FakeWhatsAppService.DropConnection:input_type -> whatsmeow.fake.v1.DropConnectionRequest
+	58,  // 59: whatsmeow.fake.v1.FakeWhatsAppService.HoldNextLogin:input_type -> whatsmeow.fake.v1.HoldNextLoginRequest
+	60,  // 60: whatsmeow.fake.v1.FakeWhatsAppService.ReleaseLogin:input_type -> whatsmeow.fake.v1.ReleaseLoginRequest
+	18,  // 61: whatsmeow.fake.v1.FakeWhatsAppService.FailNextPreKeyUpload:input_type -> whatsmeow.fake.v1.FailNextPreKeyUploadRequest
+	20,  // 62: whatsmeow.fake.v1.FakeWhatsAppService.FailNextPairPhone:input_type -> whatsmeow.fake.v1.FailNextPairPhoneRequest
+	22,  // 63: whatsmeow.fake.v1.FakeWhatsAppService.FailNextConnect:input_type -> whatsmeow.fake.v1.FailNextConnectRequest
+	24,  // 64: whatsmeow.fake.v1.FakeWhatsAppService.FailNextLogout:input_type -> whatsmeow.fake.v1.FailNextLogoutRequest
+	26,  // 65: whatsmeow.fake.v1.FakeWhatsAppService.RaisePermanentDisconnect:input_type -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest
+	71,  // 66: whatsmeow.fake.v1.FakeWhatsAppService.RegisterUser:input_type -> whatsmeow.fake.v1.RegisterUserRequest
+	73,  // 67: whatsmeow.fake.v1.FakeWhatsAppService.SetProfilePicture:input_type -> whatsmeow.fake.v1.SetProfilePictureRequest
+	75,  // 68: whatsmeow.fake.v1.FakeWhatsAppService.DeliverContactNotification:input_type -> whatsmeow.fake.v1.DeliverContactNotificationRequest
+	77,  // 69: whatsmeow.fake.v1.FakeWhatsAppService.SyncContact:input_type -> whatsmeow.fake.v1.SyncContactRequest
+	79,  // 70: whatsmeow.fake.v1.FakeWhatsAppService.FailNextContactQuery:input_type -> whatsmeow.fake.v1.FailNextContactQueryRequest
+	42,  // 71: whatsmeow.fake.v1.FakeWhatsAppService.DeliverPresence:input_type -> whatsmeow.fake.v1.DeliverPresenceRequest
+	44,  // 72: whatsmeow.fake.v1.FakeWhatsAppService.DeliverChatPresence:input_type -> whatsmeow.fake.v1.DeliverChatPresenceRequest
+	46,  // 73: whatsmeow.fake.v1.FakeWhatsAppService.SetPushName:input_type -> whatsmeow.fake.v1.SetPushNameRequest
+	0,   // 74: whatsmeow.fake.v1.FakeWhatsAppService.FailNextUploads:input_type -> whatsmeow.fake.v1.FailNextUploadsRequest
+	2,   // 75: whatsmeow.fake.v1.FakeWhatsAppService.ExpireMedia:input_type -> whatsmeow.fake.v1.ExpireMediaRequest
+	4,   // 76: whatsmeow.fake.v1.FakeWhatsAppService.CorruptMedia:input_type -> whatsmeow.fake.v1.CorruptMediaRequest
+	6,   // 77: whatsmeow.fake.v1.FakeWhatsAppService.HoldNextDownload:input_type -> whatsmeow.fake.v1.HoldNextDownloadRequest
+	8,   // 78: whatsmeow.fake.v1.FakeWhatsAppService.AnswerMediaRetry:input_type -> whatsmeow.fake.v1.AnswerMediaRetryRequest
+	54,  // 79: whatsmeow.fake.v1.FakeWhatsAppService.DeliverReceipt:input_type -> whatsmeow.fake.v1.DeliverReceiptRequest
+	56,  // 80: whatsmeow.fake.v1.FakeWhatsAppService.RateLimitNextSends:input_type -> whatsmeow.fake.v1.RateLimitNextSendsRequest
+	62,  // 81: whatsmeow.fake.v1.FakeWhatsAppService.HoldNextSend:input_type -> whatsmeow.fake.v1.HoldNextSendRequest
+	64,  // 82: whatsmeow.fake.v1.FakeWhatsAppService.ReleaseSend:input_type -> whatsmeow.fake.v1.ReleaseSendRequest
+	66,  // 83: whatsmeow.fake.v1.FakeWhatsAppService.RefuseNextSend:input_type -> whatsmeow.fake.v1.RefuseNextSendRequest
+	81,  // 84: whatsmeow.fake.v1.FakeWhatsAppService.AddGroup:input_type -> whatsmeow.fake.v1.AddGroupRequest
+	83,  // 85: whatsmeow.fake.v1.FakeWhatsAppService.DeliverGroupNotification:input_type -> whatsmeow.fake.v1.DeliverGroupNotificationRequest
+	85,  // 86: whatsmeow.fake.v1.FakeWhatsAppService.RefuseGroupAdd:input_type -> whatsmeow.fake.v1.RefuseGroupAddRequest
+	87,  // 87: whatsmeow.fake.v1.FakeWhatsAppService.FailNextGroupQuery:input_type -> whatsmeow.fake.v1.FailNextGroupQueryRequest
+	90,  // 88: whatsmeow.fake.v1.FakeWhatsAppService.SyncChatState:input_type -> whatsmeow.fake.v1.SyncChatStateRequest
+	92,  // 89: whatsmeow.fake.v1.FakeWhatsAppService.GetPhoneChatState:input_type -> whatsmeow.fake.v1.GetPhoneChatStateRequest
+	94,  // 90: whatsmeow.fake.v1.FakeWhatsAppService.CorruptAppState:input_type -> whatsmeow.fake.v1.CorruptAppStateRequest
+	96,  // 91: whatsmeow.fake.v1.FakeWhatsAppService.HoldFullSync:input_type -> whatsmeow.fake.v1.HoldFullSyncRequest
+	98,  // 92: whatsmeow.fake.v1.FakeWhatsAppService.CompleteOfflineSync:input_type -> whatsmeow.fake.v1.CompleteOfflineSyncRequest
+	100, // 93: whatsmeow.fake.v1.FakeWhatsAppService.DeliverHistorySync:input_type -> whatsmeow.fake.v1.DeliverHistorySyncRequest
+	102, // 94: whatsmeow.fake.v1.FakeWhatsAppService.GetPairingDeviceProps:input_type -> whatsmeow.fake.v1.GetPairingDevicePropsRequest
+	33,  // 95: whatsmeow.fake.v1.FakeWhatsAppService.DeliverMessage:output_type -> whatsmeow.fake.v1.DeliverMessageResponse
+	30,  // 96: whatsmeow.fake.v1.FakeWhatsAppService.DeliverPollVote:output_type -> whatsmeow.fake.v1.DeliverPollVoteResponse
+	32,  // 97: whatsmeow.fake.v1.FakeWhatsAppService.DeliverUndecryptableMessage:output_type -> whatsmeow.fake.v1.DeliverUndecryptableMessageResponse
+	35,  // 98: whatsmeow.fake.v1.FakeWhatsAppService.WaitForSent:output_type -> whatsmeow.fake.v1.WaitForSentResponse
+	11,  // 99: whatsmeow.fake.v1.FakeWhatsAppService.LinkDevice:output_type -> whatsmeow.fake.v1.LinkDeviceResponse
+	13,  // 100: whatsmeow.fake.v1.FakeWhatsAppService.RotateQrCode:output_type -> whatsmeow.fake.v1.RotateQrCodeResponse
+	15,  // 101: whatsmeow.fake.v1.FakeWhatsAppService.ExpireQrCodes:output_type -> whatsmeow.fake.v1.ExpireQrCodesResponse
+	17,  // 102: whatsmeow.fake.v1.FakeWhatsAppService.DropConnection:output_type -> whatsmeow.fake.v1.DropConnectionResponse
+	59,  // 103: whatsmeow.fake.v1.FakeWhatsAppService.HoldNextLogin:output_type -> whatsmeow.fake.v1.HoldNextLoginResponse
+	61,  // 104: whatsmeow.fake.v1.FakeWhatsAppService.ReleaseLogin:output_type -> whatsmeow.fake.v1.ReleaseLoginResponse
+	19,  // 105: whatsmeow.fake.v1.FakeWhatsAppService.FailNextPreKeyUpload:output_type -> whatsmeow.fake.v1.FailNextPreKeyUploadResponse
+	21,  // 106: whatsmeow.fake.v1.FakeWhatsAppService.FailNextPairPhone:output_type -> whatsmeow.fake.v1.FailNextPairPhoneResponse
+	23,  // 107: whatsmeow.fake.v1.FakeWhatsAppService.FailNextConnect:output_type -> whatsmeow.fake.v1.FailNextConnectResponse
+	25,  // 108: whatsmeow.fake.v1.FakeWhatsAppService.FailNextLogout:output_type -> whatsmeow.fake.v1.FailNextLogoutResponse
+	27,  // 109: whatsmeow.fake.v1.FakeWhatsAppService.RaisePermanentDisconnect:output_type -> whatsmeow.fake.v1.RaisePermanentDisconnectResponse
+	72,  // 110: whatsmeow.fake.v1.FakeWhatsAppService.RegisterUser:output_type -> whatsmeow.fake.v1.RegisterUserResponse
+	74,  // 111: whatsmeow.fake.v1.FakeWhatsAppService.SetProfilePicture:output_type -> whatsmeow.fake.v1.SetProfilePictureResponse
+	76,  // 112: whatsmeow.fake.v1.FakeWhatsAppService.DeliverContactNotification:output_type -> whatsmeow.fake.v1.DeliverContactNotificationResponse
+	78,  // 113: whatsmeow.fake.v1.FakeWhatsAppService.SyncContact:output_type -> whatsmeow.fake.v1.SyncContactResponse
+	80,  // 114: whatsmeow.fake.v1.FakeWhatsAppService.FailNextContactQuery:output_type -> whatsmeow.fake.v1.FailNextContactQueryResponse
+	43,  // 115: whatsmeow.fake.v1.FakeWhatsAppService.DeliverPresence:output_type -> whatsmeow.fake.v1.DeliverPresenceResponse
+	45,  // 116: whatsmeow.fake.v1.FakeWhatsAppService.DeliverChatPresence:output_type -> whatsmeow.fake.v1.DeliverChatPresenceResponse
+	47,  // 117: whatsmeow.fake.v1.FakeWhatsAppService.SetPushName:output_type -> whatsmeow.fake.v1.SetPushNameResponse
+	1,   // 118: whatsmeow.fake.v1.FakeWhatsAppService.FailNextUploads:output_type -> whatsmeow.fake.v1.FailNextUploadsResponse
+	3,   // 119: whatsmeow.fake.v1.FakeWhatsAppService.ExpireMedia:output_type -> whatsmeow.fake.v1.ExpireMediaResponse
+	5,   // 120: whatsmeow.fake.v1.FakeWhatsAppService.CorruptMedia:output_type -> whatsmeow.fake.v1.CorruptMediaResponse
+	7,   // 121: whatsmeow.fake.v1.FakeWhatsAppService.HoldNextDownload:output_type -> whatsmeow.fake.v1.HoldNextDownloadResponse
+	9,   // 122: whatsmeow.fake.v1.FakeWhatsAppService.AnswerMediaRetry:output_type -> whatsmeow.fake.v1.AnswerMediaRetryResponse
+	55,  // 123: whatsmeow.fake.v1.FakeWhatsAppService.DeliverReceipt:output_type -> whatsmeow.fake.v1.DeliverReceiptResponse
+	57,  // 124: whatsmeow.fake.v1.FakeWhatsAppService.RateLimitNextSends:output_type -> whatsmeow.fake.v1.RateLimitNextSendsResponse
+	63,  // 125: whatsmeow.fake.v1.FakeWhatsAppService.HoldNextSend:output_type -> whatsmeow.fake.v1.HoldNextSendResponse
+	65,  // 126: whatsmeow.fake.v1.FakeWhatsAppService.ReleaseSend:output_type -> whatsmeow.fake.v1.ReleaseSendResponse
+	67,  // 127: whatsmeow.fake.v1.FakeWhatsAppService.RefuseNextSend:output_type -> whatsmeow.fake.v1.RefuseNextSendResponse
+	82,  // 128: whatsmeow.fake.v1.FakeWhatsAppService.AddGroup:output_type -> whatsmeow.fake.v1.AddGroupResponse
+	84,  // 129: whatsmeow.fake.v1.FakeWhatsAppService.DeliverGroupNotification:output_type -> whatsmeow.fake.v1.DeliverGroupNotificationResponse
+	86,  // 130: whatsmeow.fake.v1.FakeWhatsAppService.RefuseGroupAdd:output_type -> whatsmeow.fake.v1.RefuseGroupAddResponse
+	88,  // 131: whatsmeow.fake.v1.FakeWhatsAppService.FailNextGroupQuery:output_type -> whatsmeow.fake.v1.FailNextGroupQueryResponse
+	91,  // 132: whatsmeow.fake.v1.FakeWhatsAppService.SyncChatState:output_type -> whatsmeow.fake.v1.SyncChatStateResponse
+	93,  // 133: whatsmeow.fake.v1.FakeWhatsAppService.GetPhoneChatState:output_type -> whatsmeow.fake.v1.GetPhoneChatStateResponse
+	95,  // 134: whatsmeow.fake.v1.FakeWhatsAppService.CorruptAppState:output_type -> whatsmeow.fake.v1.CorruptAppStateResponse
+	97,  // 135: whatsmeow.fake.v1.FakeWhatsAppService.HoldFullSync:output_type -> whatsmeow.fake.v1.HoldFullSyncResponse
+	99,  // 136: whatsmeow.fake.v1.FakeWhatsAppService.CompleteOfflineSync:output_type -> whatsmeow.fake.v1.CompleteOfflineSyncResponse
+	101, // 137: whatsmeow.fake.v1.FakeWhatsAppService.DeliverHistorySync:output_type -> whatsmeow.fake.v1.DeliverHistorySyncResponse
+	103, // 138: whatsmeow.fake.v1.FakeWhatsAppService.GetPairingDeviceProps:output_type -> whatsmeow.fake.v1.GetPairingDevicePropsResponse
+	95,  // [95:139] is the sub-list for method output_type
+	51,  // [51:95] is the sub-list for method input_type
+	51,  // [51:51] is the sub-list for extension type_name
+	51,  // [51:51] is the sub-list for extension extendee
+	0,   // [0:51] is the sub-list for field type_name
 }
 
 func init() { file_whatsmeow_fake_v1_fake_proto_init() }

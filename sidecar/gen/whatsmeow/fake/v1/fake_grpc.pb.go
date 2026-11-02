@@ -226,7 +226,12 @@ type FakeWhatsAppServiceClient interface {
 	// a non-admin's change to a locked group's info, to its settings or to its participants is 403, and to its invite
 	// link 401 (whatsmeow's ErrGroupInviteLinkUnauthorized, group.go:432); a group the session is not in is 403 and an
 	// unknown one 404 (group.go:674-678); adding a member is 409, and removing, promoting or demoting a non-member 404,
-	// for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519); the creator gets no
+	// for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519), for a join and for the
+	// group info of a link, which joins nothing and lists every member; a member who is not an admin may add
+	// participants when the group's member add mode is all_member_add, and changes the mode only as an admin (403); a
+	// group answers no member add mode until one is set, CreateGroup's included, since what WhatsApp answers after a
+	// create is [unknown]; a disappearing timer is changed as the group's info is, and one not offered is 400
+	// (whatsmeow's ErrInvalidDisappearingTimer, send.go:687-690); the creator gets no
 	// JoinedGroup for its own group; the create answer lists a participant WhatsApp refused, with its error. WhatsApp's
 	// time on these calls is fixed, 2026-11-01T12:00:00Z, so a test knows each time they answer and notify; an invite
 	// RefuseGroupAdd offers expires 72 hours after it.
@@ -884,7 +889,12 @@ type FakeWhatsAppServiceServer interface {
 	// a non-admin's change to a locked group's info, to its settings or to its participants is 403, and to its invite
 	// link 401 (whatsmeow's ErrGroupInviteLinkUnauthorized, group.go:432); a group the session is not in is 403 and an
 	// unknown one 404 (group.go:674-678); adding a member is 409, and removing, promoting or demoting a non-member 404,
-	// for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519); the creator gets no
+	// for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519), for a join and for the
+	// group info of a link, which joins nothing and lists every member; a member who is not an admin may add
+	// participants when the group's member add mode is all_member_add, and changes the mode only as an admin (403); a
+	// group answers no member add mode until one is set, CreateGroup's included, since what WhatsApp answers after a
+	// create is [unknown]; a disappearing timer is changed as the group's info is, and one not offered is 400
+	// (whatsmeow's ErrInvalidDisappearingTimer, send.go:687-690); the creator gets no
 	// JoinedGroup for its own group; the create answer lists a participant WhatsApp refused, with its error. WhatsApp's
 	// time on these calls is fixed, 2026-11-01T12:00:00Z, so a test knows each time they answer and notify; an invite
 	// RefuseGroupAdd offers expires 72 hours after it.

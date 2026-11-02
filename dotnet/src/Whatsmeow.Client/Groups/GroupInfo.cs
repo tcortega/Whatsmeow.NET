@@ -35,6 +35,9 @@ public sealed record GroupInfo
 	/// <summary>The participants, in WhatsApp's order.</summary>
 	public required ImmutableArray<GroupParticipant> Participants { get; init; }
 
+	/// <summary>Who can add participants; null when WhatsApp did not say.</summary>
+	public GroupMemberAddMode? MemberAddMode { get; init; }
+
 	/// <summary>
 	/// Compares every field, the participants by content: a group read twice equals itself
 	/// (<see cref="ImmutableArray{T}"/> alone compares the arrays it wraps).
@@ -49,7 +52,8 @@ public sealed record GroupInfo
 		&& Nullable.Equals(CreatedAt, other.CreatedAt)
 		&& IsAnnounce == other.IsAnnounce
 		&& IsLocked == other.IsLocked
-		&& Participants.AsSpan().SequenceEqual(other.Participants.AsSpan());
+		&& Participants.AsSpan().SequenceEqual(other.Participants.AsSpan())
+		&& MemberAddMode == other.MemberAddMode;
 
 	/// <inheritdoc/>
 	public override int GetHashCode()

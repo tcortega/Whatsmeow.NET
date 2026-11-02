@@ -17,7 +17,9 @@ using PresenceState = Whatsmeow.Presence.PresenceState;
 using Whatsmeow.Protocol.V1;
 using BlockedUser = Whatsmeow.Contacts.BlockedUser;
 using Contact = Whatsmeow.Contacts.Contact;
+using Duration = Google.Protobuf.WellKnownTypes.Duration;
 using GroupInfo = Whatsmeow.Groups.GroupInfo;
+using GroupMemberAddMode = Whatsmeow.Groups.GroupMemberAddMode;
 using ParticipantResult = Whatsmeow.Groups.ParticipantResult;
 using PhoneNumberCheck = Whatsmeow.Contacts.PhoneNumberCheck;
 using ResolvedJid = Whatsmeow.Contacts.ResolvedJid;
@@ -36,6 +38,9 @@ internal sealed class SessionClient(
 	ILogger log
 ) : IWhatsAppClient, IAsyncDisposable
 {
+	/// <summary>A group JID's server.</summary>
+	private const string GroupServer = "g.us";
+
 	/// <summary>How long a watch waits before it opens again after a call that ended without a status.</summary>
 	private static readonly TimeSpan s_retryDelay = TimeSpan.FromSeconds(1);
 
@@ -422,6 +427,40 @@ internal sealed class SessionClient(
 			.ConfigureAwait(false);
 	}
 
+	public async Task SetDisappearingTimerAsync(Jid chat, TimeSpan timer, CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var duration = Duration.FromTimeSpan(timer);
+		// whatsmeow sets a group's as a group setting and a direct chat's as a message (send.go:666-697): the sidecar
+		// sends the message through its send queue, which a group's setting has no part in.
+		if (chat.Server == GroupServer)
+		{
+			var request = new SetGroupDisappearingTimerRequest { SessionId = sessionId.Value, Group = chat.ToString(), Timer = duration };
+			_ = await RpcErrors.CallAsync(_groups.SetGroupDisappearingTimerAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+			return;
+		}
+
+		var messageId = MessageId.New();
+		_ = await SendTracedAsync(
+				"disappearing_timer",
+				messageId,
+				async () =>
+				{
+					var request = new SendDisappearingTimerRequest
+					{
+						SessionId = sessionId.Value,
+						Chat = chat.ToString(),
+						ClientMessageId = messageId.Value,
+						Timer = duration,
+					};
+					var response = await RpcErrors.CallAsync(_messages.SendDisappearingTimerAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime, "SendDisappearingTimerResponse.chat");
+				},
+				cancellationToken
+			)
+			.ConfigureAwait(false);
+	}
+
 	public async Task<SendResult> SendRawAsync(Jid chat, E2E.Message message, MessageId? id = null, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(message);
@@ -797,6 +836,13 @@ internal sealed class SessionClient(
 		_ = await RpcErrors.CallAsync(_groups.SetGroupLockedAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
 	}
 
+	public async Task SetGroupMemberAddModeAsync(Jid group, GroupMemberAddMode mode, CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new SetGroupMemberAddModeRequest { SessionId = sessionId.Value, Group = group.ToString(), Mode = GroupMapping.ToProto(mode) };
+		_ = await RpcErrors.CallAsync(_groups.SetGroupMemberAddModeAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+	}
+
 	public async Task<Uri> GetGroupInviteLinkAsync(Jid group, CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
@@ -820,6 +866,14 @@ internal sealed class SessionClient(
 		var request = new JoinGroupWithLinkRequest { SessionId = sessionId.Value, Link = link.OriginalString };
 		var response = await RpcErrors.CallAsync(_groups.JoinGroupWithLinkAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
 		return SidecarValues.Jid(response.Group, "JoinGroupWithLinkResponse.group");
+	}
+
+	public async Task<GroupInfo> GetGroupInfoFromLinkAsync(Uri link, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(link);
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new GetGroupInfoFromLinkRequest { SessionId = sessionId.Value, Link = link.OriginalString };
+		return GroupMapping.ToGroup((await RpcErrors.CallAsync(_groups.GetGroupInfoFromLinkAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false)).Group);
 	}
 
 	public async Task LeaveGroupAsync(Jid group, CancellationToken cancellationToken = default)

@@ -95,6 +95,14 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SetGroupLockedResponse> __Marshaller_whatsmeow_v1_SetGroupLockedResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SetGroupLockedResponse.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SetGroupMemberAddModeRequest> __Marshaller_whatsmeow_v1_SetGroupMemberAddModeRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SetGroupMemberAddModeRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SetGroupMemberAddModeResponse> __Marshaller_whatsmeow_v1_SetGroupMemberAddModeResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SetGroupMemberAddModeResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SetGroupDisappearingTimerRequest> __Marshaller_whatsmeow_v1_SetGroupDisappearingTimerRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SetGroupDisappearingTimerRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SetGroupDisappearingTimerResponse> __Marshaller_whatsmeow_v1_SetGroupDisappearingTimerResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SetGroupDisappearingTimerResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.GetInviteLinkRequest> __Marshaller_whatsmeow_v1_GetInviteLinkRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.GetInviteLinkRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.GetInviteLinkResponse> __Marshaller_whatsmeow_v1_GetInviteLinkResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.GetInviteLinkResponse.Parser));
@@ -106,6 +114,10 @@ namespace Whatsmeow.Protocol.V1 {
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.JoinGroupWithLinkRequest> __Marshaller_whatsmeow_v1_JoinGroupWithLinkRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.JoinGroupWithLinkRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.JoinGroupWithLinkResponse> __Marshaller_whatsmeow_v1_JoinGroupWithLinkResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.JoinGroupWithLinkResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.GetGroupInfoFromLinkRequest> __Marshaller_whatsmeow_v1_GetGroupInfoFromLinkRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.GetGroupInfoFromLinkRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.GetGroupInfoFromLinkResponse> __Marshaller_whatsmeow_v1_GetGroupInfoFromLinkResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.GetGroupInfoFromLinkResponse.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.LeaveGroupRequest> __Marshaller_whatsmeow_v1_LeaveGroupRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.LeaveGroupRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
@@ -176,6 +188,22 @@ namespace Whatsmeow.Protocol.V1 {
         __Marshaller_whatsmeow_v1_SetGroupLockedResponse);
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.Protocol.V1.SetGroupMemberAddModeRequest, global::Whatsmeow.Protocol.V1.SetGroupMemberAddModeResponse> __Method_SetGroupMemberAddMode = new grpc::Method<global::Whatsmeow.Protocol.V1.SetGroupMemberAddModeRequest, global::Whatsmeow.Protocol.V1.SetGroupMemberAddModeResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "SetGroupMemberAddMode",
+        __Marshaller_whatsmeow_v1_SetGroupMemberAddModeRequest,
+        __Marshaller_whatsmeow_v1_SetGroupMemberAddModeResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.Protocol.V1.SetGroupDisappearingTimerRequest, global::Whatsmeow.Protocol.V1.SetGroupDisappearingTimerResponse> __Method_SetGroupDisappearingTimer = new grpc::Method<global::Whatsmeow.Protocol.V1.SetGroupDisappearingTimerRequest, global::Whatsmeow.Protocol.V1.SetGroupDisappearingTimerResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "SetGroupDisappearingTimer",
+        __Marshaller_whatsmeow_v1_SetGroupDisappearingTimerRequest,
+        __Marshaller_whatsmeow_v1_SetGroupDisappearingTimerResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.Protocol.V1.GetInviteLinkRequest, global::Whatsmeow.Protocol.V1.GetInviteLinkResponse> __Method_GetInviteLink = new grpc::Method<global::Whatsmeow.Protocol.V1.GetInviteLinkRequest, global::Whatsmeow.Protocol.V1.GetInviteLinkResponse>(
         grpc::MethodType.Unary,
         __ServiceName,
@@ -198,6 +226,14 @@ namespace Whatsmeow.Protocol.V1 {
         "JoinGroupWithLink",
         __Marshaller_whatsmeow_v1_JoinGroupWithLinkRequest,
         __Marshaller_whatsmeow_v1_JoinGroupWithLinkResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.Protocol.V1.GetGroupInfoFromLinkRequest, global::Whatsmeow.Protocol.V1.GetGroupInfoFromLinkResponse> __Method_GetGroupInfoFromLink = new grpc::Method<global::Whatsmeow.Protocol.V1.GetGroupInfoFromLinkRequest, global::Whatsmeow.Protocol.V1.GetGroupInfoFromLinkResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "GetGroupInfoFromLink",
+        __Marshaller_whatsmeow_v1_GetGroupInfoFromLinkRequest,
+        __Marshaller_whatsmeow_v1_GetGroupInfoFromLinkResponse);
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.Protocol.V1.LeaveGroupRequest, global::Whatsmeow.Protocol.V1.LeaveGroupResponse> __Method_LeaveGroup = new grpc::Method<global::Whatsmeow.Protocol.V1.LeaveGroupRequest, global::Whatsmeow.Protocol.V1.LeaveGroupResponse>(
@@ -693,6 +729,134 @@ namespace Whatsmeow.Protocol.V1 {
         return CallInvoker.AsyncUnaryCall(__Method_SetGroupLocked, null, options, request);
       }
       /// <summary>
+      /// SetGroupMemberAddMode sets who can add participants: only admins, or every member. Members get a GroupEvent with
+      /// the change.
+      /// Errors: as CreateGroup; INVALID_ARGUMENT (field "group", or "mode" for an unspecified one).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.SetGroupMemberAddModeResponse SetGroupMemberAddMode(global::Whatsmeow.Protocol.V1.SetGroupMemberAddModeRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SetGroupMemberAddMode(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SetGroupMemberAddMode sets who can add participants: only admins, or every member. Members get a GroupEvent with
+      /// the change.
+      /// Errors: as CreateGroup; INVALID_ARGUMENT (field "group", or "mode" for an unspecified one).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.SetGroupMemberAddModeResponse SetGroupMemberAddMode(global::Whatsmeow.Protocol.V1.SetGroupMemberAddModeRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_SetGroupMemberAddMode, null, options, request);
+      }
+      /// <summary>
+      /// SetGroupMemberAddMode sets who can add participants: only admins, or every member. Members get a GroupEvent with
+      /// the change.
+      /// Errors: as CreateGroup; INVALID_ARGUMENT (field "group", or "mode" for an unspecified one).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SetGroupMemberAddModeResponse> SetGroupMemberAddModeAsync(global::Whatsmeow.Protocol.V1.SetGroupMemberAddModeRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SetGroupMemberAddModeAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SetGroupMemberAddMode sets who can add participants: only admins, or every member. Members get a GroupEvent with
+      /// the change.
+      /// Errors: as CreateGroup; INVALID_ARGUMENT (field "group", or "mode" for an unspecified one).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SetGroupMemberAddModeResponse> SetGroupMemberAddModeAsync(global::Whatsmeow.Protocol.V1.SetGroupMemberAddModeRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_SetGroupMemberAddMode, null, options, request);
+      }
+      /// <summary>
+      /// SetGroupDisappearingTimer sets how long the group's new messages last, or turns disappearing messages off with a
+      /// zero timer; members get a GroupEvent with the change. The timer is one WhatsApp's phones offer: 24 hours, 7 days or
+      /// 90 days, or zero; whether WhatsApp accepts others is [unknown], so any other is INVALID_ARGUMENT and nothing is
+      /// asked. The session's later messages do not carry the timer: whatsmeow sets none on a send [observed: whatsmeow
+      /// send.go], so a message that should disappear sets its own (SendMessage, ContextInfo.expiration). A direct chat's
+      /// timer is a message instead, MessageService.SendDisappearingTimer.
+      /// Errors: as CreateGroup; INVALID_ARGUMENT (field "group", or "timer").
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.SetGroupDisappearingTimerResponse SetGroupDisappearingTimer(global::Whatsmeow.Protocol.V1.SetGroupDisappearingTimerRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SetGroupDisappearingTimer(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SetGroupDisappearingTimer sets how long the group's new messages last, or turns disappearing messages off with a
+      /// zero timer; members get a GroupEvent with the change. The timer is one WhatsApp's phones offer: 24 hours, 7 days or
+      /// 90 days, or zero; whether WhatsApp accepts others is [unknown], so any other is INVALID_ARGUMENT and nothing is
+      /// asked. The session's later messages do not carry the timer: whatsmeow sets none on a send [observed: whatsmeow
+      /// send.go], so a message that should disappear sets its own (SendMessage, ContextInfo.expiration). A direct chat's
+      /// timer is a message instead, MessageService.SendDisappearingTimer.
+      /// Errors: as CreateGroup; INVALID_ARGUMENT (field "group", or "timer").
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.SetGroupDisappearingTimerResponse SetGroupDisappearingTimer(global::Whatsmeow.Protocol.V1.SetGroupDisappearingTimerRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_SetGroupDisappearingTimer, null, options, request);
+      }
+      /// <summary>
+      /// SetGroupDisappearingTimer sets how long the group's new messages last, or turns disappearing messages off with a
+      /// zero timer; members get a GroupEvent with the change. The timer is one WhatsApp's phones offer: 24 hours, 7 days or
+      /// 90 days, or zero; whether WhatsApp accepts others is [unknown], so any other is INVALID_ARGUMENT and nothing is
+      /// asked. The session's later messages do not carry the timer: whatsmeow sets none on a send [observed: whatsmeow
+      /// send.go], so a message that should disappear sets its own (SendMessage, ContextInfo.expiration). A direct chat's
+      /// timer is a message instead, MessageService.SendDisappearingTimer.
+      /// Errors: as CreateGroup; INVALID_ARGUMENT (field "group", or "timer").
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SetGroupDisappearingTimerResponse> SetGroupDisappearingTimerAsync(global::Whatsmeow.Protocol.V1.SetGroupDisappearingTimerRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SetGroupDisappearingTimerAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SetGroupDisappearingTimer sets how long the group's new messages last, or turns disappearing messages off with a
+      /// zero timer; members get a GroupEvent with the change. The timer is one WhatsApp's phones offer: 24 hours, 7 days or
+      /// 90 days, or zero; whether WhatsApp accepts others is [unknown], so any other is INVALID_ARGUMENT and nothing is
+      /// asked. The session's later messages do not carry the timer: whatsmeow sets none on a send [observed: whatsmeow
+      /// send.go], so a message that should disappear sets its own (SendMessage, ContextInfo.expiration). A direct chat's
+      /// timer is a message instead, MessageService.SendDisappearingTimer.
+      /// Errors: as CreateGroup; INVALID_ARGUMENT (field "group", or "timer").
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SetGroupDisappearingTimerResponse> SetGroupDisappearingTimerAsync(global::Whatsmeow.Protocol.V1.SetGroupDisappearingTimerRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_SetGroupDisappearingTimer, null, options, request);
+      }
+      /// <summary>
       /// GetInviteLink reads the group's invite link.
       /// Errors: as GetGroup.
       /// </summary>
@@ -851,6 +1015,66 @@ namespace Whatsmeow.Protocol.V1 {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.JoinGroupWithLinkResponse> JoinGroupWithLinkAsync(global::Whatsmeow.Protocol.V1.JoinGroupWithLinkRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_JoinGroupWithLink, null, options, request);
+      }
+      /// <summary>
+      /// GetGroupInfoFromLink reads the group of an invite link, as WhatsApp shows it to someone who is not a member, without
+      /// joining it. Which participants WhatsApp lists for a non-member, and in which address form, is [unknown]. A link
+      /// WhatsApp does not accept fails as JoinGroupWithLink fails with it.
+      /// Errors: as GetGroup but INVALID_ARGUMENT (field "link" for an empty one); INVITE_LINK_INVALID.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.GetGroupInfoFromLinkResponse GetGroupInfoFromLink(global::Whatsmeow.Protocol.V1.GetGroupInfoFromLinkRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return GetGroupInfoFromLink(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// GetGroupInfoFromLink reads the group of an invite link, as WhatsApp shows it to someone who is not a member, without
+      /// joining it. Which participants WhatsApp lists for a non-member, and in which address form, is [unknown]. A link
+      /// WhatsApp does not accept fails as JoinGroupWithLink fails with it.
+      /// Errors: as GetGroup but INVALID_ARGUMENT (field "link" for an empty one); INVITE_LINK_INVALID.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.GetGroupInfoFromLinkResponse GetGroupInfoFromLink(global::Whatsmeow.Protocol.V1.GetGroupInfoFromLinkRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_GetGroupInfoFromLink, null, options, request);
+      }
+      /// <summary>
+      /// GetGroupInfoFromLink reads the group of an invite link, as WhatsApp shows it to someone who is not a member, without
+      /// joining it. Which participants WhatsApp lists for a non-member, and in which address form, is [unknown]. A link
+      /// WhatsApp does not accept fails as JoinGroupWithLink fails with it.
+      /// Errors: as GetGroup but INVALID_ARGUMENT (field "link" for an empty one); INVITE_LINK_INVALID.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.GetGroupInfoFromLinkResponse> GetGroupInfoFromLinkAsync(global::Whatsmeow.Protocol.V1.GetGroupInfoFromLinkRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return GetGroupInfoFromLinkAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// GetGroupInfoFromLink reads the group of an invite link, as WhatsApp shows it to someone who is not a member, without
+      /// joining it. Which participants WhatsApp lists for a non-member, and in which address form, is [unknown]. A link
+      /// WhatsApp does not accept fails as JoinGroupWithLink fails with it.
+      /// Errors: as GetGroup but INVALID_ARGUMENT (field "link" for an empty one); INVITE_LINK_INVALID.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.GetGroupInfoFromLinkResponse> GetGroupInfoFromLinkAsync(global::Whatsmeow.Protocol.V1.GetGroupInfoFromLinkRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_GetGroupInfoFromLink, null, options, request);
       }
       /// <summary>
       /// LeaveGroup leaves the group.

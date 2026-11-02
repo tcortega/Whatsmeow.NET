@@ -19,15 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MessageService_SendMessage_FullMethodName  = "/whatsmeow.v1.MessageService/SendMessage"
-	MessageService_SendText_FullMethodName     = "/whatsmeow.v1.MessageService/SendText"
-	MessageService_SendMedia_FullMethodName    = "/whatsmeow.v1.MessageService/SendMedia"
-	MessageService_SendReaction_FullMethodName = "/whatsmeow.v1.MessageService/SendReaction"
-	MessageService_SendEdit_FullMethodName     = "/whatsmeow.v1.MessageService/SendEdit"
-	MessageService_SendRevoke_FullMethodName   = "/whatsmeow.v1.MessageService/SendRevoke"
-	MessageService_SendPoll_FullMethodName     = "/whatsmeow.v1.MessageService/SendPoll"
-	MessageService_SendPollVote_FullMethodName = "/whatsmeow.v1.MessageService/SendPollVote"
-	MessageService_MarkRead_FullMethodName     = "/whatsmeow.v1.MessageService/MarkRead"
+	MessageService_SendMessage_FullMethodName           = "/whatsmeow.v1.MessageService/SendMessage"
+	MessageService_SendText_FullMethodName              = "/whatsmeow.v1.MessageService/SendText"
+	MessageService_SendMedia_FullMethodName             = "/whatsmeow.v1.MessageService/SendMedia"
+	MessageService_SendReaction_FullMethodName          = "/whatsmeow.v1.MessageService/SendReaction"
+	MessageService_SendEdit_FullMethodName              = "/whatsmeow.v1.MessageService/SendEdit"
+	MessageService_SendRevoke_FullMethodName            = "/whatsmeow.v1.MessageService/SendRevoke"
+	MessageService_SendPoll_FullMethodName              = "/whatsmeow.v1.MessageService/SendPoll"
+	MessageService_SendPollVote_FullMethodName          = "/whatsmeow.v1.MessageService/SendPollVote"
+	MessageService_SendDisappearingTimer_FullMethodName = "/whatsmeow.v1.MessageService/SendDisappearingTimer"
+	MessageService_MarkRead_FullMethodName              = "/whatsmeow.v1.MessageService/MarkRead"
 )
 
 // MessageServiceClient is the client API for MessageService service.
@@ -103,6 +104,16 @@ type MessageServiceClient interface {
 	// Errors: as SendMessage, and INVALID_ARGUMENT for no poll_id, a poll_sender that is not a user's JID, or an empty
 	// or a repeated option (field "options"); POLL_SECRET_NOT_FOUND when this device has no secret for the poll.
 	SendPollVote(ctx context.Context, in *SendPollVoteRequest, opts ...grpc.CallOption) (*SendPollVoteResponse, error)
+	// SendDisappearingTimer sets a direct chat's disappearing messages timer, or turns disappearing messages off with a
+	// zero timer: a protocol message the other side's phone applies, built as whatsmeow builds it (EPHEMERAL_SETTING,
+	// whatsmeow send.go), timestamped by the sidecar's clock. Its client_message_id is the setting's own id. The timer is
+	// one WhatsApp's phones offer: 24 hours, 7 days or 90 days, or zero; whether WhatsApp accepts others is [unknown], so
+	// any other is INVALID_ARGUMENT and nothing is sent. The session's later messages do not carry the timer: whatsmeow
+	// sets none on a send [observed: whatsmeow send.go], so a message that should disappear sets its own (SendMessage,
+	// ContextInfo.expiration). A group's timer is a group setting instead, GroupService.SetGroupDisappearingTimer.
+	// Errors: as SendMessage, and INVALID_ARGUMENT for a group chat (field "chat") or a timer not offered (field
+	// "timer").
+	SendDisappearingTimer(ctx context.Context, in *SendDisappearingTimerRequest, opts ...grpc.CallOption) (*SendDisappearingTimerResponse, error)
 	// MarkRead sends a read receipt, timestamped now, for messages of one chat.
 	// Errors: INVALID_ARGUMENT (no message ids; a group chat without sender), SESSION_NOT_FOUND, NOT_LOGGED_IN,
 	// LOGGED_OUT, NOT_CONNECTED, TEMPORARILY_BANNED.
@@ -197,6 +208,16 @@ func (c *messageServiceClient) SendPollVote(ctx context.Context, in *SendPollVot
 	return out, nil
 }
 
+func (c *messageServiceClient) SendDisappearingTimer(ctx context.Context, in *SendDisappearingTimerRequest, opts ...grpc.CallOption) (*SendDisappearingTimerResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendDisappearingTimerResponse)
+	err := c.cc.Invoke(ctx, MessageService_SendDisappearingTimer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *messageServiceClient) MarkRead(ctx context.Context, in *MarkReadRequest, opts ...grpc.CallOption) (*MarkReadResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(MarkReadResponse)
@@ -280,6 +301,16 @@ type MessageServiceServer interface {
 	// Errors: as SendMessage, and INVALID_ARGUMENT for no poll_id, a poll_sender that is not a user's JID, or an empty
 	// or a repeated option (field "options"); POLL_SECRET_NOT_FOUND when this device has no secret for the poll.
 	SendPollVote(context.Context, *SendPollVoteRequest) (*SendPollVoteResponse, error)
+	// SendDisappearingTimer sets a direct chat's disappearing messages timer, or turns disappearing messages off with a
+	// zero timer: a protocol message the other side's phone applies, built as whatsmeow builds it (EPHEMERAL_SETTING,
+	// whatsmeow send.go), timestamped by the sidecar's clock. Its client_message_id is the setting's own id. The timer is
+	// one WhatsApp's phones offer: 24 hours, 7 days or 90 days, or zero; whether WhatsApp accepts others is [unknown], so
+	// any other is INVALID_ARGUMENT and nothing is sent. The session's later messages do not carry the timer: whatsmeow
+	// sets none on a send [observed: whatsmeow send.go], so a message that should disappear sets its own (SendMessage,
+	// ContextInfo.expiration). A group's timer is a group setting instead, GroupService.SetGroupDisappearingTimer.
+	// Errors: as SendMessage, and INVALID_ARGUMENT for a group chat (field "chat") or a timer not offered (field
+	// "timer").
+	SendDisappearingTimer(context.Context, *SendDisappearingTimerRequest) (*SendDisappearingTimerResponse, error)
 	// MarkRead sends a read receipt, timestamped now, for messages of one chat.
 	// Errors: INVALID_ARGUMENT (no message ids; a group chat without sender), SESSION_NOT_FOUND, NOT_LOGGED_IN,
 	// LOGGED_OUT, NOT_CONNECTED, TEMPORARILY_BANNED.
@@ -317,6 +348,9 @@ func (UnimplementedMessageServiceServer) SendPoll(context.Context, *SendPollRequ
 }
 func (UnimplementedMessageServiceServer) SendPollVote(context.Context, *SendPollVoteRequest) (*SendPollVoteResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SendPollVote not implemented")
+}
+func (UnimplementedMessageServiceServer) SendDisappearingTimer(context.Context, *SendDisappearingTimerRequest) (*SendDisappearingTimerResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendDisappearingTimer not implemented")
 }
 func (UnimplementedMessageServiceServer) MarkRead(context.Context, *MarkReadRequest) (*MarkReadResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method MarkRead not implemented")
@@ -486,6 +520,24 @@ func _MessageService_SendPollVote_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MessageService_SendDisappearingTimer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendDisappearingTimerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageServiceServer).SendDisappearingTimer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MessageService_SendDisappearingTimer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageServiceServer).SendDisappearingTimer(ctx, req.(*SendDisappearingTimerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MessageService_MarkRead_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MarkReadRequest)
 	if err := dec(in); err != nil {
@@ -542,6 +594,10 @@ var MessageService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendPollVote",
 			Handler:    _MessageService_SendPollVote_Handler,
+		},
+		{
+			MethodName: "SendDisappearingTimer",
+			Handler:    _MessageService_SendDisappearingTimer_Handler,
 		},
 		{
 			MethodName: "MarkRead",

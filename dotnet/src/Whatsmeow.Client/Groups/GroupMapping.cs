@@ -24,6 +24,26 @@ internal static class GroupMapping
 			IsAnnounce = group.Announce,
 			IsLocked = group.Locked,
 			Participants = [.. group.Participants.Select(ToParticipant)],
+			MemberAddMode = ToMode(group.MemberAddMode),
+		};
+
+	/// <summary>The public mode as the contract's: a value the enum does not name is unspecified, which the sidecar refuses.</summary>
+	public static Protocol.V1.GroupMemberAddMode ToProto(GroupMemberAddMode mode) =>
+		mode switch
+		{
+			GroupMemberAddMode.AdminsOnly => Protocol.V1.GroupMemberAddMode.Admins,
+			GroupMemberAddMode.AllMembers => Protocol.V1.GroupMemberAddMode.AllMembers,
+			_ => Protocol.V1.GroupMemberAddMode.Unspecified,
+		};
+
+	/// <summary>A mode WhatsApp did not say, or one this client does not know, is null.</summary>
+	private static GroupMemberAddMode? ToMode(Protocol.V1.GroupMemberAddMode mode) =>
+		mode switch
+		{
+			Protocol.V1.GroupMemberAddMode.Admins => GroupMemberAddMode.AdminsOnly,
+			Protocol.V1.GroupMemberAddMode.AllMembers => GroupMemberAddMode.AllMembers,
+			Protocol.V1.GroupMemberAddMode.Unspecified => null,
+			_ => null,
 		};
 
 	public static CreatedGroup ToCreated(CreateGroupResponse response) =>
@@ -82,6 +102,8 @@ internal static class GroupMapping
 					Change.TopicChanged => [new GroupChange.TopicChanged { Topic = NullIfEmpty(change.TopicChanged.Topic) }],
 					Change.AnnounceChanged => [new GroupChange.AnnounceChanged { IsAnnounce = change.AnnounceChanged.Announce }],
 					Change.LockedChanged => [new GroupChange.LockedChanged { IsLocked = change.LockedChanged.Locked }],
+					Change.MemberAddModeChanged => ToMode(change.MemberAddModeChanged.Mode) is { } mode ? [new GroupChange.MemberAddModeChanged { Mode = mode }] : [],
+					Change.DisappearingTimerChanged => [new GroupChange.DisappearingTimerChanged { Timer = change.DisappearingTimerChanged.Timer?.ToTimeSpan() ?? TimeSpan.Zero }],
 					Change.Joined => [.. change.Joined.Jids.Select(jid => new GroupChange.ParticipantJoined { Jid = SidecarValues.Jid(jid, "GroupChange.Participants.jids") })],
 					Change.Left => [.. change.Left.Jids.Select(jid => new GroupChange.ParticipantLeft { Jid = SidecarValues.Jid(jid, "GroupChange.Participants.jids") })],
 					Change.Promoted => [.. change.Promoted.Jids.Select(jid => new GroupChange.ParticipantPromoted { Jid = SidecarValues.Jid(jid, "GroupChange.Participants.jids") })],
