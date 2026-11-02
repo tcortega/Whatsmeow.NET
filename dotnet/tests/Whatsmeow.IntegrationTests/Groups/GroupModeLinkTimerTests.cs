@@ -199,15 +199,15 @@ public sealed class GroupModeLinkTimerTests(FakeSidecar fixture)
 		var group = (await admin.CreateGroupAsync("Team", [Self("groups-timer-b")], ct)).Group.Jid;
 		var by = Self("groups-timer-a");
 
-		await admin.SetDisappearingTimerAsync(group, TimeSpan.FromDays(7), ct);
+		await admin.SetDisappearingTimerAsync(group, TimeSpan.FromDays(7), cancellationToken: ct);
 		Assert.Equal(Changed("groups-timer-b", group, by, new GroupChange.DisappearingTimerChanged { Timer = TimeSpan.FromDays(7) }), await changes.NextAsync(ct));
 
 		// Only 24 hours, 7 days, 90 days and off are offered; nothing reaches WhatsApp, so the next change members see
 		// is the one after.
-		var thrown = await Assert.ThrowsAsync<WhatsmeowValidationException>(() => admin.SetDisappearingTimerAsync(group, TimeSpan.FromDays(2), ct));
+		var thrown = await Assert.ThrowsAsync<WhatsmeowValidationException>(() => admin.SetDisappearingTimerAsync(group, TimeSpan.FromDays(2), cancellationToken: ct));
 		Assert.Equal(WhatsmeowErrorCode.InvalidArgument, thrown.ErrorCode);
 
-		await admin.SetDisappearingTimerAsync(group, TimeSpan.Zero, ct);
+		await admin.SetDisappearingTimerAsync(group, TimeSpan.Zero, cancellationToken: ct);
 		Assert.Equal(Changed("groups-timer-b", group, by, new GroupChange.DisappearingTimerChanged { Timer = TimeSpan.Zero }), await changes.NextAsync(ct));
 	}
 }

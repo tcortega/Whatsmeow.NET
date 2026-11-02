@@ -212,13 +212,13 @@ public sealed partial class CallTests : IAsyncDisposable
 
 		await _fake.SetGroupMemberAddModeAsync(Team, GroupMemberAddMode.AdminsOnly, ct);
 		var info = await _fake.GetGroupInfoFromLinkAsync(link, ct);
-		await _fake.SetDisappearingTimerAsync(Ana, TimeSpan.FromDays(7), ct);
+		await _fake.SetDisappearingTimerAsync(Ana, TimeSpan.FromDays(7), cancellationToken: ct);
 
 		Assert.Equal(
 			[
 				(nameof(IWhatsAppClient.SetGroupMemberAddModeAsync), new Dictionary<string, object?>(StringComparer.Ordinal) { ["group"] = Team, ["mode"] = GroupMemberAddMode.AdminsOnly }),
 				(nameof(IWhatsAppClient.GetGroupInfoFromLinkAsync), new Dictionary<string, object?>(StringComparer.Ordinal) { ["link"] = link }),
-				(nameof(IWhatsAppClient.SetDisappearingTimerAsync), new Dictionary<string, object?>(StringComparer.Ordinal) { ["chat"] = Ana, ["timer"] = TimeSpan.FromDays(7) }),
+				(nameof(IWhatsAppClient.SetDisappearingTimerAsync), new Dictionary<string, object?>(StringComparer.Ordinal) { ["chat"] = Ana, ["timer"] = TimeSpan.FromDays(7), ["id"] = null }),
 			],
 			_fake.Calls.Select(static call => (call.Member, new Dictionary<string, object?>(call.Arguments, StringComparer.Ordinal)))
 		);

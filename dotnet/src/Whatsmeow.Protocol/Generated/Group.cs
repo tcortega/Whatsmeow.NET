@@ -9044,8 +9044,8 @@ namespace Whatsmeow.Protocol.V1 {
         private readonly pbc::RepeatedField<global::Whatsmeow.Protocol.V1.GroupChange> changes_ = new pbc::RepeatedField<global::Whatsmeow.Protocol.V1.GroupChange>();
         /// <summary>
         /// What changed, never empty: renamed, topic, announce, locked, member add mode, disappearing timer, joined, left,
-        /// promoted, demoted, each at most once and in that order. A participant in these lists is addressed as in the group's participants; the store learned
-        /// their other form with the notification (ResolveJids).
+        /// promoted, demoted, each at most once and in that order. A participant in these lists is addressed as in the
+        /// group's participants; the store learned their other form with the notification (ResolveJids).
         /// </summary>
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]

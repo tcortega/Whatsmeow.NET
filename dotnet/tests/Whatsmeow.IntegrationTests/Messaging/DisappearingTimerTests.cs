@@ -29,14 +29,14 @@ public sealed class DisappearingTimerTests(FakeSidecar fixture)
 		const string Session = "disappearing-timer-direct";
 		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
 
-		await client.SetDisappearingTimerAsync(s_peer, TimeSpan.FromDays(7), ct);
+		await client.SetDisappearingTimerAsync(s_peer, TimeSpan.FromDays(7), cancellationToken: ct);
 		var set = await NextMessageAsync(Session, 0, ct);
 
 		// Only 24 hours, 7 days, 90 days and off are offered; nothing is sent, so the next message is the one after.
-		var thrown = await Assert.ThrowsAsync<WhatsmeowValidationException>(() => client.SetDisappearingTimerAsync(s_peer, TimeSpan.FromHours(12), ct));
+		var thrown = await Assert.ThrowsAsync<WhatsmeowValidationException>(() => client.SetDisappearingTimerAsync(s_peer, TimeSpan.FromHours(12), cancellationToken: ct));
 		Assert.Equal(WhatsmeowErrorCode.InvalidArgument, thrown.ErrorCode);
 
-		await client.SetDisappearingTimerAsync(s_peer, TimeSpan.Zero, ct);
+		await client.SetDisappearingTimerAsync(s_peer, TimeSpan.Zero, cancellationToken: ct);
 		var off = await NextMessageAsync(Session, set.Index, ct);
 
 		// The protocol message whatsmeow sends for a direct chat (send.go:668-678), timestamped by the sidecar's clock in
@@ -55,6 +55,26 @@ public sealed class DisappearingTimerTests(FakeSidecar fixture)
 			);
 			Assert.Equal(s_peer.ToString(), sent.Message.Chat);
 		}
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task FullCycle_SetDisappearingTimer_ADirectChatRepeatedWithItsId_SendsTheSettingOnce()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "disappearing-timer-repeat";
+		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
+		var id = MessageId.New();
+
+		await client.SetDisappearingTimerAsync(s_peer, TimeSpan.FromDays(7), id, ct);
+		// A retry after an unknown outcome repeats the id; the send record answers it, and nothing goes out again.
+		await client.SetDisappearingTimerAsync(s_peer, TimeSpan.FromDays(7), id, ct);
+		await client.SetDisappearingTimerAsync(s_peer, TimeSpan.Zero, cancellationToken: ct);
+
+		var first = await NextMessageAsync(Session, 0, ct);
+		var next = await NextMessageAsync(Session, first.Index, ct);
+		Assert.Equal((id.Value, 604_800u), (first.Message.Id, first.Message.Message.ProtocolMessage.EphemeralExpiration));
+		Assert.NotEqual(id.Value, next.Message.Id, StringComparer.Ordinal);
+		Assert.Equal(0u, next.Message.Message.ProtocolMessage.EphemeralExpiration);
 	}
 
 	[Fact(Timeout = Timeout)]

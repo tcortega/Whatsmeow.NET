@@ -557,8 +557,8 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 	}
 
 	/// <inheritdoc/>
-	public Task SetDisappearingTimerAsync(Jid chat, TimeSpan timer, CancellationToken cancellationToken = default) =>
-		CallAsync(nameof(SetDisappearingTimerAsync), [(nameof(chat), chat), (nameof(timer), timer)], cancellationToken);
+	public Task SetDisappearingTimerAsync(Jid chat, TimeSpan timer, MessageId? id = null, CancellationToken cancellationToken = default) =>
+		CallAsync(nameof(SetDisappearingTimerAsync), [(nameof(chat), chat), (nameof(timer), timer), (nameof(id), id)], cancellationToken);
 
 	/// <inheritdoc/>
 	public Task MarkReadAsync(Jid chat, IReadOnlyCollection<MessageId> messageIds, Jid? sender = null, CancellationToken cancellationToken = default)

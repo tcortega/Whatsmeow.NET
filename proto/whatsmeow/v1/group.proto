@@ -408,8 +408,8 @@ message GroupEvent {
   // A change to the group.
   message Changed {
     // What changed, never empty: renamed, topic, announce, locked, member add mode, disappearing timer, joined, left,
-    // promoted, demoted, each at most once and in that order. A participant in these lists is addressed as in the group's participants; the store learned
-    // their other form with the notification (ResolveJids).
+    // promoted, demoted, each at most once and in that order. A participant in these lists is addressed as in the
+    // group's participants; the store learned their other form with the notification (ResolveJids).
     repeated GroupChange changes = 1;
   }
 

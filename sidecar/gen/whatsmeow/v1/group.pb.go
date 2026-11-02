@@ -2402,8 +2402,8 @@ func (*GroupChange_DisappearingTimerChanged_) isGroupChange_Change() {}
 type GroupEvent_Changed struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// What changed, never empty: renamed, topic, announce, locked, member add mode, disappearing timer, joined, left,
-	// promoted, demoted, each at most once and in that order. A participant in these lists is addressed as in the group's participants; the store learned
-	// their other form with the notification (ResolveJids).
+	// promoted, demoted, each at most once and in that order. A participant in these lists is addressed as in the
+	// group's participants; the store learned their other form with the notification (ResolveJids).
 	Changes       []*GroupChange `protobuf:"bytes,1,rep,name=changes,proto3" json:"changes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

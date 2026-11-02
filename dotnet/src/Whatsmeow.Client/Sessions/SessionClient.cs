@@ -427,7 +427,7 @@ internal sealed class SessionClient(
 			.ConfigureAwait(false);
 	}
 
-	public async Task SetDisappearingTimerAsync(Jid chat, TimeSpan timer, CancellationToken cancellationToken = default)
+	public async Task SetDisappearingTimerAsync(Jid chat, TimeSpan timer, MessageId? id = null, CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var duration = Duration.FromTimeSpan(timer);
@@ -440,7 +440,7 @@ internal sealed class SessionClient(
 			return;
 		}
 
-		var messageId = MessageId.New();
+		var messageId = id ?? MessageId.New();
 		_ = await SendTracedAsync(
 				"disappearing_timer",
 				messageId,
