@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"runtime/metrics"
 	"slices"
 	"strings"
 	"testing"
@@ -630,10 +631,13 @@ func writeRandomFile(t *testing.T, path string, size int) {
 	}
 }
 
+// heapInUse is the heap the last GC found live. HeapInuse would also count garbage not yet collected, which depends
+// on when the GC runs: under load on Windows CI it reached 64 MiB with nothing retained. A file held in memory stays
+// live, so this still sees one.
 func heapInUse() uint64 {
-	var stats runtime.MemStats
+	sample := []metrics.Sample{{Name: "/gc/heap/live:bytes"}}
 
-	runtime.ReadMemStats(&stats)
+	metrics.Read(sample)
 
-	return stats.HeapInuse
+	return sample[0].Value.Uint64()
 }
