@@ -36,10 +36,10 @@ The facts the design had to follow:
 
 - What a reset costs, each time:
   - three `ConnectionStateChanged` events for the application, `Reconnecting`, `Connected` and, once the offline sync arrives, `CaughtUp` [observed: the FullCycle, and the state machine];
-  - every `Online` channel of the session closes, so a paced send still queued fails without having sent anything [observed: messaging/send.go:247, 292-298];
-  - a send already handed to whatsmeow may end `OUTCOME_UNKNOWN`, which is never retried (invariant 10) [inferred: messaging/send.go:392-395];
+  - every `Online` channel of the session closes, so a paced send still queued fails without having sent anything [observed: messaging/send.go:249, 295-302];
+  - a send already handed to whatsmeow may end `OUTCOME_UNKNOWN`, which is never retried (invariant 10) [inferred: messaging/send.go:397-400];
   - the session's app state recovery and history worker restart with the new connection [inferred: ADR 0031, ADR 0035].
-  How long the session is not logged in on real WhatsApp, and when it is caught up again, is [unknown] until the live test below runs.
+  On real WhatsApp, in a single run at 0ad8d5f with the message from the `peer` account, the reset came 5.0 s after the withheld answer; the session was `Reconnecting` 5.3 s after it, `Connected` again 6.8 s after it and `CaughtUp` 6.9 s after it, so not logged in for 1.5 s; the login took 1.3 s from the reset to whatsmeow's "Successfully authenticated"; and the message came again once, with its id, 6.9 s after the withheld answer, with no reconnect by the test [observed: #91 live run, PR 100 comment]. One run is not a distribution: the spread on other networks and at other times is [unknown].
 - Whether WhatsApp also brings the message back on a connection that stays up beyond 10 minutes stays [unknown]; the reset comes long before that would matter.
 - A failure that never clears resets the connection every 30 minutes for as long as it lasts; how WhatsApp treats a device that reconnects that often is [unknown].
 - Tests:
