@@ -98,8 +98,7 @@ internal static class RpcErrors
 				break;
 		}
 
-		// The reasons whose exception comes with a later slice (sending), and the ones the table maps to the base type,
-		// keep their code here.
+		// The reasons the table maps to the base type keep their code here.
 		WhatsmeowException.ThrowUnmapped(exception, code);
 	}
 

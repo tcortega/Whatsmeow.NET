@@ -60,6 +60,11 @@ type script struct {
 	failUploads uint32
 	// holdDownload holds the next download until its call ends.
 	holdDownload bool
+	// rateLimitSends is how many of the next sends WhatsApp rate limits.
+	rateLimitSends uint32
+	// holdSend holds the next send; held is the answer of the send being held, closed by ReleaseSend.
+	holdSend bool
+	held     chan struct{}
 }
 
 // setScript changes the session's script.

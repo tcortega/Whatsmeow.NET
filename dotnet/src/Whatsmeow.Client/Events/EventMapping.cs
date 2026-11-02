@@ -62,8 +62,15 @@ internal static class EventMapping
 					_ => new MediaRetryResult.Failed { Reason = MediaRetryFailure.Unknown },
 				},
 			},
-			// Receipts come with #9: skipped, and acked.
-			Payload.Receipt or Payload.None => null,
+			Payload.Receipt => new ReceiptReceived
+			{
+				SessionId = sessionId,
+				Source = ToSource(response.Receipt.Source),
+				MessageIds = [.. response.Receipt.MessageIds.Select(MessageId.From)],
+				Timestamp = ToTime(response.Receipt.ReceiptTime),
+				Type = ToType(response.Receipt.Type),
+			},
+			Payload.None => null,
 			_ => null,
 		};
 
@@ -76,7 +83,8 @@ internal static class EventMapping
 			// The contact's lane: a user's changes run in order with their direct chat when it uses the same form.
 			Payload.Contact => response.Contact.Jid,
 			Payload.MediaRetry => response.MediaRetry.Chat,
-			Payload.ConnectionState or Payload.Receipt or Payload.None => SessionLane,
+			Payload.Receipt => response.Receipt.Source?.Chat ?? SessionLane,
+			Payload.ConnectionState or Payload.None => SessionLane,
 			_ => SessionLane,
 		};
 
@@ -136,6 +144,24 @@ internal static class EventMapping
 			{ HasConversation: true } => new TextContent { Text = message.Conversation },
 			{ ExtendedTextMessage.HasText: true } => new TextContent { Text = message.ExtendedTextMessage.Text },
 			_ => new UnknownContent(),
+		};
+
+	private static ReceiptType ToType(Protocol.V1.ReceiptType type) =>
+		type switch
+		{
+			Protocol.V1.ReceiptType.Delivered => ReceiptType.Delivered,
+			Protocol.V1.ReceiptType.Sender => ReceiptType.Sender,
+			Protocol.V1.ReceiptType.Retry => ReceiptType.Retry,
+			Protocol.V1.ReceiptType.Read => ReceiptType.Read,
+			Protocol.V1.ReceiptType.ReadSelf => ReceiptType.ReadSelf,
+			Protocol.V1.ReceiptType.Played => ReceiptType.Played,
+			Protocol.V1.ReceiptType.PlayedSelf => ReceiptType.PlayedSelf,
+			Protocol.V1.ReceiptType.ServerError => ReceiptType.ServerError,
+			Protocol.V1.ReceiptType.Inactive => ReceiptType.Inactive,
+			Protocol.V1.ReceiptType.PeerMsg => ReceiptType.PeerMessage,
+			Protocol.V1.ReceiptType.HistorySync => ReceiptType.HistorySync,
+			Protocol.V1.ReceiptType.Unspecified => ReceiptType.Unknown,
+			_ => ReceiptType.Unknown,
 		};
 
 	/// <summary>An alt JID that is missing or malformed is unknown; the message still arrives.</summary>

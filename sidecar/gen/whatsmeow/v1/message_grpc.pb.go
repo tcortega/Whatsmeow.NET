@@ -30,11 +30,12 @@ const (
 //
 // MessageService sends messages and read receipts.
 //
-// A send is idempotent per (session, client_message_id), the WhatsApp message id the client chooses:
+// A send is idempotent per (session, client_message_id), the WhatsApp message id the client chooses, "3EB0" and 18
+// uppercase hex digits (the format whatsmeow makes; any other is INVALID_ARGUMENT):
 // after a success, a repeat returns the recorded result and sends nothing; after an unknown outcome, a repeat
-// fails with OUTCOME_UNKNOWN again and sends nothing (ARCHITECTURE invariant 10); after a failure that sent
-// nothing, a repeat sends; a repeat while the first call is in flight waits for its outcome. A repeat's other
-// fields are ignored.
+// fails with OUTCOME_UNKNOWN again and sends nothing (ARCHITECTURE invariant 10); after WhatsApp answered with an
+// error, a repeat fails with the same WHATSAPP_ERROR and sends nothing; after a failure that sent nothing, a repeat
+// sends; a repeat while the first call is in flight waits for its outcome. A repeat's other fields are ignored.
 // The sidecar records a send before handing it to whatsmeow, so a send interrupted after the hand-off, by a crash
 // or by the client cancelling, reads as OUTCOME_UNKNOWN; one cancelled while still queued sent nothing.
 // A send never waits for a connection: a session that is not logged in, not connected or temporarily banned fails
@@ -100,11 +101,12 @@ func (c *messageServiceClient) MarkRead(ctx context.Context, in *MarkReadRequest
 //
 // MessageService sends messages and read receipts.
 //
-// A send is idempotent per (session, client_message_id), the WhatsApp message id the client chooses:
+// A send is idempotent per (session, client_message_id), the WhatsApp message id the client chooses, "3EB0" and 18
+// uppercase hex digits (the format whatsmeow makes; any other is INVALID_ARGUMENT):
 // after a success, a repeat returns the recorded result and sends nothing; after an unknown outcome, a repeat
-// fails with OUTCOME_UNKNOWN again and sends nothing (ARCHITECTURE invariant 10); after a failure that sent
-// nothing, a repeat sends; a repeat while the first call is in flight waits for its outcome. A repeat's other
-// fields are ignored.
+// fails with OUTCOME_UNKNOWN again and sends nothing (ARCHITECTURE invariant 10); after WhatsApp answered with an
+// error, a repeat fails with the same WHATSAPP_ERROR and sends nothing; after a failure that sent nothing, a repeat
+// sends; a repeat while the first call is in flight waits for its outcome. A repeat's other fields are ignored.
 // The sidecar records a send before handing it to whatsmeow, so a send interrupted after the hand-off, by a crash
 // or by the client cancelling, reads as OUTCOME_UNKNOWN; one cancelled while still queued sent nothing.
 // A send never waits for a connection: a session that is not logged in, not connected or temporarily banned fails

@@ -34,6 +34,7 @@ import (
 	eventsslice "github.com/tcortega/Whatsmeow.NET/sidecar/internal/events"
 	wmlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/media"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/messaging"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/outbox"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/presence"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
@@ -189,7 +190,7 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 
 	box := outbox.New(db.DB)
 	// Each slice that records whatsmeow events in the outbox passes its mapper (eventsslice.Mapper).
-	events := eventsslice.New(box, log, contacts.Event, media.Mapper(db.DB, log)) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
+	events := eventsslice.New(box, log, contacts.Event, media.Mapper(db.DB, log), messaging.Receipt) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
 	whatsmeowv1.RegisterEventServiceServer(srv, events)
 
 	sessions, err := session.New(ctx, db.DB, db.Devices, box, recording(newClient, events), log) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
@@ -214,6 +215,12 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 	defer closeMedia(log, mediaSlice)
 
 	whatsmeowv1.RegisterMediaServiceServer(srv, mediaSlice)
+
+	// Closed before the sessions: its queued sends fail, having sent nothing.
+	messages := messaging.New(db.DB, sessions, log)
+	defer messages.Close()
+
+	whatsmeowv1.RegisterMessageServiceServer(srv, messages)
 
 	served := make(chan error, 1)
 

@@ -908,3 +908,53 @@ Whatsmeow.MediaType.Video = 1 -> Whatsmeow.MediaType
 Whatsmeow.WhatsmeowErrorCode.MediaExpired = 22 -> Whatsmeow.WhatsmeowErrorCode
 Whatsmeow.WhatsmeowSidecarOptions.MediaRoot.get -> string?
 Whatsmeow.WhatsmeowSidecarOptions.MediaRoot.set -> void
+[WMN1001]Whatsmeow.IWhatsAppClient.SendRawAsync(Whatsmeow.Jid chat, Whatsmeow.Proto.WAWebProtobufsE2E.Message! message, Whatsmeow.MessageId? id = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
+override sealed Whatsmeow.Events.ReceiptReceived.Equals(Whatsmeow.Events.WhatsAppEvent? other) -> bool
+override Whatsmeow.Events.ReceiptReceived.<Clone>$() -> Whatsmeow.Events.ReceiptReceived!
+override Whatsmeow.Events.ReceiptReceived.Equals(object? obj) -> bool
+override Whatsmeow.Events.ReceiptReceived.GetHashCode() -> int
+override Whatsmeow.Events.ReceiptReceived.ToString() -> string!
+override Whatsmeow.Messaging.SendResult.Equals(object? obj) -> bool
+override Whatsmeow.Messaging.SendResult.GetHashCode() -> int
+override Whatsmeow.Messaging.SendResult.ToString() -> string!
+static Whatsmeow.Events.ReceiptReceived.operator !=(Whatsmeow.Events.ReceiptReceived? left, Whatsmeow.Events.ReceiptReceived? right) -> bool
+static Whatsmeow.Events.ReceiptReceived.operator ==(Whatsmeow.Events.ReceiptReceived? left, Whatsmeow.Events.ReceiptReceived? right) -> bool
+static Whatsmeow.MessageId.New() -> Whatsmeow.MessageId
+static Whatsmeow.Messaging.SendResult.operator !=(Whatsmeow.Messaging.SendResult? left, Whatsmeow.Messaging.SendResult? right) -> bool
+static Whatsmeow.Messaging.SendResult.operator ==(Whatsmeow.Messaging.SendResult? left, Whatsmeow.Messaging.SendResult? right) -> bool
+Whatsmeow.Events.ReceiptReceived
+Whatsmeow.Events.ReceiptReceived.Equals(Whatsmeow.Events.ReceiptReceived? other) -> bool
+Whatsmeow.Events.ReceiptReceived.MessageIds.get -> System.Collections.Immutable.ImmutableArray<Whatsmeow.MessageId>
+Whatsmeow.Events.ReceiptReceived.MessageIds.init -> void
+Whatsmeow.Events.ReceiptReceived.ReceiptReceived() -> void
+Whatsmeow.Events.ReceiptReceived.Source.get -> Whatsmeow.Events.MessageSource!
+Whatsmeow.Events.ReceiptReceived.Source.init -> void
+Whatsmeow.Events.ReceiptReceived.Timestamp.get -> System.DateTimeOffset
+Whatsmeow.Events.ReceiptReceived.Timestamp.init -> void
+Whatsmeow.Events.ReceiptReceived.Type.get -> Whatsmeow.Events.ReceiptType
+Whatsmeow.Events.ReceiptReceived.Type.init -> void
+Whatsmeow.Events.ReceiptType
+Whatsmeow.Events.ReceiptType.Delivered = 1 -> Whatsmeow.Events.ReceiptType
+Whatsmeow.Events.ReceiptType.HistorySync = 11 -> Whatsmeow.Events.ReceiptType
+Whatsmeow.Events.ReceiptType.Inactive = 9 -> Whatsmeow.Events.ReceiptType
+Whatsmeow.Events.ReceiptType.PeerMessage = 10 -> Whatsmeow.Events.ReceiptType
+Whatsmeow.Events.ReceiptType.Played = 6 -> Whatsmeow.Events.ReceiptType
+Whatsmeow.Events.ReceiptType.PlayedSelf = 7 -> Whatsmeow.Events.ReceiptType
+Whatsmeow.Events.ReceiptType.Read = 4 -> Whatsmeow.Events.ReceiptType
+Whatsmeow.Events.ReceiptType.ReadSelf = 5 -> Whatsmeow.Events.ReceiptType
+Whatsmeow.Events.ReceiptType.Retry = 3 -> Whatsmeow.Events.ReceiptType
+Whatsmeow.Events.ReceiptType.Sender = 2 -> Whatsmeow.Events.ReceiptType
+Whatsmeow.Events.ReceiptType.ServerError = 8 -> Whatsmeow.Events.ReceiptType
+Whatsmeow.Events.ReceiptType.Unknown = 0 -> Whatsmeow.Events.ReceiptType
+Whatsmeow.IWhatsAppClient.MarkReadAsync(Whatsmeow.Jid chat, System.Collections.Generic.IReadOnlyCollection<Whatsmeow.MessageId>! messageIds, Whatsmeow.Jid? sender = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.SendTextAsync(Whatsmeow.Jid chat, string! text, Whatsmeow.MessageId? id = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
+Whatsmeow.Messaging.SendResult
+Whatsmeow.Messaging.SendResult.<Clone>$() -> Whatsmeow.Messaging.SendResult!
+Whatsmeow.Messaging.SendResult.Chat.get -> Whatsmeow.Jid
+Whatsmeow.Messaging.SendResult.Chat.init -> void
+Whatsmeow.Messaging.SendResult.Equals(Whatsmeow.Messaging.SendResult? other) -> bool
+Whatsmeow.Messaging.SendResult.Id.get -> Whatsmeow.MessageId
+Whatsmeow.Messaging.SendResult.Id.init -> void
+Whatsmeow.Messaging.SendResult.SendResult() -> void
+Whatsmeow.Messaging.SendResult.Timestamp.get -> System.DateTimeOffset
+Whatsmeow.Messaging.SendResult.Timestamp.init -> void

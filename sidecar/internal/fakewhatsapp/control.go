@@ -218,7 +218,7 @@ func (c *Control) DropConnection(_ context.Context, req *fakev1.DropConnectionRe
 		return nil, err
 	}
 
-	client.connected = false
+	client.disconnect()
 	client.conn.Unlock()
 
 	c.whatsApp.background.Go(func() {
@@ -319,4 +319,71 @@ func (c *Control) RaisePermanentDisconnect(ctx context.Context, req *fakev1.Rais
 	}
 
 	return &fakev1.RaisePermanentDisconnectResponse{}, nil
+}
+
+// DeliverReceipt delivers a receipt to the session's client and records whatsmeow's ack.
+func (c *Control) DeliverReceipt(_ context.Context, req *fakev1.DeliverReceiptRequest) (*fakev1.DeliverReceiptResponse, error) {
+	source, err := messageSource(req.GetChat(), req.GetSender(), req.GetSenderAlt(), req.GetRecipientAlt())
+	if err != nil {
+		return nil, fmt.Errorf("deliver a receipt: %w", err)
+	}
+
+	if len(req.GetMessageIds()) == 0 {
+		return nil, errors.New("deliver a receipt: no message ids; whatsmeow dispatches none (receipt.go:85-88)") //nolint:err113 // a misuse of the control
+	}
+
+	client, err := c.whatsApp.client(req.GetSessionId())
+	if err != nil {
+		return nil, fmt.Errorf("deliver a receipt: %w", err)
+	}
+
+	source.IsFromMe = req.GetIsFromMe()
+	evt := &events.Receipt{MessageSource: source, MessageIDs: req.GetMessageIds(), Timestamp: timeOf(req.GetReceiptTime()), Type: types.ReceiptType(req.GetType())}
+	ack := &fakev1.Sent{SessionId: req.GetSessionId(), Kind: &fakev1.Sent_Ack{Ack: &fakev1.Ack{Class: "receipt", Id: req.GetMessageIds()[0], Type: req.GetType()}}}
+
+	// A retry receipt is acked inside whatsmeow's retry handler, before the dispatch (receipt.go:34-38).
+	if evt.Type == types.ReceiptTypeRetry {
+		c.whatsApp.append(ack)
+		client.dispatch(evt)
+
+		return &fakev1.DeliverReceiptResponse{}, nil
+	}
+
+	if !client.dispatch(evt) {
+		c.whatsApp.append(ack)
+	}
+
+	return &fakev1.DeliverReceiptResponse{}, nil
+}
+
+// RateLimitNextSends makes the session's next sends fail with an IQ 429 before their node.
+func (c *Control) RateLimitNextSends(_ context.Context, req *fakev1.RateLimitNextSendsRequest) (*fakev1.RateLimitNextSendsResponse, error) {
+	c.whatsApp.setScript(req.GetSessionId(), func(s *script) { s.rateLimitSends = req.GetCount() })
+
+	return &fakev1.RateLimitNextSendsResponse{}, nil
+}
+
+// HoldNextSend makes the session's next send wait for an answer until ReleaseSend.
+func (c *Control) HoldNextSend(_ context.Context, req *fakev1.HoldNextSendRequest) (*fakev1.HoldNextSendResponse, error) {
+	c.whatsApp.setScript(req.GetSessionId(), func(s *script) { s.holdSend, s.held = true, make(chan struct{}) })
+
+	return &fakev1.HoldNextSendResponse{}, nil
+}
+
+// ReleaseSend makes WhatsApp accept the session's held send.
+func (c *Control) ReleaseSend(_ context.Context, req *fakev1.ReleaseSendRequest) (*fakev1.ReleaseSendResponse, error) {
+	released := false
+
+	c.whatsApp.setScript(req.GetSessionId(), func(s *script) {
+		if s.held != nil && !s.holdSend {
+			close(s.held)
+			s.held, released = nil, true
+		}
+	})
+
+	if !released {
+		return nil, fmt.Errorf("release the send of session %q: no send is held", req.GetSessionId()) //nolint:err113 // a misuse of the control
+	}
+
+	return &fakev1.ReleaseSendResponse{}, nil
 }

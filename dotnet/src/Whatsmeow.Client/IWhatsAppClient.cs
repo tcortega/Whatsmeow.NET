@@ -1,9 +1,11 @@
 using System.Collections.Immutable;
 using Whatsmeow.Contacts;
 using Whatsmeow.Events;
+using Whatsmeow.Messaging;
 using Whatsmeow.Pairing;
 using Whatsmeow.Presence;
 using Whatsmeow.Sessions;
+using E2E = Whatsmeow.Proto.WAWebProtobufsE2E;
 
 namespace Whatsmeow;
 
@@ -450,4 +452,69 @@ public interface IWhatsAppClient
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
 	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
 	Task UnblockAsync(Jid user, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Sends a text message to <paramref name="chat"/>, a user (by phone number or LID, without a device) or a group, once
+	/// the sends of this session queued before it went out; the session's sends are paced. It never waits for a
+	/// connection: the session must be connected. WhatsApp rate limiting is waited out a few times, a few seconds in all,
+	/// before it throws.
+	/// A send is at most once per <paramref name="id"/>: a repeat of a sent message returns its first result and sends
+	/// nothing, and a repeat while the first is still going waits for it. So keep the id, from
+	/// <see cref="MessageId.New"/>, to send again safely after a failure; without one the client makes a new one. A send
+	/// that may have reached WhatsApp without an answer, because the call was cancelled or the sidecar stopped after it
+	/// was handed over, is never sent again: a repeat throws <see cref="OutcomeUnknownException"/>.
+	/// </summary>
+	/// <param name="chat">The recipient.</param>
+	/// <param name="text">The text; not empty.</param>
+	/// <param name="id">The message's id, in <see cref="MessageId.New"/>'s format; null makes a new one.</param>
+	/// <param name="cancellationToken">Cancels the send. Cancelled after it was handed over, it may still have been sent.</param>
+	/// <returns>The id, the chat it went to (a phone number's LID), and WhatsApp's timestamp.</returns>
+	/// <exception cref="WhatsmeowValidationException">The chat, the text or the id is malformed; nothing was sent.</exception>
+	/// <exception cref="RecipientNotFoundException">The phone number is not on WhatsApp; nothing was sent.</exception>
+	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
+	/// <exception cref="SessionLoggedOutException">The session is logged out, also while the send waited in the queue.</exception>
+	/// <exception cref="NotConnectedException">The session is not connected, also when it stopped being so while the send waited in the queue; nothing was sent.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="RateLimitedException">WhatsApp kept rate limiting the send; nothing was sent, and the id can be sent again.</exception>
+	/// <exception cref="OutcomeUnknownException">The send may have reached WhatsApp and no answer came, now or for an earlier send of the id; it is never sent again.</exception>
+	/// <exception cref="WhatsmeowException">WhatsApp answered with an error (<see cref="WhatsmeowErrorCode.WhatsAppError"/>); a repeat of the id throws it again.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached, or it stopped during the send.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="text"/> is null.</exception>
+	Task<SendResult> SendTextAsync(Jid chat, string text, MessageId? id = null, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Sends <paramref name="message"/> exactly as given, as <see cref="SendTextAsync"/> sends a text: once per id, queued,
+	/// never waiting for a connection. The message type is WhatsApp's own protobuf, which changes with every whatsmeow
+	/// version, so this member is experimental (<c>WMN1001</c>): it has no stability promise.
+	/// </summary>
+	/// <param name="chat">The recipient.</param>
+	/// <param name="message">The message. One with an unset proto2 required field is refused before anything is sent.</param>
+	/// <param name="id">The message's id, in <see cref="MessageId.New"/>'s format; null makes a new one.</param>
+	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync"/>.</param>
+	/// <returns>As for <see cref="SendTextAsync"/>.</returns>
+	/// <exception cref="WhatsmeowValidationException">The chat or the id is malformed, or the message misses a required field; nothing was sent.</exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync"/>, with the same subtypes.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="message"/> is null.</exception>
+	[Experimental("WMN1001")]
+	Task<SendResult> SendRawAsync(Jid chat, E2E.Message message, MessageId? id = null, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Tells WhatsApp the messages were read, with one read receipt timestamped now. They must be of one chat and, in a
+	/// group, of one sender. WhatsApp makes it a receipt only the account's own devices see when the account turned read
+	/// receipts off. Marking a message read again changes nothing.
+	/// </summary>
+	/// <param name="chat">The chat, as in <see cref="MessageSource.Chat"/>.</param>
+	/// <param name="messageIds">The messages; at least one.</param>
+	/// <param name="sender">In a group, the messages' sender (<see cref="MessageSource.Sender"/>); null in a direct chat.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">No message ids, a malformed JID, or a group chat without a sender.</exception>
+	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
+	/// <exception cref="SessionLoggedOutException">The session is logged out.</exception>
+	/// <exception cref="NotConnectedException">The session is not connected.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="messageIds"/> is null.</exception>
+	Task MarkReadAsync(Jid chat, IReadOnlyCollection<MessageId> messageIds, Jid? sender = null, CancellationToken cancellationToken = default);
 }

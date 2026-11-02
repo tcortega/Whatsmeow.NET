@@ -75,8 +75,22 @@ CREATE TABLE media_retry (
 	PRIMARY KEY (session_id, message_id, chat)
 )`
 
+// schemaV4 is the send records (#9, ADR 0025): one row per message the client sent, by the id it chose, written before
+// the send is handed to whatsmeow, so a repeat is answered from it. They go with their session (ON DELETE CASCADE).
+const schemaV4 = `
+CREATE TABLE sent_message (
+	session_id        TEXT NOT NULL REFERENCES session (id) ON DELETE CASCADE,
+	client_message_id TEXT NOT NULL,
+	-- Set once WhatsApp accepted it: the chat it went to and WhatsApp's timestamp, in Unix seconds.
+	chat              TEXT,
+	message_time      INTEGER,
+	-- Set when WhatsApp answered it with an error code. Neither set: the outcome is unknown.
+	whatsapp_error    INTEGER,
+	PRIMARY KEY (session_id, client_message_id)
+)`
+
 // steps is every schema step, in order: steps()[n-1] is version n.
-func steps() []string { return []string{schemaV1, schemaV2, schemaV3} }
+func steps() []string { return []string{schemaV1, schemaV2, schemaV3, schemaV4} }
 
 // ErrInUse is returned when another whatsmeow-net holds the database.
 var ErrInUse = errors.New("in use by another whatsmeow-net")

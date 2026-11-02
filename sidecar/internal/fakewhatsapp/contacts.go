@@ -205,6 +205,31 @@ func (c *Client) GetBlocklist(context.Context, string) (*types.Blocklist, error)
 	return &types.Blocklist{Items: slices.Clone(c.whatsApp.blocklists[c.sessionID])}, nil
 }
 
+// lidForPN is a phone number's LID as whatsmeow's UpdateBlocklist and SendMessage get it (user.go:1030-1045,
+// send.go:341-365): from the store, else from GetUserInfo, and without one ErrRecipientNotOnWhatsApp. Its errors carry
+// whatsmeow's text, the JID in it.
+func (c *Client) lidForPN(ctx context.Context, pn types.JID) (types.JID, error) {
+	lid, err := c.Store.LIDs.GetLIDForPN(ctx, pn)
+	if err != nil {
+		return types.JID{}, fmt.Errorf("failed to get LID for PN %s: %w", pn, err)
+	}
+
+	if !lid.IsEmpty() {
+		return lid, nil
+	}
+
+	info, err := c.GetUserInfo(ctx, []types.JID{pn})
+	if err != nil {
+		return types.JID{}, fmt.Errorf("failed to get user info for %s to fill LID cache: %w", pn, err)
+	}
+
+	if lid = info[pn].LID; lid.IsEmpty() {
+		return types.JID{}, fmt.Errorf("%w: no LID found for %s from server", whatsmeow.ErrRecipientNotOnWhatsApp, pn)
+	}
+
+	return lid, nil
+}
+
 // UpdateBlocklist does what whatsmeow's does before its request (user.go:1027-1066): a phone number's LID comes from
 // the store, else from GetUserInfo, and without one it is ErrRecipientNotOnWhatsApp; blocking a LID looks its phone
 // number up. Its errors carry whatsmeow's text, the JID in it. WhatsApp then changes the session's list and answers it.
@@ -216,19 +241,8 @@ func (c *Client) UpdateBlocklist(ctx context.Context, jid types.JID, action even
 		pn = jid
 
 		var err error
-		if lid, err = c.Store.LIDs.GetLIDForPN(ctx, jid); err != nil {
-			return nil, fmt.Errorf("failed to get LID for PN %s: %w", jid, err)
-		}
-
-		if lid.IsEmpty() {
-			info, err := c.GetUserInfo(ctx, []types.JID{jid})
-			if err != nil {
-				return nil, fmt.Errorf("failed to get user info for %s to fill LID cache: %w", jid, err)
-			}
-
-			if lid = info[jid].LID; lid.IsEmpty() {
-				return nil, fmt.Errorf("%w: no LID found for %s from server", whatsmeow.ErrRecipientNotOnWhatsApp, jid)
-			}
+		if lid, err = c.lidForPN(ctx, jid); err != nil {
+			return nil, err
 		}
 	case types.HiddenUserServer:
 		lid = jid

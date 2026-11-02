@@ -44,6 +44,10 @@ const (
 	FakeWhatsAppService_CorruptMedia_FullMethodName                = "/whatsmeow.fake.v1.FakeWhatsAppService/CorruptMedia"
 	FakeWhatsAppService_HoldNextDownload_FullMethodName            = "/whatsmeow.fake.v1.FakeWhatsAppService/HoldNextDownload"
 	FakeWhatsAppService_AnswerMediaRetry_FullMethodName            = "/whatsmeow.fake.v1.FakeWhatsAppService/AnswerMediaRetry"
+	FakeWhatsAppService_DeliverReceipt_FullMethodName              = "/whatsmeow.fake.v1.FakeWhatsAppService/DeliverReceipt"
+	FakeWhatsAppService_RateLimitNextSends_FullMethodName          = "/whatsmeow.fake.v1.FakeWhatsAppService/RateLimitNextSends"
+	FakeWhatsAppService_HoldNextSend_FullMethodName                = "/whatsmeow.fake.v1.FakeWhatsAppService/HoldNextSend"
+	FakeWhatsAppService_ReleaseSend_FullMethodName                 = "/whatsmeow.fake.v1.FakeWhatsAppService/ReleaseSend"
 )
 
 // FakeWhatsAppServiceClient is the client API for FakeWhatsAppService service.
@@ -106,8 +110,8 @@ type FakeWhatsAppServiceClient interface {
 	// device concurrently, as whatsmeow does (connectionevents.go:37-44, 130-136). It returns before the handlers run.
 	RaisePermanentDisconnect(ctx context.Context, in *RaisePermanentDisconnectRequest, opts ...grpc.CallOption) (*RaisePermanentDisconnectResponse, error)
 	// RegisterUser adds a user to WhatsApp's directory, which every session's lookups read: IsOnWhatsApp, GetUserInfo,
-	// and the LID that UpdateBlocklist fetches. An unregistered number is not on WhatsApp. Registering a phone_jid again
-	// replaces it.
+	// and the LID that UpdateBlocklist and a send to a phone number fetch (send.go:341-365). An unregistered number is
+	// not on WhatsApp. Registering a phone_jid again replaces it.
 	RegisterUser(ctx context.Context, in *RegisterUserRequest, opts ...grpc.CallOption) (*RegisterUserResponse, error)
 	// SetProfilePicture sets what WhatsApp answers for the profile picture of a user or a group; without one it answers
 	// that there is none.
@@ -152,6 +156,22 @@ type FakeWhatsAppServiceClient interface {
 	// from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
 	// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
 	AnswerMediaRetry(ctx context.Context, in *AnswerMediaRetryRequest, opts ...grpc.CallOption) (*AnswerMediaRetryResponse, error)
+	// DeliverReceipt makes WhatsApp deliver a receipt to a session's client, and returns once the client's event
+	// handlers ran. With SynchronousAck, whatsmeow acks a receipt only when every handler succeeded
+	// (maybeDeferredAck, receipt.go:21-43, 115-128); a retry receipt it acks inside its retry handler, before the
+	// dispatch, whatever the handlers return (receipt.go:34-38, retry.go:184-192). The ack shows in WaitForSent. A
+	// session without a client is an error.
+	DeliverReceipt(ctx context.Context, in *DeliverReceiptRequest, opts ...grpc.CallOption) (*DeliverReceiptResponse, error)
+	// RateLimitNextSends makes the session's next count sends fail as WhatsApp's rate limit fails them: an IQ before the
+	// node is written answers 429 (ErrIQRateOverLimit, errors.go:197), so nothing is sent.
+	RateLimitNextSends(ctx context.Context, in *RateLimitNextSendsRequest, opts ...grpc.CallOption) (*RateLimitNextSendsResponse, error)
+	// HoldNextSend makes the session's next send write its node, which WaitForSent shows, and then get no answer until
+	// ReleaseSend: like whatsmeow's, it then returns ctx.Err() when its context ends (send.go:445-455), and when the
+	// connection ends, a DisconnectedError 5 s later, once whatsmeow's wait for a reconnect is over (request.go:185-202),
+	// since the fake never reconnects on its own. ReleaseSend makes WhatsApp accept it.
+	HoldNextSend(ctx context.Context, in *HoldNextSendRequest, opts ...grpc.CallOption) (*HoldNextSendResponse, error)
+	// ReleaseSend makes WhatsApp answer the session's held send: it succeeds. No held send is an error.
+	ReleaseSend(ctx context.Context, in *ReleaseSendRequest, opts ...grpc.CallOption) (*ReleaseSendResponse, error)
 }
 
 type fakeWhatsAppServiceClient struct {
@@ -412,6 +432,46 @@ func (c *fakeWhatsAppServiceClient) AnswerMediaRetry(ctx context.Context, in *An
 	return out, nil
 }
 
+func (c *fakeWhatsAppServiceClient) DeliverReceipt(ctx context.Context, in *DeliverReceiptRequest, opts ...grpc.CallOption) (*DeliverReceiptResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeliverReceiptResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_DeliverReceipt_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) RateLimitNextSends(ctx context.Context, in *RateLimitNextSendsRequest, opts ...grpc.CallOption) (*RateLimitNextSendsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RateLimitNextSendsResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_RateLimitNextSends_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) HoldNextSend(ctx context.Context, in *HoldNextSendRequest, opts ...grpc.CallOption) (*HoldNextSendResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(HoldNextSendResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_HoldNextSend_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) ReleaseSend(ctx context.Context, in *ReleaseSendRequest, opts ...grpc.CallOption) (*ReleaseSendResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReleaseSendResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_ReleaseSend_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FakeWhatsAppServiceServer is the server API for FakeWhatsAppService service.
 // All implementations must embed UnimplementedFakeWhatsAppServiceServer
 // for forward compatibility.
@@ -472,8 +532,8 @@ type FakeWhatsAppServiceServer interface {
 	// device concurrently, as whatsmeow does (connectionevents.go:37-44, 130-136). It returns before the handlers run.
 	RaisePermanentDisconnect(context.Context, *RaisePermanentDisconnectRequest) (*RaisePermanentDisconnectResponse, error)
 	// RegisterUser adds a user to WhatsApp's directory, which every session's lookups read: IsOnWhatsApp, GetUserInfo,
-	// and the LID that UpdateBlocklist fetches. An unregistered number is not on WhatsApp. Registering a phone_jid again
-	// replaces it.
+	// and the LID that UpdateBlocklist and a send to a phone number fetch (send.go:341-365). An unregistered number is
+	// not on WhatsApp. Registering a phone_jid again replaces it.
 	RegisterUser(context.Context, *RegisterUserRequest) (*RegisterUserResponse, error)
 	// SetProfilePicture sets what WhatsApp answers for the profile picture of a user or a group; without one it answers
 	// that there is none.
@@ -518,6 +578,22 @@ type FakeWhatsAppServiceServer interface {
 	// from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
 	// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
 	AnswerMediaRetry(context.Context, *AnswerMediaRetryRequest) (*AnswerMediaRetryResponse, error)
+	// DeliverReceipt makes WhatsApp deliver a receipt to a session's client, and returns once the client's event
+	// handlers ran. With SynchronousAck, whatsmeow acks a receipt only when every handler succeeded
+	// (maybeDeferredAck, receipt.go:21-43, 115-128); a retry receipt it acks inside its retry handler, before the
+	// dispatch, whatever the handlers return (receipt.go:34-38, retry.go:184-192). The ack shows in WaitForSent. A
+	// session without a client is an error.
+	DeliverReceipt(context.Context, *DeliverReceiptRequest) (*DeliverReceiptResponse, error)
+	// RateLimitNextSends makes the session's next count sends fail as WhatsApp's rate limit fails them: an IQ before the
+	// node is written answers 429 (ErrIQRateOverLimit, errors.go:197), so nothing is sent.
+	RateLimitNextSends(context.Context, *RateLimitNextSendsRequest) (*RateLimitNextSendsResponse, error)
+	// HoldNextSend makes the session's next send write its node, which WaitForSent shows, and then get no answer until
+	// ReleaseSend: like whatsmeow's, it then returns ctx.Err() when its context ends (send.go:445-455), and when the
+	// connection ends, a DisconnectedError 5 s later, once whatsmeow's wait for a reconnect is over (request.go:185-202),
+	// since the fake never reconnects on its own. ReleaseSend makes WhatsApp accept it.
+	HoldNextSend(context.Context, *HoldNextSendRequest) (*HoldNextSendResponse, error)
+	// ReleaseSend makes WhatsApp answer the session's held send: it succeeds. No held send is an error.
+	ReleaseSend(context.Context, *ReleaseSendRequest) (*ReleaseSendResponse, error)
 	mustEmbedUnimplementedFakeWhatsAppServiceServer()
 }
 
@@ -602,6 +678,18 @@ func (UnimplementedFakeWhatsAppServiceServer) HoldNextDownload(context.Context, 
 }
 func (UnimplementedFakeWhatsAppServiceServer) AnswerMediaRetry(context.Context, *AnswerMediaRetryRequest) (*AnswerMediaRetryResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AnswerMediaRetry not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) DeliverReceipt(context.Context, *DeliverReceiptRequest) (*DeliverReceiptResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeliverReceipt not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) RateLimitNextSends(context.Context, *RateLimitNextSendsRequest) (*RateLimitNextSendsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RateLimitNextSends not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) HoldNextSend(context.Context, *HoldNextSendRequest) (*HoldNextSendResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method HoldNextSend not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) ReleaseSend(context.Context, *ReleaseSendRequest) (*ReleaseSendResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReleaseSend not implemented")
 }
 func (UnimplementedFakeWhatsAppServiceServer) mustEmbedUnimplementedFakeWhatsAppServiceServer() {}
 func (UnimplementedFakeWhatsAppServiceServer) testEmbeddedByValue()                             {}
@@ -1074,6 +1162,78 @@ func _FakeWhatsAppService_AnswerMediaRetry_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FakeWhatsAppService_DeliverReceipt_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeliverReceiptRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).DeliverReceipt(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_DeliverReceipt_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).DeliverReceipt(ctx, req.(*DeliverReceiptRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_RateLimitNextSends_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RateLimitNextSendsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).RateLimitNextSends(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_RateLimitNextSends_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).RateLimitNextSends(ctx, req.(*RateLimitNextSendsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_HoldNextSend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HoldNextSendRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).HoldNextSend(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_HoldNextSend_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).HoldNextSend(ctx, req.(*HoldNextSendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_ReleaseSend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReleaseSendRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).ReleaseSend(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_ReleaseSend_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).ReleaseSend(ctx, req.(*ReleaseSendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FakeWhatsAppService_ServiceDesc is the grpc.ServiceDesc for FakeWhatsAppService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1180,6 +1340,22 @@ var FakeWhatsAppService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AnswerMediaRetry",
 			Handler:    _FakeWhatsAppService_AnswerMediaRetry_Handler,
+		},
+		{
+			MethodName: "DeliverReceipt",
+			Handler:    _FakeWhatsAppService_DeliverReceipt_Handler,
+		},
+		{
+			MethodName: "RateLimitNextSends",
+			Handler:    _FakeWhatsAppService_RateLimitNextSends_Handler,
+		},
+		{
+			MethodName: "HoldNextSend",
+			Handler:    _FakeWhatsAppService_HoldNextSend_Handler,
+		},
+		{
+			MethodName: "ReleaseSend",
+			Handler:    _FakeWhatsAppService_ReleaseSend_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
