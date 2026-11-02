@@ -11,18 +11,21 @@ public sealed class WhatsAppErrorException : WhatsmeowException
 	/// <summary>Creates the exception.</summary>
 	public WhatsAppErrorException()
 	{
+		ErrorCode = WhatsmeowErrorCode.WhatsAppError;
 	}
 
 	/// <summary>Creates the exception with a message.</summary>
 	public WhatsAppErrorException(string message)
 		: base(message)
 	{
+		ErrorCode = WhatsmeowErrorCode.WhatsAppError;
 	}
 
 	/// <summary>Creates the exception with a message and its cause.</summary>
 	public WhatsAppErrorException(string message, Exception? innerException)
 		: base(message, innerException)
 	{
+		ErrorCode = WhatsmeowErrorCode.WhatsAppError;
 	}
 
 	/// <summary>
@@ -35,7 +38,6 @@ public sealed class WhatsAppErrorException : WhatsmeowException
 	internal static void Throw(RpcException exception, int code) =>
 		throw new WhatsAppErrorException($"WhatsApp refused the request with code {code}: {exception.Status.Detail}", exception)
 		{
-			ErrorCode = WhatsmeowErrorCode.WhatsAppError,
 			Code = code,
 		};
 }

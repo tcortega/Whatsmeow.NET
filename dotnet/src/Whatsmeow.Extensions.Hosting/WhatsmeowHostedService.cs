@@ -12,8 +12,9 @@ namespace Whatsmeow.Extensions.Hosting;
 /// connects the paired ones: a host that fails to start never had events flowing into handlers whose container it then
 /// disposes. <see cref="StoppedAsync"/>, after every service stopped using it, stops it. Crashes in between are the
 /// supervisor's: it restarts the sidecar with its backoff and never throws (ARCHITECTURE §8.5).
-/// A host whose sessions a test replaced with fakes (<see cref="ReplacedSession"/>, ADR 0036) starts no sidecar: the
-/// handlers go on the fakes, and nothing is created or connected.
+/// A host whose sessions a test replaced with fakes (<see cref="ReplacedSession"/>, ADR 0036) starts no sidecar and
+/// creates or connects nothing: the handlers go on the fakes in <see cref="StartedAsync"/>, and come off them in
+/// <see cref="StoppedAsync"/>, which first stops the ones running.
 /// </summary>
 internal sealed class WhatsmeowHostedService(
 	WhatsmeowSidecar sidecar,
@@ -26,17 +27,18 @@ internal sealed class WhatsmeowHostedService(
 	private readonly HashSet<SessionId> _declared = [.. declared.Select(static session => session.Id)];
 	private readonly ReplacedSession[] _replaced = [.. replaced];
 	private readonly List<IDisposable> _onFakes = [];
+	private readonly HandlerRuns _fakeRuns = new();
 
 	/// <summary>
-	/// Starts the sidecar and creates the declared sessions; a failure leaves no sidecar behind. With fakes, it puts the
-	/// handlers on them instead.
+	/// Starts the sidecar and creates the declared sessions; a failure leaves no sidecar behind. With fakes, it checks
+	/// that every declared session has one instead.
 	/// </summary>
 	/// <exception cref="InvalidOperationException">A host with fakes has a declared session without one.</exception>
 	public async Task StartingAsync(CancellationToken cancellationToken)
 	{
 		if (_replaced.Length > 0)
 		{
-			AttachToFakes();
+			CheckEverySessionHasAFake();
 			return;
 		}
 
@@ -55,11 +57,18 @@ internal sealed class WhatsmeowHostedService(
 
 	public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-	/// <summary>Connects the declared sessions that are paired; a failure fails the host's start and leaves no sidecar behind.</summary>
+	/// <summary>
+	/// Connects the declared sessions that are paired; a failure fails the host's start and leaves no sidecar behind.
+	/// With fakes, it puts the handlers on them instead: a host whose start failed never had events flowing into handlers
+	/// whose container it then disposes, as with a sidecar.
+	/// </summary>
 	public async Task StartedAsync(CancellationToken cancellationToken)
 	{
 		if (_replaced.Length > 0)
+		{
+			AttachToFakes();
 			return;
+		}
 
 		try
 		{
@@ -82,17 +91,21 @@ internal sealed class WhatsmeowHostedService(
 	/// then come again; the process stop is never cut short, and the host waits for it, so the sidecar never outlives
 	/// the host (§13 invariant 9).
 	/// </summary>
-	public Task StoppedAsync(CancellationToken cancellationToken)
+	/// <remarks>
+	/// With fakes, it takes the host's handlers off them, then cancels the ones still running and waits for them, with
+	/// the same shutdown timeout: the fakes are the test's and outlive the host, whose container goes away.
+	/// </remarks>
+	public async Task StoppedAsync(CancellationToken cancellationToken)
 	{
-		// The fakes are the test's and outlive the host: the host's handlers, whose container goes away, come off them.
 		foreach (var registration in _onFakes)
 			registration.Dispose();
 		_onFakes.Clear();
-		return sidecar.StopAsync(cancellationToken);
+		await _fakeRuns.StopAsync(cancellationToken).ConfigureAwait(false);
+		await sidecar.StopAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	/// <summary>Every declared session has a fake; the handlers go on each, as they go on a sidecar's new client.</summary>
-	private void AttachToFakes()
+	/// <summary>A host with fakes starts no sidecar, so a real client of a declared session would fail every call.</summary>
+	private void CheckEverySessionHasAFake()
 	{
 		var faked = _replaced.Select(static session => session.Id).ToHashSet();
 		foreach (var id in _declared)
@@ -102,13 +115,17 @@ internal sealed class WhatsmeowHostedService(
 					$"Session {id.Value} is declared with AddSession but has no fake: a host with fakes starts no sidecar, so each declared session needs one (UseFakeClient)."
 				);
 		}
+	}
 
+	/// <summary>The handlers go on each fake, as they go on a sidecar's new client, with runs the host's stop ends.</summary>
+	private void AttachToFakes()
+	{
 		var handlers = services.GetServices<HandlerRegistration>().ToArray();
 		foreach (var session in _replaced)
 		{
 			foreach (var handler in handlers)
 			{
-				if (handler.AttachTo(session.Client, services) is { } registration)
+				if (handler.AttachTo(session.Client, services, _fakeRuns) is { } registration)
 					_onFakes.Add(registration);
 			}
 		}

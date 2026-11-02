@@ -93,6 +93,55 @@ public sealed class HostingTests : IDisposable
 		Assert.Empty(fake.Calls);
 	}
 
+	[Fact(Timeout = 30_000)]
+	public async Task LaterServiceFailsToStart_NoHandlerIsLeftOnTheFake()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		await using var fake = new FakeWhatsAppClient(SessionId.From(Sales));
+		var builder = Application();
+		_ = builder.Services.AddWhatsmeow().UseFakeClient(fake);
+		_ = builder.Services.AddHostedService<FailingService>();
+		using (var host = builder.Build())
+			_ = await Assert.ThrowsAsync<InvalidOperationException>(() => host.StartAsync(ct));
+
+		var errors = new List<Exception>();
+		using var onError = fake.OnHandlerError(error => errors.Add(error.Exception));
+		await fake.RaiseAsync(Message(Ana, "after the failed start", fake.SessionId), ct);
+
+		// No handler ran: one that did would fail on the disposed container, and answer nothing.
+		Assert.Empty(errors);
+		Assert.Empty(fake.Calls);
+	}
+
+	[Fact(Timeout = 30_000)]
+	public async Task HostStop_CancelsTheHandlerRunningOnTheFake_AndWaitsForIt()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		await using var fake = new FakeWhatsAppClient(SessionId.From(Sales));
+		var probe = new Probe();
+		var builder = Host.CreateEmptyApplicationBuilder(new HostApplicationBuilderSettings { ContentRootPath = _directory.FullName });
+		builder.Configuration["Whatsmeow:SidecarPath"] = MissingSidecar();
+		_ = builder.Services.AddSingleton(probe);
+		_ = builder.Services.AddWhatsmeow().AddHandler<MessageReceived, BlockingHandler>().UseFakeClient(fake);
+		using var host = builder.Build();
+		var finishedBeforeTheStopEnded = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+		using var stopped = host.Services.GetRequiredService<IHostApplicationLifetime>().ApplicationStopped.Register(() => finishedBeforeTheStopEnded.TrySetResult(probe.Finished));
+		var errors = new List<Exception>();
+		using var onError = fake.OnHandlerError(error => errors.Add(error.Exception));
+		await host.StartAsync(ct);
+
+		var raise = fake.RaiseAsync(Message(Ana, "held", fake.SessionId), ct);
+		await probe.Started.Task.WaitAsync(ct);
+		var stop = host.StopAsync(ct);
+		await probe.Cancelled.Task.WaitAsync(ct);
+		probe.Release.SetResult();
+		await stop;
+		await raise;
+
+		Assert.True(await finishedBeforeTheStopEnded.Task);
+		Assert.Empty(errors);
+	}
+
 	/// <summary>The application's own registrations: one declared session and a handler that answers every message.</summary>
 	private HostApplicationBuilder Application()
 	{
@@ -111,5 +160,44 @@ public sealed class HostingTests : IDisposable
 	{
 		public async ValueTask HandleAsync(MessageReceived e, IWhatsAppClient client, CancellationToken cancellationToken) =>
 			_ = await client.SendTextAsync(e.Source.Chat, "echo: " + Text(e), cancellationToken: cancellationToken).ConfigureAwait(false);
+	}
+
+	/// <summary>A hosted service registered after <c>AddWhatsmeow</c> whose start fails.</summary>
+	internal sealed class FailingService : IHostedService
+	{
+		public Task StartAsync(CancellationToken cancellationToken) => throw new InvalidOperationException("a later service failed to start");
+
+		public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+	}
+
+	/// <summary>What <see cref="BlockingHandler"/> did, for the test to wait on and release.</summary>
+	internal sealed class Probe
+	{
+		public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+		public TaskCompletionSource Cancelled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+		public TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+		public volatile bool Finished;
+	}
+
+	/// <summary>A handler that runs until its token is cancelled, then until the test releases it.</summary>
+	internal sealed class BlockingHandler(Probe probe) : IWhatsAppEventHandler<MessageReceived>
+	{
+		public async ValueTask HandleAsync(MessageReceived e, IWhatsAppClient client, CancellationToken cancellationToken)
+		{
+			_ = probe.Started.TrySetResult();
+			try
+			{
+				await new TaskCompletionSource().Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+			}
+			finally
+			{
+				_ = probe.Cancelled.TrySetResult();
+				await probe.Release.Task.ConfigureAwait(false);
+				probe.Finished = true;
+			}
+		}
 	}
 }

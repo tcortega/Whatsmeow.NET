@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -37,13 +38,74 @@ namespace Whatsmeow.Testing;
 /// the blocklist and the groups are empty; an upload reads its content and returns a reference with its length and
 /// SHA-256; a download writes nothing (to a path, an empty file); pairing yields one code, then
 /// <see cref="PairingUpdate.Paired"/>; the state watch yields <see cref="SessionState.Connected"/>, then waits until it
-/// is cancelled. A call whose token is already cancelled throws <see cref="OperationCanceledException"/> and is not
-/// recorded.
+/// is cancelled. A call whose token is already cancelled throws <see cref="OperationCanceledException"/>, and every call
+/// once the fake is disposed throws <see cref="ObjectDisposedException"/>, as the client's do once its sidecar is
+/// disposed; neither is recorded.
 /// </para>
 /// </summary>
 public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 {
 	private const long FirstGroup = 120363000000000001;
+
+	/// <summary>The members <see cref="Calls"/> records, the ones <see cref="FailNext"/> can fail.</summary>
+	private static readonly FrozenSet<string> s_calls = new[]
+	{
+		nameof(ConnectAsync),
+		nameof(DisconnectAsync),
+		nameof(PairWithQrCodeAsync),
+		nameof(PairWithPhoneNumberAsync),
+		nameof(LogoutAsync),
+		nameof(SendPresenceAsync),
+		nameof(SubscribePresenceAsync),
+		nameof(SendChatPresenceAsync),
+		nameof(WatchStateAsync),
+		nameof(UploadMediaFileAsync),
+		nameof(UploadMediaAsync),
+		nameof(DownloadMediaFileAsync),
+		nameof(DownloadMediaAsync),
+		nameof(RequestMediaRetryAsync),
+		nameof(IsOnWhatsAppAsync),
+		nameof(GetUserInfoAsync),
+		nameof(GetProfilePictureAsync),
+		nameof(ResolveJidsAsync),
+		nameof(GetContactsAsync),
+		nameof(GetBlocklistAsync),
+		nameof(BlockAsync),
+		nameof(UnblockAsync),
+		nameof(SendTextAsync),
+		nameof(SendImageAsync),
+		nameof(SendVideoAsync),
+		nameof(SendAudioAsync),
+		nameof(SendDocumentAsync),
+		nameof(SendStickerAsync),
+		nameof(SendRawAsync),
+		nameof(MarkReadAsync),
+		nameof(GetGroupsAsync),
+		nameof(GetGroupInfoAsync),
+		nameof(CreateGroupAsync),
+		nameof(AddParticipantsAsync),
+		nameof(RemoveParticipantsAsync),
+		nameof(PromoteParticipantsAsync),
+		nameof(DemoteParticipantsAsync),
+		nameof(SetGroupNameAsync),
+		nameof(SetGroupTopicAsync),
+		nameof(SetGroupAnnounceAsync),
+		nameof(SetGroupLockedAsync),
+		nameof(GetGroupInviteLinkAsync),
+		nameof(ResetGroupInviteLinkAsync),
+		nameof(JoinGroupWithLinkAsync),
+		nameof(LeaveGroupAsync),
+		nameof(MuteChatAsync),
+		nameof(UnmuteChatAsync),
+		nameof(PinChatAsync),
+		nameof(UnpinChatAsync),
+		nameof(ArchiveChatAsync),
+		nameof(UnarchiveChatAsync),
+		nameof(MarkChatReadAsync),
+		nameof(MarkChatUnreadAsync),
+		nameof(StarMessageAsync),
+		nameof(UnstarMessageAsync),
+	}.ToFrozenSet(StringComparer.Ordinal);
 
 	private readonly TimeProvider _time;
 	private readonly EventPipeline _pipeline;
@@ -55,6 +117,9 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 	private readonly Lock _lock = new();
 	private readonly List<FakeCall> _calls = [];
 	private readonly Dictionary<string, Queue<Exception>> _failures = new(StringComparer.Ordinal);
+
+	/// <summary>The lane whose handlers run on this flow, so a raise into it from one of them fails instead of waiting forever.</summary>
+	private readonly AsyncLocal<RunningLane?> _runningLane = new();
 	private ulong _raised;
 	private long _made;
 
@@ -87,14 +152,22 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 	}
 
 	/// <summary>
+	/// <para>
 	/// Raises <paramref name="e"/> as the session's next event, and returns once every handler of it finished. A handler
 	/// that throws does not fail this: it is reported on <see cref="OnHandlerError"/>, as on a real session. An event no
-	/// handler takes is ignored. The event waits for the earlier ones of its chat, so a handler that awaits the raise of an
-	/// event of its own chat waits forever.
+	/// handler takes is ignored.
+	/// </para>
+	/// <para>
+	/// The event waits for the earlier ones of its lane, its chat's for most events, so a raise into the lane of the
+	/// handler it is called from would wait forever: it throws <see cref="InvalidOperationException"/> instead, awaited or
+	/// not. A raise into another lane runs, but handlers that wait for each other's raises across lanes still wait forever,
+	/// and so do raises from the handlers of 16 lanes at once, the most that run at a time.
+	/// </para>
 	/// </summary>
 	/// <param name="e">The event, of this fake's session.</param>
 	/// <param name="cancellationToken">Stops waiting; an event already handed to the dispatcher still runs.</param>
 	/// <exception cref="ArgumentException"><paramref name="e"/> is of another session.</exception>
+	/// <exception cref="InvalidOperationException">It is called from a handler of the lane <paramref name="e"/> runs in.</exception>
 	/// <exception cref="ObjectDisposedException">The fake was disposed, before or while the event waited.</exception>
 	[SuppressMessage("Design", "CA1030:Use events where appropriate", Justification = "It raises a WhatsApp event into the handlers and waits for them; it is no .NET event.")]
 	public async Task RaiseAsync(WhatsAppEvent e, CancellationToken cancellationToken = default)
@@ -104,55 +177,75 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 			throw new ArgumentException($"The event is of session {e.SessionId.Value}, and this fake is session {SessionId.Value}.", nameof(e));
 		ObjectDisposedException.ThrowIf(_pipeline.IsDisposed, this);
 
+		var ephemeral = EventMapping.IsEphemeral(e);
+		var lane = EventMapping.Lane(e);
+		if (_runningLane.Value is { Finished: false } running && running.Ephemeral == ephemeral && string.Equals(running.Lane, lane, StringComparison.Ordinal))
+			throw new InvalidOperationException(
+				$"A handler raised a {e.GetType().Name} into its own lane (\"{lane}\"): it would wait behind the handler that waits for it. Raise it from the test instead."
+			);
+
 		var handled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-		using (_pipeline.OnStopping(() => handled.TrySetCanceled()))
+		using var waiting = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _pipeline.Stopping);
+		try
 		{
-			await _raising.WaitAsync(cancellationToken).ConfigureAwait(false);
+			await _raising.WaitAsync(waiting.Token).ConfigureAwait(false);
 			try
 			{
 				var work = _pipeline.ToWork(++_raised, e);
+				var current = new RunningLane(ephemeral, work.Lane);
 				var raised = new Work
 				{
 					Seq = work.Seq,
 					Lane = work.Lane,
 					RunAsync = async token =>
 					{
-						await work.RunAsync(token).ConfigureAwait(false);
+						_runningLane.Value = current;
+						try
+						{
+							await work.RunAsync(token).ConfigureAwait(false);
+						}
+						finally
+						{
+							current.Finished = true;
+						}
+
 						_ = handled.TrySetResult();
 					},
 				};
-				var writer = EventMapping.IsEphemeral(e) ? _pipeline.Ephemeral : _pipeline.Durable;
-				await writer.WriteAsync(raised, cancellationToken).ConfigureAwait(false);
+				var writer = ephemeral ? _pipeline.Ephemeral : _pipeline.Durable;
+				await writer.WriteAsync(raised, waiting.Token).ConfigureAwait(false);
 			}
 			finally
 			{
 				_ = _raising.Release();
 			}
 
-			try
-			{
-				await handled.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
-			}
-			catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-			{
-				ObjectDisposedException.ThrowIf(condition: true, this);
-				throw;
-			}
+			await handled.Task.WaitAsync(waiting.Token).ConfigureAwait(false);
+		}
+		catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+		{
+			// The fake was disposed: the event never runs, or its handlers were stopped.
+			ObjectDisposedException.ThrowIf(condition: true, this);
+			throw;
 		}
 	}
 
 	/// <summary>
 	/// Makes the next call of <paramref name="member"/> throw <paramref name="exception"/>; the call is still recorded.
 	/// Each call takes one, in the order they were given. A stream (pairing, the state watch) throws it when it is first
-	/// read. To throw a library exception as the library does, set what it carries:
+	/// read. An exception of one reason carries its code as the library's does (<c>new RecipientNotFoundException("...")</c>);
+	/// for the others, set what the library's carries:
 	/// <c>new WhatsmeowException("...") { ErrorCode = WhatsmeowErrorCode.InviteLinkInvalid }</c>.
 	/// </summary>
 	/// <param name="member">The member, as <c>nameof(IWhatsAppClient.SendTextAsync)</c> names it.</param>
 	/// <param name="exception">What the call throws.</param>
+	/// <exception cref="ArgumentException"><paramref name="member"/> is not a member <see cref="Calls"/> records.</exception>
 	public void FailNext(string member, Exception exception)
 	{
-		ArgumentException.ThrowIfNullOrWhiteSpace(member);
+		ArgumentNullException.ThrowIfNull(member);
 		ArgumentNullException.ThrowIfNull(exception);
+		if (!s_calls.Contains(member))
+			throw new ArgumentException($"\"{member}\" is not a member the fake records; name one with nameof(IWhatsAppClient.SendTextAsync).", nameof(member));
 		lock (_lock)
 		{
 			if (!_failures.TryGetValue(member, out var queue))
@@ -227,7 +320,7 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 	/// <inheritdoc/>
 	public async IAsyncEnumerable<SessionState> WatchStateAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
 	{
-		cancellationToken.ThrowIfCancellationRequested();
+		Begin(cancellationToken);
 		Fail(Record(nameof(WatchStateAsync), []));
 		yield return new SessionState.Connected();
 		await Task.Delay(Timeout.InfiniteTimeSpan, _time, cancellationToken).ConfigureAwait(false);
@@ -237,15 +330,19 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 	public async Task<MediaRef> UploadMediaFileAsync(string path, MediaType type, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(path);
+		Begin(cancellationToken);
+
+		// Recorded before the file is read, as the call is made: a missing file is still a call.
+		Fail(Record(nameof(UploadMediaFileAsync), [(nameof(path), path), (nameof(type), type)]));
 		var content = await File.ReadAllBytesAsync(path, cancellationToken).ConfigureAwait(false);
-		return await CallAsync(nameof(UploadMediaFileAsync), [(nameof(path), path), (nameof(type), type)], () => ToRef(type, content), cancellationToken)
-			.ConfigureAwait(false);
+		return ToRef(type, content);
 	}
 
 	/// <inheritdoc/>
 	public async Task<MediaRef> UploadMediaAsync(Stream content, MediaType type, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(content);
+		ObjectDisposedException.ThrowIf(_pipeline.IsDisposed, this);
 		var read = new MemoryStream();
 		await using (read.ConfigureAwait(false))
 		{
@@ -617,30 +714,47 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 		return CallAsync(member, [(nameof(group), group), (nameof(users), copy)], () => Done(copy), cancellationToken);
 	}
 
-	/// <summary>The pairing stream: it is recorded, and fails, when it is first read, as a call that opens a stream does.</summary>
-	private IAsyncEnumerable<PairingUpdate> PairAsync(string member, (string Name, object? Value)[] arguments, Func<PairingUpdate> code, CancellationToken cancellationToken) =>
-		Pair(member, arguments, code, cancellationToken).ToAsyncEnumerable();
-
-	private IEnumerable<PairingUpdate> Pair(string member, (string Name, object? Value)[] arguments, Func<PairingUpdate> code, CancellationToken cancellationToken)
+	/// <summary>
+	/// The pairing stream: it is recorded, and fails, when it is first read, as a call that opens a stream does; it stops on
+	/// the call's token or the one given through <c>WithCancellation</c>.
+	/// </summary>
+#pragma warning disable IDE0390 // Justification: an async iterator awaits nothing here, and only one gets the WithCancellation token ([EnumeratorCancellation])
+	private async IAsyncEnumerable<PairingUpdate> PairAsync(
+		string member,
+		(string Name, object? Value)[] arguments,
+		Func<PairingUpdate> code,
+		[EnumeratorCancellation] CancellationToken cancellationToken
+	)
+#pragma warning restore IDE0390
 	{
-		cancellationToken.ThrowIfCancellationRequested();
+		Begin(cancellationToken);
 		Fail(Record(member, arguments));
 		yield return code();
+		cancellationToken.ThrowIfCancellationRequested();
 		yield return new PairingUpdate.Paired();
 	}
 
-	/// <summary>Records the call; it fails with what <see cref="FailNext"/> gave, and does nothing when the token is cancelled.</summary>
+	/// <summary>A call can start: the fake is not disposed, and the token is not cancelled.</summary>
+	private void Begin(CancellationToken cancellationToken)
+	{
+		ObjectDisposedException.ThrowIf(_pipeline.IsDisposed, this);
+		cancellationToken.ThrowIfCancellationRequested();
+	}
+
+	/// <summary>Records the call; it fails with what <see cref="FailNext"/> gave, and does nothing when the fake is disposed or the token is cancelled.</summary>
 	private Task CallAsync(string member, ReadOnlySpan<(string Name, object? Value)> arguments, CancellationToken cancellationToken)
 	{
+		ObjectDisposedException.ThrowIf(_pipeline.IsDisposed, this);
 		if (cancellationToken.IsCancellationRequested)
 			return Task.FromCanceled(cancellationToken);
 
 		return Record(member, arguments) is { } failure ? Task.FromException(failure) : Task.CompletedTask;
 	}
 
-	/// <summary>Records the call and returns <paramref name="result"/>'s, or what <see cref="FailNext"/> gave; nothing when the token is cancelled.</summary>
+	/// <summary>Records the call and returns <paramref name="result"/>'s, or what <see cref="FailNext"/> gave; nothing when the fake is disposed or the token is cancelled.</summary>
 	private Task<T> CallAsync<T>(string member, ReadOnlySpan<(string Name, object? Value)> arguments, Func<T> result, CancellationToken cancellationToken)
 	{
+		ObjectDisposedException.ThrowIf(_pipeline.IsDisposed, this);
 		if (cancellationToken.IsCancellationRequested)
 			return Task.FromCanceled<T>(cancellationToken);
 
@@ -665,5 +779,16 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 			_calls.Add(call);
 			return _failures.TryGetValue(member, out var queue) && queue.TryDequeue(out var failure) ? failure : null;
 		}
+	}
+
+	/// <summary>The lane of an event whose handlers run, in its dispatcher, until they finished.</summary>
+	private sealed class RunningLane(bool ephemeral, string lane)
+	{
+		public bool Ephemeral { get; } = ephemeral;
+
+		public string Lane { get; } = lane;
+
+		/// <summary>Work a handler started and that outlives it raises into the lane freely.</summary>
+		public volatile bool Finished;
 	}
 }

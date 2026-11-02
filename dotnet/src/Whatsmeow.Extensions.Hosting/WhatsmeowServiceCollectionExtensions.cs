@@ -72,7 +72,7 @@ public static class WhatsmeowServiceCollectionExtensions
 			{
 				// It lasts as long as the client.
 				foreach (var handler in handlers)
-					_ = handler.AttachTo(client, services);
+					_ = handler.AttachTo(client, services, runs: null);
 			},
 			declared
 		);

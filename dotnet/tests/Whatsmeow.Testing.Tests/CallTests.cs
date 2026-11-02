@@ -17,6 +17,66 @@ namespace Whatsmeow.Testing.Tests;
 /// <summary>What the code under test calls is recorded, returns a plausible result on the test's time, and fails only when told to (ADR 0036).</summary>
 public sealed partial class CallTests : IAsyncDisposable
 {
+	/// <summary>Every member the fake records, in the order <see cref="EveryMember_IsRecordedInOrder"/> calls them.</summary>
+	private static readonly string[] s_members =
+	[
+		nameof(IWhatsAppClient.UploadMediaAsync),
+		nameof(IWhatsAppClient.ConnectAsync),
+		nameof(IWhatsAppClient.DisconnectAsync),
+		nameof(IWhatsAppClient.PairWithQrCodeAsync),
+		nameof(IWhatsAppClient.PairWithPhoneNumberAsync),
+		nameof(IWhatsAppClient.LogoutAsync),
+		nameof(IWhatsAppClient.SendPresenceAsync),
+		nameof(IWhatsAppClient.SubscribePresenceAsync),
+		nameof(IWhatsAppClient.SendChatPresenceAsync),
+		nameof(IWhatsAppClient.WatchStateAsync),
+		nameof(IWhatsAppClient.UploadMediaFileAsync),
+		nameof(IWhatsAppClient.DownloadMediaFileAsync),
+		nameof(IWhatsAppClient.DownloadMediaAsync),
+		nameof(IWhatsAppClient.RequestMediaRetryAsync),
+		nameof(IWhatsAppClient.IsOnWhatsAppAsync),
+		nameof(IWhatsAppClient.GetUserInfoAsync),
+		nameof(IWhatsAppClient.GetProfilePictureAsync),
+		nameof(IWhatsAppClient.ResolveJidsAsync),
+		nameof(IWhatsAppClient.GetContactsAsync),
+		nameof(IWhatsAppClient.GetBlocklistAsync),
+		nameof(IWhatsAppClient.BlockAsync),
+		nameof(IWhatsAppClient.UnblockAsync),
+		nameof(IWhatsAppClient.SendTextAsync),
+		nameof(IWhatsAppClient.SendImageAsync),
+		nameof(IWhatsAppClient.SendVideoAsync),
+		nameof(IWhatsAppClient.SendAudioAsync),
+		nameof(IWhatsAppClient.SendDocumentAsync),
+		nameof(IWhatsAppClient.SendStickerAsync),
+		nameof(IWhatsAppClient.SendRawAsync),
+		nameof(IWhatsAppClient.MarkReadAsync),
+		nameof(IWhatsAppClient.GetGroupsAsync),
+		nameof(IWhatsAppClient.GetGroupInfoAsync),
+		nameof(IWhatsAppClient.CreateGroupAsync),
+		nameof(IWhatsAppClient.AddParticipantsAsync),
+		nameof(IWhatsAppClient.RemoveParticipantsAsync),
+		nameof(IWhatsAppClient.PromoteParticipantsAsync),
+		nameof(IWhatsAppClient.DemoteParticipantsAsync),
+		nameof(IWhatsAppClient.SetGroupNameAsync),
+		nameof(IWhatsAppClient.SetGroupTopicAsync),
+		nameof(IWhatsAppClient.SetGroupAnnounceAsync),
+		nameof(IWhatsAppClient.SetGroupLockedAsync),
+		nameof(IWhatsAppClient.GetGroupInviteLinkAsync),
+		nameof(IWhatsAppClient.ResetGroupInviteLinkAsync),
+		nameof(IWhatsAppClient.JoinGroupWithLinkAsync),
+		nameof(IWhatsAppClient.LeaveGroupAsync),
+		nameof(IWhatsAppClient.MuteChatAsync),
+		nameof(IWhatsAppClient.UnmuteChatAsync),
+		nameof(IWhatsAppClient.PinChatAsync),
+		nameof(IWhatsAppClient.UnpinChatAsync),
+		nameof(IWhatsAppClient.ArchiveChatAsync),
+		nameof(IWhatsAppClient.UnarchiveChatAsync),
+		nameof(IWhatsAppClient.MarkChatReadAsync),
+		nameof(IWhatsAppClient.MarkChatUnreadAsync),
+		nameof(IWhatsAppClient.StarMessageAsync),
+		nameof(IWhatsAppClient.UnstarMessageAsync),
+	];
+
 	private readonly FakeTimeProvider _time = new(Now);
 	private readonly FakeWhatsAppClient _fake;
 
@@ -119,63 +179,7 @@ public sealed partial class CallTests : IAsyncDisposable
 		await client.UnstarMessageAsync(id, source, ct);
 
 		Assert.Equal(
-			[
-				nameof(IWhatsAppClient.UploadMediaAsync),
-				nameof(IWhatsAppClient.ConnectAsync),
-				nameof(IWhatsAppClient.DisconnectAsync),
-				nameof(IWhatsAppClient.PairWithQrCodeAsync),
-				nameof(IWhatsAppClient.PairWithPhoneNumberAsync),
-				nameof(IWhatsAppClient.LogoutAsync),
-				nameof(IWhatsAppClient.SendPresenceAsync),
-				nameof(IWhatsAppClient.SubscribePresenceAsync),
-				nameof(IWhatsAppClient.SendChatPresenceAsync),
-				nameof(IWhatsAppClient.WatchStateAsync),
-				nameof(IWhatsAppClient.UploadMediaFileAsync),
-				nameof(IWhatsAppClient.DownloadMediaFileAsync),
-				nameof(IWhatsAppClient.DownloadMediaAsync),
-				nameof(IWhatsAppClient.RequestMediaRetryAsync),
-				nameof(IWhatsAppClient.IsOnWhatsAppAsync),
-				nameof(IWhatsAppClient.GetUserInfoAsync),
-				nameof(IWhatsAppClient.GetProfilePictureAsync),
-				nameof(IWhatsAppClient.ResolveJidsAsync),
-				nameof(IWhatsAppClient.GetContactsAsync),
-				nameof(IWhatsAppClient.GetBlocklistAsync),
-				nameof(IWhatsAppClient.BlockAsync),
-				nameof(IWhatsAppClient.UnblockAsync),
-				nameof(IWhatsAppClient.SendTextAsync),
-				nameof(IWhatsAppClient.SendImageAsync),
-				nameof(IWhatsAppClient.SendVideoAsync),
-				nameof(IWhatsAppClient.SendAudioAsync),
-				nameof(IWhatsAppClient.SendDocumentAsync),
-				nameof(IWhatsAppClient.SendStickerAsync),
-				nameof(IWhatsAppClient.SendRawAsync),
-				nameof(IWhatsAppClient.MarkReadAsync),
-				nameof(IWhatsAppClient.GetGroupsAsync),
-				nameof(IWhatsAppClient.GetGroupInfoAsync),
-				nameof(IWhatsAppClient.CreateGroupAsync),
-				nameof(IWhatsAppClient.AddParticipantsAsync),
-				nameof(IWhatsAppClient.RemoveParticipantsAsync),
-				nameof(IWhatsAppClient.PromoteParticipantsAsync),
-				nameof(IWhatsAppClient.DemoteParticipantsAsync),
-				nameof(IWhatsAppClient.SetGroupNameAsync),
-				nameof(IWhatsAppClient.SetGroupTopicAsync),
-				nameof(IWhatsAppClient.SetGroupAnnounceAsync),
-				nameof(IWhatsAppClient.SetGroupLockedAsync),
-				nameof(IWhatsAppClient.GetGroupInviteLinkAsync),
-				nameof(IWhatsAppClient.ResetGroupInviteLinkAsync),
-				nameof(IWhatsAppClient.JoinGroupWithLinkAsync),
-				nameof(IWhatsAppClient.LeaveGroupAsync),
-				nameof(IWhatsAppClient.MuteChatAsync),
-				nameof(IWhatsAppClient.UnmuteChatAsync),
-				nameof(IWhatsAppClient.PinChatAsync),
-				nameof(IWhatsAppClient.UnpinChatAsync),
-				nameof(IWhatsAppClient.ArchiveChatAsync),
-				nameof(IWhatsAppClient.UnarchiveChatAsync),
-				nameof(IWhatsAppClient.MarkChatReadAsync),
-				nameof(IWhatsAppClient.MarkChatUnreadAsync),
-				nameof(IWhatsAppClient.StarMessageAsync),
-				nameof(IWhatsAppClient.UnstarMessageAsync),
-			],
+			s_members,
 			_fake.Calls.Select(static call => call.Member),
 			StringComparer.Ordinal
 		);
@@ -293,11 +297,8 @@ public sealed partial class CallTests : IAsyncDisposable
 		var ct = TestContext.Current.CancellationToken;
 		var link = new Uri("https://chat.whatsapp.com/AbCdEfGhIjKlMnOpQrStUv");
 		_fake.FailNext(nameof(IWhatsAppClient.JoinGroupWithLinkAsync), new WhatsmeowException("not a link") { ErrorCode = WhatsmeowErrorCode.InviteLinkInvalid });
-		_fake.FailNext(nameof(IWhatsAppClient.JoinGroupWithLinkAsync), new WhatsAppErrorException("full") { ErrorCode = WhatsmeowErrorCode.WhatsAppError, Code = 409 });
-		_fake.FailNext(
-			nameof(IWhatsAppClient.JoinGroupWithLinkAsync),
-			new TemporarilyBannedException("banned") { ErrorCode = WhatsmeowErrorCode.TemporarilyBanned, Until = Now.AddDays(1) }
-		);
+		_fake.FailNext(nameof(IWhatsAppClient.JoinGroupWithLinkAsync), new WhatsAppErrorException("full") { Code = 409 });
+		_fake.FailNext(nameof(IWhatsAppClient.JoinGroupWithLinkAsync), new TemporarilyBannedException("banned") { Until = Now.AddDays(1) });
 
 		var invalid = await Assert.ThrowsAsync<WhatsmeowException>(() => _fake.JoinGroupWithLinkAsync(link, ct));
 		var full = await Assert.ThrowsAsync<WhatsAppErrorException>(() => _fake.JoinGroupWithLinkAsync(link, ct));
@@ -332,6 +333,116 @@ public sealed partial class CallTests : IAsyncDisposable
 		_ = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => _fake.SendTextAsync(Ana, "never", cancellationToken: cancelled.Token));
 
 		Assert.Empty(_fake.Calls);
+	}
+
+	[Theory]
+	[InlineData("On")]
+	[InlineData("WaitForAsync")]
+	[InlineData("OnHandlerError")]
+	[InlineData("RaiseAsync")]
+	[InlineData("FailNext")]
+	[InlineData("DisposeAsync")]
+	[InlineData("SendText")]
+	[InlineData("sendTextAsync")]
+	public async Task FailNext_OfAMemberThatIsNoCall_IsRefused(string member)
+	{
+		var refused = Assert.Throws<ArgumentException>(() => _fake.FailNext(member, new InvalidOperationException("never")));
+
+		Assert.Equal("member", refused.ParamName);
+		Assert.Contains(member, refused.Message, StringComparison.Ordinal);
+		_ = await _fake.SendTextAsync(Ana, "not failed", cancellationToken: TestContext.Current.CancellationToken);
+	}
+
+	[Fact]
+	public void FailNext_TakesEveryMemberTheFakeRecords()
+	{
+		foreach (var member in s_members)
+			_fake.FailNext(member, new InvalidOperationException(member));
+	}
+
+	[Fact(Timeout = 10_000)]
+	public async Task UploadOfAMissingFile_IsRecorded_AndTakesItsFailureFirst()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var missing = Path.Combine(Path.GetTempPath(), $"wmn-fake-missing-{Guid.NewGuid():N}.bin");
+		var refused = new MediaExpiredException("refused");
+		_fake.FailNext(nameof(IWhatsAppClient.UploadMediaFileAsync), refused);
+
+		Assert.Same(refused, await Assert.ThrowsAsync<MediaExpiredException>(() => _fake.UploadMediaFileAsync(missing, MediaType.Image, ct)));
+		_ = await Assert.ThrowsAsync<FileNotFoundException>(() => _fake.UploadMediaFileAsync(missing, MediaType.Image, ct));
+
+		var arguments = new Dictionary<string, object?>(StringComparer.Ordinal) { ["path"] = missing, ["type"] = MediaType.Image };
+		Assert.Equal(
+			[new FakeCall { Member = nameof(IWhatsAppClient.UploadMediaFileAsync), Arguments = arguments, Timestamp = Now }, new FakeCall { Member = nameof(IWhatsAppClient.UploadMediaFileAsync), Arguments = arguments, Timestamp = Now }],
+			_fake.Calls
+		);
+	}
+
+	[Fact(Timeout = 10_000)]
+	public async Task Disposed_EveryCallThrowsObjectDisposed_AndIsNotRecorded()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var file = Path.Combine(Directory.CreateTempSubdirectory("wmn-fake-").FullName, "media.bin");
+		await File.WriteAllBytesAsync(file, [1], ct);
+		var media = await _fake.UploadMediaAsync(new MemoryStream([1]), MediaType.Image, ct);
+		await _fake.DisposeAsync();
+
+		_ = await Assert.ThrowsAsync<ObjectDisposedException>(() => _fake.SendTextAsync(Ana, "late", cancellationToken: ct));
+		_ = await Assert.ThrowsAsync<ObjectDisposedException>(() => _fake.ConnectAsync(ct));
+		_ = await Assert.ThrowsAsync<ObjectDisposedException>(() => _fake.GetGroupsAsync(ct));
+		_ = await Assert.ThrowsAsync<ObjectDisposedException>(() => _fake.UploadMediaFileAsync(file, MediaType.Image, ct));
+		_ = await Assert.ThrowsAsync<ObjectDisposedException>(() => _fake.UploadMediaAsync(new MemoryStream([1]), MediaType.Image, ct));
+		_ = await Assert.ThrowsAsync<ObjectDisposedException>(() => _fake.DownloadMediaFileAsync(media, file, ct));
+		_ = await Assert.ThrowsAsync<ObjectDisposedException>(async () => await _fake.PairWithQrCodeAsync(ct).ToArrayAsync(ct).ConfigureAwait(false));
+		_ = await Assert.ThrowsAsync<ObjectDisposedException>(async () => await _fake.WatchStateAsync(ct).FirstAsync(ct).ConfigureAwait(false));
+
+		Assert.Equal(nameof(IWhatsAppClient.UploadMediaAsync), Assert.Single(_fake.Calls).Member);
+	}
+
+	[Fact(Timeout = 10_000)]
+	public async Task Pairing_HonoursTheTokenGivenThroughWithCancellation()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var stop = CancellationTokenSource.CreateLinkedTokenSource(ct);
+		await using (var updates = _fake.PairWithQrCodeAsync(ct).WithCancellation(stop.Token).GetAsyncEnumerator())
+		{
+			Assert.True(await updates.MoveNextAsync());
+			_ = Assert.IsType<PairingUpdate.QrCode>(updates.Current);
+
+			await stop.CancelAsync();
+
+			_ = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await updates.MoveNextAsync());
+		}
+
+		using var cancelled = CancellationTokenSource.CreateLinkedTokenSource(ct);
+		await cancelled.CancelAsync();
+		_ = await Assert.ThrowsAnyAsync<OperationCanceledException>(
+			async () => await _fake.PairWithPhoneNumberAsync("5511999990001", ct).WithCancellation(cancelled.Token).GetAsyncEnumerator().MoveNextAsync()
+		);
+		Assert.Equal(nameof(IWhatsAppClient.PairWithQrCodeAsync), Assert.Single(_fake.Calls).Member);
+	}
+
+	[Fact(Timeout = 10_000)]
+	public async Task Call_EqualsACallBuiltWithTheSameMemberArgumentsAndTime()
+	{
+		var id = MessageId.From("3EB0C0FFEE0000000000AA");
+		_ = await _fake.SendTextAsync(Ana, "hello", id, TestContext.Current.CancellationToken);
+		var actual = Assert.Single(_fake.Calls);
+
+		var expected = new FakeCall
+		{
+			Member = nameof(IWhatsAppClient.SendTextAsync),
+			Arguments = new Dictionary<string, object?>(StringComparer.Ordinal) { ["chat"] = Ana, ["text"] = "hello", ["id"] = id },
+			Timestamp = Now,
+		};
+
+		Assert.Equal(expected, actual);
+		Assert.Equal(expected.GetHashCode(), actual.GetHashCode());
+		Assert.NotEqual(expected with { Arguments = new Dictionary<string, object?>(StringComparer.Ordinal) { ["chat"] = Ana, ["text"] = "bye", ["id"] = id } }, actual);
+		Assert.NotEqual(expected with { Arguments = new Dictionary<string, object?>(StringComparer.Ordinal) { ["chat"] = Ana, ["text"] = "hello" } }, actual);
+		Assert.NotEqual(expected with { Arguments = new Dictionary<string, object?>(StringComparer.Ordinal) { ["chat"] = Ana, ["text"] = "hello", ["sender"] = id } }, actual);
+		Assert.NotEqual(expected with { Member = nameof(IWhatsAppClient.SendRawAsync) }, actual);
+		Assert.NotEqual(expected with { Timestamp = Now.AddSeconds(1) }, actual);
 	}
 
 	[GeneratedRegex("^3EB0[0-9A-F]{18}$", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]

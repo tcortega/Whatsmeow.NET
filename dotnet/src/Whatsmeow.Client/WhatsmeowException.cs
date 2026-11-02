@@ -27,7 +27,8 @@ public class WhatsmeowException : Exception
 
 	/// <summary>
 	/// Why the call failed; <see cref="WhatsmeowErrorCode.Unknown"/> when the sidecar sent no reason this client knows.
-	/// Settable so a test can build the exception the library throws, for a fake to throw (ADR 0036).
+	/// A subtype of one reason, such as <see cref="RateLimitedException"/>, sets it in each constructor, so an exception a
+	/// test builds for a fake carries what the library's does; setting it overrides that (ADR 0036).
 	/// </summary>
 	public WhatsmeowErrorCode ErrorCode { get; init; }
 

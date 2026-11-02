@@ -135,8 +135,8 @@ internal sealed class EventPipeline : IAsyncDisposable
 		}
 	}
 
-	/// <summary>Registers a callback for the stop, which runs once it began; at once when it already did.</summary>
-	public CancellationTokenRegistration OnStopping(Action callback) => _stopping.Token.Register(callback);
+	/// <summary>Cancelled once the stop began: no event runs any more.</summary>
+	public CancellationToken Stopping => _stopping.Token;
 
 	/// <summary><see cref="StopAsync"/>, waiting for every handler.</summary>
 	public ValueTask DisposeAsync() => new(StopAsync(CancellationToken.None));

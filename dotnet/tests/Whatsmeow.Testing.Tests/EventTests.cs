@@ -180,6 +180,95 @@ public sealed class EventTests : IAsyncDisposable
 	}
 
 	[Fact(Timeout = 10_000)]
+	public async Task Disposed_WhileRaisesWaitBehindABlockedHandler_EveryRaiseEndsObjectDisposed()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var started = new TaskCompletionSource();
+		using var handler = _fake.On<MessageReceived>(
+			async (e, token) =>
+			{
+				_ = started.TrySetResult();
+				await new TaskCompletionSource().Task.WaitAsync(token).ConfigureAwait(false);
+			}
+		);
+
+		// One chat: one event runs, 63 wait in the dispatcher, 64 in its channel, one raise is writing and three wait to write.
+		var raises = Enumerable.Range(0, 132).Select(i => _fake.RaiseAsync(Message(Ana, $"m{i}"), ct)).ToArray();
+		await started.Task;
+		await _fake.DisposeAsync();
+
+		foreach (var raise in raises)
+			_ = await Assert.ThrowsAsync<ObjectDisposedException>(() => raise);
+	}
+
+	[Fact(Timeout = 10_000)]
+	public async Task EventOfItsOwnChat_RaisedFromAHandler_FailsInsteadOfWaitingForever_WhileOtherLanesRun()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var inner = new TaskCompletionSource<Exception?>();
+		var handled = new ConcurrentQueue<string>();
+		using var messages = _fake.On<MessageReceived>(
+			async (e, token) =>
+			{
+				handled.Enqueue(Text(e));
+				if (Text(e) != "outer")
+					return;
+
+				inner.SetResult(await Record.ExceptionAsync(() => _fake.RaiseAsync(Message(Ana, "inner"), token)).ConfigureAwait(false));
+				await _fake.RaiseAsync(Message(Bia, "other chat"), token).ConfigureAwait(false);
+				await _fake.RaiseAsync(Typing(Ana), token).ConfigureAwait(false);
+			}
+		);
+		using var presence = _fake.On<ChatPresenceChanged>(
+			(_, _) =>
+			{
+				handled.Enqueue("typing");
+				return ValueTask.CompletedTask;
+			}
+		);
+
+		await _fake.RaiseAsync(Message(Ana, "outer"), ct);
+		await _fake.RaiseAsync(Message(Ana, "after"), ct);
+
+		Assert.Contains("own lane", Assert.IsType<InvalidOperationException>(await inner.Task).Message, StringComparison.Ordinal);
+		Assert.Equal(["outer", "other chat", "typing", "after"], handled, StringComparer.Ordinal);
+	}
+
+	[Fact(Timeout = 10_000)]
+	public async Task WorkAHandlerStarted_RaisesIntoItsChat_OnceTheHandlerFinished()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var outerDone = new TaskCompletionSource();
+		Task? later = null;
+		var handled = new ConcurrentQueue<string>();
+		using var messages = _fake.On<MessageReceived>(
+			(e, _) =>
+			{
+				handled.Enqueue(Text(e));
+				if (Text(e) == "outer")
+				{
+					later = Task.Run(
+						async () =>
+						{
+							await outerDone.Task.ConfigureAwait(false);
+							await _fake.RaiseAsync(Message(Ana, "later"), ct).ConfigureAwait(false);
+						},
+						ct
+					);
+				}
+
+				return ValueTask.CompletedTask;
+			}
+		);
+
+		await _fake.RaiseAsync(Message(Ana, "outer"), ct);
+		outerDone.SetResult();
+		await later!;
+
+		Assert.Equal(["outer", "later"], handled, StringComparer.Ordinal);
+	}
+
+	[Fact(Timeout = 10_000)]
 	public async Task EventOfAnotherSession_IsRefused()
 	{
 		var e = Message(Ana, "elsewhere", SessionId.From("other"));
