@@ -11,28 +11,33 @@ public sealed class WhatsAppErrorException : WhatsmeowException
 	/// <summary>Creates the exception.</summary>
 	public WhatsAppErrorException()
 	{
+		ErrorCode = WhatsmeowErrorCode.WhatsAppError;
 	}
 
 	/// <summary>Creates the exception with a message.</summary>
 	public WhatsAppErrorException(string message)
 		: base(message)
 	{
+		ErrorCode = WhatsmeowErrorCode.WhatsAppError;
 	}
 
 	/// <summary>Creates the exception with a message and its cause.</summary>
 	public WhatsAppErrorException(string message, Exception? innerException)
 		: base(message, innerException)
 	{
+		ErrorCode = WhatsmeowErrorCode.WhatsAppError;
 	}
 
-	/// <summary>WhatsApp's numeric error code, HTTP-like (403 forbidden, 404 not found, 406 not acceptable); 0 when WhatsApp sent none.</summary>
-	public int Code { get; internal init; }
+	/// <summary>
+	/// WhatsApp's numeric error code, HTTP-like (403 forbidden, 404 not found, 406 not acceptable); 0 when WhatsApp sent
+	/// none. Settable so a test can build the exception the library throws (ADR 0036).
+	/// </summary>
+	public int Code { get; init; }
 
 	[DoesNotReturn]
 	internal static void Throw(RpcException exception, int code) =>
 		throw new WhatsAppErrorException($"WhatsApp refused the request with code {code}: {exception.Status.Detail}", exception)
 		{
-			ErrorCode = WhatsmeowErrorCode.WhatsAppError,
 			Code = code,
 		};
 }

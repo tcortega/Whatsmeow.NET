@@ -22,7 +22,7 @@ That is `tests/Whatsmeow.IntegrationTests`.
 
 .NET unit tests exist only for:
 
-* dispatcher per-chat ordering and the ack watermark
+* dispatcher per-chat ordering and the ack watermark, with the lane of every event type (`Events/EventLaneTests.cs`, ADR 0036)
 * the supervisor restart/backoff state machine (driven by `FakeTimeProvider`)
 * the transport's request body fence (`Core/Transport/RequestBodyFence.cs`, #71), the one exception outside those two.
   It works around a race between grpc-dotnet and SocketsHttpHandler that the refused-upload test hit in 7 of 500 runs under load, so integration cannot pin its contract.
@@ -53,6 +53,9 @@ So do the hosting tests (`Hosting/HostingTests.cs`): the generic host starting a
 So is the media transfer per transport (`Media/MediaTransferTests.cs`): it runs over the named pipe too, and measures the sidecar's memory alone, in the `MediaTransfers` collection, which never runs in parallel.
 The shared sidecar has a media root (`fixture.MediaRoot`); a test that hands files over puts them under a directory of its own there.
 Do not mock the transport, the dispatcher, or the sidecar.
+
+The consumer fake, `FakeWhatsAppClient`, has tests of its own in `tests/Whatsmeow.Testing.Tests`, with no sidecar (ADR 0036).
+They use only its public API, as a consumer would: no project gives that one internals, so the compiler holds the rule.
 
 xUnit v3 on Microsoft.Testing.Platform, not TUnit.
 A test project with no source file yet may report zero tests; once it has a `*.cs` file, zero discovered tests fails the run, and a project named `*Tests` that is not a platform app fails the build (`dotnet/Directory.Build.targets`).

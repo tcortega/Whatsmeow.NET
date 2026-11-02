@@ -425,7 +425,8 @@ consumer_setup() { # feed
 	cp build/package-smoke/Program.cs "$work/app/" || return
 	in_consumer dotnet add app/Consumer.csproj package Whatsmeow.Client --version "$version" || return
 	in_consumer dotnet add app/Consumer.csproj package Whatsmeow.Extensions.Hosting --version "$version" || return
-	echo "a consumer of Whatsmeow.Client and Whatsmeow.Extensions.Hosting $version from $feed in $work"
+	in_consumer dotnet add app/Consumer.csproj package Whatsmeow.Testing --version "$version" || return
+	echo "a consumer of Whatsmeow.Client, Whatsmeow.Extensions.Hosting and Whatsmeow.Testing $version from $feed in $work"
 }
 
 consumer_config() { # feed
@@ -476,6 +477,24 @@ packaged_hosting_pin() {
 		return 1
 	fi
 	grep -F 'Whatsmeow.Client' "$nuspec"
+}
+
+# Whatsmeow.Testing uses Whatsmeow.Client and Whatsmeow.Extensions.Hosting internals, so it depends on both at exactly
+# its own version (ADR 0036).
+packaged_testing_pins() {
+	local nuspec="$packages/whatsmeow.testing/$version/whatsmeow.testing.nuspec" id rc=0
+	if [ ! -f "$nuspec" ]; then
+		annotate error "exact pins" "the consumer restored no $nuspec"
+		return 1
+	fi
+	for id in Whatsmeow.Client Whatsmeow.Extensions.Hosting; do
+		if ! grep -qF "<dependency id=\"$id\" version=\"[$version]\"" "$nuspec"; then
+			annotate error "exact pins" "Whatsmeow.Testing does not depend on $id at exactly [$version] (ADR 0036); its ProjectReference needs PackExactVersion=\"true\" (_WhatsmeowExactProjectVersions, ADR 0023)"
+			rc=1
+		fi
+	done
+	grep -F 'Whatsmeow.' "$nuspec"
+	return "$rc"
 }
 
 native_package() { # linux|osx|win
@@ -854,6 +873,7 @@ job_install() { # feed
 	check "install: a new consumer of the feed $1" consumer_setup "$1" || return
 	check "install: Whatsmeow.Client pins each native package at exactly its version" packaged_pins
 	check "install: Whatsmeow.Extensions.Hosting pins Whatsmeow.Client at exactly its version" packaged_hosting_pin
+	check "install: Whatsmeow.Testing pins Whatsmeow.Client and Whatsmeow.Extensions.Hosting at exactly its version" packaged_testing_pins
 	check "install: each native package holds exactly its binaries, its buildTransitive targets, its README and the GPL files" packaged_files
 	check "install: each native package's README and GPL files are the repository's, and COPYING is the GPL-3.0 text (ADR 0016)" packaged_notices
 	check "install: GPL-3.0-only on the native packages, MPL-2.0 on the .NET packages (ADR 0016)" packaged_licences

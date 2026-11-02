@@ -8,18 +8,21 @@ public sealed class WhatsmeowValidationException : WhatsmeowException
 	/// <summary>Creates the exception.</summary>
 	public WhatsmeowValidationException()
 	{
+		ErrorCode = WhatsmeowErrorCode.InvalidArgument;
 	}
 
 	/// <summary>Creates the exception with a message.</summary>
 	public WhatsmeowValidationException(string message)
 		: base(message)
 	{
+		ErrorCode = WhatsmeowErrorCode.InvalidArgument;
 	}
 
 	/// <summary>Creates the exception with a message and its cause.</summary>
 	public WhatsmeowValidationException(string message, Exception? innerException)
 		: base(message, innerException)
 	{
+		ErrorCode = WhatsmeowErrorCode.InvalidArgument;
 	}
 
 	[DoesNotReturn]
@@ -27,5 +30,5 @@ public sealed class WhatsmeowValidationException : WhatsmeowException
 
 	[DoesNotReturn]
 	internal static void Throw(RpcException exception) =>
-		throw new WhatsmeowValidationException($"The request is invalid: {exception.Status.Detail}", exception) { ErrorCode = WhatsmeowErrorCode.InvalidArgument };
+		throw new WhatsmeowValidationException($"The request is invalid: {exception.Status.Detail}", exception);
 }

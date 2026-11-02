@@ -75,7 +75,10 @@ public sealed class WhatsmeowBuilder
 				typeof(TEvent),
 				typeof(THandler),
 				session,
-				static (client, services) => client.On<TEvent>((e, ct) => HandleAsync<TEvent, THandler>(services, client, e, ct))
+				static (client, services, runs) =>
+					client.On<TEvent>(
+						(e, ct) => runs is null ? HandleAsync<TEvent, THandler>(services, client, e, ct) : runs.RunAsync(token => HandleAsync<TEvent, THandler>(services, client, e, token), ct)
+					)
 			)
 		);
 		return this;

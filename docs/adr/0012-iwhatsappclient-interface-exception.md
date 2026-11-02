@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-31
 - Evidence: none from §14; an API design decision
-- Amended by: [ADR 0021](0021-pairing.md) (pairing is on the client; the feature groups are decided with Messages)
+- Amended by: [ADR 0021](0021-pairing.md) (pairing is on the client; the feature groups are decided with Messages); [ADR 0036](0036-testing-package-and-fake-client.md) (`Raise(event)` is `RaiseAsync`, which waits for the handlers)
 
 ## Context
 

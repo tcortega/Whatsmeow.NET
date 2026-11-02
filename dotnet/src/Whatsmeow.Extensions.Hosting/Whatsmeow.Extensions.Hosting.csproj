@@ -25,6 +25,9 @@
 	<ItemGroup>
 		<!-- Only for fake WhatsApp mode, the seam the public API cannot reach (ADR 0019). -->
 		<InternalsVisibleTo Include="Whatsmeow.IntegrationTests" />
+		<!-- A session replaced by a FakeWhatsAppClient gets the registered handlers, and the host starts no sidecar (ADR 0036);
+		Whatsmeow.Testing depends on this package at exactly its version. -->
+		<InternalsVisibleTo Include="Whatsmeow.Testing" />
 	</ItemGroup>
 
 	<ItemGroup Label="Usings">

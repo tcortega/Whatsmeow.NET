@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<RootNamespace>Whatsmeow.Testing</RootNamespace>
+	</PropertyGroup>
+
+	<!--
+		Exactly this package's versions: the fake runs the client's own event pipeline, and the hosting replacement uses the
+		hosting package's internals (ADR 0036).
+	-->
+	<ItemGroup>
+		<ProjectReference Include="../Whatsmeow.Client/Whatsmeow.Client.csproj" PackExactVersion="true" />
+		<ProjectReference Include="../Whatsmeow.Extensions.Hosting/Whatsmeow.Extensions.Hosting.csproj" PackExactVersion="true" />
+	</ItemGroup>
+
+	<!-- Stable package: its public API is tracked in PublicAPI.*.txt (RS0016/RS0017 are errors, dotnet/.globalconfig). -->
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all" />
+		<AdditionalFiles Include="PublicAPI.Shipped.txt" />
+		<AdditionalFiles Include="PublicAPI.Unshipped.txt" />
+	</ItemGroup>
+
+	<ItemGroup Label="Usings">
+		<Using Include="System.Diagnostics.CodeAnalysis" />
+		<Using Include="Microsoft.Extensions.DependencyInjection" />
+		<Using Include="Microsoft.Extensions.Logging" />
+	</ItemGroup>
+</Project>

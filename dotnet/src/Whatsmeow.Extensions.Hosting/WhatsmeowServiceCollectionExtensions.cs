@@ -70,8 +70,9 @@ public static class WhatsmeowServiceCollectionExtensions
 			services.GetService<FakeWhatsAppMode>() is not null,
 			client =>
 			{
+				// It lasts as long as the client.
 				foreach (var handler in handlers)
-					handler.AttachTo(client, services);
+					_ = handler.AttachTo(client, services, runs: null);
 			},
 			declared
 		);

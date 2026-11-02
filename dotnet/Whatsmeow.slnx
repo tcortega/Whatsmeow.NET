@@ -7,6 +7,7 @@
 		<Project Path="src/Whatsmeow.Sidecar.Native.Linux/Whatsmeow.Sidecar.Native.Linux.csproj" />
 		<Project Path="src/Whatsmeow.Sidecar.Native.MacOS/Whatsmeow.Sidecar.Native.MacOS.csproj" />
 		<Project Path="src/Whatsmeow.Sidecar.Native.Windows/Whatsmeow.Sidecar.Native.Windows.csproj" />
+		<Project Path="src/Whatsmeow.Testing/Whatsmeow.Testing.csproj" />
 	</Folder>
 	<Folder Name="/tests/">
 		<Project Path="tests/AotSmoke/AotSmoke.csproj" />
@@ -14,5 +15,6 @@
 		<Project Path="tests/Whatsmeow.Client.Tests/Whatsmeow.Client.Tests.csproj" />
 		<Project Path="tests/Whatsmeow.IntegrationTests/Whatsmeow.IntegrationTests.csproj" />
 		<Project Path="tests/Whatsmeow.LiveTests/Whatsmeow.LiveTests.csproj" />
+		<Project Path="tests/Whatsmeow.Testing.Tests/Whatsmeow.Testing.Tests.csproj" />
 	</Folder>
 </Solution>

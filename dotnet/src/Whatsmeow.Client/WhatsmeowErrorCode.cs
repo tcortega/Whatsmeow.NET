@@ -6,13 +6,16 @@ namespace Whatsmeow;
 /// </summary>
 public enum WhatsmeowErrorCode
 {
-	/// <summary>The sidecar sent no reason, the failure happened in this process, or this client does not know the reason.</summary>
+	/// <summary>
+	/// The sidecar sent no reason, the failure happened in this process (an invalid value is <see cref="InvalidArgument"/>),
+	/// or this client does not know the reason.
+	/// </summary>
 	Unknown = 0,
 
 	/// <summary>An unexpected sidecar failure.</summary>
 	Internal,
 
-	/// <summary>The request was malformed.</summary>
+	/// <summary>The request was malformed, or a value was invalid (<see cref="WhatsmeowValidationException"/>).</summary>
 	InvalidArgument,
 
 	/// <summary>The call did not carry the sidecar's per-launch token.</summary>

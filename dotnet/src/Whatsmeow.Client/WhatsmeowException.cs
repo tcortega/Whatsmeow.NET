@@ -25,8 +25,12 @@ public class WhatsmeowException : Exception
 	{
 	}
 
-	/// <summary>Why the call failed; <see cref="WhatsmeowErrorCode.Unknown"/> when the sidecar sent no reason this client knows.</summary>
-	public WhatsmeowErrorCode ErrorCode { get; internal init; }
+	/// <summary>
+	/// Why the call failed; <see cref="WhatsmeowErrorCode.Unknown"/> when the sidecar sent no reason this client knows.
+	/// A subtype of one reason, such as <see cref="RateLimitedException"/>, sets it in each constructor, so an exception a
+	/// test builds for a fake carries what the library's does; setting it overrides that (ADR 0036).
+	/// </summary>
+	public WhatsmeowErrorCode ErrorCode { get; init; }
 
 	[DoesNotReturn]
 	internal static void ThrowUnmapped(RpcException exception, WhatsmeowErrorCode code) =>

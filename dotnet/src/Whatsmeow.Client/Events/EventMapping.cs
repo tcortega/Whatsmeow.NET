@@ -78,22 +78,35 @@ internal static class EventMapping
 			_ => null,
 		};
 
-	/// <summary>The lane an event runs in: its chat, so one chat's events run in order; the session's lane without one.</summary>
-	public static string Lane(StreamEventsResponse response) =>
-		response.PayloadCase switch
+	/// <summary>
+	/// The lane an event runs in, for the client's dispatcher and <c>FakeWhatsAppClient</c>'s alike (ADR 0036): its chat, so
+	/// one chat's events run in order; a contact's changes in the contact's lane, which is its direct chat when it uses the
+	/// same form; a group's changes in the group's, with its messages; presence in its user's; the session's lane without
+	/// one. The key is the JID as whatsmeow writes it, which is what the sidecar sends, so it is the proto field's own text
+	/// (EventLaneTests). An event this client cannot map has no handlers to order, and runs in the session's lane.
+	/// </summary>
+	public static string Lane(WhatsAppEvent? e) =>
+		e switch
 		{
-			Payload.Message => response.Message.Info?.Source?.Chat ?? SessionLane,
-			Payload.UndecryptableMessage => response.UndecryptableMessage.Info?.Source?.Chat ?? SessionLane,
-			// The contact's lane: a user's changes run in order with their direct chat when it uses the same form.
-			Payload.Contact => response.Contact.Jid,
-			Payload.MediaRetry => response.MediaRetry.Chat,
-			Payload.ChatState => response.ChatState.Chat,
-			Payload.Receipt => response.Receipt.Source?.Chat ?? SessionLane,
-			// The group's lane: its changes run in order with its messages.
-			Payload.Group => response.Group.Group,
-			Payload.ConnectionState or Payload.None => SessionLane,
+			MessageReceived message => message.Source.Chat.ToString(),
+			UndecryptableMessageReceived message => message.Source.Chat.ToString(),
+			ContactUpdated contact => contact.Jid.ToString(),
+			MediaRetryReceived retry => retry.Chat.ToString(),
+			ChatStateChanged chatState => chatState.Chat.ToString(),
+			ReceiptReceived receipt => receipt.Source.Chat.ToString(),
+			GroupInfoChanged group => group.Group.ToString(),
+			GroupJoined group => group.Group.Jid.ToString(),
+			PresenceChanged presence => presence.From.ToString(),
+			ChatPresenceChanged chatPresence => chatPresence.Source.Chat.ToString(),
+			ConnectionStateChanged or EphemeralEventsDropped or null => SessionLane,
 			_ => SessionLane,
 		};
+
+	/// <summary>
+	/// Whether the event is one of <c>StreamEphemeralEvents</c>: best effort, in a dispatcher of its own that never acks, so
+	/// it never holds back the durable events (ADR 0027).
+	/// </summary>
+	public static bool IsEphemeral(WhatsAppEvent e) => e is PresenceChanged or ChatPresenceChanged or EphemeralEventsDropped;
 
 	/// <summary>
 	/// The record of an ephemeral event, or null for a payload case or a state this client does not know. The time and
@@ -123,16 +136,6 @@ internal static class EventMapping
 			},
 			EphemeralPayload.Presence or EphemeralPayload.ChatPresence or EphemeralPayload.None => null,
 			_ => null,
-		};
-
-	/// <summary>The lane an ephemeral event runs in: its user or its chat; the session's lane without one.</summary>
-	public static string Lane(StreamEphemeralEventsResponse response) =>
-		response.PayloadCase switch
-		{
-			EphemeralPayload.Presence => response.Presence.From,
-			EphemeralPayload.ChatPresence => response.ChatPresence.Source?.Chat ?? SessionLane,
-			EphemeralPayload.QueueOverflow or EphemeralPayload.None => SessionLane,
-			_ => SessionLane,
 		};
 
 	private static MessageSource ToSource(Protocol.V1.MessageSource source) =>

@@ -946,8 +946,10 @@ Whatsmeow.TemporarilyBannedException.TemporarilyBannedException() -> void
 Whatsmeow.TemporarilyBannedException.TemporarilyBannedException(string! message) -> void
 Whatsmeow.TemporarilyBannedException.TemporarilyBannedException(string! message, System.Exception? innerException) -> void
 Whatsmeow.TemporarilyBannedException.Until.get -> System.DateTimeOffset?
+Whatsmeow.TemporarilyBannedException.Until.init -> void
 Whatsmeow.WhatsAppErrorException
 Whatsmeow.WhatsAppErrorException.Code.get -> int
+Whatsmeow.WhatsAppErrorException.Code.init -> void
 Whatsmeow.WhatsAppErrorException.WhatsAppErrorException() -> void
 Whatsmeow.WhatsAppErrorException.WhatsAppErrorException(string! message) -> void
 Whatsmeow.WhatsAppErrorException.WhatsAppErrorException(string! message, System.Exception? innerException) -> void
@@ -976,6 +978,7 @@ Whatsmeow.WhatsmeowErrorCode.WhatsAppTimedOut = 20 -> Whatsmeow.WhatsmeowErrorCo
 Whatsmeow.WhatsmeowErrorCode.InviteLinkInvalid = 23 -> Whatsmeow.WhatsmeowErrorCode
 Whatsmeow.WhatsmeowException
 Whatsmeow.WhatsmeowException.ErrorCode.get -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowException.ErrorCode.init -> void
 Whatsmeow.WhatsmeowException.WhatsmeowException() -> void
 Whatsmeow.WhatsmeowException.WhatsmeowException(string! message) -> void
 Whatsmeow.WhatsmeowException.WhatsmeowException(string! message, System.Exception? innerException) -> void
