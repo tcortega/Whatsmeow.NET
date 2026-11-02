@@ -79,6 +79,8 @@ func listenUnix(ctx context.Context, socketDir string) (net.Listener, string, er
 }
 
 // removeEarlierSockets removes the sockets earlier launches left in the directory: a killed sidecar never removes its own.
+// Anything that is not a socket stays. On Windows a ReadDir entry reports an AF_UNIX socket as fs.ModeSocket from its
+// reparse tag (Go 1.27 os/types_windows.go).
 func removeEarlierSockets(socketDir string) error {
 	entries, err := os.ReadDir(socketDir)
 	if err != nil {
@@ -86,7 +88,7 @@ func removeEarlierSockets(socketDir string) error {
 	}
 
 	for _, entry := range entries {
-		if !strings.HasPrefix(entry.Name(), socketPrefix) {
+		if !strings.HasPrefix(entry.Name(), socketPrefix) || entry.Type()&fs.ModeSocket == 0 {
 			continue
 		}
 

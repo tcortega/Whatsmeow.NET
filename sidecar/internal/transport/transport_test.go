@@ -75,6 +75,28 @@ func TestListenNeverReusesAnEarlierLaunchsEndpoint(t *testing.T) {
 	}
 }
 
+func TestListenLeavesWhatIsNotASocket(t *testing.T) {
+	t.Parallel()
+
+	dir := socketDir(t)
+
+	file := filepath.Join(dir, socketPrefix+"file")
+	if err := os.WriteFile(file, []byte("not a socket"), 0o600); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+
+	lis, _, err := Listen(context.Background(), Unix, dir)
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+
+	defer func() { _ = lis.Close() }()
+
+	if _, err := os.Lstat(file); err != nil {
+		t.Fatalf("the file is gone: %v", err)
+	}
+}
+
 func TestListenRejectsAnUnknownTransport(t *testing.T) {
 	t.Parallel()
 
