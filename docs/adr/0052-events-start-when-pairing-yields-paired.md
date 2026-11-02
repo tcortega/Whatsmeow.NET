@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-11-02
 - Evidence: issue #112, its plan review, and the tests named below
-- Amends: [ADR 0022](0022-outbox-event-stream-and-dispatcher.md) (when a session's events start), [ADR 0034](0034-hosting-package.md) and [ADR 0037](0037-traces-and-metrics.md) (the lines that name the first `ConnectAsync`)
+- Amends: [ADR 0022](0022-outbox-event-stream-and-dispatcher.md) (when a session's events start), [ADR 0034](0034-hosting-package.md) and [ADR 0037](0037-traces-and-metrics.md) (the lines that name the first `ConnectAsync`), [ADR 0049](0049-the-hosted-sample-and-its-fake-mode-check.md) (the sample no longer connects after pairing)
 
 ## Context
 
@@ -23,6 +23,6 @@ The restart side had no gap: pairing already remembers the session at its first 
 
 ## Consequences
 
-- The obvious code (register handlers, pair, wait for messages) works with no `ConnectAsync`.
+- The obvious code (register handlers, pair, wait for messages) works with no `ConnectAsync`; the EchoBot sample drops its connect after `Paired`, and `EchoBotTests` stays green.
 - In a host, a session a service pairs in its own `StartAsync` has its events flowing before a later service can fail the start: the same window ADR 0034 leaves for a session the application connects there.
 - Tests: `PairingTests.FullCycle_PairWithQrCode_ThenAMessageArrives_TheHandlerGetsItWithNoConnect` and its phone-code twin, `Pair_Cancelled_StartsNoEvents_...` and `Pair_TheCodesRunOut_StartsNoEvents_...`, and `PairingRestartTests.Pair_ThenTheSidecarRestarts_ConnectsTheSessionAgain_AndItsMessagesReachTheHandler`.
