@@ -6,8 +6,9 @@ The .NET assemblies are separate programs that talk to whatsmeow-net only throug
 
 whatsmeow-net, the sidecar binary in the Whatsmeow.Sidecar.Native.* packages, statically links go.mau.fi/libsignal, which is licensed under the GNU General Public License version 3 or (at your option) any later version (GPL-3.0-or-later).
 whatsmeow-net is distributed under GPL-3.0-only as a whole.
-Each release attaches its Corresponding Source, whatsmeow-net_<version>_source.tar.gz, to the GitHub release whose tag equals the package version, at https://github.com/tcortega/Whatsmeow.NET/releases.
+Each release attaches its Corresponding Source, whatsmeow-net_<version>_source.tar.gz, to the GitHub release whose tag is v followed by the package version, https://github.com/tcortega/Whatsmeow.NET/releases/tag/v<version>.
 That archive holds the whole tagged repository plus the output of go mod vendor for sidecar/, the source of every module the binary links.
+It builds without a network, with the Go toolchain that sidecar/go.mod names: in sidecar/, run CGO_ENABLED=0 GOOS=<os> GOARCH=<arch> go build -trimpath -ldflags "-s -w -X main.version=<version>" ./cmd/whatsmeow-net.
 If you redistribute whatsmeow-net, the GPL-3.0 applies to that redistribution.
 
 go.mau.fi/whatsmeow and go.mau.fi/util are licensed under the Mozilla Public License 2.0.
@@ -17,5 +18,5 @@ Whatsmeow.Protocol.WhatsApp contains files generated from whatsmeow's MPL-2.0 pr
 Their source is third_party/whatsmeow and dotnet/src/Whatsmeow.Protocol.WhatsApp/Generated in this repository.
 
 Every module linked into whatsmeow-net, and each of its licence files, is listed in sidecar/licenses.allow.
-From the first release, the native packages carry the full licence texts as THIRD-PARTY-NOTICES.txt.
+Each native package carries COPYING (the GPL-3.0 text), this NOTICE, and THIRD-PARTY-NOTICES.txt (sidecar/THIRD-PARTY-NOTICES.txt in the repository), which holds every licence file that sidecar/licenses.allow lists, verbatim.
 The reasons and the evidence are in docs/adr/0016-sidecar-binary-gpl-3-corresponding-source-per-release.md.

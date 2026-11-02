@@ -5,6 +5,7 @@
 - Evidence: issue #43, its plan review, a prototype on SDK 10.0.403 and Go 1.27.3 (osx-arm64 and Docker Alpine 3.24), and `build/ci.sh package` and `install` in CI
 - Amends: [ADR 0007](0007-per-os-native-nuget-packages-exact-pins.md) (the sizes, the build), [ADR 0016](0016-sidecar-binary-gpl-3-corresponding-source-per-release.md) (`.goreleaser.yaml`)
 - Supersedes: the GoReleaser lines of ARCHITECTURE §5 and §12, and ADR 0016's ".goreleaser.yaml builds exactly the targets in `tools/check-licenses`"
+- Amended by: [ADR 0029](0029-gpl-release-obligations.md) (each native package also holds its README, `COPYING`, `NOTICE` and `THIRD-PARTY-NOTICES.txt`)
 
 ## Context
 

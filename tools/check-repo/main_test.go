@@ -334,3 +334,70 @@ func TestCheckStopsWhenCancelled(t *testing.T) {
 		t.Fatalf("check = %v, want context.Canceled", err)
 	}
 }
+
+func TestCheckWorkflowsNeverDeleteARelease(t *testing.T) {
+	t.Parallel()
+
+	repo := fstest.MapFS{
+		".github/workflows/release.yml": {Data: []byte(`name: release
+on: push
+jobs:
+  publish:
+    runs-on: ubuntu-26.04
+    steps:
+      - run: gh release create "$TAG" --draft --verify-tag
+      - run: gh release upload "$TAG" whatsmeow-net.tar.gz
+      - run: gh release edit "$TAG" --draft=false
+      # a comment that names gh release delete is still a finding: workflows have no safe place to keep it
+      - run: gh release delete "$TAG" --yes
+      - run: gh  release   delete-asset "$TAG" old.tar.gz
+      - run: gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/$ID"
+      - run: curl --request DELETE "https://api.github.com/repos/o/r/releases/1"
+      - uses: actions/github-script@v8
+        with:
+          script: await github.rest.repos.deleteRelease({ owner, repo, release_id })
+      - uses: dev-drprasad/delete-tag-and-release@v1
+`)},
+		".github/workflows/ci.yaml": {Data: []byte("steps:\n  - run: gh release view \"$TAG\"\n  - run: gh api -X DELETE repos/o/r/actions/caches/1\n")},
+		"build/release.sh":          {Data: []byte("gh release delete \"$TAG\"\n")},
+	}
+
+	assertFindings(t, repo, []string{
+		".github/workflows/release.yml:10: [release-delete]",
+		".github/workflows/release.yml:11: [release-delete]",
+		".github/workflows/release.yml:12: [release-delete]",
+		".github/workflows/release.yml:13: [release-delete]",
+		".github/workflows/release.yml:14: [release-delete]",
+		".github/workflows/release.yml:17: [release-delete]",
+		".github/workflows/release.yml:18: [release-delete]",
+		"build/release.sh:1: [release-delete]",
+	})
+}
+
+func TestCheckReleaseDeletionAcrossContinuedLinesAndInActions(t *testing.T) {
+	t.Parallel()
+
+	repo := fstest.MapFS{
+		".github/actions/publish/action.yml": {Data: []byte(`runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        gh api \
+          --method DELETE \
+          "repos/$GITHUB_REPOSITORY/releases/$id"
+        gh api \
+          --method GET \
+          "repos/$GITHUB_REPOSITORY/releases/$id"
+`)},
+		".github/dependabot.yaml": {Data: []byte("# gh release delete\n")},
+		".github/README.md":       {Data: []byte("gh release delete is never used\n")},
+		"build/release.sh":        {Data: []byte("curl \\\n  --request DELETE \\\n  https://api.github.com/repos/o/r/releases/1\n")},
+	}
+
+	assertFindings(t, repo, []string{
+		".github/actions/publish/action.yml:6: [release-delete]",
+		".github/dependabot.yaml:1: [release-delete]",
+		"build/release.sh:1: [release-delete]",
+	})
+}

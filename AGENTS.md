@@ -8,7 +8,7 @@ Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) before changing the contract, 
 This is a library, not a VSA API. No Immediate.Handlers, `[Handler]`, Immediate.Injections, EF, or Refit.
 Never over-engineer: build the simplest thing that meets the issue. No speculative options, layers, abstractions or "for later" code; add them when a real second use exists.
 House rules (bridge, compras, chrominal) win over anything older in this repo, except the exceptions recorded in the ARCHITECTURE Decision log (BCL time, `IWhatsAppClient`).
-Generated code is committed: never hand-edit `sidecar/gen/` or `Whatsmeow.Protocol*`; regenerate it (Commands).
+Generated code is committed: never hand-edit `sidecar/gen/`, `Whatsmeow.Protocol*` or `sidecar/THIRD-PARTY-NOTICES.txt`; regenerate it (Commands).
 ARCHITECTURE §13 invariants are wrong to break without an ADR first.
 
 ## Tree
@@ -38,6 +38,7 @@ bash build/ci.sh all        # or: setup, contract, go, dotnet, package; install 
 
 A package change regenerates `packages.lock.json` with a plain `dotnet restore dotnet/Whatsmeow.slnx`; commit it.
 Update third_party after a pin change with `go -C tools run ./sync-protos -write`, and generated code with `buf generate` (whatsmeow.v1) and `buf generate --template buf.gen.whatsapp.yaml` (upstream).
+After a reviewed `sidecar/licenses.allow` edit, regenerate the native packages' notices with `go -C tools run ./check-licenses -write` (ADR 0029).
 
 ## .NET rules
 

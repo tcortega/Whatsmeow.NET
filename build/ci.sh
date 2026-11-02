@@ -309,8 +309,9 @@ job_dotnet() {
 }
 
 # Native packages (ADR 0023). The package job builds whatsmeow-net for every release target at the client's version,
-# packs every package into a local feed, and installs from it; CI packs on Windows, and the install job installs that
-# feed on Linux and macOS, so packages built on Windows run there.
+# packs every package into a local feed with the Corresponding Source archive beside them (ADR 0029), and installs from
+# it; CI packs on Windows, and the install job installs that feed on Linux and macOS, so packages built on Windows run
+# there.
 package_feed=dotnet/artifacts/package
 sidecar_binaries=dotnet/artifacts/sidecar
 alpine_image=mcr.microsoft.com/dotnet/sdk:10.0.403-alpine3.24-amd64@sha256:60a079c9d3ffc98b2968c3153b995ede679f7d6504e3ae7d2b68225a7fd84f5a
@@ -377,6 +378,33 @@ pack_feed() {
 		echo "$line"
 		if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then echo "- $line" >>"$GITHUB_STEP_SUMMARY"; fi
 	done
+}
+
+# The Corresponding Source of the binaries (ADR 0016, ADR 0029): the commit, as git archive gives it, plus the output
+# of go mod vendor for sidecar/. It goes into the feed beside the packages, so the install jobs build from the archive
+# the release workflow (#46) attaches. A local run archives HEAD, without uncommitted changes.
+source_archive_name() {
+	echo "whatsmeow-net_${version}_source.tar.gz"
+}
+
+source_archive() {
+	local prefix="whatsmeow-net_$version" archive work size line rc=0
+	archive="$package_feed/$(source_archive_name)"
+	work="$(mktemp -d)" || return
+	# One exit path, so the temporary copy (about 150 MB with the vendor tree) is removed on failure too.
+	{
+		git archive --format=tar --prefix="$prefix/" HEAD >"$work/source.tar" &&
+			git archive --format=tar --prefix="$prefix/" HEAD sidecar | tar -x -C "$work" &&
+			(cd "$work/$prefix/sidecar" && go mod vendor) &&
+			(cd "$work" && tar -rf source.tar "$prefix/sidecar/vendor") &&
+			gzip -9n <"$work/source.tar" >"$archive"
+	} || rc=$?
+	rm -rf "$work"
+	[ "$rc" -eq 0 ] || return "$rc"
+	size="$(wc -c <"$archive" | tr -d ' ')"
+	line="$(basename "$archive"): $size bytes"
+	echo "$line"
+	if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then echo "- $line" >>"$GITHUB_STEP_SUMMARY"; fi
 }
 
 # A new console app in a directory of its own, outside the repository, so none of our MSBuild files, central versions
@@ -455,8 +483,9 @@ packaged_pins() {
 	return "$rc"
 }
 
-# Each native package holds exactly its binaries, one per release target of its OS, and its buildTransitive targets,
-# beside the files NuGet writes when it extracts a package: no build output, nothing else (ADR 0023).
+# Each native package holds exactly its binaries, one per release target of its OS, its buildTransitive targets, its
+# README and the GPL files, beside the files NuGet writes when it extracts a package: no build output, nothing else
+# (ADR 0023, ADR 0029).
 packaged_files() {
 	local targets target r os id name expected actual rc=0
 	targets="$(release_targets)" || return
@@ -467,16 +496,97 @@ packaged_files() {
 				r="$(rid "$target")"
 				if [ "${r%-*}" = "$os" ]; then echo "runtimes/$r/native/whatsmeow-net$(exe_of "$target")"; fi
 			done
-			printf '%s\n' "buildTransitive/$id.targets" .nupkg.metadata "$name.$version.nupkg" "$name.$version.nupkg.sha512" "$name.nuspec"
+			printf '%s\n' "buildTransitive/$id.targets" README.md "${native_notices[@]}" \
+				.nupkg.metadata "$name.$version.nupkg" "$name.$version.nupkg.sha512" "$name.nuspec"
 		} | LC_ALL=C sort)"
 		actual="$(cd "$(native_package "$os")" && find . -type f | sed 's#^\./##' | LC_ALL=C sort)" || return
 		if [ "$expected" != "$actual" ]; then
-			annotate error "packaged files" "$id does not hold exactly its binaries for the release targets (go -C tools run ./check-licenses -targets) and buildTransitive/$id.targets"
+			annotate error "packaged files" "$id does not hold exactly its binaries for the release targets (go -C tools run ./check-licenses -targets), buildTransitive/$id.targets, README.md and ${native_notices[*]}"
 			diff <(echo "$expected") <(echo "$actual")
 			rc=1
 		fi
 	done
-	[ "$rc" -eq 0 ] && echo "each native package holds exactly its binaries and its buildTransitive targets"
+	[ "$rc" -eq 0 ] && echo "each native package holds exactly its binaries, its buildTransitive targets, its README and ${native_notices[*]}"
+	return "$rc"
+}
+
+# The GPL files at the root of each native package (ADR 0016, ADR 0029), and the repository file each must equal.
+native_notices=(COPYING NOTICE THIRD-PARTY-NOTICES.txt)
+notice_source() { # packaged file
+	case "$1" in
+		COPYING) echo sidecar/COPYING ;;
+		NOTICE) echo NOTICE ;;
+		THIRD-PARTY-NOTICES.txt) echo sidecar/THIRD-PARTY-NOTICES.txt ;;
+		README.md) echo dotnet/src/Whatsmeow.Sidecar.Native.md ;;
+	esac
+}
+# sha256 of https://www.gnu.org/licenses/gpl-3.0.txt, the GPL-3.0 text unmodified [observed 2026-11-02]. libsignal's LICENSE
+# is not it: its appendix names libsignal, and its URLs are http.
+gpl3_sha256=3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986
+
+sha256_of() { # file
+	if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1"; else shasum -a 256 "$1"; fi | cut -d' ' -f1
+}
+
+# What the README and NOTICE must say, whatever else changes: the name of the source archive, and in the README the
+# evidence tags ADR 0016 gave each claim about what redistributing owes.
+readme_tags=('[inferred: GPLv3 §5(c) and §14, ADR 0016]' '[inferred: FSF FAQ #MereAggregation, ADR 0016]' '[inferred: GPLv3 §0]'
+	"conveys it, and you take on GPLv3 §6 for \`whatsmeow-net\` [inferred]" '[inferred: GPLv3 §6 "User Product"]'
+	"\`ExcludeAssets\`) and run an external \`whatsmeow-net\` is [unknown]" 'Legal review of all of the above is [unknown]')
+
+# Each native package's README and GPL files equal the repository's, so they ship exactly what was reviewed; its
+# COPYING is the GPL-3.0 text itself, its NOTICE and README name the source archive, and its README keeps the tags.
+packaged_notices() {
+	local os id file packaged tag rc=0
+	for os in linux osx win; do
+		id="$(native_id "$os")"
+		for file in README.md "${native_notices[@]}"; do
+			packaged="$(native_package "$os")/$file"
+			if ! cmp -s "$packaged" "$(notice_source "$file")"; then
+				annotate error "packaged notices" "$id/$file is not $(notice_source "$file")"
+				rc=1
+			fi
+		done
+		if [ -f "$(native_package "$os")/COPYING" ] && [ "$(sha256_of "$(native_package "$os")/COPYING")" != "$gpl3_sha256" ]; then
+			annotate error "packaged notices" "$id/COPYING is not the GPL-3.0 text (sha256 $gpl3_sha256, gnu.org/licenses/gpl-3.0.txt)"
+			rc=1
+		fi
+		for file in NOTICE README.md; do
+			if ! grep -qF 'whatsmeow-net_<version>_source.tar.gz' "$(native_package "$os")/$file" 2>/dev/null; then
+				annotate error "packaged notices" "$id/$file does not name the source archive, whatsmeow-net_<version>_source.tar.gz"
+				rc=1
+			fi
+		done
+		for tag in "${readme_tags[@]}"; do
+			if ! grep -qF -- "$tag" "$(native_package "$os")/README.md" 2>/dev/null; then
+				annotate error "packaged notices" "$id/README.md lost ADR 0016's evidence tag: $tag"
+				rc=1
+			fi
+		done
+	done
+	[ "$rc" -eq 0 ] && echo "each native package ships the repository's README.md and ${native_notices[*]}, and COPYING is the GPL-3.0 text"
+	return "$rc"
+}
+
+# Every package in the feed restored into the consumer, with its licence expression: GPL-3.0-only for the native
+# packages, which hold whatsmeow-net, and MPL-2.0 for the .NET packages (ADR 0016).
+packaged_licences() {
+	local nupkg id name nuspec want rc=0
+	for nupkg in "$package_source"/*.nupkg; do
+		id="$(basename "$nupkg" ".$version.nupkg")" name="$(lowercase "$id")"
+		nuspec="$packages/$name/$version/$name.nuspec"
+		case "$id" in Whatsmeow.Sidecar.Native.*) want=GPL-3.0-only ;; *) want=MPL-2.0 ;; esac
+		if [ ! -f "$nuspec" ]; then
+			annotate error "packaged licences" "$id from the feed was not restored, so its licence is unchecked"
+			rc=1
+		elif ! grep -qF "<license type=\"expression\">$want</license>" "$nuspec"; then
+			annotate error "packaged licences" "$id does not declare the licence expression $want"
+			grep -F '<license' "$nuspec"
+			rc=1
+		else
+			echo "$id: $want"
+		fi
+	done
 	return "$rc"
 }
 
@@ -602,6 +712,102 @@ install_alpine() { # path script
 	fi
 }
 
+# The source archive holds exactly the commit's files, plus the vendored modules of sidecar/.
+source_contents() {
+	local archive prefix="whatsmeow-net_$version" entries expected actual
+	archive="$package_source/$(source_archive_name)"
+	if [ ! -f "$archive" ]; then
+		annotate error "source archive" "the feed has no $(source_archive_name), the Corresponding Source (ADR 0016)"
+		return 1
+	fi
+	entries="$(tar -tzf "$archive" | tr -d '\r' | grep -v '/$')" || return
+	expected="$(git -c core.quotePath=false ls-tree -r --name-only HEAD | sed "s#^#$prefix/#" | LC_ALL=C sort)" || return
+	actual="$(grep -v "^$prefix/sidecar/vendor/" <<<"$entries" | LC_ALL=C sort)"
+	if [ "$expected" != "$actual" ]; then
+		annotate error "source archive" "$(source_archive_name) does not hold exactly the files of HEAD"
+		diff <(echo "$expected") <(echo "$actual") | head -20
+		return 1
+	fi
+	if ! grep -qx "$prefix/sidecar/vendor/modules.txt" <<<"$entries"; then
+		annotate error "source archive" "$(source_archive_name) has no go mod vendor output for sidecar/"
+		return 1
+	fi
+	echo "$(source_archive_name) holds the $(wc -l <<<"$expected" | tr -d ' ') files of HEAD and $(grep -c "^$prefix/sidecar/vendor/" <<<"$entries") vendored files"
+}
+
+# Build whatsmeow-net for every release target from the source archive with no network, the release flags and the
+# archive's vendored modules only, into $source_out/<rid>/. On Linux CI it builds in a container without a network
+# (--network none, observed: the container has only lo); elsewhere GOPROXY=off, -mod=vendor and an empty module cache
+# leave the go command no way to download (inferred: from the go command's documentation, the host still has a network).
+source_build() {
+	local archive src="$work/source" prefix="whatsmeow-net_$version" targets target builds want gocache gomodcache
+	archive="$package_source/$(source_archive_name)"
+	source_out="$work/source-out"
+	targets="$(release_targets)" || return
+	want="$(sed -n 's/^toolchain //p' sidecar/go.mod)"
+	rm -rf "$src" "$source_out" && mkdir -p "$src" "$source_out" || return
+	tar -xzf "$archive" -C "$src" || return
+	builds="$(for target in $targets; do echo "$target $(rid "$target") $(exe_of "$target")"; done)"
+	if linux_ci; then
+		# The pinned SDK image only provides a Linux without a network; the Go is mise's own, mounted read-only.
+		docker run --rm --network none --user "$(id -u):$(id -g)" -e BUILDS="$builds" -e VERSION="$version" -e WANT="$want" \
+			-v "$(go env GOROOT):/goroot:ro" -v "$src/$prefix:/src:ro" -v "$source_out:/out" "$alpine_image" sh -euc '
+			if [ "$(ls /sys/class/net)" != lo ]; then echo "the container has a network: $(ls /sys/class/net)"; exit 1; fi
+			export PATH="/goroot/bin:$PATH" GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=vendor GOSUMDB=off CGO_ENABLED=0 \
+				HOME=/tmp GOCACHE=/tmp/go-build GOMODCACHE=/tmp/go-mod
+			if [ "$(go env GOVERSION)" != "$WANT" ]; then echo "go is $(go env GOVERSION), sidecar/go.mod pins $WANT"; exit 1; fi
+			cd /src/sidecar
+			echo "$BUILDS" | while read -r target rid exe; do
+				GOOS="${target%/*}" GOARCH="${target#*/}" go build -trimpath -ldflags "-s -w -X main.version=$VERSION" -o "/out/$rid/whatsmeow-net$exe" ./cmd/whatsmeow-net
+				echo "built whatsmeow-net $VERSION for $target from the source archive, in a container with no network"
+			done' || return
+		return 0
+	fi
+	mkdir -p "$work/source-gocache" "$work/source-gomod" || return
+	gocache="$(native_path "$work/source-gocache")" gomodcache="$(native_path "$work/source-gomod")"
+	(
+		cd "$src/$prefix/sidecar" || exit
+		export GOPROXY=off GOFLAGS=-mod=vendor GOSUMDB=off CGO_ENABLED=0 GOCACHE="$gocache" GOMODCACHE="$gomodcache"
+		echo "$builds" | while read -r target r suffix; do
+			GOOS="${target%/*}" GOARCH="${target#*/}" go build -trimpath -ldflags "-s -w -X main.version=$version" -o "$(native_path "$source_out/$r/whatsmeow-net$suffix")" ./cmd/whatsmeow-net || exit
+			echo "built whatsmeow-net $version for $target from the source archive, with GOPROXY=off and -mod=vendor"
+		done
+	)
+}
+
+# The modules a binary links, as go version -m reads them: path and version, one per line.
+linked_deps() { # binary
+	go version -m "$1" | awk '$1 == "dep" { print $2, $3 }'
+}
+
+# The archive is the source of the packaged binaries: each binary built from it links the same module versions as
+# the packaged one (go version -m), and the host's reports the release version through GetInfo. Both lists must name
+# libsignal, so two empty lists never compare equal.
+source_corresponds() {
+	local targets target r packaged built packaged_deps built_deps rc=0
+	targets="$(release_targets)" || return
+	for target in $targets; do
+		r="$(rid "$target")"
+		packaged="$(native_package "${r%-*}")/runtimes/$r/native/whatsmeow-net$(exe_of "$target")"
+		built="$source_out/$r/whatsmeow-net$(exe_of "$target")"
+		packaged_deps="$(linked_deps "$packaged")" built_deps="$(linked_deps "$built")"
+		if ! grep -q '^go\.mau\.fi/libsignal ' <<<"$packaged_deps" || ! grep -q '^go\.mau\.fi/libsignal ' <<<"$built_deps"; then
+			annotate error "source archive" "go version -m lists no go.mau.fi/libsignal for $target in the packaged binary or the one built from the archive, so the comparison would prove nothing"
+			rc=1
+		elif ! diff <(echo "$packaged_deps") <(echo "$built_deps"); then
+			annotate error "source archive" "whatsmeow-net for $target built from the archive links other modules than the packaged one"
+			rc=1
+		fi
+	done
+	[ "$rc" -eq 0 ] || return "$rc"
+	echo "every binary built from the archive links the module versions of the packaged one"
+	if ! (cd "$work" && NUGET_PACKAGES="$(native_path "$packages")" WHATSMEOW_NET_SIDECAR_PATH="$(native_path "$source_out/$host_rid/whatsmeow-net$exe")" \
+		dotnet run --project app -c Release --no-build -- start "$version"); then
+		annotate error "source archive" "whatsmeow-net built from the archive for $host_rid did not report $version through GetInfo"
+		return 1
+	fi
+}
+
 # The binary on a noexec mount: the client runs a copy from its local application data (ARCHITECTURE §8.5). Linux CI
 # provides the mount (noexec_mount); elsewhere it is skipped.
 install_noexec() {
@@ -631,7 +837,9 @@ job_install() { # feed
 	package_source="$1"
 	check "install: a new consumer of the feed $1" consumer_setup "$1" || return
 	check "install: Whatsmeow.Client pins each native package at exactly its version" packaged_pins
-	check "install: each native package holds exactly its binaries and its buildTransitive targets" packaged_files
+	check "install: each native package holds exactly its binaries, its buildTransitive targets, its README and the GPL files" packaged_files
+	check "install: each native package's README and GPL files are the repository's, and COPYING is the GPL-3.0 text (ADR 0016)" packaged_notices
+	check "install: GPL-3.0-only on the native packages, MPL-2.0 on the .NET packages (ADR 0016)" packaged_licences
 	check "install: every packaged binary is a CGO-free -trimpath release build of its target, none with -tags fakewhatsapp (ADR 0019)" packaged_binaries
 	check "install: the packaged binary refuses --fake-whatsapp" packaged_refuses_fake
 	check "consumer: portable build and dotnet run" install_portable
@@ -646,6 +854,9 @@ job_install() { # feed
 		"dotnet publish app -c Release -warnaserror -r linux-musl-x64 --self-contained true -o musl && ./musl/Consumer start \"\$VERSION\""
 	check "noexec mount for the copy fallback consumer" noexec_mount
 	check "consumer: build output on a noexec mount" install_noexec
+	check "source: the archive holds the commit and the vendored modules (ADR 0016)" source_contents &&
+		check "source: whatsmeow-net builds from the archive for every release target, without a network" source_build &&
+		check "source: the archive's binaries link the packaged module versions, and GetInfo reports the release version" source_corresponds
 	rm -rf "$work"
 }
 
@@ -656,6 +867,7 @@ job_package() {
 		check "one version for every package and binary, a pre-release when HEAD has no tag (ADR 0023)" package_version &&
 		check "whatsmeow-net for every release target" build_sidecars &&
 		check "dotnet pack into the local feed $package_feed" pack_feed &&
+		check "the Corresponding Source archive into the feed (ADR 0016)" source_archive &&
 		job_install "$package_feed"
 	check "the package job left the tree unchanged" tree_unchanged "$before" "the package job"
 }
