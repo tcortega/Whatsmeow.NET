@@ -1,3 +1,5 @@
+using Whatsmeow.Events;
+using Whatsmeow.IntegrationTests.Events;
 using Whatsmeow.IntegrationTests.Fake;
 using Whatsmeow.IntegrationTests.Sessions;
 using Whatsmeow.IntegrationTests.Support;
@@ -58,6 +60,19 @@ public sealed class PairingTests(FakeSidecar fixture)
 		}
 
 		PairingChecks.ValidatePhonePairing(updates, await SessionSetup.StateAsync(client, ct));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task FullCycle_PairWithQrCode_ThenAMessageArrives_TheHandlerGetsItWithNoConnect()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var client = await Sessions.GetOrCreateAsync(SessionId.From("pair-events"), ct);
+		using var received = new Received<MessageReceived>(client);
+
+		await PairLinkingAsync(client, "pair-events", ct);
+		_ = await fixture.Fake.DeliverMessageAsync(Deliveries.Message("pair-events", "M1"), cancellationToken: ct);
+
+		Assert.Equal(Deliveries.Received("pair-events", "M1"), await received.NextAsync(ct));
 	}
 
 	[Fact(Timeout = Timeout)]
