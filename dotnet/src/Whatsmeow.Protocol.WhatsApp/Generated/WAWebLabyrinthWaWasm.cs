@@ -73,167 +73,211 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             "U3RhdGUSNgoWZXBvY2hTdG9yYWdlUHJpdmF0ZUtleRgKIAIoDFIWZXBvY2hT",
             "dG9yYWdlUHJpdmF0ZUtleRIwChNlcG9jaEF1dGhQcml2YXRlS2V5GAsgAigM",
             "UhNlcG9jaEF1dGhQcml2YXRlS2V5EigKD2RldmljZUVwb2NoSG1hYxgMIAIo",
-            "DFIPZGV2aWNlRXBvY2hIbWFjIqEEChtFbmNyeXB0ZWRTZWNyZXRWYWx1ZXNP",
+            "DFIPZGV2aWNlRXBvY2hIbWFjIuMDChtFbmNyeXB0ZWRTZWNyZXRWYWx1ZXNP",
             "dXRwdXQSPAoZZW5jcnlwdGVkRGV2aWNlUHJpdmF0ZUtleRgBIAIoDFIZZW5j",
             "cnlwdGVkRGV2aWNlUHJpdmF0ZUtleRJUCiVlbmNyeXB0ZWRPYmxpdmlvdXNW",
             "YWxpZGF0aW9uVG9rZW5CbG9iGAIgAigMUiVlbmNyeXB0ZWRPYmxpdmlvdXNW",
             "YWxpZGF0aW9uVG9rZW5CbG9iEkgKH2VuY3J5cHRlZEVwb2NoU3RvcmFnZVBy",
             "aXZhdGVLZXkYAyACKAxSH2VuY3J5cHRlZEVwb2NoU3RvcmFnZVByaXZhdGVL",
             "ZXkSOgoYZW5jcnlwdGVkT2NtZkNsaWVudFN0YXRlGAQgAigMUhhlbmNyeXB0",
-            "ZWRPY21mQ2xpZW50U3RhdGUSPAoZZW5jcnlwdGVkT3JmQ2xpZW50U3RhdGVW",
-            "MhgFIAEoDFIZZW5jcnlwdGVkT3JmQ2xpZW50U3RhdGVWMhJAChtlbmNyeXB0",
-            "ZWRNYWlsYm94Um9vdEtleUJsb2IYBiACKAxSG2VuY3J5cHRlZE1haWxib3hS",
-            "b290S2V5QmxvYhIyChRlbmNyeXB0ZWRFcG9jaEFub25JRBgHIAIoDFIUZW5j",
-            "cnlwdGVkRXBvY2hBbm9uSUQSNAoVZW5jcnlwdGVkRXBvY2hSb290S2V5GAgg",
-            "AigMUhVlbmNyeXB0ZWRFcG9jaFJvb3RLZXkihgMKE1ZpcnR1YWxEZXZpY2VP",
-            "dXRwdXQSEgoEdmRJRBgBIAIoDFIEdmRJRBIgCgt2ZFB1YmxpY0tleRgCIAIo",
-            "DFILdmRQdWJsaWNLZXkSOAoXdmRFcG9jaFN0b3JhZ2VQdWJsaWNLZXkYAyAC",
-            "KAxSF3ZkRXBvY2hTdG9yYWdlUHVibGljS2V5Ej4KGnZkRXBvY2hTdG9yYWdl",
-            "UHVibGljS2V5U2lnGAQgAigMUhp2ZEVwb2NoU3RvcmFnZVB1YmxpY0tleVNp",
-            "ZxIsChFvY21mUm90YXRpb25Ub2tlbhgFIAIoDFIRb2NtZlJvdGF0aW9uVG9r",
-            "ZW4SKAoPZGV2aWNlRXBvY2hIbWFjGAYgAigMUg9kZXZpY2VFcG9jaEhtYWMS",
-            "ZwoVZW5jcnlwdGVkU2VjcmV0VmFsdWVzGAcgAigLMjEuV0FXZWJMYWJ5cmlu",
-            "dGhXYVdhc20uRW5jcnlwdGVkU2VjcmV0VmFsdWVzT3V0cHV0UhVlbmNyeXB0",
-            "ZWRTZWNyZXRWYWx1ZXMirAEKDEVwb2NoME91dHB1dBIcCgllcG9jaEZiaWQY",
-            "ASACKARSCWVwb2NoRmJpZBIgCgtlcG9jaEFub25JRBgCIAIoDFILZXBvY2hB",
-            "bm9uSUQSOAoXZXBvY2hSb290S2V5RmluZ2VycHJpbnQYBiACKAxSF2Vwb2No",
-            "Um9vdEtleUZpbmdlcnByaW50EiIKDGVwb2NoUm9vdEtleRgHIAEoDFIMZXBv",
-            "Y2hSb290S2V5IpsCChJDcmVhdGVCYWNrdXBPdXRwdXQSOgoGZGV2aWNlGAEg",
-            "ASgLMiIuV0FXZWJMYWJ5cmludGhXYVdhc20uRGV2aWNlT3V0cHV0UgZkZXZp",
-            "Y2USTwoNdmlydHVhbERldmljZRgCIAEoCzIpLldBV2ViTGFieXJpbnRoV2FX",
-            "YXNtLlZpcnR1YWxEZXZpY2VPdXRwdXRSDXZpcnR1YWxEZXZpY2USOgoGZXBv",
-            "Y2gwGAMgASgLMiIuV0FXZWJMYWJ5cmludGhXYVdhc20uRXBvY2gwT3V0cHV0",
-            "UgZlcG9jaDASJgoObWFpbGJveFJvb3RLZXkYBCABKAxSDm1haWxib3hSb290",
-            "S2V5EhQKBWVycm9yGAUgASgJUgVlcnJvciL2AQoURW5jcnlwdE1lc3NhZ2VP",
-            "dXRwdXQSLAoRZW5jcnlwdGVkUHJvdG9idWYYASABKAxSEWVuY3J5cHRlZFBy",
-            "b3RvYnVmEiAKC29yZlRocmVhZElEGAIgASgMUgtvcmZUaHJlYWRJRBImCg52",
-            "YWx1ZVNlY3JldFJlZhgDIAEoCVIOdmFsdWVTZWNyZXRSZWYSLgoSb2ZmbGlu",
-            "ZVRocmVhZGluZ0lEGAQgASgEUhJvZmZsaW5lVGhyZWFkaW5nSUQSIAoLdGlt",
-            "ZXN0YW1wTVMYBSABKARSC3RpbWVzdGFtcE1TEhQKBWVycm9yGAcgASgJUgVl",
-            "cnJvciJYChREZWNyeXB0TWVzc2FnZU91dHB1dBIqChBwbGFpbnRleHRQYXls",
-            "b2FkGAEgASgMUhBwbGFpbnRleHRQYXlsb2FkEhQKBWVycm9yGAIgASgJUgVl",
-            "cnJvciJLChFPcmZUaHJlYWRJZE91dHB1dBIgCgtvcmZUaHJlYWRJRBgBIAEo",
-            "DFILb3JmVGhyZWFkSUQSFAoFZXJyb3IYAiABKAlSBWVycm9yIk4KFkRlcml2",
-            "ZU1lc3NhZ2VLZXlPdXRwdXQSHgoKbWVzc2FnZUtleRgBIAEoDFIKbWVzc2Fn",
-            "ZUtleRIUCgVlcnJvchgCIAEoCVIFZXJyb3IiXQobRGVyaXZlVmlydHVhbERl",
-            "dmljZUlkT3V0cHV0EigKD3ZpcnR1YWxEZXZpY2VJRBgBIAEoDFIPdmlydHVh",
-            "bERldmljZUlEEhQKBWVycm9yGAIgASgJUgVlcnJvciL3AgoTQWRkRGV2aWNl",
-            "S2V5c091dHB1dBIoCg9kZXZpY2VQdWJsaWNLZXkYASACKAxSD2RldmljZVB1",
-            "YmxpY0tleRIuChJlcG9jaEF1dGhQdWJsaWNLZXkYAiACKAxSEmVwb2NoQXV0",
-            "aFB1YmxpY0tleRI0ChVlcG9jaEF1dGhQdWJsaWNLZXlTaWcYAyACKAxSFWVw",
-            "b2NoQXV0aFB1YmxpY0tleVNpZxI0ChVlcG9jaFN0b3JhZ2VQdWJsaWNLZXkY",
-            "BCACKAxSFWVwb2NoU3RvcmFnZVB1YmxpY0tleRI6ChhlcG9jaFN0b3JhZ2VQ",
-            "dWJsaWNLZXlTaWcYBSACKAxSGGVwb2NoU3RvcmFnZVB1YmxpY0tleVNpZxI2",
-            "ChZlcG9jaFN0b3JhZ2VQcml2YXRlS2V5GAYgAigMUhZlcG9jaFN0b3JhZ2VQ",
-            "cml2YXRlS2V5EiYKDm9yZkNsaWVudFN0YXRlGAcgAigMUg5vcmZDbGllbnRT",
-            "dGF0ZSJ2CghFcG9jaEtleRIkCg1zZXJ2ZXJFcG9jaElEGAEgAigEUg1zZXJ2",
-            "ZXJFcG9jaElEEiAKC2Vwb2NoQW5vbklEGAIgAigMUgtlcG9jaEFub25JRBIi",
-            "CgxlcG9jaFJvb3RLZXkYAyACKAxSDGVwb2NoUm9vdEtleSKfBAoWUHJlcGFy",
-            "ZUFkZERldmljZU91dHB1dBJJCgpkZXZpY2VLZXlzGAEgASgLMikuV0FXZWJM",
-            "YWJ5cmludGhXYVdhc20uQWRkRGV2aWNlS2V5c091dHB1dFIKZGV2aWNlS2V5",
-            "cxJCCgxjdXJyZW50RXBvY2gYAiABKAsyHi5XQVdlYkxhYnlyaW50aFdhV2Fz",
-            "bS5FcG9jaEtleVIMY3VycmVudEVwb2NoEigKD21haWxib3hSb290U2FsdBgD",
-            "IAEoDFIPbWFpbGJveFJvb3RTYWx0EioKEG9yZlJvdGF0aW9uVG9rZW4YBCAB",
-            "KAxSEG9yZlJvdGF0aW9uVG9rZW4SKAoPZGV2aWNlRXBvY2hIbWFjGAUgASgM",
-            "Ug9kZXZpY2VFcG9jaEhtYWMSOAoXZXBvY2hSb290S2V5RmluZ2VycHJpbnQY",
-            "BiABKAxSF2Vwb2NoUm9vdEtleUZpbmdlcnByaW50EkAKG3N1cHBvcnRlZEVu",
-            "Y3J5cHRpb25WZXJzaW9ucxgHIAMoBVIbc3VwcG9ydGVkRW5jcnlwdGlvblZl",
-            "cnNpb25zEj4KGmVuY3J5cHRpb25WZXJzaW9uU2lnbmF0dXJlGAggASgMUhpl",
-            "bmNyeXB0aW9uVmVyc2lvblNpZ25hdHVyZRIkCg1jbGllbnRWZXJzaW9uGAkg",
-            "ASgFUg1jbGllbnRWZXJzaW9uEhQKBWVycm9yGAogASgJUgVlcnJvciKCAgoW",
-            "Um90YXRlRXBvY2hNZW1iZXJJbnB1dBIaCghkZXZpY2VJRBgBIAIoBFIIZGV2",
-            "aWNlSUQSNAoVZXBvY2hTdG9yYWdlUHVibGljS2V5GAIgAigMUhVlcG9jaFN0",
-            "b3JhZ2VQdWJsaWNLZXkSKAoPZGV2aWNlUHVibGljS2V5GAMgAigMUg9kZXZp",
-            "Y2VQdWJsaWNLZXkSMAoTcHJldkRldmljZUVwb2NoSG1hYxgEIAIoDFITcHJl",
-            "dkRldmljZUVwb2NoSG1hYxI6ChhlcG9jaFN0b3JhZ2VQdWJsaWNLZXlTaWcY",
-            "BSACKAxSGGVwb2NoU3RvcmFnZVB1YmxpY0tleVNpZyKoAgoQUm90YXRlRXBv",
-            "Y2hJbnB1dBIwChNjdXJyZW50RXBvY2hSb290S2V5GAEgAigMUhNjdXJyZW50",
-            "RXBvY2hSb290S2V5Ei4KEmN1cnJlbnRFcG9jaEFub25JRBgCIAIoDFISY3Vy",
-            "cmVudEVwb2NoQW5vbklEEioKEGN1cnJlbnRFcG9jaEZiaWQYAyACKARSEGN1",
-            "cnJlbnRFcG9jaEZiaWQSPgoaZXBvY2hTdG9yYWdlQXV0aFByaXZhdGVLZXkY",
-            "BCACKAxSGmVwb2NoU3RvcmFnZUF1dGhQcml2YXRlS2V5EkYKB21lbWJlcnMY",
-            "BSADKAsyLC5XQVdlYkxhYnlyaW50aFdhV2FzbS5Sb3RhdGVFcG9jaE1lbWJl",
-            "cklucHV0UgdtZW1iZXJzIosBChVSb3RhdGVFcG9jaE1lbWJlckVkZ2USGgoI",
-            "ZGV2aWNlSUQYASABKARSCGRldmljZUlEEiwKEWVuY3J5cHRlZEVwb2NoS2V5",
-            "GAIgASgMUhFlbmNyeXB0ZWRFcG9jaEtleRIoCg9kZXZpY2VFcG9jaEhtYWMY",
-            "AyABKAxSD2RldmljZUVwb2NoSG1hYyLKAQoMQmFja3dhcmRFZGdlEjoKGGVu",
-            "Y3J5cHRlZFByZXZFcG9jaEFub25JRBgBIAEoDFIYZW5jcnlwdGVkUHJldkVw",
-            "b2NoQW5vbklEEjwKGWVuY3J5cHRlZFByZXZFcG9jaFJvb3RLZXkYAiABKAxS",
-            "GWVuY3J5cHRlZFByZXZFcG9jaFJvb3RLZXkSQAobcHJldkVwb2NoUm9vdEtl",
-            "eUZpbmdlcnByaW50GAMgASgMUhtwcmV2RXBvY2hSb290S2V5RmluZ2VycHJp",
-            "bnQi7gIKEVJvdGF0ZUVwb2NoT3V0cHV0EigKD25ld0Vwb2NoUm9vdEtleRgB",
-            "IAEoDFIPbmV3RXBvY2hSb290S2V5EiYKDm5ld0Vwb2NoQW5vbklEGAIgASgE",
-            "Ug5uZXdFcG9jaEFub25JRBIgCgtlcG9jaEFub25JRBgDIAEoDFILZXBvY2hB",
-            "bm9uSUQSRgoMYmFja3dhcmRFZGdlGAQgASgLMiIuV0FXZWJMYWJ5cmludGhX",
-            "YVdhc20uQmFja3dhcmRFZGdlUgxiYWNrd2FyZEVkZ2USTQoLbWVtYmVyRWRn",
-            "ZXMYBSADKAsyKy5XQVdlYkxhYnlyaW50aFdhV2FzbS5Sb3RhdGVFcG9jaE1l",
-            "bWJlckVkZ2VSC21lbWJlckVkZ2VzEjgKF2Vwb2NoUm9vdEtleUZpbmdlcnBy",
-            "aW50GAYgASgMUhdlcG9jaFJvb3RLZXlGaW5nZXJwcmludBIUCgVlcnJvchgH",
-            "IAEoCVIFZXJyb3IiYQobQ29tcHV0ZUNsaWVudFNlYWxUb2tlbklucHV0EiYK",
-            "Dm9yZkNsaWVudFN0YXRlGAEgAigMUg5vcmZDbGllbnRTdGF0ZRIaCghiYWNr",
-            "dXBJRBgCIAIoBFIIYmFja3VwSUQiXgocQ29tcHV0ZUNsaWVudFNlYWxUb2tl",
-            "bk91dHB1dBIoCg9jbGllbnRTZWFsVG9rZW4YASABKAxSD2NsaWVudFNlYWxU",
-            "b2tlbhIUCgVlcnJvchgCIAEoCVIFZXJyb3IikQEKEVNlYWxUaHJlYWRJZElu",
-            "cHV0EiIKDGVwb2NoUm9vdEtleRgBIAIoDFIMZXBvY2hSb290S2V5EiAKC2Vw",
-            "b2NoQW5vbklEGAIgAigMUgtlcG9jaEFub25JRBIaCghiYWNrdXBJRBgDIAIo",
-            "BFIIYmFja3VwSUQSGgoIdGhyZWFkSUQYBCACKAlSCHRocmVhZElEIlIKElNl",
-            "YWxUaHJlYWRJZE91dHB1dBImCg5zZWFsZWRUaHJlYWRJRBgBIAEoDFIOc2Vh",
-            "bGVkVGhyZWFkSUQSFAoFZXJyb3IYAiABKAlSBWVycm9yIpUBChdPcGVuU2Vh",
-            "bGVkVGhyZWFkSWRJbnB1dBIaCghiYWNrdXBJRBgBIAIoBFIIYmFja3VwSUQS",
-            "JgoOc2VhbGVkVGhyZWFkSUQYAiACKAxSDnNlYWxlZFRocmVhZElEEjYKBmVw",
-            "b2NocxgDIAMoCzIeLldBV2ViTGFieXJpbnRoV2FXYXNtLkVwb2NoS2V5UgZl",
-            "cG9jaHMidgoYT3BlblNlYWxlZFRocmVhZElkT3V0cHV0EhoKCHRocmVhZElE",
-            "GAEgASgJUgh0aHJlYWRJRBIoCg9zZWFsRXBvY2hBbm9uSUQYAiABKA1SD3Nl",
-            "YWxFcG9jaEFub25JRBIUCgVlcnJvchgDIAEoCVIFZXJyb3IiUgoIRXBvY2hJ",
-            "ZHMSJAoNc2VydmVyRXBvY2hJRBgBIAIoBFINc2VydmVyRXBvY2hJRBIgCgtl",
-            "cG9jaEFub25JRBgCIAIoDFILZXBvY2hBbm9uSUQiZAoQRm9yd2FyZEVkZ2VJ",
-            "bnB1dBIqChBlbmNyeXB0ZWRFbnRyb3B5GAEgAigMUhBlbmNyeXB0ZWRFbnRy",
-            "b3B5EiQKDWF1dGhQdWJsaWNLZXkYAiACKAxSDWF1dGhQdWJsaWNLZXki+wEK",
-            "E0Vwb2NoRGVyaXZhdGlvbkVkZ2USPAoJZnJvbUVwb2NoGAEgAigLMh4uV0FX",
-            "ZWJMYWJ5cmludGhXYVdhc20uRXBvY2hJZHNSCWZyb21FcG9jaBI4Cgd0b0Vw",
-            "b2NoGAIgAigLMh4uV0FXZWJMYWJ5cmludGhXYVdhc20uRXBvY2hJZHNSB3Rv",
-            "RXBvY2gSSAoLZm9yd2FyZEVkZ2UYAyABKAsyJi5XQVdlYkxhYnlyaW50aFdh",
-            "V2FzbS5Gb3J3YXJkRWRnZUlucHV0Ugtmb3J3YXJkRWRnZRIiCgxiYWNrd2Fy",
-            "ZEVkZ2UYBCABKAxSDGJhY2t3YXJkRWRnZSLEAQoRRGVyaXZlRXBvY2hzSW5w",
-            "dXQSNgoWZXBvY2hTdG9yYWdlUHJpdmF0ZUtleRgBIAIoDFIWZXBvY2hTdG9y",
-            "YWdlUHJpdmF0ZUtleRI2CgZlcG9jaHMYAiADKAsyHi5XQVdlYkxhYnlyaW50",
-            "aFdhV2FzbS5FcG9jaEtleVIGZXBvY2hzEj8KBWVkZ2VzGAMgAygLMikuV0FX",
-            "ZWJMYWJ5cmludGhXYVdhc20uRXBvY2hEZXJpdmF0aW9uRWRnZVIFZWRnZXMi",
-            "YgoSRGVyaXZlRXBvY2hzT3V0cHV0EjYKBmVwb2NocxgBIAMoCzIeLldBV2Vi",
-            "TGFieXJpbnRoV2FXYXNtLkVwb2NoS2V5UgZlcG9jaHMSFAoFZXJyb3IYAiAB",
-            "KAlSBWVycm9yIrkJChJMYWJ5cmludGhXYUNvbW1hbmQSVwoRY3JlYXRlQmFj",
-            "a3VwSW5wdXQYASABKAsyJy5XQVdlYkxhYnlyaW50aFdhV2FzbS5DcmVhdGVC",
-            "YWNrdXBJbnB1dEgAUhFjcmVhdGVCYWNrdXBJbnB1dBJdChNlbmNyeXB0TWVz",
-            "c2FnZUlucHV0GAIgASgLMikuV0FXZWJMYWJ5cmludGhXYVdhc20uRW5jcnlw",
-            "dE1lc3NhZ2VJbnB1dEgAUhNlbmNyeXB0TWVzc2FnZUlucHV0El0KE2RlY3J5",
-            "cHRNZXNzYWdlSW5wdXQYAyABKAsyKS5XQVdlYkxhYnlyaW50aFdhV2FzbS5E",
-            "ZWNyeXB0TWVzc2FnZUlucHV0SABSE2RlY3J5cHRNZXNzYWdlSW5wdXQSVAoQ",
-            "b3JmVGhyZWFkSURJbnB1dBgEIAEoCzImLldBV2ViTGFieXJpbnRoV2FXYXNt",
-            "Lk9yZlRocmVhZElkSW5wdXRIAFIQb3JmVGhyZWFkSURJbnB1dBJjChVkZXJp",
-            "dmVNZXNzYWdlS2V5SW5wdXQYBSABKAsyKy5XQVdlYkxhYnlyaW50aFdhV2Fz",
-            "bS5EZXJpdmVNZXNzYWdlS2V5SW5wdXRIAFIVZGVyaXZlTWVzc2FnZUtleUlu",
-            "cHV0ElQKEHJvdGF0ZUVwb2NoSW5wdXQYBiABKAsyJi5XQVdlYkxhYnlyaW50",
-            "aFdhV2FzbS5Sb3RhdGVFcG9jaElucHV0SABSEHJvdGF0ZUVwb2NoSW5wdXQS",
-            "cgoaZGVyaXZlVmlydHVhbERldmljZUlESW5wdXQYByABKAsyMC5XQVdlYkxh",
-            "YnlyaW50aFdhV2FzbS5EZXJpdmVWaXJ0dWFsRGV2aWNlSWRJbnB1dEgAUhpk",
-            "ZXJpdmVWaXJ0dWFsRGV2aWNlSURJbnB1dBJjChVwcmVwYXJlQWRkRGV2aWNl",
-            "SW5wdXQYCCABKAsyKy5XQVdlYkxhYnlyaW50aFdhV2FzbS5QcmVwYXJlQWRk",
-            "RGV2aWNlSW5wdXRIAFIVcHJlcGFyZUFkZERldmljZUlucHV0EnUKG2NvbXB1",
-            "dGVDbGllbnRTZWFsVG9rZW5JbnB1dBgJIAEoCzIxLldBV2ViTGFieXJpbnRo",
-            "V2FXYXNtLkNvbXB1dGVDbGllbnRTZWFsVG9rZW5JbnB1dEgAUhtjb21wdXRl",
-            "Q2xpZW50U2VhbFRva2VuSW5wdXQSaQoXb3BlblNlYWxlZFRocmVhZElESW5w",
-            "dXQYCiABKAsyLS5XQVdlYkxhYnlyaW50aFdhV2FzbS5PcGVuU2VhbGVkVGhy",
-            "ZWFkSWRJbnB1dEgAUhdvcGVuU2VhbGVkVGhyZWFkSURJbnB1dBJXChFkZXJp",
-            "dmVFcG9jaHNJbnB1dBgLIAEoCzInLldBV2ViTGFieXJpbnRoV2FXYXNtLkRl",
-            "cml2ZUVwb2Noc0lucHV0SABSEWRlcml2ZUVwb2Noc0lucHV0ElcKEXNlYWxU",
-            "aHJlYWRJRElucHV0GAwgASgLMicuV0FXZWJMYWJ5cmludGhXYVdhc20uU2Vh",
-            "bFRocmVhZElkSW5wdXRIAFIRc2VhbFRocmVhZElESW5wdXRCDgoMY29tbWFu",
-            "ZElucHV0QuUBChhjb20uV0FXZWJMYWJ5cmludGhXYVdhc21CGVdBV2ViTGFi",
-            "eXJpbnRoV2FXYXNtUHJvdG9QAVouZ28ubWF1LmZpL3doYXRzbWVvdy9wcm90",
-            "by93YVdlYkxhYnlyaW50aFdhV2FzbaICA1dYWKoCJFdoYXRzbWVvdy5Qcm90",
-            "by5XQVdlYkxhYnlyaW50aFdhV2FzbcoCFFdBV2ViTGFieXJpbnRoV2FXYXNt",
-            "4gIgV0FXZWJMYWJ5cmludGhXYVdhc21cR1BCTWV0YWRhdGHqAhRXQVdlYkxh",
-            "YnlyaW50aFdhV2FzbQ=="));
+            "ZWRPY21mQ2xpZW50U3RhdGUSQAobZW5jcnlwdGVkTWFpbGJveFJvb3RLZXlC",
+            "bG9iGAYgAigMUhtlbmNyeXB0ZWRNYWlsYm94Um9vdEtleUJsb2ISMgoUZW5j",
+            "cnlwdGVkRXBvY2hBbm9uSUQYByACKAxSFGVuY3J5cHRlZEVwb2NoQW5vbklE",
+            "EjQKFWVuY3J5cHRlZEVwb2NoUm9vdEtleRgIIAIoDFIVZW5jcnlwdGVkRXBv",
+            "Y2hSb290S2V5IoYDChNWaXJ0dWFsRGV2aWNlT3V0cHV0EhIKBHZkSUQYASAC",
+            "KAxSBHZkSUQSIAoLdmRQdWJsaWNLZXkYAiACKAxSC3ZkUHVibGljS2V5EjgK",
+            "F3ZkRXBvY2hTdG9yYWdlUHVibGljS2V5GAMgAigMUhd2ZEVwb2NoU3RvcmFn",
+            "ZVB1YmxpY0tleRI+Chp2ZEVwb2NoU3RvcmFnZVB1YmxpY0tleVNpZxgEIAIo",
+            "DFIadmRFcG9jaFN0b3JhZ2VQdWJsaWNLZXlTaWcSLAoRb2NtZlJvdGF0aW9u",
+            "VG9rZW4YBSACKAxSEW9jbWZSb3RhdGlvblRva2VuEigKD2RldmljZUVwb2No",
+            "SG1hYxgGIAIoDFIPZGV2aWNlRXBvY2hIbWFjEmcKFWVuY3J5cHRlZFNlY3Jl",
+            "dFZhbHVlcxgHIAIoCzIxLldBV2ViTGFieXJpbnRoV2FXYXNtLkVuY3J5cHRl",
+            "ZFNlY3JldFZhbHVlc091dHB1dFIVZW5jcnlwdGVkU2VjcmV0VmFsdWVzIqwB",
+            "CgxFcG9jaDBPdXRwdXQSHAoJZXBvY2hGYmlkGAEgAigEUgllcG9jaEZiaWQS",
+            "IAoLZXBvY2hBbm9uSUQYAiACKAxSC2Vwb2NoQW5vbklEEjgKF2Vwb2NoUm9v",
+            "dEtleUZpbmdlcnByaW50GAYgAigMUhdlcG9jaFJvb3RLZXlGaW5nZXJwcmlu",
+            "dBIiCgxlcG9jaFJvb3RLZXkYByACKAxSDGVwb2NoUm9vdEtleSJ9ChJDcmVh",
+            "dGVCYWNrdXBPdXRwdXQSRQoHc3VjY2VzcxgBIAEoCzIpLldBV2ViTGFieXJp",
+            "bnRoV2FXYXNtLkNyZWF0ZUJhY2t1cFN1Y2Nlc3NIAFIHc3VjY2VzcxIWCgVl",
+            "cnJvchgCIAEoCUgAUgVlcnJvckIICgZyZXN1bHQihgIKE0NyZWF0ZUJhY2t1",
+            "cFN1Y2Nlc3MSOgoGZGV2aWNlGAEgAigLMiIuV0FXZWJMYWJ5cmludGhXYVdh",
+            "c20uRGV2aWNlT3V0cHV0UgZkZXZpY2USTwoNdmlydHVhbERldmljZRgCIAIo",
+            "CzIpLldBV2ViTGFieXJpbnRoV2FXYXNtLlZpcnR1YWxEZXZpY2VPdXRwdXRS",
+            "DXZpcnR1YWxEZXZpY2USOgoGZXBvY2gwGAMgAigLMiIuV0FXZWJMYWJ5cmlu",
+            "dGhXYVdhc20uRXBvY2gwT3V0cHV0UgZlcG9jaDASJgoObWFpbGJveFJvb3RL",
+            "ZXkYBCACKAxSDm1haWxib3hSb290S2V5IoEBChRFbmNyeXB0TWVzc2FnZU91",
+            "dHB1dBJHCgdzdWNjZXNzGAEgASgLMisuV0FXZWJMYWJ5cmludGhXYVdhc20u",
+            "RW5jcnlwdE1lc3NhZ2VTdWNjZXNzSABSB3N1Y2Nlc3MSFgoFZXJyb3IYAiAB",
+            "KAlIAFIFZXJyb3JCCAoGcmVzdWx0IuEBChVFbmNyeXB0TWVzc2FnZVN1Y2Nl",
+            "c3MSLAoRZW5jcnlwdGVkUHJvdG9idWYYASACKAxSEWVuY3J5cHRlZFByb3Rv",
+            "YnVmEiAKC29yZlRocmVhZElEGAIgAigMUgtvcmZUaHJlYWRJRBImCg52YWx1",
+            "ZVNlY3JldFJlZhgDIAIoCVIOdmFsdWVTZWNyZXRSZWYSLgoSb2ZmbGluZVRo",
+            "cmVhZGluZ0lEGAQgAigEUhJvZmZsaW5lVGhyZWFkaW5nSUQSIAoLdGltZXN0",
+            "YW1wTVMYBSACKARSC3RpbWVzdGFtcE1TIoEBChREZWNyeXB0TWVzc2FnZU91",
+            "dHB1dBJHCgdzdWNjZXNzGAEgASgLMisuV0FXZWJMYWJ5cmludGhXYVdhc20u",
+            "RGVjcnlwdE1lc3NhZ2VTdWNjZXNzSABSB3N1Y2Nlc3MSFgoFZXJyb3IYAiAB",
+            "KAlIAFIFZXJyb3JCCAoGcmVzdWx0IkMKFURlY3J5cHRNZXNzYWdlU3VjY2Vz",
+            "cxIqChBwbGFpbnRleHRQYXlsb2FkGAEgAigMUhBwbGFpbnRleHRQYXlsb2Fk",
+            "InsKEU9yZlRocmVhZElkT3V0cHV0EkQKB3N1Y2Nlc3MYASABKAsyKC5XQVdl",
+            "YkxhYnlyaW50aFdhV2FzbS5PcmZUaHJlYWRJZFN1Y2Nlc3NIAFIHc3VjY2Vz",
+            "cxIWCgVlcnJvchgCIAEoCUgAUgVlcnJvckIICgZyZXN1bHQiNgoST3JmVGhy",
+            "ZWFkSWRTdWNjZXNzEiAKC29yZlRocmVhZElEGAEgAigMUgtvcmZUaHJlYWRJ",
+            "RCKFAQoWRGVyaXZlTWVzc2FnZUtleU91dHB1dBJJCgdzdWNjZXNzGAEgASgL",
+            "Mi0uV0FXZWJMYWJ5cmludGhXYVdhc20uRGVyaXZlTWVzc2FnZUtleVN1Y2Nl",
+            "c3NIAFIHc3VjY2VzcxIWCgVlcnJvchgCIAEoCUgAUgVlcnJvckIICgZyZXN1",
+            "bHQiOQoXRGVyaXZlTWVzc2FnZUtleVN1Y2Nlc3MSHgoKbWVzc2FnZUtleRgB",
+            "IAIoDFIKbWVzc2FnZUtleSKPAQobRGVyaXZlVmlydHVhbERldmljZUlkT3V0",
+            "cHV0Ek4KB3N1Y2Nlc3MYASABKAsyMi5XQVdlYkxhYnlyaW50aFdhV2FzbS5E",
+            "ZXJpdmVWaXJ0dWFsRGV2aWNlSWRTdWNjZXNzSABSB3N1Y2Nlc3MSFgoFZXJy",
+            "b3IYAiABKAlIAFIFZXJyb3JCCAoGcmVzdWx0IkgKHERlcml2ZVZpcnR1YWxE",
+            "ZXZpY2VJZFN1Y2Nlc3MSKAoPdmlydHVhbERldmljZUlEGAEgAigMUg92aXJ0",
+            "dWFsRGV2aWNlSUQi9wIKE0FkZERldmljZUtleXNPdXRwdXQSKAoPZGV2aWNl",
+            "UHVibGljS2V5GAEgAigMUg9kZXZpY2VQdWJsaWNLZXkSLgoSZXBvY2hBdXRo",
+            "UHVibGljS2V5GAIgAigMUhJlcG9jaEF1dGhQdWJsaWNLZXkSNAoVZXBvY2hB",
+            "dXRoUHVibGljS2V5U2lnGAMgAigMUhVlcG9jaEF1dGhQdWJsaWNLZXlTaWcS",
+            "NAoVZXBvY2hTdG9yYWdlUHVibGljS2V5GAQgAigMUhVlcG9jaFN0b3JhZ2VQ",
+            "dWJsaWNLZXkSOgoYZXBvY2hTdG9yYWdlUHVibGljS2V5U2lnGAUgAigMUhhl",
+            "cG9jaFN0b3JhZ2VQdWJsaWNLZXlTaWcSNgoWZXBvY2hTdG9yYWdlUHJpdmF0",
+            "ZUtleRgGIAIoDFIWZXBvY2hTdG9yYWdlUHJpdmF0ZUtleRImCg5vcmZDbGll",
+            "bnRTdGF0ZRgHIAIoDFIOb3JmQ2xpZW50U3RhdGUidgoIRXBvY2hLZXkSJAoN",
+            "c2VydmVyRXBvY2hJRBgBIAIoBFINc2VydmVyRXBvY2hJRBIgCgtlcG9jaEFu",
+            "b25JRBgCIAIoDFILZXBvY2hBbm9uSUQSIgoMZXBvY2hSb290S2V5GAMgAigM",
+            "UgxlcG9jaFJvb3RLZXkihQEKFlByZXBhcmVBZGREZXZpY2VPdXRwdXQSSQoH",
+            "c3VjY2VzcxgBIAEoCzItLldBV2ViTGFieXJpbnRoV2FXYXNtLlByZXBhcmVB",
+            "ZGREZXZpY2VTdWNjZXNzSABSB3N1Y2Nlc3MSFgoFZXJyb3IYAiABKAlIAFIF",
+            "ZXJyb3JCCAoGcmVzdWx0IooEChdQcmVwYXJlQWRkRGV2aWNlU3VjY2VzcxJJ",
+            "CgpkZXZpY2VLZXlzGAEgAigLMikuV0FXZWJMYWJ5cmludGhXYVdhc20uQWRk",
+            "RGV2aWNlS2V5c091dHB1dFIKZGV2aWNlS2V5cxJCCgxjdXJyZW50RXBvY2gY",
+            "AiACKAsyHi5XQVdlYkxhYnlyaW50aFdhV2FzbS5FcG9jaEtleVIMY3VycmVu",
+            "dEVwb2NoEigKD21haWxib3hSb290U2FsdBgDIAIoDFIPbWFpbGJveFJvb3RT",
+            "YWx0EioKEG9yZlJvdGF0aW9uVG9rZW4YBCACKAxSEG9yZlJvdGF0aW9uVG9r",
+            "ZW4SKAoPZGV2aWNlRXBvY2hIbWFjGAUgAigMUg9kZXZpY2VFcG9jaEhtYWMS",
+            "OAoXZXBvY2hSb290S2V5RmluZ2VycHJpbnQYBiACKAxSF2Vwb2NoUm9vdEtl",
+            "eUZpbmdlcnByaW50EkAKG3N1cHBvcnRlZEVuY3J5cHRpb25WZXJzaW9ucxgH",
+            "IAMoBVIbc3VwcG9ydGVkRW5jcnlwdGlvblZlcnNpb25zEj4KGmVuY3J5cHRp",
+            "b25WZXJzaW9uU2lnbmF0dXJlGAggAigMUhplbmNyeXB0aW9uVmVyc2lvblNp",
+            "Z25hdHVyZRIkCg1jbGllbnRWZXJzaW9uGAkgAigFUg1jbGllbnRWZXJzaW9u",
+            "IoICChZSb3RhdGVFcG9jaE1lbWJlcklucHV0EhoKCGRldmljZUlEGAEgAigE",
+            "UghkZXZpY2VJRBI0ChVlcG9jaFN0b3JhZ2VQdWJsaWNLZXkYAiACKAxSFWVw",
+            "b2NoU3RvcmFnZVB1YmxpY0tleRIoCg9kZXZpY2VQdWJsaWNLZXkYAyACKAxS",
+            "D2RldmljZVB1YmxpY0tleRIwChNwcmV2RGV2aWNlRXBvY2hIbWFjGAQgAigM",
+            "UhNwcmV2RGV2aWNlRXBvY2hIbWFjEjoKGGVwb2NoU3RvcmFnZVB1YmxpY0tl",
+            "eVNpZxgFIAIoDFIYZXBvY2hTdG9yYWdlUHVibGljS2V5U2lnIqgCChBSb3Rh",
+            "dGVFcG9jaElucHV0EjAKE2N1cnJlbnRFcG9jaFJvb3RLZXkYASACKAxSE2N1",
+            "cnJlbnRFcG9jaFJvb3RLZXkSLgoSY3VycmVudEVwb2NoQW5vbklEGAIgAigM",
+            "UhJjdXJyZW50RXBvY2hBbm9uSUQSKgoQY3VycmVudEVwb2NoRmJpZBgDIAIo",
+            "BFIQY3VycmVudEVwb2NoRmJpZBI+ChplcG9jaFN0b3JhZ2VBdXRoUHJpdmF0",
+            "ZUtleRgEIAIoDFIaZXBvY2hTdG9yYWdlQXV0aFByaXZhdGVLZXkSRgoHbWVt",
+            "YmVycxgFIAMoCzIsLldBV2ViTGFieXJpbnRoV2FXYXNtLlJvdGF0ZUVwb2No",
+            "TWVtYmVySW5wdXRSB21lbWJlcnMiiwEKFVJvdGF0ZUVwb2NoTWVtYmVyRWRn",
+            "ZRIaCghkZXZpY2VJRBgBIAIoBFIIZGV2aWNlSUQSLAoRZW5jcnlwdGVkRXBv",
+            "Y2hLZXkYAiACKAxSEWVuY3J5cHRlZEVwb2NoS2V5EigKD2RldmljZUVwb2No",
+            "SG1hYxgDIAIoDFIPZGV2aWNlRXBvY2hIbWFjIsoBCgxCYWNrd2FyZEVkZ2US",
+            "OgoYZW5jcnlwdGVkUHJldkVwb2NoQW5vbklEGAEgAigMUhhlbmNyeXB0ZWRQ",
+            "cmV2RXBvY2hBbm9uSUQSPAoZZW5jcnlwdGVkUHJldkVwb2NoUm9vdEtleRgC",
+            "IAIoDFIZZW5jcnlwdGVkUHJldkVwb2NoUm9vdEtleRJAChtwcmV2RXBvY2hS",
+            "b290S2V5RmluZ2VycHJpbnQYAyACKAxSG3ByZXZFcG9jaFJvb3RLZXlGaW5n",
+            "ZXJwcmludCJ7ChFSb3RhdGVFcG9jaE91dHB1dBJECgdzdWNjZXNzGAEgASgL",
+            "MiguV0FXZWJMYWJ5cmludGhXYVdhc20uUm90YXRlRXBvY2hTdWNjZXNzSABS",
+            "B3N1Y2Nlc3MSFgoFZXJyb3IYAiABKAlIAFIFZXJyb3JCCAoGcmVzdWx0ItkC",
+            "ChJSb3RhdGVFcG9jaFN1Y2Nlc3MSKAoPbmV3RXBvY2hSb290S2V5GAEgAigM",
+            "Ug9uZXdFcG9jaFJvb3RLZXkSJgoObmV3RXBvY2hBbm9uSUQYAiACKARSDm5l",
+            "d0Vwb2NoQW5vbklEEiAKC2Vwb2NoQW5vbklEGAMgAigMUgtlcG9jaEFub25J",
+            "RBJGCgxiYWNrd2FyZEVkZ2UYBCACKAsyIi5XQVdlYkxhYnlyaW50aFdhV2Fz",
+            "bS5CYWNrd2FyZEVkZ2VSDGJhY2t3YXJkRWRnZRJNCgttZW1iZXJFZGdlcxgF",
+            "IAMoCzIrLldBV2ViTGFieXJpbnRoV2FXYXNtLlJvdGF0ZUVwb2NoTWVtYmVy",
+            "RWRnZVILbWVtYmVyRWRnZXMSOAoXZXBvY2hSb290S2V5RmluZ2VycHJpbnQY",
+            "BiACKAxSF2Vwb2NoUm9vdEtleUZpbmdlcnByaW50ImEKG0NvbXB1dGVDbGll",
+            "bnRTZWFsVG9rZW5JbnB1dBImCg5vcmZDbGllbnRTdGF0ZRgBIAIoDFIOb3Jm",
+            "Q2xpZW50U3RhdGUSGgoIYmFja3VwSUQYAiACKARSCGJhY2t1cElEIpEBChxD",
+            "b21wdXRlQ2xpZW50U2VhbFRva2VuT3V0cHV0Ek8KB3N1Y2Nlc3MYASABKAsy",
+            "My5XQVdlYkxhYnlyaW50aFdhV2FzbS5Db21wdXRlQ2xpZW50U2VhbFRva2Vu",
+            "U3VjY2Vzc0gAUgdzdWNjZXNzEhYKBWVycm9yGAIgASgJSABSBWVycm9yQggK",
+            "BnJlc3VsdCJJCh1Db21wdXRlQ2xpZW50U2VhbFRva2VuU3VjY2VzcxIoCg9j",
+            "bGllbnRTZWFsVG9rZW4YASACKAxSD2NsaWVudFNlYWxUb2tlbiKRAQoRU2Vh",
+            "bFRocmVhZElkSW5wdXQSIgoMZXBvY2hSb290S2V5GAEgAigMUgxlcG9jaFJv",
+            "b3RLZXkSIAoLZXBvY2hBbm9uSUQYAiACKAxSC2Vwb2NoQW5vbklEEhoKCGJh",
+            "Y2t1cElEGAMgAigEUghiYWNrdXBJRBIaCgh0aHJlYWRJRBgEIAIoCVIIdGhy",
+            "ZWFkSUQifQoSU2VhbFRocmVhZElkT3V0cHV0EkUKB3N1Y2Nlc3MYASABKAsy",
+            "KS5XQVdlYkxhYnlyaW50aFdhV2FzbS5TZWFsVGhyZWFkSWRTdWNjZXNzSABS",
+            "B3N1Y2Nlc3MSFgoFZXJyb3IYAiABKAlIAFIFZXJyb3JCCAoGcmVzdWx0Ij0K",
+            "E1NlYWxUaHJlYWRJZFN1Y2Nlc3MSJgoOc2VhbGVkVGhyZWFkSUQYASACKAxS",
+            "DnNlYWxlZFRocmVhZElEIpUBChdPcGVuU2VhbGVkVGhyZWFkSWRJbnB1dBIa",
+            "CghiYWNrdXBJRBgBIAIoBFIIYmFja3VwSUQSJgoOc2VhbGVkVGhyZWFkSUQY",
+            "AiACKAxSDnNlYWxlZFRocmVhZElEEjYKBmVwb2NocxgDIAMoCzIeLldBV2Vi",
+            "TGFieXJpbnRoV2FXYXNtLkVwb2NoS2V5UgZlcG9jaHMiiQEKGE9wZW5TZWFs",
+            "ZWRUaHJlYWRJZE91dHB1dBJLCgdzdWNjZXNzGAEgASgLMi8uV0FXZWJMYWJ5",
+            "cmludGhXYVdhc20uT3BlblNlYWxlZFRocmVhZElkU3VjY2Vzc0gAUgdzdWNj",
+            "ZXNzEhYKBWVycm9yGAIgASgJSABSBWVycm9yQggKBnJlc3VsdCJhChlPcGVu",
+            "U2VhbGVkVGhyZWFkSWRTdWNjZXNzEhoKCHRocmVhZElEGAEgAigJUgh0aHJl",
+            "YWRJRBIoCg9zZWFsRXBvY2hBbm9uSUQYAiACKA1SD3NlYWxFcG9jaEFub25J",
+            "RCJSCghFcG9jaElkcxIkCg1zZXJ2ZXJFcG9jaElEGAEgAigEUg1zZXJ2ZXJF",
+            "cG9jaElEEiAKC2Vwb2NoQW5vbklEGAIgAigMUgtlcG9jaEFub25JRCJkChBG",
+            "b3J3YXJkRWRnZUlucHV0EioKEGVuY3J5cHRlZEVudHJvcHkYASACKAxSEGVu",
+            "Y3J5cHRlZEVudHJvcHkSJAoNYXV0aFB1YmxpY0tleRgCIAIoDFINYXV0aFB1",
+            "YmxpY0tleSL7AQoTRXBvY2hEZXJpdmF0aW9uRWRnZRI8Cglmcm9tRXBvY2gY",
+            "ASACKAsyHi5XQVdlYkxhYnlyaW50aFdhV2FzbS5FcG9jaElkc1IJZnJvbUVw",
+            "b2NoEjgKB3RvRXBvY2gYAiACKAsyHi5XQVdlYkxhYnlyaW50aFdhV2FzbS5F",
+            "cG9jaElkc1IHdG9FcG9jaBJICgtmb3J3YXJkRWRnZRgDIAEoCzImLldBV2Vi",
+            "TGFieXJpbnRoV2FXYXNtLkZvcndhcmRFZGdlSW5wdXRSC2ZvcndhcmRFZGdl",
+            "EiIKDGJhY2t3YXJkRWRnZRgEIAEoDFIMYmFja3dhcmRFZGdlIsQBChFEZXJp",
+            "dmVFcG9jaHNJbnB1dBI2ChZlcG9jaFN0b3JhZ2VQcml2YXRlS2V5GAEgAigM",
+            "UhZlcG9jaFN0b3JhZ2VQcml2YXRlS2V5EjYKBmVwb2NocxgCIAMoCzIeLldB",
+            "V2ViTGFieXJpbnRoV2FXYXNtLkVwb2NoS2V5UgZlcG9jaHMSPwoFZWRnZXMY",
+            "AyADKAsyKS5XQVdlYkxhYnlyaW50aFdhV2FzbS5FcG9jaERlcml2YXRpb25F",
+            "ZGdlUgVlZGdlcyJ9ChJEZXJpdmVFcG9jaHNPdXRwdXQSRQoHc3VjY2VzcxgB",
+            "IAEoCzIpLldBV2ViTGFieXJpbnRoV2FXYXNtLkRlcml2ZUVwb2Noc1N1Y2Nl",
+            "c3NIAFIHc3VjY2VzcxIWCgVlcnJvchgCIAEoCUgAUgVlcnJvckIICgZyZXN1",
+            "bHQiTQoTRGVyaXZlRXBvY2hzU3VjY2VzcxI2CgZlcG9jaHMYASADKAsyHi5X",
+            "QVdlYkxhYnlyaW50aFdhV2FzbS5FcG9jaEtleVIGZXBvY2hzIu0BChlQcmVw",
+            "YXJlQWRkUGVlckRldmljZUlucHV0EhwKCWFkdlNlY3JldBgBIAIoDFIJYWR2",
+            "U2VjcmV0EiQKDXNlYWxlZFBheWxvYWQYAiACKAxSDXNlYWxlZFBheWxvYWQS",
+            "GgoIYmFja3VwSUQYAyACKARSCGJhY2t1cElEEhYKBnVzZXJJRBgEIAIoBFIG",
+            "dXNlcklEEjIKFGNvbXBhbmlvbklkZW50aXR5UHViGAUgAigMUhRjb21wYW5p",
+            "b25JZGVudGl0eVB1YhIkCg1hY3RpdmVFcG9jaElEGAYgAigEUg1hY3RpdmVF",
+            "cG9jaElEIo0BChpQcmVwYXJlQWRkUGVlckRldmljZU91dHB1dBJNCgdzdWNj",
+            "ZXNzGAEgASgLMjEuV0FXZWJMYWJ5cmludGhXYVdhc20uUHJlcGFyZUFkZFBl",
+            "ZXJEZXZpY2VTdWNjZXNzSABSB3N1Y2Nlc3MSFgoFZXJyb3IYAiABKAlIAFIF",
+            "ZXJyb3JCCAoGcmVzdWx0IsYBChtQcmVwYXJlQWRkUGVlckRldmljZVN1Y2Nl",
+            "c3MSSwoJZW5yb2xtZW50GAEgAigLMi0uV0FXZWJMYWJ5cmludGhXYVdhc20u",
+            "UHJlcGFyZUFkZERldmljZVN1Y2Nlc3NSCWVucm9sbWVudBIiCgxzZXJ2ZXJE",
+            "YXRhSUQYAiACKARSDHNlcnZlckRhdGFJRBI2ChZjb21wYW5pb25EZXZpY2VC",
+            "aW5kaW5nGAMgAigMUhZjb21wYW5pb25EZXZpY2VCaW5kaW5nIqoKChJMYWJ5",
+            "cmludGhXYUNvbW1hbmQSVwoRY3JlYXRlQmFja3VwSW5wdXQYASABKAsyJy5X",
+            "QVdlYkxhYnlyaW50aFdhV2FzbS5DcmVhdGVCYWNrdXBJbnB1dEgAUhFjcmVh",
+            "dGVCYWNrdXBJbnB1dBJdChNlbmNyeXB0TWVzc2FnZUlucHV0GAIgASgLMiku",
+            "V0FXZWJMYWJ5cmludGhXYVdhc20uRW5jcnlwdE1lc3NhZ2VJbnB1dEgAUhNl",
+            "bmNyeXB0TWVzc2FnZUlucHV0El0KE2RlY3J5cHRNZXNzYWdlSW5wdXQYAyAB",
+            "KAsyKS5XQVdlYkxhYnlyaW50aFdhV2FzbS5EZWNyeXB0TWVzc2FnZUlucHV0",
+            "SABSE2RlY3J5cHRNZXNzYWdlSW5wdXQSVAoQb3JmVGhyZWFkSURJbnB1dBgE",
+            "IAEoCzImLldBV2ViTGFieXJpbnRoV2FXYXNtLk9yZlRocmVhZElkSW5wdXRI",
+            "AFIQb3JmVGhyZWFkSURJbnB1dBJjChVkZXJpdmVNZXNzYWdlS2V5SW5wdXQY",
+            "BSABKAsyKy5XQVdlYkxhYnlyaW50aFdhV2FzbS5EZXJpdmVNZXNzYWdlS2V5",
+            "SW5wdXRIAFIVZGVyaXZlTWVzc2FnZUtleUlucHV0ElQKEHJvdGF0ZUVwb2No",
+            "SW5wdXQYBiABKAsyJi5XQVdlYkxhYnlyaW50aFdhV2FzbS5Sb3RhdGVFcG9j",
+            "aElucHV0SABSEHJvdGF0ZUVwb2NoSW5wdXQScgoaZGVyaXZlVmlydHVhbERl",
+            "dmljZUlESW5wdXQYByABKAsyMC5XQVdlYkxhYnlyaW50aFdhV2FzbS5EZXJp",
+            "dmVWaXJ0dWFsRGV2aWNlSWRJbnB1dEgAUhpkZXJpdmVWaXJ0dWFsRGV2aWNl",
+            "SURJbnB1dBJjChVwcmVwYXJlQWRkRGV2aWNlSW5wdXQYCCABKAsyKy5XQVdl",
+            "YkxhYnlyaW50aFdhV2FzbS5QcmVwYXJlQWRkRGV2aWNlSW5wdXRIAFIVcHJl",
+            "cGFyZUFkZERldmljZUlucHV0EnUKG2NvbXB1dGVDbGllbnRTZWFsVG9rZW5J",
+            "bnB1dBgJIAEoCzIxLldBV2ViTGFieXJpbnRoV2FXYXNtLkNvbXB1dGVDbGll",
+            "bnRTZWFsVG9rZW5JbnB1dEgAUhtjb21wdXRlQ2xpZW50U2VhbFRva2VuSW5w",
+            "dXQSaQoXb3BlblNlYWxlZFRocmVhZElESW5wdXQYCiABKAsyLS5XQVdlYkxh",
+            "YnlyaW50aFdhV2FzbS5PcGVuU2VhbGVkVGhyZWFkSWRJbnB1dEgAUhdvcGVu",
+            "U2VhbGVkVGhyZWFkSURJbnB1dBJXChFkZXJpdmVFcG9jaHNJbnB1dBgLIAEo",
+            "CzInLldBV2ViTGFieXJpbnRoV2FXYXNtLkRlcml2ZUVwb2Noc0lucHV0SABS",
+            "EWRlcml2ZUVwb2Noc0lucHV0ElcKEXNlYWxUaHJlYWRJRElucHV0GAwgASgL",
+            "MicuV0FXZWJMYWJ5cmludGhXYVdhc20uU2VhbFRocmVhZElkSW5wdXRIAFIR",
+            "c2VhbFRocmVhZElESW5wdXQSbwoZcHJlcGFyZUFkZFBlZXJEZXZpY2VJbnB1",
+            "dBgNIAEoCzIvLldBV2ViTGFieXJpbnRoV2FXYXNtLlByZXBhcmVBZGRQZWVy",
+            "RGV2aWNlSW5wdXRIAFIZcHJlcGFyZUFkZFBlZXJEZXZpY2VJbnB1dEIOCgxj",
+            "b21tYW5kSW5wdXRC5QEKGGNvbS5XQVdlYkxhYnlyaW50aFdhV2FzbUIZV0FX",
+            "ZWJMYWJ5cmludGhXYVdhc21Qcm90b1ABWi5nby5tYXUuZmkvd2hhdHNtZW93",
+            "L3Byb3RvL3dhV2ViTGFieXJpbnRoV2FXYXNtogIDV1hYqgIkV2hhdHNtZW93",
+            "LlByb3RvLldBV2ViTGFieXJpbnRoV2FXYXNtygIUV0FXZWJMYWJ5cmludGhX",
+            "YVdhc23iAiBXQVdlYkxhYnlyaW50aFdhV2FzbVxHUEJNZXRhZGF0YeoCFFdB",
+            "V2ViTGFieXJpbnRoV2FXYXNt"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -246,35 +290,50 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.AddDeviceSyncEpochInput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.AddDeviceSyncEpochInput.Parser, new[]{ "EpochID", "EpochAnonID", "EncryptedEpochKey", "SenderAuthPubKey", "NextEpochID" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddDeviceInput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddDeviceInput.Parser, new[]{ "RecoveryCode", "UserID", "EncryptedSecretValuesJSON", "VirtualDeviceBaseEpochID", "ActiveEpochID", "SyncEpochs" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeviceOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeviceOutput.Parser, new[]{ "PublicKey", "EpochAuthPublicKey", "EpochAuthPublicKeySig", "EpochStoragePublicKey", "EpochStoragePublicKeySig", "SupportedEncryptionVersions", "EncryptionVersionSignature", "ClientVersion", "OcmfClientState", "EpochStoragePrivateKey", "EpochAuthPrivateKey", "DeviceEpochHmac" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptedSecretValuesOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptedSecretValuesOutput.Parser, new[]{ "EncryptedDevicePrivateKey", "EncryptedObliviousValidationTokenBlob", "EncryptedEpochStoragePrivateKey", "EncryptedOcmfClientState", "EncryptedOrfClientStateV2", "EncryptedMailboxRootKeyBlob", "EncryptedEpochAnonID", "EncryptedEpochRootKey" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptedSecretValuesOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptedSecretValuesOutput.Parser, new[]{ "EncryptedDevicePrivateKey", "EncryptedObliviousValidationTokenBlob", "EncryptedEpochStoragePrivateKey", "EncryptedOcmfClientState", "EncryptedMailboxRootKeyBlob", "EncryptedEpochAnonID", "EncryptedEpochRootKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.VirtualDeviceOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.VirtualDeviceOutput.Parser, new[]{ "VdID", "VdPublicKey", "VdEpochStoragePublicKey", "VdEpochStoragePublicKeySig", "OcmfRotationToken", "DeviceEpochHmac", "EncryptedSecretValues" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.Epoch0Output), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.Epoch0Output.Parser, new[]{ "EpochFbid", "EpochAnonID", "EpochRootKeyFingerprint", "EpochRootKey" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CreateBackupOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CreateBackupOutput.Parser, new[]{ "Device", "VirtualDevice", "Epoch0", "MailboxRootKey", "Error" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptMessageOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptMessageOutput.Parser, new[]{ "EncryptedProtobuf", "OrfThreadID", "ValueSecretRef", "OfflineThreadingID", "TimestampMS", "Error" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DecryptMessageOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DecryptMessageOutput.Parser, new[]{ "PlaintextPayload", "Error" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OrfThreadIdOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OrfThreadIdOutput.Parser, new[]{ "OrfThreadID", "Error" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveMessageKeyOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveMessageKeyOutput.Parser, new[]{ "MessageKey", "Error" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveVirtualDeviceIdOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveVirtualDeviceIdOutput.Parser, new[]{ "VirtualDeviceID", "Error" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CreateBackupOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CreateBackupOutput.Parser, new[]{ "Success", "Error" }, new[]{ "Result" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CreateBackupSuccess), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CreateBackupSuccess.Parser, new[]{ "Device", "VirtualDevice", "Epoch0", "MailboxRootKey" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptMessageOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptMessageOutput.Parser, new[]{ "Success", "Error" }, new[]{ "Result" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptMessageSuccess), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptMessageSuccess.Parser, new[]{ "EncryptedProtobuf", "OrfThreadID", "ValueSecretRef", "OfflineThreadingID", "TimestampMS" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DecryptMessageOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DecryptMessageOutput.Parser, new[]{ "Success", "Error" }, new[]{ "Result" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DecryptMessageSuccess), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DecryptMessageSuccess.Parser, new[]{ "PlaintextPayload" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OrfThreadIdOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OrfThreadIdOutput.Parser, new[]{ "Success", "Error" }, new[]{ "Result" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OrfThreadIdSuccess), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OrfThreadIdSuccess.Parser, new[]{ "OrfThreadID" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveMessageKeyOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveMessageKeyOutput.Parser, new[]{ "Success", "Error" }, new[]{ "Result" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveMessageKeySuccess), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveMessageKeySuccess.Parser, new[]{ "MessageKey" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveVirtualDeviceIdOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveVirtualDeviceIdOutput.Parser, new[]{ "Success", "Error" }, new[]{ "Result" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveVirtualDeviceIdSuccess), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveVirtualDeviceIdSuccess.Parser, new[]{ "VirtualDeviceID" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.AddDeviceKeysOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.AddDeviceKeysOutput.Parser, new[]{ "DevicePublicKey", "EpochAuthPublicKey", "EpochAuthPublicKeySig", "EpochStoragePublicKey", "EpochStoragePublicKeySig", "EpochStoragePrivateKey", "OrfClientState" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EpochKey), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EpochKey.Parser, new[]{ "ServerEpochID", "EpochAnonID", "EpochRootKey" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddDeviceOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddDeviceOutput.Parser, new[]{ "DeviceKeys", "CurrentEpoch", "MailboxRootSalt", "OrfRotationToken", "DeviceEpochHmac", "EpochRootKeyFingerprint", "SupportedEncryptionVersions", "EncryptionVersionSignature", "ClientVersion", "Error" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddDeviceOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddDeviceOutput.Parser, new[]{ "Success", "Error" }, new[]{ "Result" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddDeviceSuccess), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddDeviceSuccess.Parser, new[]{ "DeviceKeys", "CurrentEpoch", "MailboxRootSalt", "OrfRotationToken", "DeviceEpochHmac", "EpochRootKeyFingerprint", "SupportedEncryptionVersions", "EncryptionVersionSignature", "ClientVersion" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochMemberInput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochMemberInput.Parser, new[]{ "DeviceID", "EpochStoragePublicKey", "DevicePublicKey", "PrevDeviceEpochHmac", "EpochStoragePublicKeySig" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochInput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochInput.Parser, new[]{ "CurrentEpochRootKey", "CurrentEpochAnonID", "CurrentEpochFbid", "EpochStorageAuthPrivateKey", "Members" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochMemberEdge), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochMemberEdge.Parser, new[]{ "DeviceID", "EncryptedEpochKey", "DeviceEpochHmac" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.BackwardEdge), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.BackwardEdge.Parser, new[]{ "EncryptedPrevEpochAnonID", "EncryptedPrevEpochRootKey", "PrevEpochRootKeyFingerprint" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochOutput.Parser, new[]{ "NewEpochRootKey", "NewEpochAnonID", "EpochAnonID", "BackwardEdge", "MemberEdges", "EpochRootKeyFingerprint", "Error" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochOutput.Parser, new[]{ "Success", "Error" }, new[]{ "Result" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochSuccess), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochSuccess.Parser, new[]{ "NewEpochRootKey", "NewEpochAnonID", "EpochAnonID", "BackwardEdge", "MemberEdges", "EpochRootKeyFingerprint" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenInput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenInput.Parser, new[]{ "OrfClientState", "BackupID" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenOutput.Parser, new[]{ "ClientSealToken", "Error" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenOutput.Parser, new[]{ "Success", "Error" }, new[]{ "Result" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenSuccess), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenSuccess.Parser, new[]{ "ClientSealToken" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.SealThreadIdInput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.SealThreadIdInput.Parser, new[]{ "EpochRootKey", "EpochAnonID", "BackupID", "ThreadID" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.SealThreadIdOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.SealThreadIdOutput.Parser, new[]{ "SealedThreadID", "Error" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.SealThreadIdOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.SealThreadIdOutput.Parser, new[]{ "Success", "Error" }, new[]{ "Result" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.SealThreadIdSuccess), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.SealThreadIdSuccess.Parser, new[]{ "SealedThreadID" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OpenSealedThreadIdInput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OpenSealedThreadIdInput.Parser, new[]{ "BackupID", "SealedThreadID", "Epochs" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OpenSealedThreadIdOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OpenSealedThreadIdOutput.Parser, new[]{ "ThreadID", "SealEpochAnonID", "Error" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OpenSealedThreadIdOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OpenSealedThreadIdOutput.Parser, new[]{ "Success", "Error" }, new[]{ "Result" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OpenSealedThreadIdSuccess), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OpenSealedThreadIdSuccess.Parser, new[]{ "ThreadID", "SealEpochAnonID" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EpochIds), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EpochIds.Parser, new[]{ "ServerEpochID", "EpochAnonID" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ForwardEdgeInput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ForwardEdgeInput.Parser, new[]{ "EncryptedEntropy", "AuthPublicKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EpochDerivationEdge), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EpochDerivationEdge.Parser, new[]{ "FromEpoch", "ToEpoch", "ForwardEdge", "BackwardEdge" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveEpochsInput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveEpochsInput.Parser, new[]{ "EpochStoragePrivateKey", "Epochs", "Edges" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveEpochsOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveEpochsOutput.Parser, new[]{ "Epochs", "Error" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.LabyrinthWaCommand), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.LabyrinthWaCommand.Parser, new[]{ "CreateBackupInput", "EncryptMessageInput", "DecryptMessageInput", "OrfThreadIDInput", "DeriveMessageKeyInput", "RotateEpochInput", "DeriveVirtualDeviceIDInput", "PrepareAddDeviceInput", "ComputeClientSealTokenInput", "OpenSealedThreadIDInput", "DeriveEpochsInput", "SealThreadIDInput" }, new[]{ "CommandInput" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveEpochsOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveEpochsOutput.Parser, new[]{ "Success", "Error" }, new[]{ "Result" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveEpochsSuccess), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveEpochsSuccess.Parser, new[]{ "Epochs" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceInput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceInput.Parser, new[]{ "AdvSecret", "SealedPayload", "BackupID", "UserID", "CompanionIdentityPub", "ActiveEpochID" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceOutput.Parser, new[]{ "Success", "Error" }, new[]{ "Result" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceSuccess), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceSuccess.Parser, new[]{ "Enrolment", "ServerDataID", "CompanionDeviceBinding" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.LabyrinthWaCommand), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.LabyrinthWaCommand.Parser, new[]{ "CreateBackupInput", "EncryptMessageInput", "DecryptMessageInput", "OrfThreadIDInput", "DeriveMessageKeyInput", "RotateEpochInput", "DeriveVirtualDeviceIDInput", "PrepareAddDeviceInput", "ComputeClientSealTokenInput", "OpenSealedThreadIDInput", "DeriveEpochsInput", "SealThreadIDInput", "PrepareAddPeerDeviceInput" }, new[]{ "CommandInput" }, null, null, null)
           }));
     }
     #endregion
@@ -4196,7 +4255,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       encryptedObliviousValidationTokenBlob_ = other.encryptedObliviousValidationTokenBlob_;
       encryptedEpochStoragePrivateKey_ = other.encryptedEpochStoragePrivateKey_;
       encryptedOcmfClientState_ = other.encryptedOcmfClientState_;
-      encryptedOrfClientStateV2_ = other.encryptedOrfClientStateV2_;
       encryptedMailboxRootKeyBlob_ = other.encryptedMailboxRootKeyBlob_;
       encryptedEpochAnonID_ = other.encryptedEpochAnonID_;
       encryptedEpochRootKey_ = other.encryptedEpochRootKey_;
@@ -4313,32 +4371,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       encryptedOcmfClientState_ = null;
     }
 
-    /// <summary>Field number for the "encryptedOrfClientStateV2" field.</summary>
-    public const int EncryptedOrfClientStateV2FieldNumber = 5;
-    private readonly static pb::ByteString EncryptedOrfClientStateV2DefaultValue = pb::ByteString.Empty;
-
-    private pb::ByteString encryptedOrfClientStateV2_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString EncryptedOrfClientStateV2 {
-      get { return encryptedOrfClientStateV2_ ?? EncryptedOrfClientStateV2DefaultValue; }
-      set {
-        encryptedOrfClientStateV2_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-    /// <summary>Gets whether the "encryptedOrfClientStateV2" field is set</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasEncryptedOrfClientStateV2 {
-      get { return encryptedOrfClientStateV2_ != null; }
-    }
-    /// <summary>Clears the value of the "encryptedOrfClientStateV2" field</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearEncryptedOrfClientStateV2() {
-      encryptedOrfClientStateV2_ = null;
-    }
-
     /// <summary>Field number for the "encryptedMailboxRootKeyBlob" field.</summary>
     public const int EncryptedMailboxRootKeyBlobFieldNumber = 6;
     private readonly static pb::ByteString EncryptedMailboxRootKeyBlobDefaultValue = pb::ByteString.Empty;
@@ -4436,7 +4468,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (EncryptedObliviousValidationTokenBlob != other.EncryptedObliviousValidationTokenBlob) return false;
       if (EncryptedEpochStoragePrivateKey != other.EncryptedEpochStoragePrivateKey) return false;
       if (EncryptedOcmfClientState != other.EncryptedOcmfClientState) return false;
-      if (EncryptedOrfClientStateV2 != other.EncryptedOrfClientStateV2) return false;
       if (EncryptedMailboxRootKeyBlob != other.EncryptedMailboxRootKeyBlob) return false;
       if (EncryptedEpochAnonID != other.EncryptedEpochAnonID) return false;
       if (EncryptedEpochRootKey != other.EncryptedEpochRootKey) return false;
@@ -4451,7 +4482,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (HasEncryptedObliviousValidationTokenBlob) hash ^= EncryptedObliviousValidationTokenBlob.GetHashCode();
       if (HasEncryptedEpochStoragePrivateKey) hash ^= EncryptedEpochStoragePrivateKey.GetHashCode();
       if (HasEncryptedOcmfClientState) hash ^= EncryptedOcmfClientState.GetHashCode();
-      if (HasEncryptedOrfClientStateV2) hash ^= EncryptedOrfClientStateV2.GetHashCode();
       if (HasEncryptedMailboxRootKeyBlob) hash ^= EncryptedMailboxRootKeyBlob.GetHashCode();
       if (HasEncryptedEpochAnonID) hash ^= EncryptedEpochAnonID.GetHashCode();
       if (HasEncryptedEpochRootKey) hash ^= EncryptedEpochRootKey.GetHashCode();
@@ -4488,10 +4518,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (HasEncryptedOcmfClientState) {
         output.WriteRawTag(34);
         output.WriteBytes(EncryptedOcmfClientState);
-      }
-      if (HasEncryptedOrfClientStateV2) {
-        output.WriteRawTag(42);
-        output.WriteBytes(EncryptedOrfClientStateV2);
       }
       if (HasEncryptedMailboxRootKeyBlob) {
         output.WriteRawTag(50);
@@ -4531,10 +4557,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(34);
         output.WriteBytes(EncryptedOcmfClientState);
       }
-      if (HasEncryptedOrfClientStateV2) {
-        output.WriteRawTag(42);
-        output.WriteBytes(EncryptedOrfClientStateV2);
-      }
       if (HasEncryptedMailboxRootKeyBlob) {
         output.WriteRawTag(50);
         output.WriteBytes(EncryptedMailboxRootKeyBlob);
@@ -4569,9 +4591,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (HasEncryptedOcmfClientState) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(EncryptedOcmfClientState);
       }
-      if (HasEncryptedOrfClientStateV2) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EncryptedOrfClientStateV2);
-      }
       if (HasEncryptedMailboxRootKeyBlob) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(EncryptedMailboxRootKeyBlob);
       }
@@ -4604,9 +4623,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       }
       if (other.HasEncryptedOcmfClientState) {
         EncryptedOcmfClientState = other.EncryptedOcmfClientState;
-      }
-      if (other.HasEncryptedOrfClientStateV2) {
-        EncryptedOrfClientStateV2 = other.EncryptedOrfClientStateV2;
       }
       if (other.HasEncryptedMailboxRootKeyBlob) {
         EncryptedMailboxRootKeyBlob = other.EncryptedMailboxRootKeyBlob;
@@ -4650,10 +4666,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
           }
           case 34: {
             EncryptedOcmfClientState = input.ReadBytes();
-            break;
-          }
-          case 42: {
-            EncryptedOrfClientStateV2 = input.ReadBytes();
             break;
           }
           case 50: {
@@ -4701,10 +4713,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
           }
           case 34: {
             EncryptedOcmfClientState = input.ReadBytes();
-            break;
-          }
-          case 42: {
-            EncryptedOrfClientStateV2 = input.ReadBytes();
             break;
           }
           case 50: {
@@ -5642,11 +5650,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public CreateBackupOutput(CreateBackupOutput other) : this() {
-      device_ = other.device_ != null ? other.device_.Clone() : null;
-      virtualDevice_ = other.virtualDevice_ != null ? other.virtualDevice_.Clone() : null;
-      epoch0_ = other.epoch0_ != null ? other.epoch0_.Clone() : null;
-      mailboxRootKey_ = other.mailboxRootKey_;
-      error_ = other.error_;
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          Success = other.Success.Clone();
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -5654,6 +5666,296 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public CreateBackupOutput Clone() {
       return new CreateBackupOutput(this);
+    }
+
+    /// <summary>Field number for the "success" field.</summary>
+    public const int SuccessFieldNumber = 1;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CreateBackupSuccess Success {
+      get { return resultCase_ == ResultOneofCase.Success ? (global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CreateBackupSuccess) result_ : null; }
+      set {
+        result_ = value;
+        resultCase_ = value == null ? ResultOneofCase.None : ResultOneofCase.Success;
+      }
+    }
+
+    /// <summary>Field number for the "error" field.</summary>
+    public const int ErrorFieldNumber = 2;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Error {
+      get { return HasError ? (string) result_ : ""; }
+      set {
+        result_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        resultCase_ = ResultOneofCase.Error;
+      }
+    }
+    /// <summary>Gets whether the "error" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasError {
+      get { return resultCase_ == ResultOneofCase.Error; }
+    }
+    /// <summary> Clears the value of the oneof if it's currently set to "error" </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearError() {
+      if (HasError) {
+        ClearResult();
+      }
+    }
+
+    private object result_;
+    /// <summary>Enum of possible cases for the "result" oneof.</summary>
+    public enum ResultOneofCase {
+      None = 0,
+      Success = 1,
+      Error = 2,
+    }
+    private ResultOneofCase resultCase_ = ResultOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ResultOneofCase ResultCase {
+      get { return resultCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearResult() {
+      resultCase_ = ResultOneofCase.None;
+      result_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as CreateBackupOutput);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(CreateBackupOutput other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Success, other.Success)) return false;
+      if (Error != other.Error) return false;
+      if (ResultCase != other.ResultCase) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (resultCase_ == ResultOneofCase.Success) hash ^= Success.GetHashCode();
+      if (HasError) hash ^= Error.GetHashCode();
+      hash ^= (int) resultCase_;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (resultCase_ == ResultOneofCase.Success) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Success);
+      }
+      if (HasError) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(CreateBackupOutput other) {
+      if (other == null) {
+        return;
+      }
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          if (Success == null) {
+            Success = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CreateBackupSuccess();
+          }
+          Success.MergeFrom(other.Success);
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CreateBackupSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CreateBackupSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CreateBackupSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CreateBackupSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class CreateBackupSuccess : pb::IMessage<CreateBackupSuccess>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<CreateBackupSuccess> _parser = new pb::MessageParser<CreateBackupSuccess>(() => new CreateBackupSuccess());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<CreateBackupSuccess> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[13]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CreateBackupSuccess() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CreateBackupSuccess(CreateBackupSuccess other) : this() {
+      device_ = other.device_ != null ? other.device_.Clone() : null;
+      virtualDevice_ = other.virtualDevice_ != null ? other.virtualDevice_.Clone() : null;
+      epoch0_ = other.epoch0_ != null ? other.epoch0_.Clone() : null;
+      mailboxRootKey_ = other.mailboxRootKey_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CreateBackupSuccess Clone() {
+      return new CreateBackupSuccess(this);
     }
 
     /// <summary>Field number for the "device" field.</summary>
@@ -5718,41 +6020,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       mailboxRootKey_ = null;
     }
 
-    /// <summary>Field number for the "error" field.</summary>
-    public const int ErrorFieldNumber = 5;
-    private readonly static string ErrorDefaultValue = "";
-
-    private string error_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string Error {
-      get { return error_ ?? ErrorDefaultValue; }
-      set {
-        error_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-    /// <summary>Gets whether the "error" field is set</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasError {
-      get { return error_ != null; }
-    }
-    /// <summary>Clears the value of the "error" field</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearError() {
-      error_ = null;
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
-      return Equals(other as CreateBackupOutput);
+      return Equals(other as CreateBackupSuccess);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool Equals(CreateBackupOutput other) {
+    public bool Equals(CreateBackupSuccess other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -5763,7 +6039,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (!object.Equals(VirtualDevice, other.VirtualDevice)) return false;
       if (!object.Equals(Epoch0, other.Epoch0)) return false;
       if (MailboxRootKey != other.MailboxRootKey) return false;
-      if (Error != other.Error) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -5775,7 +6050,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (virtualDevice_ != null) hash ^= VirtualDevice.GetHashCode();
       if (epoch0_ != null) hash ^= Epoch0.GetHashCode();
       if (HasMailboxRootKey) hash ^= MailboxRootKey.GetHashCode();
-      if (HasError) hash ^= Error.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -5810,10 +6084,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(34);
         output.WriteBytes(MailboxRootKey);
       }
-      if (HasError) {
-        output.WriteRawTag(42);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -5840,10 +6110,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(34);
         output.WriteBytes(MailboxRootKey);
       }
-      if (HasError) {
-        output.WriteRawTag(42);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -5866,9 +6132,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (HasMailboxRootKey) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(MailboxRootKey);
       }
-      if (HasError) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
-      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -5877,7 +6140,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(CreateBackupOutput other) {
+    public void MergeFrom(CreateBackupSuccess other) {
       if (other == null) {
         return;
       }
@@ -5901,9 +6164,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       }
       if (other.HasMailboxRootKey) {
         MailboxRootKey = other.MailboxRootKey;
-      }
-      if (other.HasError) {
-        Error = other.Error;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -5947,10 +6207,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
           }
           case 34: {
             MailboxRootKey = input.ReadBytes();
-            break;
-          }
-          case 42: {
-            Error = input.ReadString();
             break;
           }
         }
@@ -5997,10 +6253,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             MailboxRootKey = input.ReadBytes();
             break;
           }
-          case 42: {
-            Error = input.ReadString();
-            break;
-          }
         }
       }
     }
@@ -6016,7 +6268,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
   {
     private static readonly pb::MessageParser<EncryptMessageOutput> _parser = new pb::MessageParser<EncryptMessageOutput>(() => new EncryptMessageOutput());
     private pb::UnknownFieldSet _unknownFields;
-    private int _hasBits0;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<EncryptMessageOutput> Parser { get { return _parser; } }
@@ -6024,7 +6275,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[13]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[14]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6044,13 +6295,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public EncryptMessageOutput(EncryptMessageOutput other) : this() {
-      _hasBits0 = other._hasBits0;
-      encryptedProtobuf_ = other.encryptedProtobuf_;
-      orfThreadID_ = other.orfThreadID_;
-      valueSecretRef_ = other.valueSecretRef_;
-      offlineThreadingID_ = other.offlineThreadingID_;
-      timestampMS_ = other.timestampMS_;
-      error_ = other.error_;
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          Success = other.Success.Clone();
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -6058,6 +6311,299 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public EncryptMessageOutput Clone() {
       return new EncryptMessageOutput(this);
+    }
+
+    /// <summary>Field number for the "success" field.</summary>
+    public const int SuccessFieldNumber = 1;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptMessageSuccess Success {
+      get { return resultCase_ == ResultOneofCase.Success ? (global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptMessageSuccess) result_ : null; }
+      set {
+        result_ = value;
+        resultCase_ = value == null ? ResultOneofCase.None : ResultOneofCase.Success;
+      }
+    }
+
+    /// <summary>Field number for the "error" field.</summary>
+    public const int ErrorFieldNumber = 2;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Error {
+      get { return HasError ? (string) result_ : ""; }
+      set {
+        result_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        resultCase_ = ResultOneofCase.Error;
+      }
+    }
+    /// <summary>Gets whether the "error" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasError {
+      get { return resultCase_ == ResultOneofCase.Error; }
+    }
+    /// <summary> Clears the value of the oneof if it's currently set to "error" </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearError() {
+      if (HasError) {
+        ClearResult();
+      }
+    }
+
+    private object result_;
+    /// <summary>Enum of possible cases for the "result" oneof.</summary>
+    public enum ResultOneofCase {
+      None = 0,
+      Success = 1,
+      Error = 2,
+    }
+    private ResultOneofCase resultCase_ = ResultOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ResultOneofCase ResultCase {
+      get { return resultCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearResult() {
+      resultCase_ = ResultOneofCase.None;
+      result_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as EncryptMessageOutput);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(EncryptMessageOutput other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Success, other.Success)) return false;
+      if (Error != other.Error) return false;
+      if (ResultCase != other.ResultCase) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (resultCase_ == ResultOneofCase.Success) hash ^= Success.GetHashCode();
+      if (HasError) hash ^= Error.GetHashCode();
+      hash ^= (int) resultCase_;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (resultCase_ == ResultOneofCase.Success) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Success);
+      }
+      if (HasError) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(EncryptMessageOutput other) {
+      if (other == null) {
+        return;
+      }
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          if (Success == null) {
+            Success = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptMessageSuccess();
+          }
+          Success.MergeFrom(other.Success);
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptMessageSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptMessageSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptMessageSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptMessageSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class EncryptMessageSuccess : pb::IMessage<EncryptMessageSuccess>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<EncryptMessageSuccess> _parser = new pb::MessageParser<EncryptMessageSuccess>(() => new EncryptMessageSuccess());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<EncryptMessageSuccess> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[15]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public EncryptMessageSuccess() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public EncryptMessageSuccess(EncryptMessageSuccess other) : this() {
+      _hasBits0 = other._hasBits0;
+      encryptedProtobuf_ = other.encryptedProtobuf_;
+      orfThreadID_ = other.orfThreadID_;
+      valueSecretRef_ = other.valueSecretRef_;
+      offlineThreadingID_ = other.offlineThreadingID_;
+      timestampMS_ = other.timestampMS_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public EncryptMessageSuccess Clone() {
+      return new EncryptMessageSuccess(this);
     }
 
     /// <summary>Field number for the "encryptedProtobuf" field.</summary>
@@ -6192,41 +6738,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       _hasBits0 &= ~2;
     }
 
-    /// <summary>Field number for the "error" field.</summary>
-    public const int ErrorFieldNumber = 7;
-    private readonly static string ErrorDefaultValue = "";
-
-    private string error_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string Error {
-      get { return error_ ?? ErrorDefaultValue; }
-      set {
-        error_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-    /// <summary>Gets whether the "error" field is set</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasError {
-      get { return error_ != null; }
-    }
-    /// <summary>Clears the value of the "error" field</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearError() {
-      error_ = null;
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
-      return Equals(other as EncryptMessageOutput);
+      return Equals(other as EncryptMessageSuccess);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool Equals(EncryptMessageOutput other) {
+    public bool Equals(EncryptMessageSuccess other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -6238,7 +6758,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (ValueSecretRef != other.ValueSecretRef) return false;
       if (OfflineThreadingID != other.OfflineThreadingID) return false;
       if (TimestampMS != other.TimestampMS) return false;
-      if (Error != other.Error) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -6251,7 +6770,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (HasValueSecretRef) hash ^= ValueSecretRef.GetHashCode();
       if (HasOfflineThreadingID) hash ^= OfflineThreadingID.GetHashCode();
       if (HasTimestampMS) hash ^= TimestampMS.GetHashCode();
-      if (HasError) hash ^= Error.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -6290,10 +6808,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(40);
         output.WriteUInt64(TimestampMS);
       }
-      if (HasError) {
-        output.WriteRawTag(58);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -6324,10 +6838,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(40);
         output.WriteUInt64(TimestampMS);
       }
-      if (HasError) {
-        output.WriteRawTag(58);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -6353,9 +6863,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (HasTimestampMS) {
         size += 1 + pb::CodedOutputStream.ComputeUInt64Size(TimestampMS);
       }
-      if (HasError) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
-      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -6364,7 +6871,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(EncryptMessageOutput other) {
+    public void MergeFrom(EncryptMessageSuccess other) {
       if (other == null) {
         return;
       }
@@ -6382,9 +6889,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       }
       if (other.HasTimestampMS) {
         TimestampMS = other.TimestampMS;
-      }
-      if (other.HasError) {
-        Error = other.Error;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -6423,10 +6927,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
           }
           case 40: {
             TimestampMS = input.ReadUInt64();
-            break;
-          }
-          case 58: {
-            Error = input.ReadString();
             break;
           }
         }
@@ -6468,10 +6968,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             TimestampMS = input.ReadUInt64();
             break;
           }
-          case 58: {
-            Error = input.ReadString();
-            break;
-          }
         }
       }
     }
@@ -6494,7 +6990,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[14]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[16]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6514,8 +7010,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DecryptMessageOutput(DecryptMessageOutput other) : this() {
-      plaintextPayload_ = other.plaintextPayload_;
-      error_ = other.error_;
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          Success = other.Success.Clone();
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -6523,6 +7026,293 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DecryptMessageOutput Clone() {
       return new DecryptMessageOutput(this);
+    }
+
+    /// <summary>Field number for the "success" field.</summary>
+    public const int SuccessFieldNumber = 1;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DecryptMessageSuccess Success {
+      get { return resultCase_ == ResultOneofCase.Success ? (global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DecryptMessageSuccess) result_ : null; }
+      set {
+        result_ = value;
+        resultCase_ = value == null ? ResultOneofCase.None : ResultOneofCase.Success;
+      }
+    }
+
+    /// <summary>Field number for the "error" field.</summary>
+    public const int ErrorFieldNumber = 2;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Error {
+      get { return HasError ? (string) result_ : ""; }
+      set {
+        result_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        resultCase_ = ResultOneofCase.Error;
+      }
+    }
+    /// <summary>Gets whether the "error" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasError {
+      get { return resultCase_ == ResultOneofCase.Error; }
+    }
+    /// <summary> Clears the value of the oneof if it's currently set to "error" </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearError() {
+      if (HasError) {
+        ClearResult();
+      }
+    }
+
+    private object result_;
+    /// <summary>Enum of possible cases for the "result" oneof.</summary>
+    public enum ResultOneofCase {
+      None = 0,
+      Success = 1,
+      Error = 2,
+    }
+    private ResultOneofCase resultCase_ = ResultOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ResultOneofCase ResultCase {
+      get { return resultCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearResult() {
+      resultCase_ = ResultOneofCase.None;
+      result_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as DecryptMessageOutput);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(DecryptMessageOutput other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Success, other.Success)) return false;
+      if (Error != other.Error) return false;
+      if (ResultCase != other.ResultCase) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (resultCase_ == ResultOneofCase.Success) hash ^= Success.GetHashCode();
+      if (HasError) hash ^= Error.GetHashCode();
+      hash ^= (int) resultCase_;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (resultCase_ == ResultOneofCase.Success) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Success);
+      }
+      if (HasError) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(DecryptMessageOutput other) {
+      if (other == null) {
+        return;
+      }
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          if (Success == null) {
+            Success = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DecryptMessageSuccess();
+          }
+          Success.MergeFrom(other.Success);
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DecryptMessageSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DecryptMessageSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DecryptMessageSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DecryptMessageSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class DecryptMessageSuccess : pb::IMessage<DecryptMessageSuccess>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<DecryptMessageSuccess> _parser = new pb::MessageParser<DecryptMessageSuccess>(() => new DecryptMessageSuccess());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<DecryptMessageSuccess> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[17]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DecryptMessageSuccess() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DecryptMessageSuccess(DecryptMessageSuccess other) : this() {
+      plaintextPayload_ = other.plaintextPayload_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DecryptMessageSuccess Clone() {
+      return new DecryptMessageSuccess(this);
     }
 
     /// <summary>Field number for the "plaintextPayload" field.</summary>
@@ -6551,41 +7341,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       plaintextPayload_ = null;
     }
 
-    /// <summary>Field number for the "error" field.</summary>
-    public const int ErrorFieldNumber = 2;
-    private readonly static string ErrorDefaultValue = "";
-
-    private string error_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string Error {
-      get { return error_ ?? ErrorDefaultValue; }
-      set {
-        error_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-    /// <summary>Gets whether the "error" field is set</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasError {
-      get { return error_ != null; }
-    }
-    /// <summary>Clears the value of the "error" field</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearError() {
-      error_ = null;
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
-      return Equals(other as DecryptMessageOutput);
+      return Equals(other as DecryptMessageSuccess);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool Equals(DecryptMessageOutput other) {
+    public bool Equals(DecryptMessageSuccess other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -6593,7 +7357,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         return true;
       }
       if (PlaintextPayload != other.PlaintextPayload) return false;
-      if (Error != other.Error) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -6602,7 +7365,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     public override int GetHashCode() {
       int hash = 1;
       if (HasPlaintextPayload) hash ^= PlaintextPayload.GetHashCode();
-      if (HasError) hash ^= Error.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -6625,10 +7387,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(10);
         output.WriteBytes(PlaintextPayload);
       }
-      if (HasError) {
-        output.WriteRawTag(18);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -6643,10 +7401,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(10);
         output.WriteBytes(PlaintextPayload);
       }
-      if (HasError) {
-        output.WriteRawTag(18);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -6660,9 +7414,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (HasPlaintextPayload) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(PlaintextPayload);
       }
-      if (HasError) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
-      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -6671,15 +7422,12 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(DecryptMessageOutput other) {
+    public void MergeFrom(DecryptMessageSuccess other) {
       if (other == null) {
         return;
       }
       if (other.HasPlaintextPayload) {
         PlaintextPayload = other.PlaintextPayload;
-      }
-      if (other.HasError) {
-        Error = other.Error;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -6702,6 +7450,288 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             break;
           case 10: {
             PlaintextPayload = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            PlaintextPayload = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class OrfThreadIdOutput : pb::IMessage<OrfThreadIdOutput>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<OrfThreadIdOutput> _parser = new pb::MessageParser<OrfThreadIdOutput>(() => new OrfThreadIdOutput());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<OrfThreadIdOutput> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[18]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public OrfThreadIdOutput() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public OrfThreadIdOutput(OrfThreadIdOutput other) : this() {
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          Success = other.Success.Clone();
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public OrfThreadIdOutput Clone() {
+      return new OrfThreadIdOutput(this);
+    }
+
+    /// <summary>Field number for the "success" field.</summary>
+    public const int SuccessFieldNumber = 1;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OrfThreadIdSuccess Success {
+      get { return resultCase_ == ResultOneofCase.Success ? (global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OrfThreadIdSuccess) result_ : null; }
+      set {
+        result_ = value;
+        resultCase_ = value == null ? ResultOneofCase.None : ResultOneofCase.Success;
+      }
+    }
+
+    /// <summary>Field number for the "error" field.</summary>
+    public const int ErrorFieldNumber = 2;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Error {
+      get { return HasError ? (string) result_ : ""; }
+      set {
+        result_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        resultCase_ = ResultOneofCase.Error;
+      }
+    }
+    /// <summary>Gets whether the "error" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasError {
+      get { return resultCase_ == ResultOneofCase.Error; }
+    }
+    /// <summary> Clears the value of the oneof if it's currently set to "error" </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearError() {
+      if (HasError) {
+        ClearResult();
+      }
+    }
+
+    private object result_;
+    /// <summary>Enum of possible cases for the "result" oneof.</summary>
+    public enum ResultOneofCase {
+      None = 0,
+      Success = 1,
+      Error = 2,
+    }
+    private ResultOneofCase resultCase_ = ResultOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ResultOneofCase ResultCase {
+      get { return resultCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearResult() {
+      resultCase_ = ResultOneofCase.None;
+      result_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as OrfThreadIdOutput);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(OrfThreadIdOutput other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Success, other.Success)) return false;
+      if (Error != other.Error) return false;
+      if (ResultCase != other.ResultCase) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (resultCase_ == ResultOneofCase.Success) hash ^= Success.GetHashCode();
+      if (HasError) hash ^= Error.GetHashCode();
+      hash ^= (int) resultCase_;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (resultCase_ == ResultOneofCase.Success) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Success);
+      }
+      if (HasError) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(OrfThreadIdOutput other) {
+      if (other == null) {
+        return;
+      }
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          if (Success == null) {
+            Success = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OrfThreadIdSuccess();
+          }
+          Success.MergeFrom(other.Success);
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OrfThreadIdSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OrfThreadIdSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
             break;
           }
           case 18: {
@@ -6728,7 +7758,12 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
           case 10: {
-            PlaintextPayload = input.ReadBytes();
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OrfThreadIdSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OrfThreadIdSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
             break;
           }
           case 18: {
@@ -6743,21 +7778,21 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
   }
 
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
-  public sealed partial class OrfThreadIdOutput : pb::IMessage<OrfThreadIdOutput>
+  public sealed partial class OrfThreadIdSuccess : pb::IMessage<OrfThreadIdSuccess>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
   #endif
   {
-    private static readonly pb::MessageParser<OrfThreadIdOutput> _parser = new pb::MessageParser<OrfThreadIdOutput>(() => new OrfThreadIdOutput());
+    private static readonly pb::MessageParser<OrfThreadIdSuccess> _parser = new pb::MessageParser<OrfThreadIdSuccess>(() => new OrfThreadIdSuccess());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public static pb::MessageParser<OrfThreadIdOutput> Parser { get { return _parser; } }
+    public static pb::MessageParser<OrfThreadIdSuccess> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[15]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[19]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6768,7 +7803,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public OrfThreadIdOutput() {
+    public OrfThreadIdSuccess() {
       OnConstruction();
     }
 
@@ -6776,16 +7811,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public OrfThreadIdOutput(OrfThreadIdOutput other) : this() {
+    public OrfThreadIdSuccess(OrfThreadIdSuccess other) : this() {
       orfThreadID_ = other.orfThreadID_;
-      error_ = other.error_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public OrfThreadIdOutput Clone() {
-      return new OrfThreadIdOutput(this);
+    public OrfThreadIdSuccess Clone() {
+      return new OrfThreadIdSuccess(this);
     }
 
     /// <summary>Field number for the "orfThreadID" field.</summary>
@@ -6814,41 +7848,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       orfThreadID_ = null;
     }
 
-    /// <summary>Field number for the "error" field.</summary>
-    public const int ErrorFieldNumber = 2;
-    private readonly static string ErrorDefaultValue = "";
-
-    private string error_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string Error {
-      get { return error_ ?? ErrorDefaultValue; }
-      set {
-        error_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-    /// <summary>Gets whether the "error" field is set</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasError {
-      get { return error_ != null; }
-    }
-    /// <summary>Clears the value of the "error" field</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearError() {
-      error_ = null;
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
-      return Equals(other as OrfThreadIdOutput);
+      return Equals(other as OrfThreadIdSuccess);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool Equals(OrfThreadIdOutput other) {
+    public bool Equals(OrfThreadIdSuccess other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -6856,7 +7864,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         return true;
       }
       if (OrfThreadID != other.OrfThreadID) return false;
-      if (Error != other.Error) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -6865,7 +7872,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     public override int GetHashCode() {
       int hash = 1;
       if (HasOrfThreadID) hash ^= OrfThreadID.GetHashCode();
-      if (HasError) hash ^= Error.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -6888,10 +7894,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(10);
         output.WriteBytes(OrfThreadID);
       }
-      if (HasError) {
-        output.WriteRawTag(18);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -6906,10 +7908,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(10);
         output.WriteBytes(OrfThreadID);
       }
-      if (HasError) {
-        output.WriteRawTag(18);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -6923,9 +7921,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (HasOrfThreadID) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(OrfThreadID);
       }
-      if (HasError) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
-      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -6934,15 +7929,12 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(OrfThreadIdOutput other) {
+    public void MergeFrom(OrfThreadIdSuccess other) {
       if (other == null) {
         return;
       }
       if (other.HasOrfThreadID) {
         OrfThreadID = other.OrfThreadID;
-      }
-      if (other.HasError) {
-        Error = other.Error;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -6965,6 +7957,288 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             break;
           case 10: {
             OrfThreadID = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            OrfThreadID = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class DeriveMessageKeyOutput : pb::IMessage<DeriveMessageKeyOutput>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<DeriveMessageKeyOutput> _parser = new pb::MessageParser<DeriveMessageKeyOutput>(() => new DeriveMessageKeyOutput());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<DeriveMessageKeyOutput> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[20]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DeriveMessageKeyOutput() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DeriveMessageKeyOutput(DeriveMessageKeyOutput other) : this() {
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          Success = other.Success.Clone();
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DeriveMessageKeyOutput Clone() {
+      return new DeriveMessageKeyOutput(this);
+    }
+
+    /// <summary>Field number for the "success" field.</summary>
+    public const int SuccessFieldNumber = 1;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveMessageKeySuccess Success {
+      get { return resultCase_ == ResultOneofCase.Success ? (global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveMessageKeySuccess) result_ : null; }
+      set {
+        result_ = value;
+        resultCase_ = value == null ? ResultOneofCase.None : ResultOneofCase.Success;
+      }
+    }
+
+    /// <summary>Field number for the "error" field.</summary>
+    public const int ErrorFieldNumber = 2;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Error {
+      get { return HasError ? (string) result_ : ""; }
+      set {
+        result_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        resultCase_ = ResultOneofCase.Error;
+      }
+    }
+    /// <summary>Gets whether the "error" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasError {
+      get { return resultCase_ == ResultOneofCase.Error; }
+    }
+    /// <summary> Clears the value of the oneof if it's currently set to "error" </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearError() {
+      if (HasError) {
+        ClearResult();
+      }
+    }
+
+    private object result_;
+    /// <summary>Enum of possible cases for the "result" oneof.</summary>
+    public enum ResultOneofCase {
+      None = 0,
+      Success = 1,
+      Error = 2,
+    }
+    private ResultOneofCase resultCase_ = ResultOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ResultOneofCase ResultCase {
+      get { return resultCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearResult() {
+      resultCase_ = ResultOneofCase.None;
+      result_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as DeriveMessageKeyOutput);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(DeriveMessageKeyOutput other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Success, other.Success)) return false;
+      if (Error != other.Error) return false;
+      if (ResultCase != other.ResultCase) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (resultCase_ == ResultOneofCase.Success) hash ^= Success.GetHashCode();
+      if (HasError) hash ^= Error.GetHashCode();
+      hash ^= (int) resultCase_;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (resultCase_ == ResultOneofCase.Success) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Success);
+      }
+      if (HasError) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(DeriveMessageKeyOutput other) {
+      if (other == null) {
+        return;
+      }
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          if (Success == null) {
+            Success = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveMessageKeySuccess();
+          }
+          Success.MergeFrom(other.Success);
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveMessageKeySuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveMessageKeySuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
             break;
           }
           case 18: {
@@ -6991,7 +8265,12 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
           case 10: {
-            OrfThreadID = input.ReadBytes();
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveMessageKeySuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveMessageKeySuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
             break;
           }
           case 18: {
@@ -7006,21 +8285,21 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
   }
 
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
-  public sealed partial class DeriveMessageKeyOutput : pb::IMessage<DeriveMessageKeyOutput>
+  public sealed partial class DeriveMessageKeySuccess : pb::IMessage<DeriveMessageKeySuccess>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
   #endif
   {
-    private static readonly pb::MessageParser<DeriveMessageKeyOutput> _parser = new pb::MessageParser<DeriveMessageKeyOutput>(() => new DeriveMessageKeyOutput());
+    private static readonly pb::MessageParser<DeriveMessageKeySuccess> _parser = new pb::MessageParser<DeriveMessageKeySuccess>(() => new DeriveMessageKeySuccess());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public static pb::MessageParser<DeriveMessageKeyOutput> Parser { get { return _parser; } }
+    public static pb::MessageParser<DeriveMessageKeySuccess> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[16]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[21]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7031,7 +8310,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public DeriveMessageKeyOutput() {
+    public DeriveMessageKeySuccess() {
       OnConstruction();
     }
 
@@ -7039,16 +8318,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public DeriveMessageKeyOutput(DeriveMessageKeyOutput other) : this() {
+    public DeriveMessageKeySuccess(DeriveMessageKeySuccess other) : this() {
       messageKey_ = other.messageKey_;
-      error_ = other.error_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public DeriveMessageKeyOutput Clone() {
-      return new DeriveMessageKeyOutput(this);
+    public DeriveMessageKeySuccess Clone() {
+      return new DeriveMessageKeySuccess(this);
     }
 
     /// <summary>Field number for the "messageKey" field.</summary>
@@ -7077,41 +8355,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       messageKey_ = null;
     }
 
-    /// <summary>Field number for the "error" field.</summary>
-    public const int ErrorFieldNumber = 2;
-    private readonly static string ErrorDefaultValue = "";
-
-    private string error_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string Error {
-      get { return error_ ?? ErrorDefaultValue; }
-      set {
-        error_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-    /// <summary>Gets whether the "error" field is set</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasError {
-      get { return error_ != null; }
-    }
-    /// <summary>Clears the value of the "error" field</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearError() {
-      error_ = null;
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
-      return Equals(other as DeriveMessageKeyOutput);
+      return Equals(other as DeriveMessageKeySuccess);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool Equals(DeriveMessageKeyOutput other) {
+    public bool Equals(DeriveMessageKeySuccess other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -7119,7 +8371,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         return true;
       }
       if (MessageKey != other.MessageKey) return false;
-      if (Error != other.Error) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -7128,7 +8379,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     public override int GetHashCode() {
       int hash = 1;
       if (HasMessageKey) hash ^= MessageKey.GetHashCode();
-      if (HasError) hash ^= Error.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -7151,10 +8401,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(10);
         output.WriteBytes(MessageKey);
       }
-      if (HasError) {
-        output.WriteRawTag(18);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -7169,10 +8415,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(10);
         output.WriteBytes(MessageKey);
       }
-      if (HasError) {
-        output.WriteRawTag(18);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -7186,9 +8428,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (HasMessageKey) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(MessageKey);
       }
-      if (HasError) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
-      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -7197,15 +8436,12 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(DeriveMessageKeyOutput other) {
+    public void MergeFrom(DeriveMessageKeySuccess other) {
       if (other == null) {
         return;
       }
       if (other.HasMessageKey) {
         MessageKey = other.MessageKey;
-      }
-      if (other.HasError) {
-        Error = other.Error;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -7228,6 +8464,288 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             break;
           case 10: {
             MessageKey = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            MessageKey = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class DeriveVirtualDeviceIdOutput : pb::IMessage<DeriveVirtualDeviceIdOutput>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<DeriveVirtualDeviceIdOutput> _parser = new pb::MessageParser<DeriveVirtualDeviceIdOutput>(() => new DeriveVirtualDeviceIdOutput());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<DeriveVirtualDeviceIdOutput> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[22]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DeriveVirtualDeviceIdOutput() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DeriveVirtualDeviceIdOutput(DeriveVirtualDeviceIdOutput other) : this() {
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          Success = other.Success.Clone();
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DeriveVirtualDeviceIdOutput Clone() {
+      return new DeriveVirtualDeviceIdOutput(this);
+    }
+
+    /// <summary>Field number for the "success" field.</summary>
+    public const int SuccessFieldNumber = 1;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveVirtualDeviceIdSuccess Success {
+      get { return resultCase_ == ResultOneofCase.Success ? (global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveVirtualDeviceIdSuccess) result_ : null; }
+      set {
+        result_ = value;
+        resultCase_ = value == null ? ResultOneofCase.None : ResultOneofCase.Success;
+      }
+    }
+
+    /// <summary>Field number for the "error" field.</summary>
+    public const int ErrorFieldNumber = 2;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Error {
+      get { return HasError ? (string) result_ : ""; }
+      set {
+        result_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        resultCase_ = ResultOneofCase.Error;
+      }
+    }
+    /// <summary>Gets whether the "error" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasError {
+      get { return resultCase_ == ResultOneofCase.Error; }
+    }
+    /// <summary> Clears the value of the oneof if it's currently set to "error" </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearError() {
+      if (HasError) {
+        ClearResult();
+      }
+    }
+
+    private object result_;
+    /// <summary>Enum of possible cases for the "result" oneof.</summary>
+    public enum ResultOneofCase {
+      None = 0,
+      Success = 1,
+      Error = 2,
+    }
+    private ResultOneofCase resultCase_ = ResultOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ResultOneofCase ResultCase {
+      get { return resultCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearResult() {
+      resultCase_ = ResultOneofCase.None;
+      result_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as DeriveVirtualDeviceIdOutput);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(DeriveVirtualDeviceIdOutput other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Success, other.Success)) return false;
+      if (Error != other.Error) return false;
+      if (ResultCase != other.ResultCase) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (resultCase_ == ResultOneofCase.Success) hash ^= Success.GetHashCode();
+      if (HasError) hash ^= Error.GetHashCode();
+      hash ^= (int) resultCase_;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (resultCase_ == ResultOneofCase.Success) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Success);
+      }
+      if (HasError) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(DeriveVirtualDeviceIdOutput other) {
+      if (other == null) {
+        return;
+      }
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          if (Success == null) {
+            Success = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveVirtualDeviceIdSuccess();
+          }
+          Success.MergeFrom(other.Success);
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveVirtualDeviceIdSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveVirtualDeviceIdSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
             break;
           }
           case 18: {
@@ -7254,7 +8772,12 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
           case 10: {
-            MessageKey = input.ReadBytes();
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveVirtualDeviceIdSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveVirtualDeviceIdSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
             break;
           }
           case 18: {
@@ -7269,21 +8792,21 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
   }
 
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
-  public sealed partial class DeriveVirtualDeviceIdOutput : pb::IMessage<DeriveVirtualDeviceIdOutput>
+  public sealed partial class DeriveVirtualDeviceIdSuccess : pb::IMessage<DeriveVirtualDeviceIdSuccess>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
   #endif
   {
-    private static readonly pb::MessageParser<DeriveVirtualDeviceIdOutput> _parser = new pb::MessageParser<DeriveVirtualDeviceIdOutput>(() => new DeriveVirtualDeviceIdOutput());
+    private static readonly pb::MessageParser<DeriveVirtualDeviceIdSuccess> _parser = new pb::MessageParser<DeriveVirtualDeviceIdSuccess>(() => new DeriveVirtualDeviceIdSuccess());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public static pb::MessageParser<DeriveVirtualDeviceIdOutput> Parser { get { return _parser; } }
+    public static pb::MessageParser<DeriveVirtualDeviceIdSuccess> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[17]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[23]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7294,7 +8817,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public DeriveVirtualDeviceIdOutput() {
+    public DeriveVirtualDeviceIdSuccess() {
       OnConstruction();
     }
 
@@ -7302,16 +8825,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public DeriveVirtualDeviceIdOutput(DeriveVirtualDeviceIdOutput other) : this() {
+    public DeriveVirtualDeviceIdSuccess(DeriveVirtualDeviceIdSuccess other) : this() {
       virtualDeviceID_ = other.virtualDeviceID_;
-      error_ = other.error_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public DeriveVirtualDeviceIdOutput Clone() {
-      return new DeriveVirtualDeviceIdOutput(this);
+    public DeriveVirtualDeviceIdSuccess Clone() {
+      return new DeriveVirtualDeviceIdSuccess(this);
     }
 
     /// <summary>Field number for the "virtualDeviceID" field.</summary>
@@ -7340,41 +8862,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       virtualDeviceID_ = null;
     }
 
-    /// <summary>Field number for the "error" field.</summary>
-    public const int ErrorFieldNumber = 2;
-    private readonly static string ErrorDefaultValue = "";
-
-    private string error_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string Error {
-      get { return error_ ?? ErrorDefaultValue; }
-      set {
-        error_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-    /// <summary>Gets whether the "error" field is set</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasError {
-      get { return error_ != null; }
-    }
-    /// <summary>Clears the value of the "error" field</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearError() {
-      error_ = null;
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
-      return Equals(other as DeriveVirtualDeviceIdOutput);
+      return Equals(other as DeriveVirtualDeviceIdSuccess);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool Equals(DeriveVirtualDeviceIdOutput other) {
+    public bool Equals(DeriveVirtualDeviceIdSuccess other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -7382,7 +8878,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         return true;
       }
       if (VirtualDeviceID != other.VirtualDeviceID) return false;
-      if (Error != other.Error) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -7391,7 +8886,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     public override int GetHashCode() {
       int hash = 1;
       if (HasVirtualDeviceID) hash ^= VirtualDeviceID.GetHashCode();
-      if (HasError) hash ^= Error.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -7414,10 +8908,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(10);
         output.WriteBytes(VirtualDeviceID);
       }
-      if (HasError) {
-        output.WriteRawTag(18);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -7432,10 +8922,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(10);
         output.WriteBytes(VirtualDeviceID);
       }
-      if (HasError) {
-        output.WriteRawTag(18);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -7449,9 +8935,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (HasVirtualDeviceID) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(VirtualDeviceID);
       }
-      if (HasError) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
-      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -7460,15 +8943,12 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(DeriveVirtualDeviceIdOutput other) {
+    public void MergeFrom(DeriveVirtualDeviceIdSuccess other) {
       if (other == null) {
         return;
       }
       if (other.HasVirtualDeviceID) {
         VirtualDeviceID = other.VirtualDeviceID;
-      }
-      if (other.HasError) {
-        Error = other.Error;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -7491,10 +8971,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             break;
           case 10: {
             VirtualDeviceID = input.ReadBytes();
-            break;
-          }
-          case 18: {
-            Error = input.ReadString();
             break;
           }
         }
@@ -7520,10 +8996,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             VirtualDeviceID = input.ReadBytes();
             break;
           }
-          case 18: {
-            Error = input.ReadString();
-            break;
-          }
         }
       }
     }
@@ -7546,7 +9018,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[18]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[24]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8065,7 +9537,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[19]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[25]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8374,7 +9846,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
   {
     private static readonly pb::MessageParser<PrepareAddDeviceOutput> _parser = new pb::MessageParser<PrepareAddDeviceOutput>(() => new PrepareAddDeviceOutput());
     private pb::UnknownFieldSet _unknownFields;
-    private int _hasBits0;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<PrepareAddDeviceOutput> Parser { get { return _parser; } }
@@ -8382,7 +9853,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[20]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[26]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8402,6 +9873,302 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public PrepareAddDeviceOutput(PrepareAddDeviceOutput other) : this() {
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          Success = other.Success.Clone();
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public PrepareAddDeviceOutput Clone() {
+      return new PrepareAddDeviceOutput(this);
+    }
+
+    /// <summary>Field number for the "success" field.</summary>
+    public const int SuccessFieldNumber = 1;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddDeviceSuccess Success {
+      get { return resultCase_ == ResultOneofCase.Success ? (global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddDeviceSuccess) result_ : null; }
+      set {
+        result_ = value;
+        resultCase_ = value == null ? ResultOneofCase.None : ResultOneofCase.Success;
+      }
+    }
+
+    /// <summary>Field number for the "error" field.</summary>
+    public const int ErrorFieldNumber = 2;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Error {
+      get { return HasError ? (string) result_ : ""; }
+      set {
+        result_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        resultCase_ = ResultOneofCase.Error;
+      }
+    }
+    /// <summary>Gets whether the "error" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasError {
+      get { return resultCase_ == ResultOneofCase.Error; }
+    }
+    /// <summary> Clears the value of the oneof if it's currently set to "error" </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearError() {
+      if (HasError) {
+        ClearResult();
+      }
+    }
+
+    private object result_;
+    /// <summary>Enum of possible cases for the "result" oneof.</summary>
+    public enum ResultOneofCase {
+      None = 0,
+      Success = 1,
+      Error = 2,
+    }
+    private ResultOneofCase resultCase_ = ResultOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ResultOneofCase ResultCase {
+      get { return resultCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearResult() {
+      resultCase_ = ResultOneofCase.None;
+      result_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as PrepareAddDeviceOutput);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(PrepareAddDeviceOutput other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Success, other.Success)) return false;
+      if (Error != other.Error) return false;
+      if (ResultCase != other.ResultCase) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (resultCase_ == ResultOneofCase.Success) hash ^= Success.GetHashCode();
+      if (HasError) hash ^= Error.GetHashCode();
+      hash ^= (int) resultCase_;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (resultCase_ == ResultOneofCase.Success) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Success);
+      }
+      if (HasError) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(PrepareAddDeviceOutput other) {
+      if (other == null) {
+        return;
+      }
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          if (Success == null) {
+            Success = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddDeviceSuccess();
+          }
+          Success.MergeFrom(other.Success);
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddDeviceSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddDeviceSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddDeviceSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddDeviceSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class PrepareAddDeviceSuccess : pb::IMessage<PrepareAddDeviceSuccess>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<PrepareAddDeviceSuccess> _parser = new pb::MessageParser<PrepareAddDeviceSuccess>(() => new PrepareAddDeviceSuccess());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<PrepareAddDeviceSuccess> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[27]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public PrepareAddDeviceSuccess() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public PrepareAddDeviceSuccess(PrepareAddDeviceSuccess other) : this() {
       _hasBits0 = other._hasBits0;
       deviceKeys_ = other.deviceKeys_ != null ? other.deviceKeys_.Clone() : null;
       currentEpoch_ = other.currentEpoch_ != null ? other.currentEpoch_.Clone() : null;
@@ -8412,14 +10179,13 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       supportedEncryptionVersions_ = other.supportedEncryptionVersions_.Clone();
       encryptionVersionSignature_ = other.encryptionVersionSignature_;
       clientVersion_ = other.clientVersion_;
-      error_ = other.error_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public PrepareAddDeviceOutput Clone() {
-      return new PrepareAddDeviceOutput(this);
+    public PrepareAddDeviceSuccess Clone() {
+      return new PrepareAddDeviceSuccess(this);
     }
 
     /// <summary>Field number for the "deviceKeys" field.</summary>
@@ -8614,41 +10380,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       _hasBits0 &= ~1;
     }
 
-    /// <summary>Field number for the "error" field.</summary>
-    public const int ErrorFieldNumber = 10;
-    private readonly static string ErrorDefaultValue = "";
-
-    private string error_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string Error {
-      get { return error_ ?? ErrorDefaultValue; }
-      set {
-        error_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-    /// <summary>Gets whether the "error" field is set</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasError {
-      get { return error_ != null; }
-    }
-    /// <summary>Clears the value of the "error" field</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearError() {
-      error_ = null;
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
-      return Equals(other as PrepareAddDeviceOutput);
+      return Equals(other as PrepareAddDeviceSuccess);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool Equals(PrepareAddDeviceOutput other) {
+    public bool Equals(PrepareAddDeviceSuccess other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -8664,7 +10404,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if(!supportedEncryptionVersions_.Equals(other.supportedEncryptionVersions_)) return false;
       if (EncryptionVersionSignature != other.EncryptionVersionSignature) return false;
       if (ClientVersion != other.ClientVersion) return false;
-      if (Error != other.Error) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -8681,7 +10420,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       hash ^= supportedEncryptionVersions_.GetHashCode();
       if (HasEncryptionVersionSignature) hash ^= EncryptionVersionSignature.GetHashCode();
       if (HasClientVersion) hash ^= ClientVersion.GetHashCode();
-      if (HasError) hash ^= Error.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -8733,10 +10471,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(72);
         output.WriteInt32(ClientVersion);
       }
-      if (HasError) {
-        output.WriteRawTag(82);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -8780,10 +10514,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(72);
         output.WriteInt32(ClientVersion);
       }
-      if (HasError) {
-        output.WriteRawTag(82);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -8819,9 +10549,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (HasClientVersion) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(ClientVersion);
       }
-      if (HasError) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
-      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -8830,7 +10557,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(PrepareAddDeviceOutput other) {
+    public void MergeFrom(PrepareAddDeviceSuccess other) {
       if (other == null) {
         return;
       }
@@ -8864,9 +10591,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       }
       if (other.HasClientVersion) {
         ClientVersion = other.ClientVersion;
-      }
-      if (other.HasError) {
-        Error = other.Error;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -8928,10 +10652,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
           }
           case 72: {
             ClientVersion = input.ReadInt32();
-            break;
-          }
-          case 82: {
-            Error = input.ReadString();
             break;
           }
         }
@@ -8996,10 +10716,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             ClientVersion = input.ReadInt32();
             break;
           }
-          case 82: {
-            Error = input.ReadString();
-            break;
-          }
         }
       }
     }
@@ -9023,7 +10739,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[21]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[28]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9442,7 +11158,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[22]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[29]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9836,7 +11552,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[23]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[30]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10152,7 +11868,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[24]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[31]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10459,7 +12175,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
   {
     private static readonly pb::MessageParser<RotateEpochOutput> _parser = new pb::MessageParser<RotateEpochOutput>(() => new RotateEpochOutput());
     private pb::UnknownFieldSet _unknownFields;
-    private int _hasBits0;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<RotateEpochOutput> Parser { get { return _parser; } }
@@ -10467,7 +12182,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[25]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[32]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10487,14 +12202,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RotateEpochOutput(RotateEpochOutput other) : this() {
-      _hasBits0 = other._hasBits0;
-      newEpochRootKey_ = other.newEpochRootKey_;
-      newEpochAnonID_ = other.newEpochAnonID_;
-      epochAnonID_ = other.epochAnonID_;
-      backwardEdge_ = other.backwardEdge_ != null ? other.backwardEdge_.Clone() : null;
-      memberEdges_ = other.memberEdges_.Clone();
-      epochRootKeyFingerprint_ = other.epochRootKeyFingerprint_;
-      error_ = other.error_;
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          Success = other.Success.Clone();
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -10502,6 +12218,300 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public RotateEpochOutput Clone() {
       return new RotateEpochOutput(this);
+    }
+
+    /// <summary>Field number for the "success" field.</summary>
+    public const int SuccessFieldNumber = 1;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochSuccess Success {
+      get { return resultCase_ == ResultOneofCase.Success ? (global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochSuccess) result_ : null; }
+      set {
+        result_ = value;
+        resultCase_ = value == null ? ResultOneofCase.None : ResultOneofCase.Success;
+      }
+    }
+
+    /// <summary>Field number for the "error" field.</summary>
+    public const int ErrorFieldNumber = 2;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Error {
+      get { return HasError ? (string) result_ : ""; }
+      set {
+        result_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        resultCase_ = ResultOneofCase.Error;
+      }
+    }
+    /// <summary>Gets whether the "error" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasError {
+      get { return resultCase_ == ResultOneofCase.Error; }
+    }
+    /// <summary> Clears the value of the oneof if it's currently set to "error" </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearError() {
+      if (HasError) {
+        ClearResult();
+      }
+    }
+
+    private object result_;
+    /// <summary>Enum of possible cases for the "result" oneof.</summary>
+    public enum ResultOneofCase {
+      None = 0,
+      Success = 1,
+      Error = 2,
+    }
+    private ResultOneofCase resultCase_ = ResultOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ResultOneofCase ResultCase {
+      get { return resultCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearResult() {
+      resultCase_ = ResultOneofCase.None;
+      result_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as RotateEpochOutput);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(RotateEpochOutput other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Success, other.Success)) return false;
+      if (Error != other.Error) return false;
+      if (ResultCase != other.ResultCase) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (resultCase_ == ResultOneofCase.Success) hash ^= Success.GetHashCode();
+      if (HasError) hash ^= Error.GetHashCode();
+      hash ^= (int) resultCase_;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (resultCase_ == ResultOneofCase.Success) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Success);
+      }
+      if (HasError) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(RotateEpochOutput other) {
+      if (other == null) {
+        return;
+      }
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          if (Success == null) {
+            Success = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochSuccess();
+          }
+          Success.MergeFrom(other.Success);
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class RotateEpochSuccess : pb::IMessage<RotateEpochSuccess>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<RotateEpochSuccess> _parser = new pb::MessageParser<RotateEpochSuccess>(() => new RotateEpochSuccess());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<RotateEpochSuccess> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[33]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RotateEpochSuccess() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RotateEpochSuccess(RotateEpochSuccess other) : this() {
+      _hasBits0 = other._hasBits0;
+      newEpochRootKey_ = other.newEpochRootKey_;
+      newEpochAnonID_ = other.newEpochAnonID_;
+      epochAnonID_ = other.epochAnonID_;
+      backwardEdge_ = other.backwardEdge_ != null ? other.backwardEdge_.Clone() : null;
+      memberEdges_ = other.memberEdges_.Clone();
+      epochRootKeyFingerprint_ = other.epochRootKeyFingerprint_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public RotateEpochSuccess Clone() {
+      return new RotateEpochSuccess(this);
     }
 
     /// <summary>Field number for the "newEpochRootKey" field.</summary>
@@ -10632,41 +12642,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       epochRootKeyFingerprint_ = null;
     }
 
-    /// <summary>Field number for the "error" field.</summary>
-    public const int ErrorFieldNumber = 7;
-    private readonly static string ErrorDefaultValue = "";
-
-    private string error_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string Error {
-      get { return error_ ?? ErrorDefaultValue; }
-      set {
-        error_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-    /// <summary>Gets whether the "error" field is set</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasError {
-      get { return error_ != null; }
-    }
-    /// <summary>Clears the value of the "error" field</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearError() {
-      error_ = null;
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
-      return Equals(other as RotateEpochOutput);
+      return Equals(other as RotateEpochSuccess);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool Equals(RotateEpochOutput other) {
+    public bool Equals(RotateEpochSuccess other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -10679,7 +12663,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (!object.Equals(BackwardEdge, other.BackwardEdge)) return false;
       if(!memberEdges_.Equals(other.memberEdges_)) return false;
       if (EpochRootKeyFingerprint != other.EpochRootKeyFingerprint) return false;
-      if (Error != other.Error) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -10693,7 +12676,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (backwardEdge_ != null) hash ^= BackwardEdge.GetHashCode();
       hash ^= memberEdges_.GetHashCode();
       if (HasEpochRootKeyFingerprint) hash ^= EpochRootKeyFingerprint.GetHashCode();
-      if (HasError) hash ^= Error.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -10733,10 +12715,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(50);
         output.WriteBytes(EpochRootKeyFingerprint);
       }
-      if (HasError) {
-        output.WriteRawTag(58);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -10768,10 +12746,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(50);
         output.WriteBytes(EpochRootKeyFingerprint);
       }
-      if (HasError) {
-        output.WriteRawTag(58);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -10798,9 +12772,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (HasEpochRootKeyFingerprint) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(EpochRootKeyFingerprint);
       }
-      if (HasError) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
-      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -10809,7 +12780,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(RotateEpochOutput other) {
+    public void MergeFrom(RotateEpochSuccess other) {
       if (other == null) {
         return;
       }
@@ -10831,9 +12802,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       memberEdges_.Add(other.memberEdges_);
       if (other.HasEpochRootKeyFingerprint) {
         EpochRootKeyFingerprint = other.EpochRootKeyFingerprint;
-      }
-      if (other.HasError) {
-        Error = other.Error;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -10879,10 +12847,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
           }
           case 50: {
             EpochRootKeyFingerprint = input.ReadBytes();
-            break;
-          }
-          case 58: {
-            Error = input.ReadString();
             break;
           }
         }
@@ -10931,10 +12895,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             EpochRootKeyFingerprint = input.ReadBytes();
             break;
           }
-          case 58: {
-            Error = input.ReadString();
-            break;
-          }
         }
       }
     }
@@ -10958,7 +12918,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[26]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[34]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -11223,7 +13183,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[27]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[35]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -11243,8 +13203,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ComputeClientSealTokenOutput(ComputeClientSealTokenOutput other) : this() {
-      clientSealToken_ = other.clientSealToken_;
-      error_ = other.error_;
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          Success = other.Success.Clone();
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -11252,6 +13219,293 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ComputeClientSealTokenOutput Clone() {
       return new ComputeClientSealTokenOutput(this);
+    }
+
+    /// <summary>Field number for the "success" field.</summary>
+    public const int SuccessFieldNumber = 1;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenSuccess Success {
+      get { return resultCase_ == ResultOneofCase.Success ? (global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenSuccess) result_ : null; }
+      set {
+        result_ = value;
+        resultCase_ = value == null ? ResultOneofCase.None : ResultOneofCase.Success;
+      }
+    }
+
+    /// <summary>Field number for the "error" field.</summary>
+    public const int ErrorFieldNumber = 2;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Error {
+      get { return HasError ? (string) result_ : ""; }
+      set {
+        result_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        resultCase_ = ResultOneofCase.Error;
+      }
+    }
+    /// <summary>Gets whether the "error" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasError {
+      get { return resultCase_ == ResultOneofCase.Error; }
+    }
+    /// <summary> Clears the value of the oneof if it's currently set to "error" </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearError() {
+      if (HasError) {
+        ClearResult();
+      }
+    }
+
+    private object result_;
+    /// <summary>Enum of possible cases for the "result" oneof.</summary>
+    public enum ResultOneofCase {
+      None = 0,
+      Success = 1,
+      Error = 2,
+    }
+    private ResultOneofCase resultCase_ = ResultOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ResultOneofCase ResultCase {
+      get { return resultCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearResult() {
+      resultCase_ = ResultOneofCase.None;
+      result_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as ComputeClientSealTokenOutput);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(ComputeClientSealTokenOutput other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Success, other.Success)) return false;
+      if (Error != other.Error) return false;
+      if (ResultCase != other.ResultCase) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (resultCase_ == ResultOneofCase.Success) hash ^= Success.GetHashCode();
+      if (HasError) hash ^= Error.GetHashCode();
+      hash ^= (int) resultCase_;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (resultCase_ == ResultOneofCase.Success) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Success);
+      }
+      if (HasError) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(ComputeClientSealTokenOutput other) {
+      if (other == null) {
+        return;
+      }
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          if (Success == null) {
+            Success = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenSuccess();
+          }
+          Success.MergeFrom(other.Success);
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class ComputeClientSealTokenSuccess : pb::IMessage<ComputeClientSealTokenSuccess>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<ComputeClientSealTokenSuccess> _parser = new pb::MessageParser<ComputeClientSealTokenSuccess>(() => new ComputeClientSealTokenSuccess());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<ComputeClientSealTokenSuccess> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[36]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ComputeClientSealTokenSuccess() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ComputeClientSealTokenSuccess(ComputeClientSealTokenSuccess other) : this() {
+      clientSealToken_ = other.clientSealToken_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ComputeClientSealTokenSuccess Clone() {
+      return new ComputeClientSealTokenSuccess(this);
     }
 
     /// <summary>Field number for the "clientSealToken" field.</summary>
@@ -11280,41 +13534,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       clientSealToken_ = null;
     }
 
-    /// <summary>Field number for the "error" field.</summary>
-    public const int ErrorFieldNumber = 2;
-    private readonly static string ErrorDefaultValue = "";
-
-    private string error_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string Error {
-      get { return error_ ?? ErrorDefaultValue; }
-      set {
-        error_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-    /// <summary>Gets whether the "error" field is set</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasError {
-      get { return error_ != null; }
-    }
-    /// <summary>Clears the value of the "error" field</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearError() {
-      error_ = null;
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
-      return Equals(other as ComputeClientSealTokenOutput);
+      return Equals(other as ComputeClientSealTokenSuccess);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool Equals(ComputeClientSealTokenOutput other) {
+    public bool Equals(ComputeClientSealTokenSuccess other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -11322,7 +13550,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         return true;
       }
       if (ClientSealToken != other.ClientSealToken) return false;
-      if (Error != other.Error) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -11331,7 +13558,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     public override int GetHashCode() {
       int hash = 1;
       if (HasClientSealToken) hash ^= ClientSealToken.GetHashCode();
-      if (HasError) hash ^= Error.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -11354,10 +13580,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(10);
         output.WriteBytes(ClientSealToken);
       }
-      if (HasError) {
-        output.WriteRawTag(18);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -11372,10 +13594,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(10);
         output.WriteBytes(ClientSealToken);
       }
-      if (HasError) {
-        output.WriteRawTag(18);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -11389,9 +13607,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (HasClientSealToken) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(ClientSealToken);
       }
-      if (HasError) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
-      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -11400,15 +13615,12 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(ComputeClientSealTokenOutput other) {
+    public void MergeFrom(ComputeClientSealTokenSuccess other) {
       if (other == null) {
         return;
       }
       if (other.HasClientSealToken) {
         ClientSealToken = other.ClientSealToken;
-      }
-      if (other.HasError) {
-        Error = other.Error;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -11431,10 +13643,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             break;
           case 10: {
             ClientSealToken = input.ReadBytes();
-            break;
-          }
-          case 18: {
-            Error = input.ReadString();
             break;
           }
         }
@@ -11460,10 +13668,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             ClientSealToken = input.ReadBytes();
             break;
           }
-          case 18: {
-            Error = input.ReadString();
-            break;
-          }
         }
       }
     }
@@ -11487,7 +13691,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[28]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[37]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -11854,7 +14058,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[29]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[38]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -11874,8 +14078,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SealThreadIdOutput(SealThreadIdOutput other) : this() {
-      sealedThreadID_ = other.sealedThreadID_;
-      error_ = other.error_;
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          Success = other.Success.Clone();
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -11883,6 +14094,293 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public SealThreadIdOutput Clone() {
       return new SealThreadIdOutput(this);
+    }
+
+    /// <summary>Field number for the "success" field.</summary>
+    public const int SuccessFieldNumber = 1;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.SealThreadIdSuccess Success {
+      get { return resultCase_ == ResultOneofCase.Success ? (global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.SealThreadIdSuccess) result_ : null; }
+      set {
+        result_ = value;
+        resultCase_ = value == null ? ResultOneofCase.None : ResultOneofCase.Success;
+      }
+    }
+
+    /// <summary>Field number for the "error" field.</summary>
+    public const int ErrorFieldNumber = 2;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Error {
+      get { return HasError ? (string) result_ : ""; }
+      set {
+        result_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        resultCase_ = ResultOneofCase.Error;
+      }
+    }
+    /// <summary>Gets whether the "error" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasError {
+      get { return resultCase_ == ResultOneofCase.Error; }
+    }
+    /// <summary> Clears the value of the oneof if it's currently set to "error" </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearError() {
+      if (HasError) {
+        ClearResult();
+      }
+    }
+
+    private object result_;
+    /// <summary>Enum of possible cases for the "result" oneof.</summary>
+    public enum ResultOneofCase {
+      None = 0,
+      Success = 1,
+      Error = 2,
+    }
+    private ResultOneofCase resultCase_ = ResultOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ResultOneofCase ResultCase {
+      get { return resultCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearResult() {
+      resultCase_ = ResultOneofCase.None;
+      result_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as SealThreadIdOutput);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(SealThreadIdOutput other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Success, other.Success)) return false;
+      if (Error != other.Error) return false;
+      if (ResultCase != other.ResultCase) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (resultCase_ == ResultOneofCase.Success) hash ^= Success.GetHashCode();
+      if (HasError) hash ^= Error.GetHashCode();
+      hash ^= (int) resultCase_;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (resultCase_ == ResultOneofCase.Success) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Success);
+      }
+      if (HasError) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(SealThreadIdOutput other) {
+      if (other == null) {
+        return;
+      }
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          if (Success == null) {
+            Success = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.SealThreadIdSuccess();
+          }
+          Success.MergeFrom(other.Success);
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.SealThreadIdSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.SealThreadIdSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.SealThreadIdSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.SealThreadIdSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class SealThreadIdSuccess : pb::IMessage<SealThreadIdSuccess>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<SealThreadIdSuccess> _parser = new pb::MessageParser<SealThreadIdSuccess>(() => new SealThreadIdSuccess());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<SealThreadIdSuccess> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[39]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SealThreadIdSuccess() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SealThreadIdSuccess(SealThreadIdSuccess other) : this() {
+      sealedThreadID_ = other.sealedThreadID_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SealThreadIdSuccess Clone() {
+      return new SealThreadIdSuccess(this);
     }
 
     /// <summary>Field number for the "sealedThreadID" field.</summary>
@@ -11911,41 +14409,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       sealedThreadID_ = null;
     }
 
-    /// <summary>Field number for the "error" field.</summary>
-    public const int ErrorFieldNumber = 2;
-    private readonly static string ErrorDefaultValue = "";
-
-    private string error_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string Error {
-      get { return error_ ?? ErrorDefaultValue; }
-      set {
-        error_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-    /// <summary>Gets whether the "error" field is set</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasError {
-      get { return error_ != null; }
-    }
-    /// <summary>Clears the value of the "error" field</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearError() {
-      error_ = null;
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
-      return Equals(other as SealThreadIdOutput);
+      return Equals(other as SealThreadIdSuccess);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool Equals(SealThreadIdOutput other) {
+    public bool Equals(SealThreadIdSuccess other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -11953,7 +14425,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         return true;
       }
       if (SealedThreadID != other.SealedThreadID) return false;
-      if (Error != other.Error) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -11962,7 +14433,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     public override int GetHashCode() {
       int hash = 1;
       if (HasSealedThreadID) hash ^= SealedThreadID.GetHashCode();
-      if (HasError) hash ^= Error.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -11985,10 +14455,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(10);
         output.WriteBytes(SealedThreadID);
       }
-      if (HasError) {
-        output.WriteRawTag(18);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -12003,10 +14469,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(10);
         output.WriteBytes(SealedThreadID);
       }
-      if (HasError) {
-        output.WriteRawTag(18);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -12020,9 +14482,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (HasSealedThreadID) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(SealedThreadID);
       }
-      if (HasError) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
-      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -12031,15 +14490,12 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(SealThreadIdOutput other) {
+    public void MergeFrom(SealThreadIdSuccess other) {
       if (other == null) {
         return;
       }
       if (other.HasSealedThreadID) {
         SealedThreadID = other.SealedThreadID;
-      }
-      if (other.HasError) {
-        Error = other.Error;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -12062,10 +14518,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             break;
           case 10: {
             SealedThreadID = input.ReadBytes();
-            break;
-          }
-          case 18: {
-            Error = input.ReadString();
             break;
           }
         }
@@ -12091,10 +14543,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             SealedThreadID = input.ReadBytes();
             break;
           }
-          case 18: {
-            Error = input.ReadString();
-            break;
-          }
         }
       }
     }
@@ -12118,7 +14566,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[30]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[40]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -12402,7 +14850,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
   {
     private static readonly pb::MessageParser<OpenSealedThreadIdOutput> _parser = new pb::MessageParser<OpenSealedThreadIdOutput>(() => new OpenSealedThreadIdOutput());
     private pb::UnknownFieldSet _unknownFields;
-    private int _hasBits0;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<OpenSealedThreadIdOutput> Parser { get { return _parser; } }
@@ -12410,7 +14857,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[31]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[41]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -12430,10 +14877,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public OpenSealedThreadIdOutput(OpenSealedThreadIdOutput other) : this() {
-      _hasBits0 = other._hasBits0;
-      threadID_ = other.threadID_;
-      sealEpochAnonID_ = other.sealEpochAnonID_;
-      error_ = other.error_;
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          Success = other.Success.Clone();
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -12441,6 +14893,296 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public OpenSealedThreadIdOutput Clone() {
       return new OpenSealedThreadIdOutput(this);
+    }
+
+    /// <summary>Field number for the "success" field.</summary>
+    public const int SuccessFieldNumber = 1;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OpenSealedThreadIdSuccess Success {
+      get { return resultCase_ == ResultOneofCase.Success ? (global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OpenSealedThreadIdSuccess) result_ : null; }
+      set {
+        result_ = value;
+        resultCase_ = value == null ? ResultOneofCase.None : ResultOneofCase.Success;
+      }
+    }
+
+    /// <summary>Field number for the "error" field.</summary>
+    public const int ErrorFieldNumber = 2;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Error {
+      get { return HasError ? (string) result_ : ""; }
+      set {
+        result_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        resultCase_ = ResultOneofCase.Error;
+      }
+    }
+    /// <summary>Gets whether the "error" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasError {
+      get { return resultCase_ == ResultOneofCase.Error; }
+    }
+    /// <summary> Clears the value of the oneof if it's currently set to "error" </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearError() {
+      if (HasError) {
+        ClearResult();
+      }
+    }
+
+    private object result_;
+    /// <summary>Enum of possible cases for the "result" oneof.</summary>
+    public enum ResultOneofCase {
+      None = 0,
+      Success = 1,
+      Error = 2,
+    }
+    private ResultOneofCase resultCase_ = ResultOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ResultOneofCase ResultCase {
+      get { return resultCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearResult() {
+      resultCase_ = ResultOneofCase.None;
+      result_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as OpenSealedThreadIdOutput);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(OpenSealedThreadIdOutput other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Success, other.Success)) return false;
+      if (Error != other.Error) return false;
+      if (ResultCase != other.ResultCase) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (resultCase_ == ResultOneofCase.Success) hash ^= Success.GetHashCode();
+      if (HasError) hash ^= Error.GetHashCode();
+      hash ^= (int) resultCase_;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (resultCase_ == ResultOneofCase.Success) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Success);
+      }
+      if (HasError) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(OpenSealedThreadIdOutput other) {
+      if (other == null) {
+        return;
+      }
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          if (Success == null) {
+            Success = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OpenSealedThreadIdSuccess();
+          }
+          Success.MergeFrom(other.Success);
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OpenSealedThreadIdSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OpenSealedThreadIdSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OpenSealedThreadIdSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.OpenSealedThreadIdSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class OpenSealedThreadIdSuccess : pb::IMessage<OpenSealedThreadIdSuccess>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<OpenSealedThreadIdSuccess> _parser = new pb::MessageParser<OpenSealedThreadIdSuccess>(() => new OpenSealedThreadIdSuccess());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<OpenSealedThreadIdSuccess> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[42]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public OpenSealedThreadIdSuccess() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public OpenSealedThreadIdSuccess(OpenSealedThreadIdSuccess other) : this() {
+      _hasBits0 = other._hasBits0;
+      threadID_ = other.threadID_;
+      sealEpochAnonID_ = other.sealEpochAnonID_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public OpenSealedThreadIdSuccess Clone() {
+      return new OpenSealedThreadIdSuccess(this);
     }
 
     /// <summary>Field number for the "threadID" field.</summary>
@@ -12496,41 +15238,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       _hasBits0 &= ~1;
     }
 
-    /// <summary>Field number for the "error" field.</summary>
-    public const int ErrorFieldNumber = 3;
-    private readonly static string ErrorDefaultValue = "";
-
-    private string error_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string Error {
-      get { return error_ ?? ErrorDefaultValue; }
-      set {
-        error_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-    /// <summary>Gets whether the "error" field is set</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasError {
-      get { return error_ != null; }
-    }
-    /// <summary>Clears the value of the "error" field</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearError() {
-      error_ = null;
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
-      return Equals(other as OpenSealedThreadIdOutput);
+      return Equals(other as OpenSealedThreadIdSuccess);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool Equals(OpenSealedThreadIdOutput other) {
+    public bool Equals(OpenSealedThreadIdSuccess other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -12539,7 +15255,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       }
       if (ThreadID != other.ThreadID) return false;
       if (SealEpochAnonID != other.SealEpochAnonID) return false;
-      if (Error != other.Error) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -12549,7 +15264,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       int hash = 1;
       if (HasThreadID) hash ^= ThreadID.GetHashCode();
       if (HasSealEpochAnonID) hash ^= SealEpochAnonID.GetHashCode();
-      if (HasError) hash ^= Error.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -12576,10 +15290,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(16);
         output.WriteUInt32(SealEpochAnonID);
       }
-      if (HasError) {
-        output.WriteRawTag(26);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -12598,10 +15308,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(16);
         output.WriteUInt32(SealEpochAnonID);
       }
-      if (HasError) {
-        output.WriteRawTag(26);
-        output.WriteString(Error);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -12618,9 +15324,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (HasSealEpochAnonID) {
         size += 1 + pb::CodedOutputStream.ComputeUInt32Size(SealEpochAnonID);
       }
-      if (HasError) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
-      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -12629,7 +15332,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(OpenSealedThreadIdOutput other) {
+    public void MergeFrom(OpenSealedThreadIdSuccess other) {
       if (other == null) {
         return;
       }
@@ -12638,9 +15341,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       }
       if (other.HasSealEpochAnonID) {
         SealEpochAnonID = other.SealEpochAnonID;
-      }
-      if (other.HasError) {
-        Error = other.Error;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -12667,10 +15367,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
           }
           case 16: {
             SealEpochAnonID = input.ReadUInt32();
-            break;
-          }
-          case 26: {
-            Error = input.ReadString();
             break;
           }
         }
@@ -12700,10 +15396,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             SealEpochAnonID = input.ReadUInt32();
             break;
           }
-          case 26: {
-            Error = input.ReadString();
-            break;
-          }
         }
       }
     }
@@ -12727,7 +15419,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[32]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[43]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -12992,7 +15684,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[33]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[44]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -13255,7 +15947,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[34]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[45]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -13605,7 +16297,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[35]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[46]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -13869,7 +16561,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[36]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[47]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -13889,8 +16581,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeriveEpochsOutput(DeriveEpochsOutput other) : this() {
-      epochs_ = other.epochs_.Clone();
-      error_ = other.error_;
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          Success = other.Success.Clone();
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -13900,41 +16599,63 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       return new DeriveEpochsOutput(this);
     }
 
-    /// <summary>Field number for the "epochs" field.</summary>
-    public const int EpochsFieldNumber = 1;
-    private static readonly pb::FieldCodec<global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EpochKey> _repeated_epochs_codec
-        = pb::FieldCodec.ForMessage(10, global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EpochKey.Parser);
-    private readonly pbc::RepeatedField<global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EpochKey> epochs_ = new pbc::RepeatedField<global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EpochKey>();
+    /// <summary>Field number for the "success" field.</summary>
+    public const int SuccessFieldNumber = 1;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pbc::RepeatedField<global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EpochKey> Epochs {
-      get { return epochs_; }
+    public global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveEpochsSuccess Success {
+      get { return resultCase_ == ResultOneofCase.Success ? (global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveEpochsSuccess) result_ : null; }
+      set {
+        result_ = value;
+        resultCase_ = value == null ? ResultOneofCase.None : ResultOneofCase.Success;
+      }
     }
 
     /// <summary>Field number for the "error" field.</summary>
     public const int ErrorFieldNumber = 2;
-    private readonly static string ErrorDefaultValue = "";
-
-    private string error_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Error {
-      get { return error_ ?? ErrorDefaultValue; }
+      get { return HasError ? (string) result_ : ""; }
       set {
-        error_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        result_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        resultCase_ = ResultOneofCase.Error;
       }
     }
     /// <summary>Gets whether the "error" field is set</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool HasError {
-      get { return error_ != null; }
+      get { return resultCase_ == ResultOneofCase.Error; }
     }
-    /// <summary>Clears the value of the "error" field</summary>
+    /// <summary> Clears the value of the oneof if it's currently set to "error" </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void ClearError() {
-      error_ = null;
+      if (HasError) {
+        ClearResult();
+      }
+    }
+
+    private object result_;
+    /// <summary>Enum of possible cases for the "result" oneof.</summary>
+    public enum ResultOneofCase {
+      None = 0,
+      Success = 1,
+      Error = 2,
+    }
+    private ResultOneofCase resultCase_ = ResultOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ResultOneofCase ResultCase {
+      get { return resultCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearResult() {
+      resultCase_ = ResultOneofCase.None;
+      result_ = null;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -13952,8 +16673,9 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if(!epochs_.Equals(other.epochs_)) return false;
+      if (!object.Equals(Success, other.Success)) return false;
       if (Error != other.Error) return false;
+      if (ResultCase != other.ResultCase) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -13961,8 +16683,9 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
-      hash ^= epochs_.GetHashCode();
+      if (resultCase_ == ResultOneofCase.Success) hash ^= Success.GetHashCode();
       if (HasError) hash ^= Error.GetHashCode();
+      hash ^= (int) resultCase_;
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -13981,7 +16704,10 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      epochs_.WriteTo(output, _repeated_epochs_codec);
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
       if (HasError) {
         output.WriteRawTag(18);
         output.WriteString(Error);
@@ -13996,7 +16722,10 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      epochs_.WriteTo(ref output, _repeated_epochs_codec);
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
       if (HasError) {
         output.WriteRawTag(18);
         output.WriteString(Error);
@@ -14011,7 +16740,9 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
-      size += epochs_.CalculateSize(_repeated_epochs_codec);
+      if (resultCase_ == ResultOneofCase.Success) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Success);
+      }
       if (HasError) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
       }
@@ -14027,10 +16758,18 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (other == null) {
         return;
       }
-      epochs_.Add(other.epochs_);
-      if (other.HasError) {
-        Error = other.Error;
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          if (Success == null) {
+            Success = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveEpochsSuccess();
+          }
+          Success.MergeFrom(other.Success);
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
       }
+
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -14051,7 +16790,12 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 10: {
-            epochs_.AddEntriesFrom(input, _repeated_epochs_codec);
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveEpochsSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveEpochsSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
             break;
           }
           case 18: {
@@ -14078,11 +16822,1282 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
           case 10: {
-            epochs_.AddEntriesFrom(ref input, _repeated_epochs_codec);
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveEpochsSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeriveEpochsSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
             break;
           }
           case 18: {
             Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class DeriveEpochsSuccess : pb::IMessage<DeriveEpochsSuccess>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<DeriveEpochsSuccess> _parser = new pb::MessageParser<DeriveEpochsSuccess>(() => new DeriveEpochsSuccess());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<DeriveEpochsSuccess> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[48]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DeriveEpochsSuccess() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DeriveEpochsSuccess(DeriveEpochsSuccess other) : this() {
+      epochs_ = other.epochs_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public DeriveEpochsSuccess Clone() {
+      return new DeriveEpochsSuccess(this);
+    }
+
+    /// <summary>Field number for the "epochs" field.</summary>
+    public const int EpochsFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EpochKey> _repeated_epochs_codec
+        = pb::FieldCodec.ForMessage(10, global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EpochKey.Parser);
+    private readonly pbc::RepeatedField<global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EpochKey> epochs_ = new pbc::RepeatedField<global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EpochKey>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EpochKey> Epochs {
+      get { return epochs_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as DeriveEpochsSuccess);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(DeriveEpochsSuccess other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!epochs_.Equals(other.epochs_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= epochs_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      epochs_.WriteTo(output, _repeated_epochs_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      epochs_.WriteTo(ref output, _repeated_epochs_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += epochs_.CalculateSize(_repeated_epochs_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(DeriveEpochsSuccess other) {
+      if (other == null) {
+        return;
+      }
+      epochs_.Add(other.epochs_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            epochs_.AddEntriesFrom(input, _repeated_epochs_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            epochs_.AddEntriesFrom(ref input, _repeated_epochs_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class PrepareAddPeerDeviceInput : pb::IMessage<PrepareAddPeerDeviceInput>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<PrepareAddPeerDeviceInput> _parser = new pb::MessageParser<PrepareAddPeerDeviceInput>(() => new PrepareAddPeerDeviceInput());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<PrepareAddPeerDeviceInput> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[49]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public PrepareAddPeerDeviceInput() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public PrepareAddPeerDeviceInput(PrepareAddPeerDeviceInput other) : this() {
+      _hasBits0 = other._hasBits0;
+      advSecret_ = other.advSecret_;
+      sealedPayload_ = other.sealedPayload_;
+      backupID_ = other.backupID_;
+      userID_ = other.userID_;
+      companionIdentityPub_ = other.companionIdentityPub_;
+      activeEpochID_ = other.activeEpochID_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public PrepareAddPeerDeviceInput Clone() {
+      return new PrepareAddPeerDeviceInput(this);
+    }
+
+    /// <summary>Field number for the "advSecret" field.</summary>
+    public const int AdvSecretFieldNumber = 1;
+    private readonly static pb::ByteString AdvSecretDefaultValue = pb::ByteString.Empty;
+
+    private pb::ByteString advSecret_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString AdvSecret {
+      get { return advSecret_ ?? AdvSecretDefaultValue; }
+      set {
+        advSecret_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "advSecret" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasAdvSecret {
+      get { return advSecret_ != null; }
+    }
+    /// <summary>Clears the value of the "advSecret" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearAdvSecret() {
+      advSecret_ = null;
+    }
+
+    /// <summary>Field number for the "sealedPayload" field.</summary>
+    public const int SealedPayloadFieldNumber = 2;
+    private readonly static pb::ByteString SealedPayloadDefaultValue = pb::ByteString.Empty;
+
+    private pb::ByteString sealedPayload_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString SealedPayload {
+      get { return sealedPayload_ ?? SealedPayloadDefaultValue; }
+      set {
+        sealedPayload_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "sealedPayload" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasSealedPayload {
+      get { return sealedPayload_ != null; }
+    }
+    /// <summary>Clears the value of the "sealedPayload" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearSealedPayload() {
+      sealedPayload_ = null;
+    }
+
+    /// <summary>Field number for the "backupID" field.</summary>
+    public const int BackupIDFieldNumber = 3;
+    private readonly static ulong BackupIDDefaultValue = 0UL;
+
+    private ulong backupID_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ulong BackupID {
+      get { if ((_hasBits0 & 1) != 0) { return backupID_; } else { return BackupIDDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        backupID_ = value;
+      }
+    }
+    /// <summary>Gets whether the "backupID" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasBackupID {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "backupID" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearBackupID() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "userID" field.</summary>
+    public const int UserIDFieldNumber = 4;
+    private readonly static ulong UserIDDefaultValue = 0UL;
+
+    private ulong userID_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ulong UserID {
+      get { if ((_hasBits0 & 2) != 0) { return userID_; } else { return UserIDDefaultValue; } }
+      set {
+        _hasBits0 |= 2;
+        userID_ = value;
+      }
+    }
+    /// <summary>Gets whether the "userID" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasUserID {
+      get { return (_hasBits0 & 2) != 0; }
+    }
+    /// <summary>Clears the value of the "userID" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearUserID() {
+      _hasBits0 &= ~2;
+    }
+
+    /// <summary>Field number for the "companionIdentityPub" field.</summary>
+    public const int CompanionIdentityPubFieldNumber = 5;
+    private readonly static pb::ByteString CompanionIdentityPubDefaultValue = pb::ByteString.Empty;
+
+    private pb::ByteString companionIdentityPub_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString CompanionIdentityPub {
+      get { return companionIdentityPub_ ?? CompanionIdentityPubDefaultValue; }
+      set {
+        companionIdentityPub_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "companionIdentityPub" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCompanionIdentityPub {
+      get { return companionIdentityPub_ != null; }
+    }
+    /// <summary>Clears the value of the "companionIdentityPub" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCompanionIdentityPub() {
+      companionIdentityPub_ = null;
+    }
+
+    /// <summary>Field number for the "activeEpochID" field.</summary>
+    public const int ActiveEpochIDFieldNumber = 6;
+    private readonly static ulong ActiveEpochIDDefaultValue = 0UL;
+
+    private ulong activeEpochID_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ulong ActiveEpochID {
+      get { if ((_hasBits0 & 4) != 0) { return activeEpochID_; } else { return ActiveEpochIDDefaultValue; } }
+      set {
+        _hasBits0 |= 4;
+        activeEpochID_ = value;
+      }
+    }
+    /// <summary>Gets whether the "activeEpochID" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasActiveEpochID {
+      get { return (_hasBits0 & 4) != 0; }
+    }
+    /// <summary>Clears the value of the "activeEpochID" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearActiveEpochID() {
+      _hasBits0 &= ~4;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as PrepareAddPeerDeviceInput);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(PrepareAddPeerDeviceInput other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (AdvSecret != other.AdvSecret) return false;
+      if (SealedPayload != other.SealedPayload) return false;
+      if (BackupID != other.BackupID) return false;
+      if (UserID != other.UserID) return false;
+      if (CompanionIdentityPub != other.CompanionIdentityPub) return false;
+      if (ActiveEpochID != other.ActiveEpochID) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (HasAdvSecret) hash ^= AdvSecret.GetHashCode();
+      if (HasSealedPayload) hash ^= SealedPayload.GetHashCode();
+      if (HasBackupID) hash ^= BackupID.GetHashCode();
+      if (HasUserID) hash ^= UserID.GetHashCode();
+      if (HasCompanionIdentityPub) hash ^= CompanionIdentityPub.GetHashCode();
+      if (HasActiveEpochID) hash ^= ActiveEpochID.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (HasAdvSecret) {
+        output.WriteRawTag(10);
+        output.WriteBytes(AdvSecret);
+      }
+      if (HasSealedPayload) {
+        output.WriteRawTag(18);
+        output.WriteBytes(SealedPayload);
+      }
+      if (HasBackupID) {
+        output.WriteRawTag(24);
+        output.WriteUInt64(BackupID);
+      }
+      if (HasUserID) {
+        output.WriteRawTag(32);
+        output.WriteUInt64(UserID);
+      }
+      if (HasCompanionIdentityPub) {
+        output.WriteRawTag(42);
+        output.WriteBytes(CompanionIdentityPub);
+      }
+      if (HasActiveEpochID) {
+        output.WriteRawTag(48);
+        output.WriteUInt64(ActiveEpochID);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (HasAdvSecret) {
+        output.WriteRawTag(10);
+        output.WriteBytes(AdvSecret);
+      }
+      if (HasSealedPayload) {
+        output.WriteRawTag(18);
+        output.WriteBytes(SealedPayload);
+      }
+      if (HasBackupID) {
+        output.WriteRawTag(24);
+        output.WriteUInt64(BackupID);
+      }
+      if (HasUserID) {
+        output.WriteRawTag(32);
+        output.WriteUInt64(UserID);
+      }
+      if (HasCompanionIdentityPub) {
+        output.WriteRawTag(42);
+        output.WriteBytes(CompanionIdentityPub);
+      }
+      if (HasActiveEpochID) {
+        output.WriteRawTag(48);
+        output.WriteUInt64(ActiveEpochID);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (HasAdvSecret) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(AdvSecret);
+      }
+      if (HasSealedPayload) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(SealedPayload);
+      }
+      if (HasBackupID) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(BackupID);
+      }
+      if (HasUserID) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(UserID);
+      }
+      if (HasCompanionIdentityPub) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(CompanionIdentityPub);
+      }
+      if (HasActiveEpochID) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(ActiveEpochID);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(PrepareAddPeerDeviceInput other) {
+      if (other == null) {
+        return;
+      }
+      if (other.HasAdvSecret) {
+        AdvSecret = other.AdvSecret;
+      }
+      if (other.HasSealedPayload) {
+        SealedPayload = other.SealedPayload;
+      }
+      if (other.HasBackupID) {
+        BackupID = other.BackupID;
+      }
+      if (other.HasUserID) {
+        UserID = other.UserID;
+      }
+      if (other.HasCompanionIdentityPub) {
+        CompanionIdentityPub = other.CompanionIdentityPub;
+      }
+      if (other.HasActiveEpochID) {
+        ActiveEpochID = other.ActiveEpochID;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            AdvSecret = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            SealedPayload = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            BackupID = input.ReadUInt64();
+            break;
+          }
+          case 32: {
+            UserID = input.ReadUInt64();
+            break;
+          }
+          case 42: {
+            CompanionIdentityPub = input.ReadBytes();
+            break;
+          }
+          case 48: {
+            ActiveEpochID = input.ReadUInt64();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            AdvSecret = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            SealedPayload = input.ReadBytes();
+            break;
+          }
+          case 24: {
+            BackupID = input.ReadUInt64();
+            break;
+          }
+          case 32: {
+            UserID = input.ReadUInt64();
+            break;
+          }
+          case 42: {
+            CompanionIdentityPub = input.ReadBytes();
+            break;
+          }
+          case 48: {
+            ActiveEpochID = input.ReadUInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class PrepareAddPeerDeviceOutput : pb::IMessage<PrepareAddPeerDeviceOutput>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<PrepareAddPeerDeviceOutput> _parser = new pb::MessageParser<PrepareAddPeerDeviceOutput>(() => new PrepareAddPeerDeviceOutput());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<PrepareAddPeerDeviceOutput> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[50]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public PrepareAddPeerDeviceOutput() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public PrepareAddPeerDeviceOutput(PrepareAddPeerDeviceOutput other) : this() {
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          Success = other.Success.Clone();
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public PrepareAddPeerDeviceOutput Clone() {
+      return new PrepareAddPeerDeviceOutput(this);
+    }
+
+    /// <summary>Field number for the "success" field.</summary>
+    public const int SuccessFieldNumber = 1;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceSuccess Success {
+      get { return resultCase_ == ResultOneofCase.Success ? (global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceSuccess) result_ : null; }
+      set {
+        result_ = value;
+        resultCase_ = value == null ? ResultOneofCase.None : ResultOneofCase.Success;
+      }
+    }
+
+    /// <summary>Field number for the "error" field.</summary>
+    public const int ErrorFieldNumber = 2;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Error {
+      get { return HasError ? (string) result_ : ""; }
+      set {
+        result_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        resultCase_ = ResultOneofCase.Error;
+      }
+    }
+    /// <summary>Gets whether the "error" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasError {
+      get { return resultCase_ == ResultOneofCase.Error; }
+    }
+    /// <summary> Clears the value of the oneof if it's currently set to "error" </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearError() {
+      if (HasError) {
+        ClearResult();
+      }
+    }
+
+    private object result_;
+    /// <summary>Enum of possible cases for the "result" oneof.</summary>
+    public enum ResultOneofCase {
+      None = 0,
+      Success = 1,
+      Error = 2,
+    }
+    private ResultOneofCase resultCase_ = ResultOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ResultOneofCase ResultCase {
+      get { return resultCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearResult() {
+      resultCase_ = ResultOneofCase.None;
+      result_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as PrepareAddPeerDeviceOutput);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(PrepareAddPeerDeviceOutput other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Success, other.Success)) return false;
+      if (Error != other.Error) return false;
+      if (ResultCase != other.ResultCase) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (resultCase_ == ResultOneofCase.Success) hash ^= Success.GetHashCode();
+      if (HasError) hash ^= Error.GetHashCode();
+      hash ^= (int) resultCase_;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (resultCase_ == ResultOneofCase.Success) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Success);
+      }
+      if (HasError) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(PrepareAddPeerDeviceOutput other) {
+      if (other == null) {
+        return;
+      }
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          if (Success == null) {
+            Success = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceSuccess();
+          }
+          Success.MergeFrom(other.Success);
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class PrepareAddPeerDeviceSuccess : pb::IMessage<PrepareAddPeerDeviceSuccess>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<PrepareAddPeerDeviceSuccess> _parser = new pb::MessageParser<PrepareAddPeerDeviceSuccess>(() => new PrepareAddPeerDeviceSuccess());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<PrepareAddPeerDeviceSuccess> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[51]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public PrepareAddPeerDeviceSuccess() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public PrepareAddPeerDeviceSuccess(PrepareAddPeerDeviceSuccess other) : this() {
+      _hasBits0 = other._hasBits0;
+      enrolment_ = other.enrolment_ != null ? other.enrolment_.Clone() : null;
+      serverDataID_ = other.serverDataID_;
+      companionDeviceBinding_ = other.companionDeviceBinding_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public PrepareAddPeerDeviceSuccess Clone() {
+      return new PrepareAddPeerDeviceSuccess(this);
+    }
+
+    /// <summary>Field number for the "enrolment" field.</summary>
+    public const int EnrolmentFieldNumber = 1;
+    private global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddDeviceSuccess enrolment_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddDeviceSuccess Enrolment {
+      get { return enrolment_; }
+      set {
+        enrolment_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "serverDataID" field.</summary>
+    public const int ServerDataIDFieldNumber = 2;
+    private readonly static ulong ServerDataIDDefaultValue = 0UL;
+
+    private ulong serverDataID_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ulong ServerDataID {
+      get { if ((_hasBits0 & 1) != 0) { return serverDataID_; } else { return ServerDataIDDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        serverDataID_ = value;
+      }
+    }
+    /// <summary>Gets whether the "serverDataID" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasServerDataID {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "serverDataID" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearServerDataID() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "companionDeviceBinding" field.</summary>
+    public const int CompanionDeviceBindingFieldNumber = 3;
+    private readonly static pb::ByteString CompanionDeviceBindingDefaultValue = pb::ByteString.Empty;
+
+    private pb::ByteString companionDeviceBinding_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString CompanionDeviceBinding {
+      get { return companionDeviceBinding_ ?? CompanionDeviceBindingDefaultValue; }
+      set {
+        companionDeviceBinding_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "companionDeviceBinding" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCompanionDeviceBinding {
+      get { return companionDeviceBinding_ != null; }
+    }
+    /// <summary>Clears the value of the "companionDeviceBinding" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCompanionDeviceBinding() {
+      companionDeviceBinding_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as PrepareAddPeerDeviceSuccess);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(PrepareAddPeerDeviceSuccess other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Enrolment, other.Enrolment)) return false;
+      if (ServerDataID != other.ServerDataID) return false;
+      if (CompanionDeviceBinding != other.CompanionDeviceBinding) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (enrolment_ != null) hash ^= Enrolment.GetHashCode();
+      if (HasServerDataID) hash ^= ServerDataID.GetHashCode();
+      if (HasCompanionDeviceBinding) hash ^= CompanionDeviceBinding.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (enrolment_ != null) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Enrolment);
+      }
+      if (HasServerDataID) {
+        output.WriteRawTag(16);
+        output.WriteUInt64(ServerDataID);
+      }
+      if (HasCompanionDeviceBinding) {
+        output.WriteRawTag(26);
+        output.WriteBytes(CompanionDeviceBinding);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (enrolment_ != null) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Enrolment);
+      }
+      if (HasServerDataID) {
+        output.WriteRawTag(16);
+        output.WriteUInt64(ServerDataID);
+      }
+      if (HasCompanionDeviceBinding) {
+        output.WriteRawTag(26);
+        output.WriteBytes(CompanionDeviceBinding);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (enrolment_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Enrolment);
+      }
+      if (HasServerDataID) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(ServerDataID);
+      }
+      if (HasCompanionDeviceBinding) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(CompanionDeviceBinding);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(PrepareAddPeerDeviceSuccess other) {
+      if (other == null) {
+        return;
+      }
+      if (other.enrolment_ != null) {
+        if (enrolment_ == null) {
+          Enrolment = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddDeviceSuccess();
+        }
+        Enrolment.MergeFrom(other.Enrolment);
+      }
+      if (other.HasServerDataID) {
+        ServerDataID = other.ServerDataID;
+      }
+      if (other.HasCompanionDeviceBinding) {
+        CompanionDeviceBinding = other.CompanionDeviceBinding;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            if (enrolment_ == null) {
+              Enrolment = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddDeviceSuccess();
+            }
+            input.ReadMessage(Enrolment);
+            break;
+          }
+          case 16: {
+            ServerDataID = input.ReadUInt64();
+            break;
+          }
+          case 26: {
+            CompanionDeviceBinding = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            if (enrolment_ == null) {
+              Enrolment = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddDeviceSuccess();
+            }
+            input.ReadMessage(Enrolment);
+            break;
+          }
+          case 16: {
+            ServerDataID = input.ReadUInt64();
+            break;
+          }
+          case 26: {
+            CompanionDeviceBinding = input.ReadBytes();
             break;
           }
         }
@@ -14107,7 +18122,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[37]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[52]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -14163,6 +18178,9 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
           break;
         case CommandInputOneofCase.SealThreadIDInput:
           SealThreadIDInput = other.SealThreadIDInput.Clone();
+          break;
+        case CommandInputOneofCase.PrepareAddPeerDeviceInput:
+          PrepareAddPeerDeviceInput = other.PrepareAddPeerDeviceInput.Clone();
           break;
       }
 
@@ -14319,6 +18337,18 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       }
     }
 
+    /// <summary>Field number for the "prepareAddPeerDeviceInput" field.</summary>
+    public const int PrepareAddPeerDeviceInputFieldNumber = 13;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceInput PrepareAddPeerDeviceInput {
+      get { return commandInputCase_ == CommandInputOneofCase.PrepareAddPeerDeviceInput ? (global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceInput) commandInput_ : null; }
+      set {
+        commandInput_ = value;
+        commandInputCase_ = value == null ? CommandInputOneofCase.None : CommandInputOneofCase.PrepareAddPeerDeviceInput;
+      }
+    }
+
     private object commandInput_;
     /// <summary>Enum of possible cases for the "commandInput" oneof.</summary>
     public enum CommandInputOneofCase {
@@ -14335,6 +18365,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       OpenSealedThreadIDInput = 10,
       DeriveEpochsInput = 11,
       SealThreadIDInput = 12,
+      PrepareAddPeerDeviceInput = 13,
     }
     private CommandInputOneofCase commandInputCase_ = CommandInputOneofCase.None;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -14377,6 +18408,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (!object.Equals(OpenSealedThreadIDInput, other.OpenSealedThreadIDInput)) return false;
       if (!object.Equals(DeriveEpochsInput, other.DeriveEpochsInput)) return false;
       if (!object.Equals(SealThreadIDInput, other.SealThreadIDInput)) return false;
+      if (!object.Equals(PrepareAddPeerDeviceInput, other.PrepareAddPeerDeviceInput)) return false;
       if (CommandInputCase != other.CommandInputCase) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -14397,6 +18429,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (commandInputCase_ == CommandInputOneofCase.OpenSealedThreadIDInput) hash ^= OpenSealedThreadIDInput.GetHashCode();
       if (commandInputCase_ == CommandInputOneofCase.DeriveEpochsInput) hash ^= DeriveEpochsInput.GetHashCode();
       if (commandInputCase_ == CommandInputOneofCase.SealThreadIDInput) hash ^= SealThreadIDInput.GetHashCode();
+      if (commandInputCase_ == CommandInputOneofCase.PrepareAddPeerDeviceInput) hash ^= PrepareAddPeerDeviceInput.GetHashCode();
       hash ^= (int) commandInputCase_;
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -14464,6 +18497,10 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(98);
         output.WriteMessage(SealThreadIDInput);
       }
+      if (commandInputCase_ == CommandInputOneofCase.PrepareAddPeerDeviceInput) {
+        output.WriteRawTag(106);
+        output.WriteMessage(PrepareAddPeerDeviceInput);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -14522,6 +18559,10 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(98);
         output.WriteMessage(SealThreadIDInput);
       }
+      if (commandInputCase_ == CommandInputOneofCase.PrepareAddPeerDeviceInput) {
+        output.WriteRawTag(106);
+        output.WriteMessage(PrepareAddPeerDeviceInput);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -14567,6 +18608,9 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       }
       if (commandInputCase_ == CommandInputOneofCase.SealThreadIDInput) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(SealThreadIDInput);
+      }
+      if (commandInputCase_ == CommandInputOneofCase.PrepareAddPeerDeviceInput) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(PrepareAddPeerDeviceInput);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -14652,6 +18696,12 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             SealThreadIDInput = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.SealThreadIdInput();
           }
           SealThreadIDInput.MergeFrom(other.SealThreadIDInput);
+          break;
+        case CommandInputOneofCase.PrepareAddPeerDeviceInput:
+          if (PrepareAddPeerDeviceInput == null) {
+            PrepareAddPeerDeviceInput = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceInput();
+          }
+          PrepareAddPeerDeviceInput.MergeFrom(other.PrepareAddPeerDeviceInput);
           break;
       }
 
@@ -14782,6 +18832,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             SealThreadIDInput = subBuilder;
             break;
           }
+          case 106: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceInput subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceInput();
+            if (commandInputCase_ == CommandInputOneofCase.PrepareAddPeerDeviceInput) {
+              subBuilder.MergeFrom(PrepareAddPeerDeviceInput);
+            }
+            input.ReadMessage(subBuilder);
+            PrepareAddPeerDeviceInput = subBuilder;
+            break;
+          }
         }
       }
     #endif
@@ -14907,6 +18966,15 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             }
             input.ReadMessage(subBuilder);
             SealThreadIDInput = subBuilder;
+            break;
+          }
+          case 106: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceInput subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceInput();
+            if (commandInputCase_ == CommandInputOneofCase.PrepareAddPeerDeviceInput) {
+              subBuilder.MergeFrom(PrepareAddPeerDeviceInput);
+            }
+            input.ReadMessage(subBuilder);
+            PrepareAddPeerDeviceInput = subBuilder;
             break;
           }
         }
