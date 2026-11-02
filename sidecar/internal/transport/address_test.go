@@ -209,8 +209,9 @@ func TestClosingLeavesASocketThatReplacedItsOwnAlone(t *testing.T) {
 	dial(t, replacement, "unix", path)
 }
 
-// The socket is bound in a private directory and moved into place with its mode, so nobody connects while it has the
-// umask's: nothing of that directory is left beside it.
+// The socket is bound in a private directory beside the path, on the operator's volume: that directory is removed
+// once the socket is in place, so nothing but the socket is left there. (That no client connects while the socket has
+// the umask's mode is not shown here: nothing outside the listen can reach that moment.)
 func TestListenAddressLeavesNothingButTheSocket(t *testing.T) {
 	t.Parallel()
 

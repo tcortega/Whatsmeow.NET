@@ -69,37 +69,30 @@ func ListenAddress(ctx context.Context, listen string) (net.Listener, string, er
 }
 
 func listenUnixAt(ctx context.Context, path string) (net.Listener, string, error) {
-	stale, err := checkPath(ctx, path)
+	dead, err := checkPath(ctx, path)
 	if err != nil {
 		return nil, "", err
 	}
 
-	lis, err := bindInPlace(ctx, path, stale)
+	lis, info, err := bindAt(ctx, path, dead)
 	if err != nil {
 		return nil, "", err
-	}
-
-	info, err := os.Lstat(path)
-	if err != nil {
-		_ = lis.Close()
-
-		return nil, "", fmt.Errorf("check %s: %w", path, err)
 	}
 
 	return &ownedSocket{UnixListener: lis, path: path, info: info}, path, nil
 }
 
-// checkPath allows a free path and a stale socket, which it reports, and refuses a live socket and anything else.
-func checkPath(ctx context.Context, path string) (bool, error) {
+// checkPath allows a free path, and a dead socket, which it returns; it refuses a live socket and anything else.
+func checkPath(ctx context.Context, path string) (os.FileInfo, error) {
 	info, err := os.Lstat(path)
 
 	switch {
 	case errors.Is(err, fs.ErrNotExist):
-		return false, nil
+		return nil, nil
 	case err != nil:
-		return false, fmt.Errorf("check %s: %w", path, err)
+		return nil, fmt.Errorf("check %s: %w", path, err)
 	case info.Mode().Type() != fs.ModeSocket:
-		return false, fmt.Errorf("%s exists and is not a socket (%s)", path, info.Mode().Type())
+		return nil, fmt.Errorf("%s exists and is not a socket (%s)", path, info.Mode().Type())
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, probeTimeout)
@@ -109,14 +102,14 @@ func checkPath(ctx context.Context, path string) (bool, error) {
 	if err == nil {
 		_ = conn.Close()
 
-		return false, fmt.Errorf("%s is the socket of a sidecar that still runs", path)
+		return nil, fmt.Errorf("%s is the socket of a sidecar that still runs", path)
 	}
 
 	if !refused(err) {
-		return false, fmt.Errorf("check whether a sidecar still serves %s: %w", path, err)
+		return nil, fmt.Errorf("check whether a sidecar still serves %s: %w", path, err)
 	}
 
-	return true, nil
+	return info, nil
 }
 
 // ownedSocket removes its socket on Close only while the path still names it: os.SameFile compares the inode.
