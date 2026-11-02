@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Time.Testing;
 using Whatsmeow.Events;
+using Whatsmeow.Groups;
 using Whatsmeow.IntegrationTests.Fake;
 using Whatsmeow.IntegrationTests.Sessions;
 using Whatsmeow.IntegrationTests.Support;
@@ -191,6 +192,62 @@ public sealed class EventProcessTests(FakeSidecar fixture, SidecarBinaries binar
 
 		Assert.Equal(["events-kill M1", "events-kill M2", "events-kill M3", "acked"], handledBefore);
 		Assert.Equal(ids[2..].Select(id => Deliveries.Received("events-kill", id)), await received.NextAsync(3, ct));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task GroupEvents_TheDotNetProcessIsKilledMidStream_TheEventsAfterTheAckComeAgainWithTheSameContent()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var options = new WhatsmeowSidecarOptions { SidecarPath = fixture.Binary, DatabasePath = binaries.NewDatabase() };
+		string[] names = ["N1", "N2", "N3", "N4", "N5"];
+
+		// The group notifications are durable in the outbox, and acked to WhatsApp, before any consumer runs.
+		await using (var setup = await WhatsmeowSidecar.StartFakeWhatsAppAsync(options, logs.Factory, ct))
+		{
+			var fake = new FakeWhatsAppService.FakeWhatsAppServiceClient(setup.CallInvoker);
+			_ = await LinkAsync(setup, fake, "events-kill-groups", ct);
+			await Deliveries.DeliverGroupAsync(fake, "events-kill-groups", ct, names);
+		}
+
+		// A process that handles N1 and N2, acks them, is stuck in N3's handler, and is killed there.
+		var host = Path.Combine(AppContext.BaseDirectory, OperatingSystem.IsWindows() ? "SidecarHost.exe" : "SidecarHost");
+		var info = new ProcessStartInfo(host) { UseShellExecute = false, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
+		foreach (var argument in new[] { "events", fixture.Binary, options.DatabasePath, "events-kill-groups", "N3" })
+			info.ArgumentList.Add(argument);
+
+		var handledBefore = new List<string>();
+		using (var killed = Process.Start(info)!)
+		{
+			try
+			{
+				var line = await killed.StandardOutput.ReadLineAsync(ct);
+				if (!int.TryParse(line, System.Globalization.CultureInfo.InvariantCulture, out var sidecar))
+					Assert.Fail($"the host printed no sidecar process id: {line} {await killed.StandardError.ReadToEndAsync(ct)}");
+
+				while (handledBefore.LastOrDefault() != "acked")
+					handledBefore.Add(await killed.StandardOutput.ReadLineAsync(ct) ?? throw new InvalidOperationException("the host ended"));
+
+				// The host alone, as a crash would: its sidecar stops on its own when stdin closes.
+				killed.Kill();
+				await killed.WaitForExitAsync(ct);
+				await Processes.WaitUntilGoneAsync(sidecar, ct);
+			}
+			finally
+			{
+				// A failure above must not leave the host or its sidecar running.
+				killed.Kill(entireProcessTree: true);
+			}
+		}
+
+		// The next process gets what was not acked: from the last acked event on, in order, with the same content.
+		await using var restarted = await WhatsmeowSidecar.StartFakeWhatsAppAsync(options, logs.Factory, ct);
+		var client = await restarted.Sessions.GetOrCreateAsync(SessionId.From("events-kill-groups"), ct);
+		using var received = new Received<GroupInfoChanged>(client);
+		await client.ConnectAsync(ct);
+
+		Assert.Equal(["events-kill-groups N1", "events-kill-groups N2", "events-kill-groups N3", "acked"], handledBefore);
+		Assert.Equal(names[2..].Select(name => Deliveries.Renaming("events-kill-groups", name)), await received.NextAsync(3, ct));
 	}
 
 	/// <summary>A session the phone linked on a sidecar of the test's own (SessionSetup.LinkedAsync, for the shared one).</summary>

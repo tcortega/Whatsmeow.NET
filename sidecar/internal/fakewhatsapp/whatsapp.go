@@ -45,6 +45,7 @@ type WhatsApp struct {
 	expired  map[string]int32
 	// retries are the media retry receipts the phone has not answered, by session and message id.
 	retries map[string]retryRequest
+	groupState
 }
 
 // script is what the controls scripted for a session's next calls. It is the session's, not its client's: each Pair
@@ -65,6 +66,8 @@ type script struct {
 	// holdSend holds the next send; held is the answer of the send being held, closed by ReleaseSend.
 	holdSend bool
 	held     chan struct{}
+	// failGroupQuery is the IQ error code of the next group call; 0 for none.
+	failGroupQuery int32
 }
 
 // setScript changes the session's script.
@@ -101,8 +104,9 @@ func (w *WhatsApp) take(sessionID string, scripted func(*script) bool, reset fun
 func New(log zerolog.Logger, options ...Option) *WhatsApp {
 	w := &WhatsApp{
 		log: log, clients: map[string]*Client{}, changed: make(chan struct{}), scripts: map[string]*script{},
-		directory: directory{users: map[types.JID]*user{}, pictures: map[types.JID]picture{}, blocklists: map[string][]types.BlocklistItem{}},
-		expired:   map[string]int32{}, retries: map[string]retryRequest{},
+		directory:  directory{users: map[types.JID]*user{}, pictures: map[types.JID]picture{}, blocklists: map[string][]types.BlocklistItem{}},
+		groupState: groupState{groups: map[types.JID]*group{}, revoked: map[string]bool{}, refusals: map[types.JID]refusal{}},
+		expired:    map[string]int32{}, retries: map[string]retryRequest{},
 	}
 
 	for _, option := range options {

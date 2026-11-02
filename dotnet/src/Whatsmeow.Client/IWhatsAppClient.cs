@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Whatsmeow.Contacts;
 using Whatsmeow.Events;
 using Whatsmeow.Messaging;
+using Whatsmeow.Groups;
 using Whatsmeow.Pairing;
 using Whatsmeow.Presence;
 using Whatsmeow.Sessions;
@@ -86,7 +87,7 @@ public interface IWhatsAppClient
 	/// <param name="cancellationToken">Cancels pairing, as for <see cref="PairWithQrCodeAsync"/>; so does stopping the enumeration.</param>
 	/// <exception cref="WhatsmeowValidationException">The phone number is too short or not international; nothing connected.</exception>
 	/// <exception cref="RateLimitedException">WhatsApp rate limited the request; the session is as before.</exception>
-	/// <exception cref="WhatsmeowException">WhatsApp refused, with <see cref="WhatsmeowErrorCode.WhatsAppError"/>.</exception>
+	/// <exception cref="WhatsAppErrorException">WhatsApp refused, with its <see cref="WhatsAppErrorException.Code"/>.</exception>
 	/// <exception cref="PairingException">As for <see cref="PairWithQrCodeAsync"/>.</exception>
 	/// <exception cref="NotConnectedException">As for <see cref="PairWithQrCodeAsync"/>.</exception>
 	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
@@ -104,7 +105,7 @@ public interface IWhatsAppClient
 	/// <exception cref="SessionLoggedOutException">The session is already logged out.</exception>
 	/// <exception cref="NotConnectedException">The session is not connected.</exception>
 	/// <exception cref="OutcomeUnknownException">No answer came from WhatsApp: the device may or may not be unlinked.</exception>
-	/// <exception cref="WhatsmeowException">WhatsApp refused, with <see cref="WhatsmeowErrorCode.WhatsAppError"/>.</exception>
+	/// <exception cref="WhatsAppErrorException">WhatsApp refused, with its <see cref="WhatsAppErrorException.Code"/>.</exception>
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
 	Task LogoutAsync(CancellationToken cancellationToken = default);
 
@@ -329,9 +330,10 @@ public interface IWhatsAppClient
 	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
 	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
 	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="WhatsAppErrorException">WhatsApp refused, with its <see cref="WhatsAppErrorException.Code"/>; nothing was done.</exception>
 	/// <exception cref="WhatsmeowException">
-	/// WhatsApp refused, with <see cref="WhatsmeowErrorCode.WhatsAppError"/>, or did not answer in time, with
-	/// <see cref="WhatsmeowErrorCode.WhatsAppTimedOut"/>: nothing was done, and the call can be repeated.
+	/// WhatsApp did not answer in time, with <see cref="WhatsmeowErrorCode.WhatsAppTimedOut"/>: nothing was done, and the
+	/// call can be repeated.
 	/// </exception>
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
 	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
@@ -431,7 +433,7 @@ public interface IWhatsAppClient
 	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
 	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
 	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
-	/// <exception cref="WhatsmeowException">WhatsApp refused, with <see cref="WhatsmeowErrorCode.WhatsAppError"/>.</exception>
+	/// <exception cref="WhatsAppErrorException">WhatsApp refused, with its <see cref="WhatsAppErrorException.Code"/>.</exception>
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
 	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
 	Task BlockAsync(Jid user, CancellationToken cancellationToken = default);
@@ -448,7 +450,7 @@ public interface IWhatsAppClient
 	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
 	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
 	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
-	/// <exception cref="WhatsmeowException">WhatsApp refused, with <see cref="WhatsmeowErrorCode.WhatsAppError"/>.</exception>
+	/// <exception cref="WhatsAppErrorException">WhatsApp refused, with its <see cref="WhatsAppErrorException.Code"/>.</exception>
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
 	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
 	Task UnblockAsync(Jid user, CancellationToken cancellationToken = default);
@@ -523,4 +525,281 @@ public interface IWhatsAppClient
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
 	/// <exception cref="ArgumentNullException"><paramref name="messageIds"/> is null.</exception>
 	Task MarkReadAsync(Jid chat, IReadOnlyCollection<MessageId> messageIds, Jid? sender = null, CancellationToken cancellationToken = default);
+	/// <summary>Lists the groups the session is in, ordered by JID, each with its participants and their roles.</summary>
+	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotConnectedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotLoggedInException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="WhatsAppErrorException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	Task<ImmutableArray<GroupInfo>> GetGroupsAsync(CancellationToken cancellationToken = default);
+
+	/// <summary>Reads a group: its name, topic, owner, creation time, settings and participants.</summary>
+	/// <param name="group">The group's JID.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The JID is not a group.</exception>
+	/// <exception cref="WhatsAppErrorException">WhatsApp refused: 403 when the session is not in the group, 404 when it does not exist.</exception>
+	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotConnectedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotLoggedInException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	Task<GroupInfo> GetGroupInfoAsync(Jid group, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Creates a group with the session as its owner and the participants. WhatsApp may refuse some of them and still
+	/// create the group, and nothing throws for that: the result has one entry per participant WhatsApp answered for,
+	/// saying whether it was added. Whether WhatsApp answers for a participant it refused, or omits it, is [unknown]; a
+	/// participant without an entry is not in <see cref="CreatedGroup.Group"/>.
+	/// </summary>
+	/// <param name="name">The group's name; WhatsApp limits its length.</param>
+	/// <param name="participants">The users to add besides the session, by phone-number JID or LID; a device in them is ignored.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The name is empty, or a participant is not a user; nothing was asked.</exception>
+	/// <exception cref="WhatsAppErrorException">WhatsApp refused the whole request, with its <see cref="WhatsAppErrorException.Code"/>.</exception>
+	/// <exception cref="OutcomeUnknownException">The request went out and no answer, or one without the group, came back: the group may or may not exist.</exception>
+	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotConnectedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotLoggedInException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="name"/> or <paramref name="participants"/> is null.</exception>
+	Task<CreatedGroup> CreateGroupAsync(string name, IReadOnlyList<Jid> participants, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Adds users to a group, as an admin. WhatsApp answers for each one: a user it would not add, for example because
+	/// their privacy settings ask for an invite, is <see cref="ParticipantOutcome.Refused"/>, and nothing throws for
+	/// that; the call throws only when the whole request fails. An empty list returns an empty list without asking
+	/// WhatsApp. The users added get <see cref="GroupJoined"/>, and the other members <see cref="GroupInfoChanged"/>.
+	/// </summary>
+	/// <param name="group">The group's JID.</param>
+	/// <param name="users">The users, by phone-number JID or LID; a device in them is ignored.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The group or a user is malformed; nothing was asked.</exception>
+	/// <exception cref="WhatsAppErrorException">WhatsApp refused the whole request, for example because the session is not an admin.</exception>
+	/// <exception cref="OutcomeUnknownException">The request went out and no answer, or one without the results, came back: the change may or may not be made.</exception>
+	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotConnectedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotLoggedInException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="users"/> is null.</exception>
+	Task<ImmutableArray<ParticipantResult>> AddParticipantsAsync(Jid group, IReadOnlyList<Jid> users, CancellationToken cancellationToken = default);
+
+	/// <summary>Removes users from a group, as <see cref="AddParticipantsAsync"/> adds them.</summary>
+	/// <param name="group">The group's JID.</param>
+	/// <param name="users">The users, by phone-number JID or LID; a device in them is ignored.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">As for <see cref="AddParticipantsAsync"/>.</exception>
+	/// <exception cref="WhatsAppErrorException">As for <see cref="AddParticipantsAsync"/>.</exception>
+	/// <exception cref="OutcomeUnknownException">As for <see cref="AddParticipantsAsync"/>.</exception>
+	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotConnectedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotLoggedInException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="users"/> is null.</exception>
+	Task<ImmutableArray<ParticipantResult>> RemoveParticipantsAsync(Jid group, IReadOnlyList<Jid> users, CancellationToken cancellationToken = default);
+
+	/// <summary>Makes participants admins, as <see cref="AddParticipantsAsync"/> adds users.</summary>
+	/// <param name="group">The group's JID.</param>
+	/// <param name="users">The participants, by phone-number JID or LID; a device in them is ignored.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">As for <see cref="AddParticipantsAsync"/>.</exception>
+	/// <exception cref="WhatsAppErrorException">As for <see cref="AddParticipantsAsync"/>.</exception>
+	/// <exception cref="OutcomeUnknownException">As for <see cref="AddParticipantsAsync"/>.</exception>
+	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotConnectedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotLoggedInException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="users"/> is null.</exception>
+	Task<ImmutableArray<ParticipantResult>> PromoteParticipantsAsync(Jid group, IReadOnlyList<Jid> users, CancellationToken cancellationToken = default);
+
+	/// <summary>Makes admins members again, as <see cref="AddParticipantsAsync"/> adds users.</summary>
+	/// <param name="group">The group's JID.</param>
+	/// <param name="users">The participants, by phone-number JID or LID; a device in them is ignored.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">As for <see cref="AddParticipantsAsync"/>.</exception>
+	/// <exception cref="WhatsAppErrorException">As for <see cref="AddParticipantsAsync"/>.</exception>
+	/// <exception cref="OutcomeUnknownException">As for <see cref="AddParticipantsAsync"/>.</exception>
+	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotConnectedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotLoggedInException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="users"/> is null.</exception>
+	Task<ImmutableArray<ParticipantResult>> DemoteParticipantsAsync(Jid group, IReadOnlyList<Jid> users, CancellationToken cancellationToken = default);
+
+	/// <summary>Renames a group; its members get <see cref="GroupInfoChanged"/>. In a locked group only an admin may.</summary>
+	/// <param name="group">The group's JID.</param>
+	/// <param name="name">The new name; WhatsApp limits its length.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The group is malformed or the name empty; nothing was asked.</exception>
+	/// <exception cref="WhatsAppErrorException">WhatsApp refused, for example because the session may not change the group's info.</exception>
+	/// <exception cref="OutcomeUnknownException">The request went out and no answer came back: the change may or may not be made.</exception>
+	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotConnectedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotLoggedInException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="name"/> is null.</exception>
+	Task SetGroupNameAsync(Jid group, string name, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Sets a group's topic, or removes it with null or empty, as <see cref="SetGroupNameAsync"/> renames it. It reads
+	/// the group first, for the topic it replaces.
+	/// </summary>
+	/// <param name="group">The group's JID.</param>
+	/// <param name="topic">The new topic; null or empty removes it.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The group is malformed; nothing was asked.</exception>
+	/// <exception cref="WhatsAppErrorException">As for <see cref="SetGroupNameAsync"/>.</exception>
+	/// <exception cref="OutcomeUnknownException">As for <see cref="SetGroupNameAsync"/>.</exception>
+	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotConnectedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotLoggedInException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="WhatsmeowException">The read of the group got no answer in time, with <see cref="WhatsmeowErrorCode.WhatsAppTimedOut"/>: nothing was changed.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	Task SetGroupTopicAsync(Jid group, string? topic, CancellationToken cancellationToken = default);
+
+	/// <summary>Sets whether only admins can send messages, as an admin; the members get <see cref="GroupInfoChanged"/>.</summary>
+	/// <param name="group">The group's JID.</param>
+	/// <param name="announce">True to let only admins send messages.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The group is malformed; nothing was asked.</exception>
+	/// <exception cref="WhatsAppErrorException">WhatsApp refused, for example because the session is not an admin.</exception>
+	/// <exception cref="OutcomeUnknownException">As for <see cref="SetGroupNameAsync"/>.</exception>
+	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotConnectedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotLoggedInException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	Task SetGroupAnnounceAsync(Jid group, bool announce, CancellationToken cancellationToken = default);
+
+	/// <summary>Sets whether only admins can change the group's info, as <see cref="SetGroupAnnounceAsync"/> sets who can send.</summary>
+	/// <param name="group">The group's JID.</param>
+	/// <param name="locked">True to let only admins change the group's info.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The group is malformed; nothing was asked.</exception>
+	/// <exception cref="WhatsAppErrorException">As for <see cref="SetGroupAnnounceAsync"/>.</exception>
+	/// <exception cref="OutcomeUnknownException">As for <see cref="SetGroupNameAsync"/>.</exception>
+	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotConnectedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotLoggedInException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	Task SetGroupLockedAsync(Jid group, bool locked, CancellationToken cancellationToken = default);
+
+	/// <summary>Reads a group's invite link, as an admin.</summary>
+	/// <param name="group">The group's JID.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The group is malformed; nothing was asked.</exception>
+	/// <exception cref="WhatsAppErrorException">WhatsApp refused: 401 when the session may not see the link, 403 when it is not in the group.</exception>
+	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotConnectedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotLoggedInException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	Task<Uri> GetGroupInviteLinkAsync(Jid group, CancellationToken cancellationToken = default);
+
+	/// <summary>Replaces a group's invite link with a new one, as an admin; the old one stops working.</summary>
+	/// <param name="group">The group's JID.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The group is malformed; nothing was asked.</exception>
+	/// <exception cref="WhatsAppErrorException">As for <see cref="GetGroupInviteLinkAsync"/>.</exception>
+	/// <exception cref="OutcomeUnknownException">The request went out and no answer came back: the link may or may not be replaced.</exception>
+	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotConnectedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotLoggedInException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	Task<Uri> ResetGroupInviteLinkAsync(Jid group, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Joins the group of an invite link and returns its JID; the session gets <see cref="GroupJoined"/>. For a group
+	/// that approves new members, WhatsApp answers with the group too while the session only asked to join and is not
+	/// a member yet.
+	/// </summary>
+	/// <param name="link">
+	/// The link, <c>https://chat.whatsapp.com/&lt;code&gt;</c>, as <see cref="GetGroupInviteLinkAsync"/> gives it, or its
+	/// code alone as a relative <see cref="Uri"/>.
+	/// </param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The link is empty; nothing was asked.</exception>
+	/// <exception cref="WhatsmeowException">
+	/// The link is malformed, unknown or was reset, with <see cref="WhatsmeowErrorCode.InviteLinkInvalid"/>: nothing was
+	/// done.
+	/// </exception>
+	/// <exception cref="WhatsAppErrorException">WhatsApp refused for another reason, with its <see cref="WhatsAppErrorException.Code"/>.</exception>
+	/// <exception cref="OutcomeUnknownException">The request went out and no answer, or one without the group, came back: the session may or may not have joined.</exception>
+	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotConnectedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotLoggedInException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="link"/> is null.</exception>
+	Task<Jid> JoinGroupWithLinkAsync(Uri link, CancellationToken cancellationToken = default);
+
+	/// <summary>Leaves a group; the session is no longer a member, and the members get <see cref="GroupInfoChanged"/>.</summary>
+	/// <param name="group">The group's JID.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The group is malformed; nothing was asked.</exception>
+	/// <exception cref="WhatsAppErrorException">WhatsApp refused, with its <see cref="WhatsAppErrorException.Code"/>: 403 when the session is not in the group.</exception>
+	/// <exception cref="OutcomeUnknownException">The request went out and no answer came back: the session may or may not have left.</exception>
+	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotConnectedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotLoggedInException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	Task LeaveGroupAsync(Jid group, CancellationToken cancellationToken = default);
 }

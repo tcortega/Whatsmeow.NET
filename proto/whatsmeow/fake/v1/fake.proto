@@ -151,6 +151,38 @@ service FakeWhatsAppService {
 
   // ReleaseSend makes WhatsApp answer the session's held send: it succeeds. No held send is an error.
   rpc ReleaseSend(ReleaseSendRequest) returns (ReleaseSendResponse);
+
+  // AddGroup puts a group on WhatsApp's side, which every session's group calls read and change. Its members are
+  // phone-number JIDs; in a LID-addressed group WhatsApp answers each by the LID RegisterUser gave it, with the phone
+  // number beside it, and by the phone number when it has none. Adding a jid again replaces the group.
+  rpc AddGroup(AddGroupRequest) returns (AddGroupResponse);
+
+  // DeliverGroupNotification makes WhatsApp send the session's client a w:gp2 notification of a change to a group,
+  // which need not be on WhatsApp's side. The client dispatches GroupInfo on its node queue, and returns once the
+  // handlers ran; as whatsmeow does, it acks the notification only when every handler succeeded
+  // (notification.go:493-506, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
+  // request's id and type "w:gp2", shows in WaitForSent. The group calls' notifications are acked the same way. A
+  // session without a client is an error.
+  //
+  // The group calls themselves notify the members as WhatsApp would, the member who made the change included
+  // [inferred: whatsmeow's own note that the server echoes a change, send.go:665]: a member added, or one that joins by
+  // link, gets a create notification (JoinedGroup), and every other member a change. WhatsApp's codes are [inferred]:
+  // a non-admin's change to a locked group's info, to its settings or to its participants is 403, and to its invite
+  // link 401 (whatsmeow's ErrGroupInviteLinkUnauthorized, group.go:432); a group the session is not in is 403 and an
+  // unknown one 404 (group.go:674-678); adding a member is 409, and removing, promoting or demoting a non-member 404,
+  // for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519); the creator gets no
+  // JoinedGroup for its own group; the create answer lists a participant WhatsApp refused, with its error. WhatsApp's
+  // time on these calls is fixed, 2026-11-01T12:00:00Z, so a test knows each time they answer and notify; an invite
+  // RefuseGroupAdd offers expires 72 hours after it.
+  rpc DeliverGroupNotification(DeliverGroupNotificationRequest) returns (DeliverGroupNotificationResponse);
+
+  // RefuseGroupAdd makes WhatsApp refuse to add a user to any group, by CreateGroup or by adding them, with code; with
+  // invite, WhatsApp offers an invite instead, as for a user whose privacy settings ask for one (group.go:729-739).
+  rpc RefuseGroupAdd(RefuseGroupAddRequest) returns (RefuseGroupAddResponse);
+
+  // FailNextGroupQuery makes WhatsApp answer the session's next group call with an IQ error of code: 429 is
+  // whatsmeow's ErrIQRateOverLimit (errors.go:197).
+  rpc FailNextGroupQuery(FailNextGroupQueryRequest) returns (FailNextGroupQueryResponse);
 }
 
 // FailNextUploadsRequest names the session and how many uploads fail.
@@ -445,7 +477,7 @@ message Sent {
     SentMessage message = 12;
     // A read receipt (MarkRead, receipt.go:197-237).
     ReadReceipt read = 13;
-    // The ack for a receipt WhatsApp delivered (sendAck, receipt.go:151-181).
+    // The ack for a receipt or a group notification WhatsApp delivered (sendAck, receipt.go:151-181).
     Ack ack = 14;
   }
 }
@@ -565,13 +597,15 @@ message ReadReceipt {
   repeated string message_ids = 3;
 }
 
-// Ack is whatsmeow's ack for a receipt.
+// Ack is whatsmeow's ack for a receipt or a w:gp2 notification: the stanza's tag as its class, its id and its type
+// (sendAck, receipt.go:151-181).
 message Ack {
-  // The stanza class: "receipt".
+  // The stanza class: "receipt" or "notification".
   string class = 1;
-  // The receipt's id: its first message id.
+  // A receipt's id, its first message id; a notification's stanza id, which DeliverGroupNotification takes and a
+  // group call's notifications number "GN1", "GN2", ... in the order WhatsApp sends them.
   string id = 2;
-  // The receipt's type; empty for a delivery receipt.
+  // A receipt's type, empty for a delivery receipt; "w:gp2" for a group notification.
   string type = 3;
 }
 
@@ -746,3 +780,97 @@ message FailNextContactQueryRequest {
 
 // FailNextContactQueryResponse has no fields.
 message FailNextContactQueryResponse {}
+
+// AddGroupRequest is one group on WhatsApp's side.
+message AddGroupRequest {
+  // One member.
+  message Member {
+    // The member's phone-number JID.
+    string jid = 1;
+    // WhatsApp's participant type: empty, "admin" or "superadmin".
+    string type = 2;
+  }
+
+  // The group's JID, digits@g.us.
+  string jid = 1;
+  // The name.
+  string name = 2;
+  // The topic.
+  string topic = 3;
+  // The creator, a phone-number JID.
+  string owner = 4;
+  // When it was created.
+  google.protobuf.Timestamp create_time = 5;
+  // Only admins can send messages.
+  bool announce = 6;
+  // Only admins can change the group's info.
+  bool locked = 7;
+  // WhatsApp addresses the participants by LID.
+  bool lid_addressed = 8;
+  // The members, in order.
+  repeated Member members = 9;
+}
+
+// AddGroupResponse has no fields.
+message AddGroupResponse {}
+
+// DeliverGroupNotificationRequest is one change notification; each field set is one change.
+message DeliverGroupNotificationRequest {
+  // The session whose client receives it.
+  string session_id = 1;
+  // The group's JID.
+  string group = 2;
+  // Who made the change; empty for none.
+  string sender = 3;
+  // The sender's phone number, when the sender is a LID.
+  string sender_pn = 4;
+  // When it happened.
+  google.protobuf.Timestamp time = 5;
+  // The new name.
+  optional string name = 6;
+  // The new topic; empty when it was removed.
+  optional string topic = 7;
+  // The new announce setting.
+  optional bool announce = 8;
+  // The new locked setting.
+  optional bool locked = 9;
+  // Users who joined.
+  repeated string join = 10;
+  // Users who left.
+  repeated string leave = 11;
+  // Users who became admins.
+  repeated string promote = 12;
+  // Users who stopped being admins.
+  repeated string demote = 13;
+  // A disappearing messages change, which the contract has no case for.
+  bool ephemeral = 14;
+  // The notification's stanza id, which its ack names.
+  string id = 15;
+}
+
+// DeliverGroupNotificationResponse has no fields.
+message DeliverGroupNotificationResponse {}
+
+// RefuseGroupAddRequest is one user WhatsApp will not add to groups.
+message RefuseGroupAddRequest {
+  // The user's phone-number JID.
+  string jid = 1;
+  // WhatsApp's error code for that participant.
+  int32 code = 2;
+  // WhatsApp offers an invite instead.
+  bool invite = 3;
+}
+
+// RefuseGroupAddResponse has no fields.
+message RefuseGroupAddResponse {}
+
+// FailNextGroupQueryRequest names the session and the error.
+message FailNextGroupQueryRequest {
+  // The session whose next group call fails.
+  string session_id = 1;
+  // WhatsApp's IQ error code.
+  int32 code = 2;
+}
+
+// FailNextGroupQueryResponse has no fields.
+message FailNextGroupQueryResponse {}

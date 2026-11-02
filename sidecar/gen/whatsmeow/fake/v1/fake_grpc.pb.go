@@ -48,6 +48,10 @@ const (
 	FakeWhatsAppService_RateLimitNextSends_FullMethodName          = "/whatsmeow.fake.v1.FakeWhatsAppService/RateLimitNextSends"
 	FakeWhatsAppService_HoldNextSend_FullMethodName                = "/whatsmeow.fake.v1.FakeWhatsAppService/HoldNextSend"
 	FakeWhatsAppService_ReleaseSend_FullMethodName                 = "/whatsmeow.fake.v1.FakeWhatsAppService/ReleaseSend"
+	FakeWhatsAppService_AddGroup_FullMethodName                    = "/whatsmeow.fake.v1.FakeWhatsAppService/AddGroup"
+	FakeWhatsAppService_DeliverGroupNotification_FullMethodName    = "/whatsmeow.fake.v1.FakeWhatsAppService/DeliverGroupNotification"
+	FakeWhatsAppService_RefuseGroupAdd_FullMethodName              = "/whatsmeow.fake.v1.FakeWhatsAppService/RefuseGroupAdd"
+	FakeWhatsAppService_FailNextGroupQuery_FullMethodName          = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextGroupQuery"
 )
 
 // FakeWhatsAppServiceClient is the client API for FakeWhatsAppService service.
@@ -172,6 +176,34 @@ type FakeWhatsAppServiceClient interface {
 	HoldNextSend(ctx context.Context, in *HoldNextSendRequest, opts ...grpc.CallOption) (*HoldNextSendResponse, error)
 	// ReleaseSend makes WhatsApp answer the session's held send: it succeeds. No held send is an error.
 	ReleaseSend(ctx context.Context, in *ReleaseSendRequest, opts ...grpc.CallOption) (*ReleaseSendResponse, error)
+	// AddGroup puts a group on WhatsApp's side, which every session's group calls read and change. Its members are
+	// phone-number JIDs; in a LID-addressed group WhatsApp answers each by the LID RegisterUser gave it, with the phone
+	// number beside it, and by the phone number when it has none. Adding a jid again replaces the group.
+	AddGroup(ctx context.Context, in *AddGroupRequest, opts ...grpc.CallOption) (*AddGroupResponse, error)
+	// DeliverGroupNotification makes WhatsApp send the session's client a w:gp2 notification of a change to a group,
+	// which need not be on WhatsApp's side. The client dispatches GroupInfo on its node queue, and returns once the
+	// handlers ran; as whatsmeow does, it acks the notification only when every handler succeeded
+	// (notification.go:493-506, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
+	// request's id and type "w:gp2", shows in WaitForSent. The group calls' notifications are acked the same way. A
+	// session without a client is an error.
+	//
+	// The group calls themselves notify the members as WhatsApp would, the member who made the change included
+	// [inferred: whatsmeow's own note that the server echoes a change, send.go:665]: a member added, or one that joins by
+	// link, gets a create notification (JoinedGroup), and every other member a change. WhatsApp's codes are [inferred]:
+	// a non-admin's change to a locked group's info, to its settings or to its participants is 403, and to its invite
+	// link 401 (whatsmeow's ErrGroupInviteLinkUnauthorized, group.go:432); a group the session is not in is 403 and an
+	// unknown one 404 (group.go:674-678); adding a member is 409, and removing, promoting or demoting a non-member 404,
+	// for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519); the creator gets no
+	// JoinedGroup for its own group; the create answer lists a participant WhatsApp refused, with its error. WhatsApp's
+	// time on these calls is fixed, 2026-11-01T12:00:00Z, so a test knows each time they answer and notify; an invite
+	// RefuseGroupAdd offers expires 72 hours after it.
+	DeliverGroupNotification(ctx context.Context, in *DeliverGroupNotificationRequest, opts ...grpc.CallOption) (*DeliverGroupNotificationResponse, error)
+	// RefuseGroupAdd makes WhatsApp refuse to add a user to any group, by CreateGroup or by adding them, with code; with
+	// invite, WhatsApp offers an invite instead, as for a user whose privacy settings ask for one (group.go:729-739).
+	RefuseGroupAdd(ctx context.Context, in *RefuseGroupAddRequest, opts ...grpc.CallOption) (*RefuseGroupAddResponse, error)
+	// FailNextGroupQuery makes WhatsApp answer the session's next group call with an IQ error of code: 429 is
+	// whatsmeow's ErrIQRateOverLimit (errors.go:197).
+	FailNextGroupQuery(ctx context.Context, in *FailNextGroupQueryRequest, opts ...grpc.CallOption) (*FailNextGroupQueryResponse, error)
 }
 
 type fakeWhatsAppServiceClient struct {
@@ -472,6 +504,46 @@ func (c *fakeWhatsAppServiceClient) ReleaseSend(ctx context.Context, in *Release
 	return out, nil
 }
 
+func (c *fakeWhatsAppServiceClient) AddGroup(ctx context.Context, in *AddGroupRequest, opts ...grpc.CallOption) (*AddGroupResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddGroupResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_AddGroup_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) DeliverGroupNotification(ctx context.Context, in *DeliverGroupNotificationRequest, opts ...grpc.CallOption) (*DeliverGroupNotificationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeliverGroupNotificationResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_DeliverGroupNotification_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) RefuseGroupAdd(ctx context.Context, in *RefuseGroupAddRequest, opts ...grpc.CallOption) (*RefuseGroupAddResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RefuseGroupAddResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_RefuseGroupAdd_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) FailNextGroupQuery(ctx context.Context, in *FailNextGroupQueryRequest, opts ...grpc.CallOption) (*FailNextGroupQueryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FailNextGroupQueryResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_FailNextGroupQuery_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FakeWhatsAppServiceServer is the server API for FakeWhatsAppService service.
 // All implementations must embed UnimplementedFakeWhatsAppServiceServer
 // for forward compatibility.
@@ -594,6 +666,34 @@ type FakeWhatsAppServiceServer interface {
 	HoldNextSend(context.Context, *HoldNextSendRequest) (*HoldNextSendResponse, error)
 	// ReleaseSend makes WhatsApp answer the session's held send: it succeeds. No held send is an error.
 	ReleaseSend(context.Context, *ReleaseSendRequest) (*ReleaseSendResponse, error)
+	// AddGroup puts a group on WhatsApp's side, which every session's group calls read and change. Its members are
+	// phone-number JIDs; in a LID-addressed group WhatsApp answers each by the LID RegisterUser gave it, with the phone
+	// number beside it, and by the phone number when it has none. Adding a jid again replaces the group.
+	AddGroup(context.Context, *AddGroupRequest) (*AddGroupResponse, error)
+	// DeliverGroupNotification makes WhatsApp send the session's client a w:gp2 notification of a change to a group,
+	// which need not be on WhatsApp's side. The client dispatches GroupInfo on its node queue, and returns once the
+	// handlers ran; as whatsmeow does, it acks the notification only when every handler succeeded
+	// (notification.go:493-506, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
+	// request's id and type "w:gp2", shows in WaitForSent. The group calls' notifications are acked the same way. A
+	// session without a client is an error.
+	//
+	// The group calls themselves notify the members as WhatsApp would, the member who made the change included
+	// [inferred: whatsmeow's own note that the server echoes a change, send.go:665]: a member added, or one that joins by
+	// link, gets a create notification (JoinedGroup), and every other member a change. WhatsApp's codes are [inferred]:
+	// a non-admin's change to a locked group's info, to its settings or to its participants is 403, and to its invite
+	// link 401 (whatsmeow's ErrGroupInviteLinkUnauthorized, group.go:432); a group the session is not in is 403 and an
+	// unknown one 404 (group.go:674-678); adding a member is 409, and removing, promoting or demoting a non-member 404,
+	// for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519); the creator gets no
+	// JoinedGroup for its own group; the create answer lists a participant WhatsApp refused, with its error. WhatsApp's
+	// time on these calls is fixed, 2026-11-01T12:00:00Z, so a test knows each time they answer and notify; an invite
+	// RefuseGroupAdd offers expires 72 hours after it.
+	DeliverGroupNotification(context.Context, *DeliverGroupNotificationRequest) (*DeliverGroupNotificationResponse, error)
+	// RefuseGroupAdd makes WhatsApp refuse to add a user to any group, by CreateGroup or by adding them, with code; with
+	// invite, WhatsApp offers an invite instead, as for a user whose privacy settings ask for one (group.go:729-739).
+	RefuseGroupAdd(context.Context, *RefuseGroupAddRequest) (*RefuseGroupAddResponse, error)
+	// FailNextGroupQuery makes WhatsApp answer the session's next group call with an IQ error of code: 429 is
+	// whatsmeow's ErrIQRateOverLimit (errors.go:197).
+	FailNextGroupQuery(context.Context, *FailNextGroupQueryRequest) (*FailNextGroupQueryResponse, error)
 	mustEmbedUnimplementedFakeWhatsAppServiceServer()
 }
 
@@ -690,6 +790,18 @@ func (UnimplementedFakeWhatsAppServiceServer) HoldNextSend(context.Context, *Hol
 }
 func (UnimplementedFakeWhatsAppServiceServer) ReleaseSend(context.Context, *ReleaseSendRequest) (*ReleaseSendResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReleaseSend not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) AddGroup(context.Context, *AddGroupRequest) (*AddGroupResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AddGroup not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) DeliverGroupNotification(context.Context, *DeliverGroupNotificationRequest) (*DeliverGroupNotificationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeliverGroupNotification not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) RefuseGroupAdd(context.Context, *RefuseGroupAddRequest) (*RefuseGroupAddResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RefuseGroupAdd not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) FailNextGroupQuery(context.Context, *FailNextGroupQueryRequest) (*FailNextGroupQueryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FailNextGroupQuery not implemented")
 }
 func (UnimplementedFakeWhatsAppServiceServer) mustEmbedUnimplementedFakeWhatsAppServiceServer() {}
 func (UnimplementedFakeWhatsAppServiceServer) testEmbeddedByValue()                             {}
@@ -1234,6 +1346,78 @@ func _FakeWhatsAppService_ReleaseSend_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FakeWhatsAppService_AddGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddGroupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).AddGroup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_AddGroup_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).AddGroup(ctx, req.(*AddGroupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_DeliverGroupNotification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeliverGroupNotificationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).DeliverGroupNotification(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_DeliverGroupNotification_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).DeliverGroupNotification(ctx, req.(*DeliverGroupNotificationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_RefuseGroupAdd_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RefuseGroupAddRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).RefuseGroupAdd(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_RefuseGroupAdd_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).RefuseGroupAdd(ctx, req.(*RefuseGroupAddRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_FailNextGroupQuery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FailNextGroupQueryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).FailNextGroupQuery(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_FailNextGroupQuery_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).FailNextGroupQuery(ctx, req.(*FailNextGroupQueryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FakeWhatsAppService_ServiceDesc is the grpc.ServiceDesc for FakeWhatsAppService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1356,6 +1540,22 @@ var FakeWhatsAppService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReleaseSend",
 			Handler:    _FakeWhatsAppService_ReleaseSend_Handler,
+		},
+		{
+			MethodName: "AddGroup",
+			Handler:    _FakeWhatsAppService_AddGroup_Handler,
+		},
+		{
+			MethodName: "DeliverGroupNotification",
+			Handler:    _FakeWhatsAppService_DeliverGroupNotification_Handler,
+		},
+		{
+			MethodName: "RefuseGroupAdd",
+			Handler:    _FakeWhatsAppService_RefuseGroupAdd_Handler,
+		},
+		{
+			MethodName: "FailNextGroupQuery",
+			Handler:    _FakeWhatsAppService_FailNextGroupQuery_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -86,9 +86,6 @@ public sealed class MessagingCrashTests(FakeSidecar fixture)
 			Type = ReceiptType.Read,
 		};
 
-		// MessageIds compare by reference in record equality; see MessagingTests.
-		var got = await receipts.NextAsync(ct);
-		Assert.Equal(expected, got with { MessageIds = expected.MessageIds });
-		Assert.Equal(expected.MessageIds, got.MessageIds);
+		Assert.Equal(expected, await receipts.NextAsync(ct));
 	}
 }

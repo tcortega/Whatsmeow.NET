@@ -1,5 +1,6 @@
 using Google.Protobuf.WellKnownTypes;
 using Whatsmeow.Events;
+using Whatsmeow.Groups;
 using Whatsmeow.IntegrationTests.Fake;
 
 namespace Whatsmeow.IntegrationTests.Events;
@@ -35,6 +36,38 @@ internal static class Deliveries
 			Timestamp = At,
 			Content = new TextContent { Text = $"text of {id}" },
 		};
+
+	/// <summary>The group the group deliveries change, and the user who changes it.</summary>
+	public const string Group = "120363199000000001@g.us";
+
+	/// <summary>A notification that the group was renamed to <paramref name="name"/>.</summary>
+	public static DeliverGroupNotificationRequest Renamed(string session, string name) =>
+		new()
+		{
+			SessionId = session,
+			Group = Group,
+			Sender = Chat,
+			Time = Timestamp.FromDateTimeOffset(At),
+			Name = name,
+		};
+
+	/// <summary>What the application gets for <see cref="Renamed"/>.</summary>
+	public static GroupInfoChanged Renaming(string session, string name) =>
+		new()
+		{
+			SessionId = SessionId.From(session),
+			Group = Jid.Parse(Group),
+			Sender = Jid.Parse(Chat),
+			SenderAlt = null,
+			Timestamp = At,
+			Changes = [new GroupChange.Renamed { Name = name }],
+		};
+
+	public static async Task DeliverGroupAsync(FakeWhatsAppService.FakeWhatsAppServiceClient fake, string session, CancellationToken cancellationToken, params string[] names)
+	{
+		foreach (var name in names)
+			_ = await fake.DeliverGroupNotificationAsync(Renamed(session, name), cancellationToken: cancellationToken).ConfigureAwait(false);
+	}
 
 	public static async Task DeliverAsync(FakeWhatsAppService.FakeWhatsAppServiceClient fake, string session, CancellationToken cancellationToken, params string[] ids)
 	{

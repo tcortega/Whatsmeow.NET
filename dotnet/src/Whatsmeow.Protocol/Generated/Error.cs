@@ -24,7 +24,7 @@ namespace Whatsmeow.Protocol.V1 {
     static ErrorReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Chh3aGF0c21lb3cvdjEvZXJyb3IucHJvdG8SDHdoYXRzbWVvdy52MSqfBgoL",
+            "Chh3aGF0c21lb3cvdjEvZXJyb3IucHJvdG8SDHdoYXRzbWVvdy52MSrFBgoL",
             "RXJyb3JSZWFzb24SHAoYRVJST1JfUkVBU09OX1VOU1BFQ0lGSUVEEAASGQoV",
             "RVJST1JfUkVBU09OX0lOVEVSTkFMEAESIQodRVJST1JfUkVBU09OX0lOVkFM",
             "SURfQVJHVU1FTlQQAhIgChxFUlJPUl9SRUFTT05fVU5BVVRIRU5USUNBVEVE",
@@ -42,12 +42,13 @@ namespace Whatsmeow.Protocol.V1 {
             "EiAKHEVSUk9SX1JFQVNPTl9PVVRDT01FX1VOS05PV04QEhIfChtFUlJPUl9S",
             "RUFTT05fV0hBVFNBUFBfRVJST1IQExIjCh9FUlJPUl9SRUFTT05fV0hBVFNB",
             "UFBfVElNRURfT1VUEBQSHQoZRVJST1JfUkVBU09OX05PX1BVU0hfTkFNRRAV",
-            "Eh4KGkVSUk9SX1JFQVNPTl9NRURJQV9FWFBJUkVEEBZCwAEKEGNvbS53aGF0",
-            "c21lb3cudjFCCkVycm9yUHJvdG9QAVpGZ2l0aHViLmNvbS90Y29ydGVnYS9X",
-            "aGF0c21lb3cuTkVUL3NpZGVjYXIvZ2VuL3doYXRzbWVvdy92MTt3aGF0c21l",
-            "b3d2MaICA1dYWKoCFVdoYXRzbWVvdy5Qcm90b2NvbC5WMcoCDFdoYXRzbWVv",
-            "d1xWMeICGFdoYXRzbWVvd1xWMVxHUEJNZXRhZGF0YeoCDVdoYXRzbWVvdzo6",
-            "VjFiBnByb3RvMw=="));
+            "Eh4KGkVSUk9SX1JFQVNPTl9NRURJQV9FWFBJUkVEEBYSJAogRVJST1JfUkVB",
+            "U09OX0lOVklURV9MSU5LX0lOVkFMSUQQF0LAAQoQY29tLndoYXRzbWVvdy52",
+            "MUIKRXJyb3JQcm90b1ABWkZnaXRodWIuY29tL3Rjb3J0ZWdhL1doYXRzbWVv",
+            "dy5ORVQvc2lkZWNhci9nZW4vd2hhdHNtZW93L3YxO3doYXRzbWVvd3YxogID",
+            "V1hYqgIVV2hhdHNtZW93LlByb3RvY29sLlYxygIMV2hhdHNtZW93XFYx4gIY",
+            "V2hhdHNtZW93XFYxXEdQQk1ldGFkYXRh6gINV2hhdHNtZW93OjpWMWIGcHJv",
+            "dG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Whatsmeow.Protocol.V1.ErrorReason), }, null, null));
@@ -166,6 +167,10 @@ namespace Whatsmeow.Protocol.V1 {
     /// upload it again.
     /// </summary>
     [pbr::OriginalName("ERROR_REASON_MEDIA_EXPIRED")] MediaExpired = 22,
+    /// <summary>
+    /// NOT_FOUND. The group invite link is malformed, unknown or was reset; nothing was done.
+    /// </summary>
+    [pbr::OriginalName("ERROR_REASON_INVITE_LINK_INVALID")] InviteLinkInvalid = 23,
   }
 
   #endregion

@@ -313,6 +313,271 @@ override Whatsmeow.Events.WhatsAppEvent.ToString() -> string!
 Whatsmeow.Events.WhatsAppEvent.WhatsAppEvent(Whatsmeow.Events.WhatsAppEvent! original) -> void
 static Whatsmeow.Events.WhatsAppEvent.operator !=(Whatsmeow.Events.WhatsAppEvent? left, Whatsmeow.Events.WhatsAppEvent? right) -> bool
 static Whatsmeow.Events.WhatsAppEvent.operator ==(Whatsmeow.Events.WhatsAppEvent? left, Whatsmeow.Events.WhatsAppEvent? right) -> bool
+Whatsmeow.Groups.CreatedGroup
+Whatsmeow.Groups.CreatedGroup.<Clone>$() -> Whatsmeow.Groups.CreatedGroup!
+Whatsmeow.Groups.CreatedGroup.CreatedGroup() -> void
+Whatsmeow.Groups.CreatedGroup.Equals(Whatsmeow.Groups.CreatedGroup? other) -> bool
+override Whatsmeow.Groups.CreatedGroup.Equals(object? obj) -> bool
+override Whatsmeow.Groups.CreatedGroup.GetHashCode() -> int
+Whatsmeow.Groups.CreatedGroup.Group.get -> Whatsmeow.Groups.GroupInfo!
+Whatsmeow.Groups.CreatedGroup.Group.init -> void
+Whatsmeow.Groups.CreatedGroup.Participants.get -> System.Collections.Immutable.ImmutableArray<Whatsmeow.Groups.ParticipantResult!>
+Whatsmeow.Groups.CreatedGroup.Participants.init -> void
+override Whatsmeow.Groups.CreatedGroup.ToString() -> string!
+static Whatsmeow.Groups.CreatedGroup.operator !=(Whatsmeow.Groups.CreatedGroup? left, Whatsmeow.Groups.CreatedGroup? right) -> bool
+static Whatsmeow.Groups.CreatedGroup.operator ==(Whatsmeow.Groups.CreatedGroup? left, Whatsmeow.Groups.CreatedGroup? right) -> bool
+Whatsmeow.Groups.GroupAddInvite
+Whatsmeow.Groups.GroupAddInvite.<Clone>$() -> Whatsmeow.Groups.GroupAddInvite!
+Whatsmeow.Groups.GroupAddInvite.Code.get -> string!
+Whatsmeow.Groups.GroupAddInvite.Code.init -> void
+Whatsmeow.Groups.GroupAddInvite.Equals(Whatsmeow.Groups.GroupAddInvite? other) -> bool
+override Whatsmeow.Groups.GroupAddInvite.Equals(object? obj) -> bool
+Whatsmeow.Groups.GroupAddInvite.ExpiresAt.get -> System.DateTimeOffset
+Whatsmeow.Groups.GroupAddInvite.ExpiresAt.init -> void
+override Whatsmeow.Groups.GroupAddInvite.GetHashCode() -> int
+Whatsmeow.Groups.GroupAddInvite.GroupAddInvite() -> void
+override Whatsmeow.Groups.GroupAddInvite.ToString() -> string!
+static Whatsmeow.Groups.GroupAddInvite.operator !=(Whatsmeow.Groups.GroupAddInvite? left, Whatsmeow.Groups.GroupAddInvite? right) -> bool
+static Whatsmeow.Groups.GroupAddInvite.operator ==(Whatsmeow.Groups.GroupAddInvite? left, Whatsmeow.Groups.GroupAddInvite? right) -> bool
+Whatsmeow.Groups.GroupChange
+abstract Whatsmeow.Groups.GroupChange.<Clone>$() -> Whatsmeow.Groups.GroupChange!
+virtual Whatsmeow.Groups.GroupChange.EqualityContract.get -> System.Type!
+virtual Whatsmeow.Groups.GroupChange.Equals(Whatsmeow.Groups.GroupChange? other) -> bool
+override Whatsmeow.Groups.GroupChange.Equals(object? obj) -> bool
+override Whatsmeow.Groups.GroupChange.GetHashCode() -> int
+Whatsmeow.Groups.GroupChange.GroupChange(Whatsmeow.Groups.GroupChange! original) -> void
+virtual Whatsmeow.Groups.GroupChange.PrintMembers(System.Text.StringBuilder! builder) -> bool
+override Whatsmeow.Groups.GroupChange.ToString() -> string!
+static Whatsmeow.Groups.GroupChange.operator !=(Whatsmeow.Groups.GroupChange? left, Whatsmeow.Groups.GroupChange? right) -> bool
+static Whatsmeow.Groups.GroupChange.operator ==(Whatsmeow.Groups.GroupChange? left, Whatsmeow.Groups.GroupChange? right) -> bool
+Whatsmeow.Groups.GroupChange.AnnounceChanged
+override Whatsmeow.Groups.GroupChange.AnnounceChanged.<Clone>$() -> Whatsmeow.Groups.GroupChange.AnnounceChanged!
+Whatsmeow.Groups.GroupChange.AnnounceChanged.AnnounceChanged() -> void
+Whatsmeow.Groups.GroupChange.AnnounceChanged.Equals(Whatsmeow.Groups.GroupChange.AnnounceChanged? other) -> bool
+override sealed Whatsmeow.Groups.GroupChange.AnnounceChanged.Equals(Whatsmeow.Groups.GroupChange? other) -> bool
+override Whatsmeow.Groups.GroupChange.AnnounceChanged.Equals(object? obj) -> bool
+override Whatsmeow.Groups.GroupChange.AnnounceChanged.GetHashCode() -> int
+Whatsmeow.Groups.GroupChange.AnnounceChanged.IsAnnounce.get -> bool
+Whatsmeow.Groups.GroupChange.AnnounceChanged.IsAnnounce.init -> void
+override Whatsmeow.Groups.GroupChange.AnnounceChanged.ToString() -> string!
+static Whatsmeow.Groups.GroupChange.AnnounceChanged.operator !=(Whatsmeow.Groups.GroupChange.AnnounceChanged? left, Whatsmeow.Groups.GroupChange.AnnounceChanged? right) -> bool
+static Whatsmeow.Groups.GroupChange.AnnounceChanged.operator ==(Whatsmeow.Groups.GroupChange.AnnounceChanged? left, Whatsmeow.Groups.GroupChange.AnnounceChanged? right) -> bool
+Whatsmeow.Groups.GroupChange.LockedChanged
+override Whatsmeow.Groups.GroupChange.LockedChanged.<Clone>$() -> Whatsmeow.Groups.GroupChange.LockedChanged!
+Whatsmeow.Groups.GroupChange.LockedChanged.Equals(Whatsmeow.Groups.GroupChange.LockedChanged? other) -> bool
+override sealed Whatsmeow.Groups.GroupChange.LockedChanged.Equals(Whatsmeow.Groups.GroupChange? other) -> bool
+override Whatsmeow.Groups.GroupChange.LockedChanged.Equals(object? obj) -> bool
+override Whatsmeow.Groups.GroupChange.LockedChanged.GetHashCode() -> int
+Whatsmeow.Groups.GroupChange.LockedChanged.IsLocked.get -> bool
+Whatsmeow.Groups.GroupChange.LockedChanged.IsLocked.init -> void
+Whatsmeow.Groups.GroupChange.LockedChanged.LockedChanged() -> void
+override Whatsmeow.Groups.GroupChange.LockedChanged.ToString() -> string!
+static Whatsmeow.Groups.GroupChange.LockedChanged.operator !=(Whatsmeow.Groups.GroupChange.LockedChanged? left, Whatsmeow.Groups.GroupChange.LockedChanged? right) -> bool
+static Whatsmeow.Groups.GroupChange.LockedChanged.operator ==(Whatsmeow.Groups.GroupChange.LockedChanged? left, Whatsmeow.Groups.GroupChange.LockedChanged? right) -> bool
+Whatsmeow.Groups.GroupChange.ParticipantDemoted
+override Whatsmeow.Groups.GroupChange.ParticipantDemoted.<Clone>$() -> Whatsmeow.Groups.GroupChange.ParticipantDemoted!
+Whatsmeow.Groups.GroupChange.ParticipantDemoted.Equals(Whatsmeow.Groups.GroupChange.ParticipantDemoted? other) -> bool
+override sealed Whatsmeow.Groups.GroupChange.ParticipantDemoted.Equals(Whatsmeow.Groups.GroupChange? other) -> bool
+override Whatsmeow.Groups.GroupChange.ParticipantDemoted.Equals(object? obj) -> bool
+override Whatsmeow.Groups.GroupChange.ParticipantDemoted.GetHashCode() -> int
+Whatsmeow.Groups.GroupChange.ParticipantDemoted.Jid.get -> Whatsmeow.Jid
+Whatsmeow.Groups.GroupChange.ParticipantDemoted.Jid.init -> void
+Whatsmeow.Groups.GroupChange.ParticipantDemoted.ParticipantDemoted() -> void
+override Whatsmeow.Groups.GroupChange.ParticipantDemoted.ToString() -> string!
+static Whatsmeow.Groups.GroupChange.ParticipantDemoted.operator !=(Whatsmeow.Groups.GroupChange.ParticipantDemoted? left, Whatsmeow.Groups.GroupChange.ParticipantDemoted? right) -> bool
+static Whatsmeow.Groups.GroupChange.ParticipantDemoted.operator ==(Whatsmeow.Groups.GroupChange.ParticipantDemoted? left, Whatsmeow.Groups.GroupChange.ParticipantDemoted? right) -> bool
+Whatsmeow.Groups.GroupChange.ParticipantJoined
+override Whatsmeow.Groups.GroupChange.ParticipantJoined.<Clone>$() -> Whatsmeow.Groups.GroupChange.ParticipantJoined!
+Whatsmeow.Groups.GroupChange.ParticipantJoined.Equals(Whatsmeow.Groups.GroupChange.ParticipantJoined? other) -> bool
+override sealed Whatsmeow.Groups.GroupChange.ParticipantJoined.Equals(Whatsmeow.Groups.GroupChange? other) -> bool
+override Whatsmeow.Groups.GroupChange.ParticipantJoined.Equals(object? obj) -> bool
+override Whatsmeow.Groups.GroupChange.ParticipantJoined.GetHashCode() -> int
+Whatsmeow.Groups.GroupChange.ParticipantJoined.Jid.get -> Whatsmeow.Jid
+Whatsmeow.Groups.GroupChange.ParticipantJoined.Jid.init -> void
+Whatsmeow.Groups.GroupChange.ParticipantJoined.ParticipantJoined() -> void
+override Whatsmeow.Groups.GroupChange.ParticipantJoined.ToString() -> string!
+static Whatsmeow.Groups.GroupChange.ParticipantJoined.operator !=(Whatsmeow.Groups.GroupChange.ParticipantJoined? left, Whatsmeow.Groups.GroupChange.ParticipantJoined? right) -> bool
+static Whatsmeow.Groups.GroupChange.ParticipantJoined.operator ==(Whatsmeow.Groups.GroupChange.ParticipantJoined? left, Whatsmeow.Groups.GroupChange.ParticipantJoined? right) -> bool
+Whatsmeow.Groups.GroupChange.ParticipantLeft
+override Whatsmeow.Groups.GroupChange.ParticipantLeft.<Clone>$() -> Whatsmeow.Groups.GroupChange.ParticipantLeft!
+Whatsmeow.Groups.GroupChange.ParticipantLeft.Equals(Whatsmeow.Groups.GroupChange.ParticipantLeft? other) -> bool
+override sealed Whatsmeow.Groups.GroupChange.ParticipantLeft.Equals(Whatsmeow.Groups.GroupChange? other) -> bool
+override Whatsmeow.Groups.GroupChange.ParticipantLeft.Equals(object? obj) -> bool
+override Whatsmeow.Groups.GroupChange.ParticipantLeft.GetHashCode() -> int
+Whatsmeow.Groups.GroupChange.ParticipantLeft.Jid.get -> Whatsmeow.Jid
+Whatsmeow.Groups.GroupChange.ParticipantLeft.Jid.init -> void
+Whatsmeow.Groups.GroupChange.ParticipantLeft.ParticipantLeft() -> void
+override Whatsmeow.Groups.GroupChange.ParticipantLeft.ToString() -> string!
+static Whatsmeow.Groups.GroupChange.ParticipantLeft.operator !=(Whatsmeow.Groups.GroupChange.ParticipantLeft? left, Whatsmeow.Groups.GroupChange.ParticipantLeft? right) -> bool
+static Whatsmeow.Groups.GroupChange.ParticipantLeft.operator ==(Whatsmeow.Groups.GroupChange.ParticipantLeft? left, Whatsmeow.Groups.GroupChange.ParticipantLeft? right) -> bool
+Whatsmeow.Groups.GroupChange.ParticipantPromoted
+override Whatsmeow.Groups.GroupChange.ParticipantPromoted.<Clone>$() -> Whatsmeow.Groups.GroupChange.ParticipantPromoted!
+Whatsmeow.Groups.GroupChange.ParticipantPromoted.Equals(Whatsmeow.Groups.GroupChange.ParticipantPromoted? other) -> bool
+override sealed Whatsmeow.Groups.GroupChange.ParticipantPromoted.Equals(Whatsmeow.Groups.GroupChange? other) -> bool
+override Whatsmeow.Groups.GroupChange.ParticipantPromoted.Equals(object? obj) -> bool
+override Whatsmeow.Groups.GroupChange.ParticipantPromoted.GetHashCode() -> int
+Whatsmeow.Groups.GroupChange.ParticipantPromoted.Jid.get -> Whatsmeow.Jid
+Whatsmeow.Groups.GroupChange.ParticipantPromoted.Jid.init -> void
+Whatsmeow.Groups.GroupChange.ParticipantPromoted.ParticipantPromoted() -> void
+override Whatsmeow.Groups.GroupChange.ParticipantPromoted.ToString() -> string!
+static Whatsmeow.Groups.GroupChange.ParticipantPromoted.operator !=(Whatsmeow.Groups.GroupChange.ParticipantPromoted? left, Whatsmeow.Groups.GroupChange.ParticipantPromoted? right) -> bool
+static Whatsmeow.Groups.GroupChange.ParticipantPromoted.operator ==(Whatsmeow.Groups.GroupChange.ParticipantPromoted? left, Whatsmeow.Groups.GroupChange.ParticipantPromoted? right) -> bool
+Whatsmeow.Groups.GroupChange.Renamed
+override Whatsmeow.Groups.GroupChange.Renamed.<Clone>$() -> Whatsmeow.Groups.GroupChange.Renamed!
+Whatsmeow.Groups.GroupChange.Renamed.Equals(Whatsmeow.Groups.GroupChange.Renamed? other) -> bool
+override sealed Whatsmeow.Groups.GroupChange.Renamed.Equals(Whatsmeow.Groups.GroupChange? other) -> bool
+override Whatsmeow.Groups.GroupChange.Renamed.Equals(object? obj) -> bool
+override Whatsmeow.Groups.GroupChange.Renamed.GetHashCode() -> int
+Whatsmeow.Groups.GroupChange.Renamed.Name.get -> string!
+Whatsmeow.Groups.GroupChange.Renamed.Name.init -> void
+Whatsmeow.Groups.GroupChange.Renamed.Renamed() -> void
+override Whatsmeow.Groups.GroupChange.Renamed.ToString() -> string!
+static Whatsmeow.Groups.GroupChange.Renamed.operator !=(Whatsmeow.Groups.GroupChange.Renamed? left, Whatsmeow.Groups.GroupChange.Renamed? right) -> bool
+static Whatsmeow.Groups.GroupChange.Renamed.operator ==(Whatsmeow.Groups.GroupChange.Renamed? left, Whatsmeow.Groups.GroupChange.Renamed? right) -> bool
+Whatsmeow.Groups.GroupChange.TopicChanged
+override Whatsmeow.Groups.GroupChange.TopicChanged.<Clone>$() -> Whatsmeow.Groups.GroupChange.TopicChanged!
+Whatsmeow.Groups.GroupChange.TopicChanged.Equals(Whatsmeow.Groups.GroupChange.TopicChanged? other) -> bool
+override sealed Whatsmeow.Groups.GroupChange.TopicChanged.Equals(Whatsmeow.Groups.GroupChange? other) -> bool
+override Whatsmeow.Groups.GroupChange.TopicChanged.Equals(object? obj) -> bool
+override Whatsmeow.Groups.GroupChange.TopicChanged.GetHashCode() -> int
+override Whatsmeow.Groups.GroupChange.TopicChanged.ToString() -> string!
+Whatsmeow.Groups.GroupChange.TopicChanged.Topic.get -> string?
+Whatsmeow.Groups.GroupChange.TopicChanged.Topic.init -> void
+Whatsmeow.Groups.GroupChange.TopicChanged.TopicChanged() -> void
+static Whatsmeow.Groups.GroupChange.TopicChanged.operator !=(Whatsmeow.Groups.GroupChange.TopicChanged? left, Whatsmeow.Groups.GroupChange.TopicChanged? right) -> bool
+static Whatsmeow.Groups.GroupChange.TopicChanged.operator ==(Whatsmeow.Groups.GroupChange.TopicChanged? left, Whatsmeow.Groups.GroupChange.TopicChanged? right) -> bool
+Whatsmeow.Groups.GroupInfo
+Whatsmeow.Groups.GroupInfo.<Clone>$() -> Whatsmeow.Groups.GroupInfo!
+Whatsmeow.Groups.GroupInfo.CreatedAt.get -> System.DateTimeOffset?
+Whatsmeow.Groups.GroupInfo.CreatedAt.init -> void
+Whatsmeow.Groups.GroupInfo.Equals(Whatsmeow.Groups.GroupInfo? other) -> bool
+override Whatsmeow.Groups.GroupInfo.Equals(object? obj) -> bool
+override Whatsmeow.Groups.GroupInfo.GetHashCode() -> int
+Whatsmeow.Groups.GroupInfo.GroupInfo() -> void
+Whatsmeow.Groups.GroupInfo.IsAnnounce.get -> bool
+Whatsmeow.Groups.GroupInfo.IsAnnounce.init -> void
+Whatsmeow.Groups.GroupInfo.IsLocked.get -> bool
+Whatsmeow.Groups.GroupInfo.IsLocked.init -> void
+Whatsmeow.Groups.GroupInfo.Jid.get -> Whatsmeow.Jid
+Whatsmeow.Groups.GroupInfo.Jid.init -> void
+Whatsmeow.Groups.GroupInfo.Name.get -> string!
+Whatsmeow.Groups.GroupInfo.Name.init -> void
+Whatsmeow.Groups.GroupInfo.Owner.get -> Whatsmeow.Jid?
+Whatsmeow.Groups.GroupInfo.Owner.init -> void
+Whatsmeow.Groups.GroupInfo.OwnerAlt.get -> Whatsmeow.Jid?
+Whatsmeow.Groups.GroupInfo.OwnerAlt.init -> void
+Whatsmeow.Groups.GroupInfo.Participants.get -> System.Collections.Immutable.ImmutableArray<Whatsmeow.Groups.GroupParticipant!>
+Whatsmeow.Groups.GroupInfo.Participants.init -> void
+override Whatsmeow.Groups.GroupInfo.ToString() -> string!
+Whatsmeow.Groups.GroupInfo.Topic.get -> string?
+Whatsmeow.Groups.GroupInfo.Topic.init -> void
+static Whatsmeow.Groups.GroupInfo.operator !=(Whatsmeow.Groups.GroupInfo? left, Whatsmeow.Groups.GroupInfo? right) -> bool
+static Whatsmeow.Groups.GroupInfo.operator ==(Whatsmeow.Groups.GroupInfo? left, Whatsmeow.Groups.GroupInfo? right) -> bool
+Whatsmeow.Groups.GroupInfoChanged
+override Whatsmeow.Groups.GroupInfoChanged.<Clone>$() -> Whatsmeow.Groups.GroupInfoChanged!
+Whatsmeow.Groups.GroupInfoChanged.Changes.get -> System.Collections.Immutable.ImmutableArray<Whatsmeow.Groups.GroupChange!>
+Whatsmeow.Groups.GroupInfoChanged.Changes.init -> void
+override sealed Whatsmeow.Groups.GroupInfoChanged.Equals(Whatsmeow.Events.WhatsAppEvent? other) -> bool
+Whatsmeow.Groups.GroupInfoChanged.Equals(Whatsmeow.Groups.GroupInfoChanged? other) -> bool
+override Whatsmeow.Groups.GroupInfoChanged.Equals(object? obj) -> bool
+override Whatsmeow.Groups.GroupInfoChanged.GetHashCode() -> int
+Whatsmeow.Groups.GroupInfoChanged.Group.get -> Whatsmeow.Jid
+Whatsmeow.Groups.GroupInfoChanged.Group.init -> void
+Whatsmeow.Groups.GroupInfoChanged.GroupInfoChanged() -> void
+Whatsmeow.Groups.GroupInfoChanged.Sender.get -> Whatsmeow.Jid?
+Whatsmeow.Groups.GroupInfoChanged.Sender.init -> void
+Whatsmeow.Groups.GroupInfoChanged.SenderAlt.get -> Whatsmeow.Jid?
+Whatsmeow.Groups.GroupInfoChanged.SenderAlt.init -> void
+Whatsmeow.Groups.GroupInfoChanged.Timestamp.get -> System.DateTimeOffset
+Whatsmeow.Groups.GroupInfoChanged.Timestamp.init -> void
+override Whatsmeow.Groups.GroupInfoChanged.ToString() -> string!
+static Whatsmeow.Groups.GroupInfoChanged.operator !=(Whatsmeow.Groups.GroupInfoChanged? left, Whatsmeow.Groups.GroupInfoChanged? right) -> bool
+static Whatsmeow.Groups.GroupInfoChanged.operator ==(Whatsmeow.Groups.GroupInfoChanged? left, Whatsmeow.Groups.GroupInfoChanged? right) -> bool
+Whatsmeow.Groups.GroupJoined
+override Whatsmeow.Groups.GroupJoined.<Clone>$() -> Whatsmeow.Groups.GroupJoined!
+override sealed Whatsmeow.Groups.GroupJoined.Equals(Whatsmeow.Events.WhatsAppEvent? other) -> bool
+Whatsmeow.Groups.GroupJoined.Equals(Whatsmeow.Groups.GroupJoined? other) -> bool
+override Whatsmeow.Groups.GroupJoined.Equals(object? obj) -> bool
+override Whatsmeow.Groups.GroupJoined.GetHashCode() -> int
+Whatsmeow.Groups.GroupJoined.Group.get -> Whatsmeow.Groups.GroupInfo!
+Whatsmeow.Groups.GroupJoined.Group.init -> void
+Whatsmeow.Groups.GroupJoined.GroupJoined() -> void
+Whatsmeow.Groups.GroupJoined.Sender.get -> Whatsmeow.Jid?
+Whatsmeow.Groups.GroupJoined.Sender.init -> void
+Whatsmeow.Groups.GroupJoined.SenderAlt.get -> Whatsmeow.Jid?
+Whatsmeow.Groups.GroupJoined.SenderAlt.init -> void
+override Whatsmeow.Groups.GroupJoined.ToString() -> string!
+static Whatsmeow.Groups.GroupJoined.operator !=(Whatsmeow.Groups.GroupJoined? left, Whatsmeow.Groups.GroupJoined? right) -> bool
+static Whatsmeow.Groups.GroupJoined.operator ==(Whatsmeow.Groups.GroupJoined? left, Whatsmeow.Groups.GroupJoined? right) -> bool
+Whatsmeow.Groups.GroupParticipant
+Whatsmeow.Groups.GroupParticipant.<Clone>$() -> Whatsmeow.Groups.GroupParticipant!
+Whatsmeow.Groups.GroupParticipant.Equals(Whatsmeow.Groups.GroupParticipant? other) -> bool
+override Whatsmeow.Groups.GroupParticipant.Equals(object? obj) -> bool
+override Whatsmeow.Groups.GroupParticipant.GetHashCode() -> int
+Whatsmeow.Groups.GroupParticipant.GroupParticipant() -> void
+Whatsmeow.Groups.GroupParticipant.Jid.get -> Whatsmeow.Jid
+Whatsmeow.Groups.GroupParticipant.Jid.init -> void
+Whatsmeow.Groups.GroupParticipant.JidAlt.get -> Whatsmeow.Jid?
+Whatsmeow.Groups.GroupParticipant.JidAlt.init -> void
+Whatsmeow.Groups.GroupParticipant.Role.get -> Whatsmeow.Groups.GroupRole
+Whatsmeow.Groups.GroupParticipant.Role.init -> void
+override Whatsmeow.Groups.GroupParticipant.ToString() -> string!
+static Whatsmeow.Groups.GroupParticipant.operator !=(Whatsmeow.Groups.GroupParticipant? left, Whatsmeow.Groups.GroupParticipant? right) -> bool
+static Whatsmeow.Groups.GroupParticipant.operator ==(Whatsmeow.Groups.GroupParticipant? left, Whatsmeow.Groups.GroupParticipant? right) -> bool
+Whatsmeow.Groups.GroupRole
+Whatsmeow.Groups.GroupRole.Admin = 1 -> Whatsmeow.Groups.GroupRole
+Whatsmeow.Groups.GroupRole.Member = 0 -> Whatsmeow.Groups.GroupRole
+Whatsmeow.Groups.GroupRole.SuperAdmin = 2 -> Whatsmeow.Groups.GroupRole
+Whatsmeow.Groups.ParticipantOutcome
+abstract Whatsmeow.Groups.ParticipantOutcome.<Clone>$() -> Whatsmeow.Groups.ParticipantOutcome!
+virtual Whatsmeow.Groups.ParticipantOutcome.EqualityContract.get -> System.Type!
+virtual Whatsmeow.Groups.ParticipantOutcome.Equals(Whatsmeow.Groups.ParticipantOutcome? other) -> bool
+override Whatsmeow.Groups.ParticipantOutcome.Equals(object? obj) -> bool
+override Whatsmeow.Groups.ParticipantOutcome.GetHashCode() -> int
+Whatsmeow.Groups.ParticipantOutcome.ParticipantOutcome(Whatsmeow.Groups.ParticipantOutcome! original) -> void
+virtual Whatsmeow.Groups.ParticipantOutcome.PrintMembers(System.Text.StringBuilder! builder) -> bool
+override Whatsmeow.Groups.ParticipantOutcome.ToString() -> string!
+static Whatsmeow.Groups.ParticipantOutcome.operator !=(Whatsmeow.Groups.ParticipantOutcome? left, Whatsmeow.Groups.ParticipantOutcome? right) -> bool
+static Whatsmeow.Groups.ParticipantOutcome.operator ==(Whatsmeow.Groups.ParticipantOutcome? left, Whatsmeow.Groups.ParticipantOutcome? right) -> bool
+Whatsmeow.Groups.ParticipantOutcome.Done
+override Whatsmeow.Groups.ParticipantOutcome.Done.<Clone>$() -> Whatsmeow.Groups.ParticipantOutcome.Done!
+Whatsmeow.Groups.ParticipantOutcome.Done.Done() -> void
+Whatsmeow.Groups.ParticipantOutcome.Done.Equals(Whatsmeow.Groups.ParticipantOutcome.Done? other) -> bool
+override sealed Whatsmeow.Groups.ParticipantOutcome.Done.Equals(Whatsmeow.Groups.ParticipantOutcome? other) -> bool
+override Whatsmeow.Groups.ParticipantOutcome.Done.Equals(object? obj) -> bool
+override Whatsmeow.Groups.ParticipantOutcome.Done.GetHashCode() -> int
+override Whatsmeow.Groups.ParticipantOutcome.Done.ToString() -> string!
+static Whatsmeow.Groups.ParticipantOutcome.Done.operator !=(Whatsmeow.Groups.ParticipantOutcome.Done? left, Whatsmeow.Groups.ParticipantOutcome.Done? right) -> bool
+static Whatsmeow.Groups.ParticipantOutcome.Done.operator ==(Whatsmeow.Groups.ParticipantOutcome.Done? left, Whatsmeow.Groups.ParticipantOutcome.Done? right) -> bool
+Whatsmeow.Groups.ParticipantOutcome.Refused
+override Whatsmeow.Groups.ParticipantOutcome.Refused.<Clone>$() -> Whatsmeow.Groups.ParticipantOutcome.Refused!
+Whatsmeow.Groups.ParticipantOutcome.Refused.Code.get -> int
+Whatsmeow.Groups.ParticipantOutcome.Refused.Code.init -> void
+Whatsmeow.Groups.ParticipantOutcome.Refused.Equals(Whatsmeow.Groups.ParticipantOutcome.Refused? other) -> bool
+override sealed Whatsmeow.Groups.ParticipantOutcome.Refused.Equals(Whatsmeow.Groups.ParticipantOutcome? other) -> bool
+override Whatsmeow.Groups.ParticipantOutcome.Refused.Equals(object? obj) -> bool
+override Whatsmeow.Groups.ParticipantOutcome.Refused.GetHashCode() -> int
+Whatsmeow.Groups.ParticipantOutcome.Refused.Invite.get -> Whatsmeow.Groups.GroupAddInvite?
+Whatsmeow.Groups.ParticipantOutcome.Refused.Invite.init -> void
+Whatsmeow.Groups.ParticipantOutcome.Refused.Refused() -> void
+override Whatsmeow.Groups.ParticipantOutcome.Refused.ToString() -> string!
+static Whatsmeow.Groups.ParticipantOutcome.Refused.operator !=(Whatsmeow.Groups.ParticipantOutcome.Refused? left, Whatsmeow.Groups.ParticipantOutcome.Refused? right) -> bool
+static Whatsmeow.Groups.ParticipantOutcome.Refused.operator ==(Whatsmeow.Groups.ParticipantOutcome.Refused? left, Whatsmeow.Groups.ParticipantOutcome.Refused? right) -> bool
+Whatsmeow.Groups.ParticipantResult
+Whatsmeow.Groups.ParticipantResult.<Clone>$() -> Whatsmeow.Groups.ParticipantResult!
+Whatsmeow.Groups.ParticipantResult.Equals(Whatsmeow.Groups.ParticipantResult? other) -> bool
+override Whatsmeow.Groups.ParticipantResult.Equals(object? obj) -> bool
+override Whatsmeow.Groups.ParticipantResult.GetHashCode() -> int
+Whatsmeow.Groups.ParticipantResult.Jid.get -> Whatsmeow.Jid
+Whatsmeow.Groups.ParticipantResult.Jid.init -> void
+Whatsmeow.Groups.ParticipantResult.JidAlt.get -> Whatsmeow.Jid?
+Whatsmeow.Groups.ParticipantResult.JidAlt.init -> void
+Whatsmeow.Groups.ParticipantResult.Outcome.get -> Whatsmeow.Groups.ParticipantOutcome!
+Whatsmeow.Groups.ParticipantResult.Outcome.init -> void
+Whatsmeow.Groups.ParticipantResult.ParticipantResult() -> void
+override Whatsmeow.Groups.ParticipantResult.ToString() -> string!
+static Whatsmeow.Groups.ParticipantResult.operator !=(Whatsmeow.Groups.ParticipantResult? left, Whatsmeow.Groups.ParticipantResult? right) -> bool
+static Whatsmeow.Groups.ParticipantResult.operator ==(Whatsmeow.Groups.ParticipantResult? left, Whatsmeow.Groups.ParticipantResult? right) -> bool
 Whatsmeow.IWhatsAppClient
 Whatsmeow.IWhatsAppClient.BlockAsync(Whatsmeow.Jid user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Whatsmeow.IWhatsAppClient.ConnectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
@@ -332,6 +597,21 @@ Whatsmeow.IWhatsAppClient.SessionId.get -> Whatsmeow.SessionId
 Whatsmeow.IWhatsAppClient.UnblockAsync(Whatsmeow.Jid user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Whatsmeow.IWhatsAppClient.WaitForAsync<TEvent>(System.Func<TEvent!, bool>! predicate, System.TimeSpan timeout, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TEvent!>!
 Whatsmeow.IWhatsAppClient.WatchStateAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<Whatsmeow.Sessions.SessionState!>!
+Whatsmeow.IWhatsAppClient.AddParticipantsAsync(Whatsmeow.Jid group, System.Collections.Generic.IReadOnlyList<Whatsmeow.Jid>! users, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Whatsmeow.Groups.ParticipantResult!>>!
+Whatsmeow.IWhatsAppClient.CreateGroupAsync(string! name, System.Collections.Generic.IReadOnlyList<Whatsmeow.Jid>! participants, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Groups.CreatedGroup!>!
+Whatsmeow.IWhatsAppClient.DemoteParticipantsAsync(Whatsmeow.Jid group, System.Collections.Generic.IReadOnlyList<Whatsmeow.Jid>! users, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Whatsmeow.Groups.ParticipantResult!>>!
+Whatsmeow.IWhatsAppClient.GetGroupInfoAsync(Whatsmeow.Jid group, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Groups.GroupInfo!>!
+Whatsmeow.IWhatsAppClient.GetGroupInviteLinkAsync(Whatsmeow.Jid group, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Uri!>!
+Whatsmeow.IWhatsAppClient.GetGroupsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Whatsmeow.Groups.GroupInfo!>>!
+Whatsmeow.IWhatsAppClient.JoinGroupWithLinkAsync(System.Uri! link, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Jid>!
+Whatsmeow.IWhatsAppClient.LeaveGroupAsync(Whatsmeow.Jid group, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.PromoteParticipantsAsync(Whatsmeow.Jid group, System.Collections.Generic.IReadOnlyList<Whatsmeow.Jid>! users, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Whatsmeow.Groups.ParticipantResult!>>!
+Whatsmeow.IWhatsAppClient.RemoveParticipantsAsync(Whatsmeow.Jid group, System.Collections.Generic.IReadOnlyList<Whatsmeow.Jid>! users, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Whatsmeow.Groups.ParticipantResult!>>!
+Whatsmeow.IWhatsAppClient.ResetGroupInviteLinkAsync(Whatsmeow.Jid group, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Uri!>!
+Whatsmeow.IWhatsAppClient.SetGroupAnnounceAsync(Whatsmeow.Jid group, bool announce, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.SetGroupLockedAsync(Whatsmeow.Jid group, bool locked, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.SetGroupNameAsync(Whatsmeow.Jid group, string! name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.SetGroupTopicAsync(Whatsmeow.Jid group, string? topic, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Whatsmeow.Jid
 Whatsmeow.Jid.Agent.get -> byte
 Whatsmeow.Jid.Agent.init -> void
@@ -666,6 +946,11 @@ Whatsmeow.TemporarilyBannedException.TemporarilyBannedException() -> void
 Whatsmeow.TemporarilyBannedException.TemporarilyBannedException(string! message) -> void
 Whatsmeow.TemporarilyBannedException.TemporarilyBannedException(string! message, System.Exception? innerException) -> void
 Whatsmeow.TemporarilyBannedException.Until.get -> System.DateTimeOffset?
+Whatsmeow.WhatsAppErrorException
+Whatsmeow.WhatsAppErrorException.Code.get -> int
+Whatsmeow.WhatsAppErrorException.WhatsAppErrorException() -> void
+Whatsmeow.WhatsAppErrorException.WhatsAppErrorException(string! message) -> void
+Whatsmeow.WhatsAppErrorException.WhatsAppErrorException(string! message, System.Exception? innerException) -> void
 Whatsmeow.WhatsmeowErrorCode
 Whatsmeow.WhatsmeowErrorCode.AlreadyPaired = 8 -> Whatsmeow.WhatsmeowErrorCode
 Whatsmeow.WhatsmeowErrorCode.ConnectionFailed = 13 -> Whatsmeow.WhatsmeowErrorCode
@@ -688,6 +973,7 @@ Whatsmeow.WhatsmeowErrorCode.Unauthenticated = 3 -> Whatsmeow.WhatsmeowErrorCode
 Whatsmeow.WhatsmeowErrorCode.Unknown = 0 -> Whatsmeow.WhatsmeowErrorCode
 Whatsmeow.WhatsmeowErrorCode.WhatsAppError = 19 -> Whatsmeow.WhatsmeowErrorCode
 Whatsmeow.WhatsmeowErrorCode.WhatsAppTimedOut = 20 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowErrorCode.InviteLinkInvalid = 23 -> Whatsmeow.WhatsmeowErrorCode
 Whatsmeow.WhatsmeowException
 Whatsmeow.WhatsmeowException.ErrorCode.get -> Whatsmeow.WhatsmeowErrorCode
 Whatsmeow.WhatsmeowException.WhatsmeowException() -> void

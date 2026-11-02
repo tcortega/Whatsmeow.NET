@@ -7,6 +7,7 @@ import "waE2E/WAWebProtobufsE2E.proto";
 import "whatsmeow/v1/contact.proto";
 import "whatsmeow/v1/media.proto";
 import "whatsmeow/v1/presence.proto";
+import "whatsmeow/v1/group.proto";
 import "whatsmeow/v1/session.proto";
 
 // EventService delivers each session's events at least once, from the sidecar's durable outbox.
@@ -176,6 +177,8 @@ message StreamEventsResponse {
     ContactEvent contact = 14;
     // The phone's answer to a media retry request (media.proto).
     MediaRetryEvent media_retry = 15;
+    // A group notification: a change to a group, or the session joining one (group.proto).
+    GroupEvent group = 16;
   }
 }
 

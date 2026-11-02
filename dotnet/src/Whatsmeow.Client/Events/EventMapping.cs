@@ -2,6 +2,7 @@ using Google.Protobuf.WellKnownTypes;
 using Whatsmeow.Contacts;
 using Whatsmeow.Presence;
 using Whatsmeow.Media;
+using Whatsmeow.Groups;
 using Whatsmeow.Protocol.V1;
 using Whatsmeow.Sessions;
 using E2E = Whatsmeow.Proto.WAWebProtobufsE2E;
@@ -70,6 +71,7 @@ internal static class EventMapping
 				Timestamp = ToTime(response.Receipt.ReceiptTime),
 				Type = ToType(response.Receipt.Type),
 			},
+			Payload.Group => GroupMapping.ToEvent(sessionId, response.Group),
 			Payload.None => null,
 			_ => null,
 		};
@@ -84,6 +86,8 @@ internal static class EventMapping
 			Payload.Contact => response.Contact.Jid,
 			Payload.MediaRetry => response.MediaRetry.Chat,
 			Payload.Receipt => response.Receipt.Source?.Chat ?? SessionLane,
+			// The group's lane: its changes run in order with its messages.
+			Payload.Group => response.Group.Group,
 			Payload.ConnectionState or Payload.None => SessionLane,
 			_ => SessionLane,
 		};
@@ -173,7 +177,7 @@ internal static class EventMapping
 	/// The timestamp, clamped to what <see cref="DateTimeOffset"/> holds, so a time out of its range never costs the
 	/// message (Google.Protobuf's conversion throws for one).
 	/// </summary>
-	private static DateTimeOffset ToTime(Timestamp? timestamp) =>
+	internal static DateTimeOffset ToTime(Timestamp? timestamp) =>
 		timestamp switch
 		{
 			null => DateTimeOffset.UnixEpoch,
