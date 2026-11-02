@@ -178,6 +178,8 @@ public sealed class MessagingTests(FakeSidecar fixture)
 
 		var error = await Assert.ThrowsAsync<RecipientNotFoundException>(() => client.SendTextAsync(to, "hi", id, ct));
 		Assert.Equal(WhatsmeowErrorCode.RecipientNotOnWhatsApp, error.ErrorCode);
+		// whatsmeow's error names the number; the message carries none of it, nor any other digit (ARCHITECTURE §7.8).
+		Assert.DoesNotMatch("[0-9]", error.Message);
 
 		// Nothing was sent, so nothing was recorded: the same id sends once the number is on WhatsApp.
 		await RegisterAsync("5511900000103@s.whatsapp.net", "900000103@lid", ct);

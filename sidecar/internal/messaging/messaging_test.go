@@ -1,18 +1,21 @@
 package messaging
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	"net"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow"
+	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -184,6 +187,28 @@ type harness struct {
 	ctx      context.Context //nolint:containedctx // the test's call context
 	// queued and waiting get a value each time a send joins the queue, and each time a repeat waits for one in flight.
 	queued, waiting chan struct{}
+	// logs is what the slice and the server logged at info level and above.
+	logs *logs
+}
+
+// logs is a log written by several goroutines.
+type logs struct {
+	mu  sync.Mutex
+	buf bytes.Buffer
+}
+
+func (l *logs) Write(p []byte) (int, error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	return l.buf.Write(p) //nolint:wrapcheck // a bytes.Buffer never fails
+}
+
+func (l *logs) String() string {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	return l.buf.String()
 }
 
 func start(t *testing.T) *harness {
@@ -200,16 +225,18 @@ func start(t *testing.T) *harness {
 
 	h := &harness{
 		t: t, db: db.DB, stub: &stub{got: make(chan call, 64)},
-		queued: make(chan struct{}, 64), waiting: make(chan struct{}, 64),
+		queued: make(chan struct{}, 64), waiting: make(chan struct{}, 64), logs: &logs{},
 	}
+	// The sidecar logs at info level and above (ARCHITECTURE §7.8).
+	log := zerolog.New(h.logs).Level(zerolog.InfoLevel)
 	h.sessions = &sessions{client: h.stub, left: make(chan struct{})}
-	h.svc = New(db.DB, h.sessions, zerolog.Nop())
+	h.svc = New(db.DB, h.sessions, log)
 	// Fast enough for a test, and still measurable.
 	h.svc.pace, h.svc.burst, h.svc.backoff = 40*time.Millisecond, 100, []time.Duration{time.Millisecond, 2 * time.Millisecond, 4 * time.Millisecond}
 	h.svc.onQueue = func() { h.queued <- struct{}{} }
 	h.svc.onWait = func() { h.waiting <- struct{}{} }
 
-	srv := server.New(token, zerolog.Nop())
+	srv := server.New(token, log)
 	whatsmeowv1.RegisterMessageServiceServer(srv, h.svc)
 
 	lis := bufconn.Listen(1 << 20)
@@ -585,6 +612,38 @@ func TestAFailureThatSentNothingLeavesNoRecordSoARepeatSends(t *testing.T) {
 		if sent := h.stub.ids(); len(sent) != 2*(n+1) {
 			t.Fatalf("%v: whatsmeow got %v, want the repeat sent", c.err, sent)
 		}
+	}
+}
+
+// whatsmeow wraps the recipient's JID into its errors (send.go:346, 353, 356), and an IQ error prints its nodes
+// (errors.go:216-226): other people's personal data, which neither a status message, which reaches the application,
+// nor the sidecar's log may carry (ARCHITECTURE §7.8).
+func TestNoErrorOrLogCarriesTheRecipientsJID(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	pn := jid("5511999999999@s.whatsapp.net")
+	node := &waBinary.Node{Tag: "error", Attrs: waBinary.Attrs{"jid": pn}}
+
+	// whatsmeow's own texts at the pin.
+	for n, err := range []error{
+		fmt.Errorf("%w: no LID found for %s from server", whatsmeow.ErrRecipientNotOnWhatsApp, pn),
+		fmt.Errorf("failed to get user info for %s to fill LID cache: %w", pn, &whatsmeow.IQError{Code: 500, Text: "internal-server-error", ErrorNode: node}),
+		fmt.Errorf("failed to get user info for %s to fill LID cache: %w", pn, &whatsmeow.IQError{ErrorNode: node}),
+		fmt.Errorf("failed to get user info for %s to fill LID cache: %w", pn, whatsmeow.ErrIQTimedOut),
+		fmt.Errorf("failed to get LID for PN %s: %w", pn, errors.New("sqlite: database is locked")),
+		fmt.Errorf("failed to get user info for %s to fill LID cache: %w", pn, &whatsmeow.IQError{Code: 429, Text: "rate-overlimit", ErrorNode: node}),
+	} {
+		h.script(err, err, err, err)
+
+		_, got := h.sendText(h.ctx, n, "hi")
+		if got == nil || strings.Contains(status.Convert(got).Message(), "@") || strings.Contains(status.Convert(got).Message(), "5511999999999") {
+			t.Fatalf("for %v the call returned %v, want an error without the JID", err, got)
+		}
+	}
+
+	if logged := h.logs.String(); strings.Contains(logged, "@") || strings.Contains(logged, "5511999999999") {
+		t.Fatalf("the log has the JID:\n%s", logged)
 	}
 }
 

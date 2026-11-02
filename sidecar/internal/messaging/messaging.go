@@ -164,10 +164,11 @@ func (svc *Service) MarkRead(ctx context.Context, req *whatsmeowv1.MarkReadReque
 
 	if err := client.MarkRead(ctx, req.GetMessageIds(), time.Now(), chat, sender); err != nil {
 		if errors.Is(err, whatsmeow.ErrNotConnected) {
-			return nil, fmt.Errorf("mark read in session %q: %w: %w", req.GetSessionId(), server.ErrNotConnected, err)
+			return nil, fmt.Errorf("mark read in session %q: %w: %w", req.GetSessionId(), server.ErrNotConnected, whatsmeow.ErrNotConnected)
 		}
 
-		return nil, fmt.Errorf("mark read in session %q: %w", req.GetSessionId(), err)
+		// The cause only, as for a send (classify).
+		return nil, fmt.Errorf("mark read in session %q: %w", req.GetSessionId(), cause(err))
 	}
 
 	return &whatsmeowv1.MarkReadResponse{}, nil

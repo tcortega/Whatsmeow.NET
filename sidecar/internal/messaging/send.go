@@ -32,9 +32,9 @@ type outcome struct {
 
 // shared is the error a repeat that waited for this send gets: an unknown outcome without the first caller's
 // context error, which is not the repeat's.
-func (o outcome) shared(id string) error {
+func (o outcome) shared() error {
 	if errors.Is(o.err, server.ErrOutcomeUnknown) {
-		return fmt.Errorf("send %q: %w", id, server.ErrOutcomeUnknown)
+		return fmt.Errorf("send: %w", server.ErrOutcomeUnknown)
 	}
 
 	return o.err
@@ -97,7 +97,7 @@ func (svc *Service) send(ctx context.Context, sessionID, chat, id string, messag
 			select {
 			case <-f.done:
 			case <-ctx.Done():
-				return sent{}, fmt.Errorf("send %q: %w", id, ctx.Err())
+				return sent{}, fmt.Errorf("send: %w", ctx.Err())
 			}
 
 			// It sent nothing: this repeat sends, unless another claimed it first.
@@ -105,7 +105,7 @@ func (svc *Service) send(ctx context.Context, sessionID, chat, id string, messag
 				continue
 			}
 
-			return f.outcome.sent, f.outcome.shared(id)
+			return f.outcome.sent, f.outcome.shared()
 		}
 
 		o := svc.sendOnce(ctx, sessionID, to, id, message)
@@ -150,12 +150,12 @@ func (svc *Service) sendOnce(ctx context.Context, sessionID string, to types.JID
 	// A send never waits for a connection (message.proto).
 	client, left, err := svc.sessions.Online(sessionID)
 	if err != nil {
-		return outcome{err: fmt.Errorf("send %q: %w", id, err), sentNothing: true}
+		return outcome{err: fmt.Errorf("send: %w", err), sentNothing: true}
 	}
 
 	wa, ok := client.(whatsApp)
 	if !ok {
-		return outcome{err: fmt.Errorf("send %q: the client %T of session %q cannot send", id, client, sessionID), sentNothing: true}
+		return outcome{err: fmt.Errorf("send: the client %T of session %q cannot send", client, sessionID), sentNothing: true}
 	}
 
 	j := &job{ctx: ctx, session: sessionID, client: wa, left: left, chat: to, id: id, message: message, done: make(chan struct{})}
@@ -179,16 +179,16 @@ func (svc *Service) recorded(ctx context.Context, sessionID, id string) (outcome
 	}
 
 	if err != nil {
-		return outcome{}, false, fmt.Errorf("send %q: read its record: %w", id, err)
+		return outcome{}, false, fmt.Errorf("send: read its record: %w", err)
 	}
 
 	switch {
 	case chat.Valid:
 		return outcome{sent: sent{chat: chat.String, at: time.Unix(at.Int64, 0)}}, true, nil
 	case waError.Valid:
-		return outcome{err: whatsAppError(id, int(waError.Int64))}, true, nil
+		return outcome{err: whatsAppError(int(waError.Int64))}, true, nil
 	default:
-		return outcome{err: fmt.Errorf("send %q was handed to WhatsApp and no answer was recorded: %w", id, server.ErrOutcomeUnknown)}, true, nil
+		return outcome{err: fmt.Errorf("an earlier send of this id was handed to WhatsApp and no answer was recorded: %w", server.ErrOutcomeUnknown)}, true, nil
 	}
 }
 
@@ -239,7 +239,7 @@ func (svc *Service) await(j *job) outcome {
 		return j.outcome
 	}
 
-	return outcome{err: fmt.Errorf("send %q: %w", j.id, why), sentNothing: true}
+	return outcome{err: fmt.Errorf("send: %w", why), sentNothing: true}
 }
 
 // takeBack removes j from its queue unless the queue took it already.
@@ -297,12 +297,12 @@ func (svc *Service) work(q *queue) {
 // run paces j, records it, hands it to whatsmeow, and records what came back.
 func (svc *Service) run(q *queue, j *job) outcome {
 	if err := svc.sleep(j, svc.due(q)); err != nil {
-		return outcome{err: fmt.Errorf("send %q: %w", j.id, err), sentNothing: true}
+		return outcome{err: fmt.Errorf("send: %w", err), sentNothing: true}
 	}
 
 	// Recorded before the hand-off: from here on a crash or a lost answer reads as an unknown outcome.
 	if _, err := svc.db.ExecContext(j.ctx, "INSERT INTO sent_message (session_id, client_message_id) VALUES (?, ?)", j.session, j.id); err != nil {
-		return outcome{err: fmt.Errorf("send %q: record it: %w", j.id, err), sentNothing: true}
+		return outcome{err: fmt.Errorf("send: record it: %w", err), sentNothing: true}
 	}
 
 	svc.spend(q)
@@ -326,21 +326,22 @@ func (svc *Service) run(q *queue, j *job) outcome {
 
 			svc.forget(j)
 
-			return outcome{err: fmt.Errorf("send %q: %w: %w", j.id, server.ErrRateLimited, err), sentNothing: true}
+			return outcome{err: fmt.Errorf("send: %w", reason), sentNothing: true}
 		case notSent:
 			svc.forget(j)
 
-			return outcome{err: fmt.Errorf("send %q: %w: %w", j.id, reason, err), sentNothing: true}
+			return outcome{err: fmt.Errorf("send: %w", reason), sentNothing: true}
 		case rejected:
 			code := serverErrorCode(err)
 			svc.write(j, "UPDATE sent_message SET whatsapp_error = ? WHERE session_id = ? AND client_message_id = ?", code, j.session, j.id)
 
-			return outcome{err: fmt.Errorf("%w: %w", whatsAppError(j.id, code), err)}
+			return outcome{err: whatsAppError(code)}
 		case unknown:
-			svc.log.Warn().Err(err).Str("session_id", j.session).Str("client_message_id", j.id).
+			// The cause only: whatsmeow's text around it can name the recipient (classify).
+			svc.log.Warn().AnErr("cause", reason).Str("session_id", j.session).Str("client_message_id", j.id).
 				Msg("a send was handed to whatsmeow and its outcome is unknown; it is never sent again")
 
-			return outcome{err: fmt.Errorf("send %q: %w: %w", j.id, server.ErrOutcomeUnknown, err)}
+			return outcome{err: fmt.Errorf("send: %w: %w", server.ErrOutcomeUnknown, reason)}
 		}
 	}
 }
@@ -417,7 +418,12 @@ const (
 	rejected
 )
 
-// classify reads a SendMessage error at the pin. Only what provably fails before the node is written is notSent:
+// classify reads a SendMessage error at the pin, and gives the error the send returns for it. That error keeps
+// whatsmeow's sentinel or a bare copy of its typed error, never the text whatsmeow wraps around it, which names the
+// recipient (send.go:346, 353, 356), nor an IQ error's nodes (errors.go:216-226): a status message reaches the
+// application, and the log keeps the cause (ARCHITECTURE §7.8).
+//
+// Only what provably fails before the node is written is notSent:
 //   - ErrNotLoggedIn: the device has no ID (send.go:207-211). The session was online with a paired device, so it was
 //     logged out meanwhile: whatsmeow deletes the device on its own goroutine (connectionevents.go:43-44).
 //   - ErrRecipientNotOnWhatsApp (send.go:351-357).
@@ -433,20 +439,21 @@ func classify(err error) (class, error) {
 
 	switch {
 	case errors.Is(err, whatsmeow.ErrNotLoggedIn):
-		return notSent, server.ErrLoggedOut
+		return notSent, fmt.Errorf("%w: %w", server.ErrLoggedOut, whatsmeow.ErrNotLoggedIn)
 	case errors.Is(err, whatsmeow.ErrRecipientNotOnWhatsApp):
-		return notSent, server.ErrRecipientNotOnWhatsApp
+		return notSent, fmt.Errorf("%w: %w", server.ErrRecipientNotOnWhatsApp, whatsmeow.ErrRecipientNotOnWhatsApp)
 	case errors.As(err, &iq) && iq.Code == 429:
 		// ErrIQRateOverLimit's Is also compares the text (errors.go:197, 229-240), so match the code.
-		return rateLimited, nil
+		return rateLimited, fmt.Errorf("%w: %w", server.ErrRateLimited, &whatsmeow.IQError{Code: iq.Code, Text: iq.Text})
 	case errors.As(err, &iq):
-		return notSent, fmt.Errorf("WhatsApp answered with error %d: %w", iq.Code, server.WithMetadata(server.ErrWhatsAppError, "code", strconv.Itoa(iq.Code)))
+		return notSent, fmt.Errorf("WhatsApp answered with error %d: %w: %w", iq.Code,
+			server.WithMetadata(server.ErrWhatsAppError, "code", strconv.Itoa(iq.Code)), &whatsmeow.IQError{Code: iq.Code, Text: iq.Text})
 	case errors.Is(err, whatsmeow.ErrNotConnected) && err != whatsmeow.ErrNotConnected: //nolint:errorlint // the unwrapped one comes after the write
-		return notSent, server.ErrNotConnected
+		return notSent, fmt.Errorf("%w: %w", server.ErrNotConnected, whatsmeow.ErrNotConnected)
 	case errors.Is(err, whatsmeow.ErrServerReturnedError) && serverErrorCode(err) != 0:
 		return rejected, nil
 	default:
-		return unknown, nil
+		return unknown, cause(err)
 	}
 }
 
@@ -462,6 +469,20 @@ func serverErrorCode(err error) int {
 }
 
 // whatsAppError is WHATSAPP_ERROR with WhatsApp's code.
-func whatsAppError(id string, code int) error {
-	return fmt.Errorf("send %q: WhatsApp answered with error %d: %w", id, code, server.WithMetadata(server.ErrWhatsAppError, "code", strconv.Itoa(code)))
+func whatsAppError(code int) error {
+	return fmt.Errorf("send: WhatsApp answered with error %d: %w", code, server.WithMetadata(server.ErrWhatsAppError, "code", strconv.Itoa(code)))
+}
+
+// cause is the error at the end of err's chain: a socket or store error, or whatsmeow's own sentinel or typed error,
+// without the text whatsmeow wrapped around it. At the pin none of those a send can end with names a JID [inferred:
+// read at the pin, send.go:191-489, request.go, client.go:975-996].
+func cause(err error) error {
+	for {
+		next := errors.Unwrap(err)
+		if next == nil {
+			return err
+		}
+
+		err = next
+	}
 }
