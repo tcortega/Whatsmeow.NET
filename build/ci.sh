@@ -388,15 +388,19 @@ source_archive_name() {
 }
 
 source_archive() {
-	local prefix="whatsmeow-net_$version" archive work size line
+	local prefix="whatsmeow-net_$version" archive work size line rc=0
 	archive="$package_feed/$(source_archive_name)"
 	work="$(mktemp -d)" || return
-	git archive --format=tar --prefix="$prefix/" HEAD >"$work/source.tar" || return
-	git archive --format=tar --prefix="$prefix/" HEAD sidecar | tar -x -C "$work" || return
-	(cd "$work/$prefix/sidecar" && go mod vendor) || return
-	(cd "$work" && tar -rf source.tar "$prefix/sidecar/vendor") || return
-	gzip -9n <"$work/source.tar" >"$archive" || return
+	# One exit path, so the temporary copy (about 150 MB with the vendor tree) is removed on failure too.
+	{
+		git archive --format=tar --prefix="$prefix/" HEAD >"$work/source.tar" &&
+			git archive --format=tar --prefix="$prefix/" HEAD sidecar | tar -x -C "$work" &&
+			(cd "$work/$prefix/sidecar" && go mod vendor) &&
+			(cd "$work" && tar -rf source.tar "$prefix/sidecar/vendor") &&
+			gzip -9n <"$work/source.tar" >"$archive"
+	} || rc=$?
 	rm -rf "$work"
+	[ "$rc" -eq 0 ] || return "$rc"
 	size="$(wc -c <"$archive" | tr -d ' ')"
 	line="$(basename "$archive"): $size bytes"
 	echo "$line"
@@ -524,10 +528,16 @@ sha256_of() { # file
 	if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1"; else shasum -a 256 "$1"; fi | cut -d' ' -f1
 }
 
-# Each native package's README and GPL files equal the repository's, so they ship exactly what was reviewed, and its
-# COPYING is the GPL-3.0 text itself.
+# What the README and NOTICE must say, whatever else changes: the name of the source archive, and in the README the
+# evidence tags ADR 0016 gave each claim about what redistributing owes.
+readme_tags=('[inferred: GPLv3 §5(c) and §14, ADR 0016]' '[inferred: FSF FAQ #MereAggregation, ADR 0016]' '[inferred: GPLv3 §0]'
+	"conveys it, and you take on GPLv3 §6 for \`whatsmeow-net\` [inferred]" '[inferred: GPLv3 §6 "User Product"]'
+	"\`ExcludeAssets\`) and run an external \`whatsmeow-net\` is [unknown]" 'Legal review of all of the above is [unknown]')
+
+# Each native package's README and GPL files equal the repository's, so they ship exactly what was reviewed; its
+# COPYING is the GPL-3.0 text itself, its NOTICE and README name the source archive, and its README keeps the tags.
 packaged_notices() {
-	local os id file packaged rc=0
+	local os id file packaged tag rc=0
 	for os in linux osx win; do
 		id="$(native_id "$os")"
 		for file in README.md "${native_notices[@]}"; do
@@ -541,6 +551,18 @@ packaged_notices() {
 			annotate error "packaged notices" "$id/COPYING is not the GPL-3.0 text (sha256 $gpl3_sha256, gnu.org/licenses/gpl-3.0.txt)"
 			rc=1
 		fi
+		for file in NOTICE README.md; do
+			if ! grep -qF 'whatsmeow-net_<version>_source.tar.gz' "$(native_package "$os")/$file" 2>/dev/null; then
+				annotate error "packaged notices" "$id/$file does not name the source archive, whatsmeow-net_<version>_source.tar.gz"
+				rc=1
+			fi
+		done
+		for tag in "${readme_tags[@]}"; do
+			if ! grep -qF -- "$tag" "$(native_package "$os")/README.md" 2>/dev/null; then
+				annotate error "packaged notices" "$id/README.md lost ADR 0016's evidence tag: $tag"
+				rc=1
+			fi
+		done
 	done
 	[ "$rc" -eq 0 ] && echo "each native package ships the repository's README.md and ${native_notices[*]}, and COPYING is the GPL-3.0 text"
 	return "$rc"
@@ -753,16 +775,26 @@ source_build() {
 	)
 }
 
+# The modules a binary links, as go version -m reads them: path and version, one per line.
+linked_deps() { # binary
+	go version -m "$1" | awk '$1 == "dep" { print $2, $3 }'
+}
+
 # The archive is the source of the packaged binaries: each binary built from it links the same module versions as
-# the packaged one (go version -m), and the host's reports the release version through GetInfo.
+# the packaged one (go version -m), and the host's reports the release version through GetInfo. Both lists must name
+# libsignal, so two empty lists never compare equal.
 source_corresponds() {
-	local targets target r packaged built rc=0
+	local targets target r packaged built packaged_deps built_deps rc=0
 	targets="$(release_targets)" || return
 	for target in $targets; do
 		r="$(rid "$target")"
 		packaged="$(native_package "${r%-*}")/runtimes/$r/native/whatsmeow-net$(exe_of "$target")"
 		built="$source_out/$r/whatsmeow-net$(exe_of "$target")"
-		if ! diff <(go version -m "$packaged" | awk '$1 == "dep" { print $2, $3 }') <(go version -m "$built" | awk '$1 == "dep" { print $2, $3 }'); then
+		packaged_deps="$(linked_deps "$packaged")" built_deps="$(linked_deps "$built")"
+		if ! grep -q '^go\.mau\.fi/libsignal ' <<<"$packaged_deps" || ! grep -q '^go\.mau\.fi/libsignal ' <<<"$built_deps"; then
+			annotate error "source archive" "go version -m lists no go.mau.fi/libsignal for $target in the packaged binary or the one built from the archive, so the comparison would prove nothing"
+			rc=1
+		elif ! diff <(echo "$packaged_deps") <(echo "$built_deps"); then
 			annotate error "source archive" "whatsmeow-net for $target built from the archive links other modules than the packaged one"
 			rc=1
 		fi
