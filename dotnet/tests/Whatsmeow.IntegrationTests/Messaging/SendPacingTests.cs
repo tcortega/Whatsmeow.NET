@@ -18,7 +18,7 @@ public sealed class SendPacingTests(FakeSidecar fixture, SidecarBinaries binarie
 	private const int Timeout = 120_000;
 
 	[Fact(Timeout = Timeout)]
-	public async Task SendPacing_EverySessionPacesWithIt_ABudgetEach_AndASendWaitingItsTurnIsCancelledHavingSentNothing()
+	public async Task SendPacing_EverySessionPacesWithIt_ABudgetEach_AndACancelledWaitingSendThrowsOperationCanceled()
 	{
 		var ct = TestContext.Current.CancellationToken;
 		using var logs = new LogCapture();
@@ -47,10 +47,13 @@ public sealed class SendPacingTests(FakeSidecar fixture, SidecarBinaries binarie
 		_ = await other.SendTextAsync(to, "2", cancellationToken: ct);
 		Assert.False(third.IsCompleted);
 
+		// The client raises the cancel itself, whether or not the third reached the sidecar's queue yet, so this shows only
+		// what the caller sees; that a cancelled waiting send sends nothing is the sidecar's own test,
+		// TestASendWaitingItsTurnFailsWhenItsCallEndsAndSendsNothing (internal/messaging/pacing_test.go).
 		await call.CancelAsync();
 		_ = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => third);
 
-		// The third never left: the first session's next entry is the read receipt it sent after it.
+		// The pacing held it: the first session's next entry is the read receipt it sent after it.
 		await first.MarkReadAsync(to, [MessageId.New()], cancellationToken: ct);
 		Assert.Equal(Sent.KindOneofCase.Read, (await SentAsync(fake, "pacing-first", last.Index, ct)).KindCase);
 	}

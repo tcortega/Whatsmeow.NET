@@ -559,7 +559,7 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
 | `OUTCOME_UNKNOWN` | `OutcomeUnknownException` |
 
 - The message is the status message, which `server.toStatus` makes without a phone number, a JID's user part or a URL's query, whatever a slice wrapped into the error; the reason and its metadata are untouched ([ADR 0039](adr/0039-pii-redaction-of-stderr-and-status-messages.md)). `Jid.Parse` throws without the text it refused.
-- Cancellation surfaces as `OperationCanceledException`, and deadlines as `TimeoutException`. No send has a deadline: the client sets none, so a send ends only by its token (ADR 0042).
+- Cancellation surfaces as `OperationCanceledException`. The client sets no gRPC deadline on any call, so no call ends by one: a caller bounds a call with its token (a `CancelAfter` too is a cancellation), and a send waiting for its paced turn ends that way, having sent nothing ([ADR 0042](adr/0042-send-pacing-options-and-jitter.md)). `TimeoutException` is only a client-side wait's own bound (`WaitForAsync`'s `timeout`).
 - `RpcException` never escapes the public API. No Result types for I/O failures.
 - Exceptions are raised through per-type static throw helpers, never `throw new` at a call site ([guidelines/csharp.md](guidelines/csharp.md) Control flow). `WhatsmeowValidationException` is also the Vogen `throws:` type.
 
