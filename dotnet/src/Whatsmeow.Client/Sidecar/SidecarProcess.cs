@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Grpc.Core;
 using Microsoft.Win32.SafeHandles;
+using Whatsmeow.History;
 
 namespace Whatsmeow.Sidecar;
 
@@ -58,6 +59,7 @@ internal sealed class SidecarProcess
 	/// </summary>
 	/// <param name="database">The SQLite database file, passed with <c>--database</c>.</param>
 	/// <param name="mediaRoot">The media root, passed with <c>--media-root</c>; null for none.</param>
+	/// <param name="history">The process-wide history options, passed as the <c>--history-*</c> flags.</param>
 	/// <param name="fakeWhatsApp">Pass <c>--fake-whatsapp</c>: only a test build accepts it (ADR 0019).</param>
 	/// <param name="startup">Cancelled by the caller or by the startup timeout.</param>
 	public static async Task<SidecarProcess> StartAsync(
@@ -66,6 +68,7 @@ internal sealed class SidecarProcess
 		string? socketDirectory,
 		string database,
 		string? mediaRoot,
+		HistorySyncOptions history,
 		bool fakeWhatsApp,
 		TimeSpan startupTimeout,
 		ILogger clientLog,
@@ -76,7 +79,7 @@ internal sealed class SidecarProcess
 	{
 		var token = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(32));
 		var nonce = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(16));
-		var (process, exited, job) = Spawn(StartInfo(binary, transport, socketDirectory, database, mediaRoot, fakeWhatsApp, nonce), clientLog);
+		var (process, exited, job) = Spawn(StartInfo(binary, transport, socketDirectory, database, mediaRoot, history, fakeWhatsApp, nonce), clientLog);
 		var sidecar = new SidecarProcess(process, exited, job, token, sidecarLog);
 
 		string failure;
@@ -179,7 +182,16 @@ internal sealed class SidecarProcess
 		_job?.Dispose();
 	}
 
-	private static ProcessStartInfo StartInfo(string binary, SidecarTransport transport, string? socketDirectory, string database, string? mediaRoot, bool fakeWhatsApp, string nonce)
+	private static ProcessStartInfo StartInfo(
+		string binary,
+		SidecarTransport transport,
+		string? socketDirectory,
+		string database,
+		string? mediaRoot,
+		HistorySyncOptions history,
+		bool fakeWhatsApp,
+		string nonce
+	)
 	{
 		var info = new ProcessStartInfo(binary)
 		{
@@ -209,6 +221,13 @@ internal sealed class SidecarProcess
 			info.ArgumentList.Add(mediaRoot);
 		}
 
+		// Process-wide: the sidecar sets them once, before any session pairs (ARCHITECTURE §7.2).
+		if (history.RequestFullSync)
+			info.ArgumentList.Add("--history-full-sync");
+		AddLimit(info, "--history-days-limit", history.FullSyncDaysLimit);
+		AddLimit(info, "--history-size-limit-mb", history.FullSyncSizeLimitMegabytes);
+		AddLimit(info, "--history-storage-quota-mb", history.StorageQuotaMegabytes);
+
 		if (fakeWhatsApp)
 			info.ArgumentList.Add("--fake-whatsapp");
 
@@ -218,6 +237,14 @@ internal sealed class SidecarProcess
 		info.ArgumentList.Add("--parent-pid");
 		info.ArgumentList.Add(Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture));
 		return info;
+	}
+
+	private static void AddLimit(ProcessStartInfo info, string flag, int? limit)
+	{
+		if (limit is not { } value)
+			return;
+		info.ArgumentList.Add(flag);
+		info.ArgumentList.Add(value.ToString(System.Globalization.CultureInfo.InvariantCulture));
 	}
 
 	/// <summary>

@@ -1,9 +1,11 @@
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging.Abstractions;
 using Whatsmeow.ChatState;
 using Whatsmeow.Contacts;
 using Whatsmeow.Presence;
 using Whatsmeow.Media;
 using Whatsmeow.Groups;
+using Whatsmeow.History;
 using Whatsmeow.Protocol.V1;
 using Whatsmeow.Sessions;
 using EphemeralPayload = Whatsmeow.Protocol.V1.StreamEphemeralEventsResponse.PayloadOneofCase;
@@ -21,8 +23,11 @@ internal static class EventMapping
 	/// The record of <paramref name="response"/>, or null for a payload case this client does not know. It maps field by
 	/// field: a time out of range is clamped and a malformed alt JID is unknown, so the content still arrives.
 	/// </summary>
+	/// <param name="sessionId">The session the event is of.</param>
+	/// <param name="response">The event.</param>
+	/// <param name="log">Where a history message that cannot be used is logged, as it is skipped; nowhere when null.</param>
 	/// <exception cref="WhatsmeowValidationException">The id, the chat or the sender is missing or malformed: the event is unusable.</exception>
-	public static WhatsAppEvent? ToEvent(SessionId sessionId, StreamEventsResponse response) =>
+	public static WhatsAppEvent? ToEvent(SessionId sessionId, StreamEventsResponse response, ILogger? log = null) =>
 		response.PayloadCase switch
 		{
 			Payload.Message => new MessageReceived
@@ -74,6 +79,8 @@ internal static class EventMapping
 				Type = ToType(response.Receipt.Type),
 			},
 			Payload.Group => GroupMapping.ToEvent(sessionId, response.Group),
+			Payload.HistoryMessages => HistoryMapping.ToEvent(sessionId, response.HistoryMessages, log ?? NullLogger.Instance),
+			Payload.HistoryProgress => HistoryMapping.ToEvent(sessionId, response.HistoryProgress),
 			Payload.None => null,
 			_ => null,
 		};
@@ -81,8 +88,9 @@ internal static class EventMapping
 	/// <summary>
 	/// The lane an event runs in, for the client's dispatcher and <c>FakeWhatsAppClient</c>'s alike (ADR 0036): its chat, so
 	/// one chat's events run in order; a contact's changes in the contact's lane, which is its direct chat when it uses the
-	/// same form; a group's changes in the group's, with its messages; presence in its user's; the session's lane without
-	/// one. The key is the JID as whatsmeow writes it, which is what the sidecar sends, so it is the proto field's own text
+	/// same form; a group's changes in the group's, with its messages; presence in its user's; history in a lane of its
+	/// own, never a chat's, so a live message never waits for it (ADR 0035); the session's lane without one. The key is
+	/// the JID as whatsmeow writes it, which is what the sidecar sends, so it is the proto field's own text
 	/// (EventLaneTests). An event this client cannot map has no handlers to order, and runs in the session's lane.
 	/// </summary>
 	public static string Lane(WhatsAppEvent? e) =>
@@ -98,6 +106,7 @@ internal static class EventMapping
 			GroupJoined group => group.Group.Jid.ToString(),
 			PresenceChanged presence => presence.From.ToString(),
 			ChatPresenceChanged chatPresence => chatPresence.Source.Chat.ToString(),
+			HistoryReceived or HistorySyncProgressed => HistoryMapping.Lane,
 			ConnectionStateChanged or EphemeralEventsDropped or null => SessionLane,
 			_ => SessionLane,
 		};
@@ -110,7 +119,7 @@ internal static class EventMapping
 
 	/// <summary>
 	/// The record of an ephemeral event, or null for a payload case or a state this client does not know. The time and
-	/// the alt JIDs map as for <see cref="ToEvent(SessionId, StreamEventsResponse)"/>.
+	/// the alt JIDs map as for <see cref="ToEvent(SessionId, StreamEventsResponse, ILogger?)"/>.
 	/// </summary>
 	/// <exception cref="WhatsmeowValidationException">The user, the chat or the sender is missing or malformed: the event is unusable.</exception>
 	public static WhatsAppEvent? ToEvent(SessionId sessionId, StreamEphemeralEventsResponse response) =>
@@ -138,7 +147,7 @@ internal static class EventMapping
 			_ => null,
 		};
 
-	private static MessageSource ToSource(Protocol.V1.MessageSource source) =>
+	internal static MessageSource ToSource(Protocol.V1.MessageSource source) =>
 		new()
 		{
 			Chat = Jid.Parse(source.Chat),
@@ -177,7 +186,7 @@ internal static class EventMapping
 	/// <summary>An alt JID that is missing or malformed is unknown; the message still arrives.</summary>
 	private static Jid? ToJid(string value) => Jid.TryParse(value, out var jid) ? jid : null;
 
-	private static string? NullIfEmpty(string value) => value.Length == 0 ? null : value;
+	internal static string? NullIfEmpty(string value) => value.Length == 0 ? null : value;
 
 	/// <summary>
 	/// The timestamp, clamped to what <see cref="DateTimeOffset"/> holds, so a time out of its range never costs the

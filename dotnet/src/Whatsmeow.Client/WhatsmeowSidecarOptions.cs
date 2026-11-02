@@ -1,3 +1,5 @@
+using Whatsmeow.History;
+
 namespace Whatsmeow;
 
 /// <summary>How <see cref="WhatsmeowSidecar"/> finds and starts the sidecar.</summary>
@@ -33,4 +35,23 @@ public sealed class WhatsmeowSidecarOptions
 	/// and every <see cref="Stream"/>, travels in 64 KiB chunks. When null, every transfer uses chunks.
 	/// </summary>
 	public string? MediaRoot { get; set; }
+
+	/// <summary>
+	/// How much history a session asks its phone for when it is paired. Process-wide: they apply to every session paired
+	/// while the sidecar runs with them, and never to one paired before (<see cref="HistorySyncOptions"/>).
+	/// </summary>
+	public HistorySyncOptions History { get; set; } = new();
+
+	/// <summary>
+	/// A copy with a copy of <see cref="History"/>, so changing the caller's instance later changes nothing, a restart
+	/// included. Member-wise, so a property added later is copied too; a member-wise copy shares a reference, so a property
+	/// added later whose type is a mutable class must be deep-copied here, as <see cref="History"/> is.
+	/// </summary>
+	internal WhatsmeowSidecarOptions Copy()
+	{
+		var copy = (WhatsmeowSidecarOptions)MemberwiseClone();
+		if (History is not null)
+			copy.History = History.Copy();
+		return copy;
+	}
 }

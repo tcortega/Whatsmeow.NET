@@ -217,3 +217,67 @@ func TestDeviceGivesAPairedSessionsDeviceInAnyState(t *testing.T) {
 		})
 	}
 }
+
+func TestUpsChannelClosesOnceTheSessionIsOnlineOrDeleted(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.create("s1")
+	h.link("s1", "5511999999999:1@s.whatsapp.net")
+	h.connect("s1")
+
+	// Connecting: not online yet.
+	up, err := h.svc.Up("s1")
+	if err != nil {
+		t.Fatalf("Up: %v", err)
+	}
+
+	select {
+	case <-up:
+		t.Fatal("the channel closed before the session was online")
+	default:
+	}
+
+	h.stub("s1").emit(&events.Connected{})
+
+	select {
+	case <-up:
+	case <-h.ctx.Done():
+		t.Fatal("the channel never closed after Connected")
+	}
+
+	// Online now: closed at once.
+	now, err := h.svc.Up("s1")
+	if err != nil {
+		t.Fatalf("Up while online: %v", err)
+	}
+
+	select {
+	case <-now:
+	default:
+		t.Fatal("the channel of an online session is open")
+	}
+
+	if _, err := h.client.Disconnect(h.ctx, &whatsmeowv1.DisconnectRequest{SessionId: "s1"}); err != nil {
+		t.Fatalf("Disconnect: %v", err)
+	}
+
+	later, err := h.svc.Up("s1")
+	if err != nil {
+		t.Fatalf("Up while disconnected: %v", err)
+	}
+
+	if _, err := h.client.DeleteSession(h.ctx, &whatsmeowv1.DeleteSessionRequest{SessionId: "s1"}); err != nil {
+		t.Fatalf("DeleteSession: %v", err)
+	}
+
+	select {
+	case <-later:
+	case <-h.ctx.Done():
+		t.Fatal("the channel never closed after DeleteSession")
+	}
+
+	if _, err := h.svc.Up("s1"); !errors.Is(err, server.ErrSessionNotFound) {
+		t.Fatalf("Up of a deleted session = %v, want SESSION_NOT_FOUND", err)
+	}
+}

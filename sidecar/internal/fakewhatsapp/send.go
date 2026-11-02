@@ -40,7 +40,8 @@ func (c *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E.M
 		return whatsmeow.SendResponse{}, errors.New("fake WhatsApp: a send without an id; the sidecar always gives one") //nolint:err113 // a misuse of the fake
 	}
 
-	if to.Server == types.DefaultUserServer {
+	// A peer message goes to the account itself, by its phone number (send.go:341).
+	if to.Server == types.DefaultUserServer && !req.Peer {
 		lid, err := c.lidForPN(ctx, to)
 		if err != nil {
 			return whatsmeow.SendResponse{}, err

@@ -404,3 +404,27 @@ func TestCheckReleaseDeletionAcrossContinuedLinesAndInActions(t *testing.T) {
 		"build/release.sh:1: [release-delete]",
 	})
 }
+
+func TestCheckLoggerEventIDsAreUniqueAcrossTheShippedAssemblies(t *testing.T) {
+	t.Parallel()
+
+	assertFindings(t, fstest.MapFS{
+		"dotnet/src/A/ALog.cs": {Data: []byte("partial class ALog\n{\n\t[LoggerMessage(36, LogLevel.Debug, \"a\")]\n\tpublic static partial void A(ILogger l);\n\n" +
+			"\t[LoggerMessage(\n\t\t37,\n\t\tLogLevel.Debug,\n\t\t\"b\")]\n\tpublic static partial void B(ILogger l);\n}\n")},
+		"dotnet/src/B/BLog.cs": {Data: []byte("partial class BLog\n{\n\t// [LoggerMessage(38, LogLevel.Debug, \"a comment\")]\n" +
+			"\t[LoggerMessage(EventId = 36, Level = LogLevel.Debug, Message = \"c\")]\n\tpublic static partial void C(ILogger l);\n\n" +
+			"\t[LoggerMessage(37, LogLevel.Debug, \"d\")]\n\tpublic static partial void D(ILogger l);\n\n" +
+			"\t[LoggerMessage(38, LogLevel.Debug, \"e\")]\n\tpublic static partial void E(ILogger l);\n}\n")},
+		// The named argument, and the attribute beside others or by its full name.
+		"dotnet/src/C/CLog.cs": {Data: []byte("partial class CLog\n{\n\t[LoggerMessage(eventId: 38, level: LogLevel.Debug, message: \"f\")]\n\tpublic static partial void F(ILogger l);\n\n" +
+			"\t[Obsolete(\"x\"), LoggerMessage(40, LogLevel.Debug, \"g\")]\n\tpublic static partial void G(ILogger l);\n\n" +
+			"\t[Obsolete, Microsoft.Extensions.Logging.LoggerMessageAttribute(EventId = 40, Level = LogLevel.Debug, Message = \"h\")]\n\tpublic static partial void H(ILogger l);\n}\n")},
+		// Tests log as they like.
+		"dotnet/tests/T/TLog.cs": {Data: []byte("[LoggerMessage(36, LogLevel.Debug, \"t\")]\n")},
+	}, []string{
+		"dotnet/src/B/BLog.cs:4: [logger-event-id]",
+		"dotnet/src/B/BLog.cs:7: [logger-event-id]",
+		"dotnet/src/C/CLog.cs:3: [logger-event-id]",
+		"dotnet/src/C/CLog.cs:9: [logger-event-id]",
+	})
+}

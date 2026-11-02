@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using Whatsmeow.History;
 
 namespace Whatsmeow.Sidecar;
 
@@ -65,6 +66,30 @@ internal static class WhatsmeowSidecarOptionsSetup
 		if (options.MediaRoot is { } root && (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root)))
 			failures.Add($"{nameof(WhatsmeowSidecarOptions.MediaRoot)} {root} must be an existing directory.");
 
+		if (options.History is null)
+			failures.Add($"{nameof(WhatsmeowSidecarOptions.History)} must not be null.");
+
+		failures.AddRange(HistoryFailures(options.History));
+
 		return failures;
+	}
+
+	/// <summary>The history options' broken rules: a limit is null, or more than zero.</summary>
+	private static IEnumerable<string> HistoryFailures(HistorySyncOptions? history)
+	{
+		if (history is null)
+			yield break;
+
+		(string Name, int? Limit)[] limits =
+		[
+			(nameof(history.FullSyncDaysLimit), history.FullSyncDaysLimit),
+			(nameof(history.FullSyncSizeLimitMegabytes), history.FullSyncSizeLimitMegabytes),
+			(nameof(history.StorageQuotaMegabytes), history.StorageQuotaMegabytes),
+		];
+		foreach (var (name, limit) in limits)
+		{
+			if (limit is <= 0)
+				yield return $"{nameof(WhatsmeowSidecarOptions.History)}.{name} must be null or more than zero.";
+		}
 	}
 }

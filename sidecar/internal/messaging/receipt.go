@@ -9,6 +9,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 )
 
 // Receipt is the Events slice's mapper for the receipts WhatsApp sends (events.Mapper): a whatsmeow Receipt becomes a
@@ -25,13 +26,13 @@ func Receipt(_ string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool
 	return receiptKey(e), &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_Receipt{
 		Receipt: &whatsmeowv1.ReceiptEvent{
 			Source: &whatsmeowv1.MessageSource{
-				Chat:         e.Chat.String(),
-				Sender:       e.Sender.String(),
-				SenderAlt:    e.SenderAlt.String(),
-				RecipientAlt: e.RecipientAlt.String(),
+				Chat:         server.Text(e.Chat.String()),
+				Sender:       server.Text(e.Sender.String()),
+				SenderAlt:    server.Text(e.SenderAlt.String()),
+				RecipientAlt: server.Text(e.RecipientAlt.String()),
 				IsFromMe:     e.IsFromMe,
 			},
-			MessageIds:  e.MessageIDs,
+			MessageIds:  server.Texts(e.MessageIDs),
 			ReceiptTime: timestamppb.New(e.Timestamp),
 			Type:        receiptType(e.Type),
 		},

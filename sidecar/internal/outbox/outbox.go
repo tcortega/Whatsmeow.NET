@@ -29,10 +29,11 @@ type Outbox struct {
 	feeds map[string]*feed
 }
 
-// feed wakes the streams of one session. changed is closed and replaced on every record; deleted is closed when the
-// session is deleted.
+// feed wakes the streams of one session. changed is closed and replaced on every record, acked on every ack; deleted
+// is closed when the session is deleted.
 type feed struct {
 	changed chan struct{}
+	acked   chan struct{}
 	deleted chan struct{}
 }
 
@@ -83,7 +84,7 @@ func (o *Outbox) Deleted(sessionID string) <-chan struct{} {
 func (o *Outbox) feedLocked(sessionID string) *feed {
 	f, ok := o.feeds[sessionID]
 	if !ok {
-		f = &feed{changed: make(chan struct{}), deleted: make(chan struct{})}
+		f = &feed{changed: make(chan struct{}), acked: make(chan struct{}), deleted: make(chan struct{})}
 		o.feeds[sessionID] = f
 	}
 
@@ -307,7 +308,38 @@ func (o *Outbox) Ack(ctx context.Context, sessionID, consumer string, upTo uint6
 		return fmt.Errorf("ack session %q: %w", sessionID, err)
 	}
 
+	o.mu.Lock()
+	f := o.feedLocked(sessionID)
+	close(f.acked)
+	f.acked = make(chan struct{})
+	o.mu.Unlock()
+
 	return nil
+}
+
+// Acked is closed by the session's next ack, which may have deleted events: for a slice that waits until the
+// consumers took what it recorded (Pending). Take it before reading Pending, then wait on it.
+func (o *Outbox) Acked(sessionID string) <-chan struct{} {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+
+	return o.feedLocked(sessionID).acked
+}
+
+// Pending is how many of the session's events whose natural key starts with prefix are still kept: not yet acked by
+// every consumer of the session, or, with no consumer, all of them. It reads a range of the (session_id, dedupe_key)
+// index; prefix must not end in the byte 0xff.
+func (o *Outbox) Pending(ctx context.Context, sessionID, prefix string) (int, error) {
+	end := []byte(prefix)
+	end[len(end)-1]++
+
+	var n int
+	if err := o.db.QueryRowContext(ctx, "SELECT count(*) FROM outbox WHERE session_id = ? AND dedupe_key >= ? AND dedupe_key < ?",
+		sessionID, prefix, string(end)).Scan(&n); err != nil {
+		return 0, fmt.Errorf("the pending events of session %q: %w", sessionID, err)
+	}
+
+	return n, nil
 }
 
 // SQLite integers are signed; a seq is positive and far below 2^63.

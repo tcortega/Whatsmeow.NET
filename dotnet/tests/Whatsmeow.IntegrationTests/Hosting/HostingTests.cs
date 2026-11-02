@@ -379,6 +379,46 @@ public sealed class HostingTests(FakeSidecar fixture, SidecarBinaries binaries)
 		Assert.Equal(Path.Combine(contentRoot, "whatsmeow-net.db"), host.Services.GetRequiredService<IOptions<WhatsmeowSidecarOptions>>().Value.DatabasePath);
 	}
 
+	[Fact]
+	public void HistoryOptions_FromConfiguration_AreBound()
+	{
+		using var logs = new LogCapture();
+		var builder = Hosts.Builder(
+			logs,
+			new(StringComparer.Ordinal)
+			{
+				["Whatsmeow:History:RequestFullSync"] = "true",
+				["Whatsmeow:History:FullSyncDaysLimit"] = "30",
+				["Whatsmeow:History:FullSyncSizeLimitMegabytes"] = "100",
+				["Whatsmeow:History:StorageQuotaMegabytes"] = "512",
+			},
+			binaries.NewDirectory()
+		);
+		_ = builder.Services.AddWhatsmeow();
+		using var host = builder.Build();
+
+		var history = host.Services.GetRequiredService<IOptions<WhatsmeowSidecarOptions>>().Value.History;
+
+		Assert.Equal((true, 30, 100, 512), (history.RequestFullSync, history.FullSyncDaysLimit, history.FullSyncSizeLimitMegabytes, history.StorageQuotaMegabytes));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task HistoryOptions_FromConfiguration_ALimitOfZeroFailsValidation_AndNoSidecarStarts()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var settings = Hosts.Settings(fixture.Binary, binaries.NewDatabase());
+		settings["Whatsmeow:History:FullSyncDaysLimit"] = "0";
+		var builder = Hosts.Builder(logs, settings);
+		_ = builder.Services.AddWhatsmeow().UseFakeWhatsApp();
+		using var host = builder.Build();
+
+		var error = await Assert.ThrowsAsync<OptionsValidationException>(() => host.StartAsync(ct));
+
+		Assert.Equal(["History.FullSyncDaysLimit must be null or more than zero."], error.Failures, StringComparer.Ordinal);
+		Assert.Empty(logs.Named("SidecarStarted"));
+	}
+
 	[Fact(Timeout = Timeout)]
 	public async Task Transport_FromConfiguration_ANumberNoTransportHasFailsValidation()
 	{

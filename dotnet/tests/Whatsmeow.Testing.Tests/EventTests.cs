@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Time.Testing;
 using Whatsmeow.Events;
+using Whatsmeow.History;
 using static Whatsmeow.Testing.Tests.Samples;
 
 namespace Whatsmeow.Testing.Tests;
@@ -232,6 +233,37 @@ public sealed class EventTests : IAsyncDisposable
 
 		Assert.Contains("own lane", Assert.IsType<InvalidOperationException>(await inner.Task).Message, StringComparison.Ordinal);
 		Assert.Equal(["outer", "other chat", "typing", "after"], handled, StringComparer.Ordinal);
+	}
+
+	[Fact(Timeout = 10_000)]
+	public async Task History_RunsInTheHistoryLane_NeverWaitingForItsChatsBlockedMessage()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var release = new TaskCompletionSource();
+		var inner = new TaskCompletionSource<Exception?>();
+		var handled = new ConcurrentQueue<string>();
+		using var messages = _fake.On<MessageReceived>(async (_, token) => await release.Task.WaitAsync(token).ConfigureAwait(false));
+		using var history = _fake.On<HistoryReceived>(
+			async (e, token) =>
+			{
+				handled.Enqueue(((TextContent)e.Messages[0].Content).Text);
+				if (inner.Task.IsCompleted)
+					return;
+
+				inner.SetResult(await Record.ExceptionAsync(() => _fake.RaiseAsync(Progress(), token)).ConfigureAwait(false));
+			}
+		);
+
+		var message = _fake.RaiseAsync(Message(Ana, "held"), ct);
+		await _fake.RaiseAsync(HistoryBatch(Ana, "old"), ct);
+		await _fake.RaiseAsync(HistoryBatch(Bia, "older"), ct);
+
+		// Ana's chat is held, and her history ran: it is in the history lane, which a history handler cannot raise into.
+		Assert.False(message.IsCompleted);
+		Assert.Equal(["old", "older"], handled, StringComparer.Ordinal);
+		Assert.Contains("own lane (\"@history\")", Assert.IsType<InvalidOperationException>(await inner.Task).Message, StringComparison.Ordinal);
+		release.SetResult();
+		await message;
 	}
 
 	[Fact(Timeout = 10_000)]

@@ -6,6 +6,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 )
 
 // Event is the slice's events.Mapper: it maps a group notification whatsmeow dispatched to the GroupEvent the outbox
@@ -52,12 +53,12 @@ func changesOf(e *events.GroupInfo) []*whatsmeowv1.GroupChange {
 	add := func(change *whatsmeowv1.GroupChange) { changes = append(changes, change) }
 
 	if e.Name != nil {
-		add(&whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_Renamed_{Renamed: &whatsmeowv1.GroupChange_Renamed{Name: e.Name.Name}}})
+		add(&whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_Renamed_{Renamed: &whatsmeowv1.GroupChange_Renamed{Name: server.Text(e.Name.Name)}}})
 	}
 
 	if e.Topic != nil {
 		// A removed topic is empty (group.go:921-946).
-		add(&whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_TopicChanged_{TopicChanged: &whatsmeowv1.GroupChange_TopicChanged{Topic: e.Topic.Topic}}})
+		add(&whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_TopicChanged_{TopicChanged: &whatsmeowv1.GroupChange_TopicChanged{Topic: server.Text(e.Topic.Topic)}}})
 	}
 
 	if e.Announce != nil {

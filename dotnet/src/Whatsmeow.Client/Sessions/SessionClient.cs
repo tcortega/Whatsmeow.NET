@@ -8,6 +8,7 @@ using Whatsmeow.Events;
 using Whatsmeow.Media;
 using Whatsmeow.Messaging;
 using Whatsmeow.Groups;
+using Whatsmeow.History;
 using Whatsmeow.Pairing;
 using Whatsmeow.Presence;
 using ChatPresenceState = Whatsmeow.Presence.ChatPresenceState;
@@ -44,6 +45,7 @@ internal sealed class SessionClient(
 	private readonly MessageService.MessageServiceClient _messages = new(invoker);
 	private readonly GroupService.GroupServiceClient _groups = new(invoker);
 	private readonly ChatStateService.ChatStateServiceClient _chatState = new(invoker);
+	private readonly HistoryService.HistoryServiceClient _history = new(invoker);
 
 	public SessionId SessionId => sessionId;
 
@@ -603,5 +605,14 @@ internal sealed class SessionClient(
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		request.SessionId = sessionId.Value;
 		_ = await RpcErrors.CallAsync(_chatState.SetChatStateAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+	}
+
+	public async Task RequestHistoryAsync(MessageId oldest, Events.MessageSource source, DateTimeOffset oldestTimestamp, int count = 50, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(source);
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = HistoryMapping.ToRequest(sessionId, oldest, source, oldestTimestamp, count);
+		_ = await RpcErrors.CallAsync(_history.RequestHistoryAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
 	}
 }

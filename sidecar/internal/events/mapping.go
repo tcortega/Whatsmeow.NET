@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 )
 
 // toEvent maps a whatsmeow event to the outbox event it records and that event's natural key, or false for an
@@ -21,12 +22,13 @@ import (
 func toEvent(evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) {
 	switch e := evt.(type) {
 	case *waevents.Message:
-		if onlySenderKey(e.Message) {
+		// A history sync notification is the History slice's (internal/history): never a live message.
+		if onlySenderKey(e.Message) || e.Message.GetProtocolMessage().GetHistorySyncNotification() != nil {
 			return "", nil, false
 		}
 
 		return key("m", &e.Info), &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_Message{
-			Message: &whatsmeowv1.MessageEvent{Info: info(&e.Info), Message: e.Message, ViewOnce: e.IsViewOnce},
+			Message: MessageEvent(e),
 		}}, true
 	case *waevents.UndecryptableMessage:
 		return key("u", &e.Info), &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_UndecryptableMessage{
@@ -50,6 +52,12 @@ func unavailableType(t waevents.UnavailableType) whatsmeowv1.UnavailableType {
 	}
 
 	return whatsmeowv1.UnavailableType_UNAVAILABLE_TYPE_UNSPECIFIED
+}
+
+// MessageEvent is a whatsmeow message as the contract's MessageEvent: a live one's, and a history message's, which the
+// History slice maps with it (internal/history), so a history message carries what a live one does.
+func MessageEvent(e *waevents.Message) *whatsmeowv1.MessageEvent {
+	return &whatsmeowv1.MessageEvent{Info: info(&e.Info), Message: e.Message, ViewOnce: e.IsViewOnce}
 }
 
 // onlySenderKey is a message with nothing but a sender key and its context info: the part of a group stanza that
@@ -77,18 +85,18 @@ func key(kind string, info *types.MessageInfo) string {
 func info(info *types.MessageInfo) *whatsmeowv1.MessageInfo {
 	return &whatsmeowv1.MessageInfo{
 		Source:      source(&info.MessageSource),
-		Id:          info.ID,
-		PushName:    info.PushName,
+		Id:          server.Text(info.ID),
+		PushName:    server.Text(info.PushName),
 		MessageTime: timestamppb.New(info.Timestamp),
 	}
 }
 
 func source(source *types.MessageSource) *whatsmeowv1.MessageSource {
 	return &whatsmeowv1.MessageSource{
-		Chat:         source.Chat.String(),
-		Sender:       source.Sender.String(),
-		SenderAlt:    source.SenderAlt.String(),
-		RecipientAlt: source.RecipientAlt.String(),
+		Chat:         server.Text(source.Chat.String()),
+		Sender:       server.Text(source.Sender.String()),
+		SenderAlt:    server.Text(source.SenderAlt.String()),
+		RecipientAlt: server.Text(source.RecipientAlt.String()),
 		IsFromMe:     source.IsFromMe,
 	}
 }

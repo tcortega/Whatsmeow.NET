@@ -61,6 +61,36 @@ func (s *session) clientOnline() (Client, <-chan struct{}, error) {
 	return nil, nil, fmt.Errorf("session %q: %w", s.id, server.ErrNotConnected)
 }
 
+// Up returns a channel closed once the session is logged in to WhatsApp (Connected or CaughtUp), already closed when it
+// is now, and closed when it is deleted: for another slice that waits for the session to come online, on a bound of
+// its own, then calls Online.
+func (svc *Service) Up(id string) (<-chan struct{}, error) {
+	s, err := svc.get(id)
+	if err != nil {
+		return nil, err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.gone() {
+		return nil, fmt.Errorf("session %q: %w", s.id, server.ErrSessionNotFound)
+	}
+
+	if up(s.state) {
+		now := make(chan struct{})
+		close(now)
+
+		return now, nil
+	}
+
+	if s.coming == nil {
+		s.coming = make(chan struct{})
+	}
+
+	return s.coming, nil
+}
+
 // Device returns the device of a paired session, in any state, for another slice's read of what its store learned;
 // it needs no connection. A session without a device fails with NOT_LOGGED_IN, or LOGGED_OUT after a logout.
 func (svc *Service) Device(id string) (*store.Device, error) {
@@ -88,11 +118,16 @@ func up(state *whatsmeowv1.SessionState) bool {
 	return is[*whatsmeowv1.SessionState_Connected_](state) || is[*whatsmeowv1.SessionState_CaughtUp_](state)
 }
 
-// track closes and clears the channel Online handed out once the session leaves Connected and CaughtUp; the next
-// Online while up makes a new one. s.mu is held.
+// track closes and clears the channel Online handed out once the session leaves Connected and CaughtUp, and the one
+// Up handed out once it gets there; the next call makes a new one. s.mu is held.
 func (s *session) track(state *whatsmeowv1.SessionState) {
 	if !up(state) && s.online != nil {
 		close(s.online)
 		s.online = nil
+	}
+
+	if up(state) && s.coming != nil {
+		close(s.coming)
+		s.coming = nil
 	}
 }

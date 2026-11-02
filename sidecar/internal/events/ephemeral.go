@@ -19,7 +19,7 @@ import (
 func toEphemeral(evt any) (*whatsmeowv1.StreamEphemeralEventsResponse, bool) {
 	switch e := evt.(type) {
 	case *waevents.Presence:
-		event := &whatsmeowv1.PresenceEvent{From: e.From.String(), State: whatsmeowv1.PresenceState_PRESENCE_STATE_AVAILABLE}
+		event := &whatsmeowv1.PresenceEvent{From: server.Text(e.From.String()), State: whatsmeowv1.PresenceState_PRESENCE_STATE_AVAILABLE}
 		if e.Unavailable {
 			event.State = whatsmeowv1.PresenceState_PRESENCE_STATE_UNAVAILABLE
 		}

@@ -5,6 +5,7 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 )
 
 // Event is the slice's events.Mapper: it maps a contact change whatsmeow dispatched to the ContactEvent the outbox
@@ -21,14 +22,14 @@ func Event(_ string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) 
 	switch e := evt.(type) {
 	case *events.PushName:
 		event = &whatsmeowv1.ContactEvent{Jid: user(e.JID), JidAlt: user(e.JIDAlt), Change: &whatsmeowv1.ContactEvent_PushName_{
-			PushName: &whatsmeowv1.ContactEvent_PushName{Name: e.NewPushName},
+			PushName: &whatsmeowv1.ContactEvent_PushName{Name: server.Text(e.NewPushName)},
 		}}
 	case *events.BusinessName:
 		event = &whatsmeowv1.ContactEvent{Jid: user(e.JID), Change: &whatsmeowv1.ContactEvent_BusinessName_{
-			BusinessName: &whatsmeowv1.ContactEvent_BusinessName{Name: e.NewBusinessName},
+			BusinessName: &whatsmeowv1.ContactEvent_BusinessName{Name: server.Text(e.NewBusinessName)},
 		}}
 	case *events.Picture:
-		picture := &whatsmeowv1.ContactEvent_Picture{Id: e.PictureID}
+		picture := &whatsmeowv1.ContactEvent_Picture{Id: server.Text(e.PictureID)}
 		if e.Remove {
 			picture.Id = ""
 		}
@@ -36,7 +37,7 @@ func Event(_ string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) 
 		event = &whatsmeowv1.ContactEvent{Jid: user(e.JID), Change: &whatsmeowv1.ContactEvent_Picture_{Picture: picture}}
 	case *events.UserAbout:
 		event = &whatsmeowv1.ContactEvent{Jid: user(e.JID), Change: &whatsmeowv1.ContactEvent_About_{
-			About: &whatsmeowv1.ContactEvent_About{Text: e.Status},
+			About: &whatsmeowv1.ContactEvent_About{Text: server.Text(e.Status)},
 		}}
 	default:
 		return "", nil, false

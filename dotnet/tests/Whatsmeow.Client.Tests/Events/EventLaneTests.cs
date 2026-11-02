@@ -104,6 +104,39 @@ public sealed class EventLaneTests
 			},
 			static r => r.Group.Group
 		),
+
+		// History has no lane field: every history event runs in the one history lane, never its messages' chat (ADR 0035).
+		["HistoryMessages"] = Durable(
+			new StreamEventsResponse
+			{
+				HistoryMessages = new HistoryMessagesEvent
+				{
+					SyncType = Protocol.V1.HistorySyncType.Recent,
+					Messages =
+					{
+						new MessageEvent
+						{
+							Info = Info("120363025246125486@g.us", "5511999990001:12@s.whatsapp.net"),
+							Message = new E2E.Message { Conversation = "old" },
+						},
+					},
+				},
+			},
+			static _ => "@history"
+		),
+		["HistoryProgress"] = Durable(
+			new StreamEventsResponse
+			{
+				HistoryProgress = new HistorySyncProgressEvent
+				{
+					SyncType = Protocol.V1.HistorySyncType.Recent,
+					ChunkOrder = 1,
+					Progress = 100,
+					MessageCount = 1,
+				},
+			},
+			static _ => "@history"
+		),
 	};
 
 	private static readonly Dictionary<string, (StreamEphemeralEventsResponse Response, string Lane)> s_ephemeral = new(StringComparer.Ordinal)

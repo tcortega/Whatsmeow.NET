@@ -137,7 +137,7 @@ Any of these in a diff is a failed slice, green or not:
 
 * `Environment.Exit`, `Environment.FailFast`, or anything that kills the runner
 * hooks or modules that patch xUnit results
-* overriding `Equals`, `==`, or a comparer on a public record so assertions pass (record structural equality is required, not a cheat). The allowed case: a record holding `ImmutableArray` may define element-wise equality, because that is its structural equality (`MediaRef`, ADR 0026; `GroupInfo`, `CreatedGroup`, `GroupInfoChanged` and `ReceiptReceived`, ADR 0030; the media metadata records, ADR 0033); it compares every field, so a test compares the whole record
+* overriding `Equals`, `==`, or a comparer on a public record so assertions pass (record structural equality is required, not a cheat). The allowed case: a record holding `ImmutableArray` may define element-wise equality, because that is its structural equality (`MediaRef`, ADR 0026; `GroupInfo`, `CreatedGroup`, `GroupInfoChanged` and `ReceiptReceived`, ADR 0030; the media metadata records, ADR 0033; `HistoryReceived`, ADR 0035); it compares every field, so a test compares the whole record
 * `try/catch` or `if` around an assert so failure is swallowed
 * new `Skip`, `Skip.If`, `Explicit`, commented-out facts, or `Assert.True(true)`. The declared exceptions:
   * the platform condition `NoexecTests` (the copy fallback), which needs a `noexec` mount that only root can make: its tests run where `WHATSMEOW_NET_TEST_NOEXEC_DIR` names one (`build/ci.sh` provides it on linux-x64 CI), and fails instead of skipping when `CI=true` on linux-x64 and the mount is missing;

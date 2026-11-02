@@ -21,6 +21,7 @@ Moved from ARCHITECTURE §7.9 and §11; what the sidecar does is ARCHITECTURE §
 - Every goroutine has an owner, a cancellation path, and is waited on during shutdown (`errgroup`). The one exception is a goroutine blocked reading stdin (the tether, the token): a stdin read cannot be interrupted portably, so it is left to end with the process.
 - The gRPC server's lenient proto codec is installed with `grpc.ForceServerCodecV2`. Never `encoding.RegisterCodec`/`RegisterCodecV2`: that is package-level mutable state (ARCHITECTURE §6).
 - Never trust a remembered whatsmeow behavior. ARCHITECTURE §14 "Other whatsmeow claims" and question 4 record what the pinned source does; re-check them on every whatsmeow bump.
+- A string taken from WhatsApp data into a proto3 field goes through `server.Text`, which makes it UTF-8: protobuf refuses to marshal one that is not, and whatsmeow copies names and texts unchecked (ARCHITECTURE §7.3).
 - Handlers return in milliseconds: whatsmeow abandons a node after about 5 minutes and moves the queue on (ARCHITECTURE §7.3).
 - Retry what whatsmeow does not: uploads have no retry in whatsmeow; downloads do (ARCHITECTURE §7.6).
 - Never regenerate whatsmeow's protos into our own packages; import whatsmeow's (ARCHITECTURE §13, invariant 11).

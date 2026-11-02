@@ -5,7 +5,8 @@
 // generated folders and Go build tags exist; anything else is reported, and the fix for a real need is to
 // extend the allowlist here in a reviewed change. On top of that it rejects, in C# outside generated code:
 // unjustified pragmas and SuppressMessage attributes, generated-code markers, aliases of the suppression and
-// generated-code attributes, captured contexts, and positional records. In YAML under .github/ (workflows and
+// generated-code attributes, captured contexts, positional records, and a [LoggerMessage] event id that another log
+// line of a shipped assembly has. In YAML under .github/ (workflows and
 // composite actions) and in shell scripts it rejects any step that deletes a GitHub release: a release holds the
 // Corresponding Source of the packages on nuget.org, which stay there, so it is never deleted (ADR 0016, ADR 0029).
 //
@@ -134,6 +135,8 @@ func (f finding) String() string {
 func check(ctx context.Context, fsys fs.FS) ([]finding, error) {
 	var findings []finding
 
+	ids := loggerEventIDs{}
+
 	err := fs.WalkDir(fsys, ".", func(name string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -158,6 +161,15 @@ func check(ctx context.Context, fsys fs.FS) ([]finding, error) {
 
 		findings = append(findings, found...)
 
+		if strings.HasPrefix(name, "dotnet/src/") && path.Ext(name) == ".cs" && !isGenerated(name) {
+			content, err := fs.ReadFile(fsys, name)
+			if err != nil {
+				return fmt.Errorf("read %s: %w", name, err)
+			}
+
+			findings = append(findings, ids.check(name, content)...)
+		}
+
 		return nil
 	})
 	if err != nil {
@@ -165,6 +177,49 @@ func check(ctx context.Context, fsys fs.FS) ([]finding, error) {
 	}
 
 	return findings, nil
+}
+
+// loggerEventIDs is where each [LoggerMessage] event id of the shipped assemblies is first used: an id names one log
+// line across the library, so a filter or a dashboard on it never matches another.
+type loggerEventIDs map[string]string
+
+var (
+	// The attribute first in its list or beside others, by its short or full name.
+	loggerMessage = regexp.MustCompile(`(?:\[|,)\s*(?:[A-Za-z_][A-Za-z0-9_]*\.)*LoggerMessage(?:Attribute)?\s*\(`)
+	positionalID  = regexp.MustCompile(`^\(\s*(\d+)\s*,`)
+	// The property, EventId = N, or the constructor's named argument, eventId: N.
+	namedID = regexp.MustCompile(`\b(?:EventId\s*=|eventId\s*:)\s*(\d+)`)
+)
+
+func (ids loggerEventIDs) check(name string, content []byte) []finding {
+	var findings []finding
+
+	code := stripCSharp(content)
+
+	for _, at := range loggerMessage.FindAllIndex(code, -1) {
+		args := balancedArgs(code[at[1]-1:])
+
+		match := positionalID.FindSubmatch(args)
+		if match == nil {
+			match = namedID.FindSubmatch(args)
+		}
+
+		if match == nil {
+			continue
+		}
+
+		line := lineAt(code, at[0])
+		if first, ok := ids[string(match[1])]; ok {
+			message := fmt.Sprintf("event id %s is %s's already; give this log line a free one", match[1], first)
+			findings = append(findings, finding{name, line, "logger-event-id", message})
+
+			continue
+		}
+
+		ids[string(match[1])] = fmt.Sprintf("%s:%d", name, line)
+	}
+
+	return findings
 }
 
 func isSkipped(name string) bool {

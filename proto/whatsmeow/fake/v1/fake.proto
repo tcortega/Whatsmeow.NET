@@ -206,6 +206,25 @@ service FakeWhatsAppService {
   // HoldFullSync makes the session's next full syncs wait, holding the client's app state lock, until it is called
   // again with hold false. A full sync is recorded (Sent.app_state_full_sync) before it waits.
   rpc HoldFullSync(HoldFullSyncRequest) returns (HoldFullSyncResponse);
+
+  // CompleteOfflineSync makes WhatsApp tell the session's client that it sent everything the client missed while
+  // offline: the client dispatches OfflineSyncCompleted on its node queue, in order with the messages before it
+  // (connectionevents.go:72-90). It returns once the client's event handlers ran, with the index of the newest entry of
+  // the Sent log then. A session without a client is an error.
+  rpc CompleteOfflineSync(CompleteOfflineSyncRequest) returns (CompleteOfflineSyncResponse);
+
+  // DeliverHistorySync makes the phone send a history sync blob: the media server keeps the blob, zlib-compressed as
+  // WhatsApp's are, in a file that outlives the process (or the notification carries it inline), and the session's
+  // client gets the notification, a protocol message from the account's own phone, as DeliverMessage delivers one.
+  // The client's DownloadHistorySync reads it back (Sent.media_download, unless inline) and its DeleteMedia deletes
+  // it (Sent.media_delete); ExpireMedia with the returned direct path makes it expired. It returns once the client's
+  // event handlers ran. A session without a client is an error.
+  rpc DeliverHistorySync(DeliverHistorySyncRequest) returns (DeliverHistorySyncResponse);
+
+  // GetPairingDeviceProps reads the history options the session's latest pairing sent: the process-wide
+  // store.DeviceProps as they were when the phone linked the device (LinkDevice), which whatsmeow sends only in the
+  // registration payload (store/clientpayload.go:174-183).
+  rpc GetPairingDeviceProps(GetPairingDevicePropsRequest) returns (GetPairingDevicePropsResponse);
 }
 
 // FailNextUploadsRequest names the session and how many uploads fail.
@@ -515,7 +534,15 @@ message Sent {
     Ack ack = 14;
     // The client asked for a full sync of an app state collection (FetchAppState with fullSync).
     AppStateFullSync app_state_full_sync = 15;
+    // The client deleted media from the media server (DeleteMedia).
+    MediaDelete media_delete = 16;
   }
+}
+
+// MediaDelete is the DELETE DeleteMedia sends (upload.go:305-359).
+message MediaDelete {
+  // The direct path deleted.
+  string direct_path = 1;
 }
 
 // AppStateFullSync is the full sync of one app state collection, asking for its snapshot (appstate.go:466-494).
@@ -1027,3 +1054,91 @@ message HoldFullSyncRequest {
 
 // HoldFullSyncResponse has no fields.
 message HoldFullSyncResponse {}
+
+// CompleteOfflineSyncRequest names the session.
+message CompleteOfflineSyncRequest {
+  // The session whose offline sync completes.
+  string session_id = 1;
+}
+
+// CompleteOfflineSyncResponse is where the Sent log was.
+message CompleteOfflineSyncResponse {
+  // The index of the newest entry of the Sent log once the handlers ran; 0 when it is empty.
+  uint64 index = 1;
+}
+
+// DeliverHistorySyncRequest is the blob the phone sends.
+message DeliverHistorySyncRequest {
+  // A conversation of the blob.
+  message Conversation {
+    // The chat's JID.
+    string chat = 1;
+    // Its messages, in the blob's order.
+    repeated Message messages = 2;
+  }
+
+  // A message of a conversation, as a WebMessageInfo carries it.
+  message Message {
+    // The WhatsApp message id.
+    string id = 1;
+    // In a group, the sender's JID; empty in a direct chat, where the sender is the chat or the account.
+    string participant = 2;
+    // True when the account itself sent it.
+    bool from_me = 3;
+    // The text.
+    string text = 4;
+    // Its WhatsApp timestamp, in whole seconds.
+    google.protobuf.Timestamp message_time = 5;
+    // The sender's push name.
+    string push_name = 6;
+    // When set, the message itself, in place of the text: a media message, or one in a view-once wrapper.
+    WAWebProtobufsE2E.Message message = 7;
+  }
+
+  // The session whose phone sends it.
+  string session_id = 1;
+  // The notification message's id.
+  string message_id = 2;
+  // The blob's waHistorySync.HistorySync.HistorySyncType number, also the notification's: 0 INITIAL_BOOTSTRAP, 2 FULL,
+  // 3 RECENT, 6 ON_DEMAND, ...
+  int32 sync_type = 3;
+  // Its place among the sync's blobs.
+  uint32 chunk_order = 4;
+  // WhatsApp's progress value.
+  uint32 progress = 5;
+  // True when the notification carries the blob inline, as the first one after pairing can
+  // (InitialHistBootstrapInlinePayload): nothing is downloaded or deleted.
+  bool inline = 6;
+  // The blob's conversations.
+  repeated Conversation conversations = 7;
+  // How many 'x' follow each message's text, for a blob larger than a control call may carry.
+  uint32 pad_text = 8;
+  // True for a notification that carries no blob at all, neither inline nor to download, as one of sync type 7
+  // NO_HISTORY or 8 MESSAGE_ACCESS_STATUS (waE2E's numbers) may; the conversations are ignored. Whether WhatsApp sends
+  // one without a blob is [unknown].
+  bool blobless = 9;
+}
+
+// DeliverHistorySyncResponse is where the blob is.
+message DeliverHistorySyncResponse {
+  // Its direct path on the media server; empty when inline.
+  string direct_path = 1;
+}
+
+// GetPairingDevicePropsRequest names the session.
+message GetPairingDevicePropsRequest {
+  // The session.
+  string session_id = 1;
+}
+
+// GetPairingDevicePropsResponse is store.DeviceProps' history fields at the session's latest pairing.
+message GetPairingDevicePropsResponse {
+  // RequireFullSync.
+  bool require_full_sync = 1;
+  // HistorySyncConfig.FullSyncDaysLimit; unset when not set.
+  optional uint32 full_sync_days_limit = 2;
+  // HistorySyncConfig.FullSyncSizeMbLimit; unset when not set.
+  optional uint32 full_sync_size_mb_limit = 3;
+  // HistorySyncConfig.StorageQuotaMb; unset when not set.
+  optional uint32 storage_quota_mb = 4;
+}
