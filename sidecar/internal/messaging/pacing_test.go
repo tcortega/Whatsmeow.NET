@@ -57,6 +57,14 @@ func (c *clock) pass(w wait) {
 	w.elapsed <- at
 }
 
+// advance moves the clock by d, ending no wait.
+func (c *clock) advance(d time.Duration) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.at = c.at.Add(d)
+}
+
 // fakeClock gives the slice a fake clock and a jitter of the most it may be, just under the half interval it is given,
 // so a wait shows both.
 func (h *harness) fakeClock() *clock {
@@ -67,7 +75,8 @@ func (h *harness) fakeClock() *clock {
 	return c
 }
 
-// nextWait is the next wait the slice asks for; it fails if done comes first, a send that went out without waiting.
+// nextWait is the next wait the slice asks for; it fails if done comes first, a send that went out without waiting
+// (nil: none to watch).
 func (h *harness) nextWait(c *clock, done <-chan error) wait {
 	h.t.Helper()
 

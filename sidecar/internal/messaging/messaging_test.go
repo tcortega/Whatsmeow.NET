@@ -302,7 +302,7 @@ func start(t *testing.T) *harness {
 	log := zerolog.New(h.logs).Level(zerolog.InfoLevel)
 	h.sessions = &sessions{client: h.stub, left: make(chan struct{})}
 	h.svc = New(db.DB, db.Writer, h.sessions, log, Pacing{Interval: DefaultInterval, Burst: DefaultBurst})
-	// Fast enough for a test, and still measurable.
+	// A burst no test reaches unless it sets one; a test that paces or backs off gives the slice a fake clock (fakeClock).
 	h.svc.pace, h.svc.burst, h.svc.backoff = 40*time.Millisecond, 100, []time.Duration{time.Millisecond, 2 * time.Millisecond, 4 * time.Millisecond}
 	h.svc.margin = time.Millisecond
 	h.svc.onQueue = func() { h.queued <- struct{}{} }
@@ -788,12 +788,15 @@ func TestARateLimitIsBackedOffThenFailsWithRateLimited(t *testing.T) {
 	t.Parallel()
 
 	h := start(t)
+	c := h.fakeClock()
 	limited := fmt.Errorf("failed to get devices: %w", whatsmeow.ErrIQRateOverLimit)
 
 	// Backed off twice, then sent.
 	h.script(limited, limited)
+	done := h.goSend(h.ctx, 1)
+	h.backOff(c, done, h.svc.backoff[:2])
 
-	if _, err := h.sendText(h.ctx, 1, "hi"); err != nil {
+	if err := h.done(done); err != nil {
 		t.Fatalf("SendText: %v", err)
 	}
 
@@ -803,8 +806,10 @@ func TestARateLimitIsBackedOffThenFailsWithRateLimited(t *testing.T) {
 
 	// Past the backoff: rate limited, and nothing was sent, so a repeat sends.
 	h.script(limited, limited, limited, limited)
+	done = h.goSend(h.ctx, 2)
+	h.backOff(c, done, h.svc.backoff)
 
-	_, err := h.sendText(h.ctx, 2, "hi")
+	err := h.done(done)
 	wantReason(t, err, codes.ResourceExhausted, "RATE_LIMITED", nil)
 
 	if got := h.stub.ids(); len(got) != 3+4 {
@@ -824,6 +829,21 @@ func TestARateLimitIsBackedOffThenFailsWithRateLimited(t *testing.T) {
 
 	_, err = h.sendText(ctx, 3, "hi")
 	wantReason(t, err, codes.ResourceExhausted, "RATE_LIMITED", nil)
+	h.noWait(c)
+}
+
+// backOff passes the backoff's waits, each the one want says, while done has not come.
+func (h *harness) backOff(c *clock, done <-chan error, want []time.Duration) {
+	h.t.Helper()
+
+	for _, d := range want {
+		w := h.nextWait(c, done)
+		if w.d != d {
+			h.t.Fatalf("the backoff waited %v, want %v", w.d, d)
+		}
+
+		c.pass(w)
+	}
 }
 
 // A try needs time beyond its backoff: one started with no time left would run out after the hand-off, an unknown
@@ -857,6 +877,7 @@ func TestQueuedSendsGoOutInOrderAndPaced(t *testing.T) {
 
 	h := start(t)
 	h.svc.burst = 1
+	c := h.fakeClock()
 	release := h.hold()
 
 	first := h.async(h.ctx, 1)
@@ -869,7 +890,19 @@ func TestQueuedSendsGoOutInOrderAndPaced(t *testing.T) {
 	h.wait(h.queued, "third queued")
 	close(release)
 
-	for _, done := range []<-chan result{first, second, third} {
+	if r := h.outcome(first); r.err != nil {
+		t.Fatalf("the first failed: %v", r.err)
+	}
+
+	// The second and the third each wait an interval after the send before them, and the jitter.
+	for _, done := range []<-chan result{second, third} {
+		w := h.nextWait(c, nil)
+		if want := h.svc.pace + h.svc.pace/2 - time.Nanosecond; w.d != want {
+			t.Fatalf("a queued send waited %v, want the interval and the jitter, %v", w.d, want)
+		}
+
+		c.pass(w)
+
 		if r := h.outcome(done); r.err != nil {
 			t.Fatalf("a send failed: %v", r.err)
 		}
@@ -878,10 +911,6 @@ func TestQueuedSendsGoOutInOrderAndPaced(t *testing.T) {
 	sent := h.stub.sent()
 	if len(sent) != 3 || sent[0].id != id(1) || sent[1].id != id(2) || sent[2].id != id(3) {
 		t.Fatalf("whatsmeow got %v, want 1, 2, 3 in order", h.stub.ids())
-	}
-
-	if gap := sent[2].at.Sub(sent[1].at); gap < h.svc.pace {
-		t.Fatalf("the third went out %v after the second, want at least %v", gap, h.svc.pace)
 	}
 }
 
@@ -966,15 +995,27 @@ func TestSendsOneAfterAnotherArePacedToo(t *testing.T) {
 
 	h := start(t)
 	h.svc.burst = 1
+	c := h.fakeClock()
 
-	for n := range 2 {
-		if _, err := h.sendText(h.ctx, n, "hi"); err != nil {
-			t.Fatalf("SendText %d: %v", n, err)
-		}
+	if _, err := h.sendText(h.ctx, 0, "hi"); err != nil {
+		t.Fatalf("SendText 0: %v", err)
 	}
 
-	if sent := h.stub.sent(); len(sent) != 2 || sent[1].at.Sub(sent[0].at) < h.svc.pace {
-		t.Fatalf("whatsmeow got %v, want the second at least %v after the first", sent, h.svc.pace)
+	second := h.goSend(h.ctx, 1)
+	w := h.nextWait(c, second)
+
+	if want := h.svc.pace + h.svc.pace/2 - time.Nanosecond; w.d != want {
+		t.Fatalf("the second waited %v, want the interval and the jitter, %v", w.d, want)
+	}
+
+	c.pass(w)
+
+	if err := h.done(second); err != nil {
+		t.Fatalf("SendText 1: %v", err)
+	}
+
+	if sent := h.stub.sent(); len(sent) != 2 {
+		t.Fatalf("whatsmeow got %v, want both", sent)
 	}
 }
 
@@ -984,25 +1025,29 @@ func TestAnIdleQueueGoesOnceItsPacingRanOut(t *testing.T) {
 	t.Parallel()
 
 	h := start(t)
-	h.svc.pace = time.Nanosecond
+	c := h.fakeClock()
 
 	if _, err := h.sendText(h.ctx, 1, "hi"); err != nil {
 		t.Fatalf("SendText: %v", err)
 	}
 
-	// s1 is deleted; s3 sends.
+	// s1 is deleted; s3 sends, while s1's pacing still holds, and once it ran out.
 	h.sessions.leave(fmt.Errorf("session %q: %w", "s1", server.ErrSessionNotFound))
 
-	if _, err := h.client.SendText(h.ctx, &whatsmeowv1.SendTextRequest{SessionId: "s3", Chat: "111@lid", ClientMessageId: id(2), Text: "hi"}); err != nil {
-		t.Fatalf("SendText on s3: %v", err)
-	}
+	for n, want := range []bool{true, false} {
+		if _, err := h.client.SendText(h.ctx, &whatsmeowv1.SendTextRequest{SessionId: "s3", Chat: "111@lid", ClientMessageId: id(2 + n), Text: "hi"}); err != nil {
+			t.Fatalf("SendText on s3: %v", err)
+		}
 
-	h.svc.mu.Lock()
-	_, kept := h.svc.queues["s1"]
-	h.svc.mu.Unlock()
+		h.svc.mu.Lock()
+		_, kept := h.svc.queues["s1"]
+		h.svc.mu.Unlock()
 
-	if kept {
-		t.Fatal("the deleted session's idle queue is still kept")
+		if kept != want {
+			t.Fatalf("the deleted session's idle queue kept = %v, want %v", kept, want)
+		}
+
+		c.advance(h.svc.pace)
 	}
 }
 
