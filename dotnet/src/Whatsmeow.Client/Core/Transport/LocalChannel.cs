@@ -23,17 +23,19 @@ internal sealed class LocalChannel : IDisposable
 	/// <param name="loggerFactory">For gRPC's own logs.</param>
 	public LocalChannel(bool namedPipe, Func<string?> endpoint, Func<string> token, ILoggerFactory loggerFactory)
 	{
-		var handler = new SocketsHttpHandler
-		{
-			ConnectCallback = namedPipe
-				? (_, ct) => ConnectPipeAsync(endpoint(), ct)
-				: (_, ct) => ConnectSocketAsync(endpoint(), ct),
-		};
-
 		// Never call ConnectAsync or read State: both throw with a ConnectCallback (ARCHITECTURE §8.6).
 		_channel = GrpcChannel.ForAddress("http://localhost", new GrpcChannelOptions
 		{
-			HttpHandler = handler,
+			// Keeps a call that ends mid-upload from completing the HTTP/2 stream under a write (#71).
+			HttpHandler = new RequestBodyFence
+			{
+				InnerHandler = new SocketsHttpHandler
+				{
+					ConnectCallback = namedPipe
+						? (_, ct) => ConnectPipeAsync(endpoint(), ct)
+						: (_, ct) => ConnectSocketAsync(endpoint(), ct),
+				},
+			},
 			DisposeHttpClient = true,
 			MaxReceiveMessageSize = MaxMessageSize,
 			MaxSendMessageSize = MaxMessageSize,

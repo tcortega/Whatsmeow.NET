@@ -24,6 +24,10 @@ That is `tests/Whatsmeow.IntegrationTests`.
 
 * dispatcher per-chat ordering and the ack watermark
 * the supervisor restart/backoff state machine (driven by `FakeTimeProvider`)
+* the transport's request body fence (`Core/Transport/RequestBodyFence.cs`, #71), the one exception outside those two.
+  It works around a race between grpc-dotnet and SocketsHttpHandler that the refused-upload test hit in 7 of 500 runs under load, so integration cannot pin its contract.
+  `Transport/RequestBodyFenceTests.cs` drives it with a stream whose write blocks on the test, so every step is ordered.
+  The refused-upload FullCycle in `Media/MediaTests.cs` stays the end-to-end check.
 
 Proto-to-record mapping and error mapping are covered through integration, not unit tests.
 Go keeps per-slice unit tests; see [go.md](go.md).
