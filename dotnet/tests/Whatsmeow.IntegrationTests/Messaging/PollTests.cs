@@ -291,22 +291,9 @@ public sealed class PollTests(FakeSidecar fixture)
 			Content = content,
 		};
 
-	/// <summary>A session the phone linked with a LID, as WhatsApp links every device: whatsmeow names the account by it in a LID chat.</summary>
-	private async Task<IWhatsAppClient> LinkedAsync(string session, int n, CancellationToken ct)
-	{
-		var client = await fixture.Sidecar.Sessions.GetOrCreateAsync(SessionId.From(session), ct).ConfigureAwait(false);
-		_ = await fixture
-			.Fake.LinkDeviceAsync(new LinkDeviceRequest { SessionId = session, Jid = SessionSetup.Jid(session), Lid = $"{Lid(n).User}:1@lid" }, cancellationToken: ct)
-			.ConfigureAwait(false);
-		return client;
-	}
+	private Task<IWhatsAppClient> LinkedAsync(string session, int n, CancellationToken ct) => SessionSetup.LinkedAsync(fixture, session, $"{Lid(n).User}:1@lid", ct);
 
-	private async Task<IWhatsAppClient> ConnectedAsync(string session, int n, CancellationToken ct)
-	{
-		var client = await LinkedAsync(session, n, ct).ConfigureAwait(false);
-		await ConnectAsync(client, ct).ConfigureAwait(false);
-		return client;
-	}
+	private Task<IWhatsAppClient> ConnectedAsync(string session, int n, CancellationToken ct) => SessionSetup.ConnectedAsync(fixture, session, $"{Lid(n).User}:1@lid", ct);
 
 	/// <summary>Connects a linked session whose handlers are registered, so its events flow to them.</summary>
 	private static async Task ConnectAsync(IWhatsAppClient client, CancellationToken ct)

@@ -381,8 +381,17 @@ internal sealed class SessionClient(
 		if (!poll.Options.IsDefault)
 			request.Options.Add(poll.Options);
 		request.Mentions.Add(MessagingMapping.ToMentions(options));
-		var response = await RpcErrors.CallAsync(_messages.SendPollAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
-		return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+		return await SendTracedAsync(
+				"poll",
+				messageId,
+				async () =>
+				{
+					var response = await RpcErrors.CallAsync(_messages.SendPollAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+				},
+				cancellationToken
+			)
+			.ConfigureAwait(false);
 	}
 
 	public async Task<SendResult> SendPollVoteAsync(Jid chat, MessageKey poll, IReadOnlyList<string> selectedOptions, MessageId? id = null, CancellationToken cancellationToken = default)
@@ -400,8 +409,17 @@ internal sealed class SessionClient(
 			PollSender = poll.Sender?.ToString() ?? "",
 		};
 		request.Options.Add(selectedOptions);
-		var response = await RpcErrors.CallAsync(_messages.SendPollVoteAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
-		return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+		return await SendTracedAsync(
+				"poll_vote",
+				messageId,
+				async () =>
+				{
+					var response = await RpcErrors.CallAsync(_messages.SendPollVoteAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+				},
+				cancellationToken
+			)
+			.ConfigureAwait(false);
 	}
 
 	public async Task<SendResult> SendRawAsync(Jid chat, E2E.Message message, MessageId? id = null, CancellationToken cancellationToken = default)
