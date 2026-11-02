@@ -597,8 +597,9 @@ func tags(expr constraint.Expr) []string {
 }
 
 // allowedTag accepts GOOS and GOARCH values, fakewhatsapp only in the fake WhatsApp mode and its wiring (so a
-// slice is the same code in the test build and the release build, ADR 0019), and ignore for helper programs under
-// tools/.
+// slice is the same code in the test build and the release build, ADR 0019), livetest only in the live tests' seams,
+// files named livetest_* in the events and messaging slices (ADR 0032; build/ci.sh checks a release build links none),
+// and ignore for helper programs under tools/.
 func allowedTag(name, tag string) bool {
 	platforms := []string{
 		"aix", "android", "darwin", "dragonfly", "freebsd", "illumos", "ios", "js", "linux", "netbsd", "openbsd",
@@ -612,6 +613,10 @@ func allowedTag(name, tag string) bool {
 		return true
 	case tag == "fakewhatsapp":
 		return strings.HasPrefix(name, "sidecar/internal/fakewhatsapp/") || strings.HasPrefix(name, "sidecar/cmd/whatsmeow-net/")
+	case tag == "livetest":
+		dir, file := path.Split(name)
+
+		return (dir == "sidecar/internal/events/" || dir == "sidecar/internal/messaging/") && strings.HasPrefix(file, "livetest_")
 	case tag == "ignore":
 		return strings.HasPrefix(name, "tools/")
 	default:

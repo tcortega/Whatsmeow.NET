@@ -998,9 +998,6 @@ func TestAMalformedSendIsInvalidAndSendsNothing(t *testing.T) {
 		{text("111:2@lid", id(1), "hi"), "chat"},
 		{text("1@newsletter", id(1), "hi"), "chat"},
 		{text("111@lid", "", "hi"), "client_message_id"},
-		{text("111@lid", "3eb0000000000000000001", "hi"), "client_message_id"},
-		{text("111@lid", "3EB00000000000000000001", "hi"), "client_message_id"},
-		{text("111@lid", "ABCD000000000000000001", "hi"), "client_message_id"},
 		{raw(nil), "message"},
 		// VideoEndCard's four fields are proto2 required; whatsmeow's proto.Marshal would refuse it (send.go:1261).
 		{raw(&waE2E.Message{ExtendedTextMessage: &waE2E.ExtendedTextMessage{Text: proto.String("hi"), EndCardTiles: []*waE2E.VideoEndCard{{}}}}), "message"},

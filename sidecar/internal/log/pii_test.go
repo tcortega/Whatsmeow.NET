@@ -174,6 +174,21 @@ func TestTheWriterKeepsTheSessionID(t *testing.T) {
 	}
 }
 
+// A message id in whatsmeow's format stays at warn: the live tests match the withhold seam's line by it
+// (LiveDeliveryTests, ADR 0032), and its runs of digits touch the "B" of 3EB0 at worst.
+func TestTheWriterKeepsAMessageID(t *testing.T) {
+	t.Parallel()
+
+	for _, id := range []string{"3EB05ADC347A6F41DB91B0", "3EB0123456789012345678"} {
+		got := line(t, func(log zerolog.Logger) {
+			log.Warn().Str("session_id", "live").Str("message_id", id).Msg("livetest: the answer to this message is withheld once")
+		})
+		if !strings.Contains(got, `"message_id":"`+id+`"`) || !strings.Contains(got, "livetest: the answer to this message is withheld once") {
+			t.Errorf("logged %s, want message id %s and the message as given", got, id)
+		}
+	}
+}
+
 func TestTheWriterKeepsADebugLine(t *testing.T) {
 	t.Parallel()
 

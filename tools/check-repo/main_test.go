@@ -279,6 +279,24 @@ func TestCheckFakeWhatsAppLivesInTheFakeAndItsWiringOnly(t *testing.T) {
 	})
 }
 
+func TestCheckLiveTestLivesInTheLiveSeamsOnly(t *testing.T) {
+	t.Parallel()
+
+	repo := fstest.MapFS{
+		"sidecar/internal/events/livetest_on.go":     {Data: []byte("//go:build livetest\n\npackage events\n")},
+		"sidecar/internal/messaging/livetest_off.go": {Data: []byte("//go:build !livetest\n\npackage messaging\n")},
+		"sidecar/internal/events/events_live.go":     {Data: []byte("//go:build livetest\n\npackage events\n")},
+		"sidecar/internal/session/livetest_on.go":    {Data: []byte("//go:build livetest\n\npackage session\n")},
+		"sidecar/cmd/whatsmeow-net/livetest_on.go":   {Data: []byte("//go:build livetest\n\npackage main\n")},
+	}
+
+	assertFindings(t, repo, []string{
+		"sidecar/cmd/whatsmeow-net/livetest_on.go:1: [build-tag]",
+		"sidecar/internal/events/events_live.go:1: [build-tag]",
+		"sidecar/internal/session/livetest_on.go:1: [build-tag]",
+	})
+}
+
 func TestCheckReadsLinesOfAnyLength(t *testing.T) {
 	t.Parallel()
 

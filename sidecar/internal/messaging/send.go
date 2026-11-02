@@ -84,7 +84,7 @@ func (svc *Service) send(ctx context.Context, sessionID, chat, id string, messag
 	}
 
 	if !clientMessageID.MatchString(id) {
-		return sent{}, invalid("client_message_id", "%q is not 3EB0 and 18 uppercase hex digits, the id format whatsmeow makes", id)
+		return sent{}, invalid("client_message_id", "%q is not "+clientMessageIDRule, id)
 	}
 
 	for {
