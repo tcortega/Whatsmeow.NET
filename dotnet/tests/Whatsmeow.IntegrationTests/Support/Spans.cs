@@ -19,7 +19,8 @@ internal sealed class Spans : IDisposable
 	{
 		_listener = new ActivityListener
 		{
-			ShouldListenTo = static source => source.Name is WhatsmeowTelemetry.ActivitySourceName || source == Test,
+			// By name: reading Test here would create that source inside the listener's own registration, which could miss it.
+			ShouldListenTo = static source => source.Name is WhatsmeowTelemetry.ActivitySourceName or TestSourceName,
 			Sample = static (ref _) => ActivitySamplingResult.AllDataAndRecorded,
 			ActivityStopped = span =>
 			{
@@ -30,8 +31,10 @@ internal sealed class Spans : IDisposable
 		ActivitySource.AddActivityListener(_listener);
 	}
 
+	private const string TestSourceName = "Whatsmeow.IntegrationTests";
+
 	/// <summary>The tests' own spans: an application's around a library call, or a handler's own work.</summary>
-	public static ActivitySource Test { get; } = new("Whatsmeow.IntegrationTests");
+	public static ActivitySource Test { get; } = new(TestSourceName);
 
 	/// <summary>The spans named <paramref name="name"/> of <paramref name="session"/> that stopped so far, in order.</summary>
 	public IReadOnlyList<Activity> Of(string name, string session) =>
