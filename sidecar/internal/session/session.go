@@ -94,6 +94,9 @@ type session struct {
 	online chan struct{}
 	// coming is closed once the session is next Connected or CaughtUp, nil while it is (Up).
 	coming chan struct{}
+	// offlineFirst is an offline sync that completed before its login's Connected: Connected then makes the session
+	// CaughtUp too. Every transition forgets it (ARCHITECTURE §7.4).
+	offlineFirst bool
 }
 
 // New loads every session from the database. It never connects one: the client calls Connect (session.proto).
@@ -266,16 +269,18 @@ func (svc *Service) handle(s *session, client Client, evt any) {
 func (svc *Service) apply(s *session, evt any) {
 	state, ok := next(s.state, evt, time.Now())
 	if !ok {
-		// A login the session did not ask for: whatsmeow's 515 reconnect ignores a Disconnect that came before it
-		// (connectionevents.go:33-36), and the device would be online under a state that says it is not.
-		if _, login := evt.(*events.Connected); login && !live(s.state) && !is[*whatsmeowv1.SessionState_Pairing_](s.state) {
-			svc.retire(s.client)
-		}
+		svc.unapplied(s, evt)
 
 		return
 	}
 
 	switch e := evt.(type) {
+	case *events.Connected:
+		if err := svc.loggedIn(s); err != nil {
+			svc.log.Error().Err(err).Str("session_id", s.id).Msg("recording the state after a Connected failed")
+		}
+
+		return
 	case *events.PairSuccess:
 		s.jid, s.lid = e.ID.String(), ""
 		if !e.LID.IsEmpty() {
@@ -290,12 +295,44 @@ func (svc *Service) apply(s *session, evt any) {
 	}
 }
 
+// unapplied handles an event that moves the session nothing. s.mu is held.
+func (svc *Service) unapplied(s *session, evt any) {
+	switch evt.(type) {
+	case *events.Connected:
+		// A login the session did not ask for: whatsmeow's 515 reconnect ignores a Disconnect that came before it
+		// (connectionevents.go:33-36), and the device would be online under a state that says it is not.
+		if !live(s.state) && !is[*whatsmeowv1.SessionState_Pairing_](s.state) {
+			svc.retire(s.client)
+		}
+	case *events.OfflineSyncCompleted:
+		// whatsmeow dispatches Connected on a goroutine of its own after two IQs (connectionevents.go:187-204), and
+		// this from the offline ib on the node queue (connectionevents.go:87-90), so it can come first.
+		if loggingIn(s.state) {
+			s.offlineFirst = true
+			svc.log.Info().Str("session_id", s.id).Msg("the offline sync completed before Connected; the session is CaughtUp once Connected")
+		}
+	}
+}
+
+// loggedIn records Connected, then CaughtUp when the login's offline sync came first. s.mu is held.
+func (svc *Service) loggedIn(s *session) error {
+	offlineFirst := s.offlineFirst
+
+	err := svc.transition(svc.lifetime, s, connected())
+	if offlineFirst {
+		err = errors.Join(err, svc.transition(svc.lifetime, s, caughtUp()))
+	}
+
+	return err
+}
+
 // transition is the one place a session's state changes: in one transaction it records the state a restart keeps
 // (the stopping states) and a ConnectionStateEvent in the outbox, then publishes the state to every watcher. s.mu is
 // held. The state is published even when recording fails, because it is what whatsmeow reports. A state that
 // happened is recorded even when the call that caused it was cancelled meanwhile.
 func (svc *Service) transition(ctx context.Context, s *session, state *whatsmeowv1.SessionState) error {
 	s.state = state
+	s.offlineFirst = false
 	s.track(state)
 	ctx = context.WithoutCancel(ctx)
 	event := &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_ConnectionState{

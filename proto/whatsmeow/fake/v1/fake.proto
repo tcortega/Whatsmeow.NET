@@ -51,6 +51,15 @@ service FakeWhatsAppService {
   // handlers run.
   rpc DropConnection(DropConnectionRequest) returns (DropConnectionResponse);
 
+  // HoldNextLogin makes the session's next login, after a connect, hold Connected until ReleaseLogin: whatsmeow
+  // dispatches it on a goroutine of its own after two IQs (connectionevents.go:187-204), while the offline sync's
+  // OfflineSyncCompleted comes on the node queue (connectionevents.go:87-90), so CompleteOfflineSync can come first.
+  rpc HoldNextLogin(HoldNextLoginRequest) returns (HoldNextLoginResponse);
+
+  // ReleaseLogin dispatches the session's held Connected off the node queue, and returns once its handlers ran. No
+  // held login is an error.
+  rpc ReleaseLogin(ReleaseLoginRequest) returns (ReleaseLoginResponse);
+
   // FailNextPreKeyUpload makes the session's next login after a link fail to upload the pre-keys: whatsmeow only logs
   // that (prekeys.go:84-87), never sets PreKeysUploaded, and still dispatches Connected (connectionevents.go:187-204).
   rpc FailNextPreKeyUpload(FailNextPreKeyUploadRequest) returns (FailNextPreKeyUploadResponse);
@@ -722,6 +731,24 @@ message RateLimitNextSendsRequest {
 
 // RateLimitNextSendsResponse has no fields.
 message RateLimitNextSendsResponse {}
+
+// HoldNextLoginRequest names the session.
+message HoldNextLoginRequest {
+  // The session whose next login holds Connected until released.
+  string session_id = 1;
+}
+
+// HoldNextLoginResponse has no fields.
+message HoldNextLoginResponse {}
+
+// ReleaseLoginRequest names the session.
+message ReleaseLoginRequest {
+  // The session whose held Connected is dispatched.
+  string session_id = 1;
+}
+
+// ReleaseLoginResponse has no fields.
+message ReleaseLoginResponse {}
 
 // HoldNextSendRequest names the session.
 message HoldNextSendRequest {

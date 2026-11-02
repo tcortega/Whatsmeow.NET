@@ -262,6 +262,28 @@ func (c *Control) DropConnection(_ context.Context, req *fakev1.DropConnectionRe
 	return &fakev1.DropConnectionResponse{}, nil
 }
 
+// HoldNextLogin makes the session's next login hold Connected until ReleaseLogin.
+func (c *Control) HoldNextLogin(_ context.Context, req *fakev1.HoldNextLoginRequest) (*fakev1.HoldNextLoginResponse, error) {
+	c.whatsApp.setScript(req.GetSessionId(), func(s *script) { s.holdLogin = true })
+
+	return &fakev1.HoldNextLoginResponse{}, nil
+}
+
+// ReleaseLogin dispatches the session's held Connected, and returns once its handlers ran.
+func (c *Control) ReleaseLogin(_ context.Context, req *fakev1.ReleaseLoginRequest) (*fakev1.ReleaseLoginResponse, error) {
+	var login func()
+
+	c.whatsApp.setScript(req.GetSessionId(), func(s *script) { login, s.login = s.login, nil })
+
+	if login == nil {
+		return nil, fmt.Errorf("release the login of session %q: no login is held", req.GetSessionId()) //nolint:err113 // a misuse of the control
+	}
+
+	login()
+
+	return &fakev1.ReleaseLoginResponse{}, nil
+}
+
 // FailNextPreKeyUpload makes the session's next login after a link upload no pre-keys.
 func (c *Control) FailNextPreKeyUpload(_ context.Context, req *fakev1.FailNextPreKeyUploadRequest) (*fakev1.FailNextPreKeyUploadResponse, error) {
 	client, err := c.whatsApp.client(req.GetSessionId())

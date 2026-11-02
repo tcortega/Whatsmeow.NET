@@ -4,6 +4,7 @@
 - Date: 2026-11-01
 - Evidence: issue #6, its plan review, and the tests named below
 - Supersedes: the `conversions:` line of [ADR 0010](0010-vogen-ids-hand-written-jid.md)
+- Amended 2026-11-02 by issue #83 (orchestrator decision): an offline sync that comes before its login's `Connected` is kept for that login (Guards against late events)
 
 ## Context
 
@@ -34,6 +35,8 @@ ARCHITECTURE §7.4 left the single-owner mechanism open ("a lock file or lease r
   A Logout that fails with no connection left (whatsmeow disconnects only after WhatsApp unlinked the device, client.go:771-772) records `Disconnected`: the local store delete failed, and the session is not connected.
   Connect's `TEMPORARILY_BANNED` is a precondition while a ban with a known end lasts; `LOGGED_OUT` and `NOT_LOGGED_IN` are the session's state (session.proto).
 - **Guards against late events.** `Connected` applies only from `Connecting` or `Reconnecting`, `OfflineSyncCompleted` only from `Connected`, `Disconnected` only from a live state; a PermanentDisconnect applies from any state but `LoggedOut`, and `LoggedOut` from any.
+  Amended by #83: whatsmeow dispatches `Connected` on a goroutine of its own after two IQs (connectionevents.go:187-204) and `OfflineSyncCompleted` on the node queue (connectionevents.go:87-90), so an offline sync that comes while the session is `Connecting`, `Reconnecting` or `Pairing` is kept for its login, and that login's `Connected` records `Connected`, then `CaughtUp`; every transition forgets it.
+  An old connection's offline sync handled after its own `Disconnected` would be kept too, and the next login would be `CaughtUp` before its own offline sync [inferred: a running node handler goes on after the connection ends (client.go:937-962), and `Disconnected` is dispatched on a goroutine (client.go:621)].
 - **A restart keeps the stopping states.** `LoggedOut`, `Replaced`, `Outdated`, `TempBanned` and `Error` are stored with their fields and come back as they were; a session that was `Connecting`, `Connected`, `CaughtUp`, `Reconnecting` or `Disconnected` comes back `Disconnected`, and a never-paired one `Created`.
   A session whose device rows are gone at load (whatsmeow deletes them concurrently with a server-side logout) loads as `LoggedOut{0}` with a warning.
 - **The .NET client reconnects** only the sessions the application connected (and did not disconnect, log out or delete since) that come back `Disconnected`, reading `ListSessions` after each relaunch. A stopped session is never reconnected on its own.

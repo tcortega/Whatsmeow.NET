@@ -133,6 +133,72 @@ func TestConnectOpensTheConnectionThenWhatsAppAcceptsTheLogin(t *testing.T) {
 	}
 }
 
+func TestHoldNextLoginHoldsConnectedUntilReleaseLoginRanItsHandlers(t *testing.T) {
+	t.Parallel()
+
+	whatsApp, control, ctx, client, got, _ := linked(t)
+	<-got
+
+	if _, err := control.HoldNextLogin(ctx, &fakev1.HoldNextLoginRequest{SessionId: "s1"}); err != nil {
+		t.Fatalf("HoldNextLogin: %v", err)
+	}
+
+	if err := client.ConnectContext(ctx); err != nil {
+		t.Fatalf("ConnectContext: %v", err)
+	}
+
+	// Nothing dispatched off the queue is still running: the login is held.
+	whatsApp.Wait()
+
+	if len(got) != 0 {
+		t.Fatalf("event = %v, want none until ReleaseLogin", <-got)
+	}
+
+	if _, err := control.ReleaseLogin(ctx, &fakev1.ReleaseLoginRequest{SessionId: "s1"}); err != nil {
+		t.Fatalf("ReleaseLogin: %v", err)
+	}
+
+	select {
+	case evt := <-got:
+		if _, ok := evt.(*events.Connected); !ok {
+			t.Fatalf("event = %v, want Connected", evt)
+		}
+	default:
+		t.Fatal("ReleaseLogin returned before Connected's handlers ran")
+	}
+
+	// Only the next login is held.
+	client.Disconnect()
+
+	if err := client.ConnectContext(ctx); err != nil {
+		t.Fatalf("ConnectContext: %v", err)
+	}
+
+	if evt, ok := (<-got).(*events.Connected); !ok {
+		t.Fatalf("event = %v, want Connected", evt)
+	}
+}
+
+func TestReleaseLoginFailsWithNoLoginHeld(t *testing.T) {
+	t.Parallel()
+
+	_, control, ctx, _, got, _ := linked(t)
+	<-got
+
+	if _, err := control.ReleaseLogin(ctx, &fakev1.ReleaseLoginRequest{SessionId: "s1"}); err == nil {
+		t.Fatal("ReleaseLogin with nothing held succeeded")
+	}
+
+	// Held, but no login yet: nothing to release.
+	if _, err := control.HoldNextLogin(ctx, &fakev1.HoldNextLoginRequest{SessionId: "s1"}); err != nil {
+		t.Fatalf("HoldNextLogin: %v", err)
+	}
+
+	if _, err := control.ReleaseLogin(ctx, &fakev1.ReleaseLoginRequest{SessionId: "s1"}); err == nil {
+		t.Fatal("ReleaseLogin before the login succeeded")
+	}
+}
+
 func TestFailNextConnectFailsOnlyTheNextConnect(t *testing.T) {
 	t.Parallel()
 
