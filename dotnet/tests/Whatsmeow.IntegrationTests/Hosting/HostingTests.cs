@@ -758,4 +758,36 @@ public sealed class HostingTests(FakeSidecar fixture, SidecarBinaries binaries)
 		Assert.Equal(new SessionState.Connected(), await Sessions.SessionSetup.StateAsync(session, ct));
 		Assert.False(standalone.HasExited, standalone.Stderr);
 	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task HostRestart_TheExternalSidecarKeptRunning_TheNewHostsHandlersGetEvents()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var contentRoot = binaries.NewDirectory();
+		var token = StandaloneSidecar.NewTokenFile(contentRoot);
+		await using var standalone = await StandaloneSidecar.StartAsync(fixture.Binary, binaries.NewDatabase(), "tcp:127.0.0.1:0", token, ["--fake-whatsapp"], ct);
+		var settings = new Dictionary<string, string?>(StringComparer.Ordinal) { ["Whatsmeow:External:Address"] = standalone.Address, ["Whatsmeow:External:TokenPath"] = token };
+
+		var first = Hosts.Builder(logs, settings, contentRoot);
+		_ = first.Services.AddWhatsmeow().AddSession("hosting-external-restart");
+		using (var firstHost = first.Build())
+		{
+			await firstHost.StartAsync(ct);
+			await Hosts.LinkAsync(firstHost, "hosting-external-restart", ct);
+			await Hosts.Client(firstHost, "hosting-external-restart").ConnectAsync(ct);
+			await firstHost.StopAsync(ct);
+		}
+
+		// The application restarts; the sidecar, and the session in it, stayed connected. The new host's handlers get its
+		// events all the same: its start connects the declared session, which for a connected one only starts its events.
+		var second = Hosts.Builder(logs, settings, contentRoot);
+		_ = second.Services.AddWhatsmeow().AddSession("hosting-external-restart").AddHandler<MessageReceived, RecordingHandler>();
+		using var secondHost = second.Build();
+		await secondHost.StartAsync(ct);
+		await Deliveries.DeliverAsync(Hosts.Fake(secondHost), "hosting-external-restart", ct, "M1");
+
+		Assert.Equal(Deliveries.Received("hosting-external-restart", "M1"), (await Hosts.Handled(secondHost).NextAsync(ct)).Event);
+		await secondHost.StopAsync(ct);
+	}
 }

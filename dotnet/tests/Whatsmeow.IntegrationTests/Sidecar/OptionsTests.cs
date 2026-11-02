@@ -69,7 +69,8 @@ public sealed class OptionsTests(SidecarBinaries binaries)
 		Assert.False(Processes.StubStarted(stub));
 	}
 
-	public static TheoryData<string> ValidExternal => ["unix:" + Path.Combine(Path.GetTempPath(), "s"), "tcp:sidecar:7000", "tcp:10.0.0.7:65535", "tcp:[::1]:7000"];
+	/// <summary>Valid addresses that nothing serves, all on this machine: a closed loopback port is refused at once.</summary>
+	public static TheoryData<string> ValidExternal => ["unix:" + Path.Combine(Path.GetTempPath(), "wmn-nothing-here"), "tcp:localhost:1", "tcp:127.0.0.1:1", "tcp:[::1]:1"];
 
 	[Theory(Timeout = 60_000)]
 	[MemberData(nameof(ValidExternal))]

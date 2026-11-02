@@ -141,8 +141,10 @@ internal sealed class WhatsmeowHostedService(
 			if (!_declared.Contains(session.Id) || session.State is SessionState.Created or SessionState.LoggedOut)
 				continue;
 
-			// A stopping state stays as the restart left it; the application decides (ADR 0020).
-			if (session.State is not SessionState.Disconnected)
+			// A stopping state stays as the restart left it; the application decides (ADR 0020). An external sidecar that
+			// outlived the last host keeps its sessions online: Connect does nothing to one that is connecting or
+			// connected (session.proto), and starts this host's events (ADR 0046).
+			if (session.State is not (SessionState.Disconnected or SessionState.Connecting or SessionState.Connected or SessionState.CaughtUp))
 			{
 				HostingLog.SessionNotConnected(_log, session.Id.Value, Name(session.State));
 				continue;
