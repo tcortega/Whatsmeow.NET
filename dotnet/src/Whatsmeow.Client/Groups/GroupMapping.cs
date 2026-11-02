@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Whatsmeow.Core.Errors;
 using Whatsmeow.Events;
 using Whatsmeow.Protocol.V1;
 using Change = Whatsmeow.Protocol.V1.GroupChange.ChangeOneofCase;
@@ -14,7 +15,7 @@ internal static class GroupMapping
 	public static GroupInfo ToGroup(Group group) =>
 		new()
 		{
-			Jid = Jid.Parse(group.Jid),
+			Jid = SidecarValues.Jid(group.Jid, "Group.jid"),
 			Name = group.Name,
 			Topic = NullIfEmpty(group.Topic),
 			Owner = ToJid(group.Owner),
@@ -32,7 +33,7 @@ internal static class GroupMapping
 		[
 			.. results.Select(result => new ParticipantResult
 			{
-				Jid = Jid.Parse(result.Jid),
+				Jid = SidecarValues.Jid(result.Jid, "ParticipantResult.jid"),
 				JidAlt = ToJid(result.JidAlt),
 				Outcome = result.ErrorCode == 0
 					? new ParticipantOutcome.Done()
@@ -45,7 +46,7 @@ internal static class GroupMapping
 		];
 
 	/// <summary>The event of a GroupEvent, or null for a kind this client does not know.</summary>
-	/// <exception cref="WhatsmeowValidationException">The group's JID is missing or malformed: the event is unusable.</exception>
+	/// <exception cref="WhatsmeowException">The group's JID is missing or malformed: the event is unusable (<see cref="WhatsmeowErrorCode.Internal"/>).</exception>
 	public static WhatsAppEvent? ToEvent(SessionId sessionId, GroupEvent group) =>
 		group.KindCase switch
 		{
@@ -53,7 +54,7 @@ internal static class GroupMapping
 				? new GroupInfoChanged
 				{
 					SessionId = sessionId,
-					Group = Jid.Parse(group.Group),
+					Group = SidecarValues.Jid(group.Group, "GroupEvent.group"),
 					Sender = ToJid(group.Sender),
 					SenderAlt = ToJid(group.SenderAlt),
 					Timestamp = EventMapping.ToTime(group.Time),
@@ -81,10 +82,10 @@ internal static class GroupMapping
 					Change.TopicChanged => [new GroupChange.TopicChanged { Topic = NullIfEmpty(change.TopicChanged.Topic) }],
 					Change.AnnounceChanged => [new GroupChange.AnnounceChanged { IsAnnounce = change.AnnounceChanged.Announce }],
 					Change.LockedChanged => [new GroupChange.LockedChanged { IsLocked = change.LockedChanged.Locked }],
-					Change.Joined => [.. change.Joined.Jids.Select(jid => new GroupChange.ParticipantJoined { Jid = Jid.Parse(jid) })],
-					Change.Left => [.. change.Left.Jids.Select(jid => new GroupChange.ParticipantLeft { Jid = Jid.Parse(jid) })],
-					Change.Promoted => [.. change.Promoted.Jids.Select(jid => new GroupChange.ParticipantPromoted { Jid = Jid.Parse(jid) })],
-					Change.Demoted => [.. change.Demoted.Jids.Select(jid => new GroupChange.ParticipantDemoted { Jid = Jid.Parse(jid) })],
+					Change.Joined => [.. change.Joined.Jids.Select(jid => new GroupChange.ParticipantJoined { Jid = SidecarValues.Jid(jid, "GroupChange.Participants.jids") })],
+					Change.Left => [.. change.Left.Jids.Select(jid => new GroupChange.ParticipantLeft { Jid = SidecarValues.Jid(jid, "GroupChange.Participants.jids") })],
+					Change.Promoted => [.. change.Promoted.Jids.Select(jid => new GroupChange.ParticipantPromoted { Jid = SidecarValues.Jid(jid, "GroupChange.Participants.jids") })],
+					Change.Demoted => [.. change.Demoted.Jids.Select(jid => new GroupChange.ParticipantDemoted { Jid = SidecarValues.Jid(jid, "GroupChange.Participants.jids") })],
 					Change.None => [],
 					_ => [],
 				}
@@ -94,7 +95,7 @@ internal static class GroupMapping
 	private static GroupParticipant ToParticipant(Protocol.V1.GroupParticipant participant) =>
 		new()
 		{
-			Jid = Jid.Parse(participant.Jid),
+			Jid = SidecarValues.Jid(participant.Jid, "GroupParticipant.jid"),
 			JidAlt = ToJid(participant.JidAlt),
 			Role = participant.Role switch
 			{

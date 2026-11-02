@@ -1,4 +1,5 @@
 using Google.Protobuf;
+using Whatsmeow.Core.Errors;
 using Whatsmeow.Events;
 using ProtoMediaRef = Whatsmeow.Protocol.V1.MediaRef;
 using ProtoMediaType = Whatsmeow.Protocol.V1.MediaType;
@@ -18,7 +19,7 @@ internal static class MediaMapping
 			MediaKey = [.. media.MediaKey.Span],
 			FileSha256 = [.. media.FileSha256.Span],
 			FileEncSha256 = [.. media.FileEncSha256.Span],
-			FileLength = checked((long)media.FileLength),
+			FileLength = SidecarValues.Length(media.FileLength, "MediaRef.file_length"),
 			StreamingSidecar = [.. media.StreamingSidecar.Span],
 		};
 
@@ -53,16 +54,9 @@ internal static class MediaMapping
 			ProtoMediaType.Video => MediaType.Video,
 			ProtoMediaType.Audio => MediaType.Audio,
 			ProtoMediaType.Document => MediaType.Document,
-			ProtoMediaType.Unspecified => UnknownType(type),
-			_ => UnknownType(type),
+			ProtoMediaType.Unspecified => SidecarValues.Unreadable<MediaType>("MediaRef.media_type"),
+			_ => SidecarValues.Unreadable<MediaType>("MediaRef.media_type"),
 		};
-
-	/// <exception cref="WhatsmeowValidationException">Always: the sidecar sent a type this client does not know.</exception>
-	private static MediaType UnknownType(ProtoMediaType type)
-	{
-		WhatsmeowValidationException.ThrowInvalid($"The media type {type} is not known.");
-		return default;
-	}
 
 	public static MediaRetryFailure ToFailure(ProtoRetryFailure failure) =>
 		failure switch

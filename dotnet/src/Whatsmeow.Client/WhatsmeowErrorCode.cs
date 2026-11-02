@@ -12,7 +12,7 @@ public enum WhatsmeowErrorCode
 	/// </summary>
 	Unknown = 0,
 
-	/// <summary>An unexpected sidecar failure.</summary>
+	/// <summary>An unexpected sidecar failure, or a response or event of the sidecar this client cannot read.</summary>
 	Internal,
 
 	/// <summary>The request was malformed, or a value was invalid (<see cref="WhatsmeowValidationException"/>).</summary>

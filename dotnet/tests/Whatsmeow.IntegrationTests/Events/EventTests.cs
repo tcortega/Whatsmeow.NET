@@ -142,6 +142,12 @@ public sealed class EventTests(FakeSidecar fixture)
 		await Deliveries.DeliverAsync(fixture.Fake, "events-no-chat", ct, "M2");
 
 		Assert.Equal(Deliveries.Received("events-no-chat", "M2"), await received.NextAsync(ct));
+
+		// The sidecar's fault, so its log names the field, as an internal error, never the caller's invalid argument.
+		var unreadable = Assert.Single(fixture.Logs.Named("EventUnreadable"), r => r.Message.Contains("events-no-chat", StringComparison.Ordinal));
+		var error = Assert.IsType<WhatsmeowException>(unreadable.Exception);
+		Assert.Equal(WhatsmeowErrorCode.Internal, error.ErrorCode);
+		Assert.Contains("MessageSource.chat", error.Message, StringComparison.Ordinal);
 	}
 
 	[Fact(Timeout = Timeout)]

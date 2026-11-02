@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Google.Protobuf.WellKnownTypes;
+using Whatsmeow.Core.Errors;
 using Whatsmeow.Events;
 using Whatsmeow.Protocol.V1;
 using ProtoFailure = Whatsmeow.Protocol.V1.HistorySyncFailure;
@@ -32,7 +33,7 @@ internal static class HistoryMapping
 				messages.Add(
 					new HistoryMessage
 					{
-						Id = MessageId.From(message.Info.Id),
+						Id = SidecarValues.MessageId(message.Info.Id, "MessageInfo.id"),
 						Source = source,
 						PushName = EventMapping.NullIfEmpty(message.Info.PushName),
 						Timestamp = EventMapping.ToTime(message.Info.MessageTime),

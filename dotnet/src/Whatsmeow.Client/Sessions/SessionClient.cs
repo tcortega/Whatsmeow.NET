@@ -159,7 +159,7 @@ internal sealed class SessionClient(
 				async () =>
 				{
 					var response = await RpcErrors.CallAsync(_messages.SendTextAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
-					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime, "SendTextResponse.chat");
 				},
 				cancellationToken
 			)
@@ -258,7 +258,7 @@ internal sealed class SessionClient(
 				async () =>
 				{
 					var response = await RpcErrors.CallAsync(_messages.SendMediaAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
-					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime, "SendMediaResponse.chat");
 				},
 				cancellationToken
 			)
@@ -292,7 +292,7 @@ internal sealed class SessionClient(
 							)
 						)
 						.ConfigureAwait(false);
-					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime, "SendReactionResponse.chat");
 				},
 				cancellationToken
 			)
@@ -324,7 +324,7 @@ internal sealed class SessionClient(
 							)
 						)
 						.ConfigureAwait(false);
-					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime, "SendEditResponse.chat");
 				},
 				cancellationToken
 			)
@@ -356,7 +356,7 @@ internal sealed class SessionClient(
 							)
 						)
 						.ConfigureAwait(false);
-					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime, "SendRevokeResponse.chat");
 				},
 				cancellationToken
 			)
@@ -381,7 +381,7 @@ internal sealed class SessionClient(
 							)
 						)
 						.ConfigureAwait(false);
-					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime, "SendMessageResponse.chat");
 				},
 				cancellationToken
 			)
@@ -759,7 +759,8 @@ internal sealed class SessionClient(
 		ArgumentNullException.ThrowIfNull(link);
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new JoinGroupWithLinkRequest { SessionId = sessionId.Value, Link = link.OriginalString };
-		return Jid.Parse((await RpcErrors.CallAsync(_groups.JoinGroupWithLinkAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false)).Group);
+		var response = await RpcErrors.CallAsync(_groups.JoinGroupWithLinkAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		return SidecarValues.Jid(response.Group, "JoinGroupWithLinkResponse.group");
 	}
 
 	public async Task LeaveGroupAsync(Jid group, CancellationToken cancellationToken = default)

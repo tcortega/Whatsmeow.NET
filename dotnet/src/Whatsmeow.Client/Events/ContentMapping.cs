@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Google.Protobuf;
+using Whatsmeow.Core.Errors;
 using Whatsmeow.Messaging;
 using MessageTarget = Whatsmeow.Protocol.V1.MessageTarget;
 using E2E = Whatsmeow.Proto.WAWebProtobufsE2E;
@@ -154,8 +155,8 @@ internal static class ContentMapping
 		target switch
 		{
 			null => null,
-			{ Sender.Length: 0 } => new MessageKey { Id = MessageId.From(target.Id) },
-			_ when Jid.TryParse(target.Sender, out var sender) => new MessageKey { Id = MessageId.From(target.Id), Sender = sender },
+			{ Sender.Length: 0 } => new MessageKey { Id = SidecarValues.MessageId(target.Id, "MessageTarget.id") },
+			_ when Jid.TryParse(target.Sender, out var sender) => new MessageKey { Id = SidecarValues.MessageId(target.Id, "MessageTarget.id"), Sender = sender },
 			_ => null,
 		};
 
