@@ -17,6 +17,7 @@ using E2E = Whatsmeow.Proto.WAWebProtobufsE2E;
 using MessageKey = Whatsmeow.Messaging.MessageKey;
 using MessageSource = Whatsmeow.Events.MessageSource;
 using WACommon = Whatsmeow.Proto.WACommon;
+using WAWeb = Whatsmeow.Proto.WAWebProtobufsWeb;
 using WebMessage = Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncRequest.Types.Message;
 
 namespace Whatsmeow.IntegrationTests.Messaging;
@@ -35,6 +36,9 @@ public sealed class PollTests(FakeSidecar fixture)
 	private static readonly Jid s_group = Jid.Parse("120363000000000401@g.us");
 	private static readonly Jid s_member = Jid.Parse("900000402@lid");
 	private static readonly Jid s_other = Jid.Parse("900000403@lid");
+
+	/// <summary>When a history poll's votes were cast, to the millisecond, as history has it.</summary>
+	private static readonly DateTimeOffset s_votedAt = Histories.At.AddMilliseconds(500);
 
 	private static readonly Poll s_lunch = new()
 	{
@@ -321,6 +325,76 @@ public sealed class PollTests(FakeSidecar fixture)
 			sent.Message.PollUpdateMessage.PollCreationMessageKey
 		);
 	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Receive_AHistoryPollsVotes_EachArrivesAfterItAsAVote_AndTheirEncryptedCopyDoesNot()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "polls-history-votes";
+		var client = await ConnectedAsync(Session, 12, ct);
+		_ = await Histories.CompleteOfflineSyncAsync(fixture, client, Session, ct);
+		using var batches = new Received<HistoryReceived>(client);
+		using var progress = new Received<HistorySyncProgressed>(client);
+
+		// A poll from before this device was linked carries its votes decrypted; the blob may carry a vote encrypted too,
+		// ahead of its poll, which no secret here decrypts.
+		var at = Timestamp.FromDateTimeOffset(Histories.At);
+		var conversation = new Conversation { Chat = s_group.ToString() };
+		var encrypted = new E2E.Message
+		{
+			PollUpdateMessage = new E2E.PollUpdateMessage
+			{
+				PollCreationMessageKey = new WACommon.MessageKey { RemoteJID = s_group.ToString(), ID = "H1", Participant = s_member.ToString() },
+				Vote = new E2E.PollEncValue { EncPayload = ByteString.CopyFrom(1), EncIV = ByteString.CopyFrom(2) },
+			},
+		};
+		conversation.Messages.Add(new WebMessage { Id = "V1", Participant = s_other.ToString(), Message_ = encrypted, MessageTime = at });
+		var voted = new WebMessage { Id = "H1", Participant = s_member.ToString(), Message_ = PollMessage(2), MessageTime = at };
+		voted.PollUpdates.Add(Update("V1", s_other, "Pizza", "Sushi"));
+		voted.PollUpdates.Add(Update("V2", voter: null));
+		conversation.Messages.Add(voted);
+		conversation.Messages.Add(new WebMessage { Id = "H2", Participant = s_member.ToString(), Message_ = PollMessage(0), MessageTime = at });
+		_ = await fixture.Fake.DeliverHistorySyncAsync(Histories.Blob(Session, "N1", Histories.Recent, conversation), cancellationToken: ct);
+
+		var poll = new MessageKey { Id = MessageId.From("H1"), Sender = s_member };
+		Assert.Equal(
+			Histories.Batch(
+				Session,
+				HistorySyncType.Recent,
+				History("H1", s_member, new PollContent { Poll = s_lunch }),
+				History("V1", s_other, new PollVoteContent { Poll = poll, SelectedOptionHashes = [Hash("Pizza"), Hash("Sushi")] }) with { Timestamp = s_votedAt },
+				History("V2", Jid.Parse($"{Session}@s.whatsapp.net"), new PollVoteContent { Poll = poll }, isFromMe: true) with { Timestamp = s_votedAt },
+				History("H2", s_member, new PollContent { Poll = s_lunch with { MaxSelectable = 3 } })
+			),
+			await batches.NextAsync(ct)
+		);
+		Assert.Equal(Histories.Delivered(Session, HistorySyncType.Recent, 3), await progress.NextAsync(ct));
+	}
+
+	/// <summary>A vote a history poll carries, decrypted, from <paramref name="voter"/>, or from the account when null.</summary>
+	private static WAWeb.PollUpdate Update(string id, Jid? voter, params string[] options)
+	{
+		var update = new WAWeb.PollUpdate
+		{
+			PollUpdateMessageKey = new WACommon.MessageKey { RemoteJID = s_group.ToString(), FromMe = voter is null, ID = id },
+			Vote = new E2E.PollVoteMessage(),
+			SenderTimestampMS = s_votedAt.ToUnixTimeMilliseconds(),
+		};
+		if (voter is { } participant)
+			update.PollUpdateMessageKey.Participant = participant.ToString();
+		update.Vote.SelectedOptions.Add(options.Select(static option => ByteString.CopyFrom(Hash(option).AsSpan())));
+		return update;
+	}
+
+	private static HistoryMessage History(string id, Jid sender, MessageContent content, bool isFromMe = false) =>
+		new()
+		{
+			Id = MessageId.From(id),
+			Source = new MessageSource { Chat = s_group, Sender = sender, SenderAlt = null, RecipientAlt = null, IsFromMe = isFromMe },
+			PushName = null,
+			Timestamp = Histories.At,
+			Content = content,
+		};
 
 	private static ImmutableArray<byte> Hash(string option) => [.. SHA256.HashData(Encoding.UTF8.GetBytes(option))];
 

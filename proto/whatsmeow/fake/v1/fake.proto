@@ -5,6 +5,7 @@ package whatsmeow.fake.v1;
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "waE2E/WAWebProtobufsE2E.proto";
+import "waWeb/WAWebProtobufsWeb.proto";
 
 // FakeWhatsAppService scripts the fake WhatsApp of a test build of whatsmeow-net (-tags fakewhatsapp) started with
 // --fake-whatsapp, and records what the sidecar sent to it. It is served next to whatsmeow.v1 on the same socket,
@@ -1183,6 +1184,8 @@ message DeliverHistorySyncRequest {
     // The message's secret, as a WebMessageInfo carries it (messageSecret), which whatsmeow stores when it downloads
     // the blob (message.go:806-809, 988-1050): a poll's, which votes on it are encrypted with.
     bytes message_secret = 8;
+    // A poll's votes, as a WebMessageInfo carries them decrypted (pollUpdates, WAWebProtobufsWeb.proto:328, 598-605).
+    repeated WAWebProtobufsWeb.PollUpdate poll_updates = 9;
   }
 
   // The session whose phone sends it.

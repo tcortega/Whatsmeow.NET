@@ -9,8 +9,9 @@ namespace Whatsmeow.History;
 /// <see cref="IWhatsAppClient.RequestHistoryAsync"/>; the sidecar downloads them once the session caught up, always
 /// after live traffic, and delivers each blob's messages in one or more batches, in order, then a
 /// <see cref="HistorySyncProgressed"/>. History events run in one lane of their own, one at a time, in order, never in
-/// a chat's lane, so a live message never waits for one. Like every event a batch can come again after a crash, with
-/// the same messages: a batch with the same messages is the same batch, and equal to it.
+/// a chat's lane, so a live message never waits for one. A poll is followed by each vote history carries on it, a
+/// <see cref="PollVoteContent"/> with the vote's own id, as a live vote arrives. Like every event a batch can come
+/// again after a crash, with the same messages: a batch with the same messages is the same batch, and equal to it.
 /// </summary>
 public sealed record HistoryReceived : WhatsAppEvent
 {

@@ -3,9 +3,11 @@ package events
 import (
 	"context"
 	"strings"
+	"time"
 
 	"go.mau.fi/whatsmeow/proto/waCommon"
 	"go.mau.fi/whatsmeow/proto/waE2E"
+	"go.mau.fi/whatsmeow/proto/waWeb"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	waevents "go.mau.fi/whatsmeow/types/events"
@@ -110,6 +112,67 @@ func MessageEvent(e *waevents.Message, account *store.Device) *whatsmeowv1.Messa
 	}
 
 	return event
+}
+
+// HistoryMessage is a history message as the contract's MessageEvents: its own (MessageEvent), then, for a poll, each
+// vote its WebMessageInfo carries decrypted (pollUpdates, WAWebProtobufsWeb.proto:328, 598-605), in the list's order,
+// as a live vote's event (ADR 0047). account is the session's device, which names the account.
+func HistoryMessage(e *waevents.Message, account *store.Device) []*whatsmeowv1.MessageEvent {
+	events := []*whatsmeowv1.MessageEvent{MessageEvent(e, account)}
+
+	for _, u := range e.SourceWebMsg.GetPollUpdates() {
+		if v := historyVote(u, &e.Info, account); v != nil {
+			events = append(events, v)
+		}
+	}
+
+	return events
+}
+
+// historyVote is a vote a history poll carries, as a live vote's event: its id and voter from its key, its sender's
+// time (mautrix's for a history reaction, pkg/connector/backfill.go:909-930 at 5dd621f), the poll as its target and
+// the selection as history has it, without a message, which history does not carry. nil for a key that names no voter.
+// The key's unread flag and server time have no counterpart on a live vote, and are dropped.
+func historyVote(u *waWeb.PollUpdate, poll *types.MessageInfo, account *store.Device) *whatsmeowv1.MessageEvent {
+	k := u.GetPollUpdateMessageKey()
+
+	sender, ok := voter(k, poll.Chat, account)
+	if !ok {
+		return nil
+	}
+
+	vote := types.MessageInfo{
+		MessageSource: types.MessageSource{Chat: poll.Chat, Sender: sender, IsFromMe: k.GetFromMe(), IsGroup: poll.IsGroup},
+		ID:            k.GetID(),
+		Timestamp:     time.UnixMilli(u.GetSenderTimestampMS()),
+	}
+
+	return &whatsmeowv1.MessageEvent{
+		Info:     info(&vote),
+		Target:   named(poll.ID, poll.Sender, account),
+		PollVote: &whatsmeowv1.PollVote{SelectedOptionHashes: u.GetVote().GetSelectedOptions()},
+	}
+}
+
+// voter is who sent the message a history key names, as ParseWebMessage reads a history message's sender
+// (client.go:1043-1062): the account when the key says so, by its LID in a LID chat and by its phone number otherwise,
+// else the chat in a direct chat, else the key's participant as a user's JID. false for one that names none.
+func voter(k *waCommon.MessageKey, chat types.JID, account *store.Device) (types.JID, bool) {
+	if k.GetFromMe() {
+		own := account.GetJID()
+		if chat.Server == types.HiddenUserServer {
+			own = account.GetLID()
+		}
+
+		return own.ToNonAD(), !own.IsEmpty()
+	}
+
+	switch chat.Server {
+	case types.DefaultUserServer, types.HiddenUserServer, types.NewsletterServer:
+		return chat, true
+	default:
+		return participant(k.GetParticipant())
+	}
 }
 
 // onlySenderKey is a message with nothing but a sender key and its context info: the part of a group stanza that

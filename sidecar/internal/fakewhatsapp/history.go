@@ -216,6 +216,8 @@ func historySync(req *fakev1.DeliverHistorySyncRequest) *waHistorySync.HistorySy
 				web.MessageSecret = m.GetMessageSecret()
 			}
 
+			web.PollUpdates = m.GetPollUpdates()
+
 			out.Messages = append(out.Messages, &waHistorySync.HistorySyncMsg{Message: web})
 		}
 

@@ -23,8 +23,8 @@ internal static class ContentMapping
 	/// a JID, since no sender is the account's.
 	/// </param>
 	/// <param name="pollVote">
-	/// A poll vote as the sidecar decrypted it; null for every other message, and for a vote the sidecar did not decrypt,
-	/// as a history message's, which is undecryptable.
+	/// A poll vote as the sidecar decrypted it, or as a history poll carries it, without a message; null for every other
+	/// message, and for a vote message the sidecar did not decrypt, as a history message's, which is undecryptable.
 	/// </param>
 	public static MessageContent ToContent(E2E.Message? message, bool viewOnce, MessageTarget? target, PollVote? pollVote) =>
 		(message, ToKey(target)) switch
@@ -37,12 +37,9 @@ internal static class ContentMapping
 				Target = key,
 				Content = ToContent(edited, viewOnce: false, target: null, pollVote: null),
 			},
-			({ PollUpdateMessage: not null }, { } key) => new PollVoteContent
-			{
-				Poll = key,
-				SelectedOptionHashes = pollVote is null ? [] : [.. pollVote.SelectedOptionHashes.Select(static hash => ImmutableArray.Create(hash.Span))],
-				IsUndecryptable = pollVote is null or { Undecryptable: true },
-			},
+			({ PollUpdateMessage: not null }, { } key) => ToVote(key, pollVote),
+			// A history poll's vote carries no message: history has it decrypted on its poll (ADR 0047).
+			(null, { } key) when pollVote is not null => ToVote(key, pollVote),
 			({ HasConversation: true }, _) => new TextContent { Text = message.Conversation },
 			({ ExtendedTextMessage.HasText: true }, _) => new TextContent { Text = message.ExtendedTextMessage.Text },
 			({ ImageMessage: { } image }, _) => ToImage(image, viewOnce),
@@ -52,6 +49,14 @@ internal static class ContentMapping
 			({ StickerMessage: { } sticker }, _) => ToSticker(sticker),
 			_ when PollOf(message) is { PollType: E2E.PollType.Poll } poll => ToPoll(poll),
 			_ => new UnknownContent(),
+		};
+
+	private static PollVoteContent ToVote(MessageKey poll, PollVote? vote) =>
+		new()
+		{
+			Poll = poll,
+			SelectedOptionHashes = vote is null ? [] : [.. vote.SelectedOptionHashes.Select(static hash => ImmutableArray.Create(hash.Span))],
+			IsUndecryptable = vote is null or { Undecryptable: true },
 		};
 
 	/// <summary>

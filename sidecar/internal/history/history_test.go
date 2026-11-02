@@ -517,17 +517,19 @@ func TestBatchesStayWithinTheirBoundsInOrder(t *testing.T) {
 		return &whatsmeowv1.MessageEvent{Info: &whatsmeowv1.MessageInfo{Id: id}, Message: &waE2E.Message{Conversation: proto.String(strings.Repeat("x", size))}}
 	}
 
-	var messages []*whatsmeowv1.MessageEvent
+	var messages [][]*whatsmeowv1.MessageEvent
 
 	for i := range 600 {
-		messages = append(messages, text(fmt.Sprintf("S%d", i), 10))
+		messages = append(messages, []*whatsmeowv1.MessageEvent{text(fmt.Sprintf("S%d", i), 10)})
 	}
 
 	for i := range 5 {
-		messages = append(messages, text(fmt.Sprintf("L%d", i), 600<<10))
+		messages = append(messages, []*whatsmeowv1.MessageEvent{text(fmt.Sprintf("L%d", i), 600<<10)})
 	}
 
-	messages = append(messages, text("ALONE", 2<<20), text("TOO-LARGE", 16<<20), text("LAST", 10))
+	for _, id := range []string{"ALONE", "TOO-LARGE", "LAST"} {
+		messages = append(messages, []*whatsmeowv1.MessageEvent{text(id, map[string]int{"ALONE": 2 << 20, "TOO-LARGE": 16 << 20, "LAST": 10}[id])})
+	}
 
 	batches, delivered, skipped := batch(whatsmeowv1.HistorySyncType_HISTORY_SYNC_TYPE_FULL, messages, 0)
 
@@ -553,8 +555,8 @@ func TestBatchesStayWithinTheirBoundsInOrder(t *testing.T) {
 
 	want := make([]string, 0, len(messages))
 	for _, m := range messages {
-		if m.GetInfo().GetId() != "TOO-LARGE" {
-			want = append(want, m.GetInfo().GetId())
+		if m[0].GetInfo().GetId() != "TOO-LARGE" {
+			want = append(want, m[0].GetInfo().GetId())
 		}
 	}
 
@@ -576,6 +578,46 @@ func TestBatchesStayWithinTheirBoundsInOrder(t *testing.T) {
 	}
 
 	t.Logf("batch sizes: %v", sizes)
+}
+
+// A poll with its votes is one message of the blob: never split across batches, so a blob processed again from its
+// index delivers its votes with it, and counted once. An empty entry, an encrypted vote delivered decrypted with its
+// poll, is counted as delivered and in no batch.
+func TestAPollAndItsVotesAreNeverSplitAcrossBatches(t *testing.T) {
+	t.Parallel()
+
+	event := func(id string) *whatsmeowv1.MessageEvent {
+		return &whatsmeowv1.MessageEvent{Info: &whatsmeowv1.MessageInfo{Id: id}}
+	}
+
+	var messages [][]*whatsmeowv1.MessageEvent
+	for i := range maxBatchMessages - 1 {
+		messages = append(messages, []*whatsmeowv1.MessageEvent{event(fmt.Sprintf("S%d", i))})
+	}
+
+	messages = append(messages, []*whatsmeowv1.MessageEvent{}, []*whatsmeowv1.MessageEvent{event("P1"), event("V1"), event("V2"), event("V3")},
+		[]*whatsmeowv1.MessageEvent{event("LAST")})
+	poll := len(messages) - 2
+
+	ids := func(b batched) (ids []string) {
+		for _, m := range b.event.GetMessages() {
+			ids = append(ids, m.GetInfo().GetId())
+		}
+
+		return ids
+	}
+
+	batches, delivered, skipped := batch(whatsmeowv1.HistorySyncType_HISTORY_SYNC_TYPE_FULL, messages, 0)
+	if len(batches) != 2 || len(batches[0].event.GetMessages()) != maxBatchMessages-1 || batches[1].first != poll ||
+		!slices.Equal(ids(batches[1]), []string{"P1", "V1", "V2", "V3", "LAST"}) || delivered != len(messages) || skipped != 0 {
+		t.Fatalf("%d batches, the second from %d with %v, counts %d and %d; want the poll and its votes together in the second, "+
+			"%d delivered", len(batches), batches[len(batches)-1].first, ids(batches[len(batches)-1]), delivered, skipped, len(messages))
+	}
+
+	rest, restDelivered, _ := batch(whatsmeowv1.HistorySyncType_HISTORY_SYNC_TYPE_FULL, messages, poll)
+	if len(rest) != 1 || !slices.Equal(ids(rest[0]), []string{"P1", "V1", "V2", "V3", "LAST"}) || restDelivered != delivered {
+		t.Fatalf("from the poll: %v, want the poll with its votes", rest)
+	}
 }
 
 func TestAMessageThatDoesNotParseIsSkippedAndCountedAndTheLogCarriesNoJID(t *testing.T) {
@@ -769,6 +811,74 @@ func TestAHistoryReactionNamesItsTargetAsALiveOneDoes(t *testing.T) {
 	}
 }
 
+// A history poll's votes, which the blob carries decrypted on the poll (pollUpdates), follow it in its batch as live
+// votes (events.HistoryMessage). A vote message the blob also carries, encrypted, is not delivered beside the decrypted
+// vote of its id, which an application that dedupes on the id could then drop; it counts as delivered. One whose
+// decrypted vote is not in the blob is delivered as before, undecryptable.
+func TestAHistoryPollsVotesFollowItInItsBatch_AndTheirEncryptedCopiesAreNotDelivered(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	poll := webMessage(group, "P1", false, member, "")
+	poll.Message = &waE2E.Message{PollCreationMessage: &waE2E.PollCreationMessage{Name: proto.String("Lunch?")}}
+	poll.PollUpdates = []*waWeb.PollUpdate{
+		{
+			PollUpdateMessageKey: &waCommon.MessageKey{RemoteJID: proto.String(group), ID: proto.String("V1"), Participant: proto.String(direct)},
+			Vote:                 &waE2E.PollVoteMessage{SelectedOptions: [][]byte{[]byte("pizza-hash")}}, SenderTimestampMS: proto.Int64(1_600_000_000_500),
+		},
+		{
+			PollUpdateMessageKey: &waCommon.MessageKey{RemoteJID: proto.String(group), FromMe: proto.Bool(true), ID: proto.String("V2")},
+			Vote:                 &waE2E.PollVoteMessage{}, SenderTimestampMS: proto.Int64(1_600_000_000_600),
+		},
+	}
+	encrypted := func(chat, id, participant string) *waWeb.WebMessageInfo {
+		m := webMessage(chat, id, false, participant, "")
+		m.Message = &waE2E.Message{PollUpdateMessage: &waE2E.PollUpdateMessage{
+			PollCreationMessageKey: &waCommon.MessageKey{RemoteJID: proto.String(chat), ID: proto.String("P1"), Participant: proto.String(member)},
+			Vote:                   &waE2E.PollEncValue{EncPayload: []byte{1}, EncIV: []byte{2}},
+		}}
+
+		return m
+	}
+	// The blob's order is WhatsApp's [unknown]: the encrypted copy of V1 comes first here, ahead of its poll.
+	conv := &waHistorySync.Conversation{ID: proto.String(group), Messages: []*waHistorySync.HistorySyncMsg{
+		{Message: encrypted(group, "V1", direct)}, {Message: poll}, {Message: encrypted(group, "V9", member)}, {Message: webMessage(group, "T1", false, member, "after")},
+	}}
+	other := &waHistorySync.Conversation{ID: proto.String(direct), Messages: []*waHistorySync.HistorySyncMsg{{Message: encrypted(direct, "V1", "")}}}
+	h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, conv, other))
+	h.caughtUp("s1")
+
+	got := h.read("s1", 0, 2)
+	ids, progress := messageIDs(t, got)
+
+	// V1 in the direct chat is another chat's vote, never the copy of the group's.
+	if !slices.Equal(ids, []string{"P1", "V1", "V2", "V9", "T1", "V1"}) {
+		t.Fatalf("messages %v, want the poll, its two votes, then the rest without V1's encrypted copy", ids)
+	}
+
+	if m := progress[0]; m.GetMessageCount() != 5 || m.GetSkippedCount() != 0 {
+		t.Fatalf("progress %v, want the blob's 5 messages delivered", m)
+	}
+
+	messages := got[0].GetHistoryMessages().GetMessages()
+	target := &whatsmeowv1.MessageTarget{Id: "P1", Sender: member}
+
+	if v := messages[1]; !proto.Equal(v.GetTarget(), target) || v.GetMessage() != nil || v.GetInfo().GetSource().GetSender() != direct ||
+		!proto.Equal(v.GetPollVote(), &whatsmeowv1.PollVote{SelectedOptionHashes: [][]byte{[]byte("pizza-hash")}}) ||
+		!v.GetInfo().GetMessageTime().AsTime().Equal(time.UnixMilli(1_600_000_000_500)) {
+		t.Fatalf("V1 %v, want the member's decrypted vote on P1 at its sender's time", v)
+	}
+
+	if v := messages[2]; !proto.Equal(v.GetTarget(), target) || !v.GetInfo().GetSource().GetIsFromMe() ||
+		v.GetInfo().GetSource().GetSender() != "5511000000000@s.whatsapp.net" || !proto.Equal(v.GetPollVote(), &whatsmeowv1.PollVote{}) {
+		t.Fatalf("V2 %v, want the account's cleared vote on P1", v)
+	}
+
+	if v := messages[3]; v.GetMessage().GetPollUpdateMessage() == nil {
+		t.Fatalf("V9 %v, want the encrypted vote as before", v)
+	}
+}
+
 func TestASecondOfflineSyncInOneConnectionWakesTheWorker(t *testing.T) {
 	t.Parallel()
 
@@ -907,11 +1017,11 @@ func TestARestartAfterTheMappingChangedResumesAtTheNextMessage(t *testing.T) {
 
 	h := startLogging(t, zerolog.New(&log), path)
 	// A mapping that makes each message 8 KiB, so the first run cuts batches by bytes, of fewer messages each.
-	h.svc.toEvent = func(m *events.Message, account *store.Device) *whatsmeowv1.MessageEvent {
+	h.svc.toEvent = func(m *events.Message, account *store.Device) []*whatsmeowv1.MessageEvent {
 		e := eventsslice.MessageEvent(m, account)
 		e.Message = &waE2E.Message{Conversation: proto.String(strings.Repeat("x", 8<<10))}
 
-		return e
+		return []*whatsmeowv1.MessageEvent{e}
 	}
 	h.notify("s1", "N1", "/blob/1", b)
 	h.caughtUp("s1")
@@ -1201,13 +1311,13 @@ func TestABatchThatCannotBeMarshalledReportsItsBlobInvalidAndTheNextArrives(t *t
 
 	h := start(t)
 	// A mapping that lets an invalid UTF-8 string through: the outbox's marshal fails with a protobuf error.
-	h.svc.toEvent = func(m *events.Message, account *store.Device) *whatsmeowv1.MessageEvent {
+	h.svc.toEvent = func(m *events.Message, account *store.Device) []*whatsmeowv1.MessageEvent {
 		e := eventsslice.MessageEvent(m, account)
 		if e.GetInfo().GetId() == "X1" {
 			e.Info.Id = "X1\xff"
 		}
 
-		return e
+		return []*whatsmeowv1.MessageEvent{e}
 	}
 	h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, texts(direct, "X", 1)))
 	h.notify("s1", "N2", "/blob/2", blob(waHistorySync.HistorySync_RECENT, texts(direct, "B", 1)))

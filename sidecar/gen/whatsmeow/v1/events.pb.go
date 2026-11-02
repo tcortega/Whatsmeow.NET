@@ -462,7 +462,8 @@ type MessageEvent struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The message's identity.
 	Info *MessageInfo `protobuf:"bytes,1,opt,name=info,proto3" json:"info,omitempty"`
-	// The content as whatsmeow unwraps it (device-sent, ephemeral, view-once, edit and similar wrappers removed).
+	// The content as whatsmeow unwraps it (device-sent, ephemeral, view-once, edit and similar wrappers removed). Unset
+	// for a history poll's vote, which history carries decrypted on its poll, not as a message (poll_vote).
 	Message *waE2E.Message `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
 	// True when whatsmeow unwrapped the content from a view-once wrapper (ViewOnceMessage, V2 or V2Extension).
 	ViewOnce bool `protobuf:"varint,3,opt,name=view_once,json=viewOnce,proto3" json:"view_once,omitempty"`
@@ -482,8 +483,8 @@ type MessageEvent struct {
 	// id and sender, read as a target's sender is. Unset for every other message, and for a quote that names no sender
 	// the sidecar can tell: one whose participant is missing or is not a user's JID.
 	ReplyTo *MessageTarget `protobuf:"bytes,8,opt,name=reply_to,json=replyTo,proto3" json:"reply_to,omitempty"`
-	// For a poll vote, what it selected, decrypted with the poll's message secret; its poll is the target. Unset for
-	// every other message.
+	// For a poll vote, what it selected, decrypted with the poll's message secret, or as a history poll carries it
+	// decrypted (its WebMessageInfo's pollUpdates); its poll is the target. Unset for every other message.
 	PollVote      *PollVote `protobuf:"bytes,9,opt,name=poll_vote,json=pollVote,proto3" json:"poll_vote,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1203,7 +1204,9 @@ func (*StreamEventsResponse_HistoryProgress) isStreamEventsResponse_Payload() {}
 // HistoryMessagesEvent is a batch of history messages: old messages, never live ones. A blob's messages arrive in one
 // or more batches, in the blob's order, each small enough for one gRPC message, then the blob's
 // HistorySyncProgressEvent. A batch delivered again carries the same messages. Status updates (statuses) a blob carries
-// are never delivered; they count in the progress event's skipped_count.
+// are never delivered; they count in the progress event's skipped_count. A poll is followed, in its batch, by each vote
+// the blob carries decrypted on it, as a live vote's MessageEvent without a message; a vote message the blob also
+// carries, encrypted, is then not delivered.
 type HistoryMessagesEvent struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Which history the blob carries.
@@ -1268,7 +1271,8 @@ type HistorySyncProgressEvent struct {
 	ChunkOrder uint32 `protobuf:"varint,2,opt,name=chunk_order,json=chunkOrder,proto3" json:"chunk_order,omitempty"`
 	// WhatsApp's progress value for the sync, as it sent it.
 	Progress uint32 `protobuf:"varint,3,opt,name=progress,proto3" json:"progress,omitempty"`
-	// How many of its messages the sidecar delivered in its batches.
+	// How many of its messages the sidecar delivered in its batches. A poll's votes are not the blob's messages and do
+	// not count; an encrypted vote message delivered decrypted with its poll does.
 	MessageCount uint32 `protobuf:"varint,4,opt,name=message_count,json=messageCount,proto3" json:"message_count,omitempty"`
 	// How many of its messages the sidecar did not deliver: one that does not parse, one too large for a gRPC message,
 	// and every status update.
