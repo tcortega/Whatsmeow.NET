@@ -119,12 +119,14 @@ type MessageEvent func(e *waevents.Message, account *store.Device) *whatsmeowv1.
 type Service struct {
 	whatsmeowv1.UnimplementedHistoryServiceServer
 
-	db       *sql.DB
-	w        *sidecarstore.Writer
-	box      *outbox.Outbox
-	log      zerolog.Logger
-	toEvent  MessageEvent
-	sessions Sessions
+	db *sql.DB
+	w  *sidecarstore.Writer
+	// queueTimeout bounds the handler's writes (Handler).
+	queueTimeout time.Duration
+	box          *outbox.Outbox
+	log          zerolog.Logger
+	toEvent      MessageEvent
+	sessions     Sessions
 	// download lets one download, parse and cut into batches run at a time across the sessions: a blob is held whole
 	// in memory (DownloadHistorySync, message.go:783-825).
 	download chan struct{}
@@ -161,7 +163,7 @@ func New(db *sql.DB, w *sidecarstore.Writer, box *outbox.Outbox, toEvent Message
 	ctx, cancel := context.WithCancel(context.Background())
 
 	return &Service{
-		db: db, w: w, box: box, log: log, toEvent: toEvent, download: make(chan struct{}, 1), after: time.After, downloadTimeout: downloadTimeout,
+		db: db, w: w, queueTimeout: sidecarstore.BusyTimeout, box: box, log: log, toEvent: toEvent, download: make(chan struct{}, 1), after: time.After, downloadTimeout: downloadTimeout,
 		onWait: func(string) {}, onQueue: func(string) {}, onIdle: func(string) {}, onOffline: func(string) {},
 		ctx: ctx, cancel: cancel, workers: map[string]*worker{},
 	}
@@ -236,8 +238,12 @@ func (svc *Service) queue(sessionID, messageID string, notif *waE2E.HistorySyncN
 		return fmt.Errorf("queue a notification: %w", err)
 	}
 
-	// No caller's context: whatsmeow gives the handler none. It waits for the writes ahead of it (ADR 0040).
-	if _, err := svc.w.Exec(context.Background(), `INSERT INTO history_blob (session_id, message_id, notification) VALUES (?, ?, ?)
+	// whatsmeow gives the handler no context. The write gives up after the busy_timeout, as the Events slice's does,
+	// and the answer is withheld (ADR 0040).
+	ctx, cancel := context.WithTimeout(context.Background(), svc.queueTimeout)
+	defer cancel()
+
+	if _, err := svc.w.Exec(ctx, `INSERT INTO history_blob (session_id, message_id, notification) VALUES (?, ?, ?)
 		ON CONFLICT (session_id, message_id) DO NOTHING`, sessionID, messageID, data); err != nil {
 		return fmt.Errorf("queue a notification: %w", err)
 	}
@@ -247,7 +253,10 @@ func (svc *Service) queue(sessionID, messageID string, notif *waE2E.HistorySyncN
 
 // clear takes the session's queue, in one short transaction.
 func (svc *Service) clear(sessionID string) error {
-	if _, err := svc.w.Exec(context.Background(), "DELETE FROM history_blob WHERE session_id = ?", sessionID); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), svc.queueTimeout)
+	defer cancel()
+
+	if _, err := svc.w.Exec(ctx, "DELETE FROM history_blob WHERE session_id = ?", sessionID); err != nil {
 		return fmt.Errorf("clear the queue: %w", err)
 	}
 

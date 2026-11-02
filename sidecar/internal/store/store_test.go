@@ -3,7 +3,9 @@ package store
 import (
 	"context"
 	"errors"
+	"fmt"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/rs/zerolog"
@@ -76,5 +78,13 @@ func TestOpenRefusesAPathWithAQuery(t *testing.T) {
 
 	if _, err := openT(t, filepath.Join(t.TempDir(), "a?mode=ro")); err == nil {
 		t.Fatal("Open accepted a path with '?'")
+	}
+}
+
+func TestTheBusyTimeoutIsTheOneSQLiteGets(t *testing.T) {
+	t.Parallel()
+
+	if want := fmt.Sprintf("busy_timeout(%d)", BusyTimeout.Milliseconds()); !strings.Contains(pragmas, want) {
+		t.Fatalf("pragmas are %s, want %s", pragmas, want)
 	}
 }

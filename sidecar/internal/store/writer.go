@@ -32,7 +32,7 @@ type heldKey struct{}
 
 // Tx runs fn in a write transaction, after every write that asked earlier, and commits unless fn fails. fn gets
 // the transaction's context; a Tx or Exec on it fails with ErrNestedWrite.
-func (w *Writer) Tx(ctx context.Context, fn func(context.Context, *sql.Tx) error) (err error) {
+func (w *Writer) Tx(ctx context.Context, fn func(context.Context, *sql.Tx) error) error {
 	if err := w.acquire(ctx); err != nil {
 		return err
 	}
@@ -43,9 +43,11 @@ func (w *Writer) Tx(ctx context.Context, fn func(context.Context, *sql.Tx) error
 		return fmt.Errorf("begin: %w", err)
 	}
 
-	if err := fn(context.WithValue(ctx, heldKey{}, w), tx); err != nil {
-		_ = tx.Rollback()
+	// Also when fn fails or panics, before the gate is handed on: an open transaction would keep SQLite's lock. After
+	// the commit it does nothing.
+	defer func() { _ = tx.Rollback() }()
 
+	if err := fn(context.WithValue(ctx, heldKey{}, w), tx); err != nil {
 		return err
 	}
 

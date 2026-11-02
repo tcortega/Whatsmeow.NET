@@ -133,8 +133,11 @@ func Mapper(db *sql.DB, w *store.Writer, log zerolog.Logger) func(sessionID stri
 		}
 
 		if answered(log, sessionID, retry, media, event) {
-			_, err := w.Exec(context.Background(), "DELETE FROM media_retry WHERE session_id = ? AND message_id = ? AND chat = ?",
+			// In the Events slice's handler, which whatsmeow gives no context: bounded as its own write is (ADR 0040).
+			ctx, cancel := context.WithTimeout(context.Background(), store.BusyTimeout)
+			_, err := w.Exec(ctx, "DELETE FROM media_retry WHERE session_id = ? AND message_id = ? AND chat = ?",
 				sessionID, retry.MessageID, requested)
+			cancel()
 			if err != nil {
 				log.Error().Err(err).Str("session_id", sessionID).Msg("deleting a settled media retry request failed; it stays until its session is deleted")
 			}

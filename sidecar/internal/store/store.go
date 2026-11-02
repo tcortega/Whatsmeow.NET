@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow/store/sqlstore"
@@ -17,6 +18,10 @@ import (
 	// The CGO-free SQLite driver, registered as "sqlite" (ARCHITECTURE §5).
 	_ "modernc.org/sqlite"
 )
+
+// BusyTimeout is how long SQLite waits for another connection's write lock (pragmas): the sidecar's own writes wait
+// only for whatsmeow's, behind the write gate (ADR 0040). The event handlers' writes give up after it too.
+const BusyTimeout = 30 * time.Second
 
 // pragmas apply to every connection (ARCHITECTURE §5, §14 question 3): whatsmeow's Upgrade refuses to run without
 // foreign keys, and immediate transactions plus the busy timeout keep concurrent writers from SQLITE_BUSY.

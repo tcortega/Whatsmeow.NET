@@ -285,3 +285,38 @@ func TestAWriteInsideAWriteFailsAtOnce(t *testing.T) {
 		t.Fatalf("the sessions are %v, want only outer", ids)
 	}
 }
+
+func TestAPanicInAWriteLeavesNoOpenTransaction(t *testing.T) {
+	t.Parallel()
+
+	w, ctx := openWriter(t)
+
+	func() {
+		defer func() { _ = recover() }()
+
+		_ = w.Tx(ctx, func(ctx context.Context, tx *sql.Tx) error {
+			if _, err := tx.ExecContext(ctx, "INSERT INTO session (id) VALUES ('panicked')"); err != nil {
+				return err //nolint:wrapcheck // the test's own write
+			}
+
+			panic("the write panicked")
+		})
+	}()
+
+	if inUse := w.db.Stats().InUse; inUse != 0 {
+		t.Fatalf("%d connections are still in use after the panic, want 0: its transaction is open", inUse)
+	}
+
+	// SQLite's lock would be held by the open transaction: the next writer would wait out the busy_timeout.
+	next, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	if _, err := w.Exec(next, "INSERT INTO session (id) VALUES ('next')"); err != nil {
+		t.Fatalf("the next write: %v", err)
+	}
+
+	var n int
+	if err := w.db.QueryRowContext(ctx, "SELECT count(*) FROM session WHERE id = 'panicked'").Scan(&n); err != nil || n != 0 {
+		t.Fatalf("the panicked write's row: %d, %v; want 0, rolled back", n, err)
+	}
+}

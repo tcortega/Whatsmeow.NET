@@ -2,6 +2,7 @@ package events
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net"
@@ -128,14 +129,19 @@ func startOn(t *testing.T, path string, sessions ...string) *harness {
 	}
 	t.Cleanup(h.stop)
 
-	// A bound for a broken slice, never a wait: every wait below ends on a condition.
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	t.Cleanup(cancel)
-
-	h.ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	h.bound()
 	h.client = whatsmeowv1.NewEventServiceClient(conn)
 
 	return h
+}
+
+// bound gives the calls a new bound for a broken slice, never a wait: every wait below ends on a condition. A test
+// whose setup is slow takes one after it, so the bound covers what it checks.
+func (h *harness) bound() {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	h.t.Cleanup(cancel)
+
+	h.ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
 }
 
 func jid(s string) types.JID {
@@ -617,6 +623,58 @@ func (s *stuckStream) Send(*whatsmeowv1.StreamEventsResponse) error {
 	return errors.New("the stream ended")
 }
 
+func TestAHandlerWriteStuckBehindTheGatePastItsDeadlineGivesUpAndWithholds(t *testing.T) {
+	t.Parallel()
+
+	h := start(t, "s1")
+	h.svc.recordTimeout = 100 * time.Millisecond
+
+	// Another write holds the gate, as one stuck behind whatsmeow's own writes would.
+	holding, release := make(chan struct{}), make(chan struct{})
+	held := make(chan error, 1)
+
+	go func() {
+		held <- h.db.Writer.Tx(h.ctx, func(context.Context, *sql.Tx) error {
+			close(holding)
+			<-release
+
+			return nil
+		})
+	}()
+
+	<-holding
+
+	// The holder lets go once the handler returned, or at the test's bound for a handler that waits for it.
+	returned := make(chan struct{})
+
+	go func() {
+		select {
+		case <-returned:
+		case <-h.ctx.Done():
+		}
+
+		close(release)
+	}()
+
+	answered := h.deliver("s1", messageEvent("M1"))
+	close(returned)
+
+	if answered {
+		t.Fatal("the handler waited for the gate past its deadline and answered")
+	}
+
+	if err := <-held; err != nil {
+		t.Fatalf("the holding write: %v", err)
+	}
+
+	if events, err := h.box.Read(h.ctx, "s1", 0, 10); err != nil || len(events) != 0 {
+		t.Fatalf("the outbox has %v, %v; want nothing: the write gave up", events, err)
+	}
+
+	// Its redelivery is recorded once the gate is free.
+	h.mustDeliver("s1", messageEvent("M1"))
+}
+
 func TestAReplacedStreamStuckInSendEnds(t *testing.T) {
 	t.Parallel()
 
@@ -671,14 +729,16 @@ func TestAReplacedStreamWhoseClientStoppedReadingEnds(t *testing.T) {
 	h := start(t, "s1")
 
 	// 512 KiB, far more than grpc-go's 64 KiB stream window and its 64 KiB write quota: the first stream's handler
-	// blocks in Send on flow control. In few events, because each is a commit, and the 30 s bound starts before them:
-	// 64 commits took up to 24.8 s on a loaded Windows disk (#89).
+	// blocks in Send on flow control. In few events, because each is a commit: 64 took up to 24.8 s on a loaded
+	// Windows disk, inside the bound of what this test checks (#89). The bound starts after them.
 	big := strings.Repeat("x", 64<<10)
 	for i := range 8 {
 		evt := messageEvent(fmt.Sprintf("M%d", i))
 		evt.Message.Conversation = proto.String(big)
 		h.mustDeliver("s1", evt)
 	}
+
+	h.bound()
 
 	// A fixed 64 KiB window: without one, grpc-go's BDP estimation grows the window of a stream nobody reads.
 	slow, err := grpc.NewClient("passthrough:///bufnet",
