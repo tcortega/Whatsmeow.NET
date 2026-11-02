@@ -60,8 +60,11 @@ public sealed class FakeSidecar : IAsyncLifetime
 	/// </summary>
 	internal WhatsmeowSidecarOptions Options { get; private set; } = null!;
 
-	/// <summary>The client's log, Debug level included.</summary>
-	internal LogCapture Logs { get; } = new();
+	/// <summary>
+	/// The client's log, Debug level included, also written to <c>dotnet/artifacts/TestResults/fake-sidecar.log</c>,
+	/// which CI keeps when the job fails.
+	/// </summary>
+	internal LogCapture Logs { get; } = new(Path.Combine(SidecarBinaries.FindRoot(), "dotnet", "artifacts", "TestResults", "fake-sidecar.log"));
 
 	/// <summary>
 	/// The sidecar's meter's factory: a collector on it sees this sidecar's measurements only, not those of a test's
@@ -148,6 +151,7 @@ public sealed class FakeSidecar : IAsyncLifetime
 		if (_standalone is { } standalone)
 		{
 			// The orchestrator's part: the same database, address and token.
+			Logs.Note($"{crash.Test} restarts the standalone sidecar");
 			await standalone.DisposeAsync().ConfigureAwait(false);
 			_standalone = await StandaloneSidecar.StartAsync(Binary, DatabasePath, _listen, _tokenPath, StandaloneArguments(), cancellationToken).ConfigureAwait(false);
 		}
@@ -155,6 +159,7 @@ public sealed class FakeSidecar : IAsyncLifetime
 		if (_standalone is null)
 		{
 			var (processId, _) = await Logs.StartedAsync(Logs.Named("SidecarStarted").Count, cancellationToken).ConfigureAwait(false);
+			Logs.Note($"{crash.Test} kills sidecar {processId}");
 			using var process = Process.GetProcessById(processId);
 			process.Kill();
 		}

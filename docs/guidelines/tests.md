@@ -53,7 +53,10 @@ The sidecar is shared and tests run in parallel, so each test uses session ids o
 A test that needs a paired session links it with the fake's `LinkDevice` without a Pair call, the quick way; `Sessions/SessionSetup.cs` has the helpers, and `Support/StateWatch.cs` reads a state watch by condition.
 The Pairing tests pair through the public API, with the fake WhatsApp as the phone (`Pairing/PairingTests.cs`).
 A test that starts a sidecar of its own gives it a database of its own (`binaries.NewDatabase()`): one sidecar owns a database file.
-A test that crashes the sidecar calls `fixture.CrashAsync`, which returns once it was restarted, and sits in the `SidecarCrashes` collection, which never runs in parallel; `CrashAsync` throws anywhere else.
+A test that crashes the sidecar calls `fixture.CrashAsync` and sits in the `SidecarCrashes` collection, which never runs in parallel; `CrashAsync` throws anywhere else.
+`CrashAsync` returns once the supervisor restarted the sidecar, and fails the test at once with the reason when a restart attempt fails, since the next attempt is a backoff away.
+Until the sidecar is back, any other test that reaches for `fixture.Sidecar` or `fixture.Fake` fails with the crash, and with the last attempt's reason once one failed, not with a refused socket (#77).
+The fixture writes the client's and the sidecar's records to `dotnet/artifacts/TestResults/fake-sidecar.log` as they come, and the CI dotnet job uploads that file when it fails.
 Do not start a sidecar per test; the Sidecar slice's start and stop tests are the exception, because starting and stopping is their behaviour, and so are the delivery tests that stop or kill the .NET side (`Events/EventProcessTests.cs`): they start fake-mode sidecars of their own (`fixture.Binary`, `binaries.NewDatabase()`), and kill the .NET side as a child process, `SidecarHost events`.
 So do the hosting tests (`Hosting/HostingTests.cs`): the generic host starting and stopping the sidecar is their behaviour, so each host gets a fake-mode sidecar of its own the same way.
 So do the sample's tests (`Samples/EchoBotTests.cs`): the sample's own setup in a host that starts its sidecar, and the redelivery test two hosts on one database ([ADR 0049](../adr/0049-the-hosted-sample-and-its-fake-mode-check.md)).
