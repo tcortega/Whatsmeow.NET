@@ -64,7 +64,7 @@ Upstream whatsmeow stays lowercase `whatsmeow` in prose, so the two stay easy to
 - Status updates (statuses). History sync never delivers the statuses a blob carries; it counts them as skipped (§7.7).
 - Media processing in Go. Thumbnails, transcoding and waveforms are done in .NET.
 - Calls (whatsmeow only does call signaling), newsletters/channels, business features. Possible later.
-- Being a network service. `whatsmeow-net` is a local child process. "External mode" (separate container) comes in Phase 4.
+- Being a network service. `whatsmeow-net` is a local child process, or in External mode a separate container or process on a private network, never a public one ([ADR 0046](adr/0046-external-mode.md)).
 
 ---
 
@@ -415,6 +415,9 @@ The design is [ADR 0025](adr/0025-messaging-and-receipts.md); the whatsmeow fact
   What else reaches stderr is not redacted: the flag package's usage errors, a Go runtime panic, whatsmeow's one `log.Fatalf` (newsletter.go:226, on calls the sidecar never makes) and grpclog. None of them carries a JID at the pin [observed: the flags echo the client's own arguments; inferred: grpc-go and a panic see no WhatsApp data] (ADR 0039).
   A group's JID is personal data too, since an older one carries its creator's phone number ([ADR 0030](adr/0030-groups-participants-settings-invites-and-group-events.md)).
   The sidecar's own code still logs no JID, and the Contacts and Groups slices keep none of the text whatsmeow wraps around an error ([ADR 0028](adr/0028-contacts-blocklist-and-lid-resolution.md), ADR 0030) [observed: `internal/contacts` and `internal/groups` tests `TestWhatsAppsErrorsBecomeTheirReasons`, `TestTheInfoLogCarriesNoJID`].
+- **Standalone** (External mode, [ADR 0046](adr/0046-external-mode.md)): `--listen unix:<absolute path>|tcp:<host>:<port>` with `--token-file <file>`, and none of `--transport`, `--socket-dir`, `--nonce` or `--parent-pid` (exit code 2).
+  The token is the file's one line, 32 bytes as hex, the final line ending optional, read once at start; stdin is never read and nothing tethers the sidecar, so SIGTERM, SIGINT and Shutdown stop it. The ready line is still printed, without a nonce.
+  A socket a killed sidecar left at the path is removed and anything else there refused; the socket is `0660`, its directory left as the operator made it.
 - `--parent-pid`: the client's process id. The sidecar stops once it is no longer its parent, on the same graceful path as stdin EOF, also when another process keeps stdin open; without the flag it takes its parent at start ([ADR 0024](adr/0024-tether-backups.md)).
   - Linux: `PR_SET_PDEATHSIG` with SIGUSR1, then a parent check right away and on every signal. The signal also comes when only the thread that forked the sidecar exits, a .NET thread-pool thread for example, so it only wakes the check; a signal while the parent lives is logged at info. A wrapper script as `SidecarPath` does not work: the sidecar's parent would be the script, not `--parent-pid`.
   - macOS: the parent check right away and every second.
@@ -487,7 +490,7 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
 - The **reader** only decodes and writes to the channel. Backpressure flows into gRPC flow control and the sidecar's durable outbox; nothing is dropped.
 - The **dispatcher** orders events per chat (a session's state changes have a lane of their own) and runs different chats concurrently. The lane comes from the event's record, the same function for `FakeWhatsAppClient`, whose events run on this pipeline too ([ADR 0036](adr/0036-testing-package-and-fake-client.md)).
 - **Ack by watermark:** the cursor sent with `AckEvents` is the highest `seq` such that every event at or below it has finished all its handlers. Events are acked in batches on a timer (every second, when the watermark moved) and at shutdown.
-- **Start and stop:** a session's events flow from its first successful `ConnectAsync` in the process, under one fixed consumer name (`client`; External mode, #49, may make it an option), so handlers are registered first. Disposing the sidecar stops the readers, cancels the handlers' token and waits for them, then acks the watermark while the sidecar still runs; a handler that ended because of the cancellation has not handled its event, which comes again (ADR 0022).
+- **Start and stop:** a session's events flow from its first successful `ConnectAsync` in the process, under one consumer name: `client`, or in External mode `ExternalSidecarOptions.Consumer`, one per client of the sidecar (ADR 0046), so handlers are registered first. Disposing the sidecar stops the readers, cancels the handlers' token and waits for them, then acks the watermark while the sidecar still runs; a handler that ended because of the cancellation has not handled its event, which comes again (ADR 0022).
 - **Bounds:** the reader writes to a channel of 64; the dispatcher keeps at most 64 events received and unfinished, and runs at most 16 chat lanes at once. These are internal constants.
 - **Handler failures do not block the stream.** An exception is caught, logged, counted in `whatsmeow.handler.duration` with its `error.type` ([ADR 0037](adr/0037-traces-and-metrics.md)), and raised on `OnHandlerError`. The event still counts as handled; a failing event that blocked the stream forever would be worse. Users who need retries implement them in the handler.
 - **The consumer contract is at-least-once:** handlers must be idempotent, and `MessageId` plus `SessionId` is the dedupe key. This is documented on every handler interface.
@@ -514,6 +517,9 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
   - Embedded mode requires `sidecar.version == client.version`.
   - Every mode requires `sidecar.protocol` to be within `[MinProtocol, MaxProtocol]`.
   - A mismatch is a hard `SidecarVersionMismatchException`.
+- **External mode** (`WhatsmeowSidecarOptions.External`, [ADR 0046](adr/0046-external-mode.md)): the client connects to a sidecar an orchestrator runs, and never starts, stops or restarts it.
+  A connect reads the token file, calls GetInfo every second on the `TimeProvider` until the sidecar answers within `StartupTimeout`, fails at once on a refused token, checks the protocol only, then opens a `grpc.health.v1` Watch; the watch ending is the exit, and the supervisor connects again with the restart backoff, reconnects the sessions as after a restart, and logs `SidecarRestarted`.
+  Dispose stops the readers and acks, and calls no Shutdown. `SidecarPath`, `DatabasePath`, `Transport`, `History` and `SendPacing` fail validation there; `MediaRoot` is the client's path to the sidecar's `--media-root`, the same absolute path on both sides.
 - **Hosted** (`Whatsmeow.Extensions.Hosting`): one `IHostedLifecycleService` starts the sidecar and creates the declared sessions in `StartingAsync`, before any hosted service's `StartAsync`, and connects the ones that come back `Disconnected` in `StartedAsync`, once every `StartAsync` succeeded; a failure, a connect included, fails the host's start and leaves no sidecar. It stops it in `StoppedAsync`, after every hosted service stopped, with the stop above; once the host's shutdown timeout passes it no longer waits for handlers that ignore their token, whose events come again, and the process stop is never cut short: the host waits for it [observed: ADR 0034], so the kill always runs. Crashes in between are the supervisor's ([ADR 0034](adr/0034-hosting-package.md)). A host whose declared sessions a test replaced with `UseFakeClient` starts no sidecar: the handlers go on the fakes from `StartedAsync` to `StoppedAsync`, which cancels the ones still running and waits for them with the same shutdown timeout ([ADR 0036](adr/0036-testing-package-and-fake-client.md)).
 - After a sidecar restart, the client calls `Connect` again for the sessions the application had connected that come back `Disconnected` (it reads `ListSessions`; a stopped session keeps its state, §7.4), a `WatchStateAsync` reopens with the restarted sidecar's current state first, and the event reader reopens `StreamEvents` with `after_seq` = the highest `seq` it received in this process (0 in a new process, so the server-side cursor decides). Users see a `SidecarRestarted` diagnostic event, not a gap.
 
@@ -536,6 +542,7 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
   An upload the sidecar refused mid-stream threw a `NullReferenceException` from `SendDataAsync` [observed: GitHub Actions job 125158865294, linux-x64] or never returned [observed: 7 test timeouts in 500 local runs without the fence, macOS under load].
   In 100 of those runs, 75 of 2,000 uploads ended with a write in flight, and in both timed-out runs that write never returned [observed: an observe-only fence]; that it waits on a credit waiter created after `Complete` is [inferred: from the source].
   With the fence the write in flight is cancelled and awaited first, and a later write throws `ObjectDisposedException` before it reaches the handler; grpc-dotnet turns either into the call's status `RpcException` once the call completed (`StreamExtensions.TryCreateCallCompleteException`, v2.85.0) [observed: source], so the upload throws the sidecar's reason.
+- External mode connects to `unix:<path>` or over TCP (`tcp:<host>:<port>`, without Nagle), and pings a connection silent for 15 s, dropping it when the answer takes 15 s more, so a peer that vanished without closing its end fails the calls on it; the sidecar accepts a ping a second (grpc-go's default policy closes the connection after the third ping within 5 minutes) (ADR 0046).
 - Never call `GrpcChannel.ConnectAsync` or read `GrpcChannel.State`; both throw `InvalidOperationException` ("doesn't support client-side load balancing or connectivity state tracking") when `ConnectCallback` is set (§14 transport spike). Readiness comes from the handshake.
 
 ### 8.7 Errors
@@ -633,6 +640,7 @@ Moved to [guidelines/csharp.md](guidelines/csharp.md) Async and concurrency: `Ch
 - The SQLite database holds long-term private keys. It is created `0600` before SQLite opens it, and its `-wal` file inherits that mode; the lock file next to it is `0600` too.
   One sidecar at a time owns it (§7.4).
   The docs recommend disk encryption. Backups use `VACUUM INTO` and must be encrypted by the user.
+- External mode (ADR 0046): the token comes from a file both sides read (a secret mount), never an argument or an environment variable. TCP carries it in clear text, so TCP is only for a private network, such as the one between a pod's containers; TLS and mTLS wait until someone asks. A Unix socket on a shared volume is `0660`: run both sides as one user or with a shared group (Kubernetes `fsGroup`).
 - Media paths are confined to `--media-root`: the sidecar opens them through one `os.Root`, which refuses `..` and symlinks that leave it, absolute ones included, without a check-then-use race on Unix and Windows (`go doc os.Root`, Go 1.27). Downloaded files are created 0600.
 
 ---
@@ -699,7 +707,7 @@ Any change that violates one of these is wrong unless an ADR changes the invaria
 6. Generated protobuf types never appear in the stable public C# API.
 7. No runtime reflection, no `async void`, no sync-over-async, no `Grpc.Core`, no `Newtonsoft.Json`, no `DateTime`, no clock or timer that bypasses the injected `TimeProvider`.
 8. No whole-file media in a single gRPC message; use paths or chunks.
-9. The sidecar cannot outlive its parent process.
+9. An embedded sidecar cannot outlive its parent process; an external one's lifetime is its orchestrator's, and the client never stops it ([ADR 0046](adr/0046-external-mode.md)).
 10. A send with an unknown outcome is never automatically retried.
 11. Go code never regenerates whatsmeow's protos into its own packages; it imports whatsmeow's.
 12. Embedded sidecar version equals client version.
@@ -1038,6 +1046,7 @@ Phase 0 decisions:
 - [0043](adr/0043-weekly-whatsmeow-bump.md): The weekly whatsmeow bump: one open PR from `GITHUB_TOKEN` whose CI a person approves, extended and never rewritten, a new branch from main otherwise, never built, merged or published by the workflow; its body lists each fact citing a changed whatsmeow file since the pin §14 records, the `Client` method changes, the WIRE diff and the licence findings (#48)
 - [0044](adr/0044-a-reset-after-a-withheld-answer.md): A withheld answer: each registered handler that returns false wakes the session's redelivery without waiting, which resets the connection with `ResetConnection` 5 s later while the session is logged in, then waits a cool-down of 1 min doubling to 30 min; ours, not mautrix's; invariant 1 names the wake; the fake delivers an unanswered message again at each login, and `withhold_first_answer` fails its first recording (#91)
 - [0045](adr/0045-a-channel-per-launch.md): Transport: a channel per launch, its endpoint and token fixed, behind one stable invoker; a socket name of its own per launch; the last channel disposed one launch late (#85)
+- [0046](adr/0046-external-mode.md): External mode: invariant 9 scoped to embedded mode; a standalone sidecar with `--listen` and `--token-file`, no stdin and no tether; `ExternalSidecarOptions` (`Address`, `TokenPath`, `Consumer`); the protocol check only; a health watch whose end is the exit, keepalive pings, and a reconnect with the restart backoff; no Shutdown on dispose; TCP only on a private network (#49)
 - [0047](adr/0047-poll-votes-from-history-sync.md): Poll votes from history sync: each vote a history poll carries decrypted (`pollUpdates`) a history message after its poll, as a live vote without a message, its voter read from its key as `ParseWebMessage` reads a sender, one entry with its poll that a batch never splits and the counts never count, and an encrypted copy of one in the blob not delivered (#96)
 - [0049](adr/0049-the-hosted-sample-and-its-fake-mode-check.md): The hosted sample: public API only, one setup method that its fake-mode FullCycle runs with `UseFakeWhatsApp()`, QRCoder and OpenTelemetry as its own dependencies (#42)
 

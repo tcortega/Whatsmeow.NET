@@ -58,6 +58,8 @@ Do not start a sidecar per test; the Sidecar slice's start and stop tests are th
 So do the hosting tests (`Hosting/HostingTests.cs`): the generic host starting and stopping the sidecar is their behaviour, so each host gets a fake-mode sidecar of its own the same way.
 So do the sample's tests (`Samples/EchoBotTests.cs`): the sample's own setup in a host that starts its sidecar, and the redelivery test two hosts on one database ([ADR 0049](../adr/0049-the-hosted-sample-and-its-fake-mode-check.md)).
 So does the send pacing test (`Messaging/SendPacingTests.cs`): the pacing options apply when the sidecar starts, so it starts a fake-mode sidecar of its own, with an hour between sends, a wait it shows without waiting.
+So do the External-mode tests (`Sidecar/ExternalTests.cs`): what happens to a sidecar the client did not start is their behaviour, so each runs one standalone (`Support/StandaloneSidecar.cs`) and kills it by its own process.
+`build/ci.sh external` runs the whole suite once more with `WHATSMEOW_NET_TEST_SIDECAR=external`: the fixture then runs its sidecar standalone over TCP and connects in External mode, and `CrashAsync` kills and starts that process itself (ADR 0046). The fixture is the only reader of that variable.
 So is the media transfer per transport (`Media/MediaTransferTests.cs`): it runs over the named pipe too, and measures the sidecar's memory alone, in the `MediaTransfers` collection, which never runs in parallel.
 So are the meter source tests (`Telemetry/MeterTests.cs`): where the meter comes from is decided at the start.
 Metrics on the shared sidecar are read with a `MetricCollector` on `fixture.MeterFactory`, which sees that sidecar only, and told apart by the `whatsmeow.session.id` tag.

@@ -125,6 +125,7 @@ What the sources say:
 - A consumer who redistributes it (an installer, a desktop app, a container image) conveys it and takes on GPLv3 §6 for `whatsmeow-net` [inferred].
 - Shipping it in a consumer device also owes Installation Information [inferred: GPLv3 §6 "User Product"].
 - Whether a consumer can leave the native assets out (for example NuGet `ExcludeAssets`) and run an external sidecar is [unknown]; measure it in Phase 4 if asked.
+  Measured in #49: it can, with `ExcludeAssets="all"` on each native package, and `build/ci.sh install` proves it on every run [observed: [ADR 0046](0046-external-mode.md)].
 - Our own sidecar files stay MPL-2.0 inside the GPL combined work; never attach MPL Exhibit B to any file.
 - [ADR 0007](0007-per-os-native-nuget-packages-exact-pins.md)'s packaging decision is unchanged; this record answers its last two Consequences.
 - A whatsmeow bump that adds a module or changes a licence file fails CI until a reviewer reads the licence and edits `sidecar/licenses.allow`.
