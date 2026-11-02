@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package whatsmeow.v1;
+
+// PresenceService sets the account's own presence and typing state, and asks WhatsApp for a contact's presence.
+//
+// Each call hands one stanza to WhatsApp and returns once it is written to the connection; WhatsApp sends no answer.
+// The presence and chat presence that WhatsApp sends back arrive on EventService.StreamEphemeralEvents, best effort.
+// A call never waits for a connection: a session that is not logged in, not connected or temporarily banned fails
+// at once.
+service PresenceService {
+  // SendPresence tells WhatsApp the account is available (online) or unavailable. whatsmeow sends the account's push
+  // name with it, and refuses without one: WhatsApp sends the push name with the first app state sync after pairing.
+  // Available also makes whatsmeow answer messages with active delivery receipts, unavailable with inactive ones.
+  // Errors: INVALID_ARGUMENT (field "state"), SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, NOT_CONNECTED,
+  // TEMPORARILY_BANNED, NO_PUSH_NAME.
+  rpc SendPresence(SendPresenceRequest) returns (SendPresenceResponse);
+
+  // SubscribePresence asks WhatsApp to send the user's presence changes, which WhatsApp sends only after a
+  // subscription. whatsmeow notes that WhatsApp seems to require the account to be available for them.
+  // Errors: INVALID_ARGUMENT (field "user"), SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, NOT_CONNECTED,
+  // TEMPORARILY_BANNED.
+  rpc SubscribePresence(SubscribePresenceRequest) returns (SubscribePresenceResponse);
+
+  // SendChatPresence shows the other side of a chat that the account is typing or recording audio, or stops it.
+  // Errors: INVALID_ARGUMENT (fields "chat", "state"), SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, NOT_CONNECTED,
+  // TEMPORARILY_BANNED.
+  rpc SendChatPresence(SendChatPresenceRequest) returns (SendChatPresenceResponse);
+}
+
+// PresenceState is whether a user is online.
+enum PresenceState {
+  // Not a state; refused in a request.
+  PRESENCE_STATE_UNSPECIFIED = 0;
+  // Online.
+  PRESENCE_STATE_AVAILABLE = 1;
+  // Offline.
+  PRESENCE_STATE_UNAVAILABLE = 2;
+}
+
+// ChatPresenceState is what a user is doing in a chat.
+enum ChatPresenceState {
+  // A state this list does not have; refused in a request.
+  CHAT_PRESENCE_STATE_UNSPECIFIED = 0;
+  // Typing a text message.
+  CHAT_PRESENCE_STATE_TYPING = 1;
+  // Recording an audio message.
+  CHAT_PRESENCE_STATE_RECORDING = 2;
+  // Stopped typing or recording.
+  CHAT_PRESENCE_STATE_PAUSED = 3;
+}
+
+// SendPresenceRequest sets the account's presence.
+message SendPresenceRequest {
+  // The session id.
+  string session_id = 1;
+  // The presence; not unspecified.
+  PresenceState state = 2;
+}
+
+// SendPresenceResponse has no fields.
+message SendPresenceResponse {}
+
+// SubscribePresenceRequest subscribes to one user's presence.
+message SubscribePresenceRequest {
+  // The session id.
+  string session_id = 1;
+  // The user, a JID in whatsmeow's string form.
+  string user = 2;
+}
+
+// SubscribePresenceResponse has no fields.
+message SubscribePresenceResponse {}
+
+// SendChatPresenceRequest sets the account's state in one chat.
+message SendChatPresenceRequest {
+  // The session id.
+  string session_id = 1;
+  // The chat, a JID in whatsmeow's string form.
+  string chat = 2;
+  // The state; not unspecified.
+  ChatPresenceState state = 3;
+}
+
+// SendChatPresenceResponse has no fields.
+message SendChatPresenceResponse {}

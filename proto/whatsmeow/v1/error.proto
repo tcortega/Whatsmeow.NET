@@ -58,4 +58,7 @@ enum ErrorReason {
   // UNAVAILABLE. WhatsApp did not answer a read in time; nothing was done, and the call can be repeated. A write that
   // got no answer is OUTCOME_UNKNOWN instead.
   ERROR_REASON_WHATSAPP_TIMED_OUT = 20;
+  // FAILED_PRECONDITION. The account has no push name yet, which whatsmeow needs to send presence: WhatsApp sends it
+  // with the first app state sync after pairing. Nothing was sent.
+  ERROR_REASON_NO_PUSH_NAME = 21;
 }

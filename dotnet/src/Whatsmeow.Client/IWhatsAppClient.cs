@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Whatsmeow.Contacts;
 using Whatsmeow.Events;
 using Whatsmeow.Pairing;
+using Whatsmeow.Presence;
 using Whatsmeow.Sessions;
 
 namespace Whatsmeow;
@@ -106,6 +107,54 @@ public interface IWhatsAppClient
 	Task LogoutAsync(CancellationToken cancellationToken = default);
 
 	/// <summary>
+	/// Tells WhatsApp the account is online (<see cref="PresenceState.Available"/>) or offline. Call it once after
+	/// connecting, so WhatsApp has the account's push name, which whatsmeow sends with it. While available, whatsmeow
+	/// answers messages with active delivery receipts; while unavailable, with inactive ones. It returns once the update
+	/// is handed to the connection; WhatsApp sends no answer.
+	/// </summary>
+	/// <exception cref="WhatsmeowException">
+	/// <see cref="WhatsmeowErrorCode.NoPushName"/>: the account has no push name yet, which WhatsApp sends with the first
+	/// app state sync after pairing; nothing was sent, try again later.
+	/// </exception>
+	/// <exception cref="WhatsmeowValidationException"><paramref name="state"/> is not a defined value.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
+	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
+	/// <exception cref="NotConnectedException">The session is not <see cref="SessionState.Connected"/> or <see cref="SessionState.CaughtUp"/>; nothing was sent.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	Task SendPresenceAsync(PresenceState state, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Asks WhatsApp to send <paramref name="user"/>'s presence, which it sends only after a subscription: changes
+	/// then arrive as <see cref="PresenceChanged"/> events, best effort. whatsmeow notes that WhatsApp seems to require
+	/// the account to be available (<see cref="SendPresenceAsync"/>) for them; whether it sends any to an unavailable
+	/// account has not been measured.
+	/// </summary>
+	/// <exception cref="WhatsmeowValidationException"><paramref name="user"/> is not a user JID.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
+	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
+	/// <exception cref="NotConnectedException">The session is not connected; nothing was sent.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	Task SubscribePresenceAsync(Jid user, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Shows the other side of <paramref name="chat"/> that the account is typing (<see cref="ChatPresenceState.Typing"/>)
+	/// or recording audio (<see cref="ChatPresenceState.Recording"/>), or stops it (<see cref="ChatPresenceState.Paused"/>).
+	/// It returns once the update is handed to the connection; WhatsApp sends no answer.
+	/// </summary>
+	/// <exception cref="WhatsmeowValidationException"><paramref name="chat"/> is not a chat JID, or <paramref name="state"/> is not a defined value.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
+	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
+	/// <exception cref="NotConnectedException">The session is not connected; nothing was sent.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	Task SendChatPresenceAsync(Jid chat, ChatPresenceState state, CancellationToken cancellationToken = default);
+
+	/// <summary>
 	/// The session's state: the current one first, then each change, until <paramref name="cancellationToken"/> is
 	/// cancelled. A reader that falls behind gets the latest state and can miss intermediate ones. When the sidecar
 	/// restarts, the watch goes on with the state the restarted sidecar reports, first.
@@ -129,6 +178,13 @@ public interface IWhatsAppClient
 	/// A handler may delete its own session or dispose the sidecar; that call then does not wait for the handler itself.
 	/// Disposing the registration stops new events from reaching the handler, but an event already being dispatched
 	/// can still reach it once.
+	/// The ephemeral events, <see cref="PresenceChanged"/>, <see cref="ChatPresenceChanged"/> and
+	/// <see cref="EphemeralEventsDropped"/>, are the exception to at least once: best effort. The sidecar keeps them in
+	/// memory only, never acknowledges them and never sends one again: one a handler did not finish, one that arrived
+	/// before the sidecar restarted, and the oldest when more arrive than it keeps (256 per session) while the handlers
+	/// fall behind or the session is not connected in this process are gone, and <see cref="EphemeralEventsDropped"/>
+	/// says how many were dropped. They run in lanes of their own, one per user or chat, in order among themselves but
+	/// in no order with the other events, and never hold back or delay them.
 	/// The events end for good, logged as an error, when the session is deleted, or when another client of the same
 	/// sidecar database streams them under the same consumer and replaces this one.
 	/// </summary>

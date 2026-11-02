@@ -1324,6 +1324,9 @@ type Sent struct {
 	//	*Sent_Receipt
 	//	*Sent_Disconnect
 	//	*Sent_RemoveCompanionDevice
+	//	*Sent_Presence
+	//	*Sent_SubscribePresence
+	//	*Sent_ChatPresence
 	Kind          isSent_Kind `protobuf_oneof:"kind"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1407,6 +1410,33 @@ func (x *Sent) GetRemoveCompanionDevice() *RemoveCompanionDevice {
 	return nil
 }
 
+func (x *Sent) GetPresence() *Presence {
+	if x != nil {
+		if x, ok := x.Kind.(*Sent_Presence); ok {
+			return x.Presence
+		}
+	}
+	return nil
+}
+
+func (x *Sent) GetSubscribePresence() *SubscribePresence {
+	if x != nil {
+		if x, ok := x.Kind.(*Sent_SubscribePresence); ok {
+			return x.SubscribePresence
+		}
+	}
+	return nil
+}
+
+func (x *Sent) GetChatPresence() *ChatPresence {
+	if x != nil {
+		if x, ok := x.Kind.(*Sent_ChatPresence); ok {
+			return x.ChatPresence
+		}
+	}
+	return nil
+}
+
 type isSent_Kind interface {
 	isSent_Kind()
 }
@@ -1426,11 +1456,518 @@ type Sent_RemoveCompanionDevice struct {
 	RemoveCompanionDevice *RemoveCompanionDevice `protobuf:"bytes,5,opt,name=remove_companion_device,json=removeCompanionDevice,proto3,oneof"`
 }
 
+type Sent_Presence struct {
+	// The client set its presence (SendPresence).
+	Presence *Presence `protobuf:"bytes,6,opt,name=presence,proto3,oneof"`
+}
+
+type Sent_SubscribePresence struct {
+	// The client subscribed to a user's presence (SubscribePresence).
+	SubscribePresence *SubscribePresence `protobuf:"bytes,7,opt,name=subscribe_presence,json=subscribePresence,proto3,oneof"`
+}
+
+type Sent_ChatPresence struct {
+	// The client set its state in a chat (SendChatPresence).
+	ChatPresence *ChatPresence `protobuf:"bytes,8,opt,name=chat_presence,json=chatPresence,proto3,oneof"`
+}
+
 func (*Sent_Receipt) isSent_Kind() {}
 
 func (*Sent_Disconnect) isSent_Kind() {}
 
 func (*Sent_RemoveCompanionDevice) isSent_Kind() {}
+
+func (*Sent_Presence) isSent_Kind() {}
+
+func (*Sent_SubscribePresence) isSent_Kind() {}
+
+func (*Sent_ChatPresence) isSent_Kind() {}
+
+// Presence is the <presence> SendPresence sends (presence.go:64-87).
+type Presence struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// "available" or "unavailable".
+	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	// The account's push name.
+	Name          string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Presence) Reset() {
+	*x = Presence{}
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Presence) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Presence) ProtoMessage() {}
+
+func (x *Presence) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Presence.ProtoReflect.Descriptor instead.
+func (*Presence) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *Presence) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *Presence) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+// SubscribePresence is the <presence type="subscribe"> SubscribePresence sends (presence.go:97-125).
+type SubscribePresence struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The user, in whatsmeow's string form.
+	To            string `protobuf:"bytes,1,opt,name=to,proto3" json:"to,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SubscribePresence) Reset() {
+	*x = SubscribePresence{}
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SubscribePresence) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SubscribePresence) ProtoMessage() {}
+
+func (x *SubscribePresence) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SubscribePresence.ProtoReflect.Descriptor instead.
+func (*SubscribePresence) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *SubscribePresence) GetTo() string {
+	if x != nil {
+		return x.To
+	}
+	return ""
+}
+
+// ChatPresence is the <chatstate> SendChatPresence sends (presence.go:130-144).
+type ChatPresence struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The chat, in whatsmeow's string form.
+	To string `protobuf:"bytes,1,opt,name=to,proto3" json:"to,omitempty"`
+	// "composing" or "paused".
+	State string `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
+	// "audio" while recording; empty otherwise, and always with paused.
+	Media         string `protobuf:"bytes,3,opt,name=media,proto3" json:"media,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChatPresence) Reset() {
+	*x = ChatPresence{}
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChatPresence) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChatPresence) ProtoMessage() {}
+
+func (x *ChatPresence) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChatPresence.ProtoReflect.Descriptor instead.
+func (*ChatPresence) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *ChatPresence) GetTo() string {
+	if x != nil {
+		return x.To
+	}
+	return ""
+}
+
+func (x *ChatPresence) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *ChatPresence) GetMedia() string {
+	if x != nil {
+		return x.Media
+	}
+	return ""
+}
+
+// DeliverPresenceRequest is one presence stanza.
+type DeliverPresenceRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The session whose client receives it.
+	SessionId string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// The user whose presence it is.
+	From string `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
+	// True when the user is offline.
+	Unavailable bool `protobuf:"varint,3,opt,name=unavailable,proto3" json:"unavailable,omitempty"`
+	// When the user was last online; unset is none, as for a user whose privacy settings hide it.
+	LastSeen      *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=last_seen,json=lastSeen,proto3" json:"last_seen,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeliverPresenceRequest) Reset() {
+	*x = DeliverPresenceRequest{}
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeliverPresenceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeliverPresenceRequest) ProtoMessage() {}
+
+func (x *DeliverPresenceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeliverPresenceRequest.ProtoReflect.Descriptor instead.
+func (*DeliverPresenceRequest) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *DeliverPresenceRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *DeliverPresenceRequest) GetFrom() string {
+	if x != nil {
+		return x.From
+	}
+	return ""
+}
+
+func (x *DeliverPresenceRequest) GetUnavailable() bool {
+	if x != nil {
+		return x.Unavailable
+	}
+	return false
+}
+
+func (x *DeliverPresenceRequest) GetLastSeen() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastSeen
+	}
+	return nil
+}
+
+// DeliverPresenceResponse has no fields.
+type DeliverPresenceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeliverPresenceResponse) Reset() {
+	*x = DeliverPresenceResponse{}
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeliverPresenceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeliverPresenceResponse) ProtoMessage() {}
+
+func (x *DeliverPresenceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeliverPresenceResponse.ProtoReflect.Descriptor instead.
+func (*DeliverPresenceResponse) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{29}
+}
+
+// DeliverChatPresenceRequest is one chat state stanza.
+type DeliverChatPresenceRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The session whose client receives it.
+	SessionId string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// The chat.
+	Chat string `protobuf:"bytes,2,opt,name=chat,proto3" json:"chat,omitempty"`
+	// The user in the chat.
+	Sender string `protobuf:"bytes,3,opt,name=sender,proto3" json:"sender,omitempty"`
+	// The state's tag, as WhatsApp sends it: "composing", "paused", or one whatsmeow does not know.
+	State string `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"`
+	// "audio" while recording; empty otherwise.
+	Media         string `protobuf:"bytes,5,opt,name=media,proto3" json:"media,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeliverChatPresenceRequest) Reset() {
+	*x = DeliverChatPresenceRequest{}
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeliverChatPresenceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeliverChatPresenceRequest) ProtoMessage() {}
+
+func (x *DeliverChatPresenceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeliverChatPresenceRequest.ProtoReflect.Descriptor instead.
+func (*DeliverChatPresenceRequest) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *DeliverChatPresenceRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *DeliverChatPresenceRequest) GetChat() string {
+	if x != nil {
+		return x.Chat
+	}
+	return ""
+}
+
+func (x *DeliverChatPresenceRequest) GetSender() string {
+	if x != nil {
+		return x.Sender
+	}
+	return ""
+}
+
+func (x *DeliverChatPresenceRequest) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *DeliverChatPresenceRequest) GetMedia() string {
+	if x != nil {
+		return x.Media
+	}
+	return ""
+}
+
+// DeliverChatPresenceResponse has no fields.
+type DeliverChatPresenceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeliverChatPresenceResponse) Reset() {
+	*x = DeliverChatPresenceResponse{}
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeliverChatPresenceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeliverChatPresenceResponse) ProtoMessage() {}
+
+func (x *DeliverChatPresenceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeliverChatPresenceResponse.ProtoReflect.Descriptor instead.
+func (*DeliverChatPresenceResponse) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{31}
+}
+
+// SetPushNameRequest names the session and the push name.
+type SetPushNameRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The session whose account gets the push name.
+	SessionId string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// The push name.
+	Name          string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetPushNameRequest) Reset() {
+	*x = SetPushNameRequest{}
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetPushNameRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetPushNameRequest) ProtoMessage() {}
+
+func (x *SetPushNameRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetPushNameRequest.ProtoReflect.Descriptor instead.
+func (*SetPushNameRequest) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *SetPushNameRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *SetPushNameRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+// SetPushNameResponse has no fields.
+type SetPushNameResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetPushNameResponse) Reset() {
+	*x = SetPushNameResponse{}
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetPushNameResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetPushNameResponse) ProtoMessage() {}
+
+func (x *SetPushNameResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetPushNameResponse.ProtoReflect.Descriptor instead.
+func (*SetPushNameResponse) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{33}
+}
 
 // Disconnect is the client closing a connection that was open.
 type Disconnect struct {
@@ -1441,7 +1978,7 @@ type Disconnect struct {
 
 func (x *Disconnect) Reset() {
 	*x = Disconnect{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[25]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1453,7 +1990,7 @@ func (x *Disconnect) String() string {
 func (*Disconnect) ProtoMessage() {}
 
 func (x *Disconnect) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[25]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1466,7 +2003,7 @@ func (x *Disconnect) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Disconnect.ProtoReflect.Descriptor instead.
 func (*Disconnect) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{25}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{34}
 }
 
 // RemoveCompanionDevice is the remove-companion-device request whatsmeow's Logout sends (client.go:749-779).
@@ -1478,7 +2015,7 @@ type RemoveCompanionDevice struct {
 
 func (x *RemoveCompanionDevice) Reset() {
 	*x = RemoveCompanionDevice{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[26]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1490,7 +2027,7 @@ func (x *RemoveCompanionDevice) String() string {
 func (*RemoveCompanionDevice) ProtoMessage() {}
 
 func (x *RemoveCompanionDevice) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[26]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1503,7 +2040,7 @@ func (x *RemoveCompanionDevice) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveCompanionDevice.ProtoReflect.Descriptor instead.
 func (*RemoveCompanionDevice) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{26}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{35}
 }
 
 // Receipt is the <receipt> whatsmeow sends for a decrypted message once its handlers succeeded
@@ -1520,7 +2057,7 @@ type Receipt struct {
 
 func (x *Receipt) Reset() {
 	*x = Receipt{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[27]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1532,7 +2069,7 @@ func (x *Receipt) String() string {
 func (*Receipt) ProtoMessage() {}
 
 func (x *Receipt) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[27]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1545,7 +2082,7 @@ func (x *Receipt) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Receipt.ProtoReflect.Descriptor instead.
 func (*Receipt) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{27}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *Receipt) GetId() string {
@@ -1579,7 +2116,7 @@ type RegisterUserRequest struct {
 
 func (x *RegisterUserRequest) Reset() {
 	*x = RegisterUserRequest{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[28]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1591,7 +2128,7 @@ func (x *RegisterUserRequest) String() string {
 func (*RegisterUserRequest) ProtoMessage() {}
 
 func (x *RegisterUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[28]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1604,7 +2141,7 @@ func (x *RegisterUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterUserRequest.ProtoReflect.Descriptor instead.
 func (*RegisterUserRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{28}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *RegisterUserRequest) GetPhoneJid() string {
@@ -1644,7 +2181,7 @@ type RegisterUserResponse struct {
 
 func (x *RegisterUserResponse) Reset() {
 	*x = RegisterUserResponse{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[29]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1656,7 +2193,7 @@ func (x *RegisterUserResponse) String() string {
 func (*RegisterUserResponse) ProtoMessage() {}
 
 func (x *RegisterUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[29]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1669,7 +2206,7 @@ func (x *RegisterUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterUserResponse.ProtoReflect.Descriptor instead.
 func (*RegisterUserResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{29}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{38}
 }
 
 // SetProfilePictureRequest is one profile picture.
@@ -1690,7 +2227,7 @@ type SetProfilePictureRequest struct {
 
 func (x *SetProfilePictureRequest) Reset() {
 	*x = SetProfilePictureRequest{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[30]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1702,7 +2239,7 @@ func (x *SetProfilePictureRequest) String() string {
 func (*SetProfilePictureRequest) ProtoMessage() {}
 
 func (x *SetProfilePictureRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[30]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1715,7 +2252,7 @@ func (x *SetProfilePictureRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetProfilePictureRequest.ProtoReflect.Descriptor instead.
 func (*SetProfilePictureRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{30}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *SetProfilePictureRequest) GetJid() string {
@@ -1777,7 +2314,7 @@ type SetProfilePictureResponse struct {
 
 func (x *SetProfilePictureResponse) Reset() {
 	*x = SetProfilePictureResponse{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[31]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1789,7 +2326,7 @@ func (x *SetProfilePictureResponse) String() string {
 func (*SetProfilePictureResponse) ProtoMessage() {}
 
 func (x *SetProfilePictureResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[31]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1802,7 +2339,7 @@ func (x *SetProfilePictureResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetProfilePictureResponse.ProtoReflect.Descriptor instead.
 func (*SetProfilePictureResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{31}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{40}
 }
 
 // DeliverContactNotificationRequest is one notification.
@@ -1823,7 +2360,7 @@ type DeliverContactNotificationRequest struct {
 
 func (x *DeliverContactNotificationRequest) Reset() {
 	*x = DeliverContactNotificationRequest{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[32]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1835,7 +2372,7 @@ func (x *DeliverContactNotificationRequest) String() string {
 func (*DeliverContactNotificationRequest) ProtoMessage() {}
 
 func (x *DeliverContactNotificationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[32]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1848,7 +2385,7 @@ func (x *DeliverContactNotificationRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use DeliverContactNotificationRequest.ProtoReflect.Descriptor instead.
 func (*DeliverContactNotificationRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{32}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *DeliverContactNotificationRequest) GetSessionId() string {
@@ -1910,7 +2447,7 @@ type DeliverContactNotificationResponse struct {
 
 func (x *DeliverContactNotificationResponse) Reset() {
 	*x = DeliverContactNotificationResponse{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[33]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1922,7 +2459,7 @@ func (x *DeliverContactNotificationResponse) String() string {
 func (*DeliverContactNotificationResponse) ProtoMessage() {}
 
 func (x *DeliverContactNotificationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[33]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1935,7 +2472,7 @@ func (x *DeliverContactNotificationResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use DeliverContactNotificationResponse.ProtoReflect.Descriptor instead.
 func (*DeliverContactNotificationResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{33}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{42}
 }
 
 // SyncContactRequest is one contact of an app state sync.
@@ -1955,7 +2492,7 @@ type SyncContactRequest struct {
 
 func (x *SyncContactRequest) Reset() {
 	*x = SyncContactRequest{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[34]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1967,7 +2504,7 @@ func (x *SyncContactRequest) String() string {
 func (*SyncContactRequest) ProtoMessage() {}
 
 func (x *SyncContactRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[34]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1980,7 +2517,7 @@ func (x *SyncContactRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncContactRequest.ProtoReflect.Descriptor instead.
 func (*SyncContactRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{34}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *SyncContactRequest) GetSessionId() string {
@@ -2020,7 +2557,7 @@ type SyncContactResponse struct {
 
 func (x *SyncContactResponse) Reset() {
 	*x = SyncContactResponse{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[35]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2032,7 +2569,7 @@ func (x *SyncContactResponse) String() string {
 func (*SyncContactResponse) ProtoMessage() {}
 
 func (x *SyncContactResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[35]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2045,7 +2582,7 @@ func (x *SyncContactResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncContactResponse.ProtoReflect.Descriptor instead.
 func (*SyncContactResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{35}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{44}
 }
 
 // FailNextContactQueryRequest names the session and the error.
@@ -2061,7 +2598,7 @@ type FailNextContactQueryRequest struct {
 
 func (x *FailNextContactQueryRequest) Reset() {
 	*x = FailNextContactQueryRequest{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[36]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2073,7 +2610,7 @@ func (x *FailNextContactQueryRequest) String() string {
 func (*FailNextContactQueryRequest) ProtoMessage() {}
 
 func (x *FailNextContactQueryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[36]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2086,7 +2623,7 @@ func (x *FailNextContactQueryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FailNextContactQueryRequest.ProtoReflect.Descriptor instead.
 func (*FailNextContactQueryRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{36}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *FailNextContactQueryRequest) GetSessionId() string {
@@ -2112,7 +2649,7 @@ type FailNextContactQueryResponse struct {
 
 func (x *FailNextContactQueryResponse) Reset() {
 	*x = FailNextContactQueryResponse{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[37]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2124,7 +2661,7 @@ func (x *FailNextContactQueryResponse) String() string {
 func (*FailNextContactQueryResponse) ProtoMessage() {}
 
 func (x *FailNextContactQueryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[37]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2137,7 +2674,7 @@ func (x *FailNextContactQueryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FailNextContactQueryResponse.ProtoReflect.Descriptor instead.
 func (*FailNextContactQueryResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{37}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{46}
 }
 
 // events.LoggedOut.
@@ -2151,7 +2688,7 @@ type RaisePermanentDisconnectRequest_LoggedOut struct {
 
 func (x *RaisePermanentDisconnectRequest_LoggedOut) Reset() {
 	*x = RaisePermanentDisconnectRequest_LoggedOut{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[38]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2163,7 +2700,7 @@ func (x *RaisePermanentDisconnectRequest_LoggedOut) String() string {
 func (*RaisePermanentDisconnectRequest_LoggedOut) ProtoMessage() {}
 
 func (x *RaisePermanentDisconnectRequest_LoggedOut) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[38]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2195,7 +2732,7 @@ type RaisePermanentDisconnectRequest_StreamReplaced struct {
 
 func (x *RaisePermanentDisconnectRequest_StreamReplaced) Reset() {
 	*x = RaisePermanentDisconnectRequest_StreamReplaced{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[39]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2207,7 +2744,7 @@ func (x *RaisePermanentDisconnectRequest_StreamReplaced) String() string {
 func (*RaisePermanentDisconnectRequest_StreamReplaced) ProtoMessage() {}
 
 func (x *RaisePermanentDisconnectRequest_StreamReplaced) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[39]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2232,7 +2769,7 @@ type RaisePermanentDisconnectRequest_ClientOutdated struct {
 
 func (x *RaisePermanentDisconnectRequest_ClientOutdated) Reset() {
 	*x = RaisePermanentDisconnectRequest_ClientOutdated{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[40]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2244,7 +2781,7 @@ func (x *RaisePermanentDisconnectRequest_ClientOutdated) String() string {
 func (*RaisePermanentDisconnectRequest_ClientOutdated) ProtoMessage() {}
 
 func (x *RaisePermanentDisconnectRequest_ClientOutdated) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[40]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2271,7 +2808,7 @@ type RaisePermanentDisconnectRequest_CatRefreshError struct {
 
 func (x *RaisePermanentDisconnectRequest_CatRefreshError) Reset() {
 	*x = RaisePermanentDisconnectRequest_CatRefreshError{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[41]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2283,7 +2820,7 @@ func (x *RaisePermanentDisconnectRequest_CatRefreshError) String() string {
 func (*RaisePermanentDisconnectRequest_CatRefreshError) ProtoMessage() {}
 
 func (x *RaisePermanentDisconnectRequest_CatRefreshError) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[41]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2319,7 +2856,7 @@ type RaisePermanentDisconnectRequest_TemporaryBan struct {
 
 func (x *RaisePermanentDisconnectRequest_TemporaryBan) Reset() {
 	*x = RaisePermanentDisconnectRequest_TemporaryBan{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[42]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2331,7 +2868,7 @@ func (x *RaisePermanentDisconnectRequest_TemporaryBan) String() string {
 func (*RaisePermanentDisconnectRequest_TemporaryBan) ProtoMessage() {}
 
 func (x *RaisePermanentDisconnectRequest_TemporaryBan) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[42]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2374,7 +2911,7 @@ type RaisePermanentDisconnectRequest_ConnectFailure struct {
 
 func (x *RaisePermanentDisconnectRequest_ConnectFailure) Reset() {
 	*x = RaisePermanentDisconnectRequest_ConnectFailure{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[43]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2386,7 +2923,7 @@ func (x *RaisePermanentDisconnectRequest_ConnectFailure) String() string {
 func (*RaisePermanentDisconnectRequest_ConnectFailure) ProtoMessage() {}
 
 func (x *RaisePermanentDisconnectRequest_ConnectFailure) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[43]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2429,7 +2966,7 @@ type SetProfilePictureRequest_Picture struct {
 
 func (x *SetProfilePictureRequest_Picture) Reset() {
 	*x = SetProfilePictureRequest_Picture{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[44]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2441,7 +2978,7 @@ func (x *SetProfilePictureRequest_Picture) String() string {
 func (*SetProfilePictureRequest_Picture) ProtoMessage() {}
 
 func (x *SetProfilePictureRequest_Picture) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[44]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2454,7 +2991,7 @@ func (x *SetProfilePictureRequest_Picture) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetProfilePictureRequest_Picture.ProtoReflect.Descriptor instead.
 func (*SetProfilePictureRequest_Picture) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{30, 0}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{39, 0}
 }
 
 func (x *SetProfilePictureRequest_Picture) GetId() string {
@@ -2480,7 +3017,7 @@ type SetProfilePictureRequest_Hidden struct {
 
 func (x *SetProfilePictureRequest_Hidden) Reset() {
 	*x = SetProfilePictureRequest_Hidden{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[45]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2492,7 +3029,7 @@ func (x *SetProfilePictureRequest_Hidden) String() string {
 func (*SetProfilePictureRequest_Hidden) ProtoMessage() {}
 
 func (x *SetProfilePictureRequest_Hidden) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[45]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2505,7 +3042,7 @@ func (x *SetProfilePictureRequest_Hidden) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetProfilePictureRequest_Hidden.ProtoReflect.Descriptor instead.
 func (*SetProfilePictureRequest_Hidden) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{30, 1}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{39, 1}
 }
 
 // A picture notification (notification.go:91-115).
@@ -2523,7 +3060,7 @@ type DeliverContactNotificationRequest_Picture struct {
 
 func (x *DeliverContactNotificationRequest_Picture) Reset() {
 	*x = DeliverContactNotificationRequest_Picture{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[46]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2535,7 +3072,7 @@ func (x *DeliverContactNotificationRequest_Picture) String() string {
 func (*DeliverContactNotificationRequest_Picture) ProtoMessage() {}
 
 func (x *DeliverContactNotificationRequest_Picture) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[46]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2548,7 +3085,7 @@ func (x *DeliverContactNotificationRequest_Picture) ProtoReflect() protoreflect.
 
 // Deprecated: Use DeliverContactNotificationRequest_Picture.ProtoReflect.Descriptor instead.
 func (*DeliverContactNotificationRequest_Picture) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{32, 0}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{41, 0}
 }
 
 func (x *DeliverContactNotificationRequest_Picture) GetJid() string {
@@ -2585,7 +3122,7 @@ type DeliverContactNotificationRequest_About struct {
 
 func (x *DeliverContactNotificationRequest_About) Reset() {
 	*x = DeliverContactNotificationRequest_About{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[47]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2597,7 +3134,7 @@ func (x *DeliverContactNotificationRequest_About) String() string {
 func (*DeliverContactNotificationRequest_About) ProtoMessage() {}
 
 func (x *DeliverContactNotificationRequest_About) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[47]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2610,7 +3147,7 @@ func (x *DeliverContactNotificationRequest_About) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use DeliverContactNotificationRequest_About.ProtoReflect.Descriptor instead.
 func (*DeliverContactNotificationRequest_About) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{32, 1}
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{41, 1}
 }
 
 func (x *DeliverContactNotificationRequest_About) GetJid() string {
@@ -2722,7 +3259,7 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
 	"\x05after\x18\x02 \x01(\x04R\x05after\"B\n" +
 	"\x13WaitForSentResponse\x12+\n" +
-	"\x04sent\x18\x01 \x01(\v2\x17.whatsmeow.fake.v1.SentR\x04sent\"\xa0\x02\n" +
+	"\x04sent\x18\x01 \x01(\v2\x17.whatsmeow.fake.v1.SentR\x04sent\"\xfa\x03\n" +
 	"\x04Sent\x12\x14\n" +
 	"\x05index\x18\x01 \x01(\x04R\x05index\x12\x1d\n" +
 	"\n" +
@@ -2731,8 +3268,40 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"\n" +
 	"disconnect\x18\x04 \x01(\v2\x1d.whatsmeow.fake.v1.DisconnectH\x00R\n" +
 	"disconnect\x12b\n" +
-	"\x17remove_companion_device\x18\x05 \x01(\v2(.whatsmeow.fake.v1.RemoveCompanionDeviceH\x00R\x15removeCompanionDeviceB\x06\n" +
-	"\x04kind\"\f\n" +
+	"\x17remove_companion_device\x18\x05 \x01(\v2(.whatsmeow.fake.v1.RemoveCompanionDeviceH\x00R\x15removeCompanionDevice\x129\n" +
+	"\bpresence\x18\x06 \x01(\v2\x1b.whatsmeow.fake.v1.PresenceH\x00R\bpresence\x12U\n" +
+	"\x12subscribe_presence\x18\a \x01(\v2$.whatsmeow.fake.v1.SubscribePresenceH\x00R\x11subscribePresence\x12F\n" +
+	"\rchat_presence\x18\b \x01(\v2\x1f.whatsmeow.fake.v1.ChatPresenceH\x00R\fchatPresenceB\x06\n" +
+	"\x04kind\"2\n" +
+	"\bPresence\x12\x12\n" +
+	"\x04type\x18\x01 \x01(\tR\x04type\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"#\n" +
+	"\x11SubscribePresence\x12\x0e\n" +
+	"\x02to\x18\x01 \x01(\tR\x02to\"J\n" +
+	"\fChatPresence\x12\x0e\n" +
+	"\x02to\x18\x01 \x01(\tR\x02to\x12\x14\n" +
+	"\x05state\x18\x02 \x01(\tR\x05state\x12\x14\n" +
+	"\x05media\x18\x03 \x01(\tR\x05media\"\xa6\x01\n" +
+	"\x16DeliverPresenceRequest\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x12\n" +
+	"\x04from\x18\x02 \x01(\tR\x04from\x12 \n" +
+	"\vunavailable\x18\x03 \x01(\bR\vunavailable\x127\n" +
+	"\tlast_seen\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\blastSeen\"\x19\n" +
+	"\x17DeliverPresenceResponse\"\x93\x01\n" +
+	"\x1aDeliverChatPresenceRequest\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x12\n" +
+	"\x04chat\x18\x02 \x01(\tR\x04chat\x12\x16\n" +
+	"\x06sender\x18\x03 \x01(\tR\x06sender\x12\x14\n" +
+	"\x05state\x18\x04 \x01(\tR\x05state\x12\x14\n" +
+	"\x05media\x18\x05 \x01(\tR\x05media\"\x1d\n" +
+	"\x1bDeliverChatPresenceResponse\"G\n" +
+	"\x12SetPushNameRequest\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"\x15\n" +
+	"\x13SetPushNameResponse\"\f\n" +
 	"\n" +
 	"Disconnect\"\x17\n" +
 	"\x15RemoveCompanionDevice\"-\n" +
@@ -2781,7 +3350,7 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\"\x1e\n" +
-	"\x1cFailNextContactQueryResponse2\xe4\x0e\n" +
+	"\x1cFailNextContactQueryResponse2\xa2\x11\n" +
 	"\x13FakeWhatsAppService\x12e\n" +
 	"\x0eDeliverMessage\x12(.whatsmeow.fake.v1.DeliverMessageRequest\x1a).whatsmeow.fake.v1.DeliverMessageResponse\x12\x8c\x01\n" +
 	"\x1bDeliverUndecryptableMessage\x125.whatsmeow.fake.v1.DeliverUndecryptableMessageRequest\x1a6.whatsmeow.fake.v1.DeliverUndecryptableMessageResponse\x12\\\n" +
@@ -2800,7 +3369,10 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"\x11SetProfilePicture\x12+.whatsmeow.fake.v1.SetProfilePictureRequest\x1a,.whatsmeow.fake.v1.SetProfilePictureResponse\x12\x89\x01\n" +
 	"\x1aDeliverContactNotification\x124.whatsmeow.fake.v1.DeliverContactNotificationRequest\x1a5.whatsmeow.fake.v1.DeliverContactNotificationResponse\x12\\\n" +
 	"\vSyncContact\x12%.whatsmeow.fake.v1.SyncContactRequest\x1a&.whatsmeow.fake.v1.SyncContactResponse\x12w\n" +
-	"\x14FailNextContactQuery\x12..whatsmeow.fake.v1.FailNextContactQueryRequest\x1a/.whatsmeow.fake.v1.FailNextContactQueryResponseB\xde\x01\n" +
+	"\x14FailNextContactQuery\x12..whatsmeow.fake.v1.FailNextContactQueryRequest\x1a/.whatsmeow.fake.v1.FailNextContactQueryResponse\x12h\n" +
+	"\x0fDeliverPresence\x12).whatsmeow.fake.v1.DeliverPresenceRequest\x1a*.whatsmeow.fake.v1.DeliverPresenceResponse\x12t\n" +
+	"\x13DeliverChatPresence\x12-.whatsmeow.fake.v1.DeliverChatPresenceRequest\x1a..whatsmeow.fake.v1.DeliverChatPresenceResponse\x12\\\n" +
+	"\vSetPushName\x12%.whatsmeow.fake.v1.SetPushNameRequest\x1a&.whatsmeow.fake.v1.SetPushNameResponseB\xde\x01\n" +
 	"\x15com.whatsmeow.fake.v1B\tFakeProtoP\x01ZFgithub.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/fake/v1;fakev1\xa2\x02\x03WFX\xaa\x02\x1fWhatsmeow.IntegrationTests.Fake\xca\x02\x11Whatsmeow\\Fake\\V1\xe2\x02\x1dWhatsmeow\\Fake\\V1\\GPBMetadata\xea\x02\x13Whatsmeow::Fake::V1b\x06proto3"
 
 var (
@@ -2815,7 +3387,7 @@ func file_whatsmeow_fake_v1_fake_proto_rawDescGZIP() []byte {
 	return file_whatsmeow_fake_v1_fake_proto_rawDescData
 }
 
-var file_whatsmeow_fake_v1_fake_proto_msgTypes = make([]protoimpl.MessageInfo, 48)
+var file_whatsmeow_fake_v1_fake_proto_msgTypes = make([]protoimpl.MessageInfo, 57)
 var file_whatsmeow_fake_v1_fake_proto_goTypes = []any{
 	(*LinkDeviceRequest)(nil),                               // 0: whatsmeow.fake.v1.LinkDeviceRequest
 	(*LinkDeviceResponse)(nil),                              // 1: whatsmeow.fake.v1.LinkDeviceResponse
@@ -2842,89 +3414,108 @@ var file_whatsmeow_fake_v1_fake_proto_goTypes = []any{
 	(*WaitForSentRequest)(nil),                              // 22: whatsmeow.fake.v1.WaitForSentRequest
 	(*WaitForSentResponse)(nil),                             // 23: whatsmeow.fake.v1.WaitForSentResponse
 	(*Sent)(nil),                                            // 24: whatsmeow.fake.v1.Sent
-	(*Disconnect)(nil),                                      // 25: whatsmeow.fake.v1.Disconnect
-	(*RemoveCompanionDevice)(nil),                           // 26: whatsmeow.fake.v1.RemoveCompanionDevice
-	(*Receipt)(nil),                                         // 27: whatsmeow.fake.v1.Receipt
-	(*RegisterUserRequest)(nil),                             // 28: whatsmeow.fake.v1.RegisterUserRequest
-	(*RegisterUserResponse)(nil),                            // 29: whatsmeow.fake.v1.RegisterUserResponse
-	(*SetProfilePictureRequest)(nil),                        // 30: whatsmeow.fake.v1.SetProfilePictureRequest
-	(*SetProfilePictureResponse)(nil),                       // 31: whatsmeow.fake.v1.SetProfilePictureResponse
-	(*DeliverContactNotificationRequest)(nil),               // 32: whatsmeow.fake.v1.DeliverContactNotificationRequest
-	(*DeliverContactNotificationResponse)(nil),              // 33: whatsmeow.fake.v1.DeliverContactNotificationResponse
-	(*SyncContactRequest)(nil),                              // 34: whatsmeow.fake.v1.SyncContactRequest
-	(*SyncContactResponse)(nil),                             // 35: whatsmeow.fake.v1.SyncContactResponse
-	(*FailNextContactQueryRequest)(nil),                     // 36: whatsmeow.fake.v1.FailNextContactQueryRequest
-	(*FailNextContactQueryResponse)(nil),                    // 37: whatsmeow.fake.v1.FailNextContactQueryResponse
-	(*RaisePermanentDisconnectRequest_LoggedOut)(nil),       // 38: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.LoggedOut
-	(*RaisePermanentDisconnectRequest_StreamReplaced)(nil),  // 39: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.StreamReplaced
-	(*RaisePermanentDisconnectRequest_ClientOutdated)(nil),  // 40: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ClientOutdated
-	(*RaisePermanentDisconnectRequest_CatRefreshError)(nil), // 41: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.CatRefreshError
-	(*RaisePermanentDisconnectRequest_TemporaryBan)(nil),    // 42: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.TemporaryBan
-	(*RaisePermanentDisconnectRequest_ConnectFailure)(nil),  // 43: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ConnectFailure
-	(*SetProfilePictureRequest_Picture)(nil),                // 44: whatsmeow.fake.v1.SetProfilePictureRequest.Picture
-	(*SetProfilePictureRequest_Hidden)(nil),                 // 45: whatsmeow.fake.v1.SetProfilePictureRequest.Hidden
-	(*DeliverContactNotificationRequest_Picture)(nil),       // 46: whatsmeow.fake.v1.DeliverContactNotificationRequest.Picture
-	(*DeliverContactNotificationRequest_About)(nil),         // 47: whatsmeow.fake.v1.DeliverContactNotificationRequest.About
-	(*timestamppb.Timestamp)(nil),                           // 48: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),                             // 49: google.protobuf.Duration
+	(*Presence)(nil),                                        // 25: whatsmeow.fake.v1.Presence
+	(*SubscribePresence)(nil),                               // 26: whatsmeow.fake.v1.SubscribePresence
+	(*ChatPresence)(nil),                                    // 27: whatsmeow.fake.v1.ChatPresence
+	(*DeliverPresenceRequest)(nil),                          // 28: whatsmeow.fake.v1.DeliverPresenceRequest
+	(*DeliverPresenceResponse)(nil),                         // 29: whatsmeow.fake.v1.DeliverPresenceResponse
+	(*DeliverChatPresenceRequest)(nil),                      // 30: whatsmeow.fake.v1.DeliverChatPresenceRequest
+	(*DeliverChatPresenceResponse)(nil),                     // 31: whatsmeow.fake.v1.DeliverChatPresenceResponse
+	(*SetPushNameRequest)(nil),                              // 32: whatsmeow.fake.v1.SetPushNameRequest
+	(*SetPushNameResponse)(nil),                             // 33: whatsmeow.fake.v1.SetPushNameResponse
+	(*Disconnect)(nil),                                      // 34: whatsmeow.fake.v1.Disconnect
+	(*RemoveCompanionDevice)(nil),                           // 35: whatsmeow.fake.v1.RemoveCompanionDevice
+	(*Receipt)(nil),                                         // 36: whatsmeow.fake.v1.Receipt
+	(*RegisterUserRequest)(nil),                             // 37: whatsmeow.fake.v1.RegisterUserRequest
+	(*RegisterUserResponse)(nil),                            // 38: whatsmeow.fake.v1.RegisterUserResponse
+	(*SetProfilePictureRequest)(nil),                        // 39: whatsmeow.fake.v1.SetProfilePictureRequest
+	(*SetProfilePictureResponse)(nil),                       // 40: whatsmeow.fake.v1.SetProfilePictureResponse
+	(*DeliverContactNotificationRequest)(nil),               // 41: whatsmeow.fake.v1.DeliverContactNotificationRequest
+	(*DeliverContactNotificationResponse)(nil),              // 42: whatsmeow.fake.v1.DeliverContactNotificationResponse
+	(*SyncContactRequest)(nil),                              // 43: whatsmeow.fake.v1.SyncContactRequest
+	(*SyncContactResponse)(nil),                             // 44: whatsmeow.fake.v1.SyncContactResponse
+	(*FailNextContactQueryRequest)(nil),                     // 45: whatsmeow.fake.v1.FailNextContactQueryRequest
+	(*FailNextContactQueryResponse)(nil),                    // 46: whatsmeow.fake.v1.FailNextContactQueryResponse
+	(*RaisePermanentDisconnectRequest_LoggedOut)(nil),       // 47: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.LoggedOut
+	(*RaisePermanentDisconnectRequest_StreamReplaced)(nil),  // 48: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.StreamReplaced
+	(*RaisePermanentDisconnectRequest_ClientOutdated)(nil),  // 49: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ClientOutdated
+	(*RaisePermanentDisconnectRequest_CatRefreshError)(nil), // 50: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.CatRefreshError
+	(*RaisePermanentDisconnectRequest_TemporaryBan)(nil),    // 51: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.TemporaryBan
+	(*RaisePermanentDisconnectRequest_ConnectFailure)(nil),  // 52: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ConnectFailure
+	(*SetProfilePictureRequest_Picture)(nil),                // 53: whatsmeow.fake.v1.SetProfilePictureRequest.Picture
+	(*SetProfilePictureRequest_Hidden)(nil),                 // 54: whatsmeow.fake.v1.SetProfilePictureRequest.Hidden
+	(*DeliverContactNotificationRequest_Picture)(nil),       // 55: whatsmeow.fake.v1.DeliverContactNotificationRequest.Picture
+	(*DeliverContactNotificationRequest_About)(nil),         // 56: whatsmeow.fake.v1.DeliverContactNotificationRequest.About
+	(*timestamppb.Timestamp)(nil),                           // 57: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),                             // 58: google.protobuf.Duration
 }
 var file_whatsmeow_fake_v1_fake_proto_depIdxs = []int32{
-	38, // 0: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.logged_out:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.LoggedOut
-	39, // 1: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.stream_replaced:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.StreamReplaced
-	40, // 2: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.client_outdated:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ClientOutdated
-	41, // 3: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.cat_refresh_error:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.CatRefreshError
-	42, // 4: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.temporary_ban:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.TemporaryBan
-	43, // 5: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.connect_failure:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ConnectFailure
-	48, // 6: whatsmeow.fake.v1.DeliverMessageRequest.message_time:type_name -> google.protobuf.Timestamp
-	48, // 7: whatsmeow.fake.v1.DeliverUndecryptableMessageRequest.message_time:type_name -> google.protobuf.Timestamp
+	47, // 0: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.logged_out:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.LoggedOut
+	48, // 1: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.stream_replaced:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.StreamReplaced
+	49, // 2: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.client_outdated:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ClientOutdated
+	50, // 3: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.cat_refresh_error:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.CatRefreshError
+	51, // 4: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.temporary_ban:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.TemporaryBan
+	52, // 5: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.connect_failure:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ConnectFailure
+	57, // 6: whatsmeow.fake.v1.DeliverMessageRequest.message_time:type_name -> google.protobuf.Timestamp
+	57, // 7: whatsmeow.fake.v1.DeliverUndecryptableMessageRequest.message_time:type_name -> google.protobuf.Timestamp
 	24, // 8: whatsmeow.fake.v1.WaitForSentResponse.sent:type_name -> whatsmeow.fake.v1.Sent
-	27, // 9: whatsmeow.fake.v1.Sent.receipt:type_name -> whatsmeow.fake.v1.Receipt
-	25, // 10: whatsmeow.fake.v1.Sent.disconnect:type_name -> whatsmeow.fake.v1.Disconnect
-	26, // 11: whatsmeow.fake.v1.Sent.remove_companion_device:type_name -> whatsmeow.fake.v1.RemoveCompanionDevice
-	44, // 12: whatsmeow.fake.v1.SetProfilePictureRequest.set:type_name -> whatsmeow.fake.v1.SetProfilePictureRequest.Picture
-	45, // 13: whatsmeow.fake.v1.SetProfilePictureRequest.hidden:type_name -> whatsmeow.fake.v1.SetProfilePictureRequest.Hidden
-	46, // 14: whatsmeow.fake.v1.DeliverContactNotificationRequest.picture:type_name -> whatsmeow.fake.v1.DeliverContactNotificationRequest.Picture
-	47, // 15: whatsmeow.fake.v1.DeliverContactNotificationRequest.about:type_name -> whatsmeow.fake.v1.DeliverContactNotificationRequest.About
-	49, // 16: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.TemporaryBan.expire:type_name -> google.protobuf.Duration
-	18, // 17: whatsmeow.fake.v1.FakeWhatsAppService.DeliverMessage:input_type -> whatsmeow.fake.v1.DeliverMessageRequest
-	19, // 18: whatsmeow.fake.v1.FakeWhatsAppService.DeliverUndecryptableMessage:input_type -> whatsmeow.fake.v1.DeliverUndecryptableMessageRequest
-	22, // 19: whatsmeow.fake.v1.FakeWhatsAppService.WaitForSent:input_type -> whatsmeow.fake.v1.WaitForSentRequest
-	0,  // 20: whatsmeow.fake.v1.FakeWhatsAppService.LinkDevice:input_type -> whatsmeow.fake.v1.LinkDeviceRequest
-	2,  // 21: whatsmeow.fake.v1.FakeWhatsAppService.RotateQrCode:input_type -> whatsmeow.fake.v1.RotateQrCodeRequest
-	4,  // 22: whatsmeow.fake.v1.FakeWhatsAppService.ExpireQrCodes:input_type -> whatsmeow.fake.v1.ExpireQrCodesRequest
-	6,  // 23: whatsmeow.fake.v1.FakeWhatsAppService.DropConnection:input_type -> whatsmeow.fake.v1.DropConnectionRequest
-	8,  // 24: whatsmeow.fake.v1.FakeWhatsAppService.FailNextPreKeyUpload:input_type -> whatsmeow.fake.v1.FailNextPreKeyUploadRequest
-	10, // 25: whatsmeow.fake.v1.FakeWhatsAppService.FailNextPairPhone:input_type -> whatsmeow.fake.v1.FailNextPairPhoneRequest
-	12, // 26: whatsmeow.fake.v1.FakeWhatsAppService.FailNextConnect:input_type -> whatsmeow.fake.v1.FailNextConnectRequest
-	14, // 27: whatsmeow.fake.v1.FakeWhatsAppService.FailNextLogout:input_type -> whatsmeow.fake.v1.FailNextLogoutRequest
-	16, // 28: whatsmeow.fake.v1.FakeWhatsAppService.RaisePermanentDisconnect:input_type -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest
-	28, // 29: whatsmeow.fake.v1.FakeWhatsAppService.RegisterUser:input_type -> whatsmeow.fake.v1.RegisterUserRequest
-	30, // 30: whatsmeow.fake.v1.FakeWhatsAppService.SetProfilePicture:input_type -> whatsmeow.fake.v1.SetProfilePictureRequest
-	32, // 31: whatsmeow.fake.v1.FakeWhatsAppService.DeliverContactNotification:input_type -> whatsmeow.fake.v1.DeliverContactNotificationRequest
-	34, // 32: whatsmeow.fake.v1.FakeWhatsAppService.SyncContact:input_type -> whatsmeow.fake.v1.SyncContactRequest
-	36, // 33: whatsmeow.fake.v1.FakeWhatsAppService.FailNextContactQuery:input_type -> whatsmeow.fake.v1.FailNextContactQueryRequest
-	21, // 34: whatsmeow.fake.v1.FakeWhatsAppService.DeliverMessage:output_type -> whatsmeow.fake.v1.DeliverMessageResponse
-	20, // 35: whatsmeow.fake.v1.FakeWhatsAppService.DeliverUndecryptableMessage:output_type -> whatsmeow.fake.v1.DeliverUndecryptableMessageResponse
-	23, // 36: whatsmeow.fake.v1.FakeWhatsAppService.WaitForSent:output_type -> whatsmeow.fake.v1.WaitForSentResponse
-	1,  // 37: whatsmeow.fake.v1.FakeWhatsAppService.LinkDevice:output_type -> whatsmeow.fake.v1.LinkDeviceResponse
-	3,  // 38: whatsmeow.fake.v1.FakeWhatsAppService.RotateQrCode:output_type -> whatsmeow.fake.v1.RotateQrCodeResponse
-	5,  // 39: whatsmeow.fake.v1.FakeWhatsAppService.ExpireQrCodes:output_type -> whatsmeow.fake.v1.ExpireQrCodesResponse
-	7,  // 40: whatsmeow.fake.v1.FakeWhatsAppService.DropConnection:output_type -> whatsmeow.fake.v1.DropConnectionResponse
-	9,  // 41: whatsmeow.fake.v1.FakeWhatsAppService.FailNextPreKeyUpload:output_type -> whatsmeow.fake.v1.FailNextPreKeyUploadResponse
-	11, // 42: whatsmeow.fake.v1.FakeWhatsAppService.FailNextPairPhone:output_type -> whatsmeow.fake.v1.FailNextPairPhoneResponse
-	13, // 43: whatsmeow.fake.v1.FakeWhatsAppService.FailNextConnect:output_type -> whatsmeow.fake.v1.FailNextConnectResponse
-	15, // 44: whatsmeow.fake.v1.FakeWhatsAppService.FailNextLogout:output_type -> whatsmeow.fake.v1.FailNextLogoutResponse
-	17, // 45: whatsmeow.fake.v1.FakeWhatsAppService.RaisePermanentDisconnect:output_type -> whatsmeow.fake.v1.RaisePermanentDisconnectResponse
-	29, // 46: whatsmeow.fake.v1.FakeWhatsAppService.RegisterUser:output_type -> whatsmeow.fake.v1.RegisterUserResponse
-	31, // 47: whatsmeow.fake.v1.FakeWhatsAppService.SetProfilePicture:output_type -> whatsmeow.fake.v1.SetProfilePictureResponse
-	33, // 48: whatsmeow.fake.v1.FakeWhatsAppService.DeliverContactNotification:output_type -> whatsmeow.fake.v1.DeliverContactNotificationResponse
-	35, // 49: whatsmeow.fake.v1.FakeWhatsAppService.SyncContact:output_type -> whatsmeow.fake.v1.SyncContactResponse
-	37, // 50: whatsmeow.fake.v1.FakeWhatsAppService.FailNextContactQuery:output_type -> whatsmeow.fake.v1.FailNextContactQueryResponse
-	34, // [34:51] is the sub-list for method output_type
-	17, // [17:34] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	36, // 9: whatsmeow.fake.v1.Sent.receipt:type_name -> whatsmeow.fake.v1.Receipt
+	34, // 10: whatsmeow.fake.v1.Sent.disconnect:type_name -> whatsmeow.fake.v1.Disconnect
+	35, // 11: whatsmeow.fake.v1.Sent.remove_companion_device:type_name -> whatsmeow.fake.v1.RemoveCompanionDevice
+	25, // 12: whatsmeow.fake.v1.Sent.presence:type_name -> whatsmeow.fake.v1.Presence
+	26, // 13: whatsmeow.fake.v1.Sent.subscribe_presence:type_name -> whatsmeow.fake.v1.SubscribePresence
+	27, // 14: whatsmeow.fake.v1.Sent.chat_presence:type_name -> whatsmeow.fake.v1.ChatPresence
+	57, // 15: whatsmeow.fake.v1.DeliverPresenceRequest.last_seen:type_name -> google.protobuf.Timestamp
+	53, // 16: whatsmeow.fake.v1.SetProfilePictureRequest.set:type_name -> whatsmeow.fake.v1.SetProfilePictureRequest.Picture
+	54, // 17: whatsmeow.fake.v1.SetProfilePictureRequest.hidden:type_name -> whatsmeow.fake.v1.SetProfilePictureRequest.Hidden
+	55, // 18: whatsmeow.fake.v1.DeliverContactNotificationRequest.picture:type_name -> whatsmeow.fake.v1.DeliverContactNotificationRequest.Picture
+	56, // 19: whatsmeow.fake.v1.DeliverContactNotificationRequest.about:type_name -> whatsmeow.fake.v1.DeliverContactNotificationRequest.About
+	58, // 20: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.TemporaryBan.expire:type_name -> google.protobuf.Duration
+	18, // 21: whatsmeow.fake.v1.FakeWhatsAppService.DeliverMessage:input_type -> whatsmeow.fake.v1.DeliverMessageRequest
+	19, // 22: whatsmeow.fake.v1.FakeWhatsAppService.DeliverUndecryptableMessage:input_type -> whatsmeow.fake.v1.DeliverUndecryptableMessageRequest
+	22, // 23: whatsmeow.fake.v1.FakeWhatsAppService.WaitForSent:input_type -> whatsmeow.fake.v1.WaitForSentRequest
+	0,  // 24: whatsmeow.fake.v1.FakeWhatsAppService.LinkDevice:input_type -> whatsmeow.fake.v1.LinkDeviceRequest
+	2,  // 25: whatsmeow.fake.v1.FakeWhatsAppService.RotateQrCode:input_type -> whatsmeow.fake.v1.RotateQrCodeRequest
+	4,  // 26: whatsmeow.fake.v1.FakeWhatsAppService.ExpireQrCodes:input_type -> whatsmeow.fake.v1.ExpireQrCodesRequest
+	6,  // 27: whatsmeow.fake.v1.FakeWhatsAppService.DropConnection:input_type -> whatsmeow.fake.v1.DropConnectionRequest
+	8,  // 28: whatsmeow.fake.v1.FakeWhatsAppService.FailNextPreKeyUpload:input_type -> whatsmeow.fake.v1.FailNextPreKeyUploadRequest
+	10, // 29: whatsmeow.fake.v1.FakeWhatsAppService.FailNextPairPhone:input_type -> whatsmeow.fake.v1.FailNextPairPhoneRequest
+	12, // 30: whatsmeow.fake.v1.FakeWhatsAppService.FailNextConnect:input_type -> whatsmeow.fake.v1.FailNextConnectRequest
+	14, // 31: whatsmeow.fake.v1.FakeWhatsAppService.FailNextLogout:input_type -> whatsmeow.fake.v1.FailNextLogoutRequest
+	16, // 32: whatsmeow.fake.v1.FakeWhatsAppService.RaisePermanentDisconnect:input_type -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest
+	37, // 33: whatsmeow.fake.v1.FakeWhatsAppService.RegisterUser:input_type -> whatsmeow.fake.v1.RegisterUserRequest
+	39, // 34: whatsmeow.fake.v1.FakeWhatsAppService.SetProfilePicture:input_type -> whatsmeow.fake.v1.SetProfilePictureRequest
+	41, // 35: whatsmeow.fake.v1.FakeWhatsAppService.DeliverContactNotification:input_type -> whatsmeow.fake.v1.DeliverContactNotificationRequest
+	43, // 36: whatsmeow.fake.v1.FakeWhatsAppService.SyncContact:input_type -> whatsmeow.fake.v1.SyncContactRequest
+	45, // 37: whatsmeow.fake.v1.FakeWhatsAppService.FailNextContactQuery:input_type -> whatsmeow.fake.v1.FailNextContactQueryRequest
+	28, // 38: whatsmeow.fake.v1.FakeWhatsAppService.DeliverPresence:input_type -> whatsmeow.fake.v1.DeliverPresenceRequest
+	30, // 39: whatsmeow.fake.v1.FakeWhatsAppService.DeliverChatPresence:input_type -> whatsmeow.fake.v1.DeliverChatPresenceRequest
+	32, // 40: whatsmeow.fake.v1.FakeWhatsAppService.SetPushName:input_type -> whatsmeow.fake.v1.SetPushNameRequest
+	21, // 41: whatsmeow.fake.v1.FakeWhatsAppService.DeliverMessage:output_type -> whatsmeow.fake.v1.DeliverMessageResponse
+	20, // 42: whatsmeow.fake.v1.FakeWhatsAppService.DeliverUndecryptableMessage:output_type -> whatsmeow.fake.v1.DeliverUndecryptableMessageResponse
+	23, // 43: whatsmeow.fake.v1.FakeWhatsAppService.WaitForSent:output_type -> whatsmeow.fake.v1.WaitForSentResponse
+	1,  // 44: whatsmeow.fake.v1.FakeWhatsAppService.LinkDevice:output_type -> whatsmeow.fake.v1.LinkDeviceResponse
+	3,  // 45: whatsmeow.fake.v1.FakeWhatsAppService.RotateQrCode:output_type -> whatsmeow.fake.v1.RotateQrCodeResponse
+	5,  // 46: whatsmeow.fake.v1.FakeWhatsAppService.ExpireQrCodes:output_type -> whatsmeow.fake.v1.ExpireQrCodesResponse
+	7,  // 47: whatsmeow.fake.v1.FakeWhatsAppService.DropConnection:output_type -> whatsmeow.fake.v1.DropConnectionResponse
+	9,  // 48: whatsmeow.fake.v1.FakeWhatsAppService.FailNextPreKeyUpload:output_type -> whatsmeow.fake.v1.FailNextPreKeyUploadResponse
+	11, // 49: whatsmeow.fake.v1.FakeWhatsAppService.FailNextPairPhone:output_type -> whatsmeow.fake.v1.FailNextPairPhoneResponse
+	13, // 50: whatsmeow.fake.v1.FakeWhatsAppService.FailNextConnect:output_type -> whatsmeow.fake.v1.FailNextConnectResponse
+	15, // 51: whatsmeow.fake.v1.FakeWhatsAppService.FailNextLogout:output_type -> whatsmeow.fake.v1.FailNextLogoutResponse
+	17, // 52: whatsmeow.fake.v1.FakeWhatsAppService.RaisePermanentDisconnect:output_type -> whatsmeow.fake.v1.RaisePermanentDisconnectResponse
+	38, // 53: whatsmeow.fake.v1.FakeWhatsAppService.RegisterUser:output_type -> whatsmeow.fake.v1.RegisterUserResponse
+	40, // 54: whatsmeow.fake.v1.FakeWhatsAppService.SetProfilePicture:output_type -> whatsmeow.fake.v1.SetProfilePictureResponse
+	42, // 55: whatsmeow.fake.v1.FakeWhatsAppService.DeliverContactNotification:output_type -> whatsmeow.fake.v1.DeliverContactNotificationResponse
+	44, // 56: whatsmeow.fake.v1.FakeWhatsAppService.SyncContact:output_type -> whatsmeow.fake.v1.SyncContactResponse
+	46, // 57: whatsmeow.fake.v1.FakeWhatsAppService.FailNextContactQuery:output_type -> whatsmeow.fake.v1.FailNextContactQueryResponse
+	29, // 58: whatsmeow.fake.v1.FakeWhatsAppService.DeliverPresence:output_type -> whatsmeow.fake.v1.DeliverPresenceResponse
+	31, // 59: whatsmeow.fake.v1.FakeWhatsAppService.DeliverChatPresence:output_type -> whatsmeow.fake.v1.DeliverChatPresenceResponse
+	33, // 60: whatsmeow.fake.v1.FakeWhatsAppService.SetPushName:output_type -> whatsmeow.fake.v1.SetPushNameResponse
+	41, // [41:61] is the sub-list for method output_type
+	21, // [21:41] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_whatsmeow_fake_v1_fake_proto_init() }
@@ -2944,12 +3535,15 @@ func file_whatsmeow_fake_v1_fake_proto_init() {
 		(*Sent_Receipt)(nil),
 		(*Sent_Disconnect)(nil),
 		(*Sent_RemoveCompanionDevice)(nil),
+		(*Sent_Presence)(nil),
+		(*Sent_SubscribePresence)(nil),
+		(*Sent_ChatPresence)(nil),
 	}
-	file_whatsmeow_fake_v1_fake_proto_msgTypes[30].OneofWrappers = []any{
+	file_whatsmeow_fake_v1_fake_proto_msgTypes[39].OneofWrappers = []any{
 		(*SetProfilePictureRequest_Set)(nil),
 		(*SetProfilePictureRequest_Hidden_)(nil),
 	}
-	file_whatsmeow_fake_v1_fake_proto_msgTypes[32].OneofWrappers = []any{
+	file_whatsmeow_fake_v1_fake_proto_msgTypes[41].OneofWrappers = []any{
 		(*DeliverContactNotificationRequest_Picture_)(nil),
 		(*DeliverContactNotificationRequest_About_)(nil),
 	}
@@ -2959,7 +3553,7 @@ func file_whatsmeow_fake_v1_fake_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_whatsmeow_fake_v1_fake_proto_rawDesc), len(file_whatsmeow_fake_v1_fake_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   48,
+			NumMessages:   57,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

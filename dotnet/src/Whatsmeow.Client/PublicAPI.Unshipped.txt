@@ -750,3 +750,56 @@ virtual Whatsmeow.Pairing.PairingUpdate.PrintMembers(System.Text.StringBuilder! 
 virtual Whatsmeow.Sessions.SessionState.EqualityContract.get -> System.Type!
 virtual Whatsmeow.Sessions.SessionState.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
 virtual Whatsmeow.Sessions.SessionState.PrintMembers(System.Text.StringBuilder! builder) -> bool
+override sealed Whatsmeow.Events.ChatPresenceChanged.Equals(Whatsmeow.Events.WhatsAppEvent? other) -> bool
+override sealed Whatsmeow.Events.EphemeralEventsDropped.Equals(Whatsmeow.Events.WhatsAppEvent? other) -> bool
+override sealed Whatsmeow.Events.PresenceChanged.Equals(Whatsmeow.Events.WhatsAppEvent? other) -> bool
+override Whatsmeow.Events.ChatPresenceChanged.<Clone>$() -> Whatsmeow.Events.ChatPresenceChanged!
+override Whatsmeow.Events.ChatPresenceChanged.Equals(object? obj) -> bool
+override Whatsmeow.Events.ChatPresenceChanged.GetHashCode() -> int
+override Whatsmeow.Events.ChatPresenceChanged.ToString() -> string!
+override Whatsmeow.Events.EphemeralEventsDropped.<Clone>$() -> Whatsmeow.Events.EphemeralEventsDropped!
+override Whatsmeow.Events.EphemeralEventsDropped.Equals(object? obj) -> bool
+override Whatsmeow.Events.EphemeralEventsDropped.GetHashCode() -> int
+override Whatsmeow.Events.EphemeralEventsDropped.ToString() -> string!
+override Whatsmeow.Events.PresenceChanged.<Clone>$() -> Whatsmeow.Events.PresenceChanged!
+override Whatsmeow.Events.PresenceChanged.Equals(object? obj) -> bool
+override Whatsmeow.Events.PresenceChanged.GetHashCode() -> int
+override Whatsmeow.Events.PresenceChanged.ToString() -> string!
+static Whatsmeow.Events.ChatPresenceChanged.operator !=(Whatsmeow.Events.ChatPresenceChanged? left, Whatsmeow.Events.ChatPresenceChanged? right) -> bool
+static Whatsmeow.Events.ChatPresenceChanged.operator ==(Whatsmeow.Events.ChatPresenceChanged? left, Whatsmeow.Events.ChatPresenceChanged? right) -> bool
+static Whatsmeow.Events.EphemeralEventsDropped.operator !=(Whatsmeow.Events.EphemeralEventsDropped? left, Whatsmeow.Events.EphemeralEventsDropped? right) -> bool
+static Whatsmeow.Events.EphemeralEventsDropped.operator ==(Whatsmeow.Events.EphemeralEventsDropped? left, Whatsmeow.Events.EphemeralEventsDropped? right) -> bool
+static Whatsmeow.Events.PresenceChanged.operator !=(Whatsmeow.Events.PresenceChanged? left, Whatsmeow.Events.PresenceChanged? right) -> bool
+static Whatsmeow.Events.PresenceChanged.operator ==(Whatsmeow.Events.PresenceChanged? left, Whatsmeow.Events.PresenceChanged? right) -> bool
+Whatsmeow.Events.ChatPresenceChanged
+Whatsmeow.Events.ChatPresenceChanged.ChatPresenceChanged() -> void
+Whatsmeow.Events.ChatPresenceChanged.Equals(Whatsmeow.Events.ChatPresenceChanged? other) -> bool
+Whatsmeow.Events.ChatPresenceChanged.Source.get -> Whatsmeow.Events.MessageSource!
+Whatsmeow.Events.ChatPresenceChanged.Source.init -> void
+Whatsmeow.Events.ChatPresenceChanged.State.get -> Whatsmeow.Presence.ChatPresenceState
+Whatsmeow.Events.ChatPresenceChanged.State.init -> void
+Whatsmeow.Events.EphemeralEventsDropped
+Whatsmeow.Events.EphemeralEventsDropped.Count.get -> long
+Whatsmeow.Events.EphemeralEventsDropped.Count.init -> void
+Whatsmeow.Events.EphemeralEventsDropped.EphemeralEventsDropped() -> void
+Whatsmeow.Events.EphemeralEventsDropped.Equals(Whatsmeow.Events.EphemeralEventsDropped? other) -> bool
+Whatsmeow.Events.PresenceChanged
+Whatsmeow.Events.PresenceChanged.Equals(Whatsmeow.Events.PresenceChanged? other) -> bool
+Whatsmeow.Events.PresenceChanged.From.get -> Whatsmeow.Jid
+Whatsmeow.Events.PresenceChanged.From.init -> void
+Whatsmeow.Events.PresenceChanged.LastSeen.get -> System.DateTimeOffset?
+Whatsmeow.Events.PresenceChanged.LastSeen.init -> void
+Whatsmeow.Events.PresenceChanged.PresenceChanged() -> void
+Whatsmeow.Events.PresenceChanged.State.get -> Whatsmeow.Presence.PresenceState
+Whatsmeow.Events.PresenceChanged.State.init -> void
+Whatsmeow.IWhatsAppClient.SendChatPresenceAsync(Whatsmeow.Jid chat, Whatsmeow.Presence.ChatPresenceState state, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.SendPresenceAsync(Whatsmeow.Presence.PresenceState state, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.SubscribePresenceAsync(Whatsmeow.Jid user, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.Presence.ChatPresenceState
+Whatsmeow.Presence.ChatPresenceState.Paused = 2 -> Whatsmeow.Presence.ChatPresenceState
+Whatsmeow.Presence.ChatPresenceState.Recording = 1 -> Whatsmeow.Presence.ChatPresenceState
+Whatsmeow.Presence.ChatPresenceState.Typing = 0 -> Whatsmeow.Presence.ChatPresenceState
+Whatsmeow.Presence.PresenceState
+Whatsmeow.Presence.PresenceState.Available = 0 -> Whatsmeow.Presence.PresenceState
+Whatsmeow.Presence.PresenceState.Unavailable = 1 -> Whatsmeow.Presence.PresenceState
+Whatsmeow.WhatsmeowErrorCode.NoPushName = 21 -> Whatsmeow.WhatsmeowErrorCode

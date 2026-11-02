@@ -71,6 +71,15 @@ func (w Watch) Changed() <-chan struct{} {
 // Deleted is closed once the session is deleted.
 func (w Watch) Deleted() <-chan struct{} { return w.f.deleted }
 
+// Deleted is closed once the session with this id is deleted, without reading the database: for state a slice keeps
+// in memory per session, which must not outlive it. After a delete, the id gets a new channel.
+func (o *Outbox) Deleted(sessionID string) <-chan struct{} {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+
+	return o.feedLocked(sessionID).deleted
+}
+
 func (o *Outbox) feedLocked(sessionID string) *feed {
 	f, ok := o.feeds[sessionID]
 	if !ok {

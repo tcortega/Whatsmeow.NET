@@ -36,6 +36,9 @@ const (
 	FakeWhatsAppService_DeliverContactNotification_FullMethodName  = "/whatsmeow.fake.v1.FakeWhatsAppService/DeliverContactNotification"
 	FakeWhatsAppService_SyncContact_FullMethodName                 = "/whatsmeow.fake.v1.FakeWhatsAppService/SyncContact"
 	FakeWhatsAppService_FailNextContactQuery_FullMethodName        = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextContactQuery"
+	FakeWhatsAppService_DeliverPresence_FullMethodName             = "/whatsmeow.fake.v1.FakeWhatsAppService/DeliverPresence"
+	FakeWhatsAppService_DeliverChatPresence_FullMethodName         = "/whatsmeow.fake.v1.FakeWhatsAppService/DeliverChatPresence"
+	FakeWhatsAppService_SetPushName_FullMethodName                 = "/whatsmeow.fake.v1.FakeWhatsAppService/SetPushName"
 )
 
 // FakeWhatsAppServiceClient is the client API for FakeWhatsAppService service.
@@ -115,6 +118,18 @@ type FakeWhatsAppServiceClient interface {
 	// GetProfilePictureInfo, GetBlocklist, UpdateBlocklist) with an IQ error of code: 429 is whatsmeow's
 	// ErrIQRateOverLimit (errors.go:197).
 	FailNextContactQuery(ctx context.Context, in *FailNextContactQueryRequest, opts ...grpc.CallOption) (*FailNextContactQueryResponse, error)
+	// DeliverPresence makes WhatsApp send a user's presence to the session's client, which dispatches events.Presence on
+	// its node queue (presence.go:39-58), and returns once the client's event handlers ran. whatsmeow answers nothing.
+	// A session without a client is an error.
+	DeliverPresence(ctx context.Context, in *DeliverPresenceRequest, opts ...grpc.CallOption) (*DeliverPresenceResponse, error)
+	// DeliverChatPresence makes WhatsApp send a user's chat state to the session's client, which dispatches
+	// events.ChatPresence on its node queue (presence.go:18-37), and returns once the client's event handlers ran.
+	// whatsmeow answers nothing. A session without a client is an error.
+	DeliverChatPresence(ctx context.Context, in *DeliverChatPresenceRequest, opts ...grpc.CallOption) (*DeliverChatPresenceResponse, error)
+	// SetPushName makes the app state sync set the account's push name, as whatsmeow does for the push name setting: it
+	// sets the device's push name and saves the device (appstate.go:364-374). Until then SendPresence fails with
+	// whatsmeow's ErrNoPushName (presence.go:67-68). A session without a client is an error.
+	SetPushName(ctx context.Context, in *SetPushNameRequest, opts ...grpc.CallOption) (*SetPushNameResponse, error)
 }
 
 type fakeWhatsAppServiceClient struct {
@@ -295,6 +310,36 @@ func (c *fakeWhatsAppServiceClient) FailNextContactQuery(ctx context.Context, in
 	return out, nil
 }
 
+func (c *fakeWhatsAppServiceClient) DeliverPresence(ctx context.Context, in *DeliverPresenceRequest, opts ...grpc.CallOption) (*DeliverPresenceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeliverPresenceResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_DeliverPresence_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) DeliverChatPresence(ctx context.Context, in *DeliverChatPresenceRequest, opts ...grpc.CallOption) (*DeliverChatPresenceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeliverChatPresenceResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_DeliverChatPresence_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) SetPushName(ctx context.Context, in *SetPushNameRequest, opts ...grpc.CallOption) (*SetPushNameResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetPushNameResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_SetPushName_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FakeWhatsAppServiceServer is the server API for FakeWhatsAppService service.
 // All implementations must embed UnimplementedFakeWhatsAppServiceServer
 // for forward compatibility.
@@ -372,6 +417,18 @@ type FakeWhatsAppServiceServer interface {
 	// GetProfilePictureInfo, GetBlocklist, UpdateBlocklist) with an IQ error of code: 429 is whatsmeow's
 	// ErrIQRateOverLimit (errors.go:197).
 	FailNextContactQuery(context.Context, *FailNextContactQueryRequest) (*FailNextContactQueryResponse, error)
+	// DeliverPresence makes WhatsApp send a user's presence to the session's client, which dispatches events.Presence on
+	// its node queue (presence.go:39-58), and returns once the client's event handlers ran. whatsmeow answers nothing.
+	// A session without a client is an error.
+	DeliverPresence(context.Context, *DeliverPresenceRequest) (*DeliverPresenceResponse, error)
+	// DeliverChatPresence makes WhatsApp send a user's chat state to the session's client, which dispatches
+	// events.ChatPresence on its node queue (presence.go:18-37), and returns once the client's event handlers ran.
+	// whatsmeow answers nothing. A session without a client is an error.
+	DeliverChatPresence(context.Context, *DeliverChatPresenceRequest) (*DeliverChatPresenceResponse, error)
+	// SetPushName makes the app state sync set the account's push name, as whatsmeow does for the push name setting: it
+	// sets the device's push name and saves the device (appstate.go:364-374). Until then SendPresence fails with
+	// whatsmeow's ErrNoPushName (presence.go:67-68). A session without a client is an error.
+	SetPushName(context.Context, *SetPushNameRequest) (*SetPushNameResponse, error)
 	mustEmbedUnimplementedFakeWhatsAppServiceServer()
 }
 
@@ -432,6 +489,15 @@ func (UnimplementedFakeWhatsAppServiceServer) SyncContact(context.Context, *Sync
 }
 func (UnimplementedFakeWhatsAppServiceServer) FailNextContactQuery(context.Context, *FailNextContactQueryRequest) (*FailNextContactQueryResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method FailNextContactQuery not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) DeliverPresence(context.Context, *DeliverPresenceRequest) (*DeliverPresenceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeliverPresence not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) DeliverChatPresence(context.Context, *DeliverChatPresenceRequest) (*DeliverChatPresenceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeliverChatPresence not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) SetPushName(context.Context, *SetPushNameRequest) (*SetPushNameResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetPushName not implemented")
 }
 func (UnimplementedFakeWhatsAppServiceServer) mustEmbedUnimplementedFakeWhatsAppServiceServer() {}
 func (UnimplementedFakeWhatsAppServiceServer) testEmbeddedByValue()                             {}
@@ -760,6 +826,60 @@ func _FakeWhatsAppService_FailNextContactQuery_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FakeWhatsAppService_DeliverPresence_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeliverPresenceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).DeliverPresence(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_DeliverPresence_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).DeliverPresence(ctx, req.(*DeliverPresenceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_DeliverChatPresence_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeliverChatPresenceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).DeliverChatPresence(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_DeliverChatPresence_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).DeliverChatPresence(ctx, req.(*DeliverChatPresenceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_SetPushName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetPushNameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).SetPushName(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_SetPushName_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).SetPushName(ctx, req.(*SetPushNameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FakeWhatsAppService_ServiceDesc is the grpc.ServiceDesc for FakeWhatsAppService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -834,6 +954,18 @@ var FakeWhatsAppService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FailNextContactQuery",
 			Handler:    _FakeWhatsAppService_FailNextContactQuery_Handler,
+		},
+		{
+			MethodName: "DeliverPresence",
+			Handler:    _FakeWhatsAppService_DeliverPresence_Handler,
+		},
+		{
+			MethodName: "DeliverChatPresence",
+			Handler:    _FakeWhatsAppService_DeliverChatPresence_Handler,
+		},
+		{
+			MethodName: "SetPushName",
+			Handler:    _FakeWhatsAppService_SetPushName_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

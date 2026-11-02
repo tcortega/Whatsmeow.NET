@@ -11,6 +11,9 @@ internal static partial class DispatchLog
 	[LoggerMessage(22, LogLevel.Error, "Running the handlers of event {Seq} failed; it counts as handled")]
 	public static partial void RunFailed(ILogger logger, Exception exception, ulong seq);
 
+	[LoggerMessage(24, LogLevel.Error, "Running the handlers of an ephemeral event failed; it counts as handled")]
+	public static partial void UnackedRunFailed(ILogger logger, Exception exception);
+
 	[LoggerMessage(
 		23,
 		LogLevel.Warning,

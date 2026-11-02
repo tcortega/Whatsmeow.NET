@@ -5,6 +5,9 @@ using Whatsmeow.Contacts;
 using Whatsmeow.Core.Errors;
 using Whatsmeow.Events;
 using Whatsmeow.Pairing;
+using Whatsmeow.Presence;
+using ChatPresenceState = Whatsmeow.Presence.ChatPresenceState;
+using PresenceState = Whatsmeow.Presence.PresenceState;
 using Whatsmeow.Protocol.V1;
 using BlockedUser = Whatsmeow.Contacts.BlockedUser;
 using Contact = Whatsmeow.Contacts.Contact;
@@ -29,6 +32,7 @@ internal sealed class SessionClient(
 
 	private readonly SessionEvents _events = new(sidecar, invoker, sessionId, sidecar.TimeProvider, log);
 	private readonly ContactService.ContactServiceClient _contacts = new(invoker);
+	private readonly PresenceService.PresenceServiceClient _presence = new(invoker);
 
 	public SessionId SessionId => sessionId;
 
@@ -86,6 +90,42 @@ internal sealed class SessionClient(
 		// Forgotten only once it happened: a logout that failed leaves a session the application still connected.
 		_ = await RpcErrors.CallAsync(client.LogoutAsync(new LogoutRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken)).ConfigureAwait(false);
 		sessions.Forget(sessionId);
+	}
+
+	public async Task SendPresenceAsync(PresenceState state, CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		_ = await RpcErrors
+			.CallAsync(
+				_presence.SendPresenceAsync(
+					new SendPresenceRequest { SessionId = sessionId.Value, State = PresenceMapping.ToProto(state) },
+					cancellationToken: cancellationToken
+				)
+			)
+			.ConfigureAwait(false);
+	}
+
+	public async Task SubscribePresenceAsync(Jid user, CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		_ = await RpcErrors
+			.CallAsync(
+				_presence.SubscribePresenceAsync(new SubscribePresenceRequest { SessionId = sessionId.Value, User = user.ToString() }, cancellationToken: cancellationToken)
+			)
+			.ConfigureAwait(false);
+	}
+
+	public async Task SendChatPresenceAsync(Jid chat, ChatPresenceState state, CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		_ = await RpcErrors
+			.CallAsync(
+				_presence.SendChatPresenceAsync(
+					new SendChatPresenceRequest { SessionId = sessionId.Value, Chat = chat.ToString(), State = PresenceMapping.ToProto(state) },
+					cancellationToken: cancellationToken
+				)
+			)
+			.ConfigureAwait(false);
 	}
 
 	public IAsyncEnumerable<PairingUpdate> PairWithQrCodeAsync(CancellationToken cancellationToken = default) =>

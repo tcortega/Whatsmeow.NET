@@ -11,8 +11,12 @@ namespace Whatsmeow.Core.Dispatching;
 /// watermark that does not move for <see cref="StuckAfter"/> while events wait is logged.
 /// </summary>
 /// <param name="input">The events, in seq order.</param>
-/// <param name="ackAsync">Sends the ack; a <see cref="WhatsmeowException"/> from it is logged and retried on the next tick.</param>
-internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, CancellationToken, Task> ackAsync, TimeProvider timeProvider, ILogger logger)
+/// <param name="ackAsync">
+/// Sends the ack; a <see cref="WhatsmeowException"/> from it is logged and retried on the next tick. Null for events
+/// nothing acks, the ephemeral ones: then there is no watermark, no ack timer, no stuck watermark warning and no last
+/// ack, and the seq only orders the events.
+/// </param>
+internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, CancellationToken, Task>? ackAsync, TimeProvider timeProvider, ILogger logger)
 	: IAsyncDisposable
 {
 	/// <summary>Events received and not finished, at most.</summary>
@@ -61,15 +65,28 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 	private PeriodicTimer? _timer;
 	private int _disposed;
 
+	/// <summary>Events received and not yet under the watermark, finished or not; none without an ack.</summary>
+	internal int Unacked
+	{
+		get
+		{
+			lock (_lock)
+				return _order.Count;
+		}
+	}
+
 	/// <summary>Starts reading <c>input</c> and the ack timer.</summary>
 	public void Start()
 	{
 		if (_disposed != 0)
 			return;
 
+		_loop = ReadAsync(_stopping.Token);
+		if (ackAsync is null)
+			return;
+
 		// Created here, not in the loop, so a tick of the clock from now on is never missed.
 		_timer = new PeriodicTimer(AckInterval, timeProvider);
-		_loop = ReadAsync(_stopping.Token);
 		_ackLoop = AckLoopAsync(_timer, _stopping.Token);
 	}
 
@@ -82,7 +99,7 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 			ulong watermark;
 			lock (_lock)
 				watermark = _watermark;
-			if (watermark <= _acked)
+			if (ackAsync is null || watermark <= _acked)
 				return;
 
 			try
@@ -178,9 +195,13 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 	{
 		lock (_lock)
 		{
-			if (_order.Count == 0)
-				_movedAt = timeProvider.GetUtcNow();
-			_order.Enqueue(entry);
+			// Without an ack nothing waits for the watermark: an event behind one that never finishes is not kept.
+			if (ackAsync is not null)
+			{
+				if (_order.Count == 0)
+					_movedAt = timeProvider.GetUtcNow();
+				_order.Enqueue(entry);
+			}
 
 			var key = entry.Work!.Lane;
 			if (_lanes.TryGetValue(key, out var running))
@@ -235,7 +256,7 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 				catch (Exception e)
 #pragma warning restore CA1031
 				{
-					DispatchLog.RunFailed(logger, e, next.Seq);
+					LogRunFailed(e, next.Seq);
 				}
 				finally
 				{
@@ -252,6 +273,18 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 		}
 	}
 
+	/// <summary>Without an ack the seq is only an arrival number, so it is not logged as one.</summary>
+	private void LogRunFailed(Exception exception, ulong seq)
+	{
+		if (ackAsync is null)
+		{
+			DispatchLog.UnackedRunFailed(logger, exception);
+			return;
+		}
+
+		DispatchLog.RunFailed(logger, exception, seq);
+	}
+
 	private void Finish(Lane lane, Entry entry)
 	{
 		lock (_lock)
@@ -261,6 +294,9 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 			// Only the seq stays while an earlier event is unfinished: not the event and its handlers.
 			entry.Work = null;
 			entry.Done = true;
+			if (ackAsync is null)
+				return;
+
 			var moved = false;
 			while (_order.TryPeek(out var head) && head.Done)
 			{

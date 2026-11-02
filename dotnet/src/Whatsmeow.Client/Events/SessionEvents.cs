@@ -9,7 +9,9 @@ namespace Whatsmeow.Events;
 
 /// <summary>
 /// One session's events in this process (ARCHITECTURE §8.4): the reader of <c>StreamEvents</c>, which only decodes
-/// and writes to a bounded channel, the <see cref="Dispatcher"/> behind it, and the handlers it runs. It starts on the
+/// and writes to a bounded channel, the <see cref="Dispatcher"/> behind it, and the handlers it runs. The ephemeral
+/// events (presence, chat presence) come on <c>StreamEphemeralEvents</c>, with a reader, channel and dispatcher of
+/// their own that never ack, so they never move, hold back or delay the durable ones (ADR 0027). It starts on the
 /// first successful connect of the session in this process.
 /// </summary>
 internal sealed class SessionEvents : IAsyncDisposable
@@ -27,6 +29,8 @@ internal sealed class SessionEvents : IAsyncDisposable
 	private readonly ILogger _log;
 	private readonly Channel<Work> _channel = Channel.CreateBounded<Work>(new BoundedChannelOptions(Dispatcher.MaxPending) { SingleReader = true, SingleWriter = true });
 	private readonly Dispatcher _dispatcher;
+	private readonly Channel<Work> _ephemeralChannel = Channel.CreateBounded<Work>(new BoundedChannelOptions(Dispatcher.MaxPending) { SingleReader = true, SingleWriter = true });
+	private readonly Dispatcher _ephemeralDispatcher;
 
 	// Never disposed: a handler that deletes its own session still runs, and reads its token, after the stop returned.
 #pragma warning disable CA2213 // Justification: see above; it holds no timer and no unmanaged resource
@@ -36,6 +40,7 @@ internal sealed class SessionEvents : IAsyncDisposable
 	private ImmutableArray<Func<WhatsAppEvent, CancellationToken, ValueTask>> _handlers = [];
 	private ImmutableArray<Action<HandlerError>> _errorHandlers = [];
 	private Task _reader = Task.CompletedTask;
+	private Task _ephemeralReader = Task.CompletedTask;
 	private int _started;
 	private int _disposed;
 
@@ -47,6 +52,7 @@ internal sealed class SessionEvents : IAsyncDisposable
 		_timeProvider = timeProvider;
 		_log = log;
 		_dispatcher = new Dispatcher(_channel.Reader, AckAsync, timeProvider, log);
+		_ephemeralDispatcher = new Dispatcher(_ephemeralChannel.Reader, ackAsync: null, timeProvider, log);
 	}
 
 	/// <summary>The client was deleted or its sidecar disposed: no event comes any more.</summary>
@@ -59,7 +65,9 @@ internal sealed class SessionEvents : IAsyncDisposable
 			return;
 
 		_dispatcher.Start();
-		_reader = ReadAsync(_stopping.Token);
+		_ephemeralDispatcher.Start();
+		_reader = ReadDurableAsync(_stopping.Token);
+		_ephemeralReader = ReadEphemeralAsync(_stopping.Token);
 	}
 
 	public IDisposable On<TEvent>(Func<TEvent, CancellationToken, ValueTask> handler)
@@ -126,10 +134,12 @@ internal sealed class SessionEvents : IAsyncDisposable
 		try
 		{
 			await _reader.ConfigureAwait(false);
+			await _ephemeralReader.ConfigureAwait(false);
 		}
 		finally
 		{
 			await _dispatcher.DisposeAsync().ConfigureAwait(false);
+			await _ephemeralDispatcher.DisposeAsync().ConfigureAwait(false);
 		}
 	}
 
@@ -185,31 +195,60 @@ internal sealed class SessionEvents : IAsyncDisposable
 	}
 
 	/// <summary>
-	/// Reads the stream into the channel. When the sidecar goes away it waits for the next launch and opens the stream
-	/// again after the highest seq it received, so what it holds is neither lost nor repeated; the events it did not
-	/// get come from the cursor (ARCHITECTURE §8.5).
+	/// Reads the durable stream into its channel. When the sidecar goes away it waits for the next launch and opens the
+	/// stream again after the highest seq it received, so what it holds is neither lost nor repeated; the events it did
+	/// not get come from the cursor (ARCHITECTURE §8.5).
 	/// </summary>
-	private async Task ReadAsync(CancellationToken cancellationToken)
+	private Task ReadDurableAsync(CancellationToken cancellationToken)
 	{
 		ulong highest = 0;
+		return ReadAsync(
+			ct => _client.StreamEvents(new StreamEventsRequest { SessionId = _sessionId.Value, Consumer = Consumer, AfterSeq = highest }, cancellationToken: ct),
+			async (response, ct) =>
+			{
+				// The sidecar sends only seqs above after_seq, in order (events.proto).
+				highest = response.Seq;
+				await _channel.Writer.WriteAsync(ToWork(response), ct).ConfigureAwait(false);
+			},
+			cancellationToken
+		);
+	}
+
+	/// <summary>
+	/// Reads the ephemeral stream into its channel, numbering the events as they arrive, for their dispatcher's order
+	/// only. A stream opened again starts with what the sidecar still keeps that no stream got (events.proto); what the
+	/// sidecar dropped meanwhile arrives as <see cref="EphemeralEventsDropped"/>.
+	/// </summary>
+	private Task ReadEphemeralAsync(CancellationToken cancellationToken)
+	{
+		ulong arrived = 0;
+		return ReadAsync(
+			ct => _client.StreamEphemeralEvents(new StreamEphemeralEventsRequest { SessionId = _sessionId.Value }, cancellationToken: ct),
+			async (response, ct) => await _ephemeralChannel.Writer.WriteAsync(ToWork(++arrived, response), ct).ConfigureAwait(false),
+			cancellationToken
+		);
+	}
+
+	/// <summary>
+	/// Reads a stream of the session until the stop, opening it again when it ends: after the sidecar's next launch when
+	/// it went away, and for good when the session was deleted or the consumer replaced.
+	/// </summary>
+	private async Task ReadAsync<TResponse>(
+		Func<CancellationToken, AsyncServerStreamingCall<TResponse>> open,
+		Func<TResponse, CancellationToken, ValueTask> receive,
+		CancellationToken cancellationToken
+	)
+	{
 		try
 		{
 			while (true)
 			{
 				var launch = _sidecar.Launches;
-				using var call = _client.StreamEvents(
-					new StreamEventsRequest { SessionId = _sessionId.Value, Consumer = Consumer, AfterSeq = highest },
-					cancellationToken: cancellationToken
-				);
+				using var call = open(cancellationToken);
 				try
 				{
 					while (await call.ResponseStream.MoveNext(cancellationToken).ConfigureAwait(false))
-					{
-						// The sidecar sends only seqs above after_seq, in order (events.proto).
-						var response = call.ResponseStream.Current;
-						highest = response.Seq;
-						await _channel.Writer.WriteAsync(ToWork(response), cancellationToken).ConfigureAwait(false);
-					}
+						await receive(call.ResponseStream.Current, cancellationToken).ConfigureAwait(false);
 
 					// The contract never ends a stream with OK; open it again.
 					await Task.Delay(s_retryDelay, _timeProvider, cancellationToken).ConfigureAwait(false);
@@ -274,6 +313,34 @@ internal sealed class SessionEvents : IAsyncDisposable
 			Lane = EventMapping.Lane(response),
 
 			// A payload case this client does not know is skipped, and still acked (events.proto).
+			RunAsync = e is null ? static _ => ValueTask.CompletedTask : ct => RunAsync(e, ct),
+		};
+	}
+
+	/// <summary>The ephemeral event as the dispatcher's work: <paramref name="arrived"/> orders it, and nothing acks it.</summary>
+	private Work ToWork(ulong arrived, StreamEphemeralEventsResponse response)
+	{
+		WhatsAppEvent? e;
+		try
+		{
+			e = EventMapping.ToEvent(_sessionId, response);
+
+			// A payload case or a state this client does not know is skipped.
+			if (e is null)
+				EventLog.EphemeralEventSkipped(_log, response.PayloadCase.ToString(), _sessionId.Value);
+		}
+#pragma warning disable CA1031 // Justification: an ephemeral event this client cannot map is skipped, never the end of the stream
+		catch (Exception exception) when (exception is not OperationCanceledException)
+#pragma warning restore CA1031
+		{
+			EventLog.EphemeralEventUnreadable(_log, exception, _sessionId.Value);
+			e = null;
+		}
+
+		return new Work
+		{
+			Seq = arrived,
+			Lane = EventMapping.Lane(response),
 			RunAsync = e is null ? static _ => ValueTask.CompletedTask : ct => RunAsync(e, ct),
 		};
 	}

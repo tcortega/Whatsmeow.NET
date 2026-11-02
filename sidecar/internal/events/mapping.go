@@ -64,15 +64,19 @@ func key(kind string, info *types.MessageInfo) string {
 
 func info(info *types.MessageInfo) *whatsmeowv1.MessageInfo {
 	return &whatsmeowv1.MessageInfo{
-		Source: &whatsmeowv1.MessageSource{
-			Chat:         info.Chat.String(),
-			Sender:       info.Sender.String(),
-			SenderAlt:    info.SenderAlt.String(),
-			RecipientAlt: info.RecipientAlt.String(),
-			IsFromMe:     info.IsFromMe,
-		},
+		Source:      source(&info.MessageSource),
 		Id:          info.ID,
 		PushName:    info.PushName,
 		MessageTime: timestamppb.New(info.Timestamp),
+	}
+}
+
+func source(source *types.MessageSource) *whatsmeowv1.MessageSource {
+	return &whatsmeowv1.MessageSource{
+		Chat:         source.Chat.String(),
+		Sender:       source.Sender.String(),
+		SenderAlt:    source.SenderAlt.String(),
+		RecipientAlt: source.RecipientAlt.String(),
+		IsFromMe:     source.IsFromMe,
 	}
 }

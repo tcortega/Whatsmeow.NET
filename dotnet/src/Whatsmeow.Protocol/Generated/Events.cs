@@ -26,60 +26,77 @@ namespace Whatsmeow.Protocol.V1 {
           string.Concat(
             "Chl3aGF0c21lb3cvdjEvZXZlbnRzLnByb3RvEgx3aGF0c21lb3cudjEaH2dv",
             "b2dsZS9wcm90b2J1Zi90aW1lc3RhbXAucHJvdG8aHXdhRTJFL1dBV2ViUHJv",
-            "dG9idWZzRTJFLnByb3RvGhp3aGF0c21lb3cvdjEvY29udGFjdC5wcm90bxoa",
-            "d2hhdHNtZW93L3YxL3Nlc3Npb24ucHJvdG8inQEKDU1lc3NhZ2VTb3VyY2US",
-            "EgoEY2hhdBgBIAEoCVIEY2hhdBIWCgZzZW5kZXIYAiABKAlSBnNlbmRlchId",
-            "CgpzZW5kZXJfYWx0GAMgASgJUglzZW5kZXJBbHQSIwoNcmVjaXBpZW50X2Fs",
-            "dBgEIAEoCVIMcmVjaXBpZW50QWx0EhwKCmlzX2Zyb21fbWUYBSABKAhSCGlz",
-            "RnJvbU1lIq4BCgtNZXNzYWdlSW5mbxIzCgZzb3VyY2UYASABKAsyGy53aGF0",
-            "c21lb3cudjEuTWVzc2FnZVNvdXJjZVIGc291cmNlEg4KAmlkGAIgASgJUgJp",
-            "ZBIbCglwdXNoX25hbWUYAyABKAlSCHB1c2hOYW1lEj0KDG1lc3NhZ2VfdGlt",
-            "ZRgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBSC21lc3NhZ2VU",
-            "aW1lInMKDE1lc3NhZ2VFdmVudBItCgRpbmZvGAEgASgLMhkud2hhdHNtZW93",
-            "LnYxLk1lc3NhZ2VJbmZvUgRpbmZvEjQKB21lc3NhZ2UYAiABKAsyGi5XQVdl",
-            "YlByb3RvYnVmc0UyRS5NZXNzYWdlUgdtZXNzYWdlItIBCgxSZWNlaXB0RXZl",
-            "bnQSMwoGc291cmNlGAEgASgLMhsud2hhdHNtZW93LnYxLk1lc3NhZ2VTb3Vy",
-            "Y2VSBnNvdXJjZRIfCgttZXNzYWdlX2lkcxgCIAMoCVIKbWVzc2FnZUlkcxI9",
-            "CgxyZWNlaXB0X3RpbWUYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0",
-            "YW1wUgtyZWNlaXB0VGltZRItCgR0eXBlGAQgASgOMhkud2hhdHNtZW93LnYx",
-            "LlJlY2VpcHRUeXBlUgR0eXBlInUKGVVuZGVjcnlwdGFibGVNZXNzYWdlRXZl",
-            "bnQSLQoEaW5mbxgBIAEoCzIZLndoYXRzbWVvdy52MS5NZXNzYWdlSW5mb1IE",
-            "aW5mbxIpChBoaWRlX3BsYWNlaG9sZGVyGAIgASgIUg9oaWRlUGxhY2Vob2xk",
-            "ZXIiSAoUQ29ubmVjdGlvblN0YXRlRXZlbnQSMAoFc3RhdGUYASABKAsyGi53",
-            "aGF0c21lb3cudjEuU2Vzc2lvblN0YXRlUgVzdGF0ZSJtChNTdHJlYW1FdmVu",
-            "dHNSZXF1ZXN0Eh0KCnNlc3Npb25faWQYASABKAlSCXNlc3Npb25JZBIaCghj",
-            "b25zdW1lchgCIAEoCVIIY29uc3VtZXISGwoJYWZ0ZXJfc2VxGAMgASgEUghh",
-            "ZnRlclNlcSKMAwoUU3RyZWFtRXZlbnRzUmVzcG9uc2USEAoDc2VxGAEgASgE",
-            "UgNzZXESNgoHbWVzc2FnZRgKIAEoCzIaLndoYXRzbWVvdy52MS5NZXNzYWdl",
-            "RXZlbnRIAFIHbWVzc2FnZRI2CgdyZWNlaXB0GAsgASgLMhoud2hhdHNtZW93",
-            "LnYxLlJlY2VpcHRFdmVudEgAUgdyZWNlaXB0El4KFXVuZGVjcnlwdGFibGVf",
-            "bWVzc2FnZRgMIAEoCzInLndoYXRzbWVvdy52MS5VbmRlY3J5cHRhYmxlTWVz",
-            "c2FnZUV2ZW50SABSFHVuZGVjcnlwdGFibGVNZXNzYWdlEk8KEGNvbm5lY3Rp",
-            "b25fc3RhdGUYDSABKAsyIi53aGF0c21lb3cudjEuQ29ubmVjdGlvblN0YXRl",
-            "RXZlbnRIAFIPY29ubmVjdGlvblN0YXRlEjYKB2NvbnRhY3QYDiABKAsyGi53",
-            "aGF0c21lb3cudjEuQ29udGFjdEV2ZW50SABSB2NvbnRhY3RCCQoHcGF5bG9h",
-            "ZCJpChBBY2tFdmVudHNSZXF1ZXN0Eh0KCnNlc3Npb25faWQYASABKAlSCXNl",
-            "c3Npb25JZBIaCghjb25zdW1lchgCIAEoCVIIY29uc3VtZXISGgoJdXBfdG9f",
-            "c2VxGAMgASgEUgd1cFRvU2VxIhMKEUFja0V2ZW50c1Jlc3BvbnNlKtYCCgtS",
-            "ZWNlaXB0VHlwZRIcChhSRUNFSVBUX1RZUEVfVU5TUEVDSUZJRUQQABIaChZS",
-            "RUNFSVBUX1RZUEVfREVMSVZFUkVEEAESFwoTUkVDRUlQVF9UWVBFX1NFTkRF",
-            "UhACEhYKElJFQ0VJUFRfVFlQRV9SRVRSWRADEhUKEVJFQ0VJUFRfVFlQRV9S",
-            "RUFEEAQSGgoWUkVDRUlQVF9UWVBFX1JFQURfU0VMRhAFEhcKE1JFQ0VJUFRf",
-            "VFlQRV9QTEFZRUQQBhIcChhSRUNFSVBUX1RZUEVfUExBWUVEX1NFTEYQBxId",
-            "ChlSRUNFSVBUX1RZUEVfU0VSVkVSX0VSUk9SEAgSGQoVUkVDRUlQVF9UWVBF",
-            "X0lOQUNUSVZFEAkSGQoVUkVDRUlQVF9UWVBFX1BFRVJfTVNHEAoSHQoZUkVD",
-            "RUlQVF9UWVBFX0hJU1RPUllfU1lOQxALMrUBCgxFdmVudFNlcnZpY2USVwoM",
-            "U3RyZWFtRXZlbnRzEiEud2hhdHNtZW93LnYxLlN0cmVhbUV2ZW50c1JlcXVl",
-            "c3QaIi53aGF0c21lb3cudjEuU3RyZWFtRXZlbnRzUmVzcG9uc2UwARJMCglB",
-            "Y2tFdmVudHMSHi53aGF0c21lb3cudjEuQWNrRXZlbnRzUmVxdWVzdBofLndo",
-            "YXRzbWVvdy52MS5BY2tFdmVudHNSZXNwb25zZULBAQoQY29tLndoYXRzbWVv",
-            "dy52MUILRXZlbnRzUHJvdG9QAVpGZ2l0aHViLmNvbS90Y29ydGVnYS9XaGF0",
-            "c21lb3cuTkVUL3NpZGVjYXIvZ2VuL3doYXRzbWVvdy92MTt3aGF0c21lb3d2",
-            "MaICA1dYWKoCFVdoYXRzbWVvdy5Qcm90b2NvbC5WMcoCDFdoYXRzbWVvd1xW",
-            "MeICGFdoYXRzbWVvd1xWMVxHUEJNZXRhZGF0YeoCDVdoYXRzbWVvdzo6VjFi",
-            "BnByb3RvMw=="));
+            "dG9idWZzRTJFLnByb3RvGhp3aGF0c21lb3cvdjEvY29udGFjdC5wcm90bxob",
+            "d2hhdHNtZW93L3YxL3ByZXNlbmNlLnByb3RvGhp3aGF0c21lb3cvdjEvc2Vz",
+            "c2lvbi5wcm90byKdAQoNTWVzc2FnZVNvdXJjZRISCgRjaGF0GAEgASgJUgRj",
+            "aGF0EhYKBnNlbmRlchgCIAEoCVIGc2VuZGVyEh0KCnNlbmRlcl9hbHQYAyAB",
+            "KAlSCXNlbmRlckFsdBIjCg1yZWNpcGllbnRfYWx0GAQgASgJUgxyZWNpcGll",
+            "bnRBbHQSHAoKaXNfZnJvbV9tZRgFIAEoCFIIaXNGcm9tTWUirgEKC01lc3Nh",
+            "Z2VJbmZvEjMKBnNvdXJjZRgBIAEoCzIbLndoYXRzbWVvdy52MS5NZXNzYWdl",
+            "U291cmNlUgZzb3VyY2USDgoCaWQYAiABKAlSAmlkEhsKCXB1c2hfbmFtZRgD",
+            "IAEoCVIIcHVzaE5hbWUSPQoMbWVzc2FnZV90aW1lGAQgASgLMhouZ29vZ2xl",
+            "LnByb3RvYnVmLlRpbWVzdGFtcFILbWVzc2FnZVRpbWUicwoMTWVzc2FnZUV2",
+            "ZW50Ei0KBGluZm8YASABKAsyGS53aGF0c21lb3cudjEuTWVzc2FnZUluZm9S",
+            "BGluZm8SNAoHbWVzc2FnZRgCIAEoCzIaLldBV2ViUHJvdG9idWZzRTJFLk1l",
+            "c3NhZ2VSB21lc3NhZ2Ui0gEKDFJlY2VpcHRFdmVudBIzCgZzb3VyY2UYASAB",
+            "KAsyGy53aGF0c21lb3cudjEuTWVzc2FnZVNvdXJjZVIGc291cmNlEh8KC21l",
+            "c3NhZ2VfaWRzGAIgAygJUgptZXNzYWdlSWRzEj0KDHJlY2VpcHRfdGltZRgD",
+            "IAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBSC3JlY2VpcHRUaW1l",
+            "Ei0KBHR5cGUYBCABKA4yGS53aGF0c21lb3cudjEuUmVjZWlwdFR5cGVSBHR5",
+            "cGUidQoZVW5kZWNyeXB0YWJsZU1lc3NhZ2VFdmVudBItCgRpbmZvGAEgASgL",
+            "Mhkud2hhdHNtZW93LnYxLk1lc3NhZ2VJbmZvUgRpbmZvEikKEGhpZGVfcGxh",
+            "Y2Vob2xkZXIYAiABKAhSD2hpZGVQbGFjZWhvbGRlciJIChRDb25uZWN0aW9u",
+            "U3RhdGVFdmVudBIwCgVzdGF0ZRgBIAEoCzIaLndoYXRzbWVvdy52MS5TZXNz",
+            "aW9uU3RhdGVSBXN0YXRlIm0KE1N0cmVhbUV2ZW50c1JlcXVlc3QSHQoKc2Vz",
+            "c2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkEhoKCGNvbnN1bWVyGAIgASgJUghj",
+            "b25zdW1lchIbCglhZnRlcl9zZXEYAyABKARSCGFmdGVyU2VxIowDChRTdHJl",
+            "YW1FdmVudHNSZXNwb25zZRIQCgNzZXEYASABKARSA3NlcRI2CgdtZXNzYWdl",
+            "GAogASgLMhoud2hhdHNtZW93LnYxLk1lc3NhZ2VFdmVudEgAUgdtZXNzYWdl",
+            "EjYKB3JlY2VpcHQYCyABKAsyGi53aGF0c21lb3cudjEuUmVjZWlwdEV2ZW50",
+            "SABSB3JlY2VpcHQSXgoVdW5kZWNyeXB0YWJsZV9tZXNzYWdlGAwgASgLMicu",
+            "d2hhdHNtZW93LnYxLlVuZGVjcnlwdGFibGVNZXNzYWdlRXZlbnRIAFIUdW5k",
+            "ZWNyeXB0YWJsZU1lc3NhZ2USTwoQY29ubmVjdGlvbl9zdGF0ZRgNIAEoCzIi",
+            "LndoYXRzbWVvdy52MS5Db25uZWN0aW9uU3RhdGVFdmVudEgAUg9jb25uZWN0",
+            "aW9uU3RhdGUSNgoHY29udGFjdBgOIAEoCzIaLndoYXRzbWVvdy52MS5Db250",
+            "YWN0RXZlbnRIAFIHY29udGFjdEIJCgdwYXlsb2FkImkKEEFja0V2ZW50c1Jl",
+            "cXVlc3QSHQoKc2Vzc2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkEhoKCGNvbnN1",
+            "bWVyGAIgASgJUghjb25zdW1lchIaCgl1cF90b19zZXEYAyABKARSB3VwVG9T",
+            "ZXEiEwoRQWNrRXZlbnRzUmVzcG9uc2UijwEKDVByZXNlbmNlRXZlbnQSEgoE",
+            "ZnJvbRgBIAEoCVIEZnJvbRIxCgVzdGF0ZRgCIAEoDjIbLndoYXRzbWVvdy52",
+            "MS5QcmVzZW5jZVN0YXRlUgVzdGF0ZRI3CglsYXN0X3NlZW4YAyABKAsyGi5n",
+            "b29nbGUucHJvdG9idWYuVGltZXN0YW1wUghsYXN0U2VlbiJ/ChFDaGF0UHJl",
+            "c2VuY2VFdmVudBIzCgZzb3VyY2UYASABKAsyGy53aGF0c21lb3cudjEuTWVz",
+            "c2FnZVNvdXJjZVIGc291cmNlEjUKBXN0YXRlGAIgASgOMh8ud2hhdHNtZW93",
+            "LnYxLkNoYXRQcmVzZW5jZVN0YXRlUgVzdGF0ZSIuChJRdWV1ZU92ZXJmbG93",
+            "RXZlbnQSGAoHZHJvcHBlZBgBIAEoBFIHZHJvcHBlZCI9ChxTdHJlYW1FcGhl",
+            "bWVyYWxFdmVudHNSZXF1ZXN0Eh0KCnNlc3Npb25faWQYASABKAlSCXNlc3Np",
+            "b25JZCL4AQodU3RyZWFtRXBoZW1lcmFsRXZlbnRzUmVzcG9uc2USOQoIcHJl",
+            "c2VuY2UYCiABKAsyGy53aGF0c21lb3cudjEuUHJlc2VuY2VFdmVudEgAUghw",
+            "cmVzZW5jZRJGCg1jaGF0X3ByZXNlbmNlGAsgASgLMh8ud2hhdHNtZW93LnYx",
+            "LkNoYXRQcmVzZW5jZUV2ZW50SABSDGNoYXRQcmVzZW5jZRJJCg5xdWV1ZV9v",
+            "dmVyZmxvdxgMIAEoCzIgLndoYXRzbWVvdy52MS5RdWV1ZU92ZXJmbG93RXZl",
+            "bnRIAFINcXVldWVPdmVyZmxvd0IJCgdwYXlsb2FkKtYCCgtSZWNlaXB0VHlw",
+            "ZRIcChhSRUNFSVBUX1RZUEVfVU5TUEVDSUZJRUQQABIaChZSRUNFSVBUX1RZ",
+            "UEVfREVMSVZFUkVEEAESFwoTUkVDRUlQVF9UWVBFX1NFTkRFUhACEhYKElJF",
+            "Q0VJUFRfVFlQRV9SRVRSWRADEhUKEVJFQ0VJUFRfVFlQRV9SRUFEEAQSGgoW",
+            "UkVDRUlQVF9UWVBFX1JFQURfU0VMRhAFEhcKE1JFQ0VJUFRfVFlQRV9QTEFZ",
+            "RUQQBhIcChhSRUNFSVBUX1RZUEVfUExBWUVEX1NFTEYQBxIdChlSRUNFSVBU",
+            "X1RZUEVfU0VSVkVSX0VSUk9SEAgSGQoVUkVDRUlQVF9UWVBFX0lOQUNUSVZF",
+            "EAkSGQoVUkVDRUlQVF9UWVBFX1BFRVJfTVNHEAoSHQoZUkVDRUlQVF9UWVBF",
+            "X0hJU1RPUllfU1lOQxALMqkCCgxFdmVudFNlcnZpY2USVwoMU3RyZWFtRXZl",
+            "bnRzEiEud2hhdHNtZW93LnYxLlN0cmVhbUV2ZW50c1JlcXVlc3QaIi53aGF0",
+            "c21lb3cudjEuU3RyZWFtRXZlbnRzUmVzcG9uc2UwARJMCglBY2tFdmVudHMS",
+            "Hi53aGF0c21lb3cudjEuQWNrRXZlbnRzUmVxdWVzdBofLndoYXRzbWVvdy52",
+            "MS5BY2tFdmVudHNSZXNwb25zZRJyChVTdHJlYW1FcGhlbWVyYWxFdmVudHMS",
+            "Ki53aGF0c21lb3cudjEuU3RyZWFtRXBoZW1lcmFsRXZlbnRzUmVxdWVzdBor",
+            "LndoYXRzbWVvdy52MS5TdHJlYW1FcGhlbWVyYWxFdmVudHNSZXNwb25zZTAB",
+            "QsEBChBjb20ud2hhdHNtZW93LnYxQgtFdmVudHNQcm90b1ABWkZnaXRodWIu",
+            "Y29tL3Rjb3J0ZWdhL1doYXRzbWVvdy5ORVQvc2lkZWNhci9nZW4vd2hhdHNt",
+            "ZW93L3YxO3doYXRzbWVvd3YxogIDV1hYqgIVV2hhdHNtZW93LlByb3RvY29s",
+            "LlYxygIMV2hhdHNtZW93XFYx4gIYV2hhdHNtZW93XFYxXEdQQk1ldGFkYXRh",
+            "6gINV2hhdHNtZW93OjpWMWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, global::Whatsmeow.Proto.WAWebProtobufsE2E.WAWebProtobufsE2EReflection.Descriptor, global::Whatsmeow.Protocol.V1.ContactReflection.Descriptor, global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, global::Whatsmeow.Proto.WAWebProtobufsE2E.WAWebProtobufsE2EReflection.Descriptor, global::Whatsmeow.Protocol.V1.ContactReflection.Descriptor, global::Whatsmeow.Protocol.V1.PresenceReflection.Descriptor, global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Whatsmeow.Protocol.V1.ReceiptType), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.MessageSource), global::Whatsmeow.Protocol.V1.MessageSource.Parser, new[]{ "Chat", "Sender", "SenderAlt", "RecipientAlt", "IsFromMe" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.MessageInfo), global::Whatsmeow.Protocol.V1.MessageInfo.Parser, new[]{ "Source", "Id", "PushName", "MessageTime" }, null, null, null, null),
@@ -90,7 +107,12 @@ namespace Whatsmeow.Protocol.V1 {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.StreamEventsRequest), global::Whatsmeow.Protocol.V1.StreamEventsRequest.Parser, new[]{ "SessionId", "Consumer", "AfterSeq" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.StreamEventsResponse), global::Whatsmeow.Protocol.V1.StreamEventsResponse.Parser, new[]{ "Seq", "Message", "Receipt", "UndecryptableMessage", "ConnectionState", "Contact" }, new[]{ "Payload" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.AckEventsRequest), global::Whatsmeow.Protocol.V1.AckEventsRequest.Parser, new[]{ "SessionId", "Consumer", "UpToSeq" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.AckEventsResponse), global::Whatsmeow.Protocol.V1.AckEventsResponse.Parser, null, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.AckEventsResponse), global::Whatsmeow.Protocol.V1.AckEventsResponse.Parser, null, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.PresenceEvent), global::Whatsmeow.Protocol.V1.PresenceEvent.Parser, new[]{ "From", "State", "LastSeen" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.ChatPresenceEvent), global::Whatsmeow.Protocol.V1.ChatPresenceEvent.Parser, new[]{ "Source", "State" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.QueueOverflowEvent), global::Whatsmeow.Protocol.V1.QueueOverflowEvent.Parser, new[]{ "Dropped" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.StreamEphemeralEventsRequest), global::Whatsmeow.Protocol.V1.StreamEphemeralEventsRequest.Parser, new[]{ "SessionId" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.StreamEphemeralEventsResponse), global::Whatsmeow.Protocol.V1.StreamEphemeralEventsResponse.Parser, new[]{ "Presence", "ChatPresence", "QueueOverflow" }, new[]{ "Payload" }, null, null, null)
           }));
     }
     #endregion
@@ -3159,6 +3181,1320 @@ namespace Whatsmeow.Protocol.V1 {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// PresenceEvent is a user's presence, sent after a SubscribePresence.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  internal sealed partial class PresenceEvent : pb::IMessage<PresenceEvent>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<PresenceEvent> _parser = new pb::MessageParser<PresenceEvent>(() => new PresenceEvent());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<PresenceEvent> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[10]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public PresenceEvent() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public PresenceEvent(PresenceEvent other) : this() {
+      from_ = other.from_;
+      state_ = other.state_;
+      lastSeen_ = other.lastSeen_ != null ? other.lastSeen_.Clone() : null;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public PresenceEvent Clone() {
+      return new PresenceEvent(this);
+    }
+
+    /// <summary>Field number for the "from" field.</summary>
+    public const int FromFieldNumber = 1;
+    private string from_ = "";
+    /// <summary>
+    /// The user, a JID in whatsmeow's string form.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string From {
+      get { return from_; }
+      set {
+        from_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "state" field.</summary>
+    public const int StateFieldNumber = 2;
+    private global::Whatsmeow.Protocol.V1.PresenceState state_ = global::Whatsmeow.Protocol.V1.PresenceState.Unspecified;
+    /// <summary>
+    /// Online or offline; never unspecified.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Protocol.V1.PresenceState State {
+      get { return state_; }
+      set {
+        state_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "last_seen" field.</summary>
+    public const int LastSeenFieldNumber = 3;
+    private global::Google.Protobuf.WellKnownTypes.Timestamp lastSeen_;
+    /// <summary>
+    /// When the user was last online; unset when WhatsApp sent none, as for a user whose privacy settings hide it.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Google.Protobuf.WellKnownTypes.Timestamp LastSeen {
+      get { return lastSeen_; }
+      set {
+        lastSeen_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as PresenceEvent);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(PresenceEvent other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (From != other.From) return false;
+      if (State != other.State) return false;
+      if (!object.Equals(LastSeen, other.LastSeen)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (From.Length != 0) hash ^= From.GetHashCode();
+      if (State != global::Whatsmeow.Protocol.V1.PresenceState.Unspecified) hash ^= State.GetHashCode();
+      if (lastSeen_ != null) hash ^= LastSeen.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (From.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(From);
+      }
+      if (State != global::Whatsmeow.Protocol.V1.PresenceState.Unspecified) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) State);
+      }
+      if (lastSeen_ != null) {
+        output.WriteRawTag(26);
+        output.WriteMessage(LastSeen);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (From.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(From);
+      }
+      if (State != global::Whatsmeow.Protocol.V1.PresenceState.Unspecified) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) State);
+      }
+      if (lastSeen_ != null) {
+        output.WriteRawTag(26);
+        output.WriteMessage(LastSeen);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (From.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(From);
+      }
+      if (State != global::Whatsmeow.Protocol.V1.PresenceState.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) State);
+      }
+      if (lastSeen_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(LastSeen);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(PresenceEvent other) {
+      if (other == null) {
+        return;
+      }
+      if (other.From.Length != 0) {
+        From = other.From;
+      }
+      if (other.State != global::Whatsmeow.Protocol.V1.PresenceState.Unspecified) {
+        State = other.State;
+      }
+      if (other.lastSeen_ != null) {
+        if (lastSeen_ == null) {
+          LastSeen = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+        }
+        LastSeen.MergeFrom(other.LastSeen);
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            From = input.ReadString();
+            break;
+          }
+          case 16: {
+            State = (global::Whatsmeow.Protocol.V1.PresenceState) input.ReadEnum();
+            break;
+          }
+          case 26: {
+            if (lastSeen_ == null) {
+              LastSeen = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+            }
+            input.ReadMessage(LastSeen);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            From = input.ReadString();
+            break;
+          }
+          case 16: {
+            State = (global::Whatsmeow.Protocol.V1.PresenceState) input.ReadEnum();
+            break;
+          }
+          case 26: {
+            if (lastSeen_ == null) {
+              LastSeen = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+            }
+            input.ReadMessage(LastSeen);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// ChatPresenceEvent is what a user is doing in a chat: typing, recording, or neither any more.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  internal sealed partial class ChatPresenceEvent : pb::IMessage<ChatPresenceEvent>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<ChatPresenceEvent> _parser = new pb::MessageParser<ChatPresenceEvent>(() => new ChatPresenceEvent());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<ChatPresenceEvent> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[11]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ChatPresenceEvent() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ChatPresenceEvent(ChatPresenceEvent other) : this() {
+      source_ = other.source_ != null ? other.source_.Clone() : null;
+      state_ = other.state_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ChatPresenceEvent Clone() {
+      return new ChatPresenceEvent(this);
+    }
+
+    /// <summary>Field number for the "source" field.</summary>
+    public const int SourceFieldNumber = 1;
+    private global::Whatsmeow.Protocol.V1.MessageSource source_;
+    /// <summary>
+    /// Who and where.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Protocol.V1.MessageSource Source {
+      get { return source_; }
+      set {
+        source_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "state" field.</summary>
+    public const int StateFieldNumber = 2;
+    private global::Whatsmeow.Protocol.V1.ChatPresenceState state_ = global::Whatsmeow.Protocol.V1.ChatPresenceState.Unspecified;
+    /// <summary>
+    /// The state; unspecified for one this list does not have.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Protocol.V1.ChatPresenceState State {
+      get { return state_; }
+      set {
+        state_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as ChatPresenceEvent);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(ChatPresenceEvent other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Source, other.Source)) return false;
+      if (State != other.State) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (source_ != null) hash ^= Source.GetHashCode();
+      if (State != global::Whatsmeow.Protocol.V1.ChatPresenceState.Unspecified) hash ^= State.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (source_ != null) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Source);
+      }
+      if (State != global::Whatsmeow.Protocol.V1.ChatPresenceState.Unspecified) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) State);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (source_ != null) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Source);
+      }
+      if (State != global::Whatsmeow.Protocol.V1.ChatPresenceState.Unspecified) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) State);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (source_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Source);
+      }
+      if (State != global::Whatsmeow.Protocol.V1.ChatPresenceState.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) State);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(ChatPresenceEvent other) {
+      if (other == null) {
+        return;
+      }
+      if (other.source_ != null) {
+        if (source_ == null) {
+          Source = new global::Whatsmeow.Protocol.V1.MessageSource();
+        }
+        Source.MergeFrom(other.Source);
+      }
+      if (other.State != global::Whatsmeow.Protocol.V1.ChatPresenceState.Unspecified) {
+        State = other.State;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            if (source_ == null) {
+              Source = new global::Whatsmeow.Protocol.V1.MessageSource();
+            }
+            input.ReadMessage(Source);
+            break;
+          }
+          case 16: {
+            State = (global::Whatsmeow.Protocol.V1.ChatPresenceState) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            if (source_ == null) {
+              Source = new global::Whatsmeow.Protocol.V1.MessageSource();
+            }
+            input.ReadMessage(Source);
+            break;
+          }
+          case 16: {
+            State = (global::Whatsmeow.Protocol.V1.ChatPresenceState) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// QueueOverflowEvent is how many ephemeral events a stream did not get.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  internal sealed partial class QueueOverflowEvent : pb::IMessage<QueueOverflowEvent>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<QueueOverflowEvent> _parser = new pb::MessageParser<QueueOverflowEvent>(() => new QueueOverflowEvent());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<QueueOverflowEvent> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[12]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public QueueOverflowEvent() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public QueueOverflowEvent(QueueOverflowEvent other) : this() {
+      dropped_ = other.dropped_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public QueueOverflowEvent Clone() {
+      return new QueueOverflowEvent(this);
+    }
+
+    /// <summary>Field number for the "dropped" field.</summary>
+    public const int DroppedFieldNumber = 1;
+    private ulong dropped_;
+    /// <summary>
+    /// How many were dropped since the last event of the stream.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ulong Dropped {
+      get { return dropped_; }
+      set {
+        dropped_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as QueueOverflowEvent);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(QueueOverflowEvent other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Dropped != other.Dropped) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Dropped != 0UL) hash ^= Dropped.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Dropped != 0UL) {
+        output.WriteRawTag(8);
+        output.WriteUInt64(Dropped);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Dropped != 0UL) {
+        output.WriteRawTag(8);
+        output.WriteUInt64(Dropped);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Dropped != 0UL) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(Dropped);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(QueueOverflowEvent other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Dropped != 0UL) {
+        Dropped = other.Dropped;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            Dropped = input.ReadUInt64();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Dropped = input.ReadUInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// StreamEphemeralEventsRequest opens a session's ephemeral event stream.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  internal sealed partial class StreamEphemeralEventsRequest : pb::IMessage<StreamEphemeralEventsRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<StreamEphemeralEventsRequest> _parser = new pb::MessageParser<StreamEphemeralEventsRequest>(() => new StreamEphemeralEventsRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<StreamEphemeralEventsRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[13]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public StreamEphemeralEventsRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public StreamEphemeralEventsRequest(StreamEphemeralEventsRequest other) : this() {
+      sessionId_ = other.sessionId_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public StreamEphemeralEventsRequest Clone() {
+      return new StreamEphemeralEventsRequest(this);
+    }
+
+    /// <summary>Field number for the "session_id" field.</summary>
+    public const int SessionIdFieldNumber = 1;
+    private string sessionId_ = "";
+    /// <summary>
+    /// The session id.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string SessionId {
+      get { return sessionId_; }
+      set {
+        sessionId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as StreamEphemeralEventsRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(StreamEphemeralEventsRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (SessionId != other.SessionId) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (SessionId.Length != 0) hash ^= SessionId.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (SessionId.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(SessionId);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (SessionId.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(SessionId);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (SessionId.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(SessionId);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(StreamEphemeralEventsRequest other) {
+      if (other == null) {
+        return;
+      }
+      if (other.SessionId.Length != 0) {
+        SessionId = other.SessionId;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            SessionId = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            SessionId = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// StreamEphemeralEventsResponse is one ephemeral event. It has no seq.
+  /// Payload cases are numbered from 10, in the order they are added.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  internal sealed partial class StreamEphemeralEventsResponse : pb::IMessage<StreamEphemeralEventsResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<StreamEphemeralEventsResponse> _parser = new pb::MessageParser<StreamEphemeralEventsResponse>(() => new StreamEphemeralEventsResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<StreamEphemeralEventsResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[14]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public StreamEphemeralEventsResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public StreamEphemeralEventsResponse(StreamEphemeralEventsResponse other) : this() {
+      switch (other.PayloadCase) {
+        case PayloadOneofCase.Presence:
+          Presence = other.Presence.Clone();
+          break;
+        case PayloadOneofCase.ChatPresence:
+          ChatPresence = other.ChatPresence.Clone();
+          break;
+        case PayloadOneofCase.QueueOverflow:
+          QueueOverflow = other.QueueOverflow.Clone();
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public StreamEphemeralEventsResponse Clone() {
+      return new StreamEphemeralEventsResponse(this);
+    }
+
+    /// <summary>Field number for the "presence" field.</summary>
+    public const int PresenceFieldNumber = 10;
+    /// <summary>
+    /// A user's presence.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Protocol.V1.PresenceEvent Presence {
+      get { return payloadCase_ == PayloadOneofCase.Presence ? (global::Whatsmeow.Protocol.V1.PresenceEvent) payload_ : null; }
+      set {
+        payload_ = value;
+        payloadCase_ = value == null ? PayloadOneofCase.None : PayloadOneofCase.Presence;
+      }
+    }
+
+    /// <summary>Field number for the "chat_presence" field.</summary>
+    public const int ChatPresenceFieldNumber = 11;
+    /// <summary>
+    /// A user's state in a chat.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Protocol.V1.ChatPresenceEvent ChatPresence {
+      get { return payloadCase_ == PayloadOneofCase.ChatPresence ? (global::Whatsmeow.Protocol.V1.ChatPresenceEvent) payload_ : null; }
+      set {
+        payload_ = value;
+        payloadCase_ = value == null ? PayloadOneofCase.None : PayloadOneofCase.ChatPresence;
+      }
+    }
+
+    /// <summary>Field number for the "queue_overflow" field.</summary>
+    public const int QueueOverflowFieldNumber = 12;
+    /// <summary>
+    /// Events this stream did not get.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Protocol.V1.QueueOverflowEvent QueueOverflow {
+      get { return payloadCase_ == PayloadOneofCase.QueueOverflow ? (global::Whatsmeow.Protocol.V1.QueueOverflowEvent) payload_ : null; }
+      set {
+        payload_ = value;
+        payloadCase_ = value == null ? PayloadOneofCase.None : PayloadOneofCase.QueueOverflow;
+      }
+    }
+
+    private object payload_;
+    /// <summary>Enum of possible cases for the "payload" oneof.</summary>
+    public enum PayloadOneofCase {
+      None = 0,
+      Presence = 10,
+      ChatPresence = 11,
+      QueueOverflow = 12,
+    }
+    private PayloadOneofCase payloadCase_ = PayloadOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public PayloadOneofCase PayloadCase {
+      get { return payloadCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearPayload() {
+      payloadCase_ = PayloadOneofCase.None;
+      payload_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as StreamEphemeralEventsResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(StreamEphemeralEventsResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Presence, other.Presence)) return false;
+      if (!object.Equals(ChatPresence, other.ChatPresence)) return false;
+      if (!object.Equals(QueueOverflow, other.QueueOverflow)) return false;
+      if (PayloadCase != other.PayloadCase) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (payloadCase_ == PayloadOneofCase.Presence) hash ^= Presence.GetHashCode();
+      if (payloadCase_ == PayloadOneofCase.ChatPresence) hash ^= ChatPresence.GetHashCode();
+      if (payloadCase_ == PayloadOneofCase.QueueOverflow) hash ^= QueueOverflow.GetHashCode();
+      hash ^= (int) payloadCase_;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (payloadCase_ == PayloadOneofCase.Presence) {
+        output.WriteRawTag(82);
+        output.WriteMessage(Presence);
+      }
+      if (payloadCase_ == PayloadOneofCase.ChatPresence) {
+        output.WriteRawTag(90);
+        output.WriteMessage(ChatPresence);
+      }
+      if (payloadCase_ == PayloadOneofCase.QueueOverflow) {
+        output.WriteRawTag(98);
+        output.WriteMessage(QueueOverflow);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (payloadCase_ == PayloadOneofCase.Presence) {
+        output.WriteRawTag(82);
+        output.WriteMessage(Presence);
+      }
+      if (payloadCase_ == PayloadOneofCase.ChatPresence) {
+        output.WriteRawTag(90);
+        output.WriteMessage(ChatPresence);
+      }
+      if (payloadCase_ == PayloadOneofCase.QueueOverflow) {
+        output.WriteRawTag(98);
+        output.WriteMessage(QueueOverflow);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (payloadCase_ == PayloadOneofCase.Presence) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Presence);
+      }
+      if (payloadCase_ == PayloadOneofCase.ChatPresence) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(ChatPresence);
+      }
+      if (payloadCase_ == PayloadOneofCase.QueueOverflow) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(QueueOverflow);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(StreamEphemeralEventsResponse other) {
+      if (other == null) {
+        return;
+      }
+      switch (other.PayloadCase) {
+        case PayloadOneofCase.Presence:
+          if (Presence == null) {
+            Presence = new global::Whatsmeow.Protocol.V1.PresenceEvent();
+          }
+          Presence.MergeFrom(other.Presence);
+          break;
+        case PayloadOneofCase.ChatPresence:
+          if (ChatPresence == null) {
+            ChatPresence = new global::Whatsmeow.Protocol.V1.ChatPresenceEvent();
+          }
+          ChatPresence.MergeFrom(other.ChatPresence);
+          break;
+        case PayloadOneofCase.QueueOverflow:
+          if (QueueOverflow == null) {
+            QueueOverflow = new global::Whatsmeow.Protocol.V1.QueueOverflowEvent();
+          }
+          QueueOverflow.MergeFrom(other.QueueOverflow);
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 82: {
+            global::Whatsmeow.Protocol.V1.PresenceEvent subBuilder = new global::Whatsmeow.Protocol.V1.PresenceEvent();
+            if (payloadCase_ == PayloadOneofCase.Presence) {
+              subBuilder.MergeFrom(Presence);
+            }
+            input.ReadMessage(subBuilder);
+            Presence = subBuilder;
+            break;
+          }
+          case 90: {
+            global::Whatsmeow.Protocol.V1.ChatPresenceEvent subBuilder = new global::Whatsmeow.Protocol.V1.ChatPresenceEvent();
+            if (payloadCase_ == PayloadOneofCase.ChatPresence) {
+              subBuilder.MergeFrom(ChatPresence);
+            }
+            input.ReadMessage(subBuilder);
+            ChatPresence = subBuilder;
+            break;
+          }
+          case 98: {
+            global::Whatsmeow.Protocol.V1.QueueOverflowEvent subBuilder = new global::Whatsmeow.Protocol.V1.QueueOverflowEvent();
+            if (payloadCase_ == PayloadOneofCase.QueueOverflow) {
+              subBuilder.MergeFrom(QueueOverflow);
+            }
+            input.ReadMessage(subBuilder);
+            QueueOverflow = subBuilder;
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 82: {
+            global::Whatsmeow.Protocol.V1.PresenceEvent subBuilder = new global::Whatsmeow.Protocol.V1.PresenceEvent();
+            if (payloadCase_ == PayloadOneofCase.Presence) {
+              subBuilder.MergeFrom(Presence);
+            }
+            input.ReadMessage(subBuilder);
+            Presence = subBuilder;
+            break;
+          }
+          case 90: {
+            global::Whatsmeow.Protocol.V1.ChatPresenceEvent subBuilder = new global::Whatsmeow.Protocol.V1.ChatPresenceEvent();
+            if (payloadCase_ == PayloadOneofCase.ChatPresence) {
+              subBuilder.MergeFrom(ChatPresence);
+            }
+            input.ReadMessage(subBuilder);
+            ChatPresence = subBuilder;
+            break;
+          }
+          case 98: {
+            global::Whatsmeow.Protocol.V1.QueueOverflowEvent subBuilder = new global::Whatsmeow.Protocol.V1.QueueOverflowEvent();
+            if (payloadCase_ == PayloadOneofCase.QueueOverflow) {
+              subBuilder.MergeFrom(QueueOverflow);
+            }
+            input.ReadMessage(subBuilder);
+            QueueOverflow = subBuilder;
+            break;
+          }
         }
       }
     }
