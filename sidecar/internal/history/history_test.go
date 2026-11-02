@@ -27,6 +27,7 @@ import (
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
 	eventsslice "github.com/tcortega/Whatsmeow.NET/sidecar/internal/events"
+	sidecarstore "github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
 )
 
 func TestANotificationIsQueuedAndWaitsForTheOfflineSync(t *testing.T) {
@@ -119,7 +120,10 @@ func TestAQueueWriteStuckBehindTheGatePastItsDeadlineGivesUpAndWithholds(t *test
 		t.Fatalf("queue %v, want nothing: the write gave up", got)
 	}
 
-	// Its redelivery is queued once the gate is free.
+	// Its redelivery is queued once the gate is free, with the real deadline: only the stuck write was meant to run
+	// out of its 100 ms, not a commit on a slow disk.
+	h.svc.queueTimeout = sidecarstore.BusyTimeout
+
 	if !h.handle("s1", evt) {
 		t.Fatal("the handler withheld the redelivery")
 	}

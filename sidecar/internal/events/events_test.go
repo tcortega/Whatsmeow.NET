@@ -671,7 +671,10 @@ func TestAHandlerWriteStuckBehindTheGatePastItsDeadlineGivesUpAndWithholds(t *te
 		t.Fatalf("the outbox has %v, %v; want nothing: the write gave up", events, err)
 	}
 
-	// Its redelivery is recorded once the gate is free.
+	// Its redelivery is recorded once the gate is free, with the real deadline: only the stuck write was meant to run
+	// out of its 100 ms, not a commit on a slow disk.
+	h.svc.recordTimeout = sidecarstore.BusyTimeout
+
 	h.mustDeliver("s1", messageEvent("M1"))
 }
 
