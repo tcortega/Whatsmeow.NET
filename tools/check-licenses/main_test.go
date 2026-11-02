@@ -51,6 +51,7 @@ type fixture struct {
 	modules map[string]string   // module path -> directory
 	listed  map[string][]string // target -> module paths go list reports for it
 	listErr error
+	crlf    bool // go env ends its lines with \r\n, as on Windows
 }
 
 func newFixture(t *testing.T, withMain bool) *fixture {
@@ -139,6 +140,10 @@ func (f *fixture) goCmd(_ context.Context, dir string, env []string, args ...str
 	}
 
 	if args[0] == "env" {
+		if f.crlf {
+			return []byte(f.goroot + "\r\n" + goVersion + "\r\n"), nil
+		}
+
 		return []byte(f.goroot + "\n" + goVersion + "\n"), nil
 	}
 
@@ -520,5 +525,22 @@ func TestRunWriteRefusesWhileTheAllowlistDiffers(t *testing.T) {
 	_, err = os.Stat(filepath.Join(f.root, filepath.FromSlash(noticesFile)))
 	if !errors.Is(err, os.ErrNotExist) {
 		t.Fatalf("stat %s = %v, want it never written from unreviewed licence files", noticesFile, err)
+	}
+}
+
+func TestRunReadsAGorootWithSpaces(t *testing.T) {
+	t.Parallel()
+
+	f := newFixture(t, true)
+	f.goroot = filepath.Join(t.TempDir(), "Program Files", "Go")
+	writeFile(t, f.goroot, "LICENSE", stdText)
+	writeFile(t, f.goroot, "src/vendor/golang.org/x/net/LICENSE", vendorText)
+	f.module(t, depPath, map[string]string{"LICENSE": mitText}, targets()...)
+	writeFile(t, f.root, noticesFile, wantNotices(t))
+	f.crlf = true
+
+	out, err := f.run(t, depLine(t)+stdLines(t))
+	if err != nil {
+		t.Fatalf("run: %v\n%s", err, out)
 	}
 }

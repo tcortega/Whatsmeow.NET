@@ -344,8 +344,9 @@ func stdModuleFiles(ctx context.Context, cfg config) (string, string, map[string
 		return "", "", nil, fmt.Errorf("find GOROOT: %w", err)
 	}
 
-	lines := strings.Fields(string(stdout))
-	if len(lines) != 2 {
+	// One value per line; a GOROOT may hold spaces (C:\Program Files\Go), and Windows ends lines with \r\n.
+	lines := strings.Split(strings.ReplaceAll(strings.TrimSpace(string(stdout)), "\r", ""), "\n")
+	if len(lines) != 2 || lines[0] == "" || lines[1] == "" {
 		return "", "", nil, fmt.Errorf("go env GOROOT GOVERSION printed %q, want two lines", stdout)
 	}
 
