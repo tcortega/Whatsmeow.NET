@@ -592,6 +592,35 @@ func TestAContextErrorTheCallerDidNotCauseIsAnUnknownOutcome(t *testing.T) {
 	}
 }
 
+// The caller's own cancel after the hand-off keeps its context error, so the call ends with its own status. Called on
+// the slice itself: a gRPC client returns CANCELLED on its own as soon as its context ends.
+func TestTheCallersOwnCancelAfterTheHandOffKeepsItsContextError(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.hold()
+
+	ctx, cancel := context.WithCancel(h.ctx)
+	done := make(chan error, 1)
+
+	go func() {
+		_, err := h.svc.SendText(ctx, &whatsmeowv1.SendTextRequest{SessionId: "s1", Chat: "111@lid", ClientMessageId: id(1), Text: "hi"})
+		done <- err
+	}()
+
+	h.next()
+	cancel()
+
+	select {
+	case err := <-done:
+		if !errors.Is(err, context.Canceled) || !errors.Is(err, server.ErrOutcomeUnknown) {
+			t.Fatalf("the cancelled send = %v, want an unknown outcome with its context's end", err)
+		}
+	case <-h.ctx.Done():
+		t.Fatal("the cancelled send did not return")
+	}
+}
+
 func TestAFailureThatSentNothingLeavesNoRecordSoARepeatSends(t *testing.T) {
 	t.Parallel()
 
