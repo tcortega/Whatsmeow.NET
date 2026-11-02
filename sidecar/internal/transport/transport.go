@@ -4,12 +4,15 @@ package transport
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/fs"
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // Unix and Pipe are the --transport values.
@@ -18,14 +21,16 @@ const (
 	Pipe = "pipe"
 )
 
-// socketName is the socket's file name inside the socket directory; short, for the 104-byte sun_path on macOS.
-const socketName = "s"
+// socketPrefix starts every launch's socket name inside the socket directory, followed by a 64-bit random suffix:
+// short, for the 104-byte sun_path on macOS.
+const socketPrefix = "s-"
 
 // Listen opens the listener for kind and returns it with the endpoint the client connects to.
 //
 // For Unix, socketDir is the directory the client created for this WhatsmeowSidecar and reuses across restarts
-// (ADR 0017). Every launch makes it owner-only again (an explicit DACL on Windows, where chmod sets none) and
-// removes the socket a killed sidecar left behind, which would otherwise fail the listen.
+// (ADR 0017). Every launch makes it owner-only again (an explicit DACL on Windows, where chmod sets none), removes the
+// sockets earlier launches left behind, and listens at a name of its own, so a client still holding an earlier launch's
+// endpoint never reaches this one (ADR 0045).
 func Listen(ctx context.Context, kind, socketDir string) (net.Listener, string, error) {
 	switch kind {
 	case Unix:
@@ -56,10 +61,14 @@ func listenUnix(ctx context.Context, socketDir string) (net.Listener, string, er
 		return nil, "", fmt.Errorf("make %s owner-only: %w", socketDir, err)
 	}
 
-	path := filepath.Join(socketDir, socketName)
-	if err := os.Remove(path); err != nil && !errors.Is(err, fs.ErrNotExist) {
-		return nil, "", fmt.Errorf("remove the stale socket: %w", err)
+	if err := removeEarlierSockets(socketDir); err != nil {
+		return nil, "", err
 	}
+
+	suffix := make([]byte, 8)
+	_, _ = rand.Read(suffix) // crypto/rand.Read never returns an error
+
+	path := filepath.Join(socketDir, socketPrefix+hex.EncodeToString(suffix))
 
 	lis, err := (&net.ListenConfig{}).Listen(ctx, "unix", path)
 	if err != nil {
@@ -67,4 +76,25 @@ func listenUnix(ctx context.Context, socketDir string) (net.Listener, string, er
 	}
 
 	return lis, path, nil
+}
+
+// removeEarlierSockets removes the sockets earlier launches left in the directory: a killed sidecar never removes its own.
+func removeEarlierSockets(socketDir string) error {
+	entries, err := os.ReadDir(socketDir)
+	if err != nil {
+		return fmt.Errorf("read %s: %w", socketDir, err)
+	}
+
+	for _, entry := range entries {
+		if !strings.HasPrefix(entry.Name(), socketPrefix) {
+			continue
+		}
+
+		err := os.Remove(filepath.Join(socketDir, entry.Name()))
+		if err != nil && !errors.Is(err, fs.ErrNotExist) {
+			return fmt.Errorf("remove an earlier socket: %w", err)
+		}
+	}
+
+	return nil
 }

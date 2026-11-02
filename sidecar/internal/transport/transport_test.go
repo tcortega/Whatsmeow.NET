@@ -2,6 +2,8 @@ package transport
 
 import (
 	"context"
+	"errors"
+	"io/fs"
 	"net"
 	"os"
 	"path/filepath"
@@ -22,25 +24,33 @@ func socketDir(t *testing.T) string {
 	return dir
 }
 
-func TestListenReplacesAStaleSocketFromACrashedRun(t *testing.T) {
+func TestListenNeverReusesAnEarlierLaunchsEndpoint(t *testing.T) {
 	t.Parallel()
 
 	dir := socketDir(t)
-	stale := filepath.Join(dir, socketName)
 
-	if err := os.WriteFile(stale, []byte("left by a killed sidecar"), 0o600); err != nil {
-		t.Fatalf("write: %v", err)
-	}
-
-	lis, endpoint, err := Listen(context.Background(), Unix, dir)
+	// A killed sidecar leaves its socket behind: this one is never closed, so nothing removes it but the next Listen.
+	killed, earlier, err := Listen(context.Background(), Unix, dir)
 	if err != nil {
 		t.Fatalf("listen: %v", err)
 	}
 
+	defer func() { _ = killed.Close() }()
+
+	lis, endpoint, err := Listen(context.Background(), Unix, dir)
+	if err != nil {
+		t.Fatalf("listen again: %v", err)
+	}
+
 	defer func() { _ = lis.Close() }()
 
-	if endpoint != stale {
-		t.Fatalf("endpoint = %q, want %q", endpoint, stale)
+	if filepath.Dir(endpoint) != dir || endpoint == earlier {
+		t.Fatalf("endpoint = %q, want a new one in %q, not %q", endpoint, dir, earlier)
+	}
+
+	// The earlier launch's socket is gone, so a client of that launch never reaches this one there.
+	if _, err := os.Lstat(earlier); !errors.Is(err, fs.ErrNotExist) {
+		t.Fatalf("the earlier socket %q is still there: %v", earlier, err)
 	}
 
 	accepted := make(chan error, 1)
