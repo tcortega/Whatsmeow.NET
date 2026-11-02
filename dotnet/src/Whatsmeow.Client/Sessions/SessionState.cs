@@ -30,7 +30,10 @@ public abstract record SessionState
 	/// <summary>Connected, and the messages queued while offline have arrived.</summary>
 	public sealed record CaughtUp : SessionState;
 
-	/// <summary>The connection dropped; it is being opened again.</summary>
+	/// <summary>
+	/// The connection dropped, or the sidecar reset it so that WhatsApp delivers again a message it could not record;
+	/// it is being opened again.
+	/// </summary>
 	public sealed record Reconnecting : SessionState;
 
 	/// <summary>Paired, not connected: it was disconnected, the sidecar restarted, or pairing failed after the link.</summary>

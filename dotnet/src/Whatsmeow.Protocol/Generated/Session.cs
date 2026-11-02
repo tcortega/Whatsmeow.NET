@@ -2160,7 +2160,8 @@ namespace Whatsmeow.Protocol.V1 {
       }
 
       /// <summary>
-      /// The connection dropped; whatsmeow is reconnecting.
+      /// The connection dropped, or the sidecar reset it so that WhatsApp delivers again a message whose answer was
+      /// withheld; whatsmeow is reconnecting.
       /// </summary>
       [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
       internal sealed partial class Reconnecting : pb::IMessage<Reconnecting>
