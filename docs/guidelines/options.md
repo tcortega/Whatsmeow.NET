@@ -55,7 +55,8 @@ public sealed partial class WhatsmeowSidecarOptionsValidator : IValidateOptions<
 
 `[Range]` and `[Required]` on the options type feed the generator, which is fine for a small closed set.
 `[Range(typeof(TimeSpan), ...)]` is not: its constructor is trim-unsafe, and it fails a library build with IL2026 [observed: #4, SDK 10.0.403], so a `TimeSpan` bound is a hand-written rule.
-Today every rule on `WhatsmeowSidecarOptions` is hand-written (`WhatsmeowSidecarOptionsSetup.Validate`), so there is no generated validator yet; add one with the first rule an attribute can express.
+Today every rule on `WhatsmeowSidecarOptions` is hand-written (`WhatsmeowSidecarOptionsSetup.Failures`): the no-DI path throws them through `WhatsmeowSidecarOptionsSetup.Validate`, and the DI path runs them as `WhatsmeowSidecarOptionsValidator`, an `IValidateOptions<T>` (ADR 0034).
+There is no generated validator yet; add one with the first rule an attribute can express.
 When a rule needs the environment, a file check, or more than one failure string, hand-write the extra `IValidateOptions<T>` next to it.
 
 ## Call sites

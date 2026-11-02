@@ -1,0 +1,9 @@
+#nullable enable
+static Whatsmeow.Extensions.Hosting.WhatsmeowServiceCollectionExtensions.AddWhatsmeow(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Whatsmeow.Extensions.Hosting.WhatsmeowBuilder!
+Whatsmeow.Extensions.Hosting.IWhatsAppEventHandler<TEvent>
+Whatsmeow.Extensions.Hosting.IWhatsAppEventHandler<TEvent>.HandleAsync(TEvent! e, Whatsmeow.IWhatsAppClient! client, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Whatsmeow.Extensions.Hosting.WhatsmeowBuilder
+Whatsmeow.Extensions.Hosting.WhatsmeowBuilder.AddHandler<TEvent, THandler>() -> Whatsmeow.Extensions.Hosting.WhatsmeowBuilder!
+Whatsmeow.Extensions.Hosting.WhatsmeowBuilder.AddHandler<TEvent, THandler>(string! sessionKey) -> Whatsmeow.Extensions.Hosting.WhatsmeowBuilder!
+Whatsmeow.Extensions.Hosting.WhatsmeowBuilder.AddSession(string! sessionKey) -> Whatsmeow.Extensions.Hosting.WhatsmeowBuilder!
+Whatsmeow.Extensions.Hosting.WhatsmeowServiceCollectionExtensions

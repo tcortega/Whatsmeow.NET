@@ -424,7 +424,8 @@ consumer_setup() { # feed
 	in_consumer dotnet new console -o app -n Consumer || return
 	cp build/package-smoke/Program.cs "$work/app/" || return
 	in_consumer dotnet add app/Consumer.csproj package Whatsmeow.Client --version "$version" || return
-	echo "a consumer of Whatsmeow.Client $version from $feed in $work"
+	in_consumer dotnet add app/Consumer.csproj package Whatsmeow.Extensions.Hosting --version "$version" || return
+	echo "a consumer of Whatsmeow.Client and Whatsmeow.Extensions.Hosting $version from $feed in $work"
 }
 
 consumer_config() { # feed
@@ -460,6 +461,21 @@ native_id() { # linux|osx|win
 
 lowercase() {
 	tr '[:upper:]' '[:lower:]' <<<"$1"
+}
+
+# Whatsmeow.Extensions.Hosting uses Whatsmeow.Client internals, so it depends on it at exactly its own version (ADR 0034).
+packaged_hosting_pin() {
+	local nuspec="$packages/whatsmeow.extensions.hosting/$version/whatsmeow.extensions.hosting.nuspec"
+	if [ ! -f "$nuspec" ]; then
+		annotate error "exact pins" "the consumer restored no $nuspec"
+		return 1
+	fi
+	if ! grep -qF "<dependency id=\"Whatsmeow.Client\" version=\"[$version]\"" "$nuspec"; then
+		annotate error "exact pins" "Whatsmeow.Extensions.Hosting does not depend on Whatsmeow.Client at exactly [$version] (ADR 0034); its ProjectReference needs PackExactVersion=\"true\" (_WhatsmeowExactProjectVersions, ADR 0023)"
+		grep -F 'Whatsmeow.Client' "$nuspec"
+		return 1
+	fi
+	grep -F 'Whatsmeow.Client' "$nuspec"
 }
 
 native_package() { # linux|osx|win
@@ -837,6 +853,7 @@ job_install() { # feed
 	package_source="$1"
 	check "install: a new consumer of the feed $1" consumer_setup "$1" || return
 	check "install: Whatsmeow.Client pins each native package at exactly its version" packaged_pins
+	check "install: Whatsmeow.Extensions.Hosting pins Whatsmeow.Client at exactly its version" packaged_hosting_pin
 	check "install: each native package holds exactly its binaries, its buildTransitive targets, its README and the GPL files" packaged_files
 	check "install: each native package's README and GPL files are the repository's, and COPYING is the GPL-3.0 text (ADR 0016)" packaged_notices
 	check "install: GPL-3.0-only on the native packages, MPL-2.0 on the .NET packages (ADR 0016)" packaged_licences

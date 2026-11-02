@@ -21,8 +21,6 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 	internal const int MaxProtocol = 1;
 
 	private readonly WhatsmeowSidecarOptions _options;
-	private readonly string _binary;
-	private readonly string? _socketDirectory;
 	private readonly int _minProtocol;
 	private readonly int _maxProtocol;
 	private readonly bool _fakeWhatsApp;
@@ -34,24 +32,23 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 	private readonly CancellationTokenSource _disposing = new();
 	private readonly Lock _launchLock = new();
 	private volatile SidecarProcess? _current;
+	private string? _binary;
+	private string? _socketDirectory;
 	private int _disposed;
 	private int _launches;
 	private TaskCompletionSource _launched = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
 	private WhatsmeowSidecar(
 		WhatsmeowSidecarOptions options,
-		string binary,
-		string? socketDirectory,
 		int minProtocol,
 		int maxProtocol,
 		bool fakeWhatsApp,
 		ILoggerFactory loggerFactory,
-		TimeProvider timeProvider
+		TimeProvider timeProvider,
+		Action<IWhatsAppClient>? clientCreated
 	)
 	{
 		_options = options;
-		_binary = binary;
-		_socketDirectory = socketDirectory;
 		_minProtocol = minProtocol;
 		_maxProtocol = maxProtocol;
 		_fakeWhatsApp = fakeWhatsApp;
@@ -61,7 +58,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		_channel = new LocalChannel(options.Transport is SidecarTransport.NamedPipe, () => _current?.Endpoint, () => _current?.Token ?? "", loggerFactory);
 		_client = new SidecarService.SidecarServiceClient(_channel.CallInvoker);
 		_supervisor = new SidecarSupervisor(LaunchAsync, timeProvider, _log);
-		Sessions = new WhatsmeowSessions(this, _channel.CallInvoker, _log);
+		Sessions = new WhatsmeowSessions(this, _channel.CallInvoker, _log, clientCreated);
 	}
 
 	/// <summary>The sidecar's sessions, one WhatsApp account each.</summary>
@@ -117,6 +114,44 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		CancellationToken cancellationToken
 	)
 	{
+		var sidecar = Create(options, loggerFactory, minProtocol, maxProtocol, fakeWhatsApp, timeProvider, clientCreated: null);
+		try
+		{
+			await sidecar.StartProcessAsync(cancellationToken).ConfigureAwait(false);
+			return sidecar;
+		}
+		catch
+		{
+			await sidecar.DisposeAsync().ConfigureAwait(false);
+			throw;
+		}
+	}
+
+	/// <summary>
+	/// A sidecar that is not started yet, for the hosting package: its sessions' clients exist before the host starts it
+	/// (ADR 0034). <paramref name="clientCreated"/> runs for each new client of <see cref="Sessions"/>, before anyone can
+	/// connect it.
+	/// </summary>
+	/// <exception cref="OptionsValidationException"><paramref name="options"/> is invalid.</exception>
+	internal static WhatsmeowSidecar Create(
+		WhatsmeowSidecarOptions options,
+		ILoggerFactory loggerFactory,
+		TimeProvider? timeProvider,
+		bool fakeWhatsApp,
+		Action<IWhatsAppClient>? clientCreated
+	) =>
+		Create(options, loggerFactory, MinProtocol, MaxProtocol, fakeWhatsApp, timeProvider, clientCreated);
+
+	private static WhatsmeowSidecar Create(
+		WhatsmeowSidecarOptions options,
+		ILoggerFactory loggerFactory,
+		int minProtocol,
+		int maxProtocol,
+		bool fakeWhatsApp,
+		TimeProvider? timeProvider,
+		Action<IWhatsAppClient>? clientCreated
+	)
+	{
 		ArgumentNullException.ThrowIfNull(options);
 		ArgumentNullException.ThrowIfNull(loggerFactory);
 
@@ -131,27 +166,27 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		};
 		WhatsmeowSidecarOptionsSetup.Apply(effective);
 		WhatsmeowSidecarOptionsSetup.Validate(effective);
-		var binary = SidecarBinary.Locate(effective);
-
-		// The client owns the socket directory: created 0700 here, reused by every restart, deleted on dispose (ADR 0017).
-		var socketDirectory = effective.Transport is SidecarTransport.UnixDomainSocket ? Directory.CreateTempSubdirectory("wmn-").FullName : null;
 
 #pragma warning disable RS0030 // Justification: the default when none is injected (docs/guidelines/csharp.md Time)
 		timeProvider ??= TimeProvider.System;
 #pragma warning restore RS0030
 
-		var sidecar = new WhatsmeowSidecar(effective, binary, socketDirectory, minProtocol, maxProtocol, fakeWhatsApp, loggerFactory, timeProvider);
-		try
-		{
-			var (processId, exited) = await sidecar.LaunchAsync(cancellationToken).ConfigureAwait(false);
-			sidecar._supervisor.Start(processId, exited);
-			return sidecar;
-		}
-		catch
-		{
-			await sidecar.DisposeAsync().ConfigureAwait(false);
-			throw;
-		}
+		return new WhatsmeowSidecar(effective, minProtocol, maxProtocol, fakeWhatsApp, loggerFactory, timeProvider, clientCreated);
+	}
+
+	/// <summary>Finds the binary, starts the first sidecar and its supervisor. Called once, on a sidecar from <see cref="Create(WhatsmeowSidecarOptions, ILoggerFactory, TimeProvider?, bool, Action{IWhatsAppClient}?)"/>.</summary>
+	/// <exception cref="SidecarUnavailableException">The binary was not found, or the sidecar did not start.</exception>
+	/// <exception cref="SidecarVersionMismatchException">The sidecar is another version; it was stopped.</exception>
+	internal async Task StartProcessAsync(CancellationToken cancellationToken)
+	{
+		ObjectDisposedException.ThrowIf(_disposed != 0, this);
+		_binary = SidecarBinary.Locate(_options);
+
+		// The client owns the socket directory: created 0700 here, reused by every restart, deleted on dispose (ADR 0017).
+		_socketDirectory = _options.Transport is SidecarTransport.UnixDomainSocket ? Directory.CreateTempSubdirectory("wmn-").FullName : null;
+
+		var (processId, exited) = await LaunchAsync(cancellationToken).ConfigureAwait(false);
+		_supervisor.Start(processId, exited);
 	}
 
 	/// <summary>
@@ -263,7 +298,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		using var startup = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
 
 		var process = await SidecarProcess
-			.StartAsync(_binary, _options.Transport, _socketDirectory, _options.DatabasePath!, _options.MediaRoot, _fakeWhatsApp, _options.StartupTimeout, _log, _sidecarLog, startup.Token, cancellationToken)
+			.StartAsync(_binary!, _options.Transport, _socketDirectory, _options.DatabasePath!, _options.MediaRoot, _fakeWhatsApp, _options.StartupTimeout, _log, _sidecarLog, startup.Token, cancellationToken)
 			.ConfigureAwait(false);
 		_current = process;
 		SidecarLog.SidecarStarted(_log, process.Id, process.Version, process.Endpoint);

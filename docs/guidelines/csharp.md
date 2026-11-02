@@ -162,7 +162,7 @@ Moved from ARCHITECTURE §8.9; the policy itself stays there.
 | JSON (ready line, sidecar logs) | `System.Text.Json` with a `JsonSerializerContext` |
 | Native interop | `[LibraryImport]` and CsWin32. Never `[DllImport]` |
 | Event dispatch | exhaustive pattern matching over sealed records, with generic handler lookup keyed by the compile-time `TEvent` type. Never `Type.GetType`, `MakeGenericType` or `Activator` |
-| Handler registration | explicit generic `builder.AddHandler<THandler>()`. A source generator for discovery may come later; assembly scanning never |
+| Handler registration | explicit generic `builder.AddHandler<TEvent, THandler>()`: the event type is named, because finding the handler interfaces a type implements needs reflection (ADR 0034). A source generator for discovery may come later; assembly scanning never |
 | Value-object IDs | Vogen source generator |
 
 Enforcement:

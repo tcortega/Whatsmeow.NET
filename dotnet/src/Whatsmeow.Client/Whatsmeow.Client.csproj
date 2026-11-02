@@ -40,6 +40,9 @@
 		<InternalsVisibleTo Include="Whatsmeow.IntegrationTests" />
 		<!-- The events host of the kill-the-.NET-side test starts a fake-mode sidecar, the second seam above. -->
 		<InternalsVisibleTo Include="SidecarHost" />
+		<!-- The hosting package creates the sidecar unstarted and shares the options' setup step and rules (ADR 0034); it
+		depends on this package at exactly its version, so the internals always match. -->
+		<InternalsVisibleTo Include="Whatsmeow.Extensions.Hosting" />
 	</ItemGroup>
 
 	<ItemGroup Label="Usings">

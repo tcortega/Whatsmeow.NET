@@ -1,6 +1,7 @@
 <Solution>
 	<Folder Name="/src/">
 		<Project Path="src/Whatsmeow.Client/Whatsmeow.Client.csproj" />
+		<Project Path="src/Whatsmeow.Extensions.Hosting/Whatsmeow.Extensions.Hosting.csproj" />
 		<Project Path="src/Whatsmeow.Protocol.WhatsApp/Whatsmeow.Protocol.WhatsApp.csproj" />
 		<Project Path="src/Whatsmeow.Protocol/Whatsmeow.Protocol.csproj" />
 		<Project Path="src/Whatsmeow.Sidecar.Native.Linux/Whatsmeow.Sidecar.Native.Linux.csproj" />

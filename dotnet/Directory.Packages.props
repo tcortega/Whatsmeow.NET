@@ -13,8 +13,13 @@
 		<PackageVersion Include="Grpc.StatusProto" Version="2.85.0" />
 		<PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.6.0" />
 		<PackageVersion Include="Microsoft.Extensions.Diagnostics.Testing" Version="10.11.0" />
+		<!-- The tests' generic host; Whatsmeow.Extensions.Hosting itself needs only the abstractions. -->
+		<PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.14" />
+		<PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.14" />
 		<PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.14" />
 		<PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.14" />
+		<!-- BindConfiguration, and the configuration binding generator it brings (Microsoft.Extensions.Configuration.Binder). -->
+		<PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.14" />
 		<PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.11.0" />
 		<!-- Whatsmeow.LiveTests only, to render the QR code a person scans; MIT. Never in a shipped project (build/ci.sh). -->
 		<PackageVersion Include="QRCoder" Version="1.8.1" />

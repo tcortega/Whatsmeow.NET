@@ -16,6 +16,7 @@ public sealed class WhatsmeowSessions
 	private readonly SessionService.SessionServiceClient _client;
 	private readonly CallInvoker _invoker;
 	private readonly ILogger _log;
+	private readonly Action<IWhatsAppClient>? _clientCreated;
 	private readonly ConcurrentDictionary<SessionId, SessionClient> _clients = new();
 
 	/// <summary>The sessions the application connected and did not disconnect, log out or delete since (ARCHITECTURE §8.5).</summary>
@@ -23,12 +24,16 @@ public sealed class WhatsmeowSessions
 
 	private readonly Lock _lock = new();
 
-	internal WhatsmeowSessions(WhatsmeowSidecar sidecar, CallInvoker invoker, ILogger log)
+	/// <summary>Taken to create a client, so <see cref="_clientCreated"/> runs once per client, before anyone gets it.</summary>
+	private readonly Lock _creating = new();
+
+	internal WhatsmeowSessions(WhatsmeowSidecar sidecar, CallInvoker invoker, ILogger log, Action<IWhatsAppClient>? clientCreated)
 	{
 		_sidecar = sidecar;
 		_client = new SessionService.SessionServiceClient(invoker);
 		_invoker = invoker;
 		_log = log;
+		_clientCreated = clientCreated;
 	}
 
 	/// <summary>
@@ -42,7 +47,28 @@ public sealed class WhatsmeowSessions
 		_ = await RpcErrors
 			.CallAsync(_client.CreateSessionAsync(new CreateSessionRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken))
 			.ConfigureAwait(false);
-		return _clients.GetOrAdd(sessionId, static (id, sessions) => sessions.NewClient(id), this);
+		return Client(sessionId);
+	}
+
+	/// <summary>
+	/// The client of <paramref name="sessionId"/>, the one <see cref="GetOrCreateAsync"/> returns, without creating the
+	/// session in the sidecar: the hosting package hands it out before the sidecar starts (ADR 0034).
+	/// </summary>
+	internal IWhatsAppClient Client(SessionId sessionId)
+	{
+		if (_clients.TryGetValue(sessionId, out var existing))
+			return existing;
+
+		lock (_creating)
+		{
+			if (_clients.TryGetValue(sessionId, out existing))
+				return existing;
+
+			var client = NewClient(sessionId);
+			_clientCreated?.Invoke(client);
+			_clients[sessionId] = client;
+			return client;
+		}
 	}
 
 	/// <summary>Every session and its state, ordered by id.</summary>

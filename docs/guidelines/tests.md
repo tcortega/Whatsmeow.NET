@@ -45,6 +45,7 @@ The Pairing tests pair through the public API, with the fake WhatsApp as the pho
 A test that starts a sidecar of its own gives it a database of its own (`binaries.NewDatabase()`): one sidecar owns a database file.
 A test that crashes the sidecar calls `fixture.CrashAsync`, which returns once it was restarted, and sits in the `SidecarCrashes` collection, which never runs in parallel; `CrashAsync` throws anywhere else.
 Do not start a sidecar per test; the Sidecar slice's start and stop tests are the exception, because starting and stopping is their behaviour, and so are the delivery tests that stop or kill the .NET side (`Events/EventProcessTests.cs`): they start fake-mode sidecars of their own (`fixture.Binary`, `binaries.NewDatabase()`), and kill the .NET side as a child process, `SidecarHost events`.
+So do the hosting tests (`Hosting/HostingTests.cs`): the generic host starting and stopping the sidecar is their behaviour, so each host gets a fake-mode sidecar of its own the same way.
 So is the media transfer per transport (`Media/MediaTransferTests.cs`): it runs over the named pipe too, and measures the sidecar's memory alone, in the `MediaTransfers` collection, which never runs in parallel.
 The shared sidecar has a media root (`fixture.MediaRoot`); a test that hands files over puts them under a directory of its own there.
 Do not mock the transport, the dispatcher, or the sidecar.
