@@ -373,3 +373,31 @@ jobs:
 		"build/release.sh:1: [release-delete]",
 	})
 }
+
+func TestCheckReleaseDeletionAcrossContinuedLinesAndInActions(t *testing.T) {
+	t.Parallel()
+
+	repo := fstest.MapFS{
+		".github/actions/publish/action.yml": {Data: []byte(`runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        gh api \
+          --method DELETE \
+          "repos/$GITHUB_REPOSITORY/releases/$id"
+        gh api \
+          --method GET \
+          "repos/$GITHUB_REPOSITORY/releases/$id"
+`)},
+		".github/dependabot.yaml": {Data: []byte("# gh release delete\n")},
+		".github/README.md":       {Data: []byte("gh release delete is never used\n")},
+		"build/release.sh":        {Data: []byte("curl \\\n  --request DELETE \\\n  https://api.github.com/repos/o/r/releases/1\n")},
+	}
+
+	assertFindings(t, repo, []string{
+		".github/actions/publish/action.yml:6: [release-delete]",
+		".github/dependabot.yaml:1: [release-delete]",
+		"build/release.sh:1: [release-delete]",
+	})
+}

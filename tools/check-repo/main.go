@@ -5,9 +5,9 @@
 // generated folders and Go build tags exist; anything else is reported, and the fix for a real need is to
 // extend the allowlist here in a reviewed change. On top of that it rejects, in C# outside generated code:
 // unjustified pragmas and SuppressMessage attributes, generated-code markers, aliases of the suppression and
-// generated-code attributes, captured contexts, and positional records. In workflows and shell scripts it rejects
-// any step that deletes a GitHub release: a release holds the Corresponding Source of the packages on nuget.org,
-// which stay there, so it is never deleted (ADR 0016, ADR 0029).
+// generated-code attributes, captured contexts, and positional records. In YAML under .github/ (workflows and
+// composite actions) and in shell scripts it rejects any step that deletes a GitHub release: a release holds the
+// Corresponding Source of the packages on nuget.org, which stay there, so it is never deleted (ADR 0016, ADR 0029).
 //
 // Findings print as path:line: [rule] message. The rules are in docs/guidelines/csharp.md Suppressions.
 // Run it from the tools module: go -C tools run ./check-repo [-root ..].
@@ -186,7 +186,7 @@ func checkFile(fsys fs.FS, name string) ([]finding, error) {
 	}
 
 	ext := strings.ToLower(path.Ext(name))
-	if isWorkflow(name) || ext == ".sh" {
+	if isGitHubYAML(name) || ext == ".sh" {
 		content, err := fs.ReadFile(fsys, name)
 		if err != nil {
 			return nil, fmt.Errorf("read %s: %w", name, err)
@@ -218,20 +218,31 @@ func checkFile(fsys fs.FS, name string) ([]finding, error) {
 	}
 }
 
-func isWorkflow(name string) bool {
+// isGitHubYAML is a workflow, a composite action, or any other YAML GitHub reads under .github/.
+func isGitHubYAML(name string) bool {
 	ext := path.Ext(name)
 
-	return strings.HasPrefix(name, ".github/workflows/") && (ext == ".yml" || ext == ".yaml")
+	return strings.HasPrefix(name, ".github/") && (ext == ".yml" || ext == ".yaml")
 }
 
-// checkReleaseDelete reports every line that deletes a GitHub release or one of its assets, comments included:
-// a commented-out deletion is one keystroke from running.
+// checkReleaseDelete reports every command that deletes a GitHub release or one of its assets, comments included:
+// a commented-out deletion is one keystroke from running. A command continued with a trailing backslash is joined
+// first and reported at its first line.
 func checkReleaseDelete(name string, content []byte) []finding {
 	var findings []finding
 
-	for number, line := range strings.Split(string(content), "\n") {
-		if releaseDelete.MatchString(line) {
-			findings = append(findings, finding{name, number + 1, "release-delete", "a release holds the Corresponding Source of packages that stay on nuget.org, so no workflow or script deletes one (ADR 0016, ADR 0029)"})
+	lines := strings.Split(strings.ReplaceAll(string(content), "\r", ""), "\n")
+	for start := 0; start < len(lines); start++ {
+		command := lines[start]
+		number := start + 1
+
+		for strings.HasSuffix(strings.TrimRight(command, " \t"), "\\") && start+1 < len(lines) {
+			start++
+			command = strings.TrimSuffix(strings.TrimRight(command, " \t"), "\\") + " " + lines[start]
+		}
+
+		if releaseDelete.MatchString(command) {
+			findings = append(findings, finding{name, number, "release-delete", "a release holds the Corresponding Source of packages that stay on nuget.org, so no workflow or script deletes one (ADR 0016, ADR 0029)"})
 		}
 	}
 
