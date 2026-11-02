@@ -157,9 +157,10 @@ internal sealed class MediaTransfer(MediaService.MediaServiceClient client, Sess
 		}
 		catch (Exception e) when (e is RpcException or InvalidOperationException or OperationCanceledException && !cancellationToken.IsCancellationRequested)
 		{
-			// The sidecar ended the call while chunks were still going out, which cuts the write short with any of these
-			// (an OperationCanceledException when the write in flight was cancelled, an ObjectDisposedException when it
-			// came after the request body ended; RequestBodyFence): its status says why.
+			// The sidecar ended the call while chunks were still going out, which cuts the write short. Once the call
+			// has completed, grpc-dotnet throws its status as an RpcException
+			// (StreamExtensions.TryCreateCallCompleteException); the other two are for a write that fails before that.
+			// Either way the status says why.
 			_ = await ResponseAsync(call).ConfigureAwait(false);
 			throw;
 		}

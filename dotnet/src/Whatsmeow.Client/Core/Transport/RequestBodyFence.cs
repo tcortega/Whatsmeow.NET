@@ -22,7 +22,21 @@ namespace Whatsmeow.Core.Transport;
 /// <para>
 /// The fence holds the content open until the write in flight returned, cancelling it first so it cannot wait for
 /// credit forever, and refuses the writes after it. A sidecar refusing an upload mid-stream ends the call this way.
-/// Remove it once grpc-dotnet waits for the write in flight before it ends the content.
+/// The cut-short write still surfaces as the call's status: grpc-dotnet turns the write's cancellation or
+/// <see cref="ObjectDisposedException"/> into the status <c>RpcException</c> once the call completed
+/// (<c>StreamExtensions.TryCreateCallCompleteException</c>).
+/// </para>
+/// <para>
+/// The fence reaches the inner content through the public
+/// <see cref="HttpContent.CopyToAsync(Stream, TransportContext?, CancellationToken)"/>, which wraps an
+/// <see cref="IOException"/> or <see cref="ObjectDisposedException"/> the content throws in an
+/// <see cref="HttpRequestException"/>, as SocketsHttpHandler's own copy of the body does, so a failed body is wrapped
+/// here instead of there. The call's status code is unchanged; only the message text may differ.
+/// </para>
+/// <para>
+/// Remove it once either is fixed: grpc-dotnet waiting for the write in flight before it ends the content, or
+/// SocketsHttpHandler reading <c>_creditWaiter</c> under the credit lock and failing a write on a completed stream
+/// instead of waiting for credit.
 /// </para>
 /// </remarks>
 internal sealed class RequestBodyFence : DelegatingHandler
@@ -72,10 +86,12 @@ internal sealed class RequestBodyFence : DelegatingHandler
 	}
 
 	/// <summary>
-	/// Writes to <paramref name="inner"/> one at a time, as any stream does. Disposing it refuses later writes, and cancels
-	/// the write in flight and waits for it; without one it returns at once, so a completed body still ends inline.
+	/// Writes to <paramref name="inner"/> one at a time, as any stream does. Closing it refuses later writes and cancels
+	/// the write in flight; <see cref="DisposeAsync"/> also waits for that write, and without one it finishes inline, so
+	/// a completed body still ends before <c>CompleteAsync</c> returns (grpc-dotnet #1394). The sync
+	/// <see cref="Stream.Dispose()"/> cannot wait without blocking, so it only refuses and cancels.
 	/// </summary>
-	private sealed class FencedStream(Stream inner) : Stream
+	internal sealed class FencedStream(Stream inner) : Stream
 	{
 		private readonly Lock _gate = new();
 		private readonly CancellationTokenSource _closing = new();
@@ -84,7 +100,16 @@ internal sealed class RequestBodyFence : DelegatingHandler
 
 		public override bool CanRead => false;
 		public override bool CanSeek => false;
-		public override bool CanWrite => true;
+
+		public override bool CanWrite
+		{
+			get
+			{
+				lock (_gate)
+					return !_closed;
+			}
+		}
+
 		public override long Length => throw new NotSupportedException();
 
 		public override long Position
@@ -96,21 +121,23 @@ internal sealed class RequestBodyFence : DelegatingHandler
 		public override async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
 		{
 			var writing = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+			CancellationTokenSource linked;
 			lock (_gate)
 			{
 				ObjectDisposedException.ThrowIf(_closed, this);
 				if (_writing is not null)
 					throw new InvalidOperationException("A write is already in flight on the request body.");
 				_writing = writing;
+				linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _closing.Token);
 			}
 
 			try
 			{
-				using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _closing.Token);
 				await inner.WriteAsync(buffer, linked.Token).ConfigureAwait(false);
 			}
 			finally
 			{
+				linked.Dispose();
 				lock (_gate)
 					_writing = null;
 				writing.SetResult();
@@ -124,28 +151,60 @@ internal sealed class RequestBodyFence : DelegatingHandler
 
 		public override async ValueTask DisposeAsync()
 		{
-			TaskCompletionSource? writing;
-			lock (_gate)
+			try
 			{
-				_closed = true;
-				writing = _writing;
+				if (Refuse() is { } writing)
+				{
+					// A cancel callback that throws must not skip the wait: the write would outlive the body again.
+					try
+					{
+						CancelInFlight();
+					}
+					finally
+					{
+						await writing.Task.ConfigureAwait(false);
+					}
+				}
 			}
-
-			if (writing is not null)
+			finally
 			{
-				await _closing.CancelAsync().ConfigureAwait(false);
-				await writing.Task.ConfigureAwait(false);
+				await base.DisposeAsync().ConfigureAwait(false);
 			}
-
-			await base.DisposeAsync().ConfigureAwait(false);
 		}
 
 		protected override void Dispose(bool disposing)
 		{
 			if (disposing)
-				_closing.Dispose();
+			{
+				try
+				{
+					if (Refuse() is not null)
+						CancelInFlight();
+				}
+				finally
+				{
+					_closing.Dispose();
+				}
+			}
+
 			base.Dispose(disposing);
 		}
+
+		/// <summary>Refuses later writes; returns the write in flight, if any.</summary>
+		private TaskCompletionSource? Refuse()
+		{
+			lock (_gate)
+			{
+				_closed = true;
+				return _writing;
+			}
+		}
+
+		/// <summary>
+		/// Cancels the write in flight before <see cref="DisposeAsync"/> first yields, with the callbacks inline, so a
+		/// callback's exception surfaces there, after the wait.
+		/// </summary>
+		private void CancelInFlight() => _closing.Cancel();
 
 		public override void Flush() => inner.Flush();
 

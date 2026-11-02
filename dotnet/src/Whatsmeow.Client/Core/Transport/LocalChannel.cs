@@ -23,10 +23,10 @@ internal sealed class LocalChannel : IDisposable
 	/// <param name="loggerFactory">For gRPC's own logs.</param>
 	public LocalChannel(bool namedPipe, Func<string?> endpoint, Func<string> token, ILoggerFactory loggerFactory)
 	{
-		// Never call ConnectAsync or read State: both throw with a ConnectCallback (ARCHITECTURE §8.6). The fence keeps a
-		// call that ends mid-upload from completing the HTTP/2 stream under a write (RequestBodyFence, #71).
+		// Never call ConnectAsync or read State: both throw with a ConnectCallback (ARCHITECTURE §8.6).
 		_channel = GrpcChannel.ForAddress("http://localhost", new GrpcChannelOptions
 		{
+			// Keeps a call that ends mid-upload from completing the HTTP/2 stream under a write (#71).
 			HttpHandler = new RequestBodyFence
 			{
 				InnerHandler = new SocketsHttpHandler

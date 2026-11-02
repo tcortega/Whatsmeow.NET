@@ -100,7 +100,7 @@ Sidecar (#4). Copy it for the next slice; do not invent a second pattern.
 | Integration test (default) | `dotnet/tests/Whatsmeow.IntegrationTests/<Slice>/`, on the `FakeSidecar` fixture |
 | Live test (real WhatsApp, opt-in) | `dotnet/tests/Whatsmeow.LiveTests/`, `[LiveFact]` with the fake-mode checks (ADR 0021) |
 | Fake WhatsApp control for a slice | `proto/whatsmeow/fake/v1/fake.proto` + `sidecar/internal/fakewhatsapp/` (ADR 0019) |
-| Dispatcher / supervisor unit test | `dotnet/tests/Whatsmeow.Client.Tests/` |
+| Dispatcher / supervisor / request body fence unit test | `dotnet/tests/Whatsmeow.Client.Tests/` |
 | A new module linked into the sidecar | read its licence, then its lines in `sidecar/licenses.allow` (ADR 0016) |
 | Decision | `docs/adr/NNNN-title.md` |
 
