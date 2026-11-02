@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<RootNamespace>Whatsmeow.Extensions.Hosting</RootNamespace>
+		<!--
+			BindConfiguration through the configuration binding generator: a library does not get it from IsAotCompatible,
+			and without it BindConfiguration is the reflection binder, IL2026/IL3050 (docs/guidelines/options.md).
+		-->
+		<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+		<!-- Exactly this package's version: the hosting package uses the client's internals (ADR 0034). -->
+		<ProjectReference Include="../Whatsmeow.Client/Whatsmeow.Client.csproj" PackExactVersion="true" />
+	</ItemGroup>
+
+	<!-- Stable package: its public API is tracked in PublicAPI.*.txt (RS0016/RS0017 are errors, dotnet/.globalconfig). -->
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all" />
+		<AdditionalFiles Include="PublicAPI.Shipped.txt" />
+		<AdditionalFiles Include="PublicAPI.Unshipped.txt" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- Only for fake WhatsApp mode, the seam the public API cannot reach (ADR 0019). -->
+		<InternalsVisibleTo Include="Whatsmeow.IntegrationTests" />
+	</ItemGroup>
+
+	<ItemGroup Label="Usings">
+		<Using Include="System.Diagnostics.CodeAnalysis" />
+		<Using Include="Microsoft.Extensions.DependencyInjection" />
+		<Using Include="Microsoft.Extensions.Logging" />
+	</ItemGroup>
+</Project>

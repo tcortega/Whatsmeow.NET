@@ -19,6 +19,7 @@ const cleanCsproj = `<Project Sdk="Microsoft.NET.Sdk">
 		<PublishAot>true</PublishAot>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
 		<RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">$(NETCoreSdkRuntimeIdentifier)</RuntimeIdentifier>
 	</PropertyGroup>
 	<ItemGroup Label="Usings">
@@ -203,6 +204,7 @@ func TestCheckProjectAllowlist(t *testing.T) {
 		<NoWarn>$(NoWarn);CA1822</NoWarn>
 		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 		<OutputType>Exe</OutputType>
+		<EnableConfigurationBindingGenerator>false</EnableConfigurationBindingGenerator>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="xunit.v3" ExcludeAssets="analyzers" />
@@ -223,11 +225,12 @@ func TestCheckProjectAllowlist(t *testing.T) {
 		"dotnet/src/Bad/Bad.csproj:2: [csproj]",
 		"dotnet/src/Bad/Bad.csproj:4: [csproj]",
 		"dotnet/src/Bad/Bad.csproj:5: [csproj]",
-		"dotnet/src/Bad/Bad.csproj:9: [csproj]",
+		"dotnet/src/Bad/Bad.csproj:7: [csproj]",
 		"dotnet/src/Bad/Bad.csproj:10: [csproj]",
 		"dotnet/src/Bad/Bad.csproj:11: [csproj]",
-		"dotnet/src/Bad/Bad.csproj:13: [csproj]",
-		"dotnet/src/Bad/Bad.csproj:16: [csproj]",
+		"dotnet/src/Bad/Bad.csproj:12: [csproj]",
+		"dotnet/src/Bad/Bad.csproj:14: [csproj]",
+		"dotnet/src/Bad/Bad.csproj:17: [csproj]",
 		"dotnet/src/Broken/Broken.csproj:3: [csproj]",
 		"dotnet/src/Root/Root.csproj:1: [csproj]",
 	})

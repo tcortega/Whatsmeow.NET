@@ -17,8 +17,8 @@ internal static class WhatsmeowSidecarOptionsSetup
 	public static TimeSpan MaxStartupTimeout { get; } = TimeSpan.FromHours(1);
 
 	/// <summary>
-	/// Applies the computed defaults; the shape of a <c>PostConfigure</c> step for the hosting package (Phase 3). The
-	/// database path becomes a full path here, so a restart finds the same file whatever the current directory is then.
+	/// Applies the computed defaults; the hosting package runs it as a <c>PostConfigure</c> step. The database path
+	/// becomes a full path here, so a restart finds the same file whatever the current directory is then.
 	/// </summary>
 	public static void Apply(WhatsmeowSidecarOptions options)
 	{
@@ -32,15 +32,23 @@ internal static class WhatsmeowSidecarOptionsSetup
 
 	/// <summary>
 	/// Throws <see cref="OptionsValidationException"/> listing every rule <paramref name="options"/> breaks. The
-	/// hosting package (Phase 3) runs the same rules as an <c>IValidateOptions</c>.
+	/// hosting package runs the same rules through <see cref="WhatsmeowSidecarOptionsValidator"/>.
 	/// </summary>
 	public static void Validate(WhatsmeowSidecarOptions options)
+	{
+		var failures = Failures(options);
+		if (failures.Count > 0)
+			throw new OptionsValidationException(Options.DefaultName, typeof(WhatsmeowSidecarOptions), failures);
+	}
+
+	/// <summary>Every rule <paramref name="options"/> breaks, one sentence each; none when it is valid.</summary>
+	public static List<string> Failures(WhatsmeowSidecarOptions options)
 	{
 		var failures = new List<string>();
 
 		// Hand-written: [Range(typeof(TimeSpan), ...)] is trim-unsafe (IL2026), so no rule here fits the generator.
 		if (options.StartupTimeout <= TimeSpan.Zero || options.StartupTimeout > MaxStartupTimeout)
-			failures.Add($"{nameof(WhatsmeowSidecarOptions.StartupTimeout)} must be more than zero and at most {MaxStartupTimeout}.");
+			failures.Add($"{nameof(WhatsmeowSidecarOptions.StartupTimeout)} {options.StartupTimeout} must be more than zero and at most {MaxStartupTimeout}.");
 
 		if (options.SidecarPath is { } path && string.IsNullOrWhiteSpace(path))
 			failures.Add($"{nameof(WhatsmeowSidecarOptions.SidecarPath)} must not be empty or white space.");
@@ -57,7 +65,6 @@ internal static class WhatsmeowSidecarOptionsSetup
 		if (options.MediaRoot is { } root && (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root)))
 			failures.Add($"{nameof(WhatsmeowSidecarOptions.MediaRoot)} {root} must be an existing directory.");
 
-		if (failures.Count > 0)
-			throw new OptionsValidationException(Options.DefaultName, typeof(WhatsmeowSidecarOptions), failures);
+		return failures;
 	}
 }

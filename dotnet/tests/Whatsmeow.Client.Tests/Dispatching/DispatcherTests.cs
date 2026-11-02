@@ -318,6 +318,41 @@ public sealed class DispatcherTests : IAsyncDisposable
 		Assert.False(_acks.Reader.TryRead(out _));
 	}
 
+	[Fact(Timeout = 10_000)]
+	public async Task Stop_OnceItsWaitIsCancelled_AcksWhatFinishedWithoutWaitingForAHandlerThatIgnoresItsToken()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var never = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+		Post(1, "a");
+		_ = _input.Writer.TryWrite(
+			new Work
+			{
+				Seq = 2,
+				Lane = "b",
+				RunAsync = async _ =>
+				{
+					Log("start 2");
+					await never.Task.ConfigureAwait(false);
+				},
+			}
+		);
+		Post(3, "c");
+		Assert.Equal(["end 1", "end 3", "start 1", "start 2", "start 3"], (await NextAsync(5, ct)).Order(StringComparer.Ordinal), StringComparer.Ordinal);
+
+		try
+		{
+			await _dispatcher.StopAsync(new CancellationToken(canceled: true));
+
+			// 3 finished, but 2 never did: the watermark is 1, and 2 and 3 come again.
+			Assert.Equal(1UL, (await _acks.Reader.ReadAsync(ct)).Seq);
+			Assert.False(_acks.Reader.TryRead(out _));
+		}
+		finally
+		{
+			never.SetResult();
+		}
+	}
+
 	private void Post(ulong seq, string lane, bool blocked = false)
 	{
 		var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);

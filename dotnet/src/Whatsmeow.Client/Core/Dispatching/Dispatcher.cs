@@ -130,7 +130,14 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 	/// again. Called from inside a handler (it deletes its session or disposes the sidecar), it does not wait for that
 	/// handler's lane, which goes on once the handler returns.
 	/// </summary>
-	public async ValueTask DisposeAsync()
+	public ValueTask DisposeAsync() => new(StopAsync(CancellationToken.None));
+
+	/// <summary>
+	/// <see cref="DisposeAsync"/>, except that once <paramref name="stopWaiting"/> is cancelled it no longer waits for
+	/// handlers that ignore their own cancellation (ADR 0034): it acks the watermark, which never passes their events,
+	/// so those come again.
+	/// </summary>
+	public async Task StopAsync(CancellationToken stopWaiting)
 	{
 		if (Interlocked.Exchange(ref _disposed, 1) != 0)
 			return;
@@ -143,17 +150,18 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 		}
 		finally
 		{
-			await StopLanesAndFlushAsync().ConfigureAwait(false);
+			await StopLanesAndFlushAsync(stopWaiting).ConfigureAwait(false);
 		}
 	}
 
-	private async Task StopLanesAndFlushAsync()
+	private async Task StopLanesAndFlushAsync(CancellationToken stopWaiting)
 	{
 		var own = s_current.Value;
 		Task[] lanes;
 		lock (_lock)
 			lanes = [.. _started.Where(lane => own is null || lane.Current != own).Select(lane => lane.Task)];
-		await Task.WhenAll(lanes).ConfigureAwait(false);
+		if (!await FinishedAsync(Task.WhenAll(lanes), stopWaiting).ConfigureAwait(false))
+			DispatchLog.HandlersAbandoned(logger);
 
 		using (var last = new CancellationTokenSource(s_finalAckTimeout, timeProvider))
 		{
@@ -168,6 +176,26 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 		}
 
 		_timer?.Dispose();
+	}
+
+	/// <summary>Whether <paramref name="task"/> finished before <paramref name="stopWaiting"/> was cancelled; one that did not goes on alone.</summary>
+	private static async Task<bool> FinishedAsync(Task task, CancellationToken stopWaiting)
+	{
+		if (!stopWaiting.CanBeCanceled)
+		{
+			await task.ConfigureAwait(false);
+			return true;
+		}
+
+		var abandoned = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+		using (stopWaiting.Register(static state => ((TaskCompletionSource)state!).TrySetResult(), abandoned))
+		{
+			if (await Task.WhenAny(task, abandoned.Task).ConfigureAwait(false) != task)
+				return false;
+		}
+
+		await task.ConfigureAwait(false);
+		return true;
 	}
 
 	private async Task ReadAsync(CancellationToken cancellationToken)

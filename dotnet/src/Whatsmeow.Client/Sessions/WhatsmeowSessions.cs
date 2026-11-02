@@ -16,6 +16,8 @@ public sealed class WhatsmeowSessions
 	private readonly SessionService.SessionServiceClient _client;
 	private readonly CallInvoker _invoker;
 	private readonly ILogger _log;
+	private readonly Action<IWhatsAppClient>? _clientCreated;
+	private readonly IReadOnlySet<SessionId> _declared;
 	private readonly ConcurrentDictionary<SessionId, SessionClient> _clients = new();
 
 	/// <summary>The sessions the application connected and did not disconnect, log out or delete since (ARCHITECTURE §8.5).</summary>
@@ -23,12 +25,17 @@ public sealed class WhatsmeowSessions
 
 	private readonly Lock _lock = new();
 
-	internal WhatsmeowSessions(WhatsmeowSidecar sidecar, CallInvoker invoker, ILogger log)
+	/// <summary>Taken to create a client, so <see cref="_clientCreated"/> runs once per client, before anyone gets it.</summary>
+	private readonly Lock _creating = new();
+
+	internal WhatsmeowSessions(WhatsmeowSidecar sidecar, CallInvoker invoker, ILogger log, Action<IWhatsAppClient>? clientCreated, IReadOnlySet<SessionId> declared)
 	{
 		_sidecar = sidecar;
 		_client = new SessionService.SessionServiceClient(invoker);
 		_invoker = invoker;
 		_log = log;
+		_clientCreated = clientCreated;
+		_declared = declared;
 	}
 
 	/// <summary>
@@ -42,7 +49,28 @@ public sealed class WhatsmeowSessions
 		_ = await RpcErrors
 			.CallAsync(_client.CreateSessionAsync(new CreateSessionRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken))
 			.ConfigureAwait(false);
-		return _clients.GetOrAdd(sessionId, static (id, sessions) => sessions.NewClient(id), this);
+		return Client(sessionId);
+	}
+
+	/// <summary>
+	/// The client of <paramref name="sessionId"/>, the one <see cref="GetOrCreateAsync"/> returns, without creating the
+	/// session in the sidecar: the hosting package hands it out before the sidecar starts (ADR 0034).
+	/// </summary>
+	internal IWhatsAppClient Client(SessionId sessionId)
+	{
+		if (_clients.TryGetValue(sessionId, out var existing))
+			return existing;
+
+		lock (_creating)
+		{
+			if (_clients.TryGetValue(sessionId, out existing))
+				return existing;
+
+			var client = NewClient(sessionId);
+			_clientCreated?.Invoke(client);
+			_clients[sessionId] = client;
+			return client;
+		}
 	}
 
 	/// <summary>Every session and its state, ordered by id.</summary>
@@ -61,9 +89,15 @@ public sealed class WhatsmeowSessions
 	/// </summary>
 	/// <exception cref="SessionNotFoundException">No session has the id.</exception>
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="InvalidOperationException">
+	/// The session is declared with <c>AddSession</c> of <c>Whatsmeow.Extensions.Hosting</c>: its keyed client would stay behind.
+	/// </exception>
 	public async Task DeleteAsync(SessionId sessionId, CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(_sidecar.IsDisposed, _sidecar);
+		if (_declared.Contains(sessionId))
+			throw new InvalidOperationException($"Session {sessionId.Value} is declared with AddSession, so it cannot be deleted while the host runs: its keyed client would stay behind.");
+
 		_ = await RpcErrors
 			.CallAsync(_client.DeleteSessionAsync(new DeleteSessionRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken))
 			.ConfigureAwait(false);
@@ -77,14 +111,15 @@ public sealed class WhatsmeowSessions
 	private SessionClient NewClient(SessionId sessionId) => new(this, _sidecar, _client, _invoker, sessionId, _log);
 
 	/// <summary>Stops every session's events and acks what was handled, while the sidecar still runs.</summary>
-	internal async Task StopEventsAsync()
+	/// <param name="stopWaiting">Once cancelled, no session waits for handlers that ignore their cancellation (ADR 0034).</param>
+	internal async Task StopEventsAsync(CancellationToken stopWaiting)
 	{
 		foreach (var client in _clients.Values)
 		{
 			// Each on its own: one client's failure must not leave the others' handlers running and their acks unsent.
 			try
 			{
-				await client.DisposeAsync().ConfigureAwait(false);
+				await client.StopEventsAsync(stopWaiting).ConfigureAwait(false);
 			}
 #pragma warning disable CA1031 // Justification: logged; the sidecar's stop goes on
 			catch (Exception e)

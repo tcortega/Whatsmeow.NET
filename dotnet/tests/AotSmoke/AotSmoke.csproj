@@ -18,6 +18,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="../../src/Whatsmeow.Client/Whatsmeow.Client.csproj" />
+		<ProjectReference Include="../../src/Whatsmeow.Extensions.Hosting/Whatsmeow.Extensions.Hosting.csproj" />
 		<ProjectReference Include="../../src/Whatsmeow.Protocol/Whatsmeow.Protocol.csproj" />
 		<ProjectReference Include="../../src/Whatsmeow.Protocol.WhatsApp/Whatsmeow.Protocol.WhatsApp.csproj" />
 	</ItemGroup>
@@ -25,6 +26,7 @@
 	<!-- Rooted, so the compiler analyzes all of each shipped assembly, not only what Program.cs reaches. -->
 	<ItemGroup>
 		<TrimmerRootAssembly Include="Whatsmeow.Client" />
+		<TrimmerRootAssembly Include="Whatsmeow.Extensions.Hosting" />
 		<TrimmerRootAssembly Include="Whatsmeow.Protocol" />
 		<TrimmerRootAssembly Include="Whatsmeow.Protocol.WhatsApp" />
 	</ItemGroup>

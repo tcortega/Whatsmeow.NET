@@ -21,8 +21,6 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 	internal const int MaxProtocol = 1;
 
 	private readonly WhatsmeowSidecarOptions _options;
-	private readonly string _binary;
-	private readonly string? _socketDirectory;
 	private readonly int _minProtocol;
 	private readonly int _maxProtocol;
 	private readonly bool _fakeWhatsApp;
@@ -34,24 +32,25 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 	private readonly CancellationTokenSource _disposing = new();
 	private readonly Lock _launchLock = new();
 	private volatile SidecarProcess? _current;
+	private string? _binary;
+	private string? _socketDirectory;
+	private Task? _starting;
 	private int _disposed;
 	private int _launches;
 	private TaskCompletionSource _launched = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
 	private WhatsmeowSidecar(
 		WhatsmeowSidecarOptions options,
-		string binary,
-		string? socketDirectory,
 		int minProtocol,
 		int maxProtocol,
 		bool fakeWhatsApp,
 		ILoggerFactory loggerFactory,
-		TimeProvider timeProvider
+		TimeProvider timeProvider,
+		Action<IWhatsAppClient>? clientCreated,
+		IReadOnlySet<SessionId> declared
 	)
 	{
 		_options = options;
-		_binary = binary;
-		_socketDirectory = socketDirectory;
 		_minProtocol = minProtocol;
 		_maxProtocol = maxProtocol;
 		_fakeWhatsApp = fakeWhatsApp;
@@ -61,7 +60,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		_channel = new LocalChannel(options.Transport is SidecarTransport.NamedPipe, () => _current?.Endpoint, () => _current?.Token ?? "", loggerFactory);
 		_client = new SidecarService.SidecarServiceClient(_channel.CallInvoker);
 		_supervisor = new SidecarSupervisor(LaunchAsync, timeProvider, _log);
-		Sessions = new WhatsmeowSessions(this, _channel.CallInvoker, _log);
+		Sessions = new WhatsmeowSessions(this, _channel.CallInvoker, _log, clientCreated, declared);
 	}
 
 	/// <summary>The sidecar's sessions, one WhatsApp account each.</summary>
@@ -117,6 +116,48 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		CancellationToken cancellationToken
 	)
 	{
+		var sidecar = Create(options, loggerFactory, minProtocol, maxProtocol, fakeWhatsApp, timeProvider, clientCreated: null, declared: s_none);
+		try
+		{
+			await sidecar.StartProcessAsync(cancellationToken).ConfigureAwait(false);
+			return sidecar;
+		}
+		catch
+		{
+			await sidecar.DisposeAsync().ConfigureAwait(false);
+			throw;
+		}
+	}
+
+	private static readonly HashSet<SessionId> s_none = [];
+
+	/// <summary>
+	/// A sidecar that is not started yet, for the hosting package: its sessions' clients exist before the host starts it
+	/// (ADR 0034). <paramref name="clientCreated"/> runs for each new client of <see cref="Sessions"/>, before anyone can
+	/// connect it. The <paramref name="declared"/> sessions cannot be deleted, since their keyed clients would stay behind.
+	/// </summary>
+	/// <exception cref="OptionsValidationException"><paramref name="options"/> is invalid.</exception>
+	internal static WhatsmeowSidecar Create(
+		WhatsmeowSidecarOptions options,
+		ILoggerFactory loggerFactory,
+		TimeProvider? timeProvider,
+		bool fakeWhatsApp,
+		Action<IWhatsAppClient>? clientCreated,
+		IReadOnlySet<SessionId> declared
+	) =>
+		Create(options, loggerFactory, MinProtocol, MaxProtocol, fakeWhatsApp, timeProvider, clientCreated, declared);
+
+	private static WhatsmeowSidecar Create(
+		WhatsmeowSidecarOptions options,
+		ILoggerFactory loggerFactory,
+		int minProtocol,
+		int maxProtocol,
+		bool fakeWhatsApp,
+		TimeProvider? timeProvider,
+		Action<IWhatsAppClient>? clientCreated,
+		IReadOnlySet<SessionId> declared
+	)
+	{
 		ArgumentNullException.ThrowIfNull(options);
 		ArgumentNullException.ThrowIfNull(loggerFactory);
 
@@ -131,25 +172,50 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		};
 		WhatsmeowSidecarOptionsSetup.Apply(effective);
 		WhatsmeowSidecarOptionsSetup.Validate(effective);
-		var binary = SidecarBinary.Locate(effective);
-
-		// The client owns the socket directory: created 0700 here, reused by every restart, deleted on dispose (ADR 0017).
-		var socketDirectory = effective.Transport is SidecarTransport.UnixDomainSocket ? Directory.CreateTempSubdirectory("wmn-").FullName : null;
 
 #pragma warning disable RS0030 // Justification: the default when none is injected (docs/guidelines/csharp.md Time)
 		timeProvider ??= TimeProvider.System;
 #pragma warning restore RS0030
 
-		var sidecar = new WhatsmeowSidecar(effective, binary, socketDirectory, minProtocol, maxProtocol, fakeWhatsApp, loggerFactory, timeProvider);
+		return new WhatsmeowSidecar(effective, minProtocol, maxProtocol, fakeWhatsApp, loggerFactory, timeProvider, clientCreated, declared);
+	}
+
+	/// <summary>
+	/// Finds the binary, starts the first sidecar and its supervisor. Called once, on a sidecar from
+	/// <see cref="Create(WhatsmeowSidecarOptions, ILoggerFactory, TimeProvider?, bool, Action{IWhatsAppClient}?, IReadOnlySet{SessionId})"/>.
+	/// A dispose meanwhile cancels it and waits for it, so it leaves no process and no socket directory behind.
+	/// </summary>
+	/// <exception cref="SidecarUnavailableException">The binary was not found, or the sidecar did not start.</exception>
+	/// <exception cref="SidecarVersionMismatchException">The sidecar is another version; it was stopped.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed before or while it started.</exception>
+	internal async Task StartProcessAsync(CancellationToken cancellationToken)
+	{
+		Task starting;
+		lock (_launchLock)
+		{
+			ObjectDisposedException.ThrowIf(_disposed != 0, this);
+			_starting = starting = Task.Run(() => StartFirstAsync(cancellationToken), CancellationToken.None);
+		}
+
+		await starting.ConfigureAwait(false);
+	}
+
+	private async Task StartFirstAsync(CancellationToken cancellationToken)
+	{
+		_binary = SidecarBinary.Locate(_options);
+
+		// The client owns the socket directory: created 0700 here, reused by every restart, deleted on dispose (ADR 0017).
+		_socketDirectory = _options.Transport is SidecarTransport.UnixDomainSocket ? Directory.CreateTempSubdirectory("wmn-").FullName : null;
+
+		using var starting = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _disposing.Token);
 		try
 		{
-			var (processId, exited) = await sidecar.LaunchAsync(cancellationToken).ConfigureAwait(false);
-			sidecar._supervisor.Start(processId, exited);
-			return sidecar;
+			var (processId, exited) = await LaunchAsync(starting.Token).ConfigureAwait(false);
+			_supervisor.Start(processId, exited);
 		}
-		catch
+		catch (OperationCanceledException) when (_disposing.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
 		{
-			await sidecar.DisposeAsync().ConfigureAwait(false);
+			ObjectDisposedException.ThrowIf(condition: true, this);
 			throw;
 		}
 	}
@@ -213,17 +279,32 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 	}
 
 	/// <summary>Stops the sidecar: a graceful stop, then a kill after a 5 s grace. Its socket directory is deleted.</summary>
-	public async ValueTask DisposeAsync()
+	public ValueTask DisposeAsync() => new(StopAsync(CancellationToken.None));
+
+	/// <summary>
+	/// <see cref="DisposeAsync"/>, for the host's stop (ADR 0034): once <paramref name="stopWaiting"/> is cancelled, it no
+	/// longer waits for handlers that ignore their own cancellation, and goes on to stop the process. Their events were
+	/// not acked, so they come again. The process stop itself is never cut short.
+	/// </summary>
+	internal async Task StopAsync(CancellationToken stopWaiting)
 	{
-		if (Interlocked.Exchange(ref _disposed, 1) != 0)
-			return;
+		Task? starting;
+		lock (_launchLock)
+		{
+			if (_disposed != 0)
+				return;
+			_disposed = 1;
+			starting = _starting;
+		}
 
 		try
 		{
 			try
 			{
+				await StopStartingAsync(starting).ConfigureAwait(false);
+
 				// While the sidecar still runs: the handlers stop, and what they finished is acked (ARCHITECTURE §8.4).
-				await Sessions.StopEventsAsync().ConfigureAwait(false);
+				await Sessions.StopEventsAsync(stopWaiting).ConfigureAwait(false);
 			}
 			finally
 			{
@@ -248,6 +329,25 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		}
 	}
 
+	/// <summary>Cancels a first start that is still running and waits for it; its caller sees how it ended.</summary>
+	private async Task StopStartingAsync(Task? starting)
+	{
+		if (starting is null or { IsCompleted: true })
+			return;
+
+		await _disposing.CancelAsync().ConfigureAwait(false);
+		try
+		{
+			await starting.ConfigureAwait(false);
+		}
+#pragma warning disable CA1031 // Justification: the start's own caller observes its failure; the dispose goes on
+		catch (Exception)
+#pragma warning restore CA1031
+		{
+			// Seen by StartProcessAsync's caller.
+		}
+	}
+
 	/// <summary>
 	/// Starts one sidecar: spawn, ready line, nonce, then GetInfo and the version check, then Connect again for the
 	/// sessions the application had connected (ARCHITECTURE §9). Used for the first start and for every restart. A
@@ -263,7 +363,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		using var startup = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
 
 		var process = await SidecarProcess
-			.StartAsync(_binary, _options.Transport, _socketDirectory, _options.DatabasePath!, _options.MediaRoot, _fakeWhatsApp, _options.StartupTimeout, _log, _sidecarLog, startup.Token, cancellationToken)
+			.StartAsync(_binary!, _options.Transport, _socketDirectory, _options.DatabasePath!, _options.MediaRoot, _fakeWhatsApp, _options.StartupTimeout, _log, _sidecarLog, startup.Token, cancellationToken)
 			.ConfigureAwait(false);
 		_current = process;
 		SidecarLog.SidecarStarted(_log, process.Id, process.Version, process.Endpoint);
