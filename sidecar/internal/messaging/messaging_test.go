@@ -574,6 +574,24 @@ func TestACancelAfterTheHandOffIsAnUnknownOutcome(t *testing.T) {
 	}
 }
 
+// A context error in the cause that is not the caller's, one of whatsmeow's own contexts after the hand-off, is no
+// cancel by the caller: it stays an unknown outcome, never CANCELLED or DEADLINE_EXCEEDED.
+func TestAContextErrorTheCallerDidNotCauseIsAnUnknownOutcome(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+
+	for n, err := range []error{
+		fmt.Errorf("failed to send message node: %w", context.DeadlineExceeded),
+		fmt.Errorf("failed to send message node: %w", context.Canceled),
+	} {
+		h.script(err)
+
+		_, got := h.sendText(h.ctx, n, "hi")
+		wantReason(t, got, codes.Unknown, "OUTCOME_UNKNOWN", nil)
+	}
+}
+
 func TestAFailureThatSentNothingLeavesNoRecordSoARepeatSends(t *testing.T) {
 	t.Parallel()
 

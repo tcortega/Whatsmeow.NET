@@ -341,7 +341,13 @@ func (svc *Service) run(q *queue, j *job) outcome {
 			svc.log.Warn().AnErr("cause", reason).Str("session_id", j.session).Str("client_message_id", j.id).
 				Msg("a send was handed to whatsmeow and its outcome is unknown; it is never sent again")
 
-			return outcome{err: fmt.Errorf("send: %w: %w", server.ErrOutcomeUnknown, reason)}
+			// The caller's own cancel or deadline keeps its status; a context error that is not the caller's, one of
+			// whatsmeow's own, must not read as one, so the cause is kept as text only.
+			if ctxErr := j.ctx.Err(); ctxErr != nil {
+				return outcome{err: fmt.Errorf("send: %w: %w", server.ErrOutcomeUnknown, ctxErr)}
+			}
+
+			return outcome{err: fmt.Errorf("send: %w: %v", server.ErrOutcomeUnknown, reason)} //nolint:errorlint // text only, see above
 		}
 	}
 }
