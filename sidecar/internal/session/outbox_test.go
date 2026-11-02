@@ -3,6 +3,7 @@ package session
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -174,6 +175,84 @@ func TestARestartRecordsEveryMovedSessionInOneCommit(t *testing.T) {
 			t.Fatalf("session s%02d last recorded %v, want Disconnected", i, last)
 		}
 	}
+}
+
+func TestARestartThatFailsPartwayRecordsNoSession(t *testing.T) {
+	t.Parallel()
+
+	// Loaded in this order, so the moves of the first two are written before the third one's fails.
+	h := start(t)
+	h.create("a-gone")
+	h.link("a-gone", "1555:1@s.whatsapp.net")
+	h.connected("b-connected")
+	h.connected("c-refused")
+
+	if _, err := h.db.DB.ExecContext(h.ctx, "DELETE FROM whatsmeow_device WHERE jid = '1555:1@s.whatsapp.net'"); err != nil {
+		t.Fatalf("delete the device: %v", err)
+	}
+
+	h.stop()
+
+	db, err := sidecarstore.Open(context.Background(), h.path, zerolog.Nop())
+	if err != nil {
+		t.Fatalf("open the store: %v", err)
+	}
+
+	t.Cleanup(func() { _ = db.Close() })
+
+	ctx := context.Background()
+	before := rows(ctx, t, db)
+
+	if _, err := db.DB.ExecContext(ctx, `CREATE TRIGGER refuse BEFORE UPDATE ON session WHEN NEW.id = 'c-refused'
+		BEGIN SELECT RAISE(ABORT, 'refused'); END`); err != nil {
+		t.Fatalf("create the trigger: %v", err)
+	}
+
+	_, err = New(ctx, db.DB, db.Writer, db.Devices, outbox.New(db.DB, db.Writer), func(_ string, device *store.Device, _ func()) Client {
+		return &stub{device: device}
+	}, zerolog.Nop())
+	if err == nil || !strings.Contains(err.Error(), "refused") {
+		t.Fatalf("New = %v, want the refused update", err)
+	}
+
+	// a-gone's cleared JID, b-connected's Disconnected and every outbox row went with the failed one.
+	if after := rows(ctx, t, db); !slices.Equal(after, before) {
+		t.Fatalf("the failed restart left\n%v\nwant\n%v", after, before)
+	}
+}
+
+// rows is every session row and outbox row in the store, as text.
+func rows(ctx context.Context, t *testing.T, db *sidecarstore.Store) []string {
+	t.Helper()
+
+	var all []string
+
+	for _, query := range []string{
+		"SELECT id || ' ' || quote(jid) || ' ' || quote(lid) || ' ' || quote(stop_state) || ' ' || last_seq FROM session ORDER BY id",
+		"SELECT session_id || ' ' || seq || ' ' || quote(payload) FROM outbox ORDER BY seq",
+	} {
+		rows, err := db.DB.QueryContext(ctx, query)
+		if err != nil {
+			t.Fatalf("read the store: %v", err)
+		}
+
+		for rows.Next() {
+			var row string
+			if err := rows.Scan(&row); err != nil {
+				t.Fatalf("read the store: %v", err)
+			}
+
+			all = append(all, row)
+		}
+
+		if err := rows.Err(); err != nil {
+			t.Fatalf("read the store: %v", err)
+		}
+
+		_ = rows.Close()
+	}
+
+	return all
 }
 
 func TestDeleteSessionDeletesItsEventsAndCursors(t *testing.T) {
