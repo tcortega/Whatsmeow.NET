@@ -60,6 +60,7 @@ Options and configuration: [docs/guidelines/options.md](docs/guidelines/options.
 
 `context.Context` first. `%w` errors, mapped to `ErrorInfo` only in `internal/server`.
 No `reflect`, `unsafe`, cgo, or mutable globals. Import the contract as `whatsmeowv1`.
+Every logger derives from `newLogger`, whose writer redacts phone numbers and JID user parts at info and above; `server.toStatus` redacts status messages (ADR 0039). Never write stderr another way.
 The whatsmeow event handler only writes to the outbox (or what invariant 1 lists); it never blocks on .NET, the network, or media.
 whatsmeow facts (ack gating, off-queue events, retries) are measured at the pin in ARCHITECTURE §14; re-check on every bump, never from memory.
 Go idioms: [docs/guidelines/go.md](docs/guidelines/go.md).

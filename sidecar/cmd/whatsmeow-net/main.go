@@ -73,7 +73,8 @@ func main() {
 }
 
 func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	log := newLogger(stderr)
+	redactor := wmlog.NewRedactor()
+	log := newLogger(stderr, redactor)
 
 	flags := flag.NewFlagSet("whatsmeow-net", flag.ContinueOnError)
 	flags.SetOutput(stderr)
@@ -134,7 +135,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 
 	log.Info().Str("version", version).Str("transport", *kind).Msg("starting")
 
-	if err := serve(ctx, log, options{*kind, *socketDir, *nonce, *database, *mediaRoot, *fake}, bufio.NewReader(stdin), stdout); err != nil {
+	if err := serve(ctx, log, redactor, options{*kind, *socketDir, *nonce, *database, *mediaRoot, *fake}, bufio.NewReader(stdin), stdout); err != nil {
 		log.Error().Err(err).Msg("sidecar failed")
 
 		return exitFailed
@@ -143,12 +144,13 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	return exitStopped
 }
 
-// newLogger is the sidecar's one logger: JSON lines on stderr, at info level and above. Every component's logger,
-// whatsmeow's and libsignal's included, derives from it, so none logs debug: whatsmeow's debug lines carry every node
-// it sends (client.go:990), phone numbers in them, and each QR code with the device's ADV secret (qrchan.go:97,
-// pair.go:125-130) (ARCHITECTURE §7.8).
-func newLogger(stderr io.Writer) zerolog.Logger {
-	return zerolog.New(stderr).Level(zerolog.InfoLevel).With().Timestamp().Logger()
+// newLogger is the sidecar's one logger: JSON lines on stderr, at info level and above, each with no phone number or
+// JID user part (wmlog.Writer). Every component's logger, whatsmeow's, its store's and libsignal's included, derives
+// from it, so none logs debug: whatsmeow's debug lines carry every node it sends (client.go:990), phone numbers in
+// them, and each QR code with the device's ADV secret (qrchan.go:97, pair.go:125-130); and none writes a number:
+// whatsmeow logs other people's JIDs at warn and error (ARCHITECTURE §7.8, ADR 0039).
+func newLogger(stderr io.Writer, redactor *wmlog.Redactor) zerolog.Logger {
+	return zerolog.New(wmlog.Writer(stderr, redactor)).Level(zerolog.InfoLevel).With().Timestamp().Logger()
 }
 
 // options are the flags serve needs.
@@ -157,7 +159,7 @@ type options struct {
 	fake                                        bool
 }
 
-func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.Reader, stdout io.Writer) error {
+func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, opts options, stdin *bufio.Reader, stdout io.Writer) error {
 	token, err := awaitToken(ctx, stdin)
 	if err != nil {
 		return err
@@ -185,7 +187,7 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 		return fmt.Errorf("listen: %w", err)
 	}
 
-	srv := server.New(token, log)
+	srv := server.New(token, log, redactor)
 	svc := sidecar.New(version, build, srv.Shutdown)
 	whatsmeowv1.RegisterSidecarServiceServer(srv, svc)
 

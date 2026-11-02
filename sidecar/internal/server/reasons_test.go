@@ -1,15 +1,19 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/rs/zerolog"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	sidecarlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 )
 
 func TestEachReasonErrorBecomesItsStatus(t *testing.T) {
@@ -39,7 +43,7 @@ func TestEachReasonErrorBecomesItsStatus(t *testing.T) {
 		{errors.New("a bug"), codes.Internal, "INTERNAL", nil},
 	}
 
-	srv := New(token, zerolog.Nop())
+	srv := New(token, zerolog.Nop(), sidecarlog.NewRedactor())
 
 	for _, c := range cases {
 		st, _ := status.FromError(srv.toStatus("/test", c.err))
@@ -59,7 +63,7 @@ func TestEachReasonErrorBecomesItsStatus(t *testing.T) {
 func TestAContextErrorWithAReasonKeepsTheContextStatus(t *testing.T) {
 	t.Parallel()
 
-	st, _ := status.FromError(New(token, zerolog.Nop()).toStatus("/test", fmt.Errorf("%w: %w", ErrOutcomeUnknown, context.Canceled)))
+	st, _ := status.FromError(New(token, zerolog.Nop(), sidecarlog.NewRedactor()).toStatus("/test", fmt.Errorf("%w: %w", ErrOutcomeUnknown, context.Canceled)))
 	if st.Code() != codes.Canceled {
 		t.Fatalf("code = %v, want %v", st.Code(), codes.Canceled)
 	}
@@ -80,7 +84,7 @@ func TestThePairingReasonsBecomeTheirStatus(t *testing.T) {
 		{ErrRateLimited, codes.ResourceExhausted, "RATE_LIMITED"},
 	}
 
-	srv := New(token, zerolog.Nop())
+	srv := New(token, zerolog.Nop(), sidecarlog.NewRedactor())
 
 	for _, c := range cases {
 		st, _ := status.FromError(srv.toStatus("/test", c.err))
@@ -99,7 +103,7 @@ func TestThePairingReasonsBecomeTheirStatus(t *testing.T) {
 func TestConsumerReplacedBecomesAborted(t *testing.T) {
 	t.Parallel()
 
-	st, _ := status.FromError(New(token, zerolog.Nop()).toStatus("/test", fmt.Errorf("stream: %w", ErrConsumerReplaced)))
+	st, _ := status.FromError(New(token, zerolog.Nop(), sidecarlog.NewRedactor()).toStatus("/test", fmt.Errorf("stream: %w", ErrConsumerReplaced)))
 	if st.Code() != codes.Aborted || len(st.Details()) != 1 {
 		t.Fatalf("status %v, want ABORTED with one ErrorInfo", st)
 	}
@@ -112,7 +116,7 @@ func TestConsumerReplacedBecomesAborted(t *testing.T) {
 func TestNoPushNameBecomesItsStatus(t *testing.T) {
 	t.Parallel()
 
-	st, _ := status.FromError(New(token, zerolog.Nop()).toStatus("/test", fmt.Errorf("send presence: %w", ErrNoPushName)))
+	st, _ := status.FromError(New(token, zerolog.Nop(), sidecarlog.NewRedactor()).toStatus("/test", fmt.Errorf("send presence: %w", ErrNoPushName)))
 	if st.Code() != codes.FailedPrecondition || len(st.Details()) != 1 {
 		t.Fatalf("status %v, want FAILED_PRECONDITION with one ErrorInfo", st)
 	}
@@ -125,12 +129,48 @@ func TestNoPushNameBecomesItsStatus(t *testing.T) {
 func TestMediaExpiredBecomesNotFound(t *testing.T) {
 	t.Parallel()
 
-	st, _ := status.FromError(New(token, zerolog.Nop()).toStatus("/test", fmt.Errorf("download: %w", ErrMediaExpired)))
+	st, _ := status.FromError(New(token, zerolog.Nop(), sidecarlog.NewRedactor()).toStatus("/test", fmt.Errorf("download: %w", ErrMediaExpired)))
 	if st.Code() != codes.NotFound || len(st.Details()) != 1 {
 		t.Fatalf("status %v, want NOT_FOUND with one ErrorInfo", st)
 	}
 
 	if info, _ := st.Details()[0].(*errdetails.ErrorInfo); info.GetReason() != "MEDIA_EXPIRED" {
 		t.Fatalf("reason %q, want MEDIA_EXPIRED", info.GetReason())
+	}
+}
+
+// A status message reaches the application as an exception's message, and an INTERNAL one the error log too: neither
+// carries a phone number, a JID's user part, or a URL's credential, whoever wrapped them into the error (ADR 0039). The
+// debug line keeps the error as it is (ARCHITECTURE §8.8).
+func TestAStatusCarriesNoNumberOrCredential(t *testing.T) {
+	t.Parallel()
+
+	var logs bytes.Buffer
+
+	srv := New(token, zerolog.New(&logs), sidecarlog.NewRedactor())
+
+	for _, c := range []struct {
+		err   error
+		level string
+	}{
+		{fmt.Errorf("send: %w", InvalidArgument("chat", "%q names a device; send to the user", "5511900000001:3@s.whatsapp.net")), "debug"},
+		{fmt.Errorf("upload: %w", errors.New(`Post "https://mmg.whatsapp.net/mms/image/T?auth=SECRET&token=T": EOF for +5511900000001`)), "error"},
+	} {
+		logs.Reset()
+
+		st, _ := status.FromError(srv.toStatus("/test", c.err))
+		if msg := st.Message(); strings.Contains(msg, "5511900000001") || strings.Contains(msg, "SECRET") || !strings.Contains(msg, "~") {
+			t.Errorf("%v: status message %q", c.err, msg)
+		}
+
+		info, _ := st.Details()[0].(*errdetails.ErrorInfo)
+		if c.level == "debug" && fmt.Sprint(info.GetMetadata()) != "map[field:chat]" {
+			t.Errorf("%v: ErrorInfo %v, want its field", c.err, info)
+		}
+
+		raw := c.level == "debug"
+		if got := logs.String(); !strings.Contains(got, `"level":"`+c.level+`"`) || strings.Contains(got, "5511900000001") != raw || strings.Contains(got, "SECRET") {
+			t.Errorf("%v: logged %s, want one %s line with the number only at debug", c.err, got, c.level)
+		}
 	}
 }

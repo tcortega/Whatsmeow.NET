@@ -31,6 +31,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	sidecarlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/session"
 	sidecarstore "github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
@@ -203,7 +204,7 @@ func startLogging(t *testing.T, log zerolog.Logger, withKey bool) *harness {
 	h.svc.now = h.now
 	h.svc.Use(h.sessions)
 
-	srv := server.New(token, log)
+	srv := server.New(token, log, sidecarlog.NewRedactor())
 	whatsmeowv1.RegisterChatStateServiceServer(srv, &observed{Service: h.svc, returned: h.returned})
 
 	lis := bufconn.Listen(1 << 20)

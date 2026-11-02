@@ -30,6 +30,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	sidecarlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/session"
 	sidecarstore "github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
@@ -173,7 +174,7 @@ func startLogging(t *testing.T, log zerolog.Logger) *harness {
 	h := &harness{t: t, stub: &stub{}, device: device}
 	h.sessions = &sessions{client: h.stub, device: device}
 
-	srv := server.New(token, log)
+	srv := server.New(token, log, sidecarlog.NewRedactor())
 	whatsmeowv1.RegisterContactServiceServer(srv, New(h.sessions))
 
 	lis := bufconn.Listen(1 << 20)

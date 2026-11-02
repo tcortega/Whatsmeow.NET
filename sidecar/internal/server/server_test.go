@@ -26,6 +26,7 @@ import (
 	"go.mau.fi/whatsmeow/proto/waE2E"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	sidecarlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 )
 
 const token = "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"
@@ -77,7 +78,7 @@ func start(t *testing.T, handlerErr error) (*Server, *grpc.ClientConn, *messages
 func startLogging(t *testing.T, handlerErr error, log zerolog.Logger) (*Server, *grpc.ClientConn, *messages) {
 	t.Helper()
 
-	srv := New(token, log)
+	srv := New(token, log, sidecarlog.NewRedactor())
 	msgs := &messages{received: make(chan *whatsmeowv1.SendMessageRequest, 1), err: handlerErr}
 	whatsmeowv1.RegisterMessageServiceServer(srv, msgs)
 	whatsmeowv1.RegisterSidecarServiceServer(srv, whatsmeowv1.UnimplementedSidecarServiceServer{})
@@ -254,7 +255,7 @@ func (s *stuck) StreamEvents(*whatsmeowv1.StreamEventsRequest, grpc.ServerStream
 func TestStopEndsAStreamThatIgnoresShutdownAfterTheGrace(t *testing.T) {
 	t.Parallel()
 
-	srv := New(token, zerolog.Nop())
+	srv := New(token, zerolog.Nop(), sidecarlog.NewRedactor())
 	srv.stopGrace = 50 * time.Millisecond
 	handler := &stuck{opened: make(chan struct{}), release: make(chan struct{})}
 	whatsmeowv1.RegisterEventServiceServer(srv, handler)
@@ -374,7 +375,7 @@ func TestAnEndedCallKeepsItsContextStatusAndLogsAtDebug(t *testing.T) {
 func TestServeAfterStopReturnsNil(t *testing.T) {
 	t.Parallel()
 
-	srv := New(token, zerolog.Nop())
+	srv := New(token, zerolog.Nop(), sidecarlog.NewRedactor())
 	srv.Shutdown()
 	srv.Stop()
 

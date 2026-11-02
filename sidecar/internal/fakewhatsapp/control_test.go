@@ -22,6 +22,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	fakev1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/fake/v1"
+	sidecarlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 )
 
@@ -43,7 +44,7 @@ func start(t *testing.T) (*WhatsApp, fakev1.FakeWhatsAppServiceClient, context.C
 	t.Helper()
 
 	whatsApp := New(zerolog.Nop())
-	srv := server.New(token, zerolog.Nop())
+	srv := server.New(token, zerolog.Nop(), sidecarlog.NewRedactor())
 	fakev1.RegisterFakeWhatsAppServiceServer(srv, NewControl(whatsApp))
 
 	lis := bufconn.Listen(1 << 20)

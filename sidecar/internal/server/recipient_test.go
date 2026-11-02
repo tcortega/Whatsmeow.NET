@@ -8,12 +8,14 @@ import (
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	sidecarlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 )
 
 func TestRecipientNotOnWhatsAppBecomesItsStatus(t *testing.T) {
 	t.Parallel()
 
-	st, _ := status.FromError(New(token, zerolog.Nop()).toStatus("/test", fmt.Errorf("block: %w", ErrRecipientNotOnWhatsApp)))
+	st, _ := status.FromError(New(token, zerolog.Nop(), sidecarlog.NewRedactor()).toStatus("/test", fmt.Errorf("block: %w", ErrRecipientNotOnWhatsApp)))
 	if st.Code() != codes.NotFound || len(st.Details()) != 1 {
 		t.Fatalf("status %v, want NOT_FOUND with one ErrorInfo", st)
 	}
