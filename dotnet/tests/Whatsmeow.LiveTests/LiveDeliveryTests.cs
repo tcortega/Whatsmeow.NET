@@ -172,14 +172,14 @@ public sealed class LiveDeliveryTests(LiveSidecar live, LivePeer peer)
 	}
 
 	/// <summary>
-	/// How long WhatsApp takes to deliver a message again whose answer was withheld, as a failed outbox write withholds
-	/// it (ARCHITECTURE §7.3) [unknown before this test]: the live seam withholds the first answer to a marked message
-	/// (ADR 0032). The session stays connected for up to ten minutes; if nothing came by then, it reconnects and measures
-	/// from Connected. Either way the message must come, with its id. A connection change inside the ten minutes fails
-	/// the test, after it logs the change: "not delivered again while connected" would not hold.
+	/// A message whose answer was withheld, as a failed outbox write withholds it (ARCHITECTURE §7.3), comes again within
+	/// a minute, with its id, and the test never reconnects: the live seam withholds the first answer to a marked message
+	/// (ADR 0032), and the sidecar resets the connection 5 s later, so WhatsApp delivers it again at the login (ADR 0044,
+	/// #91). The test logs what the reset costs: when the sidecar reset, how long the session was not logged in, when it
+	/// was caught up again, and when the message came.
 	/// </summary>
-	[LiveFact(NeedsPeer = true, Timeout = 1_200_000)]
-	public async Task Live_AWithheldAnswer_WhatsAppDeliversTheMessageAgain_TheTimeIsRecorded()
+	[LiveFact(NeedsPeer = true, Timeout = 600_000)]
+	public async Task Live_AWithheldAnswer_TheSidecarResetsTheConnection_TheMessageComesAgainWithinAMinute()
 	{
 		var ct = TestContext.Current.CancellationToken;
 		var (account, _) = await live.AccountAsync(ct);
@@ -204,34 +204,26 @@ public sealed class LiveDeliveryTests(LiveSidecar live, LivePeer peer)
 		live.Write($"live: the answer to {id} was withheld at {withheldAt.TotalSeconds:F1} s ({withheld.Timestamp:O}); sent at {sent.Timestamp:O}");
 
 		var burst = Burst.One(text, id);
-		var connected = await arrivals.CollectAsync(burst, [text], TimeSpan.FromMinutes(10), TimeSpan.Zero, ct);
-		var windowEnd = LiveClock.Time.GetElapsedTime(arrivals.Origin);
-		var inWindow = changes.Where(c => c.At <= windowEnd && c.State is not (SessionState.Connected or SessionState.CaughtUp)).ToList();
-		if (inWindow.Count > 0)
-		{
-			live.Write($"live: the connection changed inside the connected window: {string.Join(", ", inWindow.Select(c => $"{c.State} at {c.At.TotalSeconds:F1} s"))}");
-			Assert.Fail("the session did not stay connected while the test waited for the redelivery; see sidecar.log");
-		}
-
-		if (connected.Count > 0)
-		{
-			live.Write($"live: delivered again while connected, {(connected[0].At - withheldAt).TotalSeconds:F1} s after the withheld answer");
-			DeliveryChecks.ValidateEachOnce(burst.Messages, [.. connected.Select(a => a.Message)], client.SessionId);
-			return;
-		}
-
-		live.Write("live: not delivered again within 10 min while connected; reconnecting");
-		await client.DisconnectAsync(ct);
-		var reconnecting = LiveClock.Time.GetElapsedTime(arrivals.Origin);
-		_ = await live.LiveAsync(ct);
-		var reconnected = await arrivals.CollectAsync(burst, [text], TimeSpan.FromMinutes(3), TimeSpan.Zero, ct);
+		var again = await arrivals.CollectAsync(burst, [text], s_redeliveryBound, TimeSpan.Zero, ct);
+		var reset = live.Logs.Collector.GetSnapshot().FirstOrDefault(r => r.Timestamp >= withheld.Timestamp && r.Message.Contains(ResetLine, StringComparison.Ordinal));
 		live.Write(
-			reconnected.Count > 0
-				? $"live: delivered again {(reconnected[0].At - reconnecting).TotalSeconds:F1} s after the reconnect began"
-				: "live: not delivered again within 3 min of the reconnect"
+			$"live: the sidecar reset the connection at {(reset is null ? "no time: no reset logged" : reset.Timestamp.ToString("O", CultureInfo.InvariantCulture))}; "
+				+ $"the states after the withheld answer: {string.Join(", ", changes.Where(c => c.At >= withheldAt).Select(c => $"{c.State} at {c.At.TotalSeconds:F1} s"))}"
 		);
-		DeliveryChecks.ValidateEachOnce(burst.Messages, [.. reconnected.Select(a => a.Message)], client.SessionId);
+		live.Write(
+			again.Count > 0
+				? $"live: delivered again {(again[0].At - withheldAt).TotalSeconds:F1} s after the withheld answer, with no reconnect by the test"
+				: $"live: not delivered again within {s_redeliveryBound.TotalSeconds:F0} s of the withheld answer"
+		);
+		DeliveryChecks.ValidateEachOnce(burst.Messages, [.. again.Select(a => a.Message)], client.SessionId);
+		Assert.Contains(changes, c => c.At >= withheldAt && c.State is SessionState.Reconnecting);
 	}
+
+	/// <summary>
+	/// How long the sidecar may take to have a withheld message delivered again: its 5 s settle delay, the reset's
+	/// login, 1.1 to 1.4 s in the #10 runs (ARCHITECTURE §14), and room for a slow network.
+	/// </summary>
+	private static readonly TimeSpan s_redeliveryBound = TimeSpan.FromMinutes(1);
 
 	/// <summary>
 	/// A kill test's timeout, well above the sum of its bounds (a peer connect and the live one, the hold or the host, the
@@ -248,4 +240,7 @@ public sealed class LiveDeliveryTests(LiveSidecar live, LivePeer peer)
 
 	/// <summary>The live seam's log message when it withholds an answer.</summary>
 	private const string WithheldLine = "livetest: the answer to this message is withheld once";
+
+	/// <summary>The sidecar's log message when it resets a connection after a withheld answer (session/redelivery.go).</summary>
+	private const string ResetLine = "an answer to WhatsApp was withheld; resetting the connection";
 }
