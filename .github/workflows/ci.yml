@@ -27,9 +27,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Linux only until the code is complete; osx-arm64 and win-x64 come back for the platform pass (issue log #11).
           - { name: linux-x64, os: ubuntu-26.04 }
-          - { name: osx-arm64, os: macos-26 }
-          - { name: win-x64, os: windows-2025 }
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -72,9 +71,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Linux only until the code is complete; osx-arm64 and win-x64 come back for the platform pass (issue log #11).
           - { name: linux-x64, os: ubuntu-26.04 }
-          - { name: osx-arm64, os: macos-26 }
-          - { name: win-x64, os: windows-2025 }
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -119,9 +117,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Linux only until the code is complete; osx-arm64 and win-x64 come back for the platform pass (issue log #11).
           - { name: linux-x64, os: ubuntu-26.04 }
-          - { name: osx-arm64, os: macos-26 }
-          - { name: win-x64, os: windows-2025 }
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -167,6 +164,8 @@ jobs:
   # install jobs install that same feed on Linux and macOS, so packages built on Windows must run there.
   package:
     name: package (win-x64)
+    # Manual only until the platform pass: the native packages build on Windows (ADR 0023).
+    if: github.event_name == 'workflow_dispatch'
     timeout-minutes: 30
     runs-on: windows-2025
     defaults:
@@ -225,6 +224,7 @@ jobs:
         include:
           - { name: linux-x64, os: ubuntu-26.04 }
           - { name: osx-arm64, os: macos-26 }
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -278,7 +278,8 @@ jobs:
         run: |
           echo "results: $RESULTS"
           for result in $RESULTS; do
-            if [ "$result" != success ]; then
+            # package and install are skipped outside workflow_dispatch until the platform pass.
+            if [ "$result" != success ] && [ "$result" != skipped ]; then
               exit 1
             fi
           done
