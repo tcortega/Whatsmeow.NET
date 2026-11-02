@@ -9,9 +9,10 @@ import (
 )
 
 // NewWhatsmeowClient returns the release build's client factory: a whatsmeow client configured as ARCHITECTURE
-// §7.2 says, following mautrix-whatsapp (ADR 0013), whose log lines have no URL query (sidecarlog.Whatsmeow).
+// §7.2 says, following mautrix-whatsapp (ADR 0013), whose log lines have no URL query (sidecarlog.Whatsmeow). It
+// registers no handler, so it never calls withheld.
 func NewWhatsmeowClient(log zerolog.Logger) NewClient {
-	return func(sessionID string, device *store.Device) Client {
+	return func(sessionID string, device *store.Device, _ func()) Client {
 		return configure(whatsmeow.NewClient(device, sidecarlog.Whatsmeow(log.With().Str("session_id", sessionID).Str("component", "whatsmeow").Logger())))
 	}
 }

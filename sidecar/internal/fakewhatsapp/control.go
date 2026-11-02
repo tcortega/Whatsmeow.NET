@@ -60,6 +60,12 @@ func (c *Control) DeliverMessage(ctx context.Context, req *fakev1.DeliverMessage
 		parts = []*events.Message{senderKey, evt}
 	}
 
+	if req.GetWithholdFirstAnswer() {
+		c.whatsApp.mu.Lock()
+		c.whatsApp.withhold[marked{req.GetSessionId(), req.GetId()}] = true
+		c.whatsApp.mu.Unlock()
+	}
+
 	if err := c.whatsApp.deliverMessage(ctx, req.GetSessionId(), parts...); err != nil {
 		return nil, err
 	}

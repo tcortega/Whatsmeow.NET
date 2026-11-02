@@ -1296,7 +1296,8 @@ func (*SessionState_CaughtUp) Descriptor() ([]byte, []int) {
 	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{1, 4}
 }
 
-// The connection dropped; whatsmeow is reconnecting.
+// The connection dropped, or the sidecar reset it so that WhatsApp delivers again a message whose answer was
+// withheld; whatsmeow is reconnecting.
 type SessionState_Reconnecting struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields

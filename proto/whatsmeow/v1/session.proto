@@ -101,7 +101,8 @@ message SessionState {
   // Connected, and the backlog queued while offline has arrived.
   message CaughtUp {}
 
-  // The connection dropped; whatsmeow is reconnecting.
+  // The connection dropped, or the sidecar reset it so that WhatsApp delivers again a message whose answer was
+  // withheld; whatsmeow is reconnecting.
   message Reconnecting {}
 
   // Paired, not connected: Disconnect was called, the sidecar restarted, or pairing failed after the link.

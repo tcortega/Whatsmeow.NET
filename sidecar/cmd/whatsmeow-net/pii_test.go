@@ -71,7 +71,7 @@ func TestWhatsmeowsOwnLinesAndErrorsCarryNoNumber(t *testing.T) {
 		t.Fatalf("save the device: %v", err)
 	}
 
-	cli, ok := session.NewWhatsmeowClient(log)("s1", device).(*whatsmeow.Client)
+	cli, ok := session.NewWhatsmeowClient(log)("s1", device, func() {}).(*whatsmeow.Client)
 	if !ok {
 		t.Fatal("the release client is not whatsmeow's")
 	}

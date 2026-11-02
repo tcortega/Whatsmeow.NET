@@ -1473,9 +1473,13 @@ type DeliverMessageRequest struct {
 	SenderKey bool `protobuf:"varint,11,opt,name=sender_key,json=senderKey,proto3" json:"sender_key,omitempty"`
 	// The message as WhatsApp sends it, wrappers included, instead of text: the client dispatches it unwrapped by
 	// whatsmeow's own events.Message.UnwrapRaw, as whatsmeow does (message.go:1172-1178). Unset sends text.
-	Message       *waE2E.Message `protobuf:"bytes,12,opt,name=message,proto3" json:"message,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Message *waE2E.Message `protobuf:"bytes,12,opt,name=message,proto3" json:"message,omitempty"`
+	// True to fail the sidecar's own recording of this message's first delivery, as a failed outbox write would: in
+	// fake mode the sidecar's Events handler fails it without recording it, so its answer is withheld and the sidecar's
+	// redelivery runs (ADR 0044). Every later delivery of it is recorded.
+	WithholdFirstAnswer bool `protobuf:"varint,13,opt,name=withhold_first_answer,json=withholdFirstAnswer,proto3" json:"withhold_first_answer,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *DeliverMessageRequest) Reset() {
@@ -1590,6 +1594,13 @@ func (x *DeliverMessageRequest) GetMessage() *waE2E.Message {
 		return x.Message
 	}
 	return nil
+}
+
+func (x *DeliverMessageRequest) GetWithholdFirstAnswer() bool {
+	if x != nil {
+		return x.WithholdFirstAnswer
+	}
+	return false
 }
 
 // DeliverPollVoteRequest is one inbound poll vote. A JID is whatsmeow's string form.
@@ -7211,7 +7222,7 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"\x06reason\x18\x01 \x01(\x05R\x06reason\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessageB\x06\n" +
 	"\x04kind\"\"\n" +
-	" RaisePermanentDisconnectResponse\"\x99\x03\n" +
+	" RaisePermanentDisconnectResponse\"\xcd\x03\n" +
 	"\x15DeliverMessageRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x0e\n" +
@@ -7229,7 +7240,8 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	" \x01(\v2\x1a.google.protobuf.TimestampR\vmessageTime\x12\x1d\n" +
 	"\n" +
 	"sender_key\x18\v \x01(\bR\tsenderKey\x124\n" +
-	"\amessage\x18\f \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\"\xa4\x02\n" +
+	"\amessage\x18\f \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\x122\n" +
+	"\x15withhold_first_answer\x18\r \x01(\bR\x13withholdFirstAnswer\"\xa4\x02\n" +
 	"\x16DeliverPollVoteRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x0e\n" +

@@ -50,6 +50,11 @@ type stub struct {
 	disconnects int
 	logouts     int
 	connected   bool
+	// resetAt is when each ResetConnection came. Like whatsmeow's, a reset dispatches Disconnected and then the
+	// login's Connected after it returned, on a goroutine of its own (client.go:612-631, 712-724), unless holdReset,
+	// when it dispatches nothing.
+	resetAt   []time.Time
+	holdReset bool
 	// connecting, when set, runs inside ConnectContext before it returns, without the stub's lock.
 	connecting func(ctx context.Context)
 	// disconnecting, when set, runs inside Disconnect, without the stub's lock.
@@ -91,6 +96,21 @@ func (s *stub) Disconnect() {
 	if disconnecting != nil {
 		disconnecting()
 	}
+}
+
+func (s *stub) ResetConnection() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.resetAt = append(s.resetAt, time.Now())
+	if s.holdReset {
+		return
+	}
+
+	go func() {
+		s.emit(&events.Disconnected{})
+		s.emit(&events.Connected{})
+	}()
 }
 
 func (s *stub) IsConnected() bool {
@@ -164,7 +184,7 @@ func startLogging(t *testing.T, path string, log zerolog.Logger) *harness {
 
 	h.db = db
 
-	svc, err := New(context.Background(), db.DB, db.Writer, db.Devices, outbox.New(db.DB, db.Writer), func(id string, device *store.Device) Client {
+	svc, err := New(context.Background(), db.DB, db.Writer, db.Devices, outbox.New(db.DB, db.Writer), func(id string, device *store.Device, _ func()) Client {
 		s := &stub{device: device}
 
 		h.mu.Lock()
@@ -1123,7 +1143,7 @@ func TestARestartWithTheDeviceGoneLoadsLoggedOut(t *testing.T) {
 func TestTheWhatsmeowClientIsConfiguredAsArchitecture72(t *testing.T) {
 	t.Parallel()
 
-	cli := NewWhatsmeowClient(zerolog.Nop())("s1", (&sqlstoreless{}).device()).(*whatsmeow.Client) //nolint:forcetypeassert // the release factory's type
+	cli := NewWhatsmeowClient(zerolog.Nop())("s1", (&sqlstoreless{}).device(), func() {}).(*whatsmeow.Client) //nolint:forcetypeassert // the release factory's type
 
 	if !cli.SynchronousAck || !cli.EnableDecryptedEventBuffer || !cli.ManualHistorySyncDownload || !cli.UseRetryMessageStore ||
 		!cli.AutomaticMessageRerequestFromPhone || !cli.InitialAutoReconnect || !cli.EnableAutoReconnect || cli.AutoReconnectHook != nil {
@@ -1136,7 +1156,7 @@ func TestTheWhatsmeowClientLogsNoURLQuery(t *testing.T) {
 
 	var buf bytes.Buffer
 
-	cli := NewWhatsmeowClient(zerolog.New(&buf))("s1", (&sqlstoreless{}).device()).(*whatsmeow.Client) //nolint:forcetypeassert // the release factory's type
+	cli := NewWhatsmeowClient(zerolog.New(&buf))("s1", (&sqlstoreless{}).device(), func() {}).(*whatsmeow.Client) //nolint:forcetypeassert // the release factory's type
 
 	// As whatsmeow logs a failed media download (download-to-file.go:116).
 	cli.Log.Warnf("Failed to download media: %s, trying with next host...", `Get "https://mmg.whatsapp.net/v/t62/1.enc?oh=SECRET": EOF`)
@@ -1149,7 +1169,7 @@ func TestTheWhatsmeowClientLogsNoURLQuery(t *testing.T) {
 func TestTheWhatsmeowClientEmitsAppStateEventsOnFullSync(t *testing.T) {
 	t.Parallel()
 
-	cli := NewWhatsmeowClient(zerolog.Nop())("s1", (&sqlstoreless{}).device()).(*whatsmeow.Client) //nolint:forcetypeassert // the release factory's type
+	cli := NewWhatsmeowClient(zerolog.Nop())("s1", (&sqlstoreless{}).device(), func() {}).(*whatsmeow.Client) //nolint:forcetypeassert // the release factory's type
 
 	// Without it a full sync dispatches no chat state event (appstate.go:70-72): the state after pairing and after a
 	// recovery would never arrive (ADR 0031).

@@ -77,8 +77,9 @@ const (
 type FakeWhatsAppServiceClient interface {
 	// DeliverMessage makes WhatsApp deliver a decrypted message to a session's client, and returns once the client's
 	// event handlers ran. As whatsmeow does at the pin, the client answers with a receipt only when every handler
-	// succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A session without a client is an error: the
-	// fake never answers on behalf of a client the sidecar did not create.
+	// succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A message left unanswered is delivered again
+	// at the device's next login, and never while the connection stays up, as measured live (ARCHITECTURE §14, #10).
+	// A session without a client is an error: the fake never answers on behalf of a client the sidecar did not create.
 	DeliverMessage(ctx context.Context, in *DeliverMessageRequest, opts ...grpc.CallOption) (*DeliverMessageResponse, error)
 	// DeliverPollVote makes WhatsApp deliver a poll vote from sender to a session's client, as DeliverMessage does. The
 	// fake encrypts it as the voter's device would, with whatsmeow's own message secret code
@@ -733,8 +734,9 @@ func (c *fakeWhatsAppServiceClient) GetPairingDeviceProps(ctx context.Context, i
 type FakeWhatsAppServiceServer interface {
 	// DeliverMessage makes WhatsApp deliver a decrypted message to a session's client, and returns once the client's
 	// event handlers ran. As whatsmeow does at the pin, the client answers with a receipt only when every handler
-	// succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A session without a client is an error: the
-	// fake never answers on behalf of a client the sidecar did not create.
+	// succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A message left unanswered is delivered again
+	// at the device's next login, and never while the connection stays up, as measured live (ARCHITECTURE §14, #10).
+	// A session without a client is an error: the fake never answers on behalf of a client the sidecar did not create.
 	DeliverMessage(context.Context, *DeliverMessageRequest) (*DeliverMessageResponse, error)
 	// DeliverPollVote makes WhatsApp deliver a poll vote from sender to a session's client, as DeliverMessage does. The
 	// fake encrypts it as the voter's device would, with whatsmeow's own message secret code

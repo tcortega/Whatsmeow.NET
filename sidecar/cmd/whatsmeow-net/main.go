@@ -27,6 +27,7 @@ import (
 	"syscall"
 
 	"github.com/rs/zerolog"
+	"go.mau.fi/whatsmeow"
 	wastore "go.mau.fi/whatsmeow/store"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
@@ -199,9 +200,9 @@ func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, op
 	svc := sidecar.New(version, build, srv.Shutdown)
 	whatsmeowv1.RegisterSidecarServiceServer(srv, svc)
 
-	newClient := session.NewWhatsmeowClient(log)
+	newClient, fail := session.NewWhatsmeowClient(log), failing(nil)
 	if opts.fake {
-		newClient = serveFake(srv, log, opts.database)
+		newClient, fail = serveFake(srv, log, opts.database)
 	}
 
 	box := outbox.New(db.DB, db.Writer)
@@ -217,7 +218,7 @@ func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, op
 	histories := historyslice.New(db.DB, db.Writer, box, eventsslice.MessageEvent, log)
 	defer histories.Close()
 
-	sessions, err := session.New(ctx, db.DB, db.Writer, db.Devices, box, recording(newClient, events, chats, histories), log) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
+	sessions, err := session.New(ctx, db.DB, db.Writer, db.Devices, box, recording(newClient, fail, events, chats, histories), log) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
 	if err != nil {
 		_ = lis.Close()
 
@@ -305,18 +306,43 @@ func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, op
 	return nil
 }
 
+// failing wraps a session's Events handler so it fails as a failed outbox write would: the fake mode's
+// withhold_first_answer (fake_on.go). nil in a release build and outside fake mode.
+type failing func(sessionID string, h whatsmeow.EventHandlerWithSuccessStatus) whatsmeow.EventHandlerWithSuccessStatus
+
 // recording gives every client the Events slice's handler, first, so each session's events go into the outbox
 // (ARCHITECTURE §7.3), then the Chat state slice's, which only signals its recovery, then the History slice's, which
 // queues history sync notifications and starts the session's history worker; the session slice's own handler comes
-// after them.
-func recording(newClient session.NewClient, events *eventsslice.Service, chats *chatstate.Service, histories *historyslice.Service) session.NewClient {
-	return func(sessionID string, device *wastore.Device) session.Client {
-		client := newClient(sessionID, device)
-		client.AddEventHandlerWithSuccessStatus(events.Handler(sessionID, device))
-		client.AddEventHandlerWithSuccessStatus(chats.Handler(sessionID))
-		client.AddEventHandlerWithSuccessStatus(histories.Handler(sessionID))
+// after them. Each one that withholds an answer wakes the session's redelivery (ADR 0044). In fake mode, fail wraps
+// the Events handler.
+func recording(newClient session.NewClient, fail failing, events *eventsslice.Service, chats *chatstate.Service, histories *historyslice.Service) session.NewClient {
+	return func(sessionID string, device *wastore.Device, withheld func()) session.Client {
+		client := newClient(sessionID, device, withheld)
+
+		record := events.Handler(sessionID, device)
+		if fail != nil {
+			record = fail(sessionID, record)
+		}
+
+		for _, handler := range []whatsmeow.EventHandlerWithSuccessStatus{record, chats.Handler(sessionID), histories.Handler(sessionID)} {
+			client.AddEventHandlerWithSuccessStatus(redelivering(handler, withheld))
+		}
 
 		return client
+	}
+}
+
+// redelivering is handler, which calls withheld each time it withholds an answer: whatsmeow skips the handlers after
+// one that failed (client.go:1008-1011), so the session slice's own never sees it. withheld never waits.
+func redelivering(handler whatsmeow.EventHandlerWithSuccessStatus, withheld func()) whatsmeow.EventHandlerWithSuccessStatus {
+	return func(evt any) bool {
+		if handler(evt) {
+			return true
+		}
+
+		withheld()
+
+		return false
 	}
 }
 
