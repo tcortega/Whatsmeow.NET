@@ -22,7 +22,6 @@ Connect: the sidecar connects with ConnectContext and its own lifetime context (
 IsLoggedIn: a session's state comes from whatsmeow's events and the store (§7.4)
 RemoveEventHandler: the sidecar adds its handlers once per client and never removes them
 RemoveEventHandlers: the sidecar adds its handlers once per client and never removes them
-ResetConnection: reconnection is whatsmeow's auto reconnect (§7.2); the application disconnects and connects a session instead
 SetMaxParallelRetryReceiptHandling: whatsmeow's default (unlimited) is kept; no option, out of v1 scope (#36)
 SetMediaHTTPClient: whatsmeow's HTTP clients are not configurable, out of v1 scope (#36)
 SetPreLoginHTTPClient: whatsmeow's HTTP clients are not configurable, out of v1 scope (#36)
