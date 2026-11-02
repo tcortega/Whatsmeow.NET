@@ -457,7 +457,7 @@ public interface IWhatsAppClient
 	/// Sends a text message to <paramref name="chat"/>, a user (by phone number or LID, without a device) or a group, once
 	/// the sends of this session queued before it went out; the session's sends are paced. It never waits for a
 	/// connection: the session must be connected. WhatsApp rate limiting is waited out a few times, a few seconds in all,
-	/// before it throws.
+	/// while the wait and a second for the try fit the call's deadline, before it throws.
 	/// A send is at most once per <paramref name="id"/>: a repeat of a sent message returns its first result and sends
 	/// nothing, and a repeat while the first is still going waits for it. So keep the id, from
 	/// <see cref="MessageId.New"/>, to send again safely after a failure; without one the client makes a new one. A send
@@ -474,11 +474,17 @@ public interface IWhatsAppClient
 	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
 	/// <exception cref="SessionLoggedOutException">The session is logged out, also while the send waited in the queue.</exception>
 	/// <exception cref="NotConnectedException">The session is not connected, also when it stopped being so while the send waited in the queue; nothing was sent.</exception>
-	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned, also when it was banned while the send waited in the queue.</exception>
 	/// <exception cref="RateLimitedException">WhatsApp kept rate limiting the send; nothing was sent, and the id can be sent again.</exception>
 	/// <exception cref="OutcomeUnknownException">The send may have reached WhatsApp and no answer came, now or for an earlier send of the id; it is never sent again.</exception>
-	/// <exception cref="WhatsmeowException">WhatsApp answered with an error (<see cref="WhatsmeowErrorCode.WhatsAppError"/>); a repeat of the id throws it again.</exception>
-	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="WhatsmeowException">
+	/// WhatsApp refused, with <see cref="WhatsmeowErrorCode.WhatsAppError"/>, in one of two ways. It refused a query the
+	/// send makes before the message (the recipient's LID or devices, a group's members): nothing was sent, and a repeat
+	/// of the id sends. Or it answered the message itself with an error: a repeat of the id throws the same error and
+	/// sends nothing, and since whether WhatsApp kept the message is unknown, sending it again takes a new id. Either way a
+	/// repeat of the id never sends the message twice.
+	/// </exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted, also while the send waited in the queue.</exception>
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached, or it stopped during the send.</exception>
 	/// <exception cref="ArgumentNullException"><paramref name="text"/> is null.</exception>
 	Task<SendResult> SendTextAsync(Jid chat, string text, MessageId? id = null, CancellationToken cancellationToken = default);

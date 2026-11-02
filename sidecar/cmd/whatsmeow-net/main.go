@@ -216,7 +216,11 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 
 	whatsmeowv1.RegisterMediaServiceServer(srv, mediaSlice)
 
-	// Closed before the sessions: its queued sends fail, having sent nothing.
+	// Closed once srv.Stop returned, before the sessions. Until then queued sends keep going out, paced: Stop waits for
+	// the calls in flight up to the stop grace, then grpc's Stop cancels every call's context (grpc v1.85.0
+	// server.go:1738-1744, internal/transport/http2_server.go:1300-1321), so a send still queued fails having sent
+	// nothing, and the one handed to whatsmeow ends as its context says. Close waits for that one, so its outcome is
+	// recorded before the sessions disconnect and the store closes.
 	messages := messaging.New(db.DB, sessions, log)
 	defer messages.Close()
 

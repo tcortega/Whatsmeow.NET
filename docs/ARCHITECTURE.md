@@ -324,7 +324,7 @@ Each SQLite file has a single owner, enforced with an OS lock on `<database>.loc
 The design is [ADR 0025](adr/0025-messaging-and-receipts.md); the whatsmeow facts are in §14 "Measured for Messaging (#9)".
 
 - Per-session FIFO queue, one send in flight, paced by a token bucket (a burst of 5, then one per second; tuning and jitter are Phase 2).
-  An IQ 429 before the write is tried again after 1 s, 2 s and 4 s while each wait fits the call's deadline, then fails with `RATE_LIMITED`.
+  An IQ 429 before the write is tried again after 1 s, 2 s and 4 s while the wait and one second more for the try fit the call's deadline, then fails with `RATE_LIMITED`.
 - Sends never wait for a connection: a session that is not logged in, not connected or `TempBanned` fails at once (`NOT_LOGGED_IN` or `LOGGED_OUT`, `NOT_CONNECTED`, `TEMPORARILY_BANNED`), through `session.(*Service).Online`.
   Queued sends fail when the session stops being `Connected` or `CaughtUp` (`NOT_CONNECTED`, `LOGGED_OUT`, or `TEMPORARILY_BANNED`), having sent nothing.
 - Idempotent sends: .NET supplies `client_message_id` (`3EB0` and 18 uppercase hex digits, the format whatsmeow makes; `MessageId.New()`), which is used as the WhatsApp message ID through `SendRequestExtra.ID`.

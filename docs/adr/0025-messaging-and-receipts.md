@@ -39,13 +39,17 @@ Reading whatsmeow at the pin for it showed facts the design had to follow [obser
 - **One send per id at a time.** An in-memory flight per (session, id): a repeat waits for it, returns its outcome, or sends itself when the first sent nothing.
 - **The classification** (`messaging.classify`): only what provably fails before the write is "sent nothing": `ErrNotLoggedIn` (reported `LOGGED_OUT`: the session was online, so its device was deleted meanwhile), `ErrRecipientNotOnWhatsApp`, an `IQError` (429 is backed off, any other is `WHATSAPP_ERROR` with its code), and a wrapped `ErrNotConnected`.
   `ErrServerReturnedError` is `WHATSAPP_ERROR` with its code, recorded and repeated, never resent with that id.
+  So `WHATSAPP_ERROR` has two repeat rules, told apart by when it came, not by its metadata, which is the code either way.
+  An `IQError` came before the message was written: nothing was sent, the row is deleted, and a repeat of the id sends.
+  `ErrServerReturnedError` answered the message itself: a repeat of the id fails with the same error and sends nothing, and since whether WhatsApp kept the message is [unknown], sending it again takes a new id.
+  Either way a repeat of an id never sends a message twice, so repeating one is always safe.
   Everything else (a timeout, a context end, a `DisconnectedError`, an unwrapped `ErrNotConnected`, a failed write) is `OUTCOME_UNKNOWN`.
   A repeat that waited gets `OUTCOME_UNKNOWN` without the first caller's context error.
 - **Repeats before fail-fast.** A repeat is answered from its record first, so a sent message's result comes back even while the session is offline; only then does a new send need `Online`, and it never waits for a connection.
 - **The per-session queue.** FIFO, one send in flight, paced by a GCRA token bucket (burst 5, then one per second).
   No jitter: send pacing tuning is Phase 2, and ARCHITECTURE §7.5's "and jitter" waits for it.
-  A queued send fails at once when its call ends, its session stops being online, or the sidecar stops; it sent nothing and leaves no record.
-  An IQ 429 is tried again after 1 s, 2 s and 4 s while each wait fits the call's deadline, then fails with `RATE_LIMITED`; the queue waits meanwhile, which keeps the order.
+  A queued send fails at once when its call ends, its session stops being online (`NOT_CONNECTED`, `LOGGED_OUT` or `TEMPORARILY_BANNED`, as the new state says, or `SESSION_NOT_FOUND` once it is deleted), or the slice closes; it sent nothing and leaves no record.
+  An IQ 429 is tried again after 1 s, 2 s and 4 s while the wait and one second more for the try fit the call's deadline, then fails with `RATE_LIMITED`; the queue waits meanwhile, which keeps the order.
 - **Up-front validation.** `SendMessage` checks `proto.CheckInitialized` itself: whatsmeow's `proto.Marshal` would refuse the same message (send.go:1261), and refusing it in the slice sends nothing for sure.
 - **MarkRead** is not queued or deduped: a read receipt is not a message, and sending it again changes nothing.
   A group chat needs the sender.
