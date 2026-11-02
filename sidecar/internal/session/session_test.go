@@ -679,10 +679,39 @@ func TestAnEarlyOfflineSyncIsLoggedWithTheSessionIDOnly(t *testing.T) {
 	h.stub("s1").emit(&events.OfflineSyncCompleted{})
 
 	// The live run looks for this line to record which order WhatsApp used (#83).
-	want := `{"level":"info","session_id":"s1","message":"the offline sync completed before Connected; the session is CaughtUp once Connected"}` + "\n"
+	want := `{"level":"info","session_id":"s1","state":"Connecting","message":"the offline sync completed before Connected; the session is CaughtUp once Connected"}` + "\n"
 	if got := log.String(); got != want {
 		t.Fatalf("log = %q, want %q", got, want)
 	}
+}
+
+func TestAnOfflineSyncOutsideALoginKeepsNothingAndLogsNothing(t *testing.T) {
+	t.Parallel()
+
+	var log bytes.Buffer
+
+	h := startLogging(t, filepath.Join(t.TempDir(), "whatsmeow-net.db"), zerolog.New(&log))
+
+	h.create("idle")
+	h.link("idle", "1555:1@s.whatsapp.net")
+	h.stub("idle").emit(&events.OfflineSyncCompleted{})
+
+	h.connected("caughtup")
+	h.stub("caughtup").emit(&events.OfflineSyncCompleted{})
+	h.stub("caughtup").emit(&events.OfflineSyncCompleted{})
+
+	// Before the link there is no account, and no login to keep it for.
+	h.create("pairing")
+	h.pair("pairing", "")
+	h.pairing("pairing", nil).emit(&events.OfflineSyncCompleted{})
+
+	if strings.Contains(log.String(), "offline sync") {
+		t.Fatalf("an offline sync outside a login was kept:\n%s", log.String())
+	}
+
+	h.wantState("idle", disconnected())
+	h.wantState("caughtup", caughtUp())
+	h.wantState("pairing", pairing())
 }
 
 // container records every write or delete of the device.

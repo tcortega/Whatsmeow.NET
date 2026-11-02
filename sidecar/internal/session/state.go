@@ -69,16 +69,6 @@ func live(state *whatsmeowv1.SessionState) bool {
 	}
 }
 
-// loggingIn is a state whose login may still dispatch Connected: Connecting, Reconnecting or Pairing.
-func loggingIn(state *whatsmeowv1.SessionState) bool {
-	switch state.GetKind().(type) {
-	case *whatsmeowv1.SessionState_Connecting_, *whatsmeowv1.SessionState_Reconnecting_, *whatsmeowv1.SessionState_Pairing_:
-		return true
-	default:
-		return false
-	}
-}
-
 // kept is a state that a restart restores as it is: the ones that stop a session (session.proto Disconnected).
 // Every other paired state comes back Disconnected.
 func kept(state *whatsmeowv1.SessionState) bool {

@@ -307,11 +307,28 @@ func (svc *Service) unapplied(s *session, evt any) {
 	case *events.OfflineSyncCompleted:
 		// whatsmeow dispatches Connected on a goroutine of its own after two IQs (connectionevents.go:187-204), and
 		// this from the offline ib on the node queue (connectionevents.go:87-90), so it can come first.
-		if loggingIn(s.state) {
+		if state := loginState(s); state != "" {
 			s.offlineFirst = true
-			svc.log.Info().Str("session_id", s.id).Msg("the offline sync completed before Connected; the session is CaughtUp once Connected")
+			svc.log.Info().Str("session_id", s.id).Str("state", state).Msg("the offline sync completed before Connected; the session is CaughtUp once Connected")
 		}
 	}
+}
+
+// loginState names the state of a login that can still dispatch Connected: Connecting, Reconnecting, or Pairing once
+// the phone linked the device and until that login ended; "" for any other. s.mu is held.
+func loginState(s *session) string {
+	switch s.state.GetKind().(type) {
+	case *whatsmeowv1.SessionState_Connecting_:
+		return "Connecting"
+	case *whatsmeowv1.SessionState_Reconnecting_:
+		return "Reconnecting"
+	case *whatsmeowv1.SessionState_Pairing_:
+		if p := s.pairing; p != nil && p.linked && !p.ended {
+			return "Pairing"
+		}
+	}
+
+	return ""
 }
 
 // loggedIn records Connected, then CaughtUp when the login's offline sync came first. s.mu is held.
