@@ -14,6 +14,7 @@ namespace Whatsmeow.Protocol.V1 {
   /// History arrives as events (events.proto HistoryMessagesEvent and HistorySyncProgressEvent), never as live messages:
   /// after pairing, WhatsApp sends it on its own, and the sidecar downloads it in the background once the session's
   /// offline sync completed, always after live traffic.
+  /// Status updates (statuses) are not history here: a blob's statuses are never delivered, only counted as skipped.
   /// The RPC needs the session logged in to WhatsApp right now: it fails at once with NOT_LOGGED_IN, LOGGED_OUT,
   /// TEMPORARILY_BANNED or NOT_CONNECTED otherwise. It fails with SESSION_NOT_FOUND for an id no session has.
   /// </summary>
@@ -103,9 +104,10 @@ namespace Whatsmeow.Protocol.V1 {
       /// <summary>
       /// RequestHistory asks the phone for up to count messages of the chat sent before the given oldest message. The
       /// answer, if the phone sends one, arrives later as history events of type ON_DEMAND. A request that went out with
-      /// no answer back is OUTCOME_UNKNOWN, and is never retried; asking again only repeats messages.
+      /// no answer back is OUTCOME_UNKNOWN, and is never retried; asking again only repeats messages. RATE_LIMITED and
+      /// WHATSAPP_ERROR (with WhatsApp's code) are WhatsApp's answers: the request was not taken.
       /// Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, TEMPORARILY_BANNED, NOT_CONNECTED,
-      /// OUTCOME_UNKNOWN.
+      /// RATE_LIMITED, WHATSAPP_ERROR, OUTCOME_UNKNOWN.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -120,9 +122,10 @@ namespace Whatsmeow.Protocol.V1 {
       /// <summary>
       /// RequestHistory asks the phone for up to count messages of the chat sent before the given oldest message. The
       /// answer, if the phone sends one, arrives later as history events of type ON_DEMAND. A request that went out with
-      /// no answer back is OUTCOME_UNKNOWN, and is never retried; asking again only repeats messages.
+      /// no answer back is OUTCOME_UNKNOWN, and is never retried; asking again only repeats messages. RATE_LIMITED and
+      /// WHATSAPP_ERROR (with WhatsApp's code) are WhatsApp's answers: the request was not taken.
       /// Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, TEMPORARILY_BANNED, NOT_CONNECTED,
-      /// OUTCOME_UNKNOWN.
+      /// RATE_LIMITED, WHATSAPP_ERROR, OUTCOME_UNKNOWN.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -135,9 +138,10 @@ namespace Whatsmeow.Protocol.V1 {
       /// <summary>
       /// RequestHistory asks the phone for up to count messages of the chat sent before the given oldest message. The
       /// answer, if the phone sends one, arrives later as history events of type ON_DEMAND. A request that went out with
-      /// no answer back is OUTCOME_UNKNOWN, and is never retried; asking again only repeats messages.
+      /// no answer back is OUTCOME_UNKNOWN, and is never retried; asking again only repeats messages. RATE_LIMITED and
+      /// WHATSAPP_ERROR (with WhatsApp's code) are WhatsApp's answers: the request was not taken.
       /// Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, TEMPORARILY_BANNED, NOT_CONNECTED,
-      /// OUTCOME_UNKNOWN.
+      /// RATE_LIMITED, WHATSAPP_ERROR, OUTCOME_UNKNOWN.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -152,9 +156,10 @@ namespace Whatsmeow.Protocol.V1 {
       /// <summary>
       /// RequestHistory asks the phone for up to count messages of the chat sent before the given oldest message. The
       /// answer, if the phone sends one, arrives later as history events of type ON_DEMAND. A request that went out with
-      /// no answer back is OUTCOME_UNKNOWN, and is never retried; asking again only repeats messages.
+      /// no answer back is OUTCOME_UNKNOWN, and is never retried; asking again only repeats messages. RATE_LIMITED and
+      /// WHATSAPP_ERROR (with WhatsApp's code) are WhatsApp's answers: the request was not taken.
       /// Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, TEMPORARILY_BANNED, NOT_CONNECTED,
-      /// OUTCOME_UNKNOWN.
+      /// RATE_LIMITED, WHATSAPP_ERROR, OUTCOME_UNKNOWN.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>

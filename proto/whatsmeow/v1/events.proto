@@ -198,9 +198,9 @@ message StreamEventsResponse {
     GroupEvent group = 16;
     // A change to a chat's state; best effort (chatstate.proto).
     ChatStateEvent chat_state = 17;
-    // A batch of the account's history, from a history sync blob (history.proto).
+    // A batch of the account's history, from a history sync blob; see history.proto.
     HistoryMessagesEvent history_messages = 18;
-    // A history sync blob processed, or given up on (history.proto).
+    // A history sync blob processed, or given up on; see history.proto.
     HistorySyncProgressEvent history_progress = 19;
   }
 }
@@ -223,11 +223,16 @@ enum HistorySyncType {
   HISTORY_SYNC_TYPE_NON_BLOCKING_DATA = 6;
   // The answer to a RequestHistory.
   HISTORY_SYNC_TYPE_ON_DEMAND = 7;
+  // The phone says it sends no history; no messages. When it sends this is WhatsApp's, and not documented.
+  HISTORY_SYNC_TYPE_NO_HISTORY = 8;
+  // The phone says how much of the account's messages this device may read; no messages.
+  HISTORY_SYNC_TYPE_MESSAGE_ACCESS_STATUS = 9;
 }
 
 // HistoryMessagesEvent is a batch of history messages: old messages, never live ones. A blob's messages arrive in one
 // or more batches, in the blob's order, each small enough for one gRPC message, then the blob's
-// HistorySyncProgressEvent. A batch delivered again carries the same messages.
+// HistorySyncProgressEvent. A batch delivered again carries the same messages. Status updates (statuses) a blob carries
+// are never delivered; they count in the progress event's skipped_count.
 message HistoryMessagesEvent {
   // Which history the blob carries.
   HistorySyncType sync_type = 1;
@@ -256,9 +261,10 @@ message HistorySyncProgressEvent {
   uint32 chunk_order = 2;
   // WhatsApp's progress value for the sync, as it sent it.
   uint32 progress = 3;
-  // How many messages its batches delivered.
+  // How many of its messages the sidecar delivered in its batches.
   uint32 message_count = 4;
-  // How many of its messages were not delivered: one that does not parse, or one too large for a gRPC message.
+  // How many of its messages the sidecar did not deliver: one that does not parse, one too large for a gRPC message,
+  // and every status update.
   uint32 skipped_count = 5;
   // Why it was given up on; unspecified when its messages were delivered.
   HistorySyncFailure failure = 6;

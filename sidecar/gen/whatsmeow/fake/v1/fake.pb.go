@@ -5506,7 +5506,8 @@ type DeliverHistorySyncRequest struct {
 	SessionId string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	// The notification message's id.
 	MessageId string `protobuf:"bytes,2,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
-	// The blob's waHistorySync.HistorySync.HistorySyncType number: 0 INITIAL_BOOTSTRAP, 2 FULL, 3 RECENT, 6 ON_DEMAND, ...
+	// The blob's waHistorySync.HistorySync.HistorySyncType number, also the notification's: 0 INITIAL_BOOTSTRAP, 2 FULL,
+	// 3 RECENT, 6 ON_DEMAND, ...
 	SyncType int32 `protobuf:"varint,3,opt,name=sync_type,json=syncType,proto3" json:"sync_type,omitempty"`
 	// Its place among the sync's blobs.
 	ChunkOrder uint32 `protobuf:"varint,4,opt,name=chunk_order,json=chunkOrder,proto3" json:"chunk_order,omitempty"`
@@ -5518,7 +5519,11 @@ type DeliverHistorySyncRequest struct {
 	// The blob's conversations.
 	Conversations []*DeliverHistorySyncRequest_Conversation `protobuf:"bytes,7,rep,name=conversations,proto3" json:"conversations,omitempty"`
 	// How many 'x' follow each message's text, for a blob larger than a control call may carry.
-	PadText       uint32 `protobuf:"varint,8,opt,name=pad_text,json=padText,proto3" json:"pad_text,omitempty"`
+	PadText uint32 `protobuf:"varint,8,opt,name=pad_text,json=padText,proto3" json:"pad_text,omitempty"`
+	// True for a notification that carries no blob at all, neither inline nor to download, as one of sync type 7
+	// NO_HISTORY or 8 MESSAGE_ACCESS_STATUS (waE2E's numbers) may; the conversations are ignored. Whether WhatsApp sends
+	// one without a blob is [unknown].
+	Blobless      bool `protobuf:"varint,9,opt,name=blobless,proto3" json:"blobless,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -5607,6 +5612,13 @@ func (x *DeliverHistorySyncRequest) GetPadText() uint32 {
 		return x.PadText
 	}
 	return 0
+}
+
+func (x *DeliverHistorySyncRequest) GetBlobless() bool {
+	if x != nil {
+		return x.Blobless
+	}
+	return false
 }
 
 // DeliverHistorySyncResponse is where the blob is.
@@ -7067,7 +7079,7 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\"3\n" +
 	"\x1bCompleteOfflineSyncResponse\x12\x14\n" +
-	"\x05index\x18\x01 \x01(\x04R\x05index\"\xba\x05\n" +
+	"\x05index\x18\x01 \x01(\x04R\x05index\"\xd6\x05\n" +
 	"\x19DeliverHistorySyncRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x1d\n" +
@@ -7079,7 +7091,8 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"\bprogress\x18\x05 \x01(\rR\bprogress\x12\x16\n" +
 	"\x06inline\x18\x06 \x01(\bR\x06inline\x12_\n" +
 	"\rconversations\x18\a \x03(\v29.whatsmeow.fake.v1.DeliverHistorySyncRequest.ConversationR\rconversations\x12\x19\n" +
-	"\bpad_text\x18\b \x01(\rR\apadText\x1at\n" +
+	"\bpad_text\x18\b \x01(\rR\apadText\x12\x1a\n" +
+	"\bblobless\x18\t \x01(\bR\bblobless\x1at\n" +
 	"\fConversation\x12\x12\n" +
 	"\x04chat\x18\x01 \x01(\tR\x04chat\x12P\n" +
 	"\bmessages\x18\x02 \x03(\v24.whatsmeow.fake.v1.DeliverHistorySyncRequest.MessageR\bmessages\x1a\xfa\x01\n" +

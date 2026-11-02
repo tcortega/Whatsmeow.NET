@@ -1605,11 +1605,13 @@ Whatsmeow.History.HistorySyncType
 Whatsmeow.History.HistorySyncType.Full = 3 -> Whatsmeow.History.HistorySyncType
 Whatsmeow.History.HistorySyncType.InitialBootstrap = 1 -> Whatsmeow.History.HistorySyncType
 Whatsmeow.History.HistorySyncType.InitialStatus = 2 -> Whatsmeow.History.HistorySyncType
+Whatsmeow.History.HistorySyncType.MessageAccessStatus = 9 -> Whatsmeow.History.HistorySyncType
+Whatsmeow.History.HistorySyncType.NoHistory = 8 -> Whatsmeow.History.HistorySyncType
 Whatsmeow.History.HistorySyncType.NonBlockingData = 6 -> Whatsmeow.History.HistorySyncType
 Whatsmeow.History.HistorySyncType.OnDemand = 7 -> Whatsmeow.History.HistorySyncType
 Whatsmeow.History.HistorySyncType.PushName = 5 -> Whatsmeow.History.HistorySyncType
 Whatsmeow.History.HistorySyncType.Recent = 4 -> Whatsmeow.History.HistorySyncType
 Whatsmeow.History.HistorySyncType.Unknown = 0 -> Whatsmeow.History.HistorySyncType
-Whatsmeow.IWhatsAppClient.RequestHistoryAsync(Whatsmeow.Jid chat, Whatsmeow.MessageId oldest, bool oldestIsFromMe, System.DateTimeOffset oldestTimestamp, int count = 50, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.RequestHistoryAsync(Whatsmeow.MessageId oldest, Whatsmeow.Events.MessageSource! source, System.DateTimeOffset oldestTimestamp, int count = 50, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Whatsmeow.WhatsmeowSidecarOptions.History.get -> Whatsmeow.History.HistorySyncOptions!
 Whatsmeow.WhatsmeowSidecarOptions.History.set -> void

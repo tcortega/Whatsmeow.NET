@@ -155,15 +155,18 @@ func (c *Control) DeliverHistorySync(ctx context.Context, req *fakev1.DeliverHis
 	}
 
 	notif := &waE2E.HistorySyncNotification{
-		FileEncSHA256: []byte{1}, MediaKey: []byte{2}, EncHandle: proto.String("handle"), FileLength: proto.Uint64(uint64(len(data))),
 		SyncType: waE2E.HistorySyncType(req.GetSyncType()).Enum(), ChunkOrder: proto.Uint32(req.GetChunkOrder()), Progress: proto.Uint32(req.GetProgress()),
 	}
 
-	if req.GetInline() {
+	if !req.GetBlobless() {
+		notif.FileEncSHA256, notif.MediaKey, notif.EncHandle, notif.FileLength = []byte{1}, []byte{2}, proto.String("handle"), proto.Uint64(uint64(len(data)))
+	}
+
+	if req.GetInline() && !req.GetBlobless() {
 		notif.InitialHistBootstrapInlinePayload = data
 	}
 
-	if !req.GetInline() {
+	if !req.GetInline() && !req.GetBlobless() {
 		f, directPath, err := c.whatsApp.newBlob()
 		if err != nil {
 			return nil, fmt.Errorf("deliver history sync: %w", err)

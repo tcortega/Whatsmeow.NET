@@ -1099,7 +1099,8 @@ message DeliverHistorySyncRequest {
   string session_id = 1;
   // The notification message's id.
   string message_id = 2;
-  // The blob's waHistorySync.HistorySync.HistorySyncType number: 0 INITIAL_BOOTSTRAP, 2 FULL, 3 RECENT, 6 ON_DEMAND, ...
+  // The blob's waHistorySync.HistorySync.HistorySyncType number, also the notification's: 0 INITIAL_BOOTSTRAP, 2 FULL,
+  // 3 RECENT, 6 ON_DEMAND, ...
   int32 sync_type = 3;
   // Its place among the sync's blobs.
   uint32 chunk_order = 4;
@@ -1112,6 +1113,10 @@ message DeliverHistorySyncRequest {
   repeated Conversation conversations = 7;
   // How many 'x' follow each message's text, for a blob larger than a control call may carry.
   uint32 pad_text = 8;
+  // True for a notification that carries no blob at all, neither inline nor to download, as one of sync type 7
+  // NO_HISTORY or 8 MESSAGE_ACCESS_STATUS (waE2E's numbers) may; the conversations are ignored. Whether WhatsApp sends
+  // one without a blob is [unknown].
+  bool blobless = 9;
 }
 
 // DeliverHistorySyncResponse is where the blob is.

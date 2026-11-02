@@ -92,6 +92,8 @@ type session struct {
 	pairing *attempt
 	// online is open while the session is Connected or CaughtUp, nil otherwise (Online).
 	online chan struct{}
+	// coming is closed once the session is next Connected or CaughtUp, nil while it is (Up).
+	coming chan struct{}
 }
 
 // New loads every session from the database. It never connects one: the client calls Connect (session.proto).
@@ -556,6 +558,11 @@ func (svc *Service) deleteSession(ctx context.Context, s *session) (*whatsmeowv1
 	if s.online != nil {
 		close(s.online)
 		s.online = nil
+	}
+
+	if s.coming != nil {
+		close(s.coming)
+		s.coming = nil
 	}
 
 	close(s.deleted)

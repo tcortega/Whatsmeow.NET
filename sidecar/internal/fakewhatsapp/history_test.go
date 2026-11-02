@@ -143,6 +143,27 @@ func TestAnInlineBlobNeedsNoDownload(t *testing.T) {
 	}
 }
 
+func TestABloblessNotificationCarriesNothingToDownload(t *testing.T) {
+	t.Parallel()
+
+	whatsApp, control, ctx, _, got, _ := linked(t)
+	whatsApp.mediaDir = t.TempDir()
+	<-got
+
+	req := historyRequest(false)
+	req.SyncType, req.Blobless = int32(waE2E.HistorySyncType_NO_HISTORY), true
+
+	if _, err := control.DeliverHistorySync(ctx, req); err != nil {
+		t.Fatalf("DeliverHistorySync: %v", err)
+	}
+
+	notif := (<-got).(*events.Message).Message.GetProtocolMessage().GetHistorySyncNotification()
+	if notif.GetSyncType() != waE2E.HistorySyncType_NO_HISTORY || notif.GetDirectPath() != "" || notif.InitialHistBootstrapInlinePayload != nil ||
+		notif.GetMediaKey() != nil || notif.GetFileEncSHA256() != nil {
+		t.Fatalf("notification %v, want NO_HISTORY with no blob", notif)
+	}
+}
+
 func TestAnExpiredBlobFailsItsDownload(t *testing.T) {
 	t.Parallel()
 

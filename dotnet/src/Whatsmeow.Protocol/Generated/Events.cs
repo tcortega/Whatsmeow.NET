@@ -107,28 +107,30 @@ namespace Whatsmeow.Protocol.V1 {
             "RRAJEhkKFVJFQ0VJUFRfVFlQRV9QRUVSX01TRxAKEh0KGVJFQ0VJUFRfVFlQ",
             "RV9ISVNUT1JZX1NZTkMQCypTCg9VbmF2YWlsYWJsZVR5cGUSIAocVU5BVkFJ",
             "TEFCTEVfVFlQRV9VTlNQRUNJRklFRBAAEh4KGlVOQVZBSUxBQkxFX1RZUEVf",
-            "VklFV19PTkNFEAEqqwIKD0hpc3RvcnlTeW5jVHlwZRIhCh1ISVNUT1JZX1NZ",
+            "VklFV19PTkNFEAEq+gIKD0hpc3RvcnlTeW5jVHlwZRIhCh1ISVNUT1JZX1NZ",
             "TkNfVFlQRV9VTlNQRUNJRklFRBAAEicKI0hJU1RPUllfU1lOQ19UWVBFX0lO",
             "SVRJQUxfQk9PVFNUUkFQEAESJwojSElTVE9SWV9TWU5DX1RZUEVfSU5JVElB",
             "TF9TVEFUVVNfVjMQAhIaChZISVNUT1JZX1NZTkNfVFlQRV9GVUxMEAMSHAoY",
             "SElTVE9SWV9TWU5DX1RZUEVfUkVDRU5UEAQSHwobSElTVE9SWV9TWU5DX1RZ",
             "UEVfUFVTSF9OQU1FEAUSJwojSElTVE9SWV9TWU5DX1RZUEVfTk9OX0JMT0NL",
-            "SU5HX0RBVEEQBhIfChtISVNUT1JZX1NZTkNfVFlQRV9PTl9ERU1BTkQQByqk",
-            "AQoSSGlzdG9yeVN5bmNGYWlsdXJlEiQKIEhJU1RPUllfU1lOQ19GQUlMVVJF",
-            "X1VOU1BFQ0lGSUVEEAASIAocSElTVE9SWV9TWU5DX0ZBSUxVUkVfRVhQSVJF",
-            "RBABEiAKHEhJU1RPUllfU1lOQ19GQUlMVVJFX0lOVkFMSUQQAhIkCiBISVNU",
-            "T1JZX1NZTkNfRkFJTFVSRV9VTkFWQUlMQUJMRRADMqkCCgxFdmVudFNlcnZp",
-            "Y2USVwoMU3RyZWFtRXZlbnRzEiEud2hhdHNtZW93LnYxLlN0cmVhbUV2ZW50",
-            "c1JlcXVlc3QaIi53aGF0c21lb3cudjEuU3RyZWFtRXZlbnRzUmVzcG9uc2Uw",
-            "ARJMCglBY2tFdmVudHMSHi53aGF0c21lb3cudjEuQWNrRXZlbnRzUmVxdWVz",
-            "dBofLndoYXRzbWVvdy52MS5BY2tFdmVudHNSZXNwb25zZRJyChVTdHJlYW1F",
-            "cGhlbWVyYWxFdmVudHMSKi53aGF0c21lb3cudjEuU3RyZWFtRXBoZW1lcmFs",
-            "RXZlbnRzUmVxdWVzdBorLndoYXRzbWVvdy52MS5TdHJlYW1FcGhlbWVyYWxF",
-            "dmVudHNSZXNwb25zZTABQsEBChBjb20ud2hhdHNtZW93LnYxQgtFdmVudHNQ",
-            "cm90b1ABWkZnaXRodWIuY29tL3Rjb3J0ZWdhL1doYXRzbWVvdy5ORVQvc2lk",
-            "ZWNhci9nZW4vd2hhdHNtZW93L3YxO3doYXRzbWVvd3YxogIDV1hYqgIVV2hh",
-            "dHNtZW93LlByb3RvY29sLlYxygIMV2hhdHNtZW93XFYx4gIYV2hhdHNtZW93",
-            "XFYxXEdQQk1ldGFkYXRh6gINV2hhdHNtZW93OjpWMWIGcHJvdG8z"));
+            "SU5HX0RBVEEQBhIfChtISVNUT1JZX1NZTkNfVFlQRV9PTl9ERU1BTkQQBxIg",
+            "ChxISVNUT1JZX1NZTkNfVFlQRV9OT19ISVNUT1JZEAgSKwonSElTVE9SWV9T",
+            "WU5DX1RZUEVfTUVTU0FHRV9BQ0NFU1NfU1RBVFVTEAkqpAEKEkhpc3RvcnlT",
+            "eW5jRmFpbHVyZRIkCiBISVNUT1JZX1NZTkNfRkFJTFVSRV9VTlNQRUNJRklF",
+            "RBAAEiAKHEhJU1RPUllfU1lOQ19GQUlMVVJFX0VYUElSRUQQARIgChxISVNU",
+            "T1JZX1NZTkNfRkFJTFVSRV9JTlZBTElEEAISJAogSElTVE9SWV9TWU5DX0ZB",
+            "SUxVUkVfVU5BVkFJTEFCTEUQAzKpAgoMRXZlbnRTZXJ2aWNlElcKDFN0cmVh",
+            "bUV2ZW50cxIhLndoYXRzbWVvdy52MS5TdHJlYW1FdmVudHNSZXF1ZXN0GiIu",
+            "d2hhdHNtZW93LnYxLlN0cmVhbUV2ZW50c1Jlc3BvbnNlMAESTAoJQWNrRXZl",
+            "bnRzEh4ud2hhdHNtZW93LnYxLkFja0V2ZW50c1JlcXVlc3QaHy53aGF0c21l",
+            "b3cudjEuQWNrRXZlbnRzUmVzcG9uc2UScgoVU3RyZWFtRXBoZW1lcmFsRXZl",
+            "bnRzEioud2hhdHNtZW93LnYxLlN0cmVhbUVwaGVtZXJhbEV2ZW50c1JlcXVl",
+            "c3QaKy53aGF0c21lb3cudjEuU3RyZWFtRXBoZW1lcmFsRXZlbnRzUmVzcG9u",
+            "c2UwAULBAQoQY29tLndoYXRzbWVvdy52MUILRXZlbnRzUHJvdG9QAVpGZ2l0",
+            "aHViLmNvbS90Y29ydGVnYS9XaGF0c21lb3cuTkVUL3NpZGVjYXIvZ2VuL3do",
+            "YXRzbWVvdy92MTt3aGF0c21lb3d2MaICA1dYWKoCFVdoYXRzbWVvdy5Qcm90",
+            "b2NvbC5WMcoCDFdoYXRzbWVvd1xWMeICGFdoYXRzbWVvd1xWMVxHUEJNZXRh",
+            "ZGF0YeoCDVdoYXRzbWVvdzo6VjFiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, global::Whatsmeow.Proto.WAWebProtobufsE2E.WAWebProtobufsE2EReflection.Descriptor, global::Whatsmeow.Protocol.V1.ChatstateReflection.Descriptor, global::Whatsmeow.Protocol.V1.ContactReflection.Descriptor, global::Whatsmeow.Protocol.V1.MediaReflection.Descriptor, global::Whatsmeow.Protocol.V1.PresenceReflection.Descriptor, global::Whatsmeow.Protocol.V1.GroupReflection.Descriptor, global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Whatsmeow.Protocol.V1.ReceiptType), typeof(global::Whatsmeow.Protocol.V1.UnavailableType), typeof(global::Whatsmeow.Protocol.V1.HistorySyncType), typeof(global::Whatsmeow.Protocol.V1.HistorySyncFailure), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -260,6 +262,14 @@ namespace Whatsmeow.Protocol.V1 {
     /// The answer to a RequestHistory.
     /// </summary>
     [pbr::OriginalName("HISTORY_SYNC_TYPE_ON_DEMAND")] OnDemand = 7,
+    /// <summary>
+    /// The phone says it sends no history; no messages. When it sends this is WhatsApp's, and not documented.
+    /// </summary>
+    [pbr::OriginalName("HISTORY_SYNC_TYPE_NO_HISTORY")] NoHistory = 8,
+    /// <summary>
+    /// The phone says how much of the account's messages this device may read; no messages.
+    /// </summary>
+    [pbr::OriginalName("HISTORY_SYNC_TYPE_MESSAGE_ACCESS_STATUS")] MessageAccessStatus = 9,
   }
 
   /// <summary>
@@ -2680,7 +2690,7 @@ namespace Whatsmeow.Protocol.V1 {
     /// <summary>Field number for the "history_messages" field.</summary>
     public const int HistoryMessagesFieldNumber = 18;
     /// <summary>
-    /// A batch of the account's history, from a history sync blob (history.proto).
+    /// A batch of the account's history, from a history sync blob; see history.proto.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -2695,7 +2705,7 @@ namespace Whatsmeow.Protocol.V1 {
     /// <summary>Field number for the "history_progress" field.</summary>
     public const int HistoryProgressFieldNumber = 19;
     /// <summary>
-    /// A history sync blob processed, or given up on (history.proto).
+    /// A history sync blob processed, or given up on; see history.proto.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -3255,7 +3265,8 @@ namespace Whatsmeow.Protocol.V1 {
   /// <summary>
   /// HistoryMessagesEvent is a batch of history messages: old messages, never live ones. A blob's messages arrive in one
   /// or more batches, in the blob's order, each small enough for one gRPC message, then the blob's
-  /// HistorySyncProgressEvent. A batch delivered again carries the same messages.
+  /// HistorySyncProgressEvent. A batch delivered again carries the same messages. Status updates (statuses) a blob carries
+  /// are never delivered; they count in the progress event's skipped_count.
   /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   internal sealed partial class HistoryMessagesEvent : pb::IMessage<HistoryMessagesEvent>
@@ -3590,7 +3601,7 @@ namespace Whatsmeow.Protocol.V1 {
     public const int MessageCountFieldNumber = 4;
     private uint messageCount_;
     /// <summary>
-    /// How many messages its batches delivered.
+    /// How many of its messages the sidecar delivered in its batches.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -3605,7 +3616,8 @@ namespace Whatsmeow.Protocol.V1 {
     public const int SkippedCountFieldNumber = 5;
     private uint skippedCount_;
     /// <summary>
-    /// How many of its messages were not delivered: one that does not parse, or one too large for a gRPC message.
+    /// How many of its messages the sidecar did not deliver: one that does not parse, one too large for a gRPC message,
+    /// and every status update.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]

@@ -10,8 +10,12 @@ namespace Whatsmeow.History;
 /// <summary>The history events as the public records, and the request the client sends.</summary>
 internal static class HistoryMapping
 {
-	/// <summary>The lane every history event runs in: one of its own, never a chat's, and never a JID, which has an '@'.</summary>
-	public const string Lane = "history";
+	/// <summary>
+	/// The lane every history event runs in: one of its own, never a chat's. A chat's lane is its JID as whatsmeow writes
+	/// it, which never starts with '@': with a user, the user comes first, and without one it is the server alone
+	/// (whatsmeow types/jid.go JID.String).
+	/// </summary>
+	public const string Lane = "@history";
 
 	/// <summary>
 	/// The batch, its messages mapped as a live message is (<see cref="ContentMapping.ToContent"/>), or null when none is
@@ -65,13 +69,13 @@ internal static class HistoryMapping
 			Failure = ToFailure(progress.Failure),
 		};
 
-	public static RequestHistoryRequest ToRequest(SessionId sessionId, Jid chat, MessageId oldest, bool oldestIsFromMe, DateTimeOffset oldestTimestamp, int count) =>
+	public static RequestHistoryRequest ToRequest(SessionId sessionId, MessageId oldest, Events.MessageSource source, DateTimeOffset oldestTimestamp, int count) =>
 		new()
 		{
 			SessionId = sessionId.Value,
-			Chat = chat.ToString(),
+			Chat = source.Chat.ToString(),
 			OldestMessageId = oldest.Value,
-			OldestFromMe = oldestIsFromMe,
+			OldestFromMe = source.IsFromMe,
 			OldestMessageTime = Timestamp.FromDateTimeOffset(oldestTimestamp),
 			Count = checked((uint)count),
 		};
@@ -86,6 +90,8 @@ internal static class HistoryMapping
 			ProtoType.PushName => HistorySyncType.PushName,
 			ProtoType.NonBlockingData => HistorySyncType.NonBlockingData,
 			ProtoType.OnDemand => HistorySyncType.OnDemand,
+			ProtoType.NoHistory => HistorySyncType.NoHistory,
+			ProtoType.MessageAccessStatus => HistorySyncType.MessageAccessStatus,
 			ProtoType.Unspecified => HistorySyncType.Unknown,
 			_ => HistorySyncType.Unknown,
 		};

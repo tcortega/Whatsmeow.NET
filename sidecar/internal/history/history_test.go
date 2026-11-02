@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -14,12 +15,14 @@ import (
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/proto/waHistorySync"
+	"go.mau.fi/whatsmeow/proto/waWeb"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	eventsslice "github.com/tcortega/Whatsmeow.NET/sidecar/internal/events"
 )
 
 func TestANotificationIsQueuedAndWaitsForTheOfflineSync(t *testing.T) {
@@ -219,8 +222,8 @@ func TestARestartProcessesAHalfDoneBlobAgainFromItsNextBatch(t *testing.T) {
 	h.waitedFor("s1")
 
 	first := h.read("s1", 0, window)
-	if q := h.queueRows("s1"); !slices.Equal(q, []string{fmt.Sprintf("N1 %d 0 0", window)}) {
-		t.Fatalf("queue %v, want N1 with %d batches done", q, window)
+	if q := h.queueRows("s1"); !slices.Equal(q, []string{fmt.Sprintf("N1 %d 0 0", window*maxBatchMessages)}) {
+		t.Fatalf("queue %v, want N1 with %d batches of messages done", q, window)
 	}
 
 	// The sidecar stops with the blob half done, and nothing deleted.
@@ -265,7 +268,7 @@ func TestABlobRecordedBeforeACrashIsDeletedOnTheNextRunWithoutADownload(t *testi
 	h := start(t)
 	notif, _ := proto.Marshal(notification("N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT)).Message.GetProtocolMessage().GetHistorySyncNotification())
 
-	if _, err := h.db.DB.ExecContext(h.ctx, "INSERT INTO history_blob (session_id, message_id, notification, batches_done, recorded) VALUES ('s1', 'N1', ?, 1, 1)", notif); err != nil {
+	if _, err := h.db.DB.ExecContext(h.ctx, "INSERT INTO history_blob (session_id, message_id, notification, messages_done, recorded) VALUES ('s1', 'N1', ?, 1, 1)", notif); err != nil {
 		t.Fatalf("queue a recorded blob: %v", err)
 	}
 
@@ -363,8 +366,8 @@ func TestADownloadThatFailsBecauseTheSessionWentOfflineIsNotCounted(t *testing.T
 	h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, texts(direct, "A", 1)))
 	h.caughtUp("s1")
 
-	// The worker stops without counting it, and the next connection's worker delivers it.
-	h.ended("s1")
+	// The worker stops without counting it, and the next offline sync delivers it.
+	h.offlineFor("s1")
 
 	if q := h.queueRows("s1"); !slices.Equal(q, []string{"N1 0 0 0"}) {
 		t.Fatalf("queue %v, want N1 with no attempt counted", q)
@@ -463,14 +466,15 @@ func TestBatchesStayWithinTheirBoundsInOrder(t *testing.T) {
 
 	messages = append(messages, text("ALONE", 2<<20), text("TOO-LARGE", 16<<20), text("LAST", 10))
 
-	batches, skipped := batch(whatsmeowv1.HistorySyncType_HISTORY_SYNC_TYPE_FULL, messages)
+	batches, delivered, skipped := batch(whatsmeowv1.HistorySyncType_HISTORY_SYNC_TYPE_FULL, messages, 0)
 
 	var (
 		ids   []string
 		sizes []int
 	)
 
-	for _, b := range batches {
+	for _, cut := range batches {
+		b := cut.event
 		event := &whatsmeowv1.StreamEventsResponse{Seq: ^uint64(0), Payload: &whatsmeowv1.StreamEventsResponse_HistoryMessages{HistoryMessages: b}}
 		size := proto.Size(event)
 		sizes = append(sizes, size)
@@ -491,8 +495,21 @@ func TestBatchesStayWithinTheirBoundsInOrder(t *testing.T) {
 		}
 	}
 
-	if !slices.Equal(ids, want) || skipped != 1 {
+	if !slices.Equal(ids, want) || skipped != 1 || delivered != len(want) {
 		t.Fatalf("batched %d messages, skipped %d; want every one but the one too large for a gRPC message, in order", len(ids), skipped)
+	}
+
+	// From the middle: the batches start at that message, keyed by its index, and the counts are the whole blob's.
+	rest, restDelivered, restSkipped := batch(whatsmeowv1.HistorySyncType_HISTORY_SYNC_TYPE_FULL, messages, 300)
+	if rest[0].first != 300 || rest[0].event.GetMessages()[0].GetInfo().GetId() != "S300" || restDelivered != delivered || restSkipped != skipped {
+		t.Fatalf("from 300: first %d (%s), counts %d and %d; want 300 (S300) and the whole blob's", rest[0].first,
+			rest[0].event.GetMessages()[0].GetInfo().GetId(), restDelivered, restSkipped)
+	}
+
+	for i := 1; i < len(rest); i++ {
+		if rest[i].first < rest[i-1].end {
+			t.Fatalf("batch %d starts at %d, after one that ends at %d", i, rest[i].first, rest[i-1].end)
+		}
 	}
 
 	t.Logf("batch sizes: %v", sizes)
@@ -597,8 +614,8 @@ func TestRequestHistoryRefusesWhatItCannotAsk(t *testing.T) {
 		{"unknown session", "SESSION_NOT_FOUND", valid(func(r *whatsmeowv1.RequestHistoryRequest) { r.SessionId = "s9" })},
 	} {
 		_, err := h.client.RequestHistory(h.ctx, c.req)
-		if got := reason(err); got != c.reason {
-			t.Errorf("%s: %v, want %s", c.name, err, c.reason)
+		if got := reason(err); got != c.reason || strings.Contains(err.Error(), "5511") {
+			t.Errorf("%s: %v, want %s without the JID", c.name, err, c.reason)
 		}
 	}
 
@@ -621,6 +638,11 @@ func TestRequestHistoryErrorsBecomeTheirReasonsWithoutAJID(t *testing.T) {
 		{whatsmeow.ErrNotConnected, "OUTCOME_UNKNOWN"},
 		{fmt.Errorf("failed to get device list of %s: %w", direct, whatsmeow.ErrIQTimedOut), "OUTCOME_UNKNOWN"},
 		{fmt.Errorf("%w for %s", whatsmeow.ErrNotLoggedIn, direct), "LOGGED_OUT"},
+		// As the Messaging slice reads a send (messaging/send.go classify): 429 is a rate limit, WhatsApp's other answers
+		// are definite failures.
+		{fmt.Errorf("failed to get device list of %s: %w", direct, &whatsmeow.IQError{Code: 429, Text: "rate-overlimit"}), "RATE_LIMITED"},
+		{fmt.Errorf("failed to get device list of %s: %w", direct, &whatsmeow.IQError{Code: 500, Text: "internal-server-error"}), "WHATSAPP_ERROR"},
+		{fmt.Errorf("%w %d", whatsmeow.ErrServerReturnedError, 479), "WHATSAPP_ERROR"},
 	} {
 		h.stubs["s1"].sendErr = c.err
 
@@ -660,5 +682,398 @@ func TestAHistoryMediaMessageCarriesWhatALiveOneDoes(t *testing.T) {
 	if len(got) != 2 || !proto.Equal(got[0].GetMessage().GetImageMessage(), image) || got[0].GetViewOnce() ||
 		!proto.Equal(got[1].GetMessage().GetImageMessage(), image) || !got[1].GetViewOnce() {
 		t.Fatalf("messages %v, want the image twice, the second view once", got)
+	}
+}
+
+func TestASecondOfflineSyncInOneConnectionWakesTheWorker(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.caughtUp("s1")
+	h.idleFor("s1")
+
+	// whatsmeow dispatches OfflineSyncCompleted for each offline ib (connectionevents.go:85-88).
+	h.caughtUp("s1")
+	h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, texts(direct, "A", 1)))
+
+	if ids, progress := messageIDs(t, h.read("s1", 0, 2)); !slices.Equal(ids, []string{"A1"}) || len(progress) != 1 {
+		t.Fatalf("messages %v and %d progress events, want A1 and one", ids, len(progress))
+	}
+}
+
+func TestAnOfflineSyncBeforeConnectedStartsTheWorkerOnceTheSessionIsUp(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	// whatsmeow dispatches Connected on its own goroutine after two IQs (connectionevents.go:183-205), and the offline
+	// ib on the node queue, so OfflineSyncCompleted can come first.
+	h.sessions.connecting("s1")
+	h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, texts(direct, "A", 1)))
+	h.caughtUp("s1")
+	h.delayed(upTimeout)
+
+	h.sessions.comeUp("s1")
+
+	if ids, progress := messageIDs(t, h.read("s1", 0, 2)); !slices.Equal(ids, []string{"A1"}) || len(progress) != 1 {
+		t.Fatalf("messages %v and %d progress events, want A1 and one", ids, len(progress))
+	}
+}
+
+func TestAWorkerWhoseSessionNeverComesUpGivesUpAndTheNextOfflineSyncStartsOne(t *testing.T) {
+	t.Parallel()
+
+	var log logged
+
+	h := startLogging(t, zerolog.New(&log).Level(zerolog.DebugLevel), filepath.Join(t.TempDir(), "whatsmeow-net.db"))
+	h.sessions.connecting("s1")
+	h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, texts(direct, "A", 1)))
+	h.caughtUp("s1")
+	h.delayed(upTimeout)
+
+	h.upExpired <- time.Time{}
+
+	h.ended("s1")
+
+	if !strings.Contains(log.String(), `"level":"debug"`) {
+		t.Fatalf("giving up was not logged at debug:\n%s", log.String())
+	}
+
+	h.sessions.comeUp("s1")
+	h.caughtUp("s1")
+
+	if ids, _ := messageIDs(t, h.read("s1", 0, 2)); !slices.Equal(ids, []string{"A1"}) {
+		t.Fatalf("messages %v, want A1", ids)
+	}
+}
+
+func TestADeliveryThatFailsIsTriedAgainAfterABackoffWhileOnline(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	// A failure that is neither the download's nor offline: the queue's update fails.
+	if _, err := h.db.DB.ExecContext(h.ctx, "CREATE TRIGGER broken BEFORE UPDATE ON history_blob BEGIN SELECT RAISE(ABORT, 'broken'); END"); err != nil {
+		t.Fatalf("break the queue: %v", err)
+	}
+
+	h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, texts(direct, "A", 1)))
+	h.caughtUp("s1")
+	h.delayed(minBackoff)
+
+	if _, err := h.db.DB.ExecContext(h.ctx, "DROP TRIGGER broken"); err != nil {
+		t.Fatalf("repair the queue: %v", err)
+	}
+
+	if ids, progress := messageIDs(t, h.read("s1", 0, 2)); !slices.Equal(ids, []string{"A1"}) || len(progress) != 1 {
+		t.Fatalf("messages %v and %d progress events, want A1 and one", ids, len(progress))
+	}
+}
+
+func TestAQueuedNotificationThatDoesNotParseIsReportedInvalidAndTheNextArrives(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	if _, err := h.db.DB.ExecContext(h.ctx, "INSERT INTO history_blob (session_id, message_id, notification) VALUES ('s1', 'N0', x'ff')"); err != nil {
+		t.Fatalf("queue a broken notification: %v", err)
+	}
+
+	h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, texts(direct, "A", 1)))
+	h.caughtUp("s1")
+
+	ids, progress := messageIDs(t, h.read("s1", 0, 3))
+	if !slices.Equal(ids, []string{"A1"}) || len(progress) != 2 || progress[0].GetFailure() != whatsmeowv1.HistorySyncFailure_HISTORY_SYNC_FAILURE_INVALID ||
+		progress[1].GetFailure() != whatsmeowv1.HistorySyncFailure_HISTORY_SYNC_FAILURE_UNSPECIFIED {
+		t.Fatalf("messages %v, progress %v; want the broken one reported invalid, then A1 delivered", ids, progress)
+	}
+
+	h.idleFor("s1")
+
+	if q := h.queueRows("s1"); len(q) != 0 {
+		t.Fatalf("queue %v, want it empty", q)
+	}
+}
+
+func TestAStalledDownloadTimesOutAndCountsAsAnAttempt(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.svc.downloadTimeout = 50 * time.Millisecond
+	// Never closed: each download waits until its context ends.
+	h.stubs["s1"].hold = make(chan struct{})
+	h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, texts(direct, "A", 1)))
+	h.caughtUp("s1")
+
+	_, progress := messageIDs(t, h.read("s1", 0, 1))
+	if len(progress) != 1 || progress[0].GetFailure() != whatsmeowv1.HistorySyncFailure_HISTORY_SYNC_FAILURE_UNAVAILABLE {
+		t.Fatalf("progress %v, want the blob reported unavailable", progress)
+	}
+
+	if d := h.stubs["s1"].downloaded(); len(d) != attempts {
+		t.Fatalf("downloads %v, want %d", d, attempts)
+	}
+}
+
+func TestARestartAfterTheMappingChangedResumesAtTheNextMessage(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "whatsmeow-net.db")
+	const n = 6 * maxBatchMessages
+	b := blob(waHistorySync.HistorySync_FULL, texts(direct, "M", n))
+
+	var log logged
+
+	h := startLogging(t, zerolog.New(&log), path)
+	// A mapping that makes each message 8 KiB, so the first run cuts batches by bytes, of fewer messages each.
+	h.svc.toEvent = func(m *events.Message) *whatsmeowv1.MessageEvent {
+		e := eventsslice.MessageEvent(m)
+		e.Message = &waE2E.Message{Conversation: proto.String(strings.Repeat("x", 8<<10))}
+
+		return e
+	}
+	h.notify("s1", "N1", "/blob/1", b)
+	h.caughtUp("s1")
+	h.waitedFor("s1")
+
+	first := h.read("s1", 0, window)
+	h.stopNow()
+
+	// The next sidecar maps messages as they are, so its batches are cut elsewhere.
+	h = startLogging(t, zerolog.New(&log), path)
+	h.stubs["s1"].blobs["/blob/1"] = b
+
+	if err := h.box.Ack(h.ctx, "s1", "client", seqOf(first)); err != nil {
+		t.Fatalf("Ack: %v", err)
+	}
+
+	h.caughtUp("s1")
+
+	var all []*whatsmeowv1.StreamEventsResponse
+
+	after := seqOf(first)
+
+	for {
+		got := h.read("s1", after, 1)
+		all = append(all, got...)
+		after = seqOf(got)
+
+		if got[0].GetHistoryProgress() != nil {
+			break
+		}
+
+		if err := h.box.Ack(h.ctx, "s1", "client", after); err != nil {
+			t.Fatalf("Ack: %v", err)
+		}
+	}
+
+	ids, _ := messageIDs(t, append(first, all...))
+
+	want := make([]string, 0, n)
+	for i := 1; i <= n; i++ {
+		want = append(want, fmt.Sprintf("M%d", i))
+	}
+
+	if !slices.Equal(ids, want) {
+		t.Fatalf("%d messages, want %d once each, in order", len(ids), n)
+	}
+
+	// No batch of the second run took the key of one of the first.
+	h.stopNow()
+
+	if s := log.String(); strings.Contains(s, "repeats a recorded one's key") {
+		t.Fatalf("a batch reused a recorded batch's key:\n%s", s)
+	}
+}
+
+func TestALoggedOutOrRepairedSessionLosesItsQueue(t *testing.T) {
+	t.Parallel()
+
+	for _, evt := range []any{&events.LoggedOut{Reason: events.ConnectFailureLoggedOut}, &events.PairSuccess{}} {
+		t.Run(fmt.Sprintf("%T", evt), func(t *testing.T) {
+			t.Parallel()
+
+			h := start(t)
+			h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, texts(direct, "A", 1)))
+
+			if !h.handle("s1", evt) {
+				t.Fatalf("the handler failed %T", evt)
+			}
+
+			if q := h.queueRows("s1"); len(q) != 0 {
+				t.Fatalf("queue %v, want the old account's blobs gone", q)
+			}
+		})
+	}
+}
+
+func TestParsingRunsOneAtATimeAcrossSessions(t *testing.T) {
+	t.Parallel()
+
+	h := start(t, "s1", "s2")
+	hold := make(chan struct{})
+	release := sync.OnceFunc(func() { close(hold) })
+	// Before the harness's stop, which waits for the held worker.
+	t.Cleanup(release)
+	h.stubs["s1"].parseHold = hold
+	h.stubs["s1"].parseEntered = make(chan string, 1)
+
+	h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, texts(direct, "A", 1)))
+	h.notify("s2", "N2", "/blob/2", blob(waHistorySync.HistorySync_RECENT, texts(direct, "B", 1)))
+	h.caughtUp("s1")
+
+	select {
+	case <-h.stubs["s1"].parseEntered:
+	case <-h.ctx.Done():
+		t.Fatal("s1's parse never started")
+	}
+
+	h.caughtUp("s2")
+
+	select {
+	case id := <-h.queued:
+		if id != "s2" {
+			t.Fatalf("session %s queued, want s2", id)
+		}
+	case <-h.ctx.Done():
+		t.Fatal("s2's download did not wait for s1's parse")
+	}
+
+	if d := h.stubs["s2"].downloaded(); len(d) != 0 {
+		t.Fatalf("s2 downloaded %v while s1's parse ran", d)
+	}
+
+	release()
+
+	if ids, _ := messageIDs(t, h.read("s2", 0, 2)); !slices.Equal(ids, []string{"B1"}) {
+		t.Fatalf("s2's messages %v, want B1", ids)
+	}
+}
+
+func TestATransientFailureAsTheClientGoesOfflineIsNotCounted(t *testing.T) {
+	t.Parallel()
+
+	t.Run("not connected", func(t *testing.T) {
+		t.Parallel()
+
+		h := start(t)
+		stub := h.stubs["s1"]
+		stub.errs["/blob/1"] = []error{networkError()}
+		// The socket is gone before whatsmeow dispatched Disconnected: the session is still online.
+		stub.onDownload = func(string) { stub.setConnected(false) }
+		h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, texts(direct, "A", 1)))
+		h.caughtUp("s1")
+		h.offlineFor("s1")
+
+		if q := h.queueRows("s1"); !slices.Equal(q, []string{"N1 0 0 0"}) {
+			t.Fatalf("queue %v, want N1 with no attempt counted", q)
+		}
+
+		stub.onDownload = nil
+		stub.setConnected(true)
+		h.caughtUp("s1")
+
+		if ids, _ := messageIDs(t, h.read("s1", 0, 2)); !slices.Equal(ids, []string{"A1"}) {
+			t.Fatalf("messages %v, want A1", ids)
+		}
+	})
+
+	t.Run("left online", func(t *testing.T) {
+		t.Parallel()
+
+		h := start(t)
+		stub := h.stubs["s1"]
+		stub.errs["/blob/1"] = []error{networkError()}
+		stub.onDownload = func(string) { h.sessions.leave("s1") }
+		h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, texts(direct, "A", 1)))
+		h.caughtUp("s1")
+		h.ended("s1")
+
+		if q := h.queueRows("s1"); !slices.Equal(q, []string{"N1 0 0 0"}) {
+			t.Fatalf("queue %v, want N1 with no attempt counted", q)
+		}
+	})
+}
+
+func TestAPanicDeliveringABlobReportsItInvalidAndTheNextArrives(t *testing.T) {
+	t.Parallel()
+
+	var log logged
+
+	h := startLogging(t, zerolog.New(&log).Level(zerolog.InfoLevel), filepath.Join(t.TempDir(), "whatsmeow-net.db"))
+	h.stubs["s1"].panicOn = "P1"
+	h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, texts(direct, "P", 1)))
+	h.notify("s1", "N2", "/blob/2", blob(waHistorySync.HistorySync_RECENT, texts(direct, "B", 1)))
+	h.caughtUp("s1")
+
+	ids, progress := messageIDs(t, h.read("s1", 0, 3))
+	if !slices.Equal(ids, []string{"B1"}) || len(progress) != 2 || progress[0].GetFailure() != whatsmeowv1.HistorySyncFailure_HISTORY_SYNC_FAILURE_INVALID {
+		t.Fatalf("messages %v, progress %v; want the first reported invalid, then B1 delivered", ids, progress)
+	}
+
+	h.idleFor("s1")
+
+	if q := h.queueRows("s1"); len(q) != 0 {
+		t.Fatalf("queue %v, want it empty", q)
+	}
+
+	h.stopNow()
+
+	if s := log.String(); !strings.Contains(s, "panicked") || strings.Contains(s, "5511") {
+		t.Fatalf("the log does not report the panic, or carries a JID:\n%s", s)
+	}
+}
+
+func TestStatusMessagesAreNotDeliveredAndCountAsSkipped(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	b := blob(waHistorySync.HistorySync_INITIAL_STATUS_V3, texts(direct, "A", 1))
+	b.StatusV3Messages = []*waWeb.WebMessageInfo{
+		webMessage("status@broadcast", "S1", false, direct, "a status"), webMessage("status@broadcast", "S2", false, member, "another"),
+	}
+	h.notify("s1", "N1", "/blob/1", b)
+	h.caughtUp("s1")
+
+	ids, progress := messageIDs(t, h.read("s1", 0, 2))
+	if !slices.Equal(ids, []string{"A1"}) || len(progress) != 1 || progress[0].GetMessageCount() != 1 || progress[0].GetSkippedCount() != 2 {
+		t.Fatalf("messages %v, progress %v; want A1, and the statuses counted skipped", ids, progress)
+	}
+}
+
+func TestANotificationWithoutABlobThatSaysThereIsNoneIsReportedWithNoMessages(t *testing.T) {
+	t.Parallel()
+
+	for _, c := range []struct {
+		notified waE2E.HistorySyncType
+		want     whatsmeowv1.HistorySyncType
+	}{
+		{waE2E.HistorySyncType_NO_HISTORY, whatsmeowv1.HistorySyncType_HISTORY_SYNC_TYPE_NO_HISTORY},
+		{waE2E.HistorySyncType_MESSAGE_ACCESS_STATUS, whatsmeowv1.HistorySyncType_HISTORY_SYNC_TYPE_MESSAGE_ACCESS_STATUS},
+	} {
+		t.Run(c.notified.String(), func(t *testing.T) {
+			t.Parallel()
+
+			h := start(t)
+			evt := notification("N1", "", blob(waHistorySync.HistorySync_RECENT))
+			notif := evt.Message.GetProtocolMessage().GetHistorySyncNotification()
+			notif.SyncType = c.notified.Enum()
+			notif.FileEncSHA256, notif.EncHandle = nil, nil
+
+			if !h.handle("s1", evt) {
+				t.Fatal("the handler withheld the answer")
+			}
+
+			h.caughtUp("s1")
+
+			_, progress := messageIDs(t, h.read("s1", 0, 1))
+			if len(progress) != 1 || progress[0].GetSyncType() != c.want || progress[0].GetMessageCount() != 0 ||
+				progress[0].GetFailure() != whatsmeowv1.HistorySyncFailure_HISTORY_SYNC_FAILURE_UNSPECIFIED {
+				t.Fatalf("progress %v, want %v with no messages and no failure", progress, c.want)
+			}
+
+			h.idleFor("s1")
+
+			if got, d, q := h.stubs["s1"].downloaded(), h.stubs["s1"].deleted(), h.queueRows("s1"); len(got) != 0 || len(d) != 0 || len(q) != 0 {
+				t.Fatalf("downloads %v, deletes %v, queue %v; want none of each", got, d, q)
+			}
+		})
 	}
 }

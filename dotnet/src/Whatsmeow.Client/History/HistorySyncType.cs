@@ -9,7 +9,7 @@ public enum HistorySyncType
 	/// <summary>The first, recent history after pairing.</summary>
 	InitialBootstrap,
 
-	/// <summary>Status updates after pairing.</summary>
+	/// <summary>Status updates after pairing. Statuses are never delivered: they count in <see cref="HistorySyncProgressed.SkippedCount"/>.</summary>
 	InitialStatus,
 
 	/// <summary>Older history, as much as <see cref="WhatsmeowSidecarOptions.History"/> asks for.</summary>
@@ -26,4 +26,10 @@ public enum HistorySyncType
 
 	/// <summary>The answer to <see cref="IWhatsAppClient.RequestHistoryAsync"/>.</summary>
 	OnDemand,
+
+	/// <summary>The phone says it sends no history; no messages. When it sends this is WhatsApp's, and not documented.</summary>
+	NoHistory,
+
+	/// <summary>The phone says how much of the account's messages this device may read; no messages.</summary>
+	MessageAccessStatus,
 }

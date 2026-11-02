@@ -607,11 +607,12 @@ internal sealed class SessionClient(
 		_ = await RpcErrors.CallAsync(_chatState.SetChatStateAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
 	}
 
-	public async Task RequestHistoryAsync(Jid chat, MessageId oldest, bool oldestIsFromMe, DateTimeOffset oldestTimestamp, int count = 50, CancellationToken cancellationToken = default)
+	public async Task RequestHistoryAsync(MessageId oldest, Events.MessageSource source, DateTimeOffset oldestTimestamp, int count = 50, CancellationToken cancellationToken = default)
 	{
+		ArgumentNullException.ThrowIfNull(source);
 		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
-		var request = HistoryMapping.ToRequest(sessionId, chat, oldest, oldestIsFromMe, oldestTimestamp, count);
+		var request = HistoryMapping.ToRequest(sessionId, oldest, source, oldestTimestamp, count);
 		_ = await RpcErrors.CallAsync(_history.RequestHistoryAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
 	}
 }

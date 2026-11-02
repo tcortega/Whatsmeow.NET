@@ -18,10 +18,16 @@ public sealed record HistorySyncProgressed : WhatsAppEvent
 	/// <summary>WhatsApp's progress value for the sync, as it sent it; what it measures is WhatsApp's.</summary>
 	public required long Progress { get; init; }
 
-	/// <summary>How many messages the blob's batches delivered.</summary>
+	/// <summary>
+	/// How many of the blob's messages the sidecar delivered in its <see cref="HistoryReceived"/> batches. A message the
+	/// client then skipped as unreadable still counts.
+	/// </summary>
 	public required long MessageCount { get; init; }
 
-	/// <summary>How many of its messages were not delivered: one that did not parse, or one too large to deliver.</summary>
+	/// <summary>
+	/// How many of its messages the sidecar did not deliver: one that did not parse, one too large to deliver, and every
+	/// status update, which history never delivers.
+	/// </summary>
 	public required long SkippedCount { get; init; }
 
 	/// <summary>Why the blob was given up on; null when its messages were delivered.</summary>

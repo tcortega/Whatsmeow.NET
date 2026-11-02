@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Whatsmeow.Core.Errors;
 using Whatsmeow.Core.Transport;
-using Whatsmeow.History;
 using Whatsmeow.Protocol.V1;
 using Whatsmeow.Sessions;
 using Whatsmeow.Sidecar;

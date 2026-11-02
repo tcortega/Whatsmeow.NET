@@ -249,15 +249,39 @@ public sealed class HistoryTests(FakeSidecar fixture)
 	}
 
 	[Fact(Timeout = Timeout)]
+	public async Task NoHistoryNotification_WithoutABlob_ArrivesAsProgressWithNoMessages()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "history-none";
+		var client = await Histories.CaughtUpAsync(fixture, Session, ct);
+		using var progress = new Received<HistorySyncProgressed>(client);
+
+		// waE2E's NO_HISTORY, 7.
+		var none = Histories.Blob(Session, "N1", 7);
+		none.Blobless = true;
+		_ = await fixture.Fake.DeliverHistorySyncAsync(none, cancellationToken: ct);
+
+		Assert.Equal(Histories.Delivered(Session, HistorySyncType.NoHistory, 0), await progress.NextAsync(ct));
+	}
+
+	[Fact(Timeout = Timeout)]
 	public async Task RequestHistory_ThePhonesAnswerArrivesAsOnDemandHistoryForTheChat()
 	{
 		var ct = TestContext.Current.CancellationToken;
 		const string Session = "history-on-demand";
 		var client = await Histories.CaughtUpAsync(fixture, Session, ct);
 		using var batches = new Received<HistoryReceived>(client);
-		var oldest = DateTimeOffset.FromUnixTimeSeconds(1_650_000_000);
+		// The oldest message the application has of the chat, as a history batch or a live message carries it.
+		var oldest = new HistoryMessage
+		{
+			Id = MessageId.From("OLD1"),
+			Source = new MessageSource { Chat = Jid.Parse(Group), Sender = Jid.Parse($"{Session}@s.whatsapp.net"), SenderAlt = null, RecipientAlt = null, IsFromMe = true },
+			PushName = null,
+			Timestamp = DateTimeOffset.FromUnixTimeSeconds(1_650_000_000),
+			Content = new TextContent { Text = "old" },
+		};
 
-		await client.RequestHistoryAsync(Jid.Parse(Group), MessageId.From("OLD1"), oldestIsFromMe: true, oldest, 30, ct);
+		await client.RequestHistoryAsync(oldest.Id, oldest.Source, oldest.Timestamp, 30, ct);
 
 		var sent = (await Histories.SentUntilAsync(fixture, Session, s => s.Message is not null, ct))[^1].Message;
 		var request = sent.Message.ProtocolMessage.PeerDataOperationRequestMessage;
@@ -295,16 +319,32 @@ public sealed class HistoryTests(FakeSidecar fixture)
 	}
 
 	[Fact(Timeout = Timeout)]
-	public async Task RequestHistory_NotConnected_Throws()
+	public async Task RequestHistory_NotConnected_ThrowsNotConnected()
 	{
 		var ct = TestContext.Current.CancellationToken;
 		var client = await SessionSetup.LinkedAsync(fixture, "history-request-offline", ct);
 
-		_ = await Assert.ThrowsAsync<NotConnectedException>(() => client.RequestHistoryAsync(Jid.Parse(Direct), MessageId.From("OLD1"), oldestIsFromMe: false, Histories.At, cancellationToken: ct));
-		_ = await Assert.ThrowsAsync<WhatsmeowValidationException>(() =>
-			client.RequestHistoryAsync(Jid.Parse("status@broadcast"), MessageId.From("OLD1"), oldestIsFromMe: false, Histories.At, cancellationToken: ct)
-		);
+		_ = await Assert.ThrowsAsync<NotConnectedException>(() => client.RequestHistoryAsync(MessageId.From("OLD1"), Source(Direct), Histories.At, cancellationToken: ct));
 	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task RequestHistory_OfABroadcastChat_ThrowsValidation()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var client = await Histories.CaughtUpAsync(fixture, "history-request-broadcast", ct);
+
+		_ = await Assert.ThrowsAsync<WhatsmeowValidationException>(() => client.RequestHistoryAsync(MessageId.From("OLD1"), Source("status@broadcast"), Histories.At, cancellationToken: ct));
+	}
+
+	private static MessageSource Source(string chat) =>
+		new()
+		{
+			Chat = Jid.Parse(chat),
+			Sender = Jid.Parse(Direct),
+			SenderAlt = null,
+			RecipientAlt = null,
+			IsFromMe = false,
+		};
 
 	[Fact(Timeout = Timeout)]
 	public async Task LargeBlob_ArrivesInBatchesThatEachFitAGrpcMessage()

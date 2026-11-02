@@ -92,24 +92,24 @@ CREATE TABLE sent_message (
 // schemaV5 is the history sync queue (#37, ADR 0035): each history sync notification the session's phone sent whose
 // blob is not done yet, written by the event handler before whatsmeow answers the notification, so a blob is never
 // dropped, also when it arrives before the session caught up or across a restart. The history worker delivers a blob's
-// batches in order, moving batches_done in the transaction of each, sets recorded in the transaction of its last
-// batch and progress event, and only then deletes the blob from WhatsApp's server and the row. Rows go with their
-// session (ON DELETE CASCADE).
+// messages in batches, in order, moving messages_done in the transaction of each, sets recorded in the transaction of
+// its progress event, and only then deletes the blob from WhatsApp's server and the row. Rows go with their session
+// (ON DELETE CASCADE), and with its account at a logout or a new pairing.
 const schemaV5 = `
 CREATE TABLE history_blob (
 	-- The order the notifications arrived in.
-	seq          INTEGER PRIMARY KEY AUTOINCREMENT,
-	session_id   TEXT NOT NULL REFERENCES session (id) ON DELETE CASCADE,
+	seq           INTEGER PRIMARY KEY AUTOINCREMENT,
+	session_id    TEXT NOT NULL REFERENCES session (id) ON DELETE CASCADE,
 	-- The notification message's id; the blob's outbox keys derive from it.
-	message_id   TEXT NOT NULL,
+	message_id    TEXT NOT NULL,
 	-- The waE2E.HistorySyncNotification.
-	notification BLOB NOT NULL,
-	-- How many of the blob's batches are in the outbox.
-	batches_done INTEGER NOT NULL DEFAULT 0,
-	-- 1 once every batch and the progress event are in the outbox: what is left is deleting the blob from the server.
-	recorded     INTEGER NOT NULL DEFAULT 0,
+	notification  BLOB NOT NULL,
+	-- How many of the blob's messages, in its order, are in the outbox or skipped: the next batch starts there.
+	messages_done INTEGER NOT NULL DEFAULT 0,
+	-- 1 once the progress event is in the outbox: what is left is deleting the blob from the server.
+	recorded      INTEGER NOT NULL DEFAULT 0,
 	-- How many downloads failed while the session was online.
-	attempts     INTEGER NOT NULL DEFAULT 0,
+	attempts      INTEGER NOT NULL DEFAULT 0,
 	UNIQUE (session_id, message_id)
 )`
 

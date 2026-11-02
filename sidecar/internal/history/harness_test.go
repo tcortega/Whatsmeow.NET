@@ -64,8 +64,16 @@ type stub struct {
 	downloads, deletes []string
 	entered            chan string
 	hold               chan struct{}
-	// onDelete runs inside each delete, before it returns.
-	onDelete func(directPath string)
+	// onDelete runs inside each delete, before it returns; onDownload inside each download, before anything else.
+	onDelete   func(directPath string)
+	onDownload func(directPath string)
+	// disconnected is what IsConnected reports the opposite of.
+	disconnected bool
+	// parseHold, when set, holds each parse until closed, after sending its message id on parseEntered; panicOn is a
+	// message id whose parse panics, with a JID in the panic.
+	parseHold    chan struct{}
+	parseEntered chan string
+	panicOn      string
 	// sends are the messages sent; sendErr is what each returns.
 	sends   []sent
 	sendErr error
@@ -79,6 +87,10 @@ type sent struct {
 
 func (s *stub) DownloadHistorySync(ctx context.Context, notif *waE2E.HistorySyncNotification, _ bool) (*waHistorySync.HistorySync, error) {
 	path := notif.GetDirectPath()
+
+	if s.onDownload != nil {
+		s.onDownload(path)
+	}
 
 	s.mu.Lock()
 	s.downloads = append(s.downloads, path)
@@ -132,7 +144,30 @@ func (s *stub) DeleteMedia(_ context.Context, appInfo whatsmeow.MediaType, direc
 }
 
 func (s *stub) ParseWebMessage(chat types.JID, webMsg *waWeb.WebMessageInfo) (*events.Message, error) {
+	if s.parseHold != nil {
+		s.parseEntered <- webMsg.GetKey().GetID()
+		<-s.parseHold
+	}
+
+	if s.panicOn != "" && webMsg.GetKey().GetID() == s.panicOn {
+		panic("cannot parse a message of " + chat.String())
+	}
+
 	return s.real.ParseWebMessage(chat, webMsg) //nolint:wrapcheck // whatsmeow's own, as the slice gets it
+}
+
+func (s *stub) IsConnected() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return !s.disconnected
+}
+
+func (s *stub) setConnected(connected bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.disconnected = !connected
 }
 
 func (s *stub) BuildHistorySyncRequest(last *types.MessageInfo, count int) *waE2E.Message {
@@ -174,6 +209,8 @@ type online struct {
 	device  *store.Device
 	left    chan struct{}
 	offline error
+	// up is closed once the session comes online again (Up); nil while it is.
+	up chan struct{}
 }
 
 func (s *sessions) Online(id string) (session.Client, <-chan struct{}, error) {
@@ -190,6 +227,25 @@ func (s *sessions) Online(id string) (session.Client, <-chan struct{}, error) {
 	}
 
 	return o.client, o.left, nil
+}
+
+func (s *sessions) Up(id string) (<-chan struct{}, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	o, ok := s.online[id]
+	if !ok {
+		return nil, fmt.Errorf("session %q: %w", id, server.ErrSessionNotFound)
+	}
+
+	if o.offline == nil {
+		up := make(chan struct{})
+		close(up)
+
+		return up, nil
+	}
+
+	return o.up, nil
 }
 
 func (s *sessions) Device(id string) (*store.Device, error) {
@@ -211,7 +267,31 @@ func (s *sessions) leave(id string) {
 
 	o := s.online[id]
 	o.offline = fmt.Errorf("session %q: %w", id, server.ErrNotConnected)
+	o.up = make(chan struct{})
 	close(o.left)
+}
+
+// connecting makes the session not online yet, as a session that is connecting, before whatsmeow dispatched
+// Connected.
+func (s *sessions) connecting(id string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	o := s.online[id]
+	o.offline = fmt.Errorf("session %q: %w", id, server.ErrNotConnected)
+	o.up = make(chan struct{})
+}
+
+// comeUp takes the session online again, with a new channel for its next leave.
+func (s *sessions) comeUp(id string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	o := s.online[id]
+	o.offline = nil
+	o.left = make(chan struct{})
+	close(o.up)
+	o.up = nil
 }
 
 type harness struct {
@@ -229,7 +309,13 @@ type harness struct {
 	queued chan string
 	// idle gets the session each time its worker found nothing left to do (Service.onIdle).
 	idle chan string
-	stop func()
+	// offline gets the session each time its worker stopped because its client went offline (Service.onOffline).
+	offline chan string
+	// delays gets every wait the slice asks its clock for (Service.after): retryDelay and every backoff fire at once,
+	// upTimeout only when the test sends on upExpired.
+	delays    chan time.Duration
+	upExpired chan time.Time
+	stop      func()
 }
 
 func start(t *testing.T, ids ...string) *harness {
@@ -259,6 +345,7 @@ func startLogging(t *testing.T, log zerolog.Logger, path string, ids ...string) 
 	h := &harness{
 		t: t, db: db, box: outbox.New(db.DB), sessions: &sessions{online: map[string]*online{}}, stubs: map[string]*stub{},
 		ctx: ctx, waits: make(chan string, 1024), queued: make(chan string, 16), idle: make(chan string, 1024),
+		offline: make(chan string, 1024), delays: make(chan time.Duration, 1024), upExpired: make(chan time.Time, 1),
 	}
 
 	for _, id := range ids {
@@ -267,7 +354,16 @@ func startLogging(t *testing.T, log zerolog.Logger, path string, ids ...string) 
 
 	h.svc = New(db.DB, h.box, eventsslice.MessageEvent, log)
 	h.svc.Use(h.sessions)
-	h.svc.retryAfter = func(time.Duration) <-chan time.Time {
+	h.svc.after = func(d time.Duration) <-chan time.Time {
+		select {
+		case h.delays <- d:
+		default:
+		}
+
+		if d == upTimeout {
+			return h.upExpired
+		}
+
 		now := make(chan time.Time, 1)
 		now <- time.Time{}
 
@@ -276,6 +372,7 @@ func startLogging(t *testing.T, log zerolog.Logger, path string, ids ...string) 
 	h.svc.onWait = func(id string) { h.waits <- id }
 	h.svc.onQueue = func(id string) { h.queued <- id }
 	h.svc.onIdle = func(id string) { h.idle <- id }
+	h.svc.onOffline = func(id string) { h.offline <- id }
 
 	srv := server.New(token, log)
 	whatsmeowv1.RegisterHistoryServiceServer(srv, h.svc)
@@ -443,6 +540,38 @@ func (h *harness) idleFor(id string) {
 	}
 }
 
+// offlineFor waits until the session's worker stopped because its client went offline.
+func (h *harness) offlineFor(id string) {
+	h.t.Helper()
+
+	for {
+		select {
+		case got := <-h.offline:
+			if got == id {
+				return
+			}
+		case <-h.ctx.Done():
+			h.t.Fatalf("session %s's worker never stopped for its client going offline", id)
+		}
+	}
+}
+
+// delayed waits until the slice asked its clock for a wait of d.
+func (h *harness) delayed(d time.Duration) {
+	h.t.Helper()
+
+	for {
+		select {
+		case got := <-h.delays:
+			if got == d {
+				return
+			}
+		case <-h.ctx.Done():
+			h.t.Fatalf("the slice never waited %s", d)
+		}
+	}
+}
+
 // running reports whether the session has a worker.
 func (h *harness) running(id string) bool {
 	h.svc.mu.Lock()
@@ -486,11 +615,11 @@ func reason(err error) string {
 	return ""
 }
 
-// queueRow is the session's queued notification rows: message id, batches done, recorded, attempts.
+// queueRows is the session's queued notification rows: message id, messages done, recorded, attempts.
 func (h *harness) queueRows(id string) []string {
 	h.t.Helper()
 
-	rows, err := h.db.DB.QueryContext(h.ctx, "SELECT message_id, batches_done, recorded, attempts FROM history_blob WHERE session_id = ? ORDER BY seq", id)
+	rows, err := h.db.DB.QueryContext(h.ctx, "SELECT message_id, messages_done, recorded, attempts FROM history_blob WHERE session_id = ? ORDER BY seq", id)
 	if err != nil {
 		h.t.Fatalf("read the queue: %v", err)
 	}

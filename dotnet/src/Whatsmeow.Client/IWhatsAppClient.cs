@@ -1242,17 +1242,22 @@ public interface IWhatsAppClient
 	/// The answer, if the phone sends one, arrives later as <see cref="History.HistoryReceived"/> events of type
 	/// <see cref="History.HistorySyncType.OnDemand"/>, then a <see cref="History.HistorySyncProgressed"/>, never as
 	/// <see cref="MessageReceived"/>. History is downloaded in the background once the session caught up, always after live
-	/// traffic. Asking again only repeats messages, which their <see cref="MessageId"/> dedupes.
+	/// traffic. Asking again only repeats messages, which their <see cref="MessageId"/> dedupes. A
+	/// <see cref="History.HistoryMessage"/> or a <see cref="MessageReceived"/> gives the arguments as they are.
 	/// </remarks>
-	/// <param name="chat">The chat: a user, by phone number or LID, or a group.</param>
 	/// <param name="oldest">The id of the oldest message the application has of the chat.</param>
-	/// <param name="oldestIsFromMe">True when the account itself sent that message.</param>
+	/// <param name="source">
+	/// That message's source, as it was received: its chat, a user by phone number or LID or a group, and whether the
+	/// account sent it.
+	/// </param>
 	/// <param name="oldestTimestamp">That message's WhatsApp timestamp.</param>
 	/// <param name="count">How many messages to ask for; WhatsApp recommends 50 at a time.</param>
 	/// <param name="cancellationToken">Cancels the call.</param>
 	/// <exception cref="WhatsmeowValidationException">The chat is neither a user nor a group.</exception>
 	/// <exception cref="NotConnectedException">The session is not logged in to WhatsApp right now.</exception>
 	/// <exception cref="OutcomeUnknownException">The request went out and no answer came back: the phone may or may not have it.</exception>
+	/// <exception cref="RateLimitedException">WhatsApp rate limited the session; the request was not taken.</exception>
+	/// <exception cref="WhatsAppErrorException">WhatsApp refused the request, with its <see cref="WhatsAppErrorException.Code"/>.</exception>
 	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
 	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
 	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
@@ -1260,5 +1265,6 @@ public interface IWhatsAppClient
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
 	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
 	/// <exception cref="ArgumentOutOfRangeException"><paramref name="count"/> is zero or negative.</exception>
-	Task RequestHistoryAsync(Jid chat, MessageId oldest, bool oldestIsFromMe, DateTimeOffset oldestTimestamp, int count = 50, CancellationToken cancellationToken = default);
+	/// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
+	Task RequestHistoryAsync(MessageId oldest, MessageSource source, DateTimeOffset oldestTimestamp, int count = 50, CancellationToken cancellationToken = default);
 }

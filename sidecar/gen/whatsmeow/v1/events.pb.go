@@ -182,6 +182,10 @@ const (
 	HistorySyncType_HISTORY_SYNC_TYPE_NON_BLOCKING_DATA HistorySyncType = 6
 	// The answer to a RequestHistory.
 	HistorySyncType_HISTORY_SYNC_TYPE_ON_DEMAND HistorySyncType = 7
+	// The phone says it sends no history; no messages. When it sends this is WhatsApp's, and not documented.
+	HistorySyncType_HISTORY_SYNC_TYPE_NO_HISTORY HistorySyncType = 8
+	// The phone says how much of the account's messages this device may read; no messages.
+	HistorySyncType_HISTORY_SYNC_TYPE_MESSAGE_ACCESS_STATUS HistorySyncType = 9
 )
 
 // Enum value maps for HistorySyncType.
@@ -195,16 +199,20 @@ var (
 		5: "HISTORY_SYNC_TYPE_PUSH_NAME",
 		6: "HISTORY_SYNC_TYPE_NON_BLOCKING_DATA",
 		7: "HISTORY_SYNC_TYPE_ON_DEMAND",
+		8: "HISTORY_SYNC_TYPE_NO_HISTORY",
+		9: "HISTORY_SYNC_TYPE_MESSAGE_ACCESS_STATUS",
 	}
 	HistorySyncType_value = map[string]int32{
-		"HISTORY_SYNC_TYPE_UNSPECIFIED":       0,
-		"HISTORY_SYNC_TYPE_INITIAL_BOOTSTRAP": 1,
-		"HISTORY_SYNC_TYPE_INITIAL_STATUS_V3": 2,
-		"HISTORY_SYNC_TYPE_FULL":              3,
-		"HISTORY_SYNC_TYPE_RECENT":            4,
-		"HISTORY_SYNC_TYPE_PUSH_NAME":         5,
-		"HISTORY_SYNC_TYPE_NON_BLOCKING_DATA": 6,
-		"HISTORY_SYNC_TYPE_ON_DEMAND":         7,
+		"HISTORY_SYNC_TYPE_UNSPECIFIED":           0,
+		"HISTORY_SYNC_TYPE_INITIAL_BOOTSTRAP":     1,
+		"HISTORY_SYNC_TYPE_INITIAL_STATUS_V3":     2,
+		"HISTORY_SYNC_TYPE_FULL":                  3,
+		"HISTORY_SYNC_TYPE_RECENT":                4,
+		"HISTORY_SYNC_TYPE_PUSH_NAME":             5,
+		"HISTORY_SYNC_TYPE_NON_BLOCKING_DATA":     6,
+		"HISTORY_SYNC_TYPE_ON_DEMAND":             7,
+		"HISTORY_SYNC_TYPE_NO_HISTORY":            8,
+		"HISTORY_SYNC_TYPE_MESSAGE_ACCESS_STATUS": 9,
 	}
 )
 
@@ -975,12 +983,12 @@ type StreamEventsResponse_ChatState struct {
 }
 
 type StreamEventsResponse_HistoryMessages struct {
-	// A batch of the account's history, from a history sync blob (history.proto).
+	// A batch of the account's history, from a history sync blob; see history.proto.
 	HistoryMessages *HistoryMessagesEvent `protobuf:"bytes,18,opt,name=history_messages,json=historyMessages,proto3,oneof"`
 }
 
 type StreamEventsResponse_HistoryProgress struct {
-	// A history sync blob processed, or given up on (history.proto).
+	// A history sync blob processed, or given up on; see history.proto.
 	HistoryProgress *HistorySyncProgressEvent `protobuf:"bytes,19,opt,name=history_progress,json=historyProgress,proto3,oneof"`
 }
 
@@ -1006,7 +1014,8 @@ func (*StreamEventsResponse_HistoryProgress) isStreamEventsResponse_Payload() {}
 
 // HistoryMessagesEvent is a batch of history messages: old messages, never live ones. A blob's messages arrive in one
 // or more batches, in the blob's order, each small enough for one gRPC message, then the blob's
-// HistorySyncProgressEvent. A batch delivered again carries the same messages.
+// HistorySyncProgressEvent. A batch delivered again carries the same messages. Status updates (statuses) a blob carries
+// are never delivered; they count in the progress event's skipped_count.
 type HistoryMessagesEvent struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Which history the blob carries.
@@ -1071,9 +1080,10 @@ type HistorySyncProgressEvent struct {
 	ChunkOrder uint32 `protobuf:"varint,2,opt,name=chunk_order,json=chunkOrder,proto3" json:"chunk_order,omitempty"`
 	// WhatsApp's progress value for the sync, as it sent it.
 	Progress uint32 `protobuf:"varint,3,opt,name=progress,proto3" json:"progress,omitempty"`
-	// How many messages its batches delivered.
+	// How many of its messages the sidecar delivered in its batches.
 	MessageCount uint32 `protobuf:"varint,4,opt,name=message_count,json=messageCount,proto3" json:"message_count,omitempty"`
-	// How many of its messages were not delivered: one that does not parse, or one too large for a gRPC message.
+	// How many of its messages the sidecar did not deliver: one that does not parse, one too large for a gRPC message,
+	// and every status update.
 	SkippedCount uint32 `protobuf:"varint,5,opt,name=skipped_count,json=skippedCount,proto3" json:"skipped_count,omitempty"`
 	// Why it was given up on; unspecified when its messages were delivered.
 	Failure       HistorySyncFailure `protobuf:"varint,6,opt,name=failure,proto3,enum=whatsmeow.v1.HistorySyncFailure" json:"failure,omitempty"`
@@ -1677,7 +1687,7 @@ const file_whatsmeow_v1_events_proto_rawDesc = "" +
 	"\x19RECEIPT_TYPE_HISTORY_SYNC\x10\v*S\n" +
 	"\x0fUnavailableType\x12 \n" +
 	"\x1cUNAVAILABLE_TYPE_UNSPECIFIED\x10\x00\x12\x1e\n" +
-	"\x1aUNAVAILABLE_TYPE_VIEW_ONCE\x10\x01*\xab\x02\n" +
+	"\x1aUNAVAILABLE_TYPE_VIEW_ONCE\x10\x01*\xfa\x02\n" +
 	"\x0fHistorySyncType\x12!\n" +
 	"\x1dHISTORY_SYNC_TYPE_UNSPECIFIED\x10\x00\x12'\n" +
 	"#HISTORY_SYNC_TYPE_INITIAL_BOOTSTRAP\x10\x01\x12'\n" +
@@ -1686,7 +1696,9 @@ const file_whatsmeow_v1_events_proto_rawDesc = "" +
 	"\x18HISTORY_SYNC_TYPE_RECENT\x10\x04\x12\x1f\n" +
 	"\x1bHISTORY_SYNC_TYPE_PUSH_NAME\x10\x05\x12'\n" +
 	"#HISTORY_SYNC_TYPE_NON_BLOCKING_DATA\x10\x06\x12\x1f\n" +
-	"\x1bHISTORY_SYNC_TYPE_ON_DEMAND\x10\a*\xa4\x01\n" +
+	"\x1bHISTORY_SYNC_TYPE_ON_DEMAND\x10\a\x12 \n" +
+	"\x1cHISTORY_SYNC_TYPE_NO_HISTORY\x10\b\x12+\n" +
+	"'HISTORY_SYNC_TYPE_MESSAGE_ACCESS_STATUS\x10\t*\xa4\x01\n" +
 	"\x12HistorySyncFailure\x12$\n" +
 	" HISTORY_SYNC_FAILURE_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cHISTORY_SYNC_FAILURE_EXPIRED\x10\x01\x12 \n" +

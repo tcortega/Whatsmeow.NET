@@ -2,9 +2,9 @@ namespace Whatsmeow.History;
 
 /// <summary>
 /// How much history a session asks its phone for when it is paired. These are process-wide: the sidecar sets them once
-/// when it starts, and WhatsApp reads them only at pairing, so they apply to every session paired while the sidecar
-/// runs with them, and never to one paired before. A limit left null keeps whatsmeow's default. What WhatsApp makes of
-/// each is WhatsApp's, and not documented.
+/// when it starts, and whatsmeow sends them only in the pairing payload (store/clientpayload.go:174), so they apply to
+/// every session paired while the sidecar runs with them, and never to one paired before. A limit left null keeps
+/// whatsmeow's default. What WhatsApp makes of each is WhatsApp's, and not documented.
 /// </summary>
 public sealed class HistorySyncOptions
 {
