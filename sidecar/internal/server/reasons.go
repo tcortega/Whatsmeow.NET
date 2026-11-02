@@ -126,3 +126,13 @@ func collectMetadata(err error, metadata map[string]string) {
 		collectMetadata(e.Unwrap(), metadata)
 	}
 }
+
+// Reason is the reason one session's err is sent with where a call answers for several sessions
+// (ConnectSessionResult): the reason it wraps, as its status would carry it, and INTERNAL for any other error.
+func Reason(err error) whatsmeowv1.ErrorReason {
+	if _, reason, _, ok := reasonOf(err); ok {
+		return reason
+	}
+
+	return whatsmeowv1.ErrorReason_ERROR_REASON_INTERNAL
+}

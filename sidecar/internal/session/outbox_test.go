@@ -19,6 +19,46 @@ import (
 	sidecarstore "github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
 )
 
+// countCommits counts the commits on the database at path from every connection opened after it, and returns the
+// count so far. A test that calls it is not parallel: it adds a connection hook to the SQLite driver, which reads its
+// hooks unlocked when it opens a connection, and Go runs the parallel tests only after the others.
+func countCommits(t *testing.T, path string) func() int {
+	t.Helper()
+
+	var (
+		mu      sync.Mutex
+		commits int
+	)
+
+	sqlite.RegisterConnectionHook(func(conn sqlite.ExecQuerierContext, dsn string) error {
+		if p, _, _ := strings.Cut(dsn, "?"); p != path {
+			return nil
+		}
+
+		hooks, ok := conn.(sqlite.HookRegisterer)
+		if !ok {
+			return fmt.Errorf("the SQLite connection %T takes no hooks", conn)
+		}
+
+		hooks.RegisterCommitHook(func() int32 {
+			mu.Lock()
+			commits++
+			mu.Unlock()
+
+			return 0
+		})
+
+		return nil
+	})
+
+	return func() int {
+		mu.Lock()
+		defer mu.Unlock()
+
+		return commits
+	}
+}
+
 // recorded is the session's ConnectionStateEvents in the outbox, in seq order.
 func (h *harness) recorded(id string) []*whatsmeowv1.SessionState {
 	h.t.Helper()
@@ -96,8 +136,7 @@ func TestARestartRecordsTheStateASessionComesBackIn(t *testing.T) {
 	restarted.wantRecorded("gone", disconnected(), loggedOut(0))
 }
 
-// TestARestartRecordsEveryMovedSessionInOneCommit is not parallel: it adds a connection hook to the SQLite driver,
-// which reads its hooks unlocked when it opens a connection, and Go runs the parallel tests only after it.
+// TestARestartRecordsEveryMovedSessionInOneCommit is not parallel: it counts commits (countCommits).
 func TestARestartRecordsEveryMovedSessionInOneCommit(t *testing.T) {
 	const moved = 20
 
@@ -109,38 +148,7 @@ func TestARestartRecordsEveryMovedSessionInOneCommit(t *testing.T) {
 	h.create("created")
 	h.stop()
 
-	var (
-		mu      sync.Mutex
-		commits int
-	)
-
-	sqlite.RegisterConnectionHook(func(conn sqlite.ExecQuerierContext, dsn string) error {
-		if path, _, _ := strings.Cut(dsn, "?"); path != h.path {
-			return nil
-		}
-
-		hooks, ok := conn.(sqlite.HookRegisterer)
-		if !ok {
-			return fmt.Errorf("the SQLite connection %T takes no hooks", conn)
-		}
-
-		hooks.RegisterCommitHook(func() int32 {
-			mu.Lock()
-			commits++
-			mu.Unlock()
-
-			return 0
-		})
-
-		return nil
-	})
-
-	counted := func() int {
-		mu.Lock()
-		defer mu.Unlock()
-
-		return commits
-	}
+	counted := countCommits(t, h.path)
 
 	db, err := sidecarstore.Open(context.Background(), h.path, zerolog.Nop())
 	if err != nil {

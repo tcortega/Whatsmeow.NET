@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -691,49 +692,175 @@ func (svc *Service) Connect(ctx context.Context, req *whatsmeowv1.ConnectRequest
 	return svc.connect(ctx, s)
 }
 
-// connect is Connect on the session get found.
+// connect is Connect on the session get found: connectAll with one session.
 func (svc *Service) connect(ctx context.Context, s *session) (*whatsmeowv1.ConnectResponse, error) {
-	if err := s.lock(); err != nil {
+	if err := svc.connectAll(ctx, []*session{s})[0]; err != nil {
 		return nil, err
-	}
-	defer s.ops.Unlock()
-
-	s.mu.Lock()
-	previous := s.state
-
-	if err := connectable(s.id, previous); err != nil || live(previous) {
-		s.mu.Unlock()
-
-		return &whatsmeowv1.ConnectResponse{}, err
-	}
-
-	if err := svc.transition(ctx, s, connecting()); err != nil {
-		// Not connecting after all: stuck in Connecting, every later Connect would do nothing.
-		if restoreErr := svc.transition(ctx, s, previous); restoreErr != nil {
-			err = errors.Join(err, restoreErr)
-		}
-
-		s.mu.Unlock()
-
-		return nil, err
-	}
-	s.mu.Unlock()
-
-	if err := s.client.ConnectContext(svc.lifetime); err != nil { //nolint:contextcheck // the connection outlives the call (client.go:541-599)
-		s.mu.Lock()
-		defer s.mu.Unlock()
-
-		// An event that came in meanwhile is the newer truth.
-		if is[*whatsmeowv1.SessionState_Connecting_](s.state) {
-			if restoreErr := svc.transition(ctx, s, previous); restoreErr != nil {
-				err = errors.Join(err, restoreErr)
-			}
-		}
-
-		return nil, fmt.Errorf("connect session %q: %w: %w", s.id, server.ErrConnectionFailed, err)
 	}
 
 	return &whatsmeowv1.ConnectResponse{}, nil
+}
+
+// ConnectSessions connects each session as Connect does, in one commit for all their Connecting states, and with
+// their connect calls running at once (session.proto).
+func (svc *Service) ConnectSessions(ctx context.Context, req *whatsmeowv1.ConnectSessionsRequest) (*whatsmeowv1.ConnectSessionsResponse, error) {
+	ids := req.GetSessionIds()
+	results := make([]*whatsmeowv1.ConnectSessionResult, len(ids))
+	found := make([]*session, 0, len(ids))
+	at := make([]int, 0, len(ids))
+	seen := make(map[string]struct{}, len(ids))
+
+	for i, id := range ids {
+		// Twice would wait for itself on the session's ops.
+		if _, twice := seen[id]; twice {
+			return nil, fmt.Errorf("connect sessions: %w", server.InvalidArgument("session_ids", "session %q is given twice", id))
+		}
+
+		seen[id] = struct{}{}
+		results[i] = &whatsmeowv1.ConnectSessionResult{SessionId: id}
+
+		s, err := svc.get(id)
+		if err != nil {
+			results[i].Reason = svc.connectFailed(id, err)
+
+			continue
+		}
+
+		found, at = append(found, s), append(at, i)
+	}
+
+	for j, err := range svc.connectAll(ctx, found) {
+		if err != nil {
+			results[at[j]].Reason = svc.connectFailed(ids[at[j]], err)
+		}
+	}
+
+	return &whatsmeowv1.ConnectSessionsResponse{Results: results}, nil
+}
+
+// connectFailed logs one session's failure in ConnectSessions and returns its reason. The result carries no message:
+// the log's writer redacts the error (ADR 0039, 0053), which a message sent as a field would bypass.
+func (svc *Service) connectFailed(id string, err error) whatsmeowv1.ErrorReason {
+	svc.log.Warn().Err(err).Str("session_id", id).Msg("connecting a session of ConnectSessions failed")
+
+	return server.Reason(err)
+}
+
+// connectAll connects each session, distinct, and returns each one's error. It records every Connecting state in one
+// transitionAll, then runs the connect calls at once: whatsmeow's ConnectContext locks only its own client's socket
+// (client.go:541-604), and each client has its own HTTP transport (client.go:272-278). A session's ops are held
+// throughout, taken in id order, so two calls that share sessions never wait for each other in a cycle.
+func (svc *Service) connectAll(ctx context.Context, sessions []*session) []error {
+	errs := make([]error, len(sessions))
+	order := make([]int, len(sessions))
+
+	for i := range order {
+		order[i] = i
+	}
+
+	slices.SortFunc(order, func(a, b int) int { return strings.Compare(sessions[a].id, sessions[b].id) })
+
+	var held []int
+
+	for _, i := range order {
+		if errs[i] = sessions[i].lock(); errs[i] == nil {
+			held = append(held, i)
+		}
+	}
+
+	defer func() {
+		for _, i := range held {
+			sessions[i].ops.Unlock()
+		}
+	}()
+
+	previous := make([]*whatsmeowv1.SessionState, len(sessions))
+	starting := svc.startConnecting(ctx, sessions, held, previous, errs)
+
+	var calls sync.WaitGroup
+
+	for _, i := range starting {
+		calls.Go(func() { errs[i] = svc.handshake(ctx, sessions[i], previous[i]) })
+	}
+
+	calls.Wait()
+
+	return errs
+}
+
+// startConnecting moves the held sessions Connect would connect to Connecting, all in one transitionAll, and returns
+// them. It sets errs for the others: the states Connect refuses, and every one if recording failed, back in its
+// previous state then; a session connecting or connected already gets nil, and nothing to do.
+func (svc *Service) startConnecting(ctx context.Context, sessions []*session, held []int, previous []*whatsmeowv1.SessionState, errs []error) []int {
+	for _, i := range held {
+		sessions[i].mu.Lock()
+	}
+
+	defer func() {
+		for _, i := range held {
+			sessions[i].mu.Unlock()
+		}
+	}()
+
+	var (
+		starting []int
+		moves    []move
+		back     []move
+	)
+
+	for _, i := range held {
+		s := sessions[i]
+		previous[i] = s.state
+
+		if err := connectable(s.id, s.state); err != nil || live(s.state) {
+			errs[i] = err
+
+			continue
+		}
+
+		starting = append(starting, i)
+		moves = append(moves, move{s: s, state: connecting()})
+		back = append(back, move{s: s, state: s.state})
+	}
+
+	if len(moves) == 0 {
+		return nil
+	}
+
+	if err := svc.transitionAll(ctx, moves...); err != nil {
+		// Not connecting after all: stuck in Connecting, every later Connect would do nothing.
+		if restoreErr := svc.transitionAll(ctx, back...); restoreErr != nil {
+			err = errors.Join(err, restoreErr)
+		}
+
+		for _, i := range starting {
+			errs[i] = err
+		}
+
+		return nil
+	}
+
+	return starting
+}
+
+// handshake runs whatsmeow's connect call for a session startConnecting moved to Connecting from previous, and on a
+// failure moves it back, unless an event that came in meanwhile is the newer truth. s.ops is held, s.mu is not.
+func (svc *Service) handshake(ctx context.Context, s *session, previous *whatsmeowv1.SessionState) error {
+	err := s.client.ConnectContext(svc.lifetime) //nolint:contextcheck // the connection outlives the call (client.go:541-599)
+	if err == nil {
+		return nil
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if is[*whatsmeowv1.SessionState_Connecting_](s.state) {
+		if restoreErr := svc.transition(ctx, s, previous); restoreErr != nil {
+			err = errors.Join(err, restoreErr)
+		}
+	}
+
+	return fmt.Errorf("connect session %q: %w: %w", s.id, server.ErrConnectionFailed, err)
 }
 
 // connectable fails for the states Connect refuses: never paired, logged out, being paired, and banned with a known

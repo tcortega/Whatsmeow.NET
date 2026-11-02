@@ -25,82 +25,91 @@ namespace Whatsmeow.Protocol.V1 {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "Chp3aGF0c21lb3cvdjEvc2Vzc2lvbi5wcm90bxIMd2hhdHNtZW93LnYxGh9n",
-            "b29nbGUvcHJvdG9idWYvdGltZXN0YW1wLnByb3RvIm8KB1Nlc3Npb24SDgoC",
-            "aWQYASABKAlSAmlkEjAKBXN0YXRlGAIgASgLMhoud2hhdHNtZW93LnYxLlNl",
-            "c3Npb25TdGF0ZVIFc3RhdGUSEAoDamlkGAMgASgJUgNqaWQSEAoDbGlkGAQg",
-            "ASgJUgNsaWQihAkKDFNlc3Npb25TdGF0ZRI+CgdjcmVhdGVkGAEgASgLMiIu",
-            "d2hhdHNtZW93LnYxLlNlc3Npb25TdGF0ZS5DcmVhdGVkSABSB2NyZWF0ZWQS",
-            "PgoHcGFpcmluZxgCIAEoCzIiLndoYXRzbWVvdy52MS5TZXNzaW9uU3RhdGUu",
-            "UGFpcmluZ0gAUgdwYWlyaW5nEkcKCmNvbm5lY3RpbmcYAyABKAsyJS53aGF0",
-            "c21lb3cudjEuU2Vzc2lvblN0YXRlLkNvbm5lY3RpbmdIAFIKY29ubmVjdGlu",
-            "ZxJECgljb25uZWN0ZWQYBCABKAsyJC53aGF0c21lb3cudjEuU2Vzc2lvblN0",
-            "YXRlLkNvbm5lY3RlZEgAUgljb25uZWN0ZWQSQgoJY2F1Z2h0X3VwGAUgASgL",
-            "MiMud2hhdHNtZW93LnYxLlNlc3Npb25TdGF0ZS5DYXVnaHRVcEgAUghjYXVn",
-            "aHRVcBJNCgxyZWNvbm5lY3RpbmcYBiABKAsyJy53aGF0c21lb3cudjEuU2Vz",
-            "c2lvblN0YXRlLlJlY29ubmVjdGluZ0gAUgxyZWNvbm5lY3RpbmcSTQoMZGlz",
-            "Y29ubmVjdGVkGAcgASgLMicud2hhdHNtZW93LnYxLlNlc3Npb25TdGF0ZS5E",
-            "aXNjb25uZWN0ZWRIAFIMZGlzY29ubmVjdGVkEkUKCmxvZ2dlZF9vdXQYCCAB",
-            "KAsyJC53aGF0c21lb3cudjEuU2Vzc2lvblN0YXRlLkxvZ2dlZE91dEgAUgls",
-            "b2dnZWRPdXQSQQoIcmVwbGFjZWQYCSABKAsyIy53aGF0c21lb3cudjEuU2Vz",
-            "c2lvblN0YXRlLlJlcGxhY2VkSABSCHJlcGxhY2VkEkgKC3RlbXBfYmFubmVk",
-            "GAogASgLMiUud2hhdHNtZW93LnYxLlNlc3Npb25TdGF0ZS5UZW1wQmFubmVk",
-            "SABSCnRlbXBCYW5uZWQSQQoIb3V0ZGF0ZWQYCyABKAsyIy53aGF0c21lb3cu",
-            "djEuU2Vzc2lvblN0YXRlLk91dGRhdGVkSABSCG91dGRhdGVkEjgKBWVycm9y",
-            "GAwgASgLMiAud2hhdHNtZW93LnYxLlNlc3Npb25TdGF0ZS5FcnJvckgAUgVl",
-            "cnJvchoJCgdDcmVhdGVkGgkKB1BhaXJpbmcaDAoKQ29ubmVjdGluZxoLCglD",
-            "b25uZWN0ZWQaCgoIQ2F1Z2h0VXAaDgoMUmVjb25uZWN0aW5nGg4KDERpc2Nv",
-            "bm5lY3RlZBofCglMb2dnZWRPdXQSEgoEY29kZRgBIAEoBVIEY29kZRoKCghS",
-            "ZXBsYWNlZBpdCgpUZW1wQmFubmVkEhIKBGNvZGUYASABKAVSBGNvZGUSOwoL",
-            "ZXhwaXJlX3RpbWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1w",
-            "UgpleHBpcmVUaW1lGgoKCE91dGRhdGVkGjUKBUVycm9yEhIKBGNvZGUYASAB",
-            "KAVSBGNvZGUSGAoHbWVzc2FnZRgCIAEoCVIHbWVzc2FnZUIGCgRraW5kIjUK",
-            "FENyZWF0ZVNlc3Npb25SZXF1ZXN0Eh0KCnNlc3Npb25faWQYASABKAlSCXNl",
-            "c3Npb25JZCJIChVDcmVhdGVTZXNzaW9uUmVzcG9uc2USLwoHc2Vzc2lvbhgB",
-            "IAEoCzIVLndoYXRzbWVvdy52MS5TZXNzaW9uUgdzZXNzaW9uIhUKE0xpc3RT",
-            "ZXNzaW9uc1JlcXVlc3QiSQoUTGlzdFNlc3Npb25zUmVzcG9uc2USMQoIc2Vz",
-            "c2lvbnMYASADKAsyFS53aGF0c21lb3cudjEuU2Vzc2lvblIIc2Vzc2lvbnMi",
-            "NQoURGVsZXRlU2Vzc2lvblJlcXVlc3QSHQoKc2Vzc2lvbl9pZBgBIAEoCVIJ",
-            "c2Vzc2lvbklkIhcKFURlbGV0ZVNlc3Npb25SZXNwb25zZSIvCg5Db25uZWN0",
-            "UmVxdWVzdBIdCgpzZXNzaW9uX2lkGAEgASgJUglzZXNzaW9uSWQiEQoPQ29u",
-            "bmVjdFJlc3BvbnNlIjIKEURpc2Nvbm5lY3RSZXF1ZXN0Eh0KCnNlc3Npb25f",
-            "aWQYASABKAlSCXNlc3Npb25JZCIUChJEaXNjb25uZWN0UmVzcG9uc2UiLgoN",
-            "TG9nb3V0UmVxdWVzdBIdCgpzZXNzaW9uX2lkGAEgASgJUglzZXNzaW9uSWQi",
-            "EAoOTG9nb3V0UmVzcG9uc2UijwEKC1BhaXJSZXF1ZXN0Eh0KCnNlc3Npb25f",
-            "aWQYASABKAlSCXNlc3Npb25JZBI1CgVwaG9uZRgCIAEoCzIfLndoYXRzbWVv",
-            "dy52MS5QYWlyUmVxdWVzdC5QaG9uZVIFcGhvbmUaKgoFUGhvbmUSIQoMcGhv",
-            "bmVfbnVtYmVyGAEgASgJUgtwaG9uZU51bWJlciLRAgoMUGFpclJlc3BvbnNl",
-            "EjwKB3FyX2NvZGUYASABKAsyIS53aGF0c21lb3cudjEuUGFpclJlc3BvbnNl",
-            "LlFyQ29kZUgAUgZxckNvZGUSSwoMcGFpcmluZ19jb2RlGAIgASgLMiYud2hh",
-            "dHNtZW93LnYxLlBhaXJSZXNwb25zZS5QYWlyaW5nQ29kZUgAUgtwYWlyaW5n",
-            "Q29kZRI+CgdzdWNjZXNzGAMgASgLMiIud2hhdHNtZW93LnYxLlBhaXJSZXNw",
-            "b25zZS5TdWNjZXNzSABSB3N1Y2Nlc3MaHAoGUXJDb2RlEhIKBGNvZGUYASAB",
-            "KAlSBGNvZGUaIQoLUGFpcmluZ0NvZGUSEgoEY29kZRgBIAEoCVIEY29kZRot",
-            "CgdTdWNjZXNzEhAKA2ppZBgBIAEoCVIDamlkEhAKA2xpZBgCIAEoCVIDbGlk",
-            "QgYKBHN0ZXAiOQoYV2F0Y2hTZXNzaW9uU3RhdGVSZXF1ZXN0Eh0KCnNlc3Np",
-            "b25faWQYASABKAlSCXNlc3Npb25JZCJNChlXYXRjaFNlc3Npb25TdGF0ZVJl",
-            "c3BvbnNlEjAKBXN0YXRlGAEgASgLMhoud2hhdHNtZW93LnYxLlNlc3Npb25T",
-            "dGF0ZVIFc3RhdGUyogUKDlNlc3Npb25TZXJ2aWNlElgKDUNyZWF0ZVNlc3Np",
-            "b24SIi53aGF0c21lb3cudjEuQ3JlYXRlU2Vzc2lvblJlcXVlc3QaIy53aGF0",
-            "c21lb3cudjEuQ3JlYXRlU2Vzc2lvblJlc3BvbnNlElUKDExpc3RTZXNzaW9u",
-            "cxIhLndoYXRzbWVvdy52MS5MaXN0U2Vzc2lvbnNSZXF1ZXN0GiIud2hhdHNt",
-            "ZW93LnYxLkxpc3RTZXNzaW9uc1Jlc3BvbnNlElgKDURlbGV0ZVNlc3Npb24S",
-            "Ii53aGF0c21lb3cudjEuRGVsZXRlU2Vzc2lvblJlcXVlc3QaIy53aGF0c21l",
-            "b3cudjEuRGVsZXRlU2Vzc2lvblJlc3BvbnNlEkYKB0Nvbm5lY3QSHC53aGF0",
-            "c21lb3cudjEuQ29ubmVjdFJlcXVlc3QaHS53aGF0c21lb3cudjEuQ29ubmVj",
-            "dFJlc3BvbnNlEk8KCkRpc2Nvbm5lY3QSHy53aGF0c21lb3cudjEuRGlzY29u",
-            "bmVjdFJlcXVlc3QaIC53aGF0c21lb3cudjEuRGlzY29ubmVjdFJlc3BvbnNl",
-            "EkMKBkxvZ291dBIbLndoYXRzbWVvdy52MS5Mb2dvdXRSZXF1ZXN0Ghwud2hh",
-            "dHNtZW93LnYxLkxvZ291dFJlc3BvbnNlEj8KBFBhaXISGS53aGF0c21lb3cu",
-            "djEuUGFpclJlcXVlc3QaGi53aGF0c21lb3cudjEuUGFpclJlc3BvbnNlMAES",
-            "ZgoRV2F0Y2hTZXNzaW9uU3RhdGUSJi53aGF0c21lb3cudjEuV2F0Y2hTZXNz",
-            "aW9uU3RhdGVSZXF1ZXN0Gicud2hhdHNtZW93LnYxLldhdGNoU2Vzc2lvblN0",
-            "YXRlUmVzcG9uc2UwAULCAQoQY29tLndoYXRzbWVvdy52MUIMU2Vzc2lvblBy",
-            "b3RvUAFaRmdpdGh1Yi5jb20vdGNvcnRlZ2EvV2hhdHNtZW93Lk5FVC9zaWRl",
-            "Y2FyL2dlbi93aGF0c21lb3cvdjE7d2hhdHNtZW93djGiAgNXWFiqAhVXaGF0",
-            "c21lb3cuUHJvdG9jb2wuVjHKAgxXaGF0c21lb3dcVjHiAhhXaGF0c21lb3dc",
-            "VjFcR1BCTWV0YWRhdGHqAg1XaGF0c21lb3c6OlYxYgZwcm90bzM="));
+            "b29nbGUvcHJvdG9idWYvdGltZXN0YW1wLnByb3RvGhh3aGF0c21lb3cvdjEv",
+            "ZXJyb3IucHJvdG8ibwoHU2Vzc2lvbhIOCgJpZBgBIAEoCVICaWQSMAoFc3Rh",
+            "dGUYAiABKAsyGi53aGF0c21lb3cudjEuU2Vzc2lvblN0YXRlUgVzdGF0ZRIQ",
+            "CgNqaWQYAyABKAlSA2ppZBIQCgNsaWQYBCABKAlSA2xpZCKECQoMU2Vzc2lv",
+            "blN0YXRlEj4KB2NyZWF0ZWQYASABKAsyIi53aGF0c21lb3cudjEuU2Vzc2lv",
+            "blN0YXRlLkNyZWF0ZWRIAFIHY3JlYXRlZBI+CgdwYWlyaW5nGAIgASgLMiIu",
+            "d2hhdHNtZW93LnYxLlNlc3Npb25TdGF0ZS5QYWlyaW5nSABSB3BhaXJpbmcS",
+            "RwoKY29ubmVjdGluZxgDIAEoCzIlLndoYXRzbWVvdy52MS5TZXNzaW9uU3Rh",
+            "dGUuQ29ubmVjdGluZ0gAUgpjb25uZWN0aW5nEkQKCWNvbm5lY3RlZBgEIAEo",
+            "CzIkLndoYXRzbWVvdy52MS5TZXNzaW9uU3RhdGUuQ29ubmVjdGVkSABSCWNv",
+            "bm5lY3RlZBJCCgljYXVnaHRfdXAYBSABKAsyIy53aGF0c21lb3cudjEuU2Vz",
+            "c2lvblN0YXRlLkNhdWdodFVwSABSCGNhdWdodFVwEk0KDHJlY29ubmVjdGlu",
+            "ZxgGIAEoCzInLndoYXRzbWVvdy52MS5TZXNzaW9uU3RhdGUuUmVjb25uZWN0",
+            "aW5nSABSDHJlY29ubmVjdGluZxJNCgxkaXNjb25uZWN0ZWQYByABKAsyJy53",
+            "aGF0c21lb3cudjEuU2Vzc2lvblN0YXRlLkRpc2Nvbm5lY3RlZEgAUgxkaXNj",
+            "b25uZWN0ZWQSRQoKbG9nZ2VkX291dBgIIAEoCzIkLndoYXRzbWVvdy52MS5T",
+            "ZXNzaW9uU3RhdGUuTG9nZ2VkT3V0SABSCWxvZ2dlZE91dBJBCghyZXBsYWNl",
+            "ZBgJIAEoCzIjLndoYXRzbWVvdy52MS5TZXNzaW9uU3RhdGUuUmVwbGFjZWRI",
+            "AFIIcmVwbGFjZWQSSAoLdGVtcF9iYW5uZWQYCiABKAsyJS53aGF0c21lb3cu",
+            "djEuU2Vzc2lvblN0YXRlLlRlbXBCYW5uZWRIAFIKdGVtcEJhbm5lZBJBCghv",
+            "dXRkYXRlZBgLIAEoCzIjLndoYXRzbWVvdy52MS5TZXNzaW9uU3RhdGUuT3V0",
+            "ZGF0ZWRIAFIIb3V0ZGF0ZWQSOAoFZXJyb3IYDCABKAsyIC53aGF0c21lb3cu",
+            "djEuU2Vzc2lvblN0YXRlLkVycm9ySABSBWVycm9yGgkKB0NyZWF0ZWQaCQoH",
+            "UGFpcmluZxoMCgpDb25uZWN0aW5nGgsKCUNvbm5lY3RlZBoKCghDYXVnaHRV",
+            "cBoOCgxSZWNvbm5lY3RpbmcaDgoMRGlzY29ubmVjdGVkGh8KCUxvZ2dlZE91",
+            "dBISCgRjb2RlGAEgASgFUgRjb2RlGgoKCFJlcGxhY2VkGl0KClRlbXBCYW5u",
+            "ZWQSEgoEY29kZRgBIAEoBVIEY29kZRI7CgtleHBpcmVfdGltZRgCIAEoCzIa",
+            "Lmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBSCmV4cGlyZVRpbWUaCgoIT3V0",
+            "ZGF0ZWQaNQoFRXJyb3ISEgoEY29kZRgBIAEoBVIEY29kZRIYCgdtZXNzYWdl",
+            "GAIgASgJUgdtZXNzYWdlQgYKBGtpbmQiNQoUQ3JlYXRlU2Vzc2lvblJlcXVl",
+            "c3QSHQoKc2Vzc2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkIkgKFUNyZWF0ZVNl",
+            "c3Npb25SZXNwb25zZRIvCgdzZXNzaW9uGAEgASgLMhUud2hhdHNtZW93LnYx",
+            "LlNlc3Npb25SB3Nlc3Npb24iFQoTTGlzdFNlc3Npb25zUmVxdWVzdCJJChRM",
+            "aXN0U2Vzc2lvbnNSZXNwb25zZRIxCghzZXNzaW9ucxgBIAMoCzIVLndoYXRz",
+            "bWVvdy52MS5TZXNzaW9uUghzZXNzaW9ucyI1ChREZWxldGVTZXNzaW9uUmVx",
+            "dWVzdBIdCgpzZXNzaW9uX2lkGAEgASgJUglzZXNzaW9uSWQiFwoVRGVsZXRl",
+            "U2Vzc2lvblJlc3BvbnNlIi8KDkNvbm5lY3RSZXF1ZXN0Eh0KCnNlc3Npb25f",
+            "aWQYASABKAlSCXNlc3Npb25JZCIRCg9Db25uZWN0UmVzcG9uc2UiOQoWQ29u",
+            "bmVjdFNlc3Npb25zUmVxdWVzdBIfCgtzZXNzaW9uX2lkcxgBIAMoCVIKc2Vz",
+            "c2lvbklkcyJXChdDb25uZWN0U2Vzc2lvbnNSZXNwb25zZRI8CgdyZXN1bHRz",
+            "GAEgAygLMiIud2hhdHNtZW93LnYxLkNvbm5lY3RTZXNzaW9uUmVzdWx0Ugdy",
+            "ZXN1bHRzImgKFENvbm5lY3RTZXNzaW9uUmVzdWx0Eh0KCnNlc3Npb25faWQY",
+            "ASABKAlSCXNlc3Npb25JZBIxCgZyZWFzb24YAiABKA4yGS53aGF0c21lb3cu",
+            "djEuRXJyb3JSZWFzb25SBnJlYXNvbiIyChFEaXNjb25uZWN0UmVxdWVzdBId",
+            "CgpzZXNzaW9uX2lkGAEgASgJUglzZXNzaW9uSWQiFAoSRGlzY29ubmVjdFJl",
+            "c3BvbnNlIi4KDUxvZ291dFJlcXVlc3QSHQoKc2Vzc2lvbl9pZBgBIAEoCVIJ",
+            "c2Vzc2lvbklkIhAKDkxvZ291dFJlc3BvbnNlIo8BCgtQYWlyUmVxdWVzdBId",
+            "CgpzZXNzaW9uX2lkGAEgASgJUglzZXNzaW9uSWQSNQoFcGhvbmUYAiABKAsy",
+            "Hy53aGF0c21lb3cudjEuUGFpclJlcXVlc3QuUGhvbmVSBXBob25lGioKBVBo",
+            "b25lEiEKDHBob25lX251bWJlchgBIAEoCVILcGhvbmVOdW1iZXIi0QIKDFBh",
+            "aXJSZXNwb25zZRI8Cgdxcl9jb2RlGAEgASgLMiEud2hhdHNtZW93LnYxLlBh",
+            "aXJSZXNwb25zZS5RckNvZGVIAFIGcXJDb2RlEksKDHBhaXJpbmdfY29kZRgC",
+            "IAEoCzImLndoYXRzbWVvdy52MS5QYWlyUmVzcG9uc2UuUGFpcmluZ0NvZGVI",
+            "AFILcGFpcmluZ0NvZGUSPgoHc3VjY2VzcxgDIAEoCzIiLndoYXRzbWVvdy52",
+            "MS5QYWlyUmVzcG9uc2UuU3VjY2Vzc0gAUgdzdWNjZXNzGhwKBlFyQ29kZRIS",
+            "CgRjb2RlGAEgASgJUgRjb2RlGiEKC1BhaXJpbmdDb2RlEhIKBGNvZGUYASAB",
+            "KAlSBGNvZGUaLQoHU3VjY2VzcxIQCgNqaWQYASABKAlSA2ppZBIQCgNsaWQY",
+            "AiABKAlSA2xpZEIGCgRzdGVwIjkKGFdhdGNoU2Vzc2lvblN0YXRlUmVxdWVz",
+            "dBIdCgpzZXNzaW9uX2lkGAEgASgJUglzZXNzaW9uSWQiTQoZV2F0Y2hTZXNz",
+            "aW9uU3RhdGVSZXNwb25zZRIwCgVzdGF0ZRgBIAEoCzIaLndoYXRzbWVvdy52",
+            "MS5TZXNzaW9uU3RhdGVSBXN0YXRlMoIGCg5TZXNzaW9uU2VydmljZRJYCg1D",
+            "cmVhdGVTZXNzaW9uEiIud2hhdHNtZW93LnYxLkNyZWF0ZVNlc3Npb25SZXF1",
+            "ZXN0GiMud2hhdHNtZW93LnYxLkNyZWF0ZVNlc3Npb25SZXNwb25zZRJVCgxM",
+            "aXN0U2Vzc2lvbnMSIS53aGF0c21lb3cudjEuTGlzdFNlc3Npb25zUmVxdWVz",
+            "dBoiLndoYXRzbWVvdy52MS5MaXN0U2Vzc2lvbnNSZXNwb25zZRJYCg1EZWxl",
+            "dGVTZXNzaW9uEiIud2hhdHNtZW93LnYxLkRlbGV0ZVNlc3Npb25SZXF1ZXN0",
+            "GiMud2hhdHNtZW93LnYxLkRlbGV0ZVNlc3Npb25SZXNwb25zZRJGCgdDb25u",
+            "ZWN0Ehwud2hhdHNtZW93LnYxLkNvbm5lY3RSZXF1ZXN0Gh0ud2hhdHNtZW93",
+            "LnYxLkNvbm5lY3RSZXNwb25zZRJeCg9Db25uZWN0U2Vzc2lvbnMSJC53aGF0",
+            "c21lb3cudjEuQ29ubmVjdFNlc3Npb25zUmVxdWVzdBolLndoYXRzbWVvdy52",
+            "MS5Db25uZWN0U2Vzc2lvbnNSZXNwb25zZRJPCgpEaXNjb25uZWN0Eh8ud2hh",
+            "dHNtZW93LnYxLkRpc2Nvbm5lY3RSZXF1ZXN0GiAud2hhdHNtZW93LnYxLkRp",
+            "c2Nvbm5lY3RSZXNwb25zZRJDCgZMb2dvdXQSGy53aGF0c21lb3cudjEuTG9n",
+            "b3V0UmVxdWVzdBocLndoYXRzbWVvdy52MS5Mb2dvdXRSZXNwb25zZRI/CgRQ",
+            "YWlyEhkud2hhdHNtZW93LnYxLlBhaXJSZXF1ZXN0Ghoud2hhdHNtZW93LnYx",
+            "LlBhaXJSZXNwb25zZTABEmYKEVdhdGNoU2Vzc2lvblN0YXRlEiYud2hhdHNt",
+            "ZW93LnYxLldhdGNoU2Vzc2lvblN0YXRlUmVxdWVzdBonLndoYXRzbWVvdy52",
+            "MS5XYXRjaFNlc3Npb25TdGF0ZVJlc3BvbnNlMAFCwgEKEGNvbS53aGF0c21l",
+            "b3cudjFCDFNlc3Npb25Qcm90b1ABWkZnaXRodWIuY29tL3Rjb3J0ZWdhL1do",
+            "YXRzbWVvdy5ORVQvc2lkZWNhci9nZW4vd2hhdHNtZW93L3YxO3doYXRzbWVv",
+            "d3YxogIDV1hYqgIVV2hhdHNtZW93LlByb3RvY29sLlYxygIMV2hhdHNtZW93",
+            "XFYx4gIYV2hhdHNtZW93XFYxXEdQQk1ldGFkYXRh6gINV2hhdHNtZW93OjpW",
+            "MWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, global::Whatsmeow.Protocol.V1.ErrorReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.Session), global::Whatsmeow.Protocol.V1.Session.Parser, new[]{ "Id", "State", "Jid", "Lid" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.SessionState), global::Whatsmeow.Protocol.V1.SessionState.Parser, new[]{ "Created", "Pairing", "Connecting", "Connected", "CaughtUp", "Reconnecting", "Disconnected", "LoggedOut", "Replaced", "TempBanned", "Outdated", "Error" }, new[]{ "Kind" }, null, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.SessionState.Types.Created), global::Whatsmeow.Protocol.V1.SessionState.Types.Created.Parser, null, null, null, null, null),
@@ -123,6 +132,9 @@ namespace Whatsmeow.Protocol.V1 {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.DeleteSessionResponse), global::Whatsmeow.Protocol.V1.DeleteSessionResponse.Parser, null, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.ConnectRequest), global::Whatsmeow.Protocol.V1.ConnectRequest.Parser, new[]{ "SessionId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.ConnectResponse), global::Whatsmeow.Protocol.V1.ConnectResponse.Parser, null, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.ConnectSessionsRequest), global::Whatsmeow.Protocol.V1.ConnectSessionsRequest.Parser, new[]{ "SessionIds" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.ConnectSessionsResponse), global::Whatsmeow.Protocol.V1.ConnectSessionsResponse.Parser, new[]{ "Results" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.ConnectSessionResult), global::Whatsmeow.Protocol.V1.ConnectSessionResult.Parser, new[]{ "SessionId", "Reason" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.DisconnectRequest), global::Whatsmeow.Protocol.V1.DisconnectRequest.Parser, new[]{ "SessionId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.DisconnectResponse), global::Whatsmeow.Protocol.V1.DisconnectResponse.Parser, null, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.LogoutRequest), global::Whatsmeow.Protocol.V1.LogoutRequest.Parser, new[]{ "SessionId" }, null, null, null, null),
@@ -5037,6 +5049,637 @@ namespace Whatsmeow.Protocol.V1 {
   }
 
   /// <summary>
+  /// ConnectSessionsRequest names the sessions.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  internal sealed partial class ConnectSessionsRequest : pb::IMessage<ConnectSessionsRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<ConnectSessionsRequest> _parser = new pb::MessageParser<ConnectSessionsRequest>(() => new ConnectSessionsRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<ConnectSessionsRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor.MessageTypes[10]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ConnectSessionsRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ConnectSessionsRequest(ConnectSessionsRequest other) : this() {
+      sessionIds_ = other.sessionIds_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ConnectSessionsRequest Clone() {
+      return new ConnectSessionsRequest(this);
+    }
+
+    /// <summary>Field number for the "session_ids" field.</summary>
+    public const int SessionIdsFieldNumber = 1;
+    private static readonly pb::FieldCodec<string> _repeated_sessionIds_codec
+        = pb::FieldCodec.ForString(10);
+    private readonly pbc::RepeatedField<string> sessionIds_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// The session ids, each at most once.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> SessionIds {
+      get { return sessionIds_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as ConnectSessionsRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(ConnectSessionsRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!sessionIds_.Equals(other.sessionIds_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= sessionIds_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      sessionIds_.WriteTo(output, _repeated_sessionIds_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      sessionIds_.WriteTo(ref output, _repeated_sessionIds_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += sessionIds_.CalculateSize(_repeated_sessionIds_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(ConnectSessionsRequest other) {
+      if (other == null) {
+        return;
+      }
+      sessionIds_.Add(other.sessionIds_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            sessionIds_.AddEntriesFrom(input, _repeated_sessionIds_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            sessionIds_.AddEntriesFrom(ref input, _repeated_sessionIds_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// ConnectSessionsResponse is the result of each session, in the request's order.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  internal sealed partial class ConnectSessionsResponse : pb::IMessage<ConnectSessionsResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<ConnectSessionsResponse> _parser = new pb::MessageParser<ConnectSessionsResponse>(() => new ConnectSessionsResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<ConnectSessionsResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor.MessageTypes[11]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ConnectSessionsResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ConnectSessionsResponse(ConnectSessionsResponse other) : this() {
+      results_ = other.results_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ConnectSessionsResponse Clone() {
+      return new ConnectSessionsResponse(this);
+    }
+
+    /// <summary>Field number for the "results" field.</summary>
+    public const int ResultsFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Whatsmeow.Protocol.V1.ConnectSessionResult> _repeated_results_codec
+        = pb::FieldCodec.ForMessage(10, global::Whatsmeow.Protocol.V1.ConnectSessionResult.Parser);
+    private readonly pbc::RepeatedField<global::Whatsmeow.Protocol.V1.ConnectSessionResult> results_ = new pbc::RepeatedField<global::Whatsmeow.Protocol.V1.ConnectSessionResult>();
+    /// <summary>
+    /// One per requested session id.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Whatsmeow.Protocol.V1.ConnectSessionResult> Results {
+      get { return results_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as ConnectSessionsResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(ConnectSessionsResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!results_.Equals(other.results_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= results_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      results_.WriteTo(output, _repeated_results_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      results_.WriteTo(ref output, _repeated_results_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += results_.CalculateSize(_repeated_results_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(ConnectSessionsResponse other) {
+      if (other == null) {
+        return;
+      }
+      results_.Add(other.results_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            results_.AddEntriesFrom(input, _repeated_results_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            results_.AddEntriesFrom(ref input, _repeated_results_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// ConnectSessionResult is how one session's connect ended.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  internal sealed partial class ConnectSessionResult : pb::IMessage<ConnectSessionResult>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<ConnectSessionResult> _parser = new pb::MessageParser<ConnectSessionResult>(() => new ConnectSessionResult());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<ConnectSessionResult> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor.MessageTypes[12]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ConnectSessionResult() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ConnectSessionResult(ConnectSessionResult other) : this() {
+      sessionId_ = other.sessionId_;
+      reason_ = other.reason_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ConnectSessionResult Clone() {
+      return new ConnectSessionResult(this);
+    }
+
+    /// <summary>Field number for the "session_id" field.</summary>
+    public const int SessionIdFieldNumber = 1;
+    private string sessionId_ = "";
+    /// <summary>
+    /// The session id.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string SessionId {
+      get { return sessionId_; }
+      set {
+        sessionId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "reason" field.</summary>
+    public const int ReasonFieldNumber = 2;
+    private global::Whatsmeow.Protocol.V1.ErrorReason reason_ = global::Whatsmeow.Protocol.V1.ErrorReason.Unspecified;
+    /// <summary>
+    /// ERROR_REASON_UNSPECIFIED when the session connected, or was connecting or connected already; otherwise the reason
+    /// Connect would have failed with. The failure's message is in the sidecar's log, not here (ADR 0053).
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Protocol.V1.ErrorReason Reason {
+      get { return reason_; }
+      set {
+        reason_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as ConnectSessionResult);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(ConnectSessionResult other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (SessionId != other.SessionId) return false;
+      if (Reason != other.Reason) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (SessionId.Length != 0) hash ^= SessionId.GetHashCode();
+      if (Reason != global::Whatsmeow.Protocol.V1.ErrorReason.Unspecified) hash ^= Reason.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (SessionId.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(SessionId);
+      }
+      if (Reason != global::Whatsmeow.Protocol.V1.ErrorReason.Unspecified) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) Reason);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (SessionId.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(SessionId);
+      }
+      if (Reason != global::Whatsmeow.Protocol.V1.ErrorReason.Unspecified) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) Reason);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (SessionId.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(SessionId);
+      }
+      if (Reason != global::Whatsmeow.Protocol.V1.ErrorReason.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Reason);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(ConnectSessionResult other) {
+      if (other == null) {
+        return;
+      }
+      if (other.SessionId.Length != 0) {
+        SessionId = other.SessionId;
+      }
+      if (other.Reason != global::Whatsmeow.Protocol.V1.ErrorReason.Unspecified) {
+        Reason = other.Reason;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            SessionId = input.ReadString();
+            break;
+          }
+          case 16: {
+            Reason = (global::Whatsmeow.Protocol.V1.ErrorReason) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            SessionId = input.ReadString();
+            break;
+          }
+          case 16: {
+            Reason = (global::Whatsmeow.Protocol.V1.ErrorReason) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
   /// DisconnectRequest names the session.
   /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
@@ -5054,7 +5697,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor.MessageTypes[10]; }
+      get { return global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor.MessageTypes[13]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5258,7 +5901,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor.MessageTypes[11]; }
+      get { return global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor.MessageTypes[14]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5422,7 +6065,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor.MessageTypes[12]; }
+      get { return global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor.MessageTypes[15]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5626,7 +6269,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor.MessageTypes[13]; }
+      get { return global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor.MessageTypes[16]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5790,7 +6433,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor.MessageTypes[14]; }
+      get { return global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor.MessageTypes[17]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6255,7 +6898,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor.MessageTypes[15]; }
+      get { return global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor.MessageTypes[18]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7274,7 +7917,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor.MessageTypes[16]; }
+      get { return global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor.MessageTypes[19]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7478,7 +8121,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor.MessageTypes[17]; }
+      get { return global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor.MessageTypes[20]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

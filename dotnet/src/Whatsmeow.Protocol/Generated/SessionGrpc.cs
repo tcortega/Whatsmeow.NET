@@ -69,6 +69,10 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.ConnectResponse> __Marshaller_whatsmeow_v1_ConnectResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.ConnectResponse.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.ConnectSessionsRequest> __Marshaller_whatsmeow_v1_ConnectSessionsRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.ConnectSessionsRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.ConnectSessionsResponse> __Marshaller_whatsmeow_v1_ConnectSessionsResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.ConnectSessionsResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.DisconnectRequest> __Marshaller_whatsmeow_v1_DisconnectRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.DisconnectRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.DisconnectResponse> __Marshaller_whatsmeow_v1_DisconnectResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.DisconnectResponse.Parser));
@@ -116,6 +120,14 @@ namespace Whatsmeow.Protocol.V1 {
         "Connect",
         __Marshaller_whatsmeow_v1_ConnectRequest,
         __Marshaller_whatsmeow_v1_ConnectResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.Protocol.V1.ConnectSessionsRequest, global::Whatsmeow.Protocol.V1.ConnectSessionsResponse> __Method_ConnectSessions = new grpc::Method<global::Whatsmeow.Protocol.V1.ConnectSessionsRequest, global::Whatsmeow.Protocol.V1.ConnectSessionsResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "ConnectSessions",
+        __Marshaller_whatsmeow_v1_ConnectSessionsRequest,
+        __Marshaller_whatsmeow_v1_ConnectSessionsResponse);
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.Protocol.V1.DisconnectRequest, global::Whatsmeow.Protocol.V1.DisconnectResponse> __Method_Disconnect = new grpc::Method<global::Whatsmeow.Protocol.V1.DisconnectRequest, global::Whatsmeow.Protocol.V1.DisconnectResponse>(
@@ -429,6 +441,74 @@ namespace Whatsmeow.Protocol.V1 {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.ConnectResponse> ConnectAsync(global::Whatsmeow.Protocol.V1.ConnectRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_Connect, null, options, request);
+      }
+      /// <summary>
+      /// ConnectSessions connects several sessions, each as Connect does, and answers with one result per session, in the
+      /// request's order, once every connect call ended. Their Connecting transitions are recorded in one commit, and their
+      /// connections open concurrently, so the time it takes does not grow with a sync of the database per session. The
+      /// client reconnects with it after a sidecar restart (ARCHITECTURE §8.5, ADR 0053).
+      /// Errors: INVALID_ARGUMENT for a session id given twice (field "session_ids"). A session's own failure is its result,
+      /// never the call's.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.ConnectSessionsResponse ConnectSessions(global::Whatsmeow.Protocol.V1.ConnectSessionsRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ConnectSessions(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// ConnectSessions connects several sessions, each as Connect does, and answers with one result per session, in the
+      /// request's order, once every connect call ended. Their Connecting transitions are recorded in one commit, and their
+      /// connections open concurrently, so the time it takes does not grow with a sync of the database per session. The
+      /// client reconnects with it after a sidecar restart (ARCHITECTURE §8.5, ADR 0053).
+      /// Errors: INVALID_ARGUMENT for a session id given twice (field "session_ids"). A session's own failure is its result,
+      /// never the call's.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.ConnectSessionsResponse ConnectSessions(global::Whatsmeow.Protocol.V1.ConnectSessionsRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_ConnectSessions, null, options, request);
+      }
+      /// <summary>
+      /// ConnectSessions connects several sessions, each as Connect does, and answers with one result per session, in the
+      /// request's order, once every connect call ended. Their Connecting transitions are recorded in one commit, and their
+      /// connections open concurrently, so the time it takes does not grow with a sync of the database per session. The
+      /// client reconnects with it after a sidecar restart (ARCHITECTURE §8.5, ADR 0053).
+      /// Errors: INVALID_ARGUMENT for a session id given twice (field "session_ids"). A session's own failure is its result,
+      /// never the call's.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.ConnectSessionsResponse> ConnectSessionsAsync(global::Whatsmeow.Protocol.V1.ConnectSessionsRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ConnectSessionsAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// ConnectSessions connects several sessions, each as Connect does, and answers with one result per session, in the
+      /// request's order, once every connect call ended. Their Connecting transitions are recorded in one commit, and their
+      /// connections open concurrently, so the time it takes does not grow with a sync of the database per session. The
+      /// client reconnects with it after a sidecar restart (ARCHITECTURE §8.5, ADR 0053).
+      /// Errors: INVALID_ARGUMENT for a session id given twice (field "session_ids"). A session's own failure is its result,
+      /// never the call's.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.ConnectSessionsResponse> ConnectSessionsAsync(global::Whatsmeow.Protocol.V1.ConnectSessionsRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_ConnectSessions, null, options, request);
       }
       /// <summary>
       /// Disconnect closes the connection and stops reconnecting; the session stays paired (state Disconnected).
