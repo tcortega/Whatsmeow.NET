@@ -14,7 +14,6 @@ namespace Whatsmeow.IntegrationTests;
 /// </summary>
 public sealed class FakeSidecar : IAsyncLifetime
 {
-	private readonly LogCapture _logs = new();
 	private string? _directory;
 
 	/// <summary>The test build of <c>whatsmeow-net</c>, for a test that starts a fake-mode sidecar of its own.</summary>
@@ -22,6 +21,12 @@ public sealed class FakeSidecar : IAsyncLifetime
 
 	/// <summary>The sidecar's real SQLite file.</summary>
 	internal string DatabasePath { get; private set; } = "";
+
+	/// <summary>The sidecar's media root: a test hands over the files it puts under a directory of its own here.</summary>
+	internal string MediaRoot { get; private set; } = "";
+
+	/// <summary>The client's log, Debug level included.</summary>
+	internal LogCapture Logs { get; } = new();
 
 	/// <summary>The public client.</summary>
 	public WhatsmeowSidecar Sidecar { get; private set; } = null!;
@@ -39,8 +44,9 @@ public sealed class FakeSidecar : IAsyncLifetime
 		Binary = binary;
 
 		DatabasePath = Path.Combine(_directory, "whatsmeow-net.db");
+		MediaRoot = Directory.CreateDirectory(Path.Combine(_directory, "media")).FullName;
 		Sidecar = await WhatsmeowSidecar
-			.StartFakeWhatsAppAsync(new WhatsmeowSidecarOptions { SidecarPath = binary, DatabasePath = DatabasePath }, _logs.Factory, ct)
+			.StartFakeWhatsAppAsync(new WhatsmeowSidecarOptions { SidecarPath = binary, DatabasePath = DatabasePath, MediaRoot = MediaRoot }, Logs.Factory, ct)
 			.ConfigureAwait(false);
 		Fake = new FakeWhatsAppService.FakeWhatsAppServiceClient(Sidecar.CallInvoker);
 	}
@@ -55,20 +61,20 @@ public sealed class FakeSidecar : IAsyncLifetime
 		if (TestContext.Current.TestCollection?.TestCollectionClassName != typeof(SidecarCrashes).FullName)
 			throw new InvalidOperationException($"CrashAsync runs only in the {nameof(SidecarCrashes)} collection, which never runs in parallel.");
 
-		var restarts = _logs.Named("SidecarRestarted").Count;
-		var (processId, _) = await _logs.StartedAsync(_logs.Named("SidecarStarted").Count, cancellationToken).ConfigureAwait(false);
+		var restarts = Logs.Named("SidecarRestarted").Count;
+		var (processId, _) = await Logs.StartedAsync(Logs.Named("SidecarStarted").Count, cancellationToken).ConfigureAwait(false);
 
 		using (var process = Process.GetProcessById(processId))
 			process.Kill();
 
-		_ = await _logs.WaitForAsync(_ => _logs.Named("SidecarRestarted").Count > restarts, cancellationToken).ConfigureAwait(false);
+		_ = await Logs.WaitForAsync(_ => Logs.Named("SidecarRestarted").Count > restarts, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async ValueTask DisposeAsync()
 	{
 		if (Sidecar is not null)
 			await Sidecar.DisposeAsync().ConfigureAwait(false);
-		_logs.Dispose();
+		Logs.Dispose();
 		if (_directory is not null)
 			Directory.Delete(_directory, recursive: true);
 	}

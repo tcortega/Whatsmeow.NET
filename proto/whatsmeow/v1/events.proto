@@ -5,6 +5,7 @@ package whatsmeow.v1;
 import "google/protobuf/timestamp.proto";
 import "waE2E/WAWebProtobufsE2E.proto";
 import "whatsmeow/v1/contact.proto";
+import "whatsmeow/v1/media.proto";
 import "whatsmeow/v1/presence.proto";
 import "whatsmeow/v1/session.proto";
 
@@ -173,6 +174,8 @@ message StreamEventsResponse {
     ConnectionStateEvent connection_state = 13;
     // A change to a contact's profile; best effort (contact.proto).
     ContactEvent contact = 14;
+    // The phone's answer to a media retry request (media.proto).
+    MediaRetryEvent media_retry = 15;
   }
 }
 

@@ -71,4 +71,7 @@ public enum WhatsmeowErrorCode
 
 	/// <summary>The account has no push name yet, which sending presence needs; nothing was sent.</summary>
 	NoPushName,
+
+	/// <summary>WhatsApp no longer has the media; the account's phone can be asked to upload it again.</summary>
+	MediaExpired,
 }

@@ -578,6 +578,7 @@ type StreamEventsResponse struct {
 	//	*StreamEventsResponse_UndecryptableMessage
 	//	*StreamEventsResponse_ConnectionState
 	//	*StreamEventsResponse_Contact
+	//	*StreamEventsResponse_MediaRetry
 	Payload       isStreamEventsResponse_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -672,6 +673,15 @@ func (x *StreamEventsResponse) GetContact() *ContactEvent {
 	return nil
 }
 
+func (x *StreamEventsResponse) GetMediaRetry() *MediaRetryEvent {
+	if x != nil {
+		if x, ok := x.Payload.(*StreamEventsResponse_MediaRetry); ok {
+			return x.MediaRetry
+		}
+	}
+	return nil
+}
+
 type isStreamEventsResponse_Payload interface {
 	isStreamEventsResponse_Payload()
 }
@@ -701,6 +711,11 @@ type StreamEventsResponse_Contact struct {
 	Contact *ContactEvent `protobuf:"bytes,14,opt,name=contact,proto3,oneof"`
 }
 
+type StreamEventsResponse_MediaRetry struct {
+	// The phone's answer to a media retry request (media.proto).
+	MediaRetry *MediaRetryEvent `protobuf:"bytes,15,opt,name=media_retry,json=mediaRetry,proto3,oneof"`
+}
+
 func (*StreamEventsResponse_Message) isStreamEventsResponse_Payload() {}
 
 func (*StreamEventsResponse_Receipt) isStreamEventsResponse_Payload() {}
@@ -710,6 +725,8 @@ func (*StreamEventsResponse_UndecryptableMessage) isStreamEventsResponse_Payload
 func (*StreamEventsResponse_ConnectionState) isStreamEventsResponse_Payload() {}
 
 func (*StreamEventsResponse_Contact) isStreamEventsResponse_Payload() {}
+
+func (*StreamEventsResponse_MediaRetry) isStreamEventsResponse_Payload() {}
 
 // AckEventsRequest moves a consumer's cursor.
 type AckEventsRequest struct {
@@ -1132,7 +1149,7 @@ var File_whatsmeow_v1_events_proto protoreflect.FileDescriptor
 
 const file_whatsmeow_v1_events_proto_rawDesc = "" +
 	"\n" +
-	"\x19whatsmeow/v1/events.proto\x12\fwhatsmeow.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x1awhatsmeow/v1/contact.proto\x1a\x1bwhatsmeow/v1/presence.proto\x1a\x1awhatsmeow/v1/session.proto\"\x9d\x01\n" +
+	"\x19whatsmeow/v1/events.proto\x12\fwhatsmeow.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x1awhatsmeow/v1/contact.proto\x1a\x18whatsmeow/v1/media.proto\x1a\x1bwhatsmeow/v1/presence.proto\x1a\x1awhatsmeow/v1/session.proto\"\x9d\x01\n" +
 	"\rMessageSource\x12\x12\n" +
 	"\x04chat\x18\x01 \x01(\tR\x04chat\x12\x16\n" +
 	"\x06sender\x18\x02 \x01(\tR\x06sender\x12\x1d\n" +
@@ -1164,7 +1181,7 @@ const file_whatsmeow_v1_events_proto_rawDesc = "" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x1a\n" +
 	"\bconsumer\x18\x02 \x01(\tR\bconsumer\x12\x1b\n" +
-	"\tafter_seq\x18\x03 \x01(\x04R\bafterSeq\"\x8c\x03\n" +
+	"\tafter_seq\x18\x03 \x01(\x04R\bafterSeq\"\xce\x03\n" +
 	"\x14StreamEventsResponse\x12\x10\n" +
 	"\x03seq\x18\x01 \x01(\x04R\x03seq\x126\n" +
 	"\amessage\x18\n" +
@@ -1172,7 +1189,9 @@ const file_whatsmeow_v1_events_proto_rawDesc = "" +
 	"\areceipt\x18\v \x01(\v2\x1a.whatsmeow.v1.ReceiptEventH\x00R\areceipt\x12^\n" +
 	"\x15undecryptable_message\x18\f \x01(\v2'.whatsmeow.v1.UndecryptableMessageEventH\x00R\x14undecryptableMessage\x12O\n" +
 	"\x10connection_state\x18\r \x01(\v2\".whatsmeow.v1.ConnectionStateEventH\x00R\x0fconnectionState\x126\n" +
-	"\acontact\x18\x0e \x01(\v2\x1a.whatsmeow.v1.ContactEventH\x00R\acontactB\t\n" +
+	"\acontact\x18\x0e \x01(\v2\x1a.whatsmeow.v1.ContactEventH\x00R\acontact\x12@\n" +
+	"\vmedia_retry\x18\x0f \x01(\v2\x1d.whatsmeow.v1.MediaRetryEventH\x00R\n" +
+	"mediaRetryB\t\n" +
 	"\apayload\"i\n" +
 	"\x10AckEventsRequest\x12\x1d\n" +
 	"\n" +
@@ -1253,8 +1272,9 @@ var file_whatsmeow_v1_events_proto_goTypes = []any{
 	(*waE2E.Message)(nil),                 // 17: WAWebProtobufsE2E.Message
 	(*SessionState)(nil),                  // 18: whatsmeow.v1.SessionState
 	(*ContactEvent)(nil),                  // 19: whatsmeow.v1.ContactEvent
-	(PresenceState)(0),                    // 20: whatsmeow.v1.PresenceState
-	(ChatPresenceState)(0),                // 21: whatsmeow.v1.ChatPresenceState
+	(*MediaRetryEvent)(nil),               // 20: whatsmeow.v1.MediaRetryEvent
+	(PresenceState)(0),                    // 21: whatsmeow.v1.PresenceState
+	(ChatPresenceState)(0),                // 22: whatsmeow.v1.ChatPresenceState
 }
 var file_whatsmeow_v1_events_proto_depIdxs = []int32{
 	1,  // 0: whatsmeow.v1.MessageInfo.source:type_name -> whatsmeow.v1.MessageSource
@@ -1271,24 +1291,25 @@ var file_whatsmeow_v1_events_proto_depIdxs = []int32{
 	5,  // 11: whatsmeow.v1.StreamEventsResponse.undecryptable_message:type_name -> whatsmeow.v1.UndecryptableMessageEvent
 	6,  // 12: whatsmeow.v1.StreamEventsResponse.connection_state:type_name -> whatsmeow.v1.ConnectionStateEvent
 	19, // 13: whatsmeow.v1.StreamEventsResponse.contact:type_name -> whatsmeow.v1.ContactEvent
-	20, // 14: whatsmeow.v1.PresenceEvent.state:type_name -> whatsmeow.v1.PresenceState
-	16, // 15: whatsmeow.v1.PresenceEvent.last_seen:type_name -> google.protobuf.Timestamp
-	1,  // 16: whatsmeow.v1.ChatPresenceEvent.source:type_name -> whatsmeow.v1.MessageSource
-	21, // 17: whatsmeow.v1.ChatPresenceEvent.state:type_name -> whatsmeow.v1.ChatPresenceState
-	11, // 18: whatsmeow.v1.StreamEphemeralEventsResponse.presence:type_name -> whatsmeow.v1.PresenceEvent
-	12, // 19: whatsmeow.v1.StreamEphemeralEventsResponse.chat_presence:type_name -> whatsmeow.v1.ChatPresenceEvent
-	13, // 20: whatsmeow.v1.StreamEphemeralEventsResponse.queue_overflow:type_name -> whatsmeow.v1.QueueOverflowEvent
-	7,  // 21: whatsmeow.v1.EventService.StreamEvents:input_type -> whatsmeow.v1.StreamEventsRequest
-	9,  // 22: whatsmeow.v1.EventService.AckEvents:input_type -> whatsmeow.v1.AckEventsRequest
-	14, // 23: whatsmeow.v1.EventService.StreamEphemeralEvents:input_type -> whatsmeow.v1.StreamEphemeralEventsRequest
-	8,  // 24: whatsmeow.v1.EventService.StreamEvents:output_type -> whatsmeow.v1.StreamEventsResponse
-	10, // 25: whatsmeow.v1.EventService.AckEvents:output_type -> whatsmeow.v1.AckEventsResponse
-	15, // 26: whatsmeow.v1.EventService.StreamEphemeralEvents:output_type -> whatsmeow.v1.StreamEphemeralEventsResponse
-	24, // [24:27] is the sub-list for method output_type
-	21, // [21:24] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+	20, // 14: whatsmeow.v1.StreamEventsResponse.media_retry:type_name -> whatsmeow.v1.MediaRetryEvent
+	21, // 15: whatsmeow.v1.PresenceEvent.state:type_name -> whatsmeow.v1.PresenceState
+	16, // 16: whatsmeow.v1.PresenceEvent.last_seen:type_name -> google.protobuf.Timestamp
+	1,  // 17: whatsmeow.v1.ChatPresenceEvent.source:type_name -> whatsmeow.v1.MessageSource
+	22, // 18: whatsmeow.v1.ChatPresenceEvent.state:type_name -> whatsmeow.v1.ChatPresenceState
+	11, // 19: whatsmeow.v1.StreamEphemeralEventsResponse.presence:type_name -> whatsmeow.v1.PresenceEvent
+	12, // 20: whatsmeow.v1.StreamEphemeralEventsResponse.chat_presence:type_name -> whatsmeow.v1.ChatPresenceEvent
+	13, // 21: whatsmeow.v1.StreamEphemeralEventsResponse.queue_overflow:type_name -> whatsmeow.v1.QueueOverflowEvent
+	7,  // 22: whatsmeow.v1.EventService.StreamEvents:input_type -> whatsmeow.v1.StreamEventsRequest
+	9,  // 23: whatsmeow.v1.EventService.AckEvents:input_type -> whatsmeow.v1.AckEventsRequest
+	14, // 24: whatsmeow.v1.EventService.StreamEphemeralEvents:input_type -> whatsmeow.v1.StreamEphemeralEventsRequest
+	8,  // 25: whatsmeow.v1.EventService.StreamEvents:output_type -> whatsmeow.v1.StreamEventsResponse
+	10, // 26: whatsmeow.v1.EventService.AckEvents:output_type -> whatsmeow.v1.AckEventsResponse
+	15, // 27: whatsmeow.v1.EventService.StreamEphemeralEvents:output_type -> whatsmeow.v1.StreamEphemeralEventsResponse
+	25, // [25:28] is the sub-list for method output_type
+	22, // [22:25] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_whatsmeow_v1_events_proto_init() }
@@ -1297,6 +1318,7 @@ func file_whatsmeow_v1_events_proto_init() {
 		return
 	}
 	file_whatsmeow_v1_contact_proto_init()
+	file_whatsmeow_v1_media_proto_init()
 	file_whatsmeow_v1_presence_proto_init()
 	file_whatsmeow_v1_session_proto_init()
 	file_whatsmeow_v1_events_proto_msgTypes[7].OneofWrappers = []any{
@@ -1305,6 +1327,7 @@ func file_whatsmeow_v1_events_proto_init() {
 		(*StreamEventsResponse_UndecryptableMessage)(nil),
 		(*StreamEventsResponse_ConnectionState)(nil),
 		(*StreamEventsResponse_Contact)(nil),
+		(*StreamEventsResponse_MediaRetry)(nil),
 	}
 	file_whatsmeow_v1_events_proto_msgTypes[14].OneofWrappers = []any{
 		(*StreamEphemeralEventsResponse_Presence)(nil),

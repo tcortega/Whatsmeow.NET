@@ -114,7 +114,7 @@ Vertical-slice thinking applies to this library. A **slice is a WhatsApp capabil
 | Pairing | `session.proto` (`Pair`) | `internal/session` (`pair.go`) | `Pairing/` | `client.PairWithQrCodeAsync`, `client.PairWithPhoneNumberAsync` |
 | Events | `events.proto` | `internal/events` + `internal/outbox` | `Events/` | `client.On<T>`, handlers |
 | Messaging | `message.proto` | `internal/messaging` | `Messaging/` | `client.Messages` |
-| Media | `media.proto` | `internal/media` | `Media/` | `client.Media` |
+| Media | `media.proto` | `internal/media` | `Media/` | `client.UploadMediaFileAsync`, `client.DownloadMediaFileAsync` and their `Stream` forms, `client.RequestMediaRetryAsync` |
 | Contacts & LID | `contact.proto` | `internal/contacts` | `Contacts/` | `client.Contacts` |
 | Groups | `group.proto` | `internal/groups` | `Groups/` | `client.Groups` |
 | Presence | `presence.proto`; `events.proto` (`StreamEphemeralEvents`) | `internal/presence`; `internal/events` (`ring.go`) | `Presence/` | `client.SendPresenceAsync`, `client.SubscribePresenceAsync`, `client.SendChatPresenceAsync`; events |
@@ -249,7 +249,7 @@ The contract is the most important artifact in the repo. Both sides are generate
 | `ContactService`, `GroupService` | unary | includes LID↔PN resolution |
 | `ChatStateService` | unary | Phase 3 |
 
-**Error model:** every error is a gRPC status plus `google.rpc.ErrorInfo{ reason, domain: "whatsmeow.net", metadata }`. `reason` is a stable `SCREAMING_SNAKE` code: `NOT_LOGGED_IN`, `SESSION_NOT_FOUND`, `RECIPIENT_NOT_ON_WHATSAPP`, `RATE_LIMITED`, `TEMPORARILY_BANNED`, `INVALID_ARGUMENT`, `SIDECAR_SHUTTING_DOWN`, and so on (`MEDIA_EXPIRED` comes with media in Phase 2). Clients map on `reason` only, never on message text. The list of reasons is part of the contract: `enum ErrorReason` in `proto/whatsmeow/v1/error.proto`, sent without its `ERROR_REASON_` prefix.
+**Error model:** every error is a gRPC status plus `google.rpc.ErrorInfo{ reason, domain: "whatsmeow.net", metadata }`. `reason` is a stable `SCREAMING_SNAKE` code: `NOT_LOGGED_IN`, `SESSION_NOT_FOUND`, `RECIPIENT_NOT_ON_WHATSAPP`, `RATE_LIMITED`, `TEMPORARILY_BANNED`, `INVALID_ARGUMENT`, `SIDECAR_SHUTTING_DOWN`, and so on (`MEDIA_EXPIRED` came with media, #28). Clients map on `reason` only, never on message text. The list of reasons is part of the contract: `enum ErrorReason` in `proto/whatsmeow/v1/error.proto`, sent without its `ERROR_REASON_` prefix.
 
 ---
 
@@ -327,10 +327,16 @@ Each SQLite file has a single owner, enforced with an OS lock on `<database>.loc
 
 ### 7.6 Media
 
-- Upload uses `UploadReader(ctx, io.Reader, io.ReadWriteSeeker tempFile, MediaType)` (constant memory through a temp file). whatsmeow does **not** retry uploads: `rawUpload` makes one POST to the first host (`upload.go:243-302`). The media slice owns upload retry with backoff, rewinding the temp file. Download uses `DownloadToFile`, which retries up to 5 times with an `(n+1)`-second or `Retry-After` backoff (`download-to-file.go:164`); its `File` must implement `ReaderAt`, `WriterAt`, `Truncate` and `Stat`. Never use the in-memory `Upload([]byte)` / `Download` variants for user media.
-- Same host: hand files over by **path** under a configured root, validated against path traversal. Otherwise use **64 KiB chunk streams**. Never put whole files inline in a message.
-- `MediaRef` (`direct_path`, `media_key`, `file_sha256`, `file_enc_sha256`, `file_length`, `mimetype`, `streaming_sidecar`) is enough to download lazily or to forward without re-uploading.
-- Expired media returns `MEDIA_EXPIRED`. The caller then calls `RequestMediaRetry`, and the new path arrives as a `MediaRetryEvent`.
+[ADR 0026](adr/0026-media-transfer-and-media-retry.md); whatsmeow at the pin, §14 "Measured for Media (#28)".
+
+- Upload uses `UploadReader(ctx, io.Reader, io.ReadWriteSeeker tempFile, MediaType)`, which encrypts into the temporary file and then POSTs it, with a new media key on every call (upload.go:115-154). The temporary file is always one of the sidecar's: whatsmeow overwrites it with ciphertext (upload.go:114). whatsmeow does **not** retry uploads: `rawUpload` makes one POST to the first host (`upload.go:243-302`). The media slice owns upload retry: 3 attempts, 1 s and 2 s apart, within the call, each a whole `UploadReader` from a source that can be read again, so each has its own media key. Download uses `DownloadMediaWithPathToFile`, which tries each media host and retries up to 5 times with an `(n+1)`-second or `Retry-After` backoff (`download-to-file.go:80-119, 163-189`); its `File` must implement `ReaderAt`, `WriterAt`, `Truncate` and `Stat`. Never use the in-memory `Upload([]byte)` / `Download` variants for user media.
+- Same host: hand files over by **path** under `--media-root`, which the sidecar opens through one `os.Root`, so `..` and a symlink out of it (an absolute symlink too) are refused. Otherwise use **64 KiB chunk streams**, the header first. Never put whole files inline in a message. A chunked upload is spooled to a file, so a retry can read it again. Each attempt opens the path again, non-blocking, and refuses what it opened unless it is a regular file. The client decides path or chunks by case except on Windows, as Go compares paths. A missing file or directory under the root throws `FileNotFoundException` or `DirectoryNotFoundException`, as outside it.
+- An error or a log line never carries a media URL's query, which holds the media connection's auth or the CDN's signature (§14).
+- The sidecar's own temporary files are in `<database>.tmp/` (0700, emptied at start), not in `/tmp`, which may be a tmpfs. A download is verified as a whole before any plaintext leaves the sidecar: the MAC covers all of the ciphertext, and a failed check leaves ciphertext or unchecked plaintext in whatsmeow's file (`download-to-file.go:121-161`). A download to a path is written to `.<name>.<random>.part` next to it and renamed over it once verified; the destination holds the verified file or what it held before. `ErrInvalidMediaSHA256` after a valid MAC is delivered with a warning, as mautrix does; any other failed check is `INTERNAL`.
+- The media HTTP client has no total timeout (a cloned `http.DefaultTransport`, client.go:271-276), so a transfer is bounded only by the call's deadline and cancellation.
+- `MediaRef` (`media_type`, `direct_path`, `url`, `media_key`, `file_sha256`, `file_enc_sha256`, `file_length`, `streaming_sidecar`) is enough to download lazily, also after a sidecar restart, or to forward without re-uploading. The mimetype is message metadata, with the media messages (#29).
+- Expired media (403, 404 or 410) returns `MEDIA_EXPIRED`. The caller then calls `RequestMediaRetry`, which stores the request with its `MediaRef` before it sends the receipt; the phone's answer, encrypted with the media key (mediaretry.go:123-137), is matched on the message id, with the chat as a tiebreak, decrypted by the media slice's `events.Mapper` in the event handler and arrives as a `MediaRetryEvent` with the media at its new path, or the failure. It is best effort: whatsmeow acks the notification whatever the handler returns (notification.go:510-511), and the phone may never answer (tulir/whatsmeow#1261). A final answer deletes the request, with its media key.
+- Every media RPC needs the session online (Connected or CaughtUp): whatsmeow asks WhatsApp for its media hosts over the connection (`refreshMediaConn`, mediaconn.go:44-58).
 
 ### 7.7 History sync
 
@@ -446,6 +452,7 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
 - Unix domain socket by default on every OS, Windows included (§14 question 2: stable on both transports).
   AF_UNIX was about 2-4x faster for server streams of 64 KiB messages and about 1.5-3x for bidi.
   Client-stream upload was comparable, with the named-pipe range equal or higher (328-469 vs 308-390 MiB/s) [inferred: ratios from the range ends across the three hosts, not paired per host].
+  Paired on one host, a 300 MiB media upload in 64 KiB chunks, encryption and the fake WhatsApp included, ran at 91 MiB/s over AF_UNIX and 74 MiB/s over the named pipe, and its download at 96 and 108 MiB/s [observed: `Media/MediaTransferTests.cs`, GitHub Actions run 41394734844, win-x64, one run]; the media path is bound by more than the transport, so the raw transport ratio stays [inferred].
   On Windows the named-pipe transport stays selectable as a fallback; it passed the same soak.
 - An auth token is added to every call by an interceptor, together with `ThrowOperationCanceledOnCancellation = true`.
 - `MaxReceiveMessageSize` and `MaxSendMessageSize` are set explicitly to 16 MiB on both sides.
@@ -454,7 +461,7 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
 ### 8.7 Errors
 
 - `WhatsmeowException` (base) carries `ErrorCode`, the public enum `WhatsmeowErrorCode` mapped from `ErrorInfo.reason` by an explicit switch (`Unknown` for no reason, a local failure, or a reason the client does not know), and the `RpcException` as `InnerException`.
-- Each subtype exists from the slice that first returns its reason: Sessions (#6) added the validation, session-not-found, not-logged-in, logged-out, not-connected, temporarily-banned and outcome-unknown ones; Pairing (#7) added `PairingException` and `RateLimitedException`; Contacts (#33) added `RecipientNotFoundException`, for a phone number without a LID WhatsApp knows when blocking, and the `WHATSAPP_TIMED_OUT` reason, a read WhatsApp did not answer in time, on the base type with its `ErrorCode`: nothing was done, so it is not `OUTCOME_UNKNOWN`, which stays for writes.
+- Each subtype exists from the slice that first returns its reason: Sessions (#6) added the validation, session-not-found, not-logged-in, logged-out, not-connected, temporarily-banned and outcome-unknown ones; Pairing (#7) added `PairingException` and `RateLimitedException`; Contacts (#33) added `RecipientNotFoundException`, for a phone number without a LID WhatsApp knows when blocking, and the `WHATSAPP_TIMED_OUT` reason, a read WhatsApp did not answer in time, on the base type with its `ErrorCode`: nothing was done, so it is not `OUTCOME_UNKNOWN`, which stays for writes; Media (#28) added `MediaExpiredException`.
   Until a later slice adds its subtype, a reason maps to `WhatsmeowException` with its `ErrorCode`.
 - Subtypes:
   - `SidecarUnavailableException`, `SidecarVersionMismatchException`
@@ -478,6 +485,7 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
 | `TEMPORARILY_BANNED` | `TemporarilyBannedException` |
 | `RECIPIENT_NOT_ON_WHATSAPP` | `RecipientNotFoundException` |
 | `RATE_LIMITED` | `RateLimitedException` |
+| `MEDIA_EXPIRED` | `MediaExpiredException` |
 | `OUTCOME_UNKNOWN` | `OutcomeUnknownException` |
 
 - Cancellation surfaces as `OperationCanceledException`, and deadlines as `TimeoutException`.
@@ -535,7 +543,7 @@ Moved to [guidelines/csharp.md](guidelines/csharp.md) Async and concurrency: `Ch
 - The SQLite database holds long-term private keys. It is created `0600` before SQLite opens it, and its `-wal` file inherits that mode; the lock file next to it is `0600` too.
   One sidecar at a time owns it (§7.4).
   The docs recommend disk encryption. Backups use `VACUUM INTO` and must be encrypted by the user.
-- Media paths are confined to a configured root, and path traversal is rejected.
+- Media paths are confined to `--media-root`: the sidecar opens them through one `os.Root`, which refuses `..` and symlinks that leave it, absolute ones included, without a check-then-use race on Unix and Windows (`go doc os.Root`, Go 1.27). Downloaded files are created 0600.
 
 ---
 
@@ -590,7 +598,7 @@ How to write each test, what is banned, and the can-it-fail check: [guidelines/t
 
 Any change that violates one of these is wrong unless an ADR changes the invariant first.
 
-1. The whatsmeow event handler never blocks on .NET, the network, or media. It only writes to the outbox, or, for an ephemeral event, to the session's ring in memory ([ADR 0027](adr/0027-ephemeral-events-presence-and-typing.md)).
+1. The whatsmeow event handler never blocks on .NET, the network, or media. It only writes to the outbox, or, for an ephemeral event, to the session's ring in memory ([ADR 0027](adr/0027-ephemeral-events-presence-and-typing.md)), and deletes the media retry request a final answer settled ([ADR 0026](adr/0026-media-transfer-and-media-retry.md)).
 2. A WhatsApp stanza of a gated kind (§1) is answered to the server (a delivery receipt for a message, an ack for a receipt or notification) only after it is durably in the outbox ([ADR 0022](adr/0022-outbox-event-stream-and-dispatcher.md)). Ungated kinds are answered by whatsmeow regardless; we never claim otherwise.
 3. An event is acked by .NET only after all of its handlers have completed. Acks follow the watermark.
 4. Every whatsmeow `PermanentDisconnect` (six types at the pin, §7.4) maps to an explicit session state and is delivered to .NET. "Silent" sessions are a bug.
@@ -714,6 +722,17 @@ Setup: Go 1.27.3 grpc-go 1.85.0 server, .NET 10.0.14 Native AOT client, on Windo
   - The LID map is the container's, one for every session (store/sqlstore/container.go:260); `GetAltJID` asks it for a phone number or LID, and gives the empty JID for any other server (store/store.go:316-326). An unknown pair is the empty JID, never an error (lidmap.go:96-98, 105-107, 115); a known one comes with the input's device (lidmap.go:100, 113); only a database error fails (lidmap.go:108), and a lookup on the wrong server (lidmap.go:119-121, 129-131), which `GetAltJID` never makes. A device that was never paired has no stores (container.go:212-224, 257-263).
   - A message stores its LID pair from `SenderAlt`, else `RecipientAlt`, before decryption, and updates the push name and verified name on goroutines (message.go:51-61); `updatePushName` stores both forms and dispatches `PushName` only when it changed (user.go:679-707).
   - No contact event is gated: `Picture` and `UserAbout` come from notifications acked whatever the handlers return (notification.go:91-115, 449-466, 472), the saved name from app state, whose results `FetchAppState` ignores (appstate.go:31-39, 292-296), `Blocklist` from the account_sync goroutine (notification.go:245-264, 487).
+- Measured for Media (#28), whatsmeow at the pin and Go 1.27.3:
+  - Upload: `UploadReader` draws a new media key per call (upload.go:115-117), encrypts the plaintext into the temporary file with `cbcutil.EncryptStream`, which writes at offsets when the file is a `WriterAt` (upload.go:131; util/cbcutil/cbc.go:161-215), builds the streaming sidecar for video only (upload.go:141-151), then makes one POST to `Hosts[0]` (upload.go:152, 243-302). The same file as plaintext and temporary file is overwritten with ciphertext (upload.go:114). The errors are strings, with the HTTP status only in the text (upload.go:291-298). whatsmeow enforces no size limit [observed: upload.go]; WhatsApp's own limits are [unknown] (RESEARCH item 14).
+  - Download: `DownloadMediaWithPathToFile` takes the fields directly (download-to-file.go:80-119); it stops at once on `ErrInvalidMediaSHA256`, 403, 404, 410 and a cancel, and otherwise tries the next host. The checks run on the file: the ciphertext hash, then the MAC, then in-place decryption, then the plaintext hash (download-to-file.go:121-161, 209-246); a failure leaves ciphertext, or unchecked plaintext, in the file. Network errors and retryable statuses are retried 5 times (download-to-file.go:163-189, download.go:327-336).
+  - Keys: HKDF-SHA256 of the media key with the type's info string, 112 bytes (download.go:42-52, 322-325); stickers use the image keys (download.go:95-106).
+  - Media retry: `SendMediaRetryReceipt` names `ID`, `Chat`, `IsFromMe`, and `Sender` in a group (mediaretry.go:77-119); the answer is `events.MediaRetry`, AES-GCM under an HKDF of the media key with the message id as additional data, or an unencrypted error code, 2 for not on the phone (mediaretry.go:24-41, 121-176); its result is GENERAL_ERROR, SUCCESS, NOT_FOUND or DECRYPTION_ERROR, and only `DirectPath` changes on success (WAMmsRetry.proto; mediaretry.go:59-74). That the phone re-uploads the same ciphertext, so the hashes still hold, is [inferred] from that. The notification is dispatched on the node queue and acked whatever the handler returns (notification.go:470-472, 510-511; mediaretry.go:178-185).
+  - The media HTTP client is a clone of `http.DefaultTransport` with no total timeout (client.go:271-276).
+  - Go: `os.Root` refuses `..` and symlinks that leave the root, absolute symlinks included, and has `Open`, `OpenFile`, `Stat`, `Lstat`, `Rename` and `Remove` (`go doc os.Root`, Go 1.27.3).
+  - Host switch: after a host fails with anything but the errors that stop the loop, the next host writes into the same file without a seek or a truncate (download-to-file.go:102-117). A failed check leaves the file's offset at its end (`validateMediaFile` reads it all, 233-246, after `downloadEncryptedMediaToFile` cut the MAC, 226), so the next host's bytes follow the first's, its ciphertext hash fails, and the download ends `INTERNAL` with no plaintext delivered. Likewise the retry loop's seek overwrites the error (download-to-file.go:178), so five failed tries return no error and no MAC, which the MAC check then refuses (147) [observed: read at the pin, not run]. Safe for us, since nothing unverified is delivered; a download that could have finished from the next host fails instead.
+  - Media connection: no caller forces a refresh; upload, download and their variants call `refreshMediaConn(ctx, false)`, cached until the TTL WhatsApp gave (upload.go:244, 312; download-to-file.go:95; download.go:268; mediaconn.go:44-58). Only `DangerousInternals().RefreshMediaConn` forces one (internals.go:306-308).
+  - Credentials in errors: `rawUpload` puts the media connection's auth in the URL's query (upload.go:251-273), and a download URL is the direct path, with the CDN's signature, plus more query (download-to-file.go:104). A failed request is a `*url.Error`, which prints that URL (upload.go:281-288, download.go:375-378), and whatsmeow logs a failed download's error with it (download-to-file.go:116, 177).
+  - Go: opening a FIFO with no writer through `os.Root` blocks past the call's context; `O_NONBLOCK` passes through `Root.OpenFile` (os/root_unix.go:82-110, Go 1.27.3) [observed: `TestAPathSwappedForAFIFOIsRefusedAtOnce` without it, macOS].
 - Refuted, now corrected above: "one queue per client" (§7.3)*; "whatsmeow has already deleted the device rows" on `LoggedOut` (§7.4)*; "`UploadReader` retries up to 3 times" (§7.6)*; "a `PreKeysUploaded` event" (§9; it is a `Client` field)*; "the zombie-socket bug" (§7.2, not in code; the mechanism is the keepalive loop)*.
 - `RESEARCH.md` still contains the refuted claims as originally researched. This section wins over it.
 
@@ -800,6 +819,7 @@ Phase 0 decisions:
 - [0022](adr/0022-outbox-event-stream-and-dispatcher.md): The outbox (seq in the transaction, natural keys, retention, cascade delete), `StreamEvents` replacement, the dispatcher and watermark ack, events from the first connect, invariant 2 says "answered", and the phone's copy of an undecryptable message is not gated (#8)
 - [0023](adr/0023-native-packages-build-pin-and-find.md): One MinVer version for every package and binary; the binaries from a plain `go build` over `tools/check-licenses -targets`, not GoReleaser; exact pins by rewriting NuGet's `_ProjectReferencesWithVersions`; `ExcludeFromSingleFile` in the native packages; `build/ci.sh package` and `install` prove a new consumer finds the binary (#43)
 - [0024](adr/0024-tether-backups.md): The tether backups: `--parent-pid`; Linux `PR_SET_PDEATHSIG` with SIGUSR1 that only wakes a parent check; a macOS parent poll; a Windows kill-on-close Job Object from the client, hand-written `[LibraryImport]`, a failed job fails the start; SIGPIPE ignored (#22)
+- [0026](adr/0026-media-transfer-and-media-retry.md): Media by path through `os.Root` or in 64 KiB chunks, the sidecar's temporary files next to the database, verification before delivery, upload retry by whole attempts, `MEDIA_EXPIRED`, media retry stored and decrypted by the media slice's `events.Mapper`, `MediaRef` with content equality (#28)
 - [0027](adr/0027-ephemeral-events-presence-and-typing.md): Presence and typing on `StreamEphemeralEvents`, without a seq or an ack, from a 256-event ring per session in memory; a second .NET dispatcher with no ack; `NO_PUSH_NAME`; invariant 1 names the ring (#32)
 - [0028](adr/0028-contacts-blocklist-and-lid-resolution.md): Contacts & LID: `Online` for calls to WhatsApp and `Device` for store reads, LID resolution from the store only, contact events through the outbox unkeyed and best effort, a slice records its own events through an `events.Mapper`, no whatsmeow error text in a status, `WHATSAPP_TIMED_OUT` for a read without an answer (#33)
 

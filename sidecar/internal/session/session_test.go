@@ -1,6 +1,7 @@
 package session
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -949,6 +950,21 @@ func TestTheWhatsmeowClientIsConfiguredAsArchitecture72(t *testing.T) {
 	if !cli.SynchronousAck || !cli.EnableDecryptedEventBuffer || !cli.ManualHistorySyncDownload || !cli.UseRetryMessageStore ||
 		!cli.AutomaticMessageRerequestFromPhone || !cli.InitialAutoReconnect || !cli.EnableAutoReconnect || cli.AutoReconnectHook != nil {
 		t.Fatalf("the client is not configured as ARCHITECTURE §7.2 says: %+v", cli)
+	}
+}
+
+func TestTheWhatsmeowClientLogsNoURLQuery(t *testing.T) {
+	t.Parallel()
+
+	var buf bytes.Buffer
+
+	cli := NewWhatsmeowClient(zerolog.New(&buf))("s1", (&sqlstoreless{}).device()).(*whatsmeow.Client) //nolint:forcetypeassert // the release factory's type
+
+	// As whatsmeow logs a failed media download (download-to-file.go:116).
+	cli.Log.Warnf("Failed to download media: %s, trying with next host...", `Get "https://mmg.whatsapp.net/v/t62/1.enc?oh=SECRET": EOF`)
+
+	if got := buf.String(); strings.Contains(got, "SECRET") || !strings.Contains(got, "mmg.whatsapp.net/v/t62/1.enc") {
+		t.Fatalf("whatsmeow logged %s", got)
 	}
 }
 

@@ -40,6 +40,11 @@ type WhatsApp struct {
 	// scripts are what the controls scripted for each session's next calls.
 	scripts map[string]*script
 	directory
+	// mediaDir holds the media server's files (media.go); expired is the status ExpireMedia set for a direct path.
+	mediaDir string
+	expired  map[string]int32
+	// retries are the media retry receipts the phone has not answered, by session and message id.
+	retries map[string]retryRequest
 }
 
 // script is what the controls scripted for a session's next calls. It is the session's, not its client's: each Pair
@@ -51,6 +56,10 @@ type script struct {
 	failPairPhone int32
 	// failContactQuery is the IQ error code of the next contact query; 0 for none.
 	failContactQuery int32
+	// failUploads is how many of the next uploads fail.
+	failUploads uint32
+	// holdDownload holds the next download until its call ends.
+	holdDownload bool
 }
 
 // setScript changes the session's script.
@@ -84,11 +93,18 @@ func (w *WhatsApp) take(sessionID string, scripted func(*script) bool, reset fun
 }
 
 // New returns a fake WhatsApp with no clients and an empty log.
-func New(log zerolog.Logger) *WhatsApp {
-	return &WhatsApp{
+func New(log zerolog.Logger, options ...Option) *WhatsApp {
+	w := &WhatsApp{
 		log: log, clients: map[string]*Client{}, changed: make(chan struct{}), scripts: map[string]*script{},
 		directory: directory{users: map[types.JID]*user{}, pictures: map[types.JID]picture{}, blocklists: map[string][]types.BlocklistItem{}},
+		expired:   map[string]int32{}, retries: map[string]retryRequest{},
 	}
+
+	for _, option := range options {
+		option(w)
+	}
+
+	return w
 }
 
 // NewClient returns a new client for a session, in place of whatsmeow.NewClient; it replaces the session's previous

@@ -26,4 +26,11 @@ public sealed class WhatsmeowSidecarOptions
 
 	/// <summary>How the client talks to the sidecar.</summary>
 	public SidecarTransport Transport { get; set; }
+
+	/// <summary>
+	/// An existing directory the sidecar may read and write media in. A path under it is handed to the sidecar, so no
+	/// file bytes cross the socket; the sidecar refuses one that leaves it, by <c>..</c> or a symlink. Any other path,
+	/// and every <see cref="Stream"/>, travels in 64 KiB chunks. When null, every transfer uses chunks.
+	/// </summary>
+	public string? MediaRoot { get; set; }
 }

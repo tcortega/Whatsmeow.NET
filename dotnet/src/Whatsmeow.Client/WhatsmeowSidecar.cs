@@ -127,6 +127,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 			DatabasePath = options.DatabasePath,
 			StartupTimeout = options.StartupTimeout,
 			Transport = options.Transport,
+			MediaRoot = options.MediaRoot,
 		};
 		WhatsmeowSidecarOptionsSetup.Apply(effective);
 		WhatsmeowSidecarOptionsSetup.Validate(effective);
@@ -158,6 +159,9 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 	/// integration tests reach the fake WhatsApp control through it (ADR 0019).
 	/// </summary>
 	internal CallInvoker CallInvoker => _channel.CallInvoker;
+
+	/// <summary>The media root as a full path, or null when none is configured.</summary>
+	internal string? MediaRoot => _options.MediaRoot;
 
 	internal bool IsDisposed => _disposed != 0;
 
@@ -259,7 +263,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		using var startup = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
 
 		var process = await SidecarProcess
-			.StartAsync(_binary, _options.Transport, _socketDirectory, _options.DatabasePath!, _fakeWhatsApp, _options.StartupTimeout, _log, _sidecarLog, startup.Token, cancellationToken)
+			.StartAsync(_binary, _options.Transport, _socketDirectory, _options.DatabasePath!, _options.MediaRoot, _fakeWhatsApp, _options.StartupTimeout, _log, _sidecarLog, startup.Token, cancellationToken)
 			.ConfigureAwait(false);
 		_current = process;
 		SidecarLog.SidecarStarted(_log, process.Id, process.Version, process.Endpoint);

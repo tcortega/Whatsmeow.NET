@@ -26,6 +26,8 @@ internal static class WhatsmeowSidecarOptionsSetup
 		options.DatabasePath ??= DefaultDatabaseFile;
 		if (!string.IsNullOrWhiteSpace(options.DatabasePath))
 			options.DatabasePath = Path.GetFullPath(options.DatabasePath);
+		if (!string.IsNullOrWhiteSpace(options.MediaRoot))
+			options.MediaRoot = Path.TrimEndingDirectorySeparator(Path.GetFullPath(options.MediaRoot));
 	}
 
 	/// <summary>
@@ -51,6 +53,9 @@ internal static class WhatsmeowSidecarOptionsSetup
 
 		if (options.Transport is SidecarTransport.NamedPipe && !OperatingSystem.IsWindows())
 			failures.Add($"{nameof(WhatsmeowSidecarOptions.Transport)} {SidecarTransport.NamedPipe} is Windows only.");
+
+		if (options.MediaRoot is { } root && (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root)))
+			failures.Add($"{nameof(WhatsmeowSidecarOptions.MediaRoot)} {root} must be an existing directory.");
 
 		if (failures.Count > 0)
 			throw new OptionsValidationException(Options.DefaultName, typeof(WhatsmeowSidecarOptions), failures);

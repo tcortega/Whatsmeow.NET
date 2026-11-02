@@ -33,6 +33,7 @@ import (
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/contacts"
 	eventsslice "github.com/tcortega/Whatsmeow.NET/sidecar/internal/events"
 	wmlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/media"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/outbox"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/presence"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
@@ -76,6 +77,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	socketDir := flags.String("socket-dir", "", "the directory for the unix socket; the client owns it")
 	nonce := flags.String("nonce", "", "echoed in the ready line")
 	database := flags.String("database", "", "the SQLite database file; one whatsmeow-net at a time")
+	mediaRoot := flags.String("media-root", "", "the absolute directory the sidecar reads and writes media paths under; empty: media only in chunks")
 	fake := flags.Bool("fake-whatsapp", false, "test builds only (-tags fakewhatsapp): replace WhatsApp with a scripted fake and serve its control")
 	parentPID := flags.Int("parent-pid", 0, "the client's process id: the sidecar stops once that is no longer its parent (Linux, macOS; on Windows the client's job object does this; default: its parent at start)")
 
@@ -125,7 +127,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 
 	log.Info().Str("version", version).Str("transport", *kind).Msg("starting")
 
-	if err := serve(ctx, log, options{*kind, *socketDir, *nonce, *database, *fake}, bufio.NewReader(stdin), stdout); err != nil {
+	if err := serve(ctx, log, options{*kind, *socketDir, *nonce, *database, *mediaRoot, *fake}, bufio.NewReader(stdin), stdout); err != nil {
 		log.Error().Err(err).Msg("sidecar failed")
 
 		return exitFailed
@@ -144,8 +146,8 @@ func newLogger(stderr io.Writer) zerolog.Logger {
 
 // options are the flags serve needs.
 type options struct {
-	kind, socketDir, nonce, database string
-	fake                             bool
+	kind, socketDir, nonce, database, mediaRoot string
+	fake                                        bool
 }
 
 func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.Reader, stdout io.Writer) error {
@@ -182,12 +184,12 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 
 	newClient := session.NewWhatsmeowClient(log)
 	if opts.fake {
-		newClient = serveFake(srv, log)
+		newClient = serveFake(srv, log, opts.database)
 	}
 
 	box := outbox.New(db.DB)
 	// Each slice that records whatsmeow events in the outbox passes its mapper (eventsslice.Mapper).
-	events := eventsslice.New(box, log, contacts.Event)
+	events := eventsslice.New(box, log, contacts.Event, media.Mapper(db.DB, log)) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
 	whatsmeowv1.RegisterEventServiceServer(srv, events)
 
 	sessions, err := session.New(ctx, db.DB, db.Devices, box, recording(newClient, events), log) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
@@ -201,6 +203,17 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 	whatsmeowv1.RegisterSessionServiceServer(srv, sessions)
 	whatsmeowv1.RegisterContactServiceServer(srv, contacts.New(sessions))
 	whatsmeowv1.RegisterPresenceServiceServer(srv, presence.New(sessions))
+
+	// The sidecar's own temporary media files go next to the database it owns, not to a tmpfs /tmp (ARCHITECTURE §7.6).
+	mediaSlice, err := media.New(sessions, db.DB, opts.mediaRoot, opts.database+".tmp", log)
+	if err != nil {
+		_ = lis.Close()
+
+		return fmt.Errorf("media: %w", err)
+	}
+	defer closeMedia(log, mediaSlice)
+
+	whatsmeowv1.RegisterMediaServiceServer(srv, mediaSlice)
 
 	served := make(chan error, 1)
 
@@ -258,6 +271,13 @@ func recording(newClient session.NewClient, events *eventsslice.Service) session
 		client.AddEventHandlerWithSuccessStatus(events.Handler(sessionID))
 
 		return client
+	}
+}
+
+// closeMedia releases the media root.
+func closeMedia(log zerolog.Logger, svc *media.Service) {
+	if err := svc.Close(); err != nil {
+		log.Error().Err(err).Msg("closing the media slice failed")
 	}
 }
 

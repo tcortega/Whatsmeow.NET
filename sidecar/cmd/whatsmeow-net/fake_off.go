@@ -13,4 +13,4 @@ import (
 const fakeBuild = false
 
 // serveFake is never called in a release build: run refuses --fake-whatsapp first.
-func serveFake(*server.Server, zerolog.Logger) session.NewClient { return nil }
+func serveFake(*server.Server, zerolog.Logger, string) session.NewClient { return nil }

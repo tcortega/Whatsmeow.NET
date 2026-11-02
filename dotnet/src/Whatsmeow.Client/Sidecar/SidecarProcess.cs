@@ -57,6 +57,7 @@ internal sealed class SidecarProcess
 	/// <see cref="SidecarUnavailableException"/> with the tail of stderr otherwise.
 	/// </summary>
 	/// <param name="database">The SQLite database file, passed with <c>--database</c>.</param>
+	/// <param name="mediaRoot">The media root, passed with <c>--media-root</c>; null for none.</param>
 	/// <param name="fakeWhatsApp">Pass <c>--fake-whatsapp</c>: only a test build accepts it (ADR 0019).</param>
 	/// <param name="startup">Cancelled by the caller or by the startup timeout.</param>
 	public static async Task<SidecarProcess> StartAsync(
@@ -64,6 +65,7 @@ internal sealed class SidecarProcess
 		SidecarTransport transport,
 		string? socketDirectory,
 		string database,
+		string? mediaRoot,
 		bool fakeWhatsApp,
 		TimeSpan startupTimeout,
 		ILogger clientLog,
@@ -74,7 +76,7 @@ internal sealed class SidecarProcess
 	{
 		var token = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(32));
 		var nonce = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(16));
-		var (process, exited, job) = Spawn(StartInfo(binary, transport, socketDirectory, database, fakeWhatsApp, nonce), clientLog);
+		var (process, exited, job) = Spawn(StartInfo(binary, transport, socketDirectory, database, mediaRoot, fakeWhatsApp, nonce), clientLog);
 		var sidecar = new SidecarProcess(process, exited, job, token, sidecarLog);
 
 		string failure;
@@ -177,7 +179,7 @@ internal sealed class SidecarProcess
 		_job?.Dispose();
 	}
 
-	private static ProcessStartInfo StartInfo(string binary, SidecarTransport transport, string? socketDirectory, string database, bool fakeWhatsApp, string nonce)
+	private static ProcessStartInfo StartInfo(string binary, SidecarTransport transport, string? socketDirectory, string database, string? mediaRoot, bool fakeWhatsApp, string nonce)
 	{
 		var info = new ProcessStartInfo(binary)
 		{
@@ -199,6 +201,12 @@ internal sealed class SidecarProcess
 		{
 			info.ArgumentList.Add("--socket-dir");
 			info.ArgumentList.Add(socketDirectory);
+		}
+
+		if (mediaRoot is not null)
+		{
+			info.ArgumentList.Add("--media-root");
+			info.ArgumentList.Add(mediaRoot);
 		}
 
 		if (fakeWhatsApp)

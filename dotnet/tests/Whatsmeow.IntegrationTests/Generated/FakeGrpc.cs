@@ -132,6 +132,26 @@ namespace Whatsmeow.IntegrationTests.Fake {
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.SetPushNameRequest> __Marshaller_whatsmeow_fake_v1_SetPushNameRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.SetPushNameRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.SetPushNameResponse> __Marshaller_whatsmeow_fake_v1_SetPushNameResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.SetPushNameResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextUploadsRequest> __Marshaller_whatsmeow_fake_v1_FailNextUploadsRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextUploadsRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.FailNextUploadsResponse> __Marshaller_whatsmeow_fake_v1_FailNextUploadsResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.FailNextUploadsResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.ExpireMediaRequest> __Marshaller_whatsmeow_fake_v1_ExpireMediaRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.ExpireMediaRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.ExpireMediaResponse> __Marshaller_whatsmeow_fake_v1_ExpireMediaResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.ExpireMediaResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.CorruptMediaRequest> __Marshaller_whatsmeow_fake_v1_CorruptMediaRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.CorruptMediaRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.CorruptMediaResponse> __Marshaller_whatsmeow_fake_v1_CorruptMediaResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.CorruptMediaResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.HoldNextDownloadRequest> __Marshaller_whatsmeow_fake_v1_HoldNextDownloadRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.HoldNextDownloadRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.HoldNextDownloadResponse> __Marshaller_whatsmeow_fake_v1_HoldNextDownloadResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.HoldNextDownloadResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryRequest> __Marshaller_whatsmeow_fake_v1_AnswerMediaRetryRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryResponse> __Marshaller_whatsmeow_fake_v1_AnswerMediaRetryResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryResponse.Parser));
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse> __Method_DeliverMessage = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse>(
@@ -292,6 +312,46 @@ namespace Whatsmeow.IntegrationTests.Fake {
         "SetPushName",
         __Marshaller_whatsmeow_fake_v1_SetPushNameRequest,
         __Marshaller_whatsmeow_fake_v1_SetPushNameResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.FailNextUploadsRequest, global::Whatsmeow.IntegrationTests.Fake.FailNextUploadsResponse> __Method_FailNextUploads = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.FailNextUploadsRequest, global::Whatsmeow.IntegrationTests.Fake.FailNextUploadsResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "FailNextUploads",
+        __Marshaller_whatsmeow_fake_v1_FailNextUploadsRequest,
+        __Marshaller_whatsmeow_fake_v1_FailNextUploadsResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.ExpireMediaRequest, global::Whatsmeow.IntegrationTests.Fake.ExpireMediaResponse> __Method_ExpireMedia = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.ExpireMediaRequest, global::Whatsmeow.IntegrationTests.Fake.ExpireMediaResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "ExpireMedia",
+        __Marshaller_whatsmeow_fake_v1_ExpireMediaRequest,
+        __Marshaller_whatsmeow_fake_v1_ExpireMediaResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.CorruptMediaRequest, global::Whatsmeow.IntegrationTests.Fake.CorruptMediaResponse> __Method_CorruptMedia = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.CorruptMediaRequest, global::Whatsmeow.IntegrationTests.Fake.CorruptMediaResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "CorruptMedia",
+        __Marshaller_whatsmeow_fake_v1_CorruptMediaRequest,
+        __Marshaller_whatsmeow_fake_v1_CorruptMediaResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.HoldNextDownloadRequest, global::Whatsmeow.IntegrationTests.Fake.HoldNextDownloadResponse> __Method_HoldNextDownload = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.HoldNextDownloadRequest, global::Whatsmeow.IntegrationTests.Fake.HoldNextDownloadResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "HoldNextDownload",
+        __Marshaller_whatsmeow_fake_v1_HoldNextDownloadRequest,
+        __Marshaller_whatsmeow_fake_v1_HoldNextDownloadResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryRequest, global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryResponse> __Method_AnswerMediaRetry = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryRequest, global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "AnswerMediaRetry",
+        __Marshaller_whatsmeow_fake_v1_AnswerMediaRetryRequest,
+        __Marshaller_whatsmeow_fake_v1_AnswerMediaRetryResponse);
 
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
@@ -1441,6 +1501,274 @@ namespace Whatsmeow.IntegrationTests.Fake {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.SetPushNameResponse> SetPushNameAsync(global::Whatsmeow.IntegrationTests.Fake.SetPushNameRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_SetPushName, null, options, request);
+      }
+      /// <summary>
+      /// FailNextUploads makes the session's next count uploads fail after they encrypted the file, as a POST that fails
+      /// does (upload.go:291-302). Each attempt shows in WaitForSent as a MediaUpload.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.FailNextUploadsResponse FailNextUploads(global::Whatsmeow.IntegrationTests.Fake.FailNextUploadsRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return FailNextUploads(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// FailNextUploads makes the session's next count uploads fail after they encrypted the file, as a POST that fails
+      /// does (upload.go:291-302). Each attempt shows in WaitForSent as a MediaUpload.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.FailNextUploadsResponse FailNextUploads(global::Whatsmeow.IntegrationTests.Fake.FailNextUploadsRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_FailNextUploads, null, options, request);
+      }
+      /// <summary>
+      /// FailNextUploads makes the session's next count uploads fail after they encrypted the file, as a POST that fails
+      /// does (upload.go:291-302). Each attempt shows in WaitForSent as a MediaUpload.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.FailNextUploadsResponse> FailNextUploadsAsync(global::Whatsmeow.IntegrationTests.Fake.FailNextUploadsRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return FailNextUploadsAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// FailNextUploads makes the session's next count uploads fail after they encrypted the file, as a POST that fails
+      /// does (upload.go:291-302). Each attempt shows in WaitForSent as a MediaUpload.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.FailNextUploadsResponse> FailNextUploadsAsync(global::Whatsmeow.IntegrationTests.Fake.FailNextUploadsRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_FailNextUploads, null, options, request);
+      }
+      /// <summary>
+      /// ExpireMedia makes WhatsApp answer every download of direct_path with status, as whatsmeow reports it
+      /// (ErrMediaDownloadFailedWith403, 404 or 410, errors.go:133-135).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.ExpireMediaResponse ExpireMedia(global::Whatsmeow.IntegrationTests.Fake.ExpireMediaRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ExpireMedia(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// ExpireMedia makes WhatsApp answer every download of direct_path with status, as whatsmeow reports it
+      /// (ErrMediaDownloadFailedWith403, 404 or 410, errors.go:133-135).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.ExpireMediaResponse ExpireMedia(global::Whatsmeow.IntegrationTests.Fake.ExpireMediaRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_ExpireMedia, null, options, request);
+      }
+      /// <summary>
+      /// ExpireMedia makes WhatsApp answer every download of direct_path with status, as whatsmeow reports it
+      /// (ErrMediaDownloadFailedWith403, 404 or 410, errors.go:133-135).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.ExpireMediaResponse> ExpireMediaAsync(global::Whatsmeow.IntegrationTests.Fake.ExpireMediaRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return ExpireMediaAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// ExpireMedia makes WhatsApp answer every download of direct_path with status, as whatsmeow reports it
+      /// (ErrMediaDownloadFailedWith403, 404 or 410, errors.go:133-135).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.ExpireMediaResponse> ExpireMediaAsync(global::Whatsmeow.IntegrationTests.Fake.ExpireMediaRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_ExpireMedia, null, options, request);
+      }
+      /// <summary>
+      /// CorruptMedia flips one byte of the ciphertext stored at direct_path, so every download of it fails verification
+      /// (ErrInvalidMediaEncSHA256, download-to-file.go:218-219) and leaves ciphertext in the file, as whatsmeow does.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.CorruptMediaResponse CorruptMedia(global::Whatsmeow.IntegrationTests.Fake.CorruptMediaRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return CorruptMedia(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// CorruptMedia flips one byte of the ciphertext stored at direct_path, so every download of it fails verification
+      /// (ErrInvalidMediaEncSHA256, download-to-file.go:218-219) and leaves ciphertext in the file, as whatsmeow does.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.CorruptMediaResponse CorruptMedia(global::Whatsmeow.IntegrationTests.Fake.CorruptMediaRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_CorruptMedia, null, options, request);
+      }
+      /// <summary>
+      /// CorruptMedia flips one byte of the ciphertext stored at direct_path, so every download of it fails verification
+      /// (ErrInvalidMediaEncSHA256, download-to-file.go:218-219) and leaves ciphertext in the file, as whatsmeow does.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.CorruptMediaResponse> CorruptMediaAsync(global::Whatsmeow.IntegrationTests.Fake.CorruptMediaRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return CorruptMediaAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// CorruptMedia flips one byte of the ciphertext stored at direct_path, so every download of it fails verification
+      /// (ErrInvalidMediaEncSHA256, download-to-file.go:218-219) and leaves ciphertext in the file, as whatsmeow does.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.CorruptMediaResponse> CorruptMediaAsync(global::Whatsmeow.IntegrationTests.Fake.CorruptMediaRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_CorruptMedia, null, options, request);
+      }
+      /// <summary>
+      /// HoldNextDownload makes the session's next download write part of the file and then wait until its call ends.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.HoldNextDownloadResponse HoldNextDownload(global::Whatsmeow.IntegrationTests.Fake.HoldNextDownloadRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return HoldNextDownload(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// HoldNextDownload makes the session's next download write part of the file and then wait until its call ends.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.HoldNextDownloadResponse HoldNextDownload(global::Whatsmeow.IntegrationTests.Fake.HoldNextDownloadRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_HoldNextDownload, null, options, request);
+      }
+      /// <summary>
+      /// HoldNextDownload makes the session's next download write part of the file and then wait until its call ends.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.HoldNextDownloadResponse> HoldNextDownloadAsync(global::Whatsmeow.IntegrationTests.Fake.HoldNextDownloadRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return HoldNextDownloadAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// HoldNextDownload makes the session's next download write part of the file and then wait until its call ends.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.HoldNextDownloadResponse> HoldNextDownloadAsync(global::Whatsmeow.IntegrationTests.Fake.HoldNextDownloadRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_HoldNextDownload, null, options, request);
+      }
+      /// <summary>
+      /// AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
+      /// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
+      /// and returns once the client's event handlers ran. With reupload, the phone uploads the media at
+      /// from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+      /// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryResponse AnswerMediaRetry(global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return AnswerMediaRetry(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
+      /// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
+      /// and returns once the client's event handlers ran. With reupload, the phone uploads the media at
+      /// from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+      /// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryResponse AnswerMediaRetry(global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_AnswerMediaRetry, null, options, request);
+      }
+      /// <summary>
+      /// AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
+      /// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
+      /// and returns once the client's event handlers ran. With reupload, the phone uploads the media at
+      /// from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+      /// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryResponse> AnswerMediaRetryAsync(global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return AnswerMediaRetryAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
+      /// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
+      /// and returns once the client's event handlers ran. With reupload, the phone uploads the media at
+      /// from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+      /// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryResponse> AnswerMediaRetryAsync(global::Whatsmeow.IntegrationTests.Fake.AnswerMediaRetryRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_AnswerMediaRetry, null, options, request);
       }
       /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]

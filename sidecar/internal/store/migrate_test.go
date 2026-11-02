@@ -186,3 +186,49 @@ func TestAFailingStepLeavesTheVersionAndTheSchemaAsTheyWere(t *testing.T) {
 		t.Fatalf("version %d, want 0 as it was", got)
 	}
 }
+
+// v2File makes a database the way #8's sidecar left it: steps 1 and 2 at version 2, and a session.
+func v2File(t *testing.T) string {
+	t.Helper()
+
+	path := v1File(t)
+
+	db, err := sql.Open("sqlite", path+pragmas)
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	defer func() { _ = db.Close() }()
+
+	if err := migrate(context.Background(), db, []string{schemaV1, schemaV2}); err != nil {
+		t.Fatalf("steps 1 and 2: %v", err)
+	}
+
+	return path
+}
+
+func TestAVersion2FileGetsTheMediaRetryTableAndKeepsItsSessions(t *testing.T) {
+	t.Parallel()
+
+	s, err := openT(t, v2File(t))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+
+	if got := version(t, s.DB); got != len(steps()) {
+		t.Fatalf("version %d, want %d", got, len(steps()))
+	}
+
+	if _, err := s.DB.ExecContext(context.Background(), "INSERT INTO media_retry (session_id, message_id, chat, media) VALUES ('live', 'M1', 'c@s.whatsapp.net', x'')"); err != nil {
+		t.Fatalf("a pending media retry of the kept session: %v", err)
+	}
+
+	// A session's pending media retries go with it.
+	if _, err := s.DB.ExecContext(context.Background(), "DELETE FROM session WHERE id = 'live'"); err != nil {
+		t.Fatalf("delete the session: %v", err)
+	}
+
+	var pending int
+	if err := s.DB.QueryRowContext(context.Background(), "SELECT count(*) FROM media_retry").Scan(&pending); err != nil || pending != 0 {
+		t.Fatalf("media_retry rows %d, %v; want none after the session was deleted", pending, err)
+	}
+}

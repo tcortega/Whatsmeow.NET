@@ -45,6 +45,8 @@ The Pairing tests pair through the public API, with the fake WhatsApp as the pho
 A test that starts a sidecar of its own gives it a database of its own (`binaries.NewDatabase()`): one sidecar owns a database file.
 A test that crashes the sidecar calls `fixture.CrashAsync`, which returns once it was restarted, and sits in the `SidecarCrashes` collection, which never runs in parallel; `CrashAsync` throws anywhere else.
 Do not start a sidecar per test; the Sidecar slice's start and stop tests are the exception, because starting and stopping is their behaviour, and so are the delivery tests that stop or kill the .NET side (`Events/EventProcessTests.cs`): they start fake-mode sidecars of their own (`fixture.Binary`, `binaries.NewDatabase()`), and kill the .NET side as a child process, `SidecarHost events`.
+So is the media transfer per transport (`Media/MediaTransferTests.cs`): it runs over the named pipe too, and measures the sidecar's memory alone, in the `MediaTransfers` collection, which never runs in parallel.
+The shared sidecar has a media root (`fixture.MediaRoot`); a test that hands files over puts them under a directory of its own there.
 Do not mock the transport, the dispatcher, or the sidecar.
 
 xUnit v3 on Microsoft.Testing.Platform, not TUnit.
@@ -127,7 +129,7 @@ Any of these in a diff is a failed slice, green or not:
 
 * `Environment.Exit`, `Environment.FailFast`, or anything that kills the runner
 * hooks or modules that patch xUnit results
-* overriding `Equals`, `==`, or a comparer on a public record so assertions pass (record structural equality is required, not a cheat)
+* overriding `Equals`, `==`, or a comparer on a public record so assertions pass (record structural equality is required, not a cheat). The allowed case: a record holding `ImmutableArray` may define element-wise equality, because that is its structural equality (`MediaRef`, ADR 0026)
 * `try/catch` or `if` around an assert so failure is swallowed
 * new `Skip`, `Skip.If`, `Explicit`, commented-out facts, or `Assert.True(true)`. The declared exceptions:
   * the platform condition `NoexecTests` (the copy fallback), which needs a `noexec` mount that only root can make: its tests run where `WHATSMEOW_NET_TEST_NOEXEC_DIR` names one (`build/ci.sh` provides it on linux-x64 CI), and fails instead of skipping when `CI=true` on linux-x64 and the mount is missing;
