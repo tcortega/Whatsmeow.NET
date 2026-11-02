@@ -191,7 +191,8 @@ func (svc *Service) Handler(sessionID string) whatsmeow.EventHandlerWithSuccessS
 	return func(evt any) (ok bool) {
 		defer func() {
 			if r := recover(); r != nil {
-				svc.log.Error().Str("session_id", sessionID).Interface("panic", r).Msgf("queueing a %T panicked; its answer is withheld", evt)
+				// The panic's type only: its value may carry a JID.
+				svc.log.Error().Str("session_id", sessionID).Str("panic", fmt.Sprintf("%T", r)).Msgf("queueing a %T panicked; its answer is withheld", evt)
 
 				ok = false
 			}
@@ -427,6 +428,11 @@ func (svc *Service) connect(sessionID string, w *worker) (Client, <-chan struct{
 		select {
 		case <-up:
 		case <-expired:
+			// The session may have come up as the wait ran out: select picks either of two ready cases.
+			if closed(up) {
+				continue
+			}
+
 			if svc.giveUp(w) {
 				svc.log.Debug().Str("session_id", sessionID).Msg("the session did not come online after its offline sync; its history waits for the next")
 
@@ -476,11 +482,20 @@ func (svc *Service) drain(ctx context.Context, sessionID string, client Client, 
 			return err
 		}
 
-		if err := svc.deliverSafely(ctx, sessionID, client, online, &next); err != nil {
+		err = svc.deliverSafely(ctx, sessionID, client, online, &next)
+
+		switch {
+		case errors.Is(err, errGone):
+			// A logout, a pairing or the session's delete took the queue meanwhile: nothing of the blob is recorded on.
+			svc.log.Debug().Str("session_id", sessionID).Msg("a history sync blob left the queue while it was delivered; it is not recorded further")
+		case err != nil:
 			return err
 		}
 	}
 }
+
+// errGone is a queue update that found the blob's row gone: the transaction is rolled back.
+var errGone = errors.New("the blob left the queue")
 
 // next is the session's oldest queued blob.
 func (svc *Service) next(ctx context.Context, sessionID string) (queued, bool, error) {
@@ -522,7 +537,15 @@ func (svc *Service) deliverSafely(ctx context.Context, sessionID string, client 
 		}
 	}()
 
-	return svc.deliver(ctx, sessionID, client, online, q)
+	err = svc.deliver(ctx, sessionID, client, online, q)
+	// An event that does not marshal never will: reported, not tried again for ever.
+	if errors.Is(err, proto.Error) {
+		svc.log.Error().Str("session_id", sessionID).Msg("a history event of a blob cannot be marshalled; the blob is reported invalid and the next goes on")
+
+		return svc.drop(ctx, sessionID, q, whatsmeowv1.HistorySyncFailure_HISTORY_SYNC_FAILURE_INVALID)
+	}
+
+	return err
 }
 
 // deliver delivers one blob: its batches from the first message not recorded yet, its progress event, then the delete
@@ -699,15 +722,21 @@ func corrupt(err error) bool {
 }
 
 // record waits for room in the session's window, then records event under key, with the queue's update in the same
-// transaction.
+// transaction. The update must change the blob's one row: when the row is gone, the transaction is rolled back and
+// record fails with errGone.
 func (svc *Service) record(ctx context.Context, sessionID, key string, event *whatsmeowv1.StreamEventsResponse, update string, args ...any) error {
 	if err := svc.room(ctx, sessionID); err != nil {
 		return err
 	}
 
 	differs, err := svc.box.Record(ctx, sessionID, key, event, func(tx *sql.Tx) error {
-		if _, err := tx.ExecContext(ctx, update, args...); err != nil {
+		result, err := tx.ExecContext(ctx, update, args...)
+		if err != nil {
 			return fmt.Errorf("update the queue: %w", err)
+		}
+
+		if n, err := result.RowsAffected(); err != nil || n != 1 {
+			return errors.Join(errGone, err)
 		}
 
 		return nil
@@ -769,7 +798,7 @@ func (svc *Service) finish(ctx context.Context, sessionID string, client Client,
 }
 
 // parse is each message of the blob's conversations, in order, as whatsmeow parses a live one (ParseWebMessage), mapped
-// as the Events slice maps a live one, nil for one that does not parse, and how many more are skipped: the messages of
+// as the Events slice maps a live one, nil for one that does not parse or whose parse panics, and how many more are skipped: the messages of
 // a conversation whose JID does not parse, which hold their places as nil, and every status update, which history
 // never delivers (ARCHITECTURE §1). Stub messages, without content, are delivered as they are.
 func (svc *Service) parse(client Client, blob *waHistorySync.HistorySync) ([]*whatsmeowv1.MessageEvent, int) {
@@ -784,18 +813,28 @@ func (svc *Service) parse(client Client, blob *waHistorySync.HistorySync) ([]*wh
 		}
 
 		for _, m := range conv.GetMessages() {
-			evt, err := client.ParseWebMessage(chat, m.GetMessage())
-			if err != nil {
-				messages = append(messages, nil)
-
-				continue
-			}
-
-			messages = append(messages, svc.toEvent(evt))
+			messages = append(messages, svc.parseOne(client, chat, m.GetMessage()))
 		}
 	}
 
 	return messages, len(blob.GetStatusV3Messages())
+}
+
+// parseOne is one message parsed and mapped, or nil when it does not parse or its parse panics: one bad message is
+// skipped, never its blob. The deliver's own recover stays the guard of everything else.
+func (svc *Service) parseOne(client Client, chat types.JID, m *waWeb.WebMessageInfo) (event *whatsmeowv1.MessageEvent) {
+	defer func() {
+		if recover() != nil {
+			event = nil
+		}
+	}()
+
+	evt, err := client.ParseWebMessage(chat, m)
+	if err != nil {
+		return nil
+	}
+
+	return svc.toEvent(evt)
 }
 
 // batched is one batch, and the blob indexes of its first message and of the one after its last.

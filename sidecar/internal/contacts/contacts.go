@@ -134,9 +134,9 @@ func (svc *Service) IsOnWhatsApp(ctx context.Context, req *whatsmeowv1.IsOnWhats
 					pn = types.NewJID(strings.TrimPrefix(query, "+"), types.DefaultUserServer)
 				}
 
-				check.Jid, check.Lid = pn.String(), answer.JID.String()
+				check.Jid, check.Lid = server.Text(pn.String()), server.Text(answer.JID.String())
 			} else {
-				check.Jid = answer.JID.String()
+				check.Jid = server.Text(answer.JID.String())
 			}
 		}
 
@@ -174,7 +174,7 @@ func (svc *Service) GetUserInfo(ctx context.Context, req *whatsmeowv1.GetUserInf
 
 	for jid, info := range answers {
 		resp.Users = append(resp.Users, &whatsmeowv1.UserInfo{
-			Jid: jid.String(), About: info.Status, PictureId: info.PictureID, VerifiedBusinessName: verifiedName(info.VerifiedName),
+			Jid: server.Text(jid.String()), About: server.Text(info.Status), PictureId: server.Text(info.PictureID), VerifiedBusinessName: server.Text(verifiedName(info.VerifiedName)),
 		})
 	}
 
@@ -220,7 +220,7 @@ func (svc *Service) GetProfilePicture(ctx context.Context, req *whatsmeowv1.GetP
 	}
 
 	return &whatsmeowv1.GetProfilePictureResponse{Result: &whatsmeowv1.GetProfilePictureResponse_Picture_{
-		Picture: &whatsmeowv1.GetProfilePictureResponse_Picture{Url: picture.URL, Id: picture.ID},
+		Picture: &whatsmeowv1.GetProfilePictureResponse_Picture{Url: server.Text(picture.URL), Id: server.Text(picture.ID)},
 	}}, nil
 }
 
@@ -279,7 +279,7 @@ func (svc *Service) ListContacts(ctx context.Context, req *whatsmeowv1.ListConta
 	resp := &whatsmeowv1.ListContactsResponse{Contacts: make([]*whatsmeowv1.Contact, 0, len(all))}
 	for jid, contact := range all {
 		resp.Contacts = append(resp.Contacts, &whatsmeowv1.Contact{
-			Jid: jid.String(), SavedName: contact.FullName, PushName: contact.PushName, BusinessName: contact.BusinessName,
+			Jid: server.Text(jid.String()), SavedName: server.Text(contact.FullName), PushName: server.Text(contact.PushName), BusinessName: server.Text(contact.BusinessName),
 		})
 	}
 
@@ -307,7 +307,7 @@ func (svc *Service) GetBlocklist(ctx context.Context, req *whatsmeowv1.GetBlockl
 
 	resp := &whatsmeowv1.GetBlocklistResponse{Users: []*whatsmeowv1.BlockedUser{}}
 	for _, item := range list.Items {
-		resp.Users = append(resp.Users, &whatsmeowv1.BlockedUser{Jid: item.LID.String(), JidAlt: text(item.PN)})
+		resp.Users = append(resp.Users, &whatsmeowv1.BlockedUser{Jid: server.Text(item.LID.String()), JidAlt: text(item.PN)})
 	}
 
 	return resp, nil
@@ -372,7 +372,7 @@ func text(jid types.JID) string {
 		return ""
 	}
 
-	return jid.String()
+	return server.Text(jid.String())
 }
 
 // classify gives what a contact query returned its reason (request.go:152-182, errors.go). A write that went out and

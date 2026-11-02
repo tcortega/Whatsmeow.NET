@@ -20,6 +20,9 @@ public sealed class HistorySyncOptions
 	/// <summary>The device's storage quota for history in megabytes; null for whatsmeow's default, 10240.</summary>
 	public int? StorageQuotaMegabytes { get; set; }
 
-	/// <summary>A member-wise copy, so a property added later is copied too.</summary>
+	/// <summary>
+	/// A member-wise copy, so a property added later is copied too. Every property is a value; one whose type is a mutable
+	/// class must be deep-copied here.
+	/// </summary>
 	internal HistorySyncOptions Copy() => (HistorySyncOptions)MemberwiseClone();
 }

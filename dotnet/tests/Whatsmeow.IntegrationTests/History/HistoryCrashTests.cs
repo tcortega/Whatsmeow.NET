@@ -1,5 +1,7 @@
 using Whatsmeow.History;
 using Whatsmeow.IntegrationTests.Events;
+using Whatsmeow.IntegrationTests.Fake;
+using Whatsmeow.IntegrationTests.Sessions;
 using Whatsmeow.IntegrationTests.Support;
 using Whatsmeow.Sessions;
 
@@ -10,6 +12,38 @@ namespace Whatsmeow.IntegrationTests.History;
 public sealed class HistoryCrashTests(FakeSidecar fixture)
 {
 	private const int Timeout = 120_000;
+
+	[Fact(Timeout = Timeout)]
+	public async Task HistoryOptions_ChangedByTheCallerAfterTheStart_ARestartedSidecarStillSendsTheOnesItStartedWith()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var history = fixture.Options.History;
+		history.RequestFullSync = false;
+		history.FullSyncDaysLimit = 1;
+		history.FullSyncSizeLimitMegabytes = 2;
+		history.StorageQuotaMegabytes = 3;
+		try
+		{
+			await fixture.CrashAsync(ct);
+
+			_ = await SessionSetup.LinkedAsync(fixture, "history-options-restart", ct);
+
+			Assert.Equal(
+				new GetPairingDevicePropsResponse
+				{
+					RequireFullSync = true,
+					FullSyncDaysLimit = 30,
+					FullSyncSizeMbLimit = 512,
+					StorageQuotaMb = 2048,
+				},
+				await fixture.Fake.GetPairingDevicePropsAsync(new GetPairingDevicePropsRequest { SessionId = "history-options-restart" }, cancellationToken: ct)
+			);
+		}
+		finally
+		{
+			fixture.Options.History = FakeSidecar.HistoryOptions;
+		}
+	}
 
 	[Fact(Timeout = Timeout)]
 	public async Task History_TheSidecarIsKilledWithABlobHalfProcessed_EveryMessageArrives_AndTheBlobIsDeletedAfterwards()

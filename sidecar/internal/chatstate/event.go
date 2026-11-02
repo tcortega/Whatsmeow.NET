@@ -8,6 +8,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 )
 
 // Event is the slice's events.Mapper: it maps a chat state change of the app state sync to the ChatStateEvent the
@@ -36,7 +37,7 @@ func Event(_ string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) 
 	case *events.Star:
 		event = changed(e.ChatJID, e.Timestamp, e.FromFullSync)
 		event.Change = &whatsmeowv1.ChatStateEvent_Star{Star: &whatsmeowv1.MessageStar{
-			MessageId: e.MessageID, Sender: text(e.SenderJID.ToNonAD()), IsFromMe: e.IsFromMe, Starred: e.Action.GetStarred(),
+			MessageId: server.Text(e.MessageID), Sender: text(e.SenderJID.ToNonAD()), IsFromMe: e.IsFromMe, Starred: e.Action.GetStarred(),
 		}}
 	default:
 		return "", nil, false
@@ -67,5 +68,5 @@ func text(jid types.JID) string {
 		return ""
 	}
 
-	return jid.String()
+	return server.Text(jid.String())
 }

@@ -308,7 +308,7 @@ func (svc *Service) GetInviteLink(ctx context.Context, req *whatsmeowv1.GetInvit
 		return nil, classify("get a group's invite link", err, false)
 	}
 
-	return &whatsmeowv1.GetInviteLinkResponse{Link: link}, nil
+	return &whatsmeowv1.GetInviteLinkResponse{Link: server.Text(link)}, nil
 }
 
 // ResetInviteLink replaces a group's invite link (group.proto).
@@ -323,7 +323,7 @@ func (svc *Service) ResetInviteLink(ctx context.Context, req *whatsmeowv1.ResetI
 		return nil, classify("reset a group's invite link", err, true)
 	}
 
-	return &whatsmeowv1.ResetInviteLinkResponse{Link: link}, nil
+	return &whatsmeowv1.ResetInviteLinkResponse{Link: server.Text(link)}, nil
 }
 
 // JoinGroupWithLink joins the group of an invite link (group.proto).
@@ -417,7 +417,7 @@ func users(values []string) ([]types.JID, error) {
 // not in the group.
 func toGroup(info *types.GroupInfo) *whatsmeowv1.Group {
 	group := &whatsmeowv1.Group{
-		Jid: text(info.JID), Name: info.Name, Topic: info.Topic, Owner: text(info.OwnerJID), Announce: info.IsAnnounce, Locked: info.IsLocked,
+		Jid: text(info.JID), Name: server.Text(info.Name), Topic: server.Text(info.Topic), Owner: text(info.OwnerJID), Announce: info.IsAnnounce, Locked: info.IsLocked,
 		Participants: make([]*whatsmeowv1.GroupParticipant, 0, len(info.Participants)),
 	}
 
@@ -455,7 +455,7 @@ func toResult(p types.GroupParticipant) *whatsmeowv1.ParticipantResult {
 	result := &whatsmeowv1.ParticipantResult{Jid: text(p.JID), JidAlt: alt(p), ErrorCode: int32(p.Error)} //nolint:gosec // WhatsApp's codes are HTTP-like, far below 2^31
 
 	if p.Error != 0 && p.AddRequest != nil {
-		result.Invite = &whatsmeowv1.AddInvite{Code: p.AddRequest.Code, ExpireTime: timestamppb.New(p.AddRequest.Expiration)}
+		result.Invite = &whatsmeowv1.AddInvite{Code: server.Text(p.AddRequest.Code), ExpireTime: timestamppb.New(p.AddRequest.Expiration)}
 	}
 
 	return result
@@ -480,7 +480,7 @@ func text(jid types.JID) string {
 		return ""
 	}
 
-	return jid.String()
+	return server.Text(jid.String())
 }
 
 // classify gives what a group call returned its reason (request.go:152-182, errors.go). A write that went out and got

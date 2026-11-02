@@ -74,6 +74,8 @@ type stub struct {
 	parseHold    chan struct{}
 	parseEntered chan string
 	panicOn      string
+	// panicDownload is a direct path whose download panics.
+	panicDownload string
 	// sends are the messages sent; sendErr is what each returns.
 	sends   []sent
 	sendErr error
@@ -90,6 +92,10 @@ func (s *stub) DownloadHistorySync(ctx context.Context, notif *waE2E.HistorySync
 
 	if s.onDownload != nil {
 		s.onDownload(path)
+	}
+
+	if s.panicDownload != "" && path == s.panicDownload {
+		panic("cannot download a blob of " + direct)
 	}
 
 	s.mu.Lock()
@@ -211,6 +217,8 @@ type online struct {
 	offline error
 	// up is closed once the session comes online again (Up); nil while it is.
 	up chan struct{}
+	// notYet is how many Online calls still fail as not connected while the session is online.
+	notYet int
 }
 
 func (s *sessions) Online(id string) (session.Client, <-chan struct{}, error) {
@@ -224,6 +232,13 @@ func (s *sessions) Online(id string) (session.Client, <-chan struct{}, error) {
 
 	if o.offline != nil {
 		return nil, nil, o.offline
+	}
+
+	// Online in the instant after Up, as a session that came up between the two calls.
+	if o.notYet > 0 {
+		o.notYet--
+
+		return nil, nil, fmt.Errorf("session %q: %w", id, server.ErrNotConnected)
 	}
 
 	return o.client, o.left, nil

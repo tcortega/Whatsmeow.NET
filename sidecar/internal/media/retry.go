@@ -17,6 +17,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 )
 
 // RequestMediaRetry asks the phone to upload a message's media again (media.proto). The phone's answer is encrypted
@@ -127,7 +128,7 @@ func Mapper(db *sql.DB, log zerolog.Logger) func(sessionID string, evt any) (str
 		}
 
 		event := &whatsmeowv1.MediaRetryEvent{
-			MessageId: retry.MessageID, Chat: chat, Sender: retry.SenderID.String(), IsFromMe: retry.FromMe, RetryTime: timestamppb.New(retry.Timestamp),
+			MessageId: server.Text(retry.MessageID), Chat: server.Text(chat), Sender: server.Text(retry.SenderID.String()), IsFromMe: retry.FromMe, RetryTime: timestamppb.New(retry.Timestamp),
 		}
 
 		if answered(log, sessionID, retry, media, event) {

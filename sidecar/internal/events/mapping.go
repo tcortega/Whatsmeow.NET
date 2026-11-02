@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 )
 
 // toEvent maps a whatsmeow event to the outbox event it records and that event's natural key, or false for an
@@ -84,18 +85,18 @@ func key(kind string, info *types.MessageInfo) string {
 func info(info *types.MessageInfo) *whatsmeowv1.MessageInfo {
 	return &whatsmeowv1.MessageInfo{
 		Source:      source(&info.MessageSource),
-		Id:          info.ID,
-		PushName:    info.PushName,
+		Id:          server.Text(info.ID),
+		PushName:    server.Text(info.PushName),
 		MessageTime: timestamppb.New(info.Timestamp),
 	}
 }
 
 func source(source *types.MessageSource) *whatsmeowv1.MessageSource {
 	return &whatsmeowv1.MessageSource{
-		Chat:         source.Chat.String(),
-		Sender:       source.Sender.String(),
-		SenderAlt:    source.SenderAlt.String(),
-		RecipientAlt: source.RecipientAlt.String(),
+		Chat:         server.Text(source.Chat.String()),
+		Sender:       server.Text(source.Sender.String()),
+		SenderAlt:    server.Text(source.SenderAlt.String()),
+		RecipientAlt: server.Text(source.RecipientAlt.String()),
 		IsFromMe:     source.IsFromMe,
 	}
 }

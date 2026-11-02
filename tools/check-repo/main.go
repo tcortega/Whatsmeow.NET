@@ -184,9 +184,11 @@ func check(ctx context.Context, fsys fs.FS) ([]finding, error) {
 type loggerEventIDs map[string]string
 
 var (
-	loggerMessage = regexp.MustCompile(`\[\s*LoggerMessage\s*\(`)
+	// The attribute first in its list or beside others, by its short or full name.
+	loggerMessage = regexp.MustCompile(`(?:\[|,)\s*(?:[A-Za-z_][A-Za-z0-9_]*\.)*LoggerMessage(?:Attribute)?\s*\(`)
 	positionalID  = regexp.MustCompile(`^\(\s*(\d+)\s*,`)
-	namedID       = regexp.MustCompile(`EventId\s*=\s*(\d+)`)
+	// The property, EventId = N, or the constructor's named argument, eventId: N.
+	namedID = regexp.MustCompile(`\b(?:EventId\s*=|eventId\s*:)\s*(\d+)`)
 )
 
 func (ids loggerEventIDs) check(name string, content []byte) []finding {

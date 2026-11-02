@@ -43,8 +43,9 @@ public sealed class WhatsmeowSidecarOptions
 	public HistorySyncOptions History { get; set; } = new();
 
 	/// <summary>
-	/// A copy with a copy of <see cref="History"/>, so changing the caller's instance later changes nothing. Member-wise,
-	/// so a property added later is copied too.
+	/// A copy with a copy of <see cref="History"/>, so changing the caller's instance later changes nothing, a restart
+	/// included. Member-wise, so a property added later is copied too; a member-wise copy shares a reference, so a property
+	/// added later whose type is a mutable class must be deep-copied here, as <see cref="History"/> is.
 	/// </summary>
 	internal WhatsmeowSidecarOptions Copy()
 	{

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -998,7 +999,8 @@ func TestAPanicDeliveringABlobReportsItInvalidAndTheNextArrives(t *testing.T) {
 	var log logged
 
 	h := startLogging(t, zerolog.New(&log).Level(zerolog.InfoLevel), filepath.Join(t.TempDir(), "whatsmeow-net.db"))
-	h.stubs["s1"].panicOn = "P1"
+	// Outside the parse, which recovers per message: the per-blob guard.
+	h.stubs["s1"].panicDownload = "/blob/1"
 	h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, texts(direct, "P", 1)))
 	h.notify("s1", "N2", "/blob/2", blob(waHistorySync.HistorySync_RECENT, texts(direct, "B", 1)))
 	h.caughtUp("s1")
@@ -1075,5 +1077,200 @@ func TestANotificationWithoutABlobThatSaysThereIsNoneIsReportedWithNoMessages(t 
 				t.Fatalf("downloads %v, deletes %v, queue %v; want none of each", got, d, q)
 			}
 		})
+	}
+}
+
+func TestAMessageWhoseParsePanicsIsSkippedAndTheRestOfItsBlobArrives(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.stubs["s1"].panicOn = "P1"
+	h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, texts(direct, "P", 2)))
+	h.caughtUp("s1")
+
+	ids, progress := messageIDs(t, h.read("s1", 0, 2))
+	if !slices.Equal(ids, []string{"P2"}) || len(progress) != 1 || progress[0].GetFailure() != whatsmeowv1.HistorySyncFailure_HISTORY_SYNC_FAILURE_UNSPECIFIED ||
+		progress[0].GetMessageCount() != 1 || progress[0].GetSkippedCount() != 1 {
+		t.Fatalf("messages %v, progress %v; want P2 delivered and P1 skipped", ids, progress)
+	}
+}
+
+func TestAHistoryMessageWithAnInvalidUTF8PushNameArrivesWithTheReplacementCharacter(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	m := webMessage(direct, "A1", false, "", "hi")
+	// ParseWebMessage copies the push name unchecked (client.go:1039-1040); proto3 strings must be UTF-8.
+	m.PushName = proto.String("Bia \xff")
+	h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, &waHistorySync.Conversation{
+		ID: proto.String(direct), Messages: []*waHistorySync.HistorySyncMsg{{Message: m}},
+	}))
+	h.caughtUp("s1")
+
+	got := h.read("s1", 0, 1)[0].GetHistoryMessages().GetMessages()
+	if len(got) != 1 || got[0].GetInfo().GetPushName() != "Bia \uFFFD" {
+		t.Fatalf("messages %v, want A1 with the push name %q", got, "Bia \uFFFD")
+	}
+}
+
+func TestABatchThatCannotBeMarshalledReportsItsBlobInvalidAndTheNextArrives(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	// A mapping that lets an invalid UTF-8 string through: the outbox's marshal fails with a protobuf error.
+	h.svc.toEvent = func(m *events.Message) *whatsmeowv1.MessageEvent {
+		e := eventsslice.MessageEvent(m)
+		if e.GetInfo().GetId() == "X1" {
+			e.Info.Id = "X1\xff"
+		}
+
+		return e
+	}
+	h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, texts(direct, "X", 1)))
+	h.notify("s1", "N2", "/blob/2", blob(waHistorySync.HistorySync_RECENT, texts(direct, "B", 1)))
+	h.caughtUp("s1")
+
+	ids, progress := messageIDs(t, h.read("s1", 0, 3))
+	if !slices.Equal(ids, []string{"B1"}) || len(progress) != 2 || progress[0].GetFailure() != whatsmeowv1.HistorySyncFailure_HISTORY_SYNC_FAILURE_INVALID {
+		t.Fatalf("messages %v, progress %v; want the first reported invalid, then B1 delivered", ids, progress)
+	}
+
+	h.idleFor("s1")
+
+	if q := h.queueRows("s1"); len(q) != 0 {
+		t.Fatalf("queue %v, want it empty", q)
+	}
+}
+
+func TestASessionThatCameUpAsTheWaitRanOutIsNotGivenUp(t *testing.T) {
+	t.Parallel()
+
+	// The wait's timer and the session's Up channel both ready at once: select picks either, so each run tries it.
+	for i := range 20 {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			t.Parallel()
+
+			h := start(t)
+			h.sessions.mu.Lock()
+			h.sessions.online["s1"].notYet = 1
+			h.sessions.mu.Unlock()
+			h.upExpired <- time.Time{}
+			h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, texts(direct, "A", 1)))
+			h.caughtUp("s1")
+
+			if ids, _ := messageIDs(t, h.read("s1", 0, 2)); !slices.Equal(ids, []string{"A1"}) {
+				t.Fatalf("messages %v, want A1", ids)
+			}
+		})
+	}
+}
+
+func TestAWorkerWhoseQueueWasClearedMidBlobRecordsNothingMore(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_FULL, texts(direct, "M", 6*maxBatchMessages)))
+	h.caughtUp("s1")
+	h.waitedFor("s1")
+
+	first := h.read("s1", 0, window)
+
+	// The account logs out while the worker waits for room: its queue goes, and the worker must not write on.
+	if !h.handle("s1", &events.LoggedOut{Reason: events.ConnectFailureLoggedOut}) {
+		t.Fatal("the handler failed LoggedOut")
+	}
+
+	if err := h.box.Ack(h.ctx, "s1", "client", seqOf(first)); err != nil {
+		t.Fatalf("Ack: %v", err)
+	}
+
+	h.idleFor("s1")
+
+	if got, err := h.box.Read(h.ctx, "s1", seqOf(first), 100); err != nil || len(got) != 0 {
+		t.Fatalf("%d events recorded after the queue was cleared (%v), want none", len(got), err)
+	}
+
+	if d := h.stubs["s1"].deleted(); len(d) != 0 {
+		t.Fatalf("deleted %v, want nothing: the blob was not delivered", d)
+	}
+}
+
+func TestTheBackoffDoublesToItsCapAndStartsAgainAfterASuccess(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	broken := "CREATE TRIGGER broken BEFORE UPDATE ON history_blob BEGIN SELECT RAISE(ABORT, 'broken'); END"
+
+	if _, err := h.db.DB.ExecContext(h.ctx, broken); err != nil {
+		t.Fatalf("break the queue: %v", err)
+	}
+
+	h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, texts(direct, "A", 1)))
+	h.caughtUp("s1")
+
+	want := []time.Duration{time.Second, 2 * time.Second, 4 * time.Second, 8 * time.Second, 16 * time.Second, 32 * time.Second, time.Minute, time.Minute}
+	got := make([]time.Duration, 0, len(want))
+
+	for len(got) < len(want) {
+		select {
+		case d := <-h.delays:
+			got = append(got, d)
+		case <-h.ctx.Done():
+			t.Fatalf("backoffs %v, want %v", got, want)
+		}
+	}
+
+	if !slices.Equal(got, want) {
+		t.Fatalf("backoffs %v, want %v", got, want)
+	}
+
+	if _, err := h.db.DB.ExecContext(h.ctx, "DROP TRIGGER broken"); err != nil {
+		t.Fatalf("repair the queue: %v", err)
+	}
+
+	h.read("s1", 0, 2)
+	h.idleFor("s1")
+
+	for len(h.delays) > 0 {
+		<-h.delays
+	}
+
+	// The next failure starts at the first backoff again.
+	if _, err := h.db.DB.ExecContext(h.ctx, broken); err != nil {
+		t.Fatalf("break the queue: %v", err)
+	}
+
+	h.notify("s1", "N2", "/blob/2", blob(waHistorySync.HistorySync_RECENT, texts(direct, "B", 1)))
+
+	select {
+	case d := <-h.delays:
+		if d != minBackoff {
+			t.Fatalf("the backoff after a success %s, want %s", d, minBackoff)
+		}
+	case <-h.ctx.Done():
+		t.Fatal("no backoff after the second failure")
+	}
+
+	if _, err := h.db.DB.ExecContext(h.ctx, "DROP TRIGGER broken"); err != nil {
+		t.Fatalf("repair the queue: %v", err)
+	}
+}
+
+func TestAPanickingHandlerLogsThePanicsTypeOnly(t *testing.T) {
+	t.Parallel()
+
+	var log logged
+
+	h := startLogging(t, zerolog.New(&log), filepath.Join(t.TempDir(), "whatsmeow-net.db"))
+
+	// A nil message: reading it panics with a runtime error, whose text a JID could be in as well.
+	if h.handle("s1", (*events.Message)(nil)) {
+		t.Fatal("the handler answered an event it panicked on")
+	}
+
+	h.stopNow()
+
+	if s := log.String(); !strings.Contains(s, "runtime.") || strings.Contains(s, "nil pointer") {
+		t.Fatalf("the log does not carry the panic's type only:\n%s", s)
 	}
 }
