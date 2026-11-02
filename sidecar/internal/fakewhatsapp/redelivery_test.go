@@ -136,10 +136,13 @@ func TestAMessageLeftUnansweredIsDeliveredAgainAtTheNextLogin(t *testing.T) {
 
 	receipts := 0
 
-	for after := uint64(0); receipts < 2; after++ {
-		if sent := waitForSent(ctx, t, control, "s1", after); sent.GetReceipt() != nil {
+	for after := uint64(0); receipts < 2; {
+		sent := waitForSent(ctx, t, control, "s1", after)
+		if sent.GetReceipt() != nil {
 			receipts++
 		}
+
+		after = sent.GetIndex()
 	}
 
 	// Answered once: the next login delivers nothing again.

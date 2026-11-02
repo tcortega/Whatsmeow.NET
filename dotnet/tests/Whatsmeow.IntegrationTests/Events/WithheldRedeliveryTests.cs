@@ -49,11 +49,13 @@ public sealed class WithheldRedeliveryTests(FakeSidecar fixture)
 
 		// Answered now: the fake's log has M2's receipt, the reset's close, then M1's receipt.
 		var receipts = new List<string>();
-		for (ulong after = 0; receipts.Count < 2; after++)
+		ulong after = 0;
+		while (receipts.Count < 2)
 		{
 			var sent = (await fixture.Fake.WaitForSentAsync(new WaitForSentRequest { SessionId = Session, After = after }, cancellationToken: ct)).Sent;
 			if (sent.Receipt is not null)
 				receipts.Add(sent.Receipt.Id);
+			after = sent.Index;
 		}
 
 		Assert.Equal(["M2", "M1"], receipts);
