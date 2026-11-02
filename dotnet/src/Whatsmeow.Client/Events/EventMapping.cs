@@ -6,7 +6,6 @@ using Whatsmeow.Media;
 using Whatsmeow.Groups;
 using Whatsmeow.Protocol.V1;
 using Whatsmeow.Sessions;
-using E2E = Whatsmeow.Proto.WAWebProtobufsE2E;
 using EphemeralPayload = Whatsmeow.Protocol.V1.StreamEphemeralEventsResponse.PayloadOneofCase;
 using Payload = Whatsmeow.Protocol.V1.StreamEventsResponse.PayloadOneofCase;
 
@@ -33,7 +32,7 @@ internal static class EventMapping
 				Source = ToSource(response.Message.Info.Source),
 				PushName = NullIfEmpty(response.Message.Info.PushName),
 				Timestamp = ToTime(response.Message.Info.MessageTime),
-				Content = ToContent(response.Message.Message),
+				Content = ContentMapping.ToContent(response.Message.Message, response.Message.ViewOnce),
 			},
 			Payload.UndecryptableMessage => new UndecryptableMessageReceived
 			{
@@ -43,6 +42,7 @@ internal static class EventMapping
 				PushName = NullIfEmpty(response.UndecryptableMessage.Info.PushName),
 				Timestamp = ToTime(response.UndecryptableMessage.Info.MessageTime),
 				HidePlaceholder = response.UndecryptableMessage.HidePlaceholder,
+				Unavailable = response.UndecryptableMessage.Unavailable ? ToUnavailable(response.UndecryptableMessage.UnavailableType) : null,
 			},
 			Payload.ConnectionState => new ConnectionStateChanged { SessionId = sessionId, State = SessionMapping.ToState(response.ConnectionState.State) },
 			Payload.Contact => ContactMapping.ToEvent(sessionId, response.Contact),
@@ -145,12 +145,12 @@ internal static class EventMapping
 			IsFromMe = source.IsFromMe,
 		};
 
-	private static MessageContent ToContent(E2E.Message? message) =>
-		message switch
+	private static UnavailableType ToUnavailable(Protocol.V1.UnavailableType type) =>
+		type switch
 		{
-			{ HasConversation: true } => new TextContent { Text = message.Conversation },
-			{ ExtendedTextMessage.HasText: true } => new TextContent { Text = message.ExtendedTextMessage.Text },
-			_ => new UnknownContent(),
+			Protocol.V1.UnavailableType.ViewOnce => UnavailableType.ViewOnce,
+			Protocol.V1.UnavailableType.Unspecified => UnavailableType.Unknown,
+			_ => UnavailableType.Unknown,
 		};
 
 	private static ReceiptType ToType(Protocol.V1.ReceiptType type) =>

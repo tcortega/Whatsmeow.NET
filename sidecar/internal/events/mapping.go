@@ -26,18 +26,30 @@ func toEvent(evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) {
 		}
 
 		return key("m", &e.Info), &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_Message{
-			Message: &whatsmeowv1.MessageEvent{Info: info(&e.Info), Message: e.Message},
+			Message: &whatsmeowv1.MessageEvent{Info: info(&e.Info), Message: e.Message, ViewOnce: e.IsViewOnce},
 		}}, true
 	case *waevents.UndecryptableMessage:
 		return key("u", &e.Info), &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_UndecryptableMessage{
 			UndecryptableMessage: &whatsmeowv1.UndecryptableMessageEvent{
 				Info:            info(&e.Info),
 				HidePlaceholder: e.DecryptFailMode == waevents.DecryptFailHide,
+				Unavailable:     e.IsUnavailable,
+				UnavailableType: unavailableType(e.UnavailableType),
 			},
 		}}, true
 	default:
 		return "", nil, false
 	}
+}
+
+// unavailableType is why WhatsApp sent no ciphertext, as events.proto has it; unspecified for none and for a type
+// the contract does not have.
+func unavailableType(t waevents.UnavailableType) whatsmeowv1.UnavailableType {
+	if t == waevents.UnavailableTypeViewOnce {
+		return whatsmeowv1.UnavailableType_UNAVAILABLE_TYPE_VIEW_ONCE
+	}
+
+	return whatsmeowv1.UnavailableType_UNAVAILABLE_TYPE_UNSPECIFIED
 }
 
 // onlySenderKey is a message with nothing but a sender key and its context info: the part of a group stanza that

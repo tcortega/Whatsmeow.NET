@@ -76,6 +76,10 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SendTextResponse> __Marshaller_whatsmeow_v1_SendTextResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SendTextResponse.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SendMediaRequest> __Marshaller_whatsmeow_v1_SendMediaRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SendMediaRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SendMediaResponse> __Marshaller_whatsmeow_v1_SendMediaResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SendMediaResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.MarkReadRequest> __Marshaller_whatsmeow_v1_MarkReadRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.MarkReadRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.MarkReadResponse> __Marshaller_whatsmeow_v1_MarkReadResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.MarkReadResponse.Parser));
@@ -95,6 +99,14 @@ namespace Whatsmeow.Protocol.V1 {
         "SendText",
         __Marshaller_whatsmeow_v1_SendTextRequest,
         __Marshaller_whatsmeow_v1_SendTextResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.Protocol.V1.SendMediaRequest, global::Whatsmeow.Protocol.V1.SendMediaResponse> __Method_SendMedia = new grpc::Method<global::Whatsmeow.Protocol.V1.SendMediaRequest, global::Whatsmeow.Protocol.V1.SendMediaResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "SendMedia",
+        __Marshaller_whatsmeow_v1_SendMediaRequest,
+        __Marshaller_whatsmeow_v1_SendMediaResponse);
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.Protocol.V1.MarkReadRequest, global::Whatsmeow.Protocol.V1.MarkReadResponse> __Method_MarkRead = new grpc::Method<global::Whatsmeow.Protocol.V1.MarkReadRequest, global::Whatsmeow.Protocol.V1.MarkReadResponse>(
@@ -248,6 +260,86 @@ namespace Whatsmeow.Protocol.V1 {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SendTextResponse> SendTextAsync(global::Whatsmeow.Protocol.V1.SendTextRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_SendText, null, options, request);
+      }
+      /// <summary>
+      /// SendMedia sends an image, video, audio file or voice note, document or sticker message of an uploaded or received
+      /// MediaRef, so re-sending a MediaRef uploads nothing. The metadata is sent as given: the sidecar never decodes the
+      /// media to check it, and an empty or unset field is not sent. A video or audio MediaRef's streaming sidecar goes into
+      /// the message; a document with a caption is sent wrapped in a DocumentWithCaptionMessage, which is how WhatsApp
+      /// shows both.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for no or an incomplete media (field "media": a direct path that does
+      /// not start with "/", a media key or a hash that is not 32 bytes), a media type the kind does not take (field
+      /// "media.media_type": IMAGE for an image or a sticker, VIDEO, AUDIO, DOCUMENT for the others), no metadata (field
+      /// "metadata"), or a duration that is negative or over 2^32-1 seconds (field "&lt;kind>.duration").
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.SendMediaResponse SendMedia(global::Whatsmeow.Protocol.V1.SendMediaRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SendMedia(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SendMedia sends an image, video, audio file or voice note, document or sticker message of an uploaded or received
+      /// MediaRef, so re-sending a MediaRef uploads nothing. The metadata is sent as given: the sidecar never decodes the
+      /// media to check it, and an empty or unset field is not sent. A video or audio MediaRef's streaming sidecar goes into
+      /// the message; a document with a caption is sent wrapped in a DocumentWithCaptionMessage, which is how WhatsApp
+      /// shows both.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for no or an incomplete media (field "media": a direct path that does
+      /// not start with "/", a media key or a hash that is not 32 bytes), a media type the kind does not take (field
+      /// "media.media_type": IMAGE for an image or a sticker, VIDEO, AUDIO, DOCUMENT for the others), no metadata (field
+      /// "metadata"), or a duration that is negative or over 2^32-1 seconds (field "&lt;kind>.duration").
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.SendMediaResponse SendMedia(global::Whatsmeow.Protocol.V1.SendMediaRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_SendMedia, null, options, request);
+      }
+      /// <summary>
+      /// SendMedia sends an image, video, audio file or voice note, document or sticker message of an uploaded or received
+      /// MediaRef, so re-sending a MediaRef uploads nothing. The metadata is sent as given: the sidecar never decodes the
+      /// media to check it, and an empty or unset field is not sent. A video or audio MediaRef's streaming sidecar goes into
+      /// the message; a document with a caption is sent wrapped in a DocumentWithCaptionMessage, which is how WhatsApp
+      /// shows both.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for no or an incomplete media (field "media": a direct path that does
+      /// not start with "/", a media key or a hash that is not 32 bytes), a media type the kind does not take (field
+      /// "media.media_type": IMAGE for an image or a sticker, VIDEO, AUDIO, DOCUMENT for the others), no metadata (field
+      /// "metadata"), or a duration that is negative or over 2^32-1 seconds (field "&lt;kind>.duration").
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SendMediaResponse> SendMediaAsync(global::Whatsmeow.Protocol.V1.SendMediaRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SendMediaAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SendMedia sends an image, video, audio file or voice note, document or sticker message of an uploaded or received
+      /// MediaRef, so re-sending a MediaRef uploads nothing. The metadata is sent as given: the sidecar never decodes the
+      /// media to check it, and an empty or unset field is not sent. A video or audio MediaRef's streaming sidecar goes into
+      /// the message; a document with a caption is sent wrapped in a DocumentWithCaptionMessage, which is how WhatsApp
+      /// shows both.
+      /// Errors: as SendMessage, and INVALID_ARGUMENT for no or an incomplete media (field "media": a direct path that does
+      /// not start with "/", a media key or a hash that is not 32 bytes), a media type the kind does not take (field
+      /// "media.media_type": IMAGE for an image or a sticker, VIDEO, AUDIO, DOCUMENT for the others), no metadata (field
+      /// "metadata"), or a duration that is negative or over 2^32-1 seconds (field "&lt;kind>.duration").
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SendMediaResponse> SendMediaAsync(global::Whatsmeow.Protocol.V1.SendMediaRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_SendMedia, null, options, request);
       }
       /// <summary>
       /// MarkRead sends a read receipt, timestamped now, for messages of one chat.

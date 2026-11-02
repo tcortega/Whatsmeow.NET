@@ -12,6 +12,7 @@ import (
 
 	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow"
+	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types/events"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -375,4 +376,60 @@ func TestAnOwnMessageGetsASenderReceipt(t *testing.T) {
 
 	wantSent(t, waitForSent(ctx, t, control, "s1", 0),
 		&fakev1.Sent{Index: 1, SessionId: "s1", Kind: &fakev1.Sent_Receipt{Receipt: &fakev1.Receipt{Id: "M1", Type: "sender"}}})
+}
+
+func TestARawDeliveryIsUnwrappedAsWhatsmeowUnwrapsIt(t *testing.T) {
+	t.Parallel()
+
+	whatsApp, control, ctx := start(t)
+	handled := make(chan *events.Message, 2)
+	whatsApp.NewClient("s1").AddEventHandlerWithSuccessStatus(func(evt any) bool {
+		handled <- evt.(*events.Message)
+
+		return true
+	})
+
+	image := &waE2E.ImageMessage{Caption: proto.String("once")}
+	document := &waE2E.DocumentMessage{FileName: proto.String("a.pdf"), Caption: proto.String("read me")}
+
+	for _, raw := range []*waE2E.Message{
+		{ViewOnceMessageV2: &waE2E.FutureProofMessage{Message: &waE2E.Message{ImageMessage: image}}},
+		{DocumentWithCaptionMessage: &waE2E.FutureProofMessage{Message: &waE2E.Message{DocumentMessage: document}}},
+	} {
+		if _, err := control.DeliverMessage(ctx, &fakev1.DeliverMessageRequest{SessionId: "s1", Id: "M1", Chat: "111@lid", Sender: "111@lid", Message: raw}); err != nil {
+			t.Fatalf("DeliverMessage: %v", err)
+		}
+	}
+
+	viewOnce, captioned := <-handled, <-handled
+	if !proto.Equal(viewOnce.Message, &waE2E.Message{ImageMessage: image}) || !viewOnce.IsViewOnce || !viewOnce.IsViewOnceV2 ||
+		viewOnce.RawMessage.GetViewOnceMessageV2() == nil {
+		t.Fatalf("the view-once delivery dispatched %+v", viewOnce)
+	}
+
+	if !proto.Equal(captioned.Message, &waE2E.Message{DocumentMessage: document}) || !captioned.IsDocumentWithCaption {
+		t.Fatalf("the captioned document dispatched %+v", captioned)
+	}
+}
+
+func TestAnUnavailableDeliveryDispatchesItsType(t *testing.T) {
+	t.Parallel()
+
+	whatsApp, control, ctx := start(t)
+	handled := make(chan *events.UndecryptableMessage, 1)
+	whatsApp.NewClient("s1").AddEventHandlerWithSuccessStatus(func(evt any) bool {
+		handled <- evt.(*events.UndecryptableMessage)
+
+		return true
+	})
+
+	if _, err := control.DeliverUndecryptableMessage(ctx, &fakev1.DeliverUndecryptableMessageRequest{
+		SessionId: "s1", Id: "M1", Chat: "111@lid", Sender: "111@lid", Unavailable: true, UnavailableType: "view_once",
+	}); err != nil {
+		t.Fatalf("DeliverUndecryptableMessage: %v", err)
+	}
+
+	if evt := <-handled; !evt.IsUnavailable || evt.UnavailableType != events.UnavailableTypeViewOnce || evt.Info.ID != "M1" {
+		t.Fatalf("dispatched %+v", evt)
+	}
 }

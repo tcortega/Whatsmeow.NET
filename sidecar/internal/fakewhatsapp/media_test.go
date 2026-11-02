@@ -5,6 +5,7 @@ package fakewhatsapp
 import (
 	"bytes"
 	"context"
+	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"errors"
@@ -287,5 +288,63 @@ func TestAnsweredMediaRetriesDecryptAsWhatsmeowDecryptsThem(t *testing.T) {
 		Answer: &fakev1.AnswerMediaRetryRequest_ErrorCode{ErrorCode: 2},
 	}); err == nil {
 		t.Fatal("an answer to no request succeeded")
+	}
+}
+
+func TestAVideoUploadHasAStreamingSidecarAsWhatsmeowMakesIt(t *testing.T) {
+	t.Parallel()
+
+	_, client, _, _ := mediaOnline(t)
+
+	// What is uploaded is the padded ciphertext and a 10-byte MAC, so it is never a whole number of 64 KiB chunks; at
+	// 131_056 bytes the ciphertext is two whole chunks, and the last MAC covers only the upload's MAC.
+	for _, tc := range []struct {
+		plain, uploaded, macs int
+	}{{150_000, 150_026, 3}, {131_056, 131_082, 3}} {
+		plain := content(tc.plain)
+
+		temp, err := os.CreateTemp(t.TempDir(), "upload-*")
+		if err != nil {
+			t.Fatalf("temp: %v", err)
+		}
+
+		resp, err := client.UploadReader(context.Background(), bytes.NewReader(plain), temp, whatsmeow.MediaVideo)
+		_ = temp.Close()
+
+		if err != nil {
+			t.Fatalf("UploadReader(%d bytes): %v", tc.plain, err)
+		}
+
+		// whatsmeow's layout (upload.go:156-181): for each 64 KiB of what was uploaded, the first 10 bytes of an
+		// HMAC-SHA256 over the 16 bytes before it (the IV for the first) and the chunk.
+		uploaded, _ := os.ReadFile(temp.Name())
+		if len(uploaded) != tc.uploaded {
+			t.Fatalf("uploaded %d bytes for %d; want %d", len(uploaded), tc.plain, tc.uploaded)
+		}
+
+		iv, _, macKey := mediaKeys(resp.MediaKey, whatsmeow.MediaVideo)
+
+		var want []byte
+
+		for start := 0; start < len(uploaded); start += 64 << 10 {
+			before := iv
+			if start > 0 {
+				before = uploaded[start-16 : start]
+			}
+
+			mac := hmac.New(sha256.New, macKey)
+			mac.Write(before)
+			mac.Write(uploaded[start:min(start+64<<10, len(uploaded))])
+			want = append(want, mac.Sum(nil)[:10]...)
+		}
+
+		if len(want) != tc.macs*10 || !bytes.Equal(resp.StreamingSidecar, want) {
+			t.Fatalf("StreamingSidecar of %d bytes = %x; want %x", tc.plain, resp.StreamingSidecar, want)
+		}
+	}
+
+	image, _, err := upload(t, client, content(150_000))
+	if err != nil || image.StreamingSidecar != nil {
+		t.Fatalf("an image upload = %+v, %v; want no streaming sidecar", image, err)
 	}
 }

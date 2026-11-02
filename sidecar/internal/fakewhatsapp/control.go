@@ -45,6 +45,11 @@ func (c *Control) DeliverMessage(ctx context.Context, req *fakev1.DeliverMessage
 		Message: &waE2E.Message{Conversation: proto.String(req.GetText())},
 	}
 
+	if raw := req.GetMessage(); raw != nil {
+		// As whatsmeow dispatches a decrypted message (message.go:1172-1178), with its own unwrap.
+		evt = (&events.Message{Info: evt.Info, RawMessage: raw}).UnwrapRaw()
+	}
+
 	parts := []*events.Message{evt}
 	if req.GetSenderKey() {
 		senderKey := &events.Message{Info: evt.Info, Message: &waE2E.Message{
@@ -68,7 +73,11 @@ func (c *Control) DeliverUndecryptableMessage(_ context.Context, req *fakev1.Del
 		return nil, fmt.Errorf("deliver undecryptable message %q: %w", req.GetId(), err)
 	}
 
-	evt := &events.UndecryptableMessage{Info: types.MessageInfo{MessageSource: source, ID: req.GetId(), Timestamp: timeOf(req.GetMessageTime())}}
+	evt := &events.UndecryptableMessage{
+		Info:            types.MessageInfo{MessageSource: source, ID: req.GetId(), Timestamp: timeOf(req.GetMessageTime())},
+		IsUnavailable:   req.GetUnavailable(),
+		UnavailableType: events.UnavailableType(req.GetUnavailableType()),
+	}
 	if req.GetHidePlaceholder() {
 		evt.DecryptFailMode = events.DecryptFailHide
 	}

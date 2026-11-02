@@ -492,6 +492,128 @@ public interface IWhatsAppClient
 	Task<SendResult> SendTextAsync(Jid chat, string text, MessageId? id = null, CancellationToken cancellationToken = default);
 
 	/// <summary>
+	/// Sends an image message. The metadata goes out as given, and the file is never decoded to check it; what is null or
+	/// empty is left out. A <see cref="MediaRef"/> from an upload or from a received message is sent without uploading
+	/// again. The send is queued, paced and at most once per id with text sends, as <see cref="SendTextAsync"/> is.
+	/// </summary>
+	/// <param name="chat">The recipient.</param>
+	/// <param name="image">The file, uploaded as <see cref="MediaType.Image"/>.</param>
+	/// <param name="metadata">What the message says about the file.</param>
+	/// <param name="id">The message's id, in <see cref="MessageId.New"/>'s format; null makes a new one.</param>
+	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync"/>.</param>
+	/// <returns>As for <see cref="SendTextAsync"/>.</returns>
+	/// <exception cref="WhatsmeowValidationException">
+	/// The chat or the id is malformed, the reference is incomplete (no direct path, a media key or a hash that is not 32
+	/// bytes), or its <see cref="MediaRef.Type"/> is not <see cref="MediaType.Image"/>; nothing was sent.
+	/// </exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync"/>, with the same subtypes.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="image"/> or <paramref name="metadata"/> is null.</exception>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// The width or the height is negative, the reference's <see cref="MediaRef.FileLength"/> is negative, or its
+	/// <see cref="MediaRef.Type"/> is not a <see cref="MediaType"/>.
+	/// </exception>
+	Task<SendResult> SendImageAsync(Jid chat, MediaRef image, ImageMetadata metadata, MessageId? id = null, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Sends a video message. The metadata goes out as given, and the file is never decoded to check it; what is null or
+	/// empty is left out. A <see cref="MediaRef"/> from an upload or from a received message is sent without uploading
+	/// again. The send is queued, paced and at most once per id with text sends, as <see cref="SendTextAsync"/> is. The
+	/// streaming sidecar of <paramref name="video"/> goes into the message.
+	/// </summary>
+	/// <param name="chat">The recipient.</param>
+	/// <param name="video">The file, uploaded as <see cref="MediaType.Video"/>.</param>
+	/// <param name="metadata">What the message says about the file.</param>
+	/// <param name="id">The message's id, in <see cref="MessageId.New"/>'s format; null makes a new one.</param>
+	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync"/>.</param>
+	/// <returns>As for <see cref="SendTextAsync"/>.</returns>
+	/// <exception cref="WhatsmeowValidationException">
+	/// The chat or the id is malformed, the reference is incomplete (no direct path, a media key or a hash that is not 32
+	/// bytes), or its <see cref="MediaRef.Type"/> is not <see cref="MediaType.Video"/>, or the duration is negative or over
+	/// 2^32-1 seconds (the field <c>video.duration</c>); nothing was sent.
+	/// </exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync"/>, with the same subtypes.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="video"/> or <paramref name="metadata"/> is null.</exception>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// The width or the height is negative, the reference's <see cref="MediaRef.FileLength"/> is negative, or its
+	/// <see cref="MediaRef.Type"/> is not a <see cref="MediaType"/>.
+	/// </exception>
+	Task<SendResult> SendVideoAsync(Jid chat, MediaRef video, VideoMetadata metadata, MessageId? id = null, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Sends an audio file, or a voice note when <see cref="AudioMetadata.IsVoiceNote"/> is set. The metadata goes out as
+	/// given, and the file is never decoded to check it; what is null or empty is left out. A <see cref="MediaRef"/> from
+	/// an upload or from a received message is sent without uploading again. The send is queued, paced and at most once
+	/// per id with text sends, as <see cref="SendTextAsync"/> is. A voice note is reported to play on phones only as
+	/// <c>audio/ogg; codecs=opus</c>; the library does not check it.
+	/// </summary>
+	/// <param name="chat">The recipient.</param>
+	/// <param name="audio">The file, uploaded as <see cref="MediaType.Audio"/>.</param>
+	/// <param name="metadata">What the message says about the file.</param>
+	/// <param name="id">The message's id, in <see cref="MessageId.New"/>'s format; null makes a new one.</param>
+	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync"/>.</param>
+	/// <returns>As for <see cref="SendTextAsync"/>.</returns>
+	/// <exception cref="WhatsmeowValidationException">
+	/// The chat or the id is malformed, the reference is incomplete (no direct path, a media key or a hash that is not 32
+	/// bytes), or its <see cref="MediaRef.Type"/> is not <see cref="MediaType.Audio"/>, or the duration is negative or over
+	/// 2^32-1 seconds (the field <c>audio.duration</c>); nothing was sent.
+	/// </exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync"/>, with the same subtypes.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="audio"/> or <paramref name="metadata"/> is null.</exception>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// The reference's <see cref="MediaRef.FileLength"/> is negative, or its <see cref="MediaRef.Type"/> is not a
+	/// <see cref="MediaType"/>.
+	/// </exception>
+	Task<SendResult> SendAudioAsync(Jid chat, MediaRef audio, AudioMetadata metadata, MessageId? id = null, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Sends a document message, with its caption when it has one. The metadata goes out as given, and the file is never
+	/// decoded to check it; what is null or empty is left out. A <see cref="MediaRef"/> from an upload or from a received
+	/// message is sent without uploading again. The send is queued, paced and at most once per id with text sends, as <see
+	/// cref="SendTextAsync"/> is.
+	/// </summary>
+	/// <param name="chat">The recipient.</param>
+	/// <param name="document">The file, uploaded as <see cref="MediaType.Document"/>.</param>
+	/// <param name="metadata">What the message says about the file.</param>
+	/// <param name="id">The message's id, in <see cref="MessageId.New"/>'s format; null makes a new one.</param>
+	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync"/>.</param>
+	/// <returns>As for <see cref="SendTextAsync"/>.</returns>
+	/// <exception cref="WhatsmeowValidationException">
+	/// The chat or the id is malformed, the reference is incomplete (no direct path, a media key or a hash that is not 32
+	/// bytes), or its <see cref="MediaRef.Type"/> is not <see cref="MediaType.Document"/>; nothing was sent.
+	/// </exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync"/>, with the same subtypes.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="document"/> or <paramref name="metadata"/> is null.</exception>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// The reference's <see cref="MediaRef.FileLength"/> is negative, or its <see cref="MediaRef.Type"/> is not a
+	/// <see cref="MediaType"/>.
+	/// </exception>
+	Task<SendResult> SendDocumentAsync(Jid chat, MediaRef document, DocumentMetadata metadata, MessageId? id = null, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Sends a sticker message. Its thumbnail, when given, is PNG (<see cref="StickerMetadata.PngThumbnail"/>). The
+	/// metadata goes out as given, and the file is never decoded to check it; what is null or empty is left out. A <see cref="MediaRef"/> from an upload or from a received message is
+	/// sent without uploading again. The send is queued, paced and at most once per id with text sends, as <see
+	/// cref="SendTextAsync"/> is.
+	/// </summary>
+	/// <param name="chat">The recipient.</param>
+	/// <param name="sticker">The file, uploaded as <see cref="MediaType.Image"/>.</param>
+	/// <param name="metadata">What the message says about the file.</param>
+	/// <param name="id">The message's id, in <see cref="MessageId.New"/>'s format; null makes a new one.</param>
+	/// <param name="cancellationToken">Cancels the send, as for <see cref="SendTextAsync"/>.</param>
+	/// <returns>As for <see cref="SendTextAsync"/>.</returns>
+	/// <exception cref="WhatsmeowValidationException">
+	/// The chat or the id is malformed, the reference is incomplete (no direct path, a media key or a hash that is not 32
+	/// bytes), or its <see cref="MediaRef.Type"/> is not <see cref="MediaType.Image"/>; nothing was sent.
+	/// </exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="SendTextAsync"/>, with the same subtypes.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="sticker"/> or <paramref name="metadata"/> is null.</exception>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// The width or the height is negative, the reference's <see cref="MediaRef.FileLength"/> is negative, or its
+	/// <see cref="MediaRef.Type"/> is not a <see cref="MediaType"/>.
+	/// </exception>
+	Task<SendResult> SendStickerAsync(Jid chat, MediaRef sticker, StickerMetadata metadata, MessageId? id = null, CancellationToken cancellationToken = default);
+
+	/// <summary>
 	/// Sends <paramref name="message"/> exactly as given, as <see cref="SendTextAsync"/> sends a text: once per id, queued,
 	/// never waiting for a connection. The message type is WhatsApp's own protobuf, which changes with every whatsmeow
 	/// version, so this member is experimental (<c>WMN1001</c>): it has no stability promise.

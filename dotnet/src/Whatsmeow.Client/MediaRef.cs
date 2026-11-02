@@ -29,7 +29,10 @@ public sealed record MediaRef
 	/// <summary>The plaintext's length in bytes.</summary>
 	public required long FileLength { get; init; }
 
-	/// <summary>A video's streaming sidecar (a MAC per 64 KiB of ciphertext); empty for the other types.</summary>
+	/// <summary>
+	/// The streaming sidecar (a MAC per 64 KiB of what was uploaded); empty when there is none. whatsmeow makes one for a
+	/// video upload, and a received video or audio may carry one.
+	/// </summary>
 	public required ImmutableArray<byte> StreamingSidecar { get; init; }
 
 	/// <summary>
