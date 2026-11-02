@@ -1,6 +1,6 @@
 // Package session is the Sessions slice: sessions, their connection, and their state machine (ARCHITECTURE §7.4).
 //
-// Every state change goes through transition, the events whatsmeow dispatches and the ones the sidecar synthesizes
+// Every state change goes through transitionAll, the events whatsmeow dispatches and the ones the sidecar synthesizes
 // for Connect, Disconnect, Logout and a restart alike, so each one is recorded in the outbox as a
 // ConnectionStateEvent, in order with the session's other events.
 package session
@@ -131,6 +131,8 @@ func (svc *Service) load(ctx context.Context) error {
 	}
 	defer func() { _ = rows.Close() }()
 
+	var moved []*session
+
 	for rows.Next() {
 		var (
 			id       string
@@ -142,8 +144,13 @@ func (svc *Service) load(ctx context.Context) error {
 			return fmt.Errorf("load the sessions: %w", err)
 		}
 
-		if err := svc.restore(ctx, id, jid.String, lid.String, stopped); err != nil {
+		s, changed, err := svc.restore(ctx, id, jid.String, lid.String, stopped)
+		if err != nil {
 			return err
+		}
+
+		if changed {
+			moved = append(moved, s)
 		}
 	}
 
@@ -151,30 +158,29 @@ func (svc *Service) load(ctx context.Context) error {
 		return fmt.Errorf("load the sessions: %w", err)
 	}
 
-	return nil
+	return svc.recordRestart(ctx, moved)
 }
 
 // restore rebuilds one session as a restart leaves it (session.proto Disconnected): never paired is Created, a
-// stopping state comes back as it was, and any other paired one is Disconnected.
-func (svc *Service) restore(ctx context.Context, id, jid, lid string, stopped []byte) error {
+// stopping state comes back as it was, and any other paired one is Disconnected. changed says the restart moved it,
+// so its new state is still to be recorded (recordRestart).
+func (svc *Service) restore(ctx context.Context, id, jid, lid string, stopped []byte) (s *session, changed bool, err error) {
 	state := created()
 
 	if stopped != nil {
 		state = &whatsmeowv1.SessionState{}
 		if err := proto.Unmarshal(stopped, state); err != nil {
-			return fmt.Errorf("load session %q: its state: %w", id, err)
+			return nil, false, fmt.Errorf("load session %q: its state: %w", id, err)
 		}
 	}
 
 	device := svc.devices.NewDevice()
 	// changed is a paired session the restart moves: a live one comes back Disconnected, one without its device
 	// LoggedOut. A never-paired one and a stopped one come back as they were.
-	changed := false
-
 	if jid != "" {
 		paired, err := svc.pairedDevice(ctx, jid)
 		if err != nil {
-			return fmt.Errorf("load session %q: %w", id, err)
+			return nil, false, fmt.Errorf("load session %q: %w", id, err)
 		}
 
 		if stopped == nil {
@@ -192,22 +198,41 @@ func (svc *Service) restore(ctx context.Context, id, jid, lid string, stopped []
 		}
 	}
 
-	s := svc.add(id, device, state, jid, lid)
+	// Its state is the one the restart leaves; a changed one is recorded with the others by recordRestart.
+	s = svc.add(id, device, state, jid, lid)
 
 	svc.mu.Lock()
 	svc.sessions[id] = s
 	svc.mu.Unlock()
 
-	if !changed {
+	return s, changed, nil
+}
+
+// recordRestart records the state the restart moved each session to, a transition like any other, so the next start
+// finds it as it is and a consumer of its events sees it (ARCHITECTURE §7.4). All of them are one transitionAll: one
+// commit, so one sync of the database before the ready line, however many sessions there are, where a commit each
+// made a slow disk miss the client's startup timeout (#77). Nothing serves yet, so no call or watcher sees a session
+// in between.
+func (svc *Service) recordRestart(ctx context.Context, moved []*session) error {
+	if len(moved) == 0 {
 		return nil
 	}
 
-	// The restart moved the session: a transition like any other, recorded so the next start finds it as it is and
-	// a consumer of its events sees it (ARCHITECTURE §7.4).
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	moves := make([]move, 0, len(moved))
 
-	return svc.transition(ctx, s, state)
+	for _, s := range moved {
+		s.mu.Lock()
+
+		moves = append(moves, move{s: s, state: s.state})
+	}
+
+	defer func() {
+		for _, s := range moved {
+			s.mu.Unlock()
+		}
+	}()
+
+	return svc.transitionAll(ctx, moves...)
 }
 
 func (svc *Service) pairedDevice(ctx context.Context, jid string) (*store.Device, error) {
@@ -352,34 +377,60 @@ func (svc *Service) loggedIn(s *session) error {
 	return err
 }
 
-// transition is the one place a session's state changes: in one transaction it records the state a restart keeps
-// (the stopping states) and a ConnectionStateEvent in the outbox, then publishes the state to every watcher. s.mu is
-// held. The state is published even when recording fails, because it is what whatsmeow reports. A state that
-// happened is recorded even when the call that caused it was cancelled meanwhile.
+// transition moves one session to state: transitionAll with one move. s.mu is held.
 func (svc *Service) transition(ctx context.Context, s *session, state *whatsmeowv1.SessionState) error {
-	s.state = state
-	s.offlineFirst = false
-	s.track(state)
+	return svc.transitionAll(ctx, move{s: s, state: state})
+}
+
+// move is one session's next state, for transitionAll.
+type move struct {
+	s     *session
+	state *whatsmeowv1.SessionState
+}
+
+// transitionAll is the one place a session's state changes: in one transaction it records, for each move, the state a
+// restart keeps (the stopping states) and a ConnectionStateEvent in the outbox, then publishes each state to the
+// session's watchers. Each session's s.mu is held. A state is published even when recording fails, because it is what
+// whatsmeow reports. A state that happened is recorded even when the call that caused it was cancelled meanwhile.
+func (svc *Service) transitionAll(ctx context.Context, moves ...move) error {
 	ctx = context.WithoutCancel(ctx)
-	event := &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_ConnectionState{
-		ConnectionState: &whatsmeowv1.ConnectionStateEvent{State: state},
-	}}
-	_, err := svc.box.Record(ctx, s.id, "", event, func(ctx context.Context, tx *sql.Tx) error { return svc.persist(ctx, tx, s) })
-	if err != nil {
-		err = fmt.Errorf("record the state of session %q: %w", s.id, err)
+	entries := make([]outbox.Entry, 0, len(moves))
+
+	for _, m := range moves {
+		m.s.state = m.state
+		m.s.offlineFirst = false
+		m.s.track(m.state)
+		event := &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_ConnectionState{
+			ConnectionState: &whatsmeowv1.ConnectionStateEvent{State: m.state},
+		}}
+		entries = append(entries, outbox.Entry{
+			SessionID: m.s.id, Event: event,
+			With: []func(context.Context, *sql.Tx) error{func(ctx context.Context, tx *sql.Tx) error { return svc.persist(ctx, tx, m.s) }},
+		})
 	}
 
-	for w := range s.watchers {
-		// One slot per watcher: a watcher that falls behind finds only the latest state.
-		select {
-		case <-w:
-		default:
+	_, err := svc.box.RecordAll(ctx, entries...)
+
+	for _, m := range moves {
+		for w := range m.s.watchers {
+			// One slot per watcher: a watcher that falls behind finds only the latest state.
+			select {
+			case <-w:
+			default:
+			}
+
+			w <- m.state
 		}
-
-		w <- state
 	}
 
-	return err
+	switch {
+	case err == nil:
+		return nil
+	case len(moves) == 1:
+		return fmt.Errorf("record the state of session %q: %w", moves[0].s.id, err)
+	default:
+		return fmt.Errorf("record the states of %d sessions: %w", len(moves), err)
+	}
 }
 
 // persist writes what a restart needs: the device's JIDs and a stopping state. s.mu is held.

@@ -124,51 +124,101 @@ func (o *Outbox) Delete(sessionID string) {
 // content, because a duplicate is better than a loss, and the caller makes the collision visible. A true redispatch is
 // byte for byte the same, also under the derived key.
 func (o *Outbox) Record(ctx context.Context, sessionID, key string, event *whatsmeowv1.StreamEventsResponse, with ...func(context.Context, *sql.Tx) error) (differs bool, err error) {
-	// Deterministic, so a map field cannot make a redispatch look different.
-	payload, err := proto.MarshalOptions{Deterministic: true}.Marshal(event)
+	all, err := o.RecordAll(ctx, Entry{SessionID: sessionID, Key: key, Event: event, With: with})
 	if err != nil {
-		return false, fmt.Errorf("record an event of session %q: %w", sessionID, err)
+		return false, err
 	}
 
-	var inserted bool
+	return all[0], nil
+}
 
-	err = o.w.Tx(ctx, func(ctx context.Context, tx *sql.Tx) error {
-		var err error
-		if inserted, err = insert(ctx, tx, sessionID, key, payload); err != nil {
-			return err
-		}
+// Entry is one event for RecordAll: what Record takes.
+type Entry struct {
+	SessionID, Key string
+	Event          *whatsmeowv1.StreamEventsResponse
+	With           []func(context.Context, *sql.Tx) error
+}
 
-		if !inserted {
-			var recorded []byte
-			if err := tx.QueryRowContext(ctx, "SELECT payload FROM outbox WHERE session_id = ? AND dedupe_key = ?", sessionID, key).Scan(&recorded); err != nil {
-				return fmt.Errorf("read the recorded event: %w", err)
+// RecordAll records each entry as Record does, in order, but all in one transaction, so in one commit: one sync of
+// the database however many there are (#77). It wakes each session's streams after the commit, and reports differs
+// for each entry.
+func (o *Outbox) RecordAll(ctx context.Context, entries ...Entry) ([]bool, error) {
+	differs := make([]bool, len(entries))
+	woken := make([]string, 0, len(entries))
+
+	err := o.w.Tx(ctx, func(ctx context.Context, tx *sql.Tx) error {
+		for i, e := range entries {
+			inserted, d, err := recordIn(ctx, tx, e)
+			if err != nil && len(entries) > 1 {
+				return fmt.Errorf("session %q: %w", e.SessionID, err)
 			}
 
-			if differs = !bytes.Equal(recorded, payload); differs {
-				sum := sha256.Sum256(payload)
-				if inserted, err = insert(ctx, tx, sessionID, key+"\x00"+hex.EncodeToString(sum[:]), payload); err != nil {
-					return err
-				}
-			}
-		}
-
-		for _, write := range with {
-			if err := write(ctx, tx); err != nil {
+			if err != nil {
 				return err
+			}
+
+			differs[i] = d
+
+			if inserted {
+				woken = append(woken, e.SessionID)
 			}
 		}
 
 		return nil
 	})
 	if err != nil {
-		return false, fmt.Errorf("record an event of session %q: %w", sessionID, err)
+		return nil, fmt.Errorf("%s: %w", what(entries), err)
 	}
 
-	if inserted {
-		o.wake(sessionID)
+	for _, id := range woken {
+		o.wake(id)
 	}
 
 	return differs, nil
+}
+
+// what names what RecordAll records in its errors: the session of one entry, or how many entries.
+func what(entries []Entry) string {
+	if len(entries) == 1 {
+		return fmt.Sprintf("record an event of session %q", entries[0].SessionID)
+	}
+
+	return fmt.Sprintf("record %d events", len(entries))
+}
+
+// recordIn writes one entry in tx, as Record describes.
+func recordIn(ctx context.Context, tx *sql.Tx, e Entry) (inserted, differs bool, err error) {
+	// Deterministic, so a map field cannot make a redispatch look different.
+	payload, err := proto.MarshalOptions{Deterministic: true}.Marshal(e.Event)
+	if err != nil {
+		return false, false, fmt.Errorf("marshal: %w", err)
+	}
+
+	if inserted, err = insert(ctx, tx, e.SessionID, e.Key, payload); err != nil {
+		return false, false, err
+	}
+
+	if !inserted {
+		var recorded []byte
+		if err := tx.QueryRowContext(ctx, "SELECT payload FROM outbox WHERE session_id = ? AND dedupe_key = ?", e.SessionID, e.Key).Scan(&recorded); err != nil {
+			return false, false, fmt.Errorf("read the recorded event: %w", err)
+		}
+
+		if differs = !bytes.Equal(recorded, payload); differs {
+			sum := sha256.Sum256(payload)
+			if inserted, err = insert(ctx, tx, e.SessionID, e.Key+"\x00"+hex.EncodeToString(sum[:]), payload); err != nil {
+				return false, false, err
+			}
+		}
+	}
+
+	for _, write := range e.With {
+		if err := write(ctx, tx); err != nil {
+			return false, false, err
+		}
+	}
+
+	return inserted, differs, nil
 }
 
 // insert adds one row under key unless the session has the key already, and moves the session's highest seq.

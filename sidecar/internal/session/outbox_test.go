@@ -1,12 +1,21 @@
 package session
 
 import (
+	"context"
+	"fmt"
+	"strings"
+	"sync"
 	"testing"
 
+	"github.com/rs/zerolog"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types/events"
 	"google.golang.org/protobuf/proto"
+	"modernc.org/sqlite"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/outbox"
+	sidecarstore "github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
 )
 
 // recorded is the session's ConnectionStateEvents in the outbox, in seq order.
@@ -84,6 +93,87 @@ func TestARestartRecordsTheStateASessionComesBackIn(t *testing.T) {
 	restarted.wantRecorded("connected", disconnected(), connecting(), connected(), disconnected())
 	restarted.wantRecorded("replaced", disconnected(), connecting(), connected(), replaced())
 	restarted.wantRecorded("gone", disconnected(), loggedOut(0))
+}
+
+// TestARestartRecordsEveryMovedSessionInOneCommit is not parallel: it adds a connection hook to the SQLite driver,
+// which reads its hooks unlocked when it opens a connection, and Go runs the parallel tests only after it.
+func TestARestartRecordsEveryMovedSessionInOneCommit(t *testing.T) {
+	const moved = 20
+
+	h := start(t)
+	for i := range moved {
+		h.connected(fmt.Sprintf("s%02d", i))
+	}
+
+	h.create("created")
+	h.stop()
+
+	var (
+		mu      sync.Mutex
+		commits int
+	)
+
+	sqlite.RegisterConnectionHook(func(conn sqlite.ExecQuerierContext, dsn string) error {
+		if path, _, _ := strings.Cut(dsn, "?"); path != h.path {
+			return nil
+		}
+
+		hooks, ok := conn.(sqlite.HookRegisterer)
+		if !ok {
+			return fmt.Errorf("the SQLite connection %T takes no hooks", conn)
+		}
+
+		hooks.RegisterCommitHook(func() int32 {
+			mu.Lock()
+			commits++
+			mu.Unlock()
+
+			return 0
+		})
+
+		return nil
+	})
+
+	counted := func() int {
+		mu.Lock()
+		defer mu.Unlock()
+
+		return commits
+	}
+
+	db, err := sidecarstore.Open(context.Background(), h.path, zerolog.Nop())
+	if err != nil {
+		t.Fatalf("open the store: %v", err)
+	}
+
+	t.Cleanup(func() { _ = db.Close() })
+
+	before := counted()
+
+	svc, err := New(context.Background(), db.DB, db.Writer, db.Devices, outbox.New(db.DB, db.Writer), func(_ string, device *store.Device, _ func()) Client {
+		return &stub{device: device}
+	}, zerolog.Nop())
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	t.Cleanup(svc.Close)
+
+	// One sync of the database before the ready line, however many sessions the restart moved (#77).
+	if got := counted() - before; got != 1 {
+		t.Fatalf("the restart of %d moved sessions made %d commits, want 1", moved, got)
+	}
+
+	for i := range moved {
+		events, err := svc.box.Read(context.Background(), fmt.Sprintf("s%02d", i), 0, 1000)
+		if err != nil {
+			t.Fatalf("read the outbox: %v", err)
+		}
+
+		if last := events[len(events)-1].GetConnectionState().GetState(); !proto.Equal(last, disconnected()) {
+			t.Fatalf("session s%02d last recorded %v, want Disconnected", i, last)
+		}
+	}
 }
 
 func TestDeleteSessionDeletesItsEventsAndCursors(t *testing.T) {

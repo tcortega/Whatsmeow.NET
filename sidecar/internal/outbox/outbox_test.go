@@ -115,6 +115,50 @@ func TestRecordAssignsIncreasingSeqsSharedAcrossSessions(t *testing.T) {
 	}
 }
 
+func TestRecordAllRecordsEachEntryAsRecordDoesInOrder(t *testing.T) {
+	t.Parallel()
+
+	o, _, ctx := open(t, "s1", "s2")
+	record(ctx, t, o, "s1", "M1", message("M1"))
+
+	changed, _, err := o.Watch(ctx, "s2")
+	if err != nil {
+		t.Fatalf("Watch: %v", err)
+	}
+
+	wake := changed.Changed()
+
+	differs, err := o.RecordAll(ctx,
+		Entry{SessionID: "s2", Event: state()},
+		Entry{SessionID: "s1", Key: "M1", Event: message("M1")},
+		Entry{SessionID: "s1", Key: "M1", Event: message("M2")},
+		Entry{SessionID: "s2", Event: state()},
+	)
+	if err != nil {
+		t.Fatalf("RecordAll: %v", err)
+	}
+
+	// What four Records give: the repeat keeps seq 1, the collision goes beside, and, as for a Record, an insert that
+	// hit the key still used up a seq.
+	if !slices.Equal(differs, []bool{false, false, true, false}) {
+		t.Fatalf("differs = %v, want [false false true false]", differs)
+	}
+
+	if got := seqs(ctx, t, o, "s1"); !slices.Equal(got, []uint64{1, 5}) {
+		t.Fatalf("s1 seqs = %v, want [1 5]", got)
+	}
+
+	if got := seqs(ctx, t, o, "s2"); !slices.Equal(got, []uint64{2, 6}) {
+		t.Fatalf("s2 seqs = %v, want [2 6]", got)
+	}
+
+	select {
+	case <-wake:
+	default:
+		t.Fatal("RecordAll did not wake the streams of s2")
+	}
+}
+
 func TestARepeatedKeyKeepsItsSeqAndAddsNoRow(t *testing.T) {
 	t.Parallel()
 
