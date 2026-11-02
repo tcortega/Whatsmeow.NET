@@ -23,8 +23,8 @@ const retryWait = 5 * time.Second
 
 // SendMessage sends a message as whatsmeow's does at the pin, in its order (send.go:191-489): it refuses a device and
 // a client without a device ID, sends a phone number's message to its LID (lidForPN) or fails with ErrRecipientNotOnWhatsApp,
-// fails a rate-limited IQ, marshals the message (so an unset required field fails), and writes the node, which the
-// log shows. WhatsApp then answers with its timestamp in whole seconds, unless HoldNextSend held it.
+// stores its secret (storeSecret, send.go:403-410), marshals the message (so an unset required field fails, 875),
+// fails a rate-limited device lookup (1198), and writes the node, which the log shows. WhatsApp then answers with its timestamp in whole seconds, unless HoldNextSend held it.
 func (c *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E.Message, extra ...whatsmeow.SendRequestExtra) (whatsmeow.SendResponse, error) {
 	var req whatsmeow.SendRequestExtra
 	if len(extra) == 1 {
@@ -50,12 +50,14 @@ func (c *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E.M
 		to = lid
 	}
 
-	if c.whatsApp.take(c.sessionID, func(s *script) bool { return s.rateLimitSends > 0 }, func(s *script) { s.rateLimitSends-- }) {
-		return whatsmeow.SendResponse{}, fmt.Errorf("failed to get devices: %w", whatsmeow.ErrIQRateOverLimit)
-	}
+	c.storeSecret(ctx, to, req.ID, message)
 
 	if _, err := proto.Marshal(message); err != nil {
 		return whatsmeow.SendResponse{}, fmt.Errorf("failed to marshal message: %w", err)
+	}
+
+	if c.whatsApp.take(c.sessionID, func(s *script) bool { return s.rateLimitSends > 0 }, func(s *script) { s.rateLimitSends-- }) {
+		return whatsmeow.SendResponse{}, fmt.Errorf("failed to get devices: %w", whatsmeow.ErrIQRateOverLimit)
 	}
 
 	var (

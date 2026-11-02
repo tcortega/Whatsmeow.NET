@@ -96,7 +96,8 @@ internal static class RpcErrors
 				WhatsAppErrorException.Throw(exception, WhatsAppCode(info!));
 				break;
 			case null or ErrorReason.Unspecified or ErrorReason.Internal or ErrorReason.Unauthenticated or ErrorReason.SidecarShuttingDown
-				or ErrorReason.ConsumerReplaced or ErrorReason.WhatsappTimedOut or ErrorReason.NoPushName or ErrorReason.InviteLinkInvalid:
+				or ErrorReason.ConsumerReplaced or ErrorReason.WhatsappTimedOut or ErrorReason.NoPushName or ErrorReason.InviteLinkInvalid
+				or ErrorReason.PollSecretNotFound:
 			default:
 				break;
 		}
@@ -148,6 +149,7 @@ internal static class RpcErrors
 			ErrorReason.NoPushName => WhatsmeowErrorCode.NoPushName,
 			ErrorReason.MediaExpired => WhatsmeowErrorCode.MediaExpired,
 			ErrorReason.InviteLinkInvalid => WhatsmeowErrorCode.InviteLinkInvalid,
+			ErrorReason.PollSecretNotFound => WhatsmeowErrorCode.PollSecretNotFound,
 			null or ErrorReason.Unspecified => WhatsmeowErrorCode.Unknown,
 			_ => WhatsmeowErrorCode.Unknown,
 		};

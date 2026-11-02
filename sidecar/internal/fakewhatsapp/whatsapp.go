@@ -154,6 +154,14 @@ func (w *WhatsApp) deliverMessage(ctx context.Context, sessionID string, parts .
 
 	c.learn(ctx, &parts[len(parts)-1].Info)
 
+	// whatsmeow stores a message's secret, with its own code, before it dispatches the message (message.go:939-940,
+	// 964-985). A test's client without a store has none to keep it in.
+	for _, part := range parts {
+		if part.RawMessage != nil && c.Store != nil {
+			c.secrets().DangerousInternals().StoreMessageSecret(context.WithoutCancel(ctx), &part.Info, part.RawMessage) //nolint:staticcheck // whatsmeow's own storing, which no exported call makes
+		}
+	}
+
 	for _, part := range parts {
 		if c.dispatch(part) {
 			return nil

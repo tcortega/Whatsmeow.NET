@@ -3,6 +3,7 @@
 package fakewhatsapp
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"slices"
@@ -114,6 +115,45 @@ func TestDeliverHistorySyncSendsTheNotificationAndTheClientDownloadsAndDeletesTh
 	// Deleted: the media server no longer has it.
 	if _, err := client.DownloadHistorySync(ctx, notification, true); !errors.Is(err, whatsmeow.ErrMediaDownloadFailedWith404) {
 		t.Fatalf("download after the delete: %v, want a 404", err)
+	}
+}
+
+// As whatsmeow's DownloadHistorySync stores the secrets the blob's messages carry, before it returns when asked to
+// (message.go:806-809, 988-1050): a member's by its participant, the account's own by its JID.
+func TestADownloadedBlobsMessageSecretsAreStored(t *testing.T) {
+	t.Parallel()
+
+	whatsApp, control, ctx, client, got, _ := linked(t)
+	whatsApp.mediaDir = t.TempDir()
+
+	if err := client.ConnectContext(ctx); err != nil {
+		t.Fatalf("connect: %v", err)
+	}
+
+	const group, member = "120363000000000000@g.us", "5511900000002@s.whatsapp.net"
+
+	memberSecret, ownSecret := bytes.Repeat([]byte{7}, 32), bytes.Repeat([]byte{8}, 32)
+	if _, err := control.DeliverHistorySync(ctx, &fakev1.DeliverHistorySyncRequest{
+		SessionId: "s1", MessageId: "N1", SyncType: int32(waHistorySync.HistorySync_RECENT),
+		Conversations: []*fakev1.DeliverHistorySyncRequest_Conversation{{Chat: group, Messages: []*fakev1.DeliverHistorySyncRequest_Message{
+			{Id: "P1", Participant: member, Text: "a member's poll", MessageSecret: memberSecret},
+			{Id: "P2", FromMe: true, Text: "the account's poll", MessageSecret: ownSecret},
+		}}},
+	}); err != nil {
+		t.Fatalf("DeliverHistorySync: %v", err)
+	}
+
+	m := next[*events.Message](t, got)
+	if _, err := client.DownloadHistorySync(ctx, m.Message.GetProtocolMessage().GetHistorySyncNotification(), true); err != nil {
+		t.Fatalf("DownloadHistorySync: %v", err)
+	}
+
+	if got := secretOf(t, client, group, member, "P1"); !bytes.Equal(got, memberSecret) {
+		t.Errorf("the member's message has the secret %x stored, want %x", got, memberSecret)
+	}
+
+	if got := secretOf(t, client, group, "1555@s.whatsapp.net", "P2"); !bytes.Equal(got, ownSecret) {
+		t.Errorf("the account's message has the secret %x stored, want %x", got, ownSecret)
 	}
 }
 

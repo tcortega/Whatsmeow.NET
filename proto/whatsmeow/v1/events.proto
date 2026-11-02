@@ -101,14 +101,27 @@ message MessageEvent {
   // The message as received, wrappers included, when whatsmeow unwrapped any; unset when it unwrapped none, as the
   // message is then what was received.
   WAWebProtobufsE2E.Message raw_message = 6;
-  // For a reaction, an edit or a revoke, the message its key names; unset for every other message, and for a key
-  // that names none: one without an id, one whose participant is not a JID, or, outside a direct chat, one that is
-  // not the actor's and names no participant.
+  // For a reaction, an edit, a revoke or a poll vote, the message its key names; unset for every other message, and
+  // for a key that names none: one without an id, one whose participant is not a JID, or, outside a direct chat, one
+  // that is not the actor's and names no participant.
   MessageTarget target = 7;
   // For a reply, the message it quotes, as the context of its content names it (an edit's is its new content's): its
   // id and sender, read as a target's sender is. Unset for every other message, and for a quote that names no sender
   // the sidecar can tell: one whose participant is missing or is not a user's JID.
   MessageTarget reply_to = 8;
+  // For a poll vote, what it selected, decrypted with the poll's message secret; its poll is the target. Unset for
+  // every other message.
+  PollVote poll_vote = 9;
+}
+
+// PollVote is a poll vote as the sidecar decrypted it.
+message PollVote {
+  // The selected options, each the SHA-256 of an option's UTF-8 name; empty when the voter cleared their vote, and
+  // when the vote is undecryptable.
+  repeated bytes selected_option_hashes = 1;
+  // True when the sidecar could not decrypt the vote: this device has no secret for its poll (a poll that predates
+  // this device and that no history sync it processed carried), or the vote does not decrypt with it.
+  bool undecryptable = 2;
 }
 
 // MessageTarget is the message a reaction, an edit or a revoke names by its key.

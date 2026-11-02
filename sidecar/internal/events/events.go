@@ -75,6 +75,14 @@ func (svc *Service) Handler(sessionID string, account *store.Device) whatsmeow.E
 	// into the ring of a session created again with the same id.
 	ephemeral := svc.ring(sessionID)
 
+	// A never-connected whatsmeow client of the device, for its message secret code only: DecryptPollVote reads
+	// nothing but the device's store (msgsecret.go:158-202), and NewClient starts nothing (client.go:267-325). It is
+	// whatsmeow's own decryption whichever client the session runs, the fake WhatsApp's too.
+	var votes voteDecrypter
+	if account != nil {
+		votes = whatsmeow.NewClient(account, nil)
+	}
+
 	return func(evt any) (ok bool) {
 		defer func() {
 			if r := recover(); r != nil {
@@ -95,7 +103,7 @@ func (svc *Service) Handler(sessionID string, account *store.Device) whatsmeow.E
 			return false
 		}
 
-		key, event, record := svc.toEvent(sessionID, evt, account)
+		key, event, record := svc.toEvent(sessionID, evt, account, votes)
 		if !record {
 			return true
 		}
@@ -123,8 +131,8 @@ func (svc *Service) Handler(sessionID string, account *store.Device) whatsmeow.E
 }
 
 // toEvent maps evt with this slice's own mapping, then with each slice's mapper.
-func (svc *Service) toEvent(sessionID string, evt any, account *store.Device) (string, *whatsmeowv1.StreamEventsResponse, bool) {
-	if key, event, ok := toEvent(evt, account); ok {
+func (svc *Service) toEvent(sessionID string, evt any, account *store.Device, votes voteDecrypter) (string, *whatsmeowv1.StreamEventsResponse, bool) {
+	if key, event, ok := toEvent(evt, account, votes); ok {
 		return key, event, true
 	}
 

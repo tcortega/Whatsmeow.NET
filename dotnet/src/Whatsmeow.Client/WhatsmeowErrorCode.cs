@@ -80,4 +80,10 @@ public enum WhatsmeowErrorCode
 
 	/// <summary>The group invite link is malformed, unknown or was reset; nothing was done.</summary>
 	InviteLinkInvalid,
+
+	/// <summary>
+	/// This device has no message secret for the poll, which a vote is encrypted with: it neither sent nor received the
+	/// poll, and no history sync it processed carried it. Nothing was sent; the account's phone can still vote.
+	/// </summary>
+	PollSecretNotFound,
 }

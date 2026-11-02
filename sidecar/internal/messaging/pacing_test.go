@@ -282,7 +282,18 @@ func TestEveryKindOfSendSharesTheSessionsOneBudget(t *testing.T) {
 			_, err := h.client.SendRevoke(h.ctx, &whatsmeowv1.SendRevokeRequest{SessionId: "s1", Chat: "111@lid", ClientMessageId: id(n), TargetId: "ABC"})
 			return err //nolint:wrapcheck // the test reads the status
 		}, func(m *waE2E.Message) bool { return m.GetProtocolMessage().GetType() == waE2E.ProtocolMessage_REVOKE }},
+		{"poll", func(n int) error {
+			_, err := h.client.SendPoll(h.ctx, &whatsmeowv1.SendPollRequest{SessionId: "s1", Chat: "111@lid", ClientMessageId: id(n), Question: "Lunch?", Options: []string{"Pizza", "Sushi"}, MaxSelectable: 1})
+			return err //nolint:wrapcheck // the test reads the status
+		}, func(m *waE2E.Message) bool { return m.GetPollCreationMessage() != nil }},
+		{"poll vote", func(n int) error {
+			_, err := h.client.SendPollVote(h.ctx, &whatsmeowv1.SendPollVoteRequest{SessionId: "s1", Chat: "111@lid", ClientMessageId: id(n), PollId: "POLL1", Options: []string{"Sushi"}})
+			return err //nolint:wrapcheck // the test reads the status
+		}, func(m *waE2E.Message) bool { return m.GetPollUpdateMessage() != nil }},
 	}
+
+	// The vote's poll, the account's own, whose secret whatsmeow stored when it sent it.
+	h.secret("111@lid", "900000001@lid", "POLL1")
 
 	for n, kind := range kinds {
 		done := make(chan error, 1)

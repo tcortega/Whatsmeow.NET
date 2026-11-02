@@ -40,6 +40,7 @@ func TestEachReasonErrorBecomesItsStatus(t *testing.T) {
 		{WithMetadata(ErrWhatsAppError, "code", "500"), codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "500"}},
 		{fmt.Errorf("get the blocklist: %w", ErrWhatsAppTimedOut), codes.Unavailable, "WHATSAPP_TIMED_OUT", nil},
 		{fmt.Errorf("join a group: %w", ErrInviteLinkInvalid), codes.NotFound, "INVITE_LINK_INVALID", nil},
+		{fmt.Errorf("vote: %w", ErrPollSecretNotFound), codes.FailedPrecondition, "POLL_SECRET_NOT_FOUND", nil},
 		{errors.New("a bug"), codes.Internal, "INTERNAL", nil},
 	}
 

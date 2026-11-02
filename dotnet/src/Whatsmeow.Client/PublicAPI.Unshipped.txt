@@ -1742,3 +1742,51 @@ Whatsmeow.Messaging.SendPacingOptions.Interval.set -> void
 Whatsmeow.Messaging.SendPacingOptions.SendPacingOptions() -> void
 Whatsmeow.WhatsmeowSidecarOptions.SendPacing.get -> Whatsmeow.Messaging.SendPacingOptions!
 Whatsmeow.WhatsmeowSidecarOptions.SendPacing.set -> void
+override sealed Whatsmeow.Events.PollContent.Equals(Whatsmeow.Events.MessageContent? other) -> bool
+override sealed Whatsmeow.Events.PollVoteContent.Equals(Whatsmeow.Events.MessageContent? other) -> bool
+override Whatsmeow.Events.PollContent.<Clone>$() -> Whatsmeow.Events.PollContent!
+override Whatsmeow.Events.PollContent.Equals(object? obj) -> bool
+override Whatsmeow.Events.PollContent.GetHashCode() -> int
+override Whatsmeow.Events.PollContent.ToString() -> string!
+override Whatsmeow.Events.PollVoteContent.<Clone>$() -> Whatsmeow.Events.PollVoteContent!
+override Whatsmeow.Events.PollVoteContent.Equals(object? obj) -> bool
+override Whatsmeow.Events.PollVoteContent.GetHashCode() -> int
+override Whatsmeow.Events.PollVoteContent.ToString() -> string!
+override Whatsmeow.Messaging.Poll.Equals(object? obj) -> bool
+override Whatsmeow.Messaging.Poll.GetHashCode() -> int
+override Whatsmeow.Messaging.Poll.ToString() -> string!
+static Whatsmeow.Events.PollContent.operator !=(Whatsmeow.Events.PollContent? left, Whatsmeow.Events.PollContent? right) -> bool
+static Whatsmeow.Events.PollContent.operator ==(Whatsmeow.Events.PollContent? left, Whatsmeow.Events.PollContent? right) -> bool
+static Whatsmeow.Events.PollVoteContent.HashOption(string! option) -> System.Collections.Immutable.ImmutableArray<byte>
+static Whatsmeow.Events.PollVoteContent.operator !=(Whatsmeow.Events.PollVoteContent? left, Whatsmeow.Events.PollVoteContent? right) -> bool
+static Whatsmeow.Events.PollVoteContent.operator ==(Whatsmeow.Events.PollVoteContent? left, Whatsmeow.Events.PollVoteContent? right) -> bool
+static Whatsmeow.Messaging.Poll.operator !=(Whatsmeow.Messaging.Poll? left, Whatsmeow.Messaging.Poll? right) -> bool
+static Whatsmeow.Messaging.Poll.operator ==(Whatsmeow.Messaging.Poll? left, Whatsmeow.Messaging.Poll? right) -> bool
+Whatsmeow.Events.PollContent
+Whatsmeow.Events.PollContent.Equals(Whatsmeow.Events.PollContent? other) -> bool
+Whatsmeow.Events.PollContent.Poll.get -> Whatsmeow.Messaging.Poll!
+Whatsmeow.Events.PollContent.Poll.init -> void
+Whatsmeow.Events.PollContent.PollContent() -> void
+Whatsmeow.Events.PollVoteContent
+Whatsmeow.Events.PollVoteContent.Equals(Whatsmeow.Events.PollVoteContent? other) -> bool
+Whatsmeow.Events.PollVoteContent.IsUndecryptable.get -> bool
+Whatsmeow.Events.PollVoteContent.IsUndecryptable.init -> void
+Whatsmeow.Events.PollVoteContent.Poll.get -> Whatsmeow.Messaging.MessageKey!
+Whatsmeow.Events.PollVoteContent.Poll.init -> void
+Whatsmeow.Events.PollVoteContent.PollVoteContent() -> void
+Whatsmeow.Events.PollVoteContent.SelectedOptionHashes.get -> System.Collections.Immutable.ImmutableArray<System.Collections.Immutable.ImmutableArray<byte>>
+Whatsmeow.Events.PollVoteContent.SelectedOptionHashes.init -> void
+Whatsmeow.Events.PollVoteContent.Selects(string! option) -> bool
+Whatsmeow.IWhatsAppClient.SendPollAsync(Whatsmeow.Jid chat, Whatsmeow.Messaging.Poll! poll, Whatsmeow.MessageId? id = null, Whatsmeow.Messaging.SendOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
+Whatsmeow.IWhatsAppClient.SendPollVoteAsync(Whatsmeow.Jid chat, Whatsmeow.Messaging.MessageKey! poll, System.Collections.Generic.IReadOnlyList<string!>! selectedOptions, Whatsmeow.MessageId? id = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
+Whatsmeow.Messaging.Poll
+Whatsmeow.Messaging.Poll.<Clone>$() -> Whatsmeow.Messaging.Poll!
+Whatsmeow.Messaging.Poll.Equals(Whatsmeow.Messaging.Poll? other) -> bool
+Whatsmeow.Messaging.Poll.MaxSelectable.get -> int
+Whatsmeow.Messaging.Poll.MaxSelectable.init -> void
+Whatsmeow.Messaging.Poll.Options.get -> System.Collections.Immutable.ImmutableArray<string!>
+Whatsmeow.Messaging.Poll.Options.init -> void
+Whatsmeow.Messaging.Poll.Poll() -> void
+Whatsmeow.Messaging.Poll.Question.get -> string!
+Whatsmeow.Messaging.Poll.Question.init -> void
+Whatsmeow.WhatsmeowErrorCode.PollSecretNotFound = 24 -> Whatsmeow.WhatsmeowErrorCode

@@ -18,6 +18,16 @@ service FakeWhatsAppService {
   // fake never answers on behalf of a client the sidecar did not create.
   rpc DeliverMessage(DeliverMessageRequest) returns (DeliverMessageResponse);
 
+  // DeliverPollVote makes WhatsApp deliver a poll vote from sender to a session's client, as DeliverMessage does. The
+  // fake encrypts it as the voter's device would, with whatsmeow's own message secret code
+  // (DangerousInternalClient.EncryptMsgSecret, internals.go:430-431) and the poll's secret as the voter's device has
+  // it: the secret the session's message node with the poll's id carried, as WhatsApp delivered the account's poll,
+  // else the session's store's, as the poll's sender sent it to every member. It names the poll by a key as the voter
+  // sees it (msgsecret.go:130-151): its own when the voter sent the poll, else the poll's sender as the remote JID in a
+  // direct chat and as the participant in a group. A poll with no secret either way is an error: such a vote is
+  // DeliverMessage's, with a message of its own.
+  rpc DeliverPollVote(DeliverPollVoteRequest) returns (DeliverPollVoteResponse);
+
   // DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
   // the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches
   // UndecryptableMessage, whatever the handlers return (message.go:418-437); the fake records neither. A resend that
@@ -474,6 +484,31 @@ message DeliverMessageRequest {
   // whatsmeow's own events.Message.UnwrapRaw, as whatsmeow does (message.go:1172-1178). Unset sends text.
   WAWebProtobufsE2E.Message message = 12;
 }
+
+// DeliverPollVoteRequest is one inbound poll vote. A JID is whatsmeow's string form.
+message DeliverPollVoteRequest {
+  // The session whose client receives it.
+  string session_id = 1;
+  // The vote's WhatsApp message id.
+  string id = 2;
+  // The chat.
+  string chat = 3;
+  // The voter.
+  string sender = 4;
+  // The poll's WhatsApp id.
+  string poll_id = 5;
+  // The poll's sender, as its message named it.
+  string poll_sender = 6;
+  // The names of the options selected; none clears the vote.
+  repeated string options = 7;
+  // True when another of the account's devices voted.
+  bool is_from_me = 8;
+  // The vote's WhatsApp timestamp; unset is the zero time.
+  google.protobuf.Timestamp message_time = 9;
+}
+
+// DeliverPollVoteResponse is the answer to DeliverPollVote.
+message DeliverPollVoteResponse {}
 
 // DeliverUndecryptableMessageRequest is one inbound message that fails to decrypt.
 message DeliverUndecryptableMessageRequest {
@@ -1140,6 +1175,9 @@ message DeliverHistorySyncRequest {
     string push_name = 6;
     // When set, the message itself, in place of the text: a media message, or one in a view-once wrapper.
     WAWebProtobufsE2E.Message message = 7;
+    // The message's secret, as a WebMessageInfo carries it (messageSecret), which whatsmeow stores when it downloads
+    // the blob (message.go:806-809, 988-1050): a poll's, which votes on it are encrypted with.
+    bytes message_secret = 8;
   }
 
   // The session whose phone sends it.

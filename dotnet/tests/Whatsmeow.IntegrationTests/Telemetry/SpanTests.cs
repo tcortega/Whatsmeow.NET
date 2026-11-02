@@ -26,6 +26,8 @@ public sealed class SpanTests(FakeSidecar fixture, SidecarBinaries binaries)
 	private const int Timeout = 120_000;
 	private const string Peer = "900000401@lid";
 
+	private static readonly Poll s_poll = new() { Question = "Lunch?", Options = ["Yes", "No"], MaxSelectable = 1 };
+
 	[Theory(Timeout = Timeout)]
 	[InlineData("text")]
 	[InlineData("image")]
@@ -37,12 +39,17 @@ public sealed class SpanTests(FakeSidecar fixture, SidecarBinaries binaries)
 	[InlineData("reaction")]
 	[InlineData("edit")]
 	[InlineData("revoke")]
-	public async Task Send_WithAListener_ASpanCoversEachOfTheTenSends_AndEachIsCounted(string type)
+	[InlineData("poll")]
+	[InlineData("poll_vote")]
+	public async Task Send_WithAListener_ASpanCoversEachOfTheTwelveSends_AndEachIsCounted(string type)
 	{
 		var ct = TestContext.Current.CancellationToken;
 		var session = $"telemetry-send-{type}";
-		var client = await SessionSetup.ConnectedAsync(fixture, session, ct);
-		var media = type is "text" or "raw" or "reaction" or "edit" or "revoke" ? null : await UploadAsync(client, type, ct);
+		// A vote's session has a LID, which names the account where whatsmeow keeps a sent poll's secret, so the vote finds it.
+		var client = await SessionSetup.ConnectedAsync(fixture, session, type is "poll_vote" ? "900000481:1@lid" : "", ct);
+		var media = type is "text" or "raw" or "reaction" or "edit" or "revoke" or "poll" or "poll_vote" ? null : await UploadAsync(client, type, ct);
+		if (type is "poll_vote")
+			_ = await client.SendPollAsync(Jid.Parse(Peer), s_poll, MessageId.From("3EB0000000000000000F01"), cancellationToken: ct);
 		using var sent = new MetricCollector<long>(fixture.MeterFactory, WhatsmeowTelemetry.MeterName, "whatsmeow.messages.sent");
 		using var spans = new Spans();
 		var id = MessageId.New();
@@ -515,7 +522,7 @@ public sealed class SpanTests(FakeSidecar fixture, SidecarBinaries binaries)
 	private static Task<SendResult> SendAsync(IWhatsAppClient client, string type, MediaRef? media, MessageId id, CancellationToken ct)
 	{
 		var to = Jid.Parse(Peer);
-#pragma warning disable WMN1001 // Justification: the raw send is one of the ten sends under test
+#pragma warning disable WMN1001 // Justification: the raw send is one of the twelve sends under test
 		return type switch
 		{
 			"text" => client.SendTextAsync(to, "hello", id, cancellationToken: ct),
@@ -527,6 +534,8 @@ public sealed class SpanTests(FakeSidecar fixture, SidecarBinaries binaries)
 			"reaction" => client.SendReactionAsync(to, new MessageKey { Id = MessageId.From("T1") }, "👍", id, ct),
 			"edit" => client.EditMessageAsync(to, MessageId.From("T1"), "fixed", id, ct),
 			"revoke" => client.RevokeMessageAsync(to, new MessageKey { Id = MessageId.From("T1") }, id, ct),
+			"poll" => client.SendPollAsync(to, s_poll, id, cancellationToken: ct),
+			"poll_vote" => client.SendPollVoteAsync(to, new MessageKey { Id = MessageId.From("3EB0000000000000000F01") }, ["Yes"], id, ct),
 			_ => client.SendRawAsync(to, new E2E.Message { Conversation = "hello" }, id, ct),
 		};
 #pragma warning restore WMN1001

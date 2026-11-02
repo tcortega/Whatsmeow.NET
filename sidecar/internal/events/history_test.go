@@ -21,7 +21,7 @@ func TestAHistorySyncNotificationIsNeverALiveMessage(t *testing.T) {
 
 		// The History slice queues it (internal/history); a bot must never answer it, and its inline payload has no
 		// bound a gRPC message keeps.
-		if key, got, ok := toEvent(notification, nil); ok {
+		if key, got, ok := toEvent(notification, nil, nil); ok {
 			t.Fatalf("from me %v: recorded under %q as %v, want nothing", fromMe, key, got)
 		}
 	}
@@ -32,7 +32,7 @@ func TestMessageEventIsTheMappingOfALiveMessage(t *testing.T) {
 
 	m := messageEvent("M1")
 	m.Message = &waE2E.Message{ReactionMessage: &waE2E.ReactionMessage{Key: &waCommon.MessageKey{ID: proto.String("T1"), Participant: proto.String(accountLID)}}}
-	_, live, _ := toEvent(m, account())
+	_, live, _ := toEvent(m, account(), nil)
 
 	if got := MessageEvent(m, account()); !proto.Equal(got, live.GetMessage()) || got.GetTarget() == nil {
 		t.Fatalf("MessageEvent %v, want the live message's %v", got, live.GetMessage())

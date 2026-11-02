@@ -66,4 +66,7 @@ enum ErrorReason {
   ERROR_REASON_MEDIA_EXPIRED = 22;
   // NOT_FOUND. The group invite link is malformed, unknown or was reset; nothing was done.
   ERROR_REASON_INVITE_LINK_INVALID = 23;
+  // FAILED_PRECONDITION. This device has no message secret for the poll, which a vote is encrypted with: it neither
+  // sent nor received the poll, and no history sync it processed carried it. Nothing was sent.
+  ERROR_REASON_POLL_SECRET_NOT_FOUND = 24;
 }

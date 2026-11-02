@@ -68,6 +68,22 @@ service MessageService {
   // Errors: as SendMessage, and INVALID_ARGUMENT for no target_id, or a target_sender that is not a user's JID.
   rpc SendRevoke(SendRevokeRequest) returns (SendRevokeResponse);
 
+  // SendPoll sends a poll: a question, its options, and how many of them a voter may select. The sidecar builds it as
+  // whatsmeow does, with a new message secret that whatsmeow stores, so this session can vote on it and decrypt the
+  // votes it gets. Its client_message_id is the poll's own id.
+  // Errors: as SendMessage, and INVALID_ARGUMENT for an empty question (field "question"), fewer than two options, an
+  // empty or a repeated option (field "options"), a max_selectable outside 1 to the number of options (field
+  // "max_selectable"), or a reply_to or mentions that are not valid, as for SendText.
+  rpc SendPoll(SendPollRequest) returns (SendPollResponse);
+
+  // SendPollVote votes for options of a poll, replacing the account's earlier vote on it; no options clears the vote.
+  // The vote is encrypted with the poll's message secret, which this device has only for a poll it sent or received,
+  // or one a history sync it processed carried. The sidecar keeps no polls, so it never checks the options against the
+  // poll. Its client_message_id is the vote's own id.
+  // Errors: as SendMessage, and INVALID_ARGUMENT for no poll_id, a poll_sender that is not a user's JID, or an empty
+  // or a repeated option (field "options"); POLL_SECRET_NOT_FOUND when this device has no secret for the poll.
+  rpc SendPollVote(SendPollVoteRequest) returns (SendPollVoteResponse);
+
   // MarkRead sends a read receipt, timestamped now, for messages of one chat.
   // Errors: INVALID_ARGUMENT (no message ids; a group chat without sender), SESSION_NOT_FOUND, NOT_LOGGED_IN,
   // LOGGED_OUT, NOT_CONNECTED, TEMPORARILY_BANNED.
@@ -238,6 +254,60 @@ message SendRevokeResponse {
   // The chat it was sent to, which can be the recipient's LID when a phone-number JID was requested.
   string chat = 1;
   // The revoke's WhatsApp timestamp.
+  google.protobuf.Timestamp message_time = 2;
+}
+
+// SendPollRequest sends a poll.
+message SendPollRequest {
+  // The session id.
+  string session_id = 1;
+  // The recipient: a user JID without a device, or a group JID.
+  string chat = 2;
+  // The WhatsApp id of the poll; required.
+  string client_message_id = 3;
+  // The question; not empty.
+  string question = 4;
+  // The options, in the order shown; at least two, none empty, none repeated. A vote names an option by the SHA-256
+  // of its UTF-8 bytes.
+  repeated string options = 5;
+  // How many options a voter may select, from 1 to the number of options.
+  uint32 max_selectable = 6;
+  // The message this one replies to, as for SendTextRequest.reply_to.
+  MessageReply reply_to = 7;
+  // The users mentioned in the question, as for SendTextRequest.mentions.
+  repeated string mentions = 8;
+}
+
+// SendPollResponse is a successful send.
+message SendPollResponse {
+  // The chat it was sent to, which can be the recipient's LID when a phone-number JID was requested.
+  string chat = 1;
+  // The poll's WhatsApp timestamp.
+  google.protobuf.Timestamp message_time = 2;
+}
+
+// SendPollVoteRequest votes on a poll.
+message SendPollVoteRequest {
+  // The session id.
+  string session_id = 1;
+  // The poll's chat: a user JID without a device, or a group JID.
+  string chat = 2;
+  // The WhatsApp id of the vote itself; required.
+  string client_message_id = 3;
+  // The poll's WhatsApp id; required.
+  string poll_id = 4;
+  // The poll's sender, a user's JID, as the poll's MessageEvent named it: whatsmeow names the voter by phone number
+  // when it is a phone number and by LID otherwise. Empty, or the account's own JID, for a poll the account sent.
+  string poll_sender = 5;
+  // The names of the options selected, as the poll has them; none clears the vote. None empty, none repeated.
+  repeated string options = 6;
+}
+
+// SendPollVoteResponse is a successful send.
+message SendPollVoteResponse {
+  // The chat it was sent to, which can be the recipient's LID when a phone-number JID was requested.
+  string chat = 1;
+  // The vote's WhatsApp timestamp.
   google.protobuf.Timestamp message_time = 2;
 }
 
