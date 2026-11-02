@@ -396,7 +396,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		using var startup = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
 
 		var process = await SidecarProcess
-			.StartAsync(_binary!, _options.Transport, _socketDirectory, _options.DatabasePath!, _options.MediaRoot, _options.History, _fakeWhatsApp, _options.StartupTimeout, _log, _sidecarLog, startup.Token, cancellationToken)
+			.StartAsync(_binary!, _options.Transport, _socketDirectory, _options.DatabasePath!, _options.MediaRoot, _options.History, _options.SendPacing, _fakeWhatsApp, _options.StartupTimeout, _log, _sidecarLog, startup.Token, cancellationToken)
 			.ConfigureAwait(false);
 		_current = process;
 		SidecarLog.SidecarStarted(_log, process.Id, process.Version, process.Endpoint);

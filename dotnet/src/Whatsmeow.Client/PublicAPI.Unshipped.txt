@@ -1734,3 +1734,11 @@ Whatsmeow.Messaging.SendOptions.Mentions.init -> void
 Whatsmeow.Messaging.SendOptions.ReplyTo.get -> Whatsmeow.Messaging.MessageReply?
 Whatsmeow.Messaging.SendOptions.ReplyTo.init -> void
 Whatsmeow.Messaging.SendOptions.SendOptions() -> void
+Whatsmeow.Messaging.SendPacingOptions
+Whatsmeow.Messaging.SendPacingOptions.Burst.get -> int
+Whatsmeow.Messaging.SendPacingOptions.Burst.set -> void
+Whatsmeow.Messaging.SendPacingOptions.Interval.get -> System.TimeSpan
+Whatsmeow.Messaging.SendPacingOptions.Interval.set -> void
+Whatsmeow.Messaging.SendPacingOptions.SendPacingOptions() -> void
+Whatsmeow.WhatsmeowSidecarOptions.SendPacing.get -> Whatsmeow.Messaging.SendPacingOptions!
+Whatsmeow.WhatsmeowSidecarOptions.SendPacing.set -> void

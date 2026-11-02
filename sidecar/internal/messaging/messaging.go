@@ -50,12 +50,6 @@ type Sessions interface {
 	Device(id string) (*store.Device, error)
 }
 
-// The pacing of a session's sends: a burst of up to burst, then one every pace (ADR 0025). Tuning it is Phase 2.
-const (
-	pace  = time.Second
-	burst = 5
-)
-
 // backoff is how long a send waits before each new try after WhatsApp rate limited it.
 func backoff() []time.Duration { return []time.Duration{time.Second, 2 * time.Second, 4 * time.Second} }
 
@@ -85,6 +79,11 @@ type Service struct {
 	burst   int
 	backoff []time.Duration
 	margin  time.Duration
+	// now, after and jitter are the queues' clock and randomness: the time, a wait of a duration, and a random duration
+	// from zero up to, not including, the one given. Tests replace them.
+	now    func() time.Time
+	after  func(time.Duration) <-chan time.Time
+	jitter func(time.Duration) time.Duration
 	// onQueue and onWait, when set, run when a send has to wait behind another and when a repeat waits for the same
 	// send in flight; tests wait on them.
 	onQueue, onWait func()
@@ -95,13 +94,15 @@ type Service struct {
 	workers sync.WaitGroup
 }
 
-// New returns the slice on the database's send records, which it writes through w, and the sessions' clients.
-func New(db *sql.DB, w *sidecarstore.Writer, sessions Sessions, log zerolog.Logger) *Service {
+// New returns the slice on the database's send records, which it writes through w, and the sessions' clients, pacing
+// each session's sends with pacing, which Check passed.
+func New(db *sql.DB, w *sidecarstore.Writer, sessions Sessions, log zerolog.Logger, pacing Pacing) *Service {
 	lifetime, end := context.WithCancel(context.Background())
 
 	return &Service{
 		db: db, w: w, sessions: sessions, log: log, lifetime: lifetime, end: end,
-		pace: pace, burst: burst, backoff: backoff(), margin: tryMargin,
+		pace: pacing.Interval, burst: pacing.Burst, backoff: backoff(), margin: tryMargin,
+		now: time.Now, after: time.After, jitter: jitter,
 		flights: map[flightKey]*flight{}, queues: map[string]*queue{},
 	}
 }

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using Whatsmeow.History;
+using Whatsmeow.Messaging;
 
 namespace Whatsmeow.Sidecar;
 
@@ -71,7 +72,25 @@ internal static class WhatsmeowSidecarOptionsSetup
 
 		failures.AddRange(HistoryFailures(options.History));
 
+		if (options.SendPacing is null)
+			failures.Add($"{nameof(WhatsmeowSidecarOptions.SendPacing)} must not be null.");
+
+		failures.AddRange(SendPacingFailures(options.SendPacing));
+
 		return failures;
+	}
+
+	/// <summary>The send pacing's broken rules: the burst and the interval are within their bounds.</summary>
+	private static IEnumerable<string> SendPacingFailures(SendPacingOptions? pacing)
+	{
+		if (pacing is null)
+			yield break;
+
+		if (pacing.Burst is < 1 or > SendPacingOptions.MaxBurst)
+			yield return $"{nameof(WhatsmeowSidecarOptions.SendPacing)}.{nameof(pacing.Burst)} {pacing.Burst} must be 1 to {SendPacingOptions.MaxBurst}.";
+
+		if (pacing.Interval <= TimeSpan.Zero || pacing.Interval > SendPacingOptions.MaxInterval)
+			yield return $"{nameof(WhatsmeowSidecarOptions.SendPacing)}.{nameof(pacing.Interval)} {pacing.Interval} must be more than zero and at most {SendPacingOptions.MaxInterval}.";
 	}
 
 	/// <summary>The history options' broken rules: a limit is null, or more than zero.</summary>

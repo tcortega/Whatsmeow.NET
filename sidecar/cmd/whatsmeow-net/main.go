@@ -86,6 +86,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	fake := flags.Bool("fake-whatsapp", false, "test builds only (-tags fakewhatsapp): replace WhatsApp with a scripted fake and serve its control")
 	parentPID := flags.Int("parent-pid", 0, "the client's process id: the sidecar stops once that is no longer its parent (Linux, macOS; on Windows the client's job object does this; default: its parent at start)")
 	history := historyFlags(flags)
+	sends := pacingFlags(flags)
 
 	if err := flags.Parse(args); err != nil {
 		return exitUsage
@@ -106,6 +107,12 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 
 	if *database == "" {
 		log.Error().Msg("usage: whatsmeow-net --database <file> is required")
+
+		return exitUsage
+	}
+
+	if err := sends.value().Check(); err != nil {
+		log.Error().Err(err).Msg("usage: whatsmeow-net --send-interval and --send-burst")
 
 		return exitUsage
 	}
@@ -135,7 +142,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 
 	log.Info().Str("version", version).Str("transport", *kind).Msg("starting")
 
-	if err := serve(ctx, log, redactor, options{*kind, *socketDir, *nonce, *database, *mediaRoot, *fake}, bufio.NewReader(stdin), stdout); err != nil {
+	if err := serve(ctx, log, redactor, options{*kind, *socketDir, *nonce, *database, *mediaRoot, *fake, sends.value()}, bufio.NewReader(stdin), stdout); err != nil {
 		log.Error().Err(err).Msg("sidecar failed")
 
 		return exitFailed
@@ -157,6 +164,7 @@ func newLogger(stderr io.Writer, redactor *wmlog.Redactor) zerolog.Logger {
 type options struct {
 	kind, socketDir, nonce, database, mediaRoot string
 	fake                                        bool
+	pacing                                      messaging.Pacing
 }
 
 func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, opts options, stdin *bufio.Reader, stdout io.Writer) error {
@@ -238,7 +246,7 @@ func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, op
 	// server.go:1738-1744, internal/transport/http2_server.go:1300-1321), so a send still queued fails having sent
 	// nothing, and the one handed to whatsmeow ends as its context says. Close waits for that one, so its outcome is
 	// recorded before the sessions disconnect and the store closes.
-	messages := messaging.New(db.DB, db.Writer, sessions, log)
+	messages := messaging.New(db.DB, db.Writer, sessions, log, opts.pacing)
 	defer messages.Close()
 
 	whatsmeowv1.RegisterMessageServiceServer(srv, messages)

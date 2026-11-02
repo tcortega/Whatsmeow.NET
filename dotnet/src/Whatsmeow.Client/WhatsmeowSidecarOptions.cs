@@ -1,4 +1,5 @@
 using Whatsmeow.History;
+using Whatsmeow.Messaging;
 
 namespace Whatsmeow;
 
@@ -43,15 +44,23 @@ public sealed class WhatsmeowSidecarOptions
 	public HistorySyncOptions History { get; set; } = new();
 
 	/// <summary>
-	/// A copy with a copy of <see cref="History"/>, so changing the caller's instance later changes nothing, a restart
-	/// included. Member-wise, so a property added later is copied too; a member-wise copy shares a reference, so a property
-	/// added later whose type is a mutable class must be deep-copied here, as <see cref="History"/> is.
+	/// How fast each session's sends leave: a burst, then one every interval, with jitter (<see cref="SendPacingOptions"/>).
+	/// Every session uses the same pacing, each with a budget of its own.
+	/// </summary>
+	public SendPacingOptions SendPacing { get; set; } = new();
+
+	/// <summary>
+	/// A copy with copies of <see cref="History"/> and <see cref="SendPacing"/>, so changing the caller's instance later
+	/// changes nothing, a restart included. Member-wise, so a property added later is copied too; a member-wise copy shares
+	/// a reference, so a property added later whose type is a mutable class must be deep-copied here, as these two are.
 	/// </summary>
 	internal WhatsmeowSidecarOptions Copy()
 	{
 		var copy = (WhatsmeowSidecarOptions)MemberwiseClone();
 		if (History is not null)
 			copy.History = History.Copy();
+		if (SendPacing is not null)
+			copy.SendPacing = SendPacing.Copy();
 		return copy;
 	}
 }
