@@ -368,7 +368,7 @@ func startLogging(t *testing.T, log zerolog.Logger, path string, ids ...string) 
 		h.addSession(id)
 	}
 
-	h.svc = New(db.DB, db.Writer, h.box, eventsslice.MessageEvent, log)
+	h.svc = New(db.DB, db.Writer, h.box, eventsslice.HistoryMessage, log)
 	h.svc.Use(h.sessions)
 	h.svc.after = func(d time.Duration) <-chan time.Time {
 		select {

@@ -215,7 +215,7 @@ func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, op
 	defer chats.Close()
 
 	// Closed after the sessions too: its workers end with their sessions' clients.
-	histories := historyslice.New(db.DB, db.Writer, box, eventsslice.MessageEvent, log)
+	histories := historyslice.New(db.DB, db.Writer, box, eventsslice.HistoryMessage, log)
 	defer histories.Close()
 
 	sessions, err := session.New(ctx, db.DB, db.Writer, db.Devices, box, recording(newClient, fail, events, chats, histories), log) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)

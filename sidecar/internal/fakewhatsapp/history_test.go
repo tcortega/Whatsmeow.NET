@@ -10,8 +10,10 @@ import (
 	"testing"
 
 	"go.mau.fi/whatsmeow"
+	"go.mau.fi/whatsmeow/proto/waCommon"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/proto/waHistorySync"
+	"go.mau.fi/whatsmeow/proto/waWeb"
 	wastore "go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
@@ -316,5 +318,23 @@ func TestAPeerSendGoesToTheAccountWithoutALIDLookup(t *testing.T) {
 
 	if m := w.GetSent().GetMessage(); m.GetChat() != own.String() || !proto.Equal(m.GetMessage(), request) {
 		t.Fatalf("sent %v, want the request to %s", w.GetSent(), own)
+	}
+}
+
+// A blob's poll carries its votes as the request names them, decrypted (WebMessageInfo.pollUpdates).
+func TestABlobsPollCarriesItsVotes(t *testing.T) {
+	t.Parallel()
+
+	votes := []*waWeb.PollUpdate{{
+		PollUpdateMessageKey: &waCommon.MessageKey{RemoteJID: proto.String("120363000000000000@g.us"), ID: proto.String("V1"), Participant: proto.String("5511900000002@s.whatsapp.net")},
+		Vote:                 &waE2E.PollVoteMessage{SelectedOptions: [][]byte{{1}}}, SenderTimestampMS: proto.Int64(1_600_000_000_500),
+	}}
+	req := historyRequest(true)
+	req.Conversations[0].Messages[0].PollUpdates = votes
+
+	got := historySync(req).GetConversations()[0].GetMessages()
+	if !slices.EqualFunc(got[0].GetMessage().GetPollUpdates(), votes, func(a, b *waWeb.PollUpdate) bool { return proto.Equal(a, b) }) ||
+		len(got[1].GetMessage().GetPollUpdates()) != 0 {
+		t.Fatalf("poll updates %v and %v, want the first message's votes only", got[0].GetMessage().GetPollUpdates(), got[1].GetMessage().GetPollUpdates())
 	}
 }

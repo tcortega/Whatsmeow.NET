@@ -89,7 +89,8 @@ message MessageInfo {
 message MessageEvent {
   // The message's identity.
   MessageInfo info = 1;
-  // The content as whatsmeow unwraps it (device-sent, ephemeral, view-once, edit and similar wrappers removed).
+  // The content as whatsmeow unwraps it (device-sent, ephemeral, view-once, edit and similar wrappers removed). Unset
+  // for a history poll's vote, which history carries decrypted on its poll, not as a message (poll_vote).
   WAWebProtobufsE2E.Message message = 2;
   // True when whatsmeow unwrapped the content from a view-once wrapper (ViewOnceMessage, V2 or V2Extension).
   bool view_once = 3;
@@ -109,8 +110,8 @@ message MessageEvent {
   // id and sender, read as a target's sender is. Unset for every other message, and for a quote that names no sender
   // the sidecar can tell: one whose participant is missing or is not a user's JID.
   MessageTarget reply_to = 8;
-  // For a poll vote, what it selected, decrypted with the poll's message secret; its poll is the target. Unset for
-  // every other message.
+  // For a poll vote, what it selected, decrypted with the poll's message secret, or as a history poll carries it
+  // decrypted (its WebMessageInfo's pollUpdates); its poll is the target. Unset for every other message.
   PollVote poll_vote = 9;
 }
 
@@ -277,7 +278,10 @@ enum HistorySyncType {
 // HistoryMessagesEvent is a batch of history messages: old messages, never live ones. A blob's messages arrive in one
 // or more batches, in the blob's order, each small enough for one gRPC message, then the blob's
 // HistorySyncProgressEvent. A batch delivered again carries the same messages. Status updates (statuses) a blob carries
-// are never delivered; they count in the progress event's skipped_count.
+// are never delivered; they count in the progress event's skipped_count. A poll is followed, in its batch, by each vote
+// the blob carries decrypted on it, as a live vote's MessageEvent without a message; a vote message the blob also
+// carries, encrypted, with the id of one so delivered in its chat is not delivered. One whose decrypted vote is not
+// delivered (a vote that names no voter, or whose poll is skipped) is delivered as before, undecryptable.
 message HistoryMessagesEvent {
   // Which history the blob carries.
   HistorySyncType sync_type = 1;
@@ -306,7 +310,8 @@ message HistorySyncProgressEvent {
   uint32 chunk_order = 2;
   // WhatsApp's progress value for the sync, as it sent it.
   uint32 progress = 3;
-  // How many of its messages the sidecar delivered in its batches.
+  // How many of its messages the sidecar delivered in its batches. A poll's votes are not the blob's messages and do
+  // not count; an encrypted vote message whose vote was delivered decrypted after its poll does.
   uint32 message_count = 4;
   // How many of its messages the sidecar did not deliver: one that does not parse, one too large for a gRPC message,
   // and every status update.

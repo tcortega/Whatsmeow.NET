@@ -56,7 +56,7 @@ const (
 	// history waits there [observed: TestTheWorkerKeepsAtMostAWindowOfHistoryUntilTheConsumersAck].
 	window = 4
 	// maxBatchMessages and maxBatchBytes bound a batch: at most this many messages, and at most this many bytes as one
-	// StreamEventsResponse, unless it is one message alone [inferred: a trade between the window's memory in .NET and
+	// StreamEventsResponse, unless it is one message alone, a poll with its votes [inferred: a trade between the window's memory in .NET and
 	// the events per ack; ADR 0035 records the drain rate].
 	maxBatchMessages = 256
 	maxBatchBytes    = 1 << 20
@@ -110,9 +110,10 @@ type Sessions interface {
 	Device(id string) (*store.Device, error)
 }
 
-// MessageEvent maps a whatsmeow message of the session whose device is account to the contract's MessageEvent: the
-// Events slice's mapping of a live one (events.MessageEvent), so a history message carries what a live one does.
-type MessageEvent func(e *waevents.Message, account *store.Device) *whatsmeowv1.MessageEvent
+// MessageEvent maps a whatsmeow message of the session whose device is account to the contract's MessageEvents: the
+// Events slice's mapping of a live one, then a poll's votes (events.HistoryMessage), so a history message carries what
+// a live one does.
+type MessageEvent func(e *waevents.Message, account *store.Device) []*whatsmeowv1.MessageEvent
 
 // Service implements whatsmeowv1.HistoryServiceServer, the whatsmeow event handler that queues notifications, and the
 // sessions' workers.
@@ -815,22 +816,58 @@ func (svc *Service) finish(ctx context.Context, sessionID string, client Client,
 }
 
 // parse is each message of the blob's conversations, in order, as whatsmeow parses a live one (ParseWebMessage), mapped
-// as the Events slice maps a live one, nil for one that does not parse or whose parse panics, and how many more are skipped: the messages of
-// a conversation whose JID does not parse, which hold their places as nil, and every status update, which history
-// never delivers (ARCHITECTURE §1). Stub messages, without content, are delivered as they are.
-func (svc *Service) parse(client Client, account *store.Device, blob *waHistorySync.HistorySync) ([]*whatsmeowv1.MessageEvent, int) {
-	var messages []*whatsmeowv1.MessageEvent
+// as the Events slice maps a live one, a poll followed by its votes: an entry per message, nil for one that does not
+// parse or whose parse panics, and how many more are skipped: the messages of a conversation whose JID does not
+// parse, which hold their places as nil, and every status update, which history never delivers (ARCHITECTURE §1).
+// Stub messages, without content, are delivered as they are.
+//
+// A vote message whose vote is delivered decrypted, after its poll, with the same id in the same chat, is an empty
+// entry: an application dedupes on the message id (HistoryMessage), so delivering both could keep the undecryptable
+// one and drop the vote. Only a delivered vote counts: one the mapping dropped, or whose poll is skipped, leaves its
+// encrypted copy delivered. That a blob carries both is [unknown] (ADR 0047).
+func (svc *Service) parse(client Client, account *store.Device, blob *waHistorySync.HistorySync) ([][]*whatsmeowv1.MessageEvent, int) {
+	var (
+		messages [][]*whatsmeowv1.MessageEvent
+		// votes is, for each entry, the chat and id of the vote message it is, empty for any other.
+		votes []string
+	)
+
+	decrypted := map[string]bool{}
 
 	for _, conv := range blob.GetConversations() {
 		chat, err := types.ParseJID(conv.GetID())
 		if err != nil || chat.IsEmpty() {
-			messages = append(messages, make([]*whatsmeowv1.MessageEvent, len(conv.GetMessages()))...)
+			messages = append(messages, make([][]*whatsmeowv1.MessageEvent, len(conv.GetMessages()))...)
+			votes = append(votes, make([]string, len(conv.GetMessages()))...)
 
 			continue
 		}
 
 		for _, m := range conv.GetMessages() {
-			messages = append(messages, svc.parseOne(client, account, chat, m.GetMessage()))
+			entry, vote := svc.parseOne(client, account, chat, m.GetMessage())
+			messages = append(messages, entry)
+			votes = append(votes, "")
+
+			if vote {
+				votes[len(votes)-1] = conv.GetID() + "\x00" + entry[0].GetInfo().GetId()
+			}
+
+			if entry == nil || oversized(entry) {
+				continue
+			}
+
+			for _, e := range entry {
+				// A vote a history poll carries decrypted: no message (events.HistoryMessage).
+				if e.GetPollVote() != nil && e.GetMessage() == nil {
+					decrypted[conv.GetID()+"\x00"+e.GetInfo().GetId()] = true
+				}
+			}
+		}
+	}
+
+	for i, vote := range votes {
+		if vote != "" && decrypted[vote] {
+			messages[i] = []*whatsmeowv1.MessageEvent{}
 		}
 	}
 
@@ -838,20 +875,38 @@ func (svc *Service) parse(client Client, account *store.Device, blob *waHistoryS
 }
 
 // parseOne is one message parsed and mapped, or nil when it does not parse or its parse panics: one bad message is
-// skipped, never its blob. The deliver's own recover stays the guard of everything else.
-func (svc *Service) parseOne(client Client, account *store.Device, chat types.JID, m *waWeb.WebMessageInfo) (event *whatsmeowv1.MessageEvent) {
+// skipped, never its blob; and whether it is a vote message. The deliver's own recover stays the guard of everything
+// else.
+func (svc *Service) parseOne(client Client, account *store.Device, chat types.JID, m *waWeb.WebMessageInfo) (events []*whatsmeowv1.MessageEvent, vote bool) {
 	defer func() {
 		if recover() != nil {
-			event = nil
+			events, vote = nil, false
 		}
 	}()
 
 	evt, err := client.ParseWebMessage(chat, m)
 	if err != nil {
-		return nil
+		return nil, false
 	}
 
-	return svc.toEvent(evt, account)
+	events = svc.toEvent(evt, account)
+
+	return events, evt.Message.GetPollUpdateMessage() != nil && len(events) > 0
+}
+
+// cost is what an entry takes in a batch: each message as a repeated field, its tag and length, then its bytes.
+func cost(entry []*whatsmeowv1.MessageEvent) int {
+	n := 0
+	for _, m := range entry {
+		n += 1 + varintSize(proto.Size(m)) + proto.Size(m)
+	}
+
+	return n
+}
+
+// oversized is an entry that alone takes more than maxEventBytes as an event, which batch skips.
+func oversized(entry []*whatsmeowv1.MessageEvent) bool {
+	return eventSize(cost(entry)+2) > maxEventBytes
 }
 
 // batched is one batch, and the blob indexes of its first message and of the one after its last.
@@ -861,23 +916,25 @@ type batched struct {
 }
 
 // batch cuts the messages from index from into batches, in order: at most maxBatchMessages each, and at most
-// maxBatchBytes as an event unless one message alone takes more. A message that alone takes more than maxEventBytes
-// is skipped, as one that did not parse is. delivered and skipped count the whole blob, before from too, so a blob
-// processed again from its middle reports what it reported whole.
-func batch(syncType whatsmeowv1.HistorySyncType, messages []*whatsmeowv1.MessageEvent, from int) (batches []batched, delivered, skipped int) {
+// maxBatchBytes as an event unless one message alone takes more. A message is an entry of parse, with a poll's votes,
+// which a batch never splits, so a blob processed again from a message's index delivers its votes with it. An entry
+// that alone takes more than maxEventBytes is skipped, as one that did not parse is; an empty one, an encrypted vote
+// delivered decrypted with its poll, counts as delivered. delivered and skipped count the blob's messages, never a
+// poll's votes, and the whole blob, before from too, so a blob processed again from its middle reports what it
+// reported whole.
+func batch(syncType whatsmeowv1.HistorySyncType, messages [][]*whatsmeowv1.MessageEvent, from int) (batches []batched, delivered, skipped int) {
 	// current is the index of the batch being filled, -1 for none.
 	current, size := -1, 0
 
-	for i, m := range messages {
-		if m == nil {
+	for i, entry := range messages {
+		if entry == nil {
 			skipped++
 
 			continue
 		}
 
-		// The message as a repeated field of the batch: its tag and length, then its bytes.
-		cost := 1 + varintSize(proto.Size(m)) + proto.Size(m)
-		if eventSize(cost+2) > maxEventBytes {
+		c := cost(entry)
+		if eventSize(c+2) > maxEventBytes {
 			skipped++
 
 			continue
@@ -885,11 +942,11 @@ func batch(syncType whatsmeowv1.HistorySyncType, messages []*whatsmeowv1.Message
 
 		delivered++
 
-		if i < from {
+		if i < from || len(entry) == 0 {
 			continue
 		}
 
-		if current >= 0 && (len(batches[current].event.GetMessages()) == maxBatchMessages || eventSize(size+cost) > maxBatchBytes) {
+		if current >= 0 && (len(batches[current].event.GetMessages())+len(entry) > maxBatchMessages || eventSize(size+c) > maxBatchBytes) {
 			current = -1
 		}
 
@@ -899,9 +956,9 @@ func batch(syncType whatsmeowv1.HistorySyncType, messages []*whatsmeowv1.Message
 			size = 2 // the sync type
 		}
 
-		batches[current].event.Messages = append(batches[current].event.Messages, m)
+		batches[current].event.Messages = append(batches[current].event.Messages, entry...)
 		batches[current].end = i + 1
-		size += cost
+		size += c
 	}
 
 	return batches, delivered, skipped

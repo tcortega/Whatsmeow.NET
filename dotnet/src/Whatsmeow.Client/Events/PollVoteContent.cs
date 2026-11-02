@@ -6,10 +6,11 @@ using Whatsmeow.Messaging;
 namespace Whatsmeow.Events;
 
 /// <summary>
-/// A vote on a poll, from the message's sender, decrypted with the poll's message secret. It replaces the voter's earlier
-/// vote on the poll; each vote is delivered, and keeping the latest is the application's. WhatsApp names an option by
-/// a hash of its name (<see cref="HashOption"/>), so the application, which holds the poll's options, tells which were
-/// selected with <see cref="Selects"/>. Its hashes compare by content.
+/// A vote on a poll, from the message's sender, decrypted with the poll's message secret, or, in a
+/// <see cref="History.HistoryReceived"/>, as history carries it on its poll, right after the poll. It replaces the
+/// voter's earlier vote on the poll; each vote is delivered, and keeping the latest is the application's. WhatsApp
+/// names an option by a hash of its name (<see cref="HashOption"/>), so the application, which holds the poll's
+/// options, tells which were selected with <see cref="Selects"/>. Its hashes compare by content.
 /// </summary>
 public sealed record PollVoteContent : MessageContent
 {

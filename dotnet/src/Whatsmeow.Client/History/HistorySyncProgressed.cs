@@ -20,7 +20,7 @@ public sealed record HistorySyncProgressed : WhatsAppEvent
 
 	/// <summary>
 	/// How many of the blob's messages the sidecar delivered in its <see cref="HistoryReceived"/> batches. A message the
-	/// client then skipped as unreadable still counts.
+	/// client then skipped as unreadable still counts; the votes that follow a poll do not.
 	/// </summary>
 	public required long MessageCount { get; init; }
 
