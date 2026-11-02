@@ -347,4 +347,21 @@ public sealed class MessagingTests(FakeSidecar fixture)
 
 		Assert.Equal(WhatsmeowErrorCode.InvalidArgument, error.ErrorCode);
 	}
+
+	/// <summary>
+	/// A sidecar error message reaches the application, and its logs, as the exception's message: it names no phone
+	/// number or JID user part, even when the sidecar echoes the JID it refused (ADR 0039).
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task SendText_ToADevice_ThrowsWithoutTheNumber()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var client = await ConnectedAsync("messaging-device-redacted", ct);
+
+		var error = await Assert.ThrowsAsync<WhatsmeowValidationException>(() => client.SendTextAsync(Jid.Parse("5511900000114:3@s.whatsapp.net"), "hi", cancellationToken: ct));
+
+		Assert.Equal(WhatsmeowErrorCode.InvalidArgument, error.ErrorCode);
+		Assert.DoesNotContain("5511900000114", error.Message, StringComparison.Ordinal);
+		Assert.Contains(":3@s.whatsapp.net\" names a device", error.Message, StringComparison.Ordinal);
+	}
 }

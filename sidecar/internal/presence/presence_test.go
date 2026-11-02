@@ -24,6 +24,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	sidecarlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/session"
 )
@@ -85,7 +86,7 @@ func (s sessions) Online(id string) (session.Client, <-chan struct{}, error) {
 func serve(t *testing.T, s sessions) (whatsmeowv1.PresenceServiceClient, context.Context) {
 	t.Helper()
 
-	srv := server.New(token, zerolog.Nop())
+	srv := server.New(token, zerolog.Nop(), sidecarlog.NewRedactor())
 	whatsmeowv1.RegisterPresenceServiceServer(srv, New(s))
 
 	lis := bufconn.Listen(1 << 20)

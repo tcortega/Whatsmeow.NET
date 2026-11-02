@@ -43,7 +43,10 @@ public readonly struct Jid : IEquatable<Jid>, ISpanParsable<Jid>
 	private const string LidServer = "lid";
 
 	/// <summary>Parses whatsmeow's form.</summary>
-	/// <exception cref="WhatsmeowValidationException"><paramref name="s"/> is not a JID.</exception>
+	/// <exception cref="WhatsmeowValidationException">
+	/// <paramref name="s"/> is not a JID. The message leaves <paramref name="s"/> out: it can hold a phone number, and an
+	/// exception's message reaches logs (ARCHITECTURE §8.8).
+	/// </exception>
 	public static Jid Parse(string s)
 	{
 		ArgumentNullException.ThrowIfNull(s);
@@ -54,7 +57,7 @@ public readonly struct Jid : IEquatable<Jid>, ISpanParsable<Jid>
 	public static Jid Parse(ReadOnlySpan<char> s)
 	{
 		if (!TryParse(s, out var jid))
-			WhatsmeowValidationException.ThrowInvalid($"\"{s}\" is not a JID: user[.agent][:device]@server.");
+			WhatsmeowValidationException.ThrowInvalid("The text is not a JID: user[.agent][:device]@server.");
 		return jid;
 	}
 

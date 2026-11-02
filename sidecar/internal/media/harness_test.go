@@ -29,6 +29,7 @@ import (
 	"google.golang.org/grpc/test/bufconn"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	sidecarlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/session"
 	sidecarstore "github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
@@ -323,7 +324,7 @@ func startWith(t *testing.T, client session.Client, withRoot bool) *harness {
 
 	t.Cleanup(func() { _ = h.svc.Close() })
 
-	srv := server.New(token, log)
+	srv := server.New(token, log, sidecarlog.NewRedactor())
 	whatsmeowv1.RegisterMediaServiceServer(srv, h.svc)
 
 	lis := bufconn.Listen(1 << 20)

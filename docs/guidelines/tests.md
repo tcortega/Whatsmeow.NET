@@ -29,6 +29,11 @@ That is `tests/Whatsmeow.IntegrationTests`.
   `Transport/RequestBodyFenceTests.cs` drives it with a stream whose write blocks on the test, so every step is ordered.
   The refused-upload FullCycle in `Media/MediaTests.cs` stays the end-to-end check.
 
+Two fixture-free methods live in `tests/Whatsmeow.IntegrationTests` because no sidecar path reaches what they check:
+
+* `Support/LogRedactionTests.cs`, the live log's redaction, which no live run can check for itself.
+* `Events/JidParseTests.cs`, `Jid.Parse` throwing without the text it refused (ADR 0039): the sidecar writes every JID with whatsmeow's `JID.String()`, and no form of it found at the pin fails the client's parse, so no known event or response reaches that failure.
+
 Proto-to-record mapping and error mapping are covered through integration, not unit tests.
 Go keeps per-slice unit tests; see [go.md](go.md).
 

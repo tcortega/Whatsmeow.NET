@@ -32,6 +32,7 @@ import (
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
 	eventsslice "github.com/tcortega/Whatsmeow.NET/sidecar/internal/events"
+	sidecarlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/outbox"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/session"
@@ -389,7 +390,7 @@ func startLogging(t *testing.T, log zerolog.Logger, path string, ids ...string) 
 	h.svc.onIdle = func(id string) { h.idle <- id }
 	h.svc.onOffline = func(id string) { h.offline <- id }
 
-	srv := server.New(token, log)
+	srv := server.New(token, log, sidecarlog.NewRedactor())
 	whatsmeowv1.RegisterHistoryServiceServer(srv, h.svc)
 
 	lis := bufconn.Listen(1 << 20)

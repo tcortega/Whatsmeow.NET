@@ -22,6 +22,7 @@ import (
 	"google.golang.org/grpc/tap"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	sidecarlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 )
 
 const (
@@ -37,8 +38,10 @@ type Server struct {
 	grpc          *grpc.Server
 	authorization []byte
 	log           zerolog.Logger
-	done          chan struct{}
-	once          sync.Once
+	// redactor takes the numbers out of a status message and its error line (toStatus).
+	redactor *sidecarlog.Redactor
+	done     chan struct{}
+	once     sync.Once
 	// lifetime ends with Shutdown; every stream's context ends with it, so open streams end and the graceful
 	// stop does not wait for them.
 	lifetime  context.Context //nolint:containedctx // the server's own lifetime, not a request's
@@ -46,10 +49,11 @@ type Server struct {
 	stopGrace time.Duration
 }
 
-// New returns a server that accepts only calls whose authorization metadata is "Bearer <token>".
-func New(token string, log zerolog.Logger) *Server {
+// New returns a server that accepts only calls whose authorization metadata is "Bearer <token>". The redactor is
+// the process's, the one its log writer has, so a status message and a log line give a user the same token.
+func New(token string, log zerolog.Logger, redactor *sidecarlog.Redactor) *Server {
 	lifetime, end := context.WithCancel(context.Background())
-	s := &Server{authorization: []byte("Bearer " + token), log: log, done: make(chan struct{}), lifetime: lifetime, end: end, stopGrace: stopGrace}
+	s := &Server{authorization: []byte("Bearer " + token), log: log, redactor: redactor, done: make(chan struct{}), lifetime: lifetime, end: end, stopGrace: stopGrace}
 	s.grpc = grpc.NewServer(
 		grpc.ForceServerCodecV2(lenientCodec{}),
 		grpc.MaxRecvMsgSize(maxMessageSize),
@@ -184,12 +188,20 @@ func (s *Server) admit(method string) error {
 }
 
 // toStatus maps a slice error to a status with an ErrorInfo. Slices return %w errors and never build a status,
-// so a status here came from grpc-go or this package and passes through. A context error keeps its own status
-// (CANCELLED, DEADLINE_EXCEEDED); an error that wraps one of the reason errors (reasons.go) gets its reason and
-// metadata; every other error is INTERNAL.
+// so a status here came from grpc-go or this package and passes through with its code and details. A context error
+// keeps its own status (CANCELLED, DEADLINE_EXCEEDED); an error that wraps one of the reason errors (reasons.go) gets
+// its reason and metadata; every other error is INTERNAL.
+//
+// Every message, a passed-through one's too, reaches the application as an exception's message, and an INTERNAL one
+// the error log too, so it has no phone number, JID user part or URL query (sidecarlog.Redactor.Text): a slice may
+// wrap whatsmeow's text, which names JIDs and prints URLs with their credential, or echo a JID it refused (ADR 0039).
+// The debug line keeps err as it is.
 func (s *Server) toStatus(method string, err error) error {
-	if _, ok := status.FromError(err); ok {
-		return err
+	if st, ok := status.FromError(err); ok {
+		passed := st.Proto()
+		passed.Message = s.redactor.Text(passed.GetMessage())
+
+		return status.ErrorProto(passed) //nolint:wrapcheck // a gRPC status reaches grpc-go unwrapped
 	}
 
 	// The caller cancelled or its deadline passed: nothing failed here, so it is not INTERNAL.
@@ -199,15 +211,17 @@ func (s *Server) toStatus(method string, err error) error {
 		return status.FromContextError(err).Err() //nolint:wrapcheck // a gRPC status reaches grpc-go unwrapped
 	}
 
+	message := s.redactor.Text(err.Error())
+
 	if code, reason, metadata, ok := reasonOf(err); ok {
 		s.log.Debug().Err(err).Str("method", method).Msg("call failed with a reason")
 
-		return errorInfoWith(code, reason, err.Error(), metadata)
+		return errorInfoWith(code, reason, message, metadata)
 	}
 
-	s.log.Error().Err(err).Str("method", method).Msg("call failed")
+	s.log.Error().Str(zerolog.ErrorFieldName, message).Str("method", method).Msg("call failed")
 
-	return errorInfo(codes.Internal, whatsmeowv1.ErrorReason_ERROR_REASON_INTERNAL, err.Error())
+	return errorInfo(codes.Internal, whatsmeowv1.ErrorReason_ERROR_REASON_INTERNAL, message)
 }
 
 // errorInfo is a status of code carrying one ErrorInfo of reason, sent without its ERROR_REASON_ prefix

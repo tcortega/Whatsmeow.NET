@@ -29,6 +29,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	sidecarlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/session"
 	sidecarstore "github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
@@ -241,7 +242,7 @@ func start(t *testing.T) *harness {
 	h.svc.onQueue = func() { h.queued <- struct{}{} }
 	h.svc.onWait = func() { h.waiting <- struct{}{} }
 
-	srv := server.New(token, log)
+	srv := server.New(token, log, sidecarlog.NewRedactor())
 	whatsmeowv1.RegisterMessageServiceServer(srv, h.svc)
 
 	lis := bufconn.Listen(1 << 20)

@@ -29,6 +29,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	sidecarlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/outbox"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 	sidecarstore "github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
@@ -173,7 +174,7 @@ func startOn(t *testing.T, path string) *harness {
 
 	h.svc = svc
 
-	srv := server.New(token, zerolog.Nop())
+	srv := server.New(token, zerolog.Nop(), sidecarlog.NewRedactor())
 	whatsmeowv1.RegisterSessionServiceServer(srv, svc)
 
 	lis := bufconn.Listen(1 << 20)
