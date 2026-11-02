@@ -303,7 +303,21 @@ func (svc *Service) work(q *queue) {
 		svc.mu.Unlock()
 
 		j.outcome = svc.run(q, j)
+
+		// The queue is marked idle before the outcome is published, so a caller that saw its send end never finds the
+		// queue still running when it is empty.
+		svc.mu.Lock()
+		idle := len(q.jobs) == 0
+		if idle {
+			q.running = false
+		}
+		svc.mu.Unlock()
+
 		close(j.done)
+
+		if idle {
+			return
+		}
 	}
 }
 
