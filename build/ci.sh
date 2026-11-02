@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # The checks CI runs, one subcommand per CI job; .github/workflows/ci.yml calls this and nothing else.
-# Run it before pushing: bash build/ci.sh all (or contract, go, dotnet). Works in Git Bash on Windows.
+# Run it before pushing: bash build/ci.sh all (or contract, go, dotnet, package; install <feed>). Works in Git Bash on
+# Windows.
 #
 # Every check runs and reports, even after an earlier one failed; the script fails at the end if any did.
 # A check that only makes sense once something exists (a Go module with no package yet) says so and passes.
@@ -198,12 +199,18 @@ job_go() {
 	check "the go job left the tree unchanged" tree_unchanged "$before" "the go job"
 }
 
+# The client's version, in a restored tree. MinVer sets Version in its MinVer target, so -getProperty alone would read
+# the SDK default, 1.0.0 (ADR 0023).
+client_version() {
+	dotnet msbuild dotnet/src/Whatsmeow.Client/Whatsmeow.Client.csproj -t:MinVer -getProperty:Version | tr -d '\r'
+}
+
 # AotSmoke starts a real whatsmeow-net under Native AOT, so the sidecar is built here at the client's version.
 aot_smoke_run() {
 	local rid exe="" version sidecar
 	rid="$(dotnet msbuild dotnet/tests/AotSmoke/AotSmoke.csproj -getProperty:RuntimeIdentifier)" || return
 	case "$rid" in win-*) exe=.exe ;; esac
-	version="$(dotnet msbuild dotnet/src/Whatsmeow.Client/Whatsmeow.Client.csproj -getProperty:Version)" || return
+	version="$(client_version)" || return
 	sidecar="dotnet/artifacts/aot-smoke/whatsmeow-net$exe"
 	CGO_ENABLED=0 go -C sidecar build -ldflags "-X main.version=$version" -o "../$sidecar" ./cmd/whatsmeow-net || return
 	"dotnet/artifacts/publish/AotSmoke/release_$rid/AotSmoke$exe" "$sidecar"
@@ -296,12 +303,364 @@ job_dotnet() {
 	check "the dotnet job left the tree unchanged (a stale packages.lock.json shows here too)" tree_unchanged "$before" "the dotnet job"
 }
 
+# Native packages (ADR 0023). The package job builds whatsmeow-net for every release target at the client's version,
+# packs every package into a local feed, and installs from it; CI packs on Windows, and the install job installs that
+# feed on Linux and macOS, so packages built on Windows run there.
+package_feed=dotnet/artifacts/package
+sidecar_binaries=dotnet/artifacts/sidecar
+alpine_image=mcr.microsoft.com/dotnet/sdk:10.0.403-alpine3.24-amd64@sha256:60a079c9d3ffc98b2968c3153b995ede679f7d6504e3ae7d2b68225a7fd84f5a
+
+# rid GOOS/GOARCH: the .NET RID of a Go target.
+rid() {
+	local os="${1%/*}" arch="${1#*/}"
+	case "$os" in darwin) os=osx ;; windows) os=win ;; esac
+	case "$arch" in amd64) arch=x64 ;; esac
+	echo "$os-$arch"
+}
+
+exe_of() { # GOOS/GOARCH
+	case "$1" in windows/*) echo .exe ;; *) echo "" ;; esac
+}
+
+# The release targets: the one list tools/check-licenses audits (ADR 0016).
+release_targets() {
+	go -C tools run ./check-licenses -targets | tr -d '\r'
+}
+
+# A path for dotnet: Git Bash on Windows hands POSIX paths to native programs only in arguments it recognizes.
+native_path() {
+	if command -v cygpath >/dev/null 2>&1; then cygpath -m "$1"; else printf '%s\n' "$1"; fi
+}
+
+linux_ci() {
+	[ "${GITHUB_ACTIONS:-}" = true ] && [ "$(uname -s)" = Linux ]
+}
+
+# One version for every package and binary. Untagged, it must be a pre-release, so it can never pass for a release.
+package_version() {
+	version="$(client_version)" || return
+	if [ -z "$version" ]; then
+		annotate error "version" "MinVer gave no version for Whatsmeow.Client"
+		return 1
+	fi
+	if ! git describe --exact-match --tags --match 'v[0-9]*' HEAD >/dev/null 2>&1 && [[ "$version" != *-* ]]; then
+		annotate error "version" "HEAD has no v<semver> tag, yet the version $version is not a pre-release (MinVer, ADR 0023)"
+		return 1
+	fi
+	echo "every package and binary is $version"
+}
+
+# Release builds only: no fakewhatsapp tag (ADR 0019); -trimpath and -s -w, reproducible from the commit (ADR 0023).
+build_sidecars() {
+	local targets target
+	targets="$(release_targets)" || return
+	rm -rf "$sidecar_binaries"
+	for target in $targets; do
+		CGO_ENABLED=0 GOOS="${target%/*}" GOARCH="${target#*/}" go -C sidecar build -trimpath -ldflags "-s -w -X main.version=$version" \
+			-o "../$sidecar_binaries/$(rid "$target")/whatsmeow-net$(exe_of "$target")" ./cmd/whatsmeow-net || return
+		echo "built whatsmeow-net $version for $target: $(wc -c <"$sidecar_binaries/$(rid "$target")/whatsmeow-net$(exe_of "$target")" | tr -d ' ') bytes"
+	done
+}
+
+pack_feed() {
+	local nupkg line
+	rm -rf "$package_feed"
+	dotnet pack dotnet/Whatsmeow.slnx -c Release --no-restore -p:ContinuousIntegrationBuild=true -o "$package_feed" || return
+	echo "$version" >"$package_feed/version"
+	for nupkg in "$package_feed"/Whatsmeow.Sidecar.Native.*.nupkg; do
+		line="$(basename "$nupkg"): $(wc -c <"$nupkg" | tr -d ' ') bytes"
+		echo "$line"
+		if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then echo "- $line" >>"$GITHUB_STEP_SUMMARY"; fi
+	done
+}
+
+# A new console app in a directory of its own, outside the repository, so none of our MSBuild files, central versions
+# or nuget.config apply. It restores Whatsmeow.* from the feed only (source mapping) into an empty packages folder, so it
+# gets exactly what the feed holds, never a cached package of the same version.
+consumer_setup() { # feed
+	local feed
+	feed="$(cd "$1" && pwd)" || return
+	version="$(tr -d '\r' <"$feed/version")" || return
+	work="$(mktemp -d)" || return
+	packages="$work/packages"
+	host="$(go env GOHOSTOS)/$(go env GOHOSTARCH)" || return
+	host_rid="$(rid "$host")"
+	exe="$(exe_of "$host")"
+	cp global.json "$work/" || return
+	consumer_config "$(native_path "$feed")" >"$work/nuget.config" || return
+	in_consumer dotnet new console -o app -n Consumer || return
+	cp build/package-smoke/Program.cs "$work/app/" || return
+	in_consumer dotnet add app/Consumer.csproj package Whatsmeow.Client --version "$version" || return
+	echo "a consumer of Whatsmeow.Client $version from $feed in $work"
+}
+
+consumer_config() { # feed
+	cat <<EOF
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+	<packageSources>
+		<clear />
+		<add key="local" value="$1" />
+		<add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />
+	</packageSources>
+	<packageSourceMapping>
+		<packageSource key="local"><package pattern="Whatsmeow.*" /></packageSource>
+		<packageSource key="nuget.org"><package pattern="*" /></packageSource>
+	</packageSourceMapping>
+</configuration>
+EOF
+}
+
+# Never with WHATSMEOW_NET_SIDECAR_PATH: an exported override would make every consumer path pass without the packages.
+in_consumer() {
+	(unset WHATSMEOW_NET_SIDECAR_PATH && cd "$work" && NUGET_PACKAGES="$(native_path "$packages")" "$@")
+}
+
+# The native package of a RID's OS (ADR 0023). A packages folder names it in lowercase.
+native_id() { # linux|osx|win
+	case "$1" in
+		linux) echo Whatsmeow.Sidecar.Native.Linux ;;
+		osx) echo Whatsmeow.Sidecar.Native.MacOS ;;
+		win) echo Whatsmeow.Sidecar.Native.Windows ;;
+	esac
+}
+
+lowercase() {
+	tr '[:upper:]' '[:lower:]' <<<"$1"
+}
+
+native_package() { # linux|osx|win
+	echo "$packages/$(lowercase "$(native_id "$1")")/$version"
+}
+
+packaged_pins() {
+	local nuspec="$packages/whatsmeow.client/$version/whatsmeow.client.nuspec" os id rc=0
+	if [ ! -f "$nuspec" ]; then
+		annotate error "exact pins" "the consumer restored no $nuspec"
+		return 1
+	fi
+	for os in linux osx win; do
+		id="$(native_id "$os")"
+		if ! grep -qF "<dependency id=\"$id\" version=\"[$version]\"" "$nuspec"; then
+			annotate error "exact pins" "Whatsmeow.Client does not depend on $id at exactly [$version] (§13 invariant 12). _WhatsmeowExactProjectVersions in dotnet/Directory.Build.targets makes the pin by rewriting NuGet's internal _ProjectReferencesWithVersions item; after an SDK bump, check that NuGet.Build.Tasks.Pack.targets still fills it in _GetProjectReferenceVersions (ADR 0023)"
+			rc=1
+		fi
+	done
+	grep -F 'Whatsmeow.Sidecar.Native' "$nuspec"
+	return "$rc"
+}
+
+# Each native package holds exactly its binaries, one per release target of its OS, and its buildTransitive targets,
+# beside the files NuGet writes when it extracts a package: no build output, nothing else (ADR 0023).
+packaged_files() {
+	local targets target r os id name expected actual rc=0
+	targets="$(release_targets)" || return
+	for os in linux osx win; do
+		id="$(native_id "$os")" name="$(lowercase "$(native_id "$os")")"
+		expected="$({
+			for target in $targets; do
+				r="$(rid "$target")"
+				if [ "${r%-*}" = "$os" ]; then echo "runtimes/$r/native/whatsmeow-net$(exe_of "$target")"; fi
+			done
+			printf '%s\n' "buildTransitive/$id.targets" .nupkg.metadata "$name.$version.nupkg" "$name.$version.nupkg.sha512" "$name.nuspec"
+		} | LC_ALL=C sort)"
+		actual="$(cd "$(native_package "$os")" && find . -type f | sed 's#^\./##' | LC_ALL=C sort)" || return
+		if [ "$expected" != "$actual" ]; then
+			annotate error "packaged files" "$id does not hold exactly its binaries for the release targets (go -C tools run ./check-licenses -targets) and buildTransitive/$id.targets"
+			diff <(echo "$expected") <(echo "$actual")
+			rc=1
+		fi
+	done
+	[ "$rc" -eq 0 ] && echo "each native package holds exactly its binaries and its buildTransitive targets"
+	return "$rc"
+}
+
+# Each packaged binary is a release build of the target its RID folder names: CGO-free, -trimpath, and without the
+# fake (ADR 0019), as go version -m reads it from the binaries the consumer restored.
+packaged_binaries() {
+	local targets target r goos goarch binary info setting rc=0
+	targets="$(release_targets)" || return
+	for target in $targets; do
+		goos="${target%/*}" goarch="${target#*/}" r="$(rid "$target")"
+		binary="$(native_package "${r%-*}")/runtimes/$r/native/whatsmeow-net$(exe_of "$target")"
+		info="$(go version -m "$binary")" || return
+		for setting in "GOOS=$goos" "GOARCH=$goarch" CGO_ENABLED=0 -trimpath=true; do
+			if ! grep -qE "^[[:space:]]+build[[:space:]]+$setting\$" <<<"$info"; then
+				annotate error "packaged binaries" "runtimes/$r/native/whatsmeow-net is not a release build for $target: go version -m has no build $setting"
+				rc=1
+			fi
+		done
+		if grep -E '^[[:space:]]+build[[:space:]]+-tags=' <<<"$info" | grep -qF fakewhatsapp; then
+			annotate error "fake in a packaged binary" "runtimes/$r/native/whatsmeow-net was built with -tags fakewhatsapp (ADR 0019)"
+			rc=1
+		fi
+	done
+	[ "$rc" -eq 0 ] && echo "every packaged binary is a CGO-free -trimpath build of its RID's target, none with -tags fakewhatsapp"
+	return "$rc"
+}
+
+packaged_refuses_fake() {
+	local binary stderr rc=0
+	binary="$(native_package "${host_rid%-*}")/runtimes/$host_rid/native/whatsmeow-net$exe"
+	stderr="$("$binary" --nonce n --fake-whatsapp --database "$work/refuse.db" </dev/null 2>&1 >/dev/null)" || rc=$?
+	if [ "$rc" -ne 2 ] || [[ "$stderr" != *"never fakes WhatsApp"* ]]; then
+		annotate error "fake in a packaged binary" "the packaged $host_rid binary did not refuse --fake-whatsapp with exit code 2 (exit $rc)"
+		echo "$stderr"
+		return 1
+	fi
+	echo "the packaged $host_rid binary refuses --fake-whatsapp"
+}
+
+# consumer_start PATH COMMAND...: COMMAND, given start <version>, must start the packaged sidecar; a failure names PATH.
+consumer_start() {
+	local path="$1"
+	shift
+	if ! (unset WHATSMEOW_NET_SIDECAR_PATH && "$@" start "$version"); then
+		annotate error "consumer: $path" "the consumer did not find or start the packaged sidecar on this path"
+		return 1
+	fi
+}
+
+consumer_publish() { # path output publish-arguments...
+	local path="$1" output="$2"
+	shift 2
+	if ! in_consumer dotnet publish app -c Release -warnaserror -o "$(native_path "$output")" "$@"; then
+		annotate error "consumer: $path" "dotnet publish $* failed"
+		return 1
+	fi
+}
+
+install_portable() {
+	local path="portable build and dotnet run, bin/runtimes/<rid>/native"
+	if ! in_consumer dotnet build app -c Release -warnaserror; then
+		annotate error "consumer: $path" "dotnet build failed"
+		return 1
+	fi
+	consumer_start "$path" in_consumer dotnet run --project app -c Release --no-build --
+}
+
+install_rid() { # path output publish-arguments...
+	local path="$1" output="$work/$2"
+	shift 2
+	consumer_publish "$path" "$output" "$@" && consumer_start "$path" "$output/Consumer$exe"
+}
+
+# Single-file: the sidecar is published beside the app, never bundled and extracted (ExcludeFromSingleFile, ADR 0023).
+install_single_file() { # path output publish-arguments...
+	local path="$1" output="$work/$2"
+	shift 2
+	consumer_publish "$path" "$output" -r "$host_rid" --self-contained true -p:PublishSingleFile=true "$@" || return
+	if [ ! -f "$output/whatsmeow-net$exe" ]; then
+		annotate error "consumer: $path" "whatsmeow-net$exe is not beside the app: the bundle took it"
+		ls -l "$output"
+		return 1
+	fi
+	consumer_start "$path" "$output/Consumer$exe"
+}
+
+# 32-bit Windows ships no binary: start fails naming both bundled paths (#4). Runs under WOW64 on the x64 runner.
+install_win_x86() {
+	local path="win-x86 self-contained publish, no binary ships" output="$work/win-x86"
+	if [ "$host_rid" != win-x64 ]; then
+		if [ "${GITHUB_ACTIONS:-}" = true ] && [ "${host%/*}" = windows ]; then
+			annotate error "consumer: $path" "Windows CI must run on win-x64, where win-x86 runs under WOW64; this is $host_rid"
+			return 1
+		fi
+		echo "not win-x64: the win-x86 consumer is skipped"
+		return 0
+	fi
+	consumer_publish "$path" "$output" -r win-x86 --self-contained true || return
+	if ! (unset WHATSMEOW_NET_SIDECAR_PATH && "$output/Consumer.exe" missing win-x86); then
+		annotate error "consumer: $path" "start did not fail with SidecarUnavailableException naming both bundled paths"
+		return 1
+	fi
+}
+
+# On Alpine (musl), in the SDK container: the portable build finds the linux-x64 binary (ARCHITECTURE §8.5, RESEARCH
+# item 9), and a linux-musl-x64 publish gets it through the RID graph. CI runs it on linux-x64; elsewhere it is skipped.
+install_alpine() { # path script
+	local path="$1" src="$work/alpine"
+	if ! linux_ci; then
+		echo "not Linux CI: the Alpine consumer is skipped"
+		return 0
+	fi
+	rm -rf "$src" && mkdir -p "$src" || return
+	cp global.json build/package-smoke/Program.cs "$src/" || return
+	consumer_config /feed >"$src/nuget.config" || return
+	if ! docker run --rm -e VERSION="$version" -v "$(cd "$package_source" && pwd):/feed:ro" -v "$src:/src:ro" "$alpine_image" sh -euc "
+		cp -r /src /work && cd /work && export DOTNET_NOLOGO=true DOTNET_CLI_TELEMETRY_OPTOUT=true
+		dotnet new console -o app -n Consumer >/dev/null && cp Program.cs app/
+		dotnet add app/Consumer.csproj package Whatsmeow.Client --version \"\$VERSION\" >/dev/null
+		$2"; then
+		annotate error "consumer: $path" "the consumer did not find or start the packaged sidecar on Alpine"
+		return 1
+	fi
+}
+
+# The binary on a noexec mount: the client runs a copy from its local application data (ARCHITECTURE §8.5). Linux CI
+# provides the mount (noexec_mount); elsewhere it is skipped.
+install_noexec() {
+	local path="build output on a noexec mount, copy fallback" output copy="$work/xdg/whatsmeow-net/$version/whatsmeow-net"
+	if [ -z "${WHATSMEOW_NET_TEST_NOEXEC_DIR:-}" ]; then
+		if linux_ci; then
+			annotate error "consumer: $path" "Linux CI must provide a noexec mount (noexec_mount)"
+			return 1
+		fi
+		echo "no noexec mount: the noexec consumer is skipped"
+		return 0
+	fi
+	output="$WHATSMEOW_NET_TEST_NOEXEC_DIR/consumer"
+	if ! in_consumer dotnet build app -c Release -warnaserror -o "$output"; then
+		annotate error "consumer: $path" "dotnet build failed"
+		return 1
+	fi
+	XDG_DATA_HOME="$work/xdg" consumer_start "$path" dotnet "$output/Consumer.dll" || return
+	if [ ! -f "$copy" ]; then
+		annotate error "consumer: $path" "the sidecar started, but not from the copy $copy"
+		return 1
+	fi
+	echo "the sidecar ran from $copy"
+}
+
+job_install() { # feed
+	package_source="$1"
+	check "install: a new consumer of the feed $1" consumer_setup "$1" || return
+	check "install: Whatsmeow.Client pins each native package at exactly its version" packaged_pins
+	check "install: each native package holds exactly its binaries and its buildTransitive targets" packaged_files
+	check "install: every packaged binary is a CGO-free -trimpath release build of its target, none with -tags fakewhatsapp (ADR 0019)" packaged_binaries
+	check "install: the packaged binary refuses --fake-whatsapp" packaged_refuses_fake
+	check "consumer: portable build and dotnet run" install_portable
+	check "consumer: RID-specific framework-dependent publish" install_rid "RID-specific framework-dependent publish" fd -r "$host_rid" --self-contained false
+	check "consumer: RID-specific self-contained publish" install_rid "RID-specific self-contained publish" sc -r "$host_rid" --self-contained true
+	check "consumer: single-file publish" install_single_file "single-file publish" single
+	check "consumer: single-file publish with IncludeNativeLibrariesForSelfExtract" install_single_file "single-file publish with IncludeNativeLibrariesForSelfExtract" single-native -p:IncludeNativeLibrariesForSelfExtract=true
+	check "consumer: win-x86, where no binary ships" install_win_x86
+	check "consumer: portable build on Alpine" install_alpine "portable build on Alpine" \
+		"dotnet build app -c Release -warnaserror && dotnet run --project app -c Release --no-build -- start \"\$VERSION\""
+	check "consumer: linux-musl-x64 self-contained publish on Alpine" install_alpine "linux-musl-x64 self-contained publish on Alpine" \
+		"dotnet publish app -c Release -warnaserror -r linux-musl-x64 --self-contained true -o musl && ./musl/Consumer start \"\$VERSION\""
+	check "noexec mount for the copy fallback consumer" noexec_mount
+	check "consumer: build output on a noexec mount" install_noexec
+	rm -rf "$work"
+}
+
+job_package() {
+	local before
+	before="$(tree_state)"
+	check "dotnet restore (locked)" dotnet restore dotnet/Whatsmeow.slnx --locked-mode &&
+		check "one version for every package and binary, a pre-release when HEAD has no tag (ADR 0023)" package_version &&
+		check "whatsmeow-net for every release target" build_sidecars &&
+		check "dotnet pack into the local feed $package_feed" pack_feed &&
+		job_install "$package_feed"
+	check "the package job left the tree unchanged" tree_unchanged "$before" "the package job"
+}
+
 usage() {
-	echo "usage: bash build/ci.sh setup|contract|go|dotnet|all" >&2
+	echo "usage: bash build/ci.sh setup|contract|go|dotnet|package|all, or bash build/ci.sh install <feed>" >&2
 	exit 2
 }
 
-[ $# -eq 1 ] || usage
+if [ "${1:-}" = install ]; then [ $# -eq 2 ] || usage; else [ $# -eq 1 ] || usage; fi
 
 check "Go from mise equals the go.mod toolchain" go_toolchain || {
 	echo "fix the toolchain first" >&2
@@ -313,7 +672,9 @@ case "$1" in
 	contract) job_contract ;;
 	go) job_go ;;
 	dotnet) job_dotnet ;;
-	all) job_contract; job_go; job_dotnet ;;
+	package) job_package ;;
+	install) job_install "$2" ;;
+	all) job_contract; job_go; job_dotnet; job_package ;;
 	*) usage ;;
 esac
 

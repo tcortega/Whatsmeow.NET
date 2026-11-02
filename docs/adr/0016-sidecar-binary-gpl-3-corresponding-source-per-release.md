@@ -113,7 +113,7 @@ What the sources say:
   - Each `Whatsmeow.Sidecar.Native.*` package carries `COPYING` (the GPL-3.0 text), `NOTICE`, and `THIRD-PARTY-NOTICES.txt` holding every file listed in `sidecar/licenses.allow` verbatim, which covers the BSD, MIT, ISC and Apache notice duties and grpc's `NOTICE.txt` (Apache-2.0 §4(d)).
   - `PackageLicenseExpression` is `GPL-3.0-only` on the native packages and `MPL-2.0` on the .NET packages.
   - The package READMEs say that the native packages contain GPL-3.0 object code and what redistributing them owes.
-  - `.goreleaser.yaml` builds exactly the targets in `tools/check-licenses`, and CI checks that.
+  - `build/ci.sh package` builds exactly the targets `tools/check-licenses -targets` prints, and `build/ci.sh install` fails when the packaged binaries are not exactly those ([ADR 0023](0023-native-packages-build-pin-and-find.md) supersedes the `.goreleaser.yaml` this line named).
 - Consumers who only run the binary on their own machines or servers owe nothing under the GPL [inferred: GPLv3 §0].
 - A consumer who redistributes it (an installer, a desktop app, a container image) conveys it and takes on GPLv3 §6 for `whatsmeow-net` [inferred].
 - Shipping it in a consumer device also owes Installation Information [inferred: GPLv3 §6 "User Product"].

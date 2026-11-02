@@ -187,7 +187,7 @@ Model media as a `MediaRef { media_type, direct_path, url, media_key, file_sha25
 
 **Sign** on both desktop platforms. macOS signing and notarization works from Linux through GoReleaser's embedded quill and needs a $99/year Developer ID ([GoReleaser notarize](https://goreleaser.com/customization/notarize)). Windows Authenticode works with `azure/artifact-signing-action@v2`, on Windows x64 runners only, and the signature must be timestamped ([artifact-signing-action](https://github.com/Azure/artifact-signing-action)). Gatekeeper risk from a NuGet restore is probably low, because quarantine attributes don't appear on HTTP-client downloads ([Eclectic Light](https://eclecticlight.co/2025/12/08/who-decides-to-quarantine-files/)). Notarization is still cheap insurance.
 
-**Package** with the notes' strongest recommendation: put executables under **`runtimes/{portable-rid}/native/`**, and have the main package take **direct, exact-version dependencies** (`Version="[$(Version)]"`) on per-OS native packages (`Whatsmeow.Sidecar.Native.win`, `.linux` and `.osx`), in the SkiaSharp NativeAssets style ([MS Learn: native files](https://learn.microsoft.com/nuget/create-packages/native-files-in-net-packages)). WhatsBox's `runtime.json` pointer pattern **only resolves when a RID is set at restore**, so a portable `dotnet build`/`run`/test gets no binary. It also depends on the RID graph that .NET 8 froze as "backwards compatibility" ([RID graph change](https://learn.microsoft.com/dotnet/core/compatibility/sdk/8.0/rid-graph)). nuget.org caps packages at about 250 MB, which is another reason to split by OS. No official statement deprecates `runtime.json`, so "legacy" is an inference.
+**Package** with the notes' strongest recommendation: put executables under **`runtimes/{portable-rid}/native/`**, and have the main package take **direct, exact-version dependencies** (`Version="[$(Version)]"`) on per-OS native packages (`Whatsmeow.Sidecar.Native.win`, `.linux` and `.osx`) (shipped as `.Linux`, `.MacOS` and `.Windows`, ADR 0023), in the SkiaSharp NativeAssets style ([MS Learn: native files](https://learn.microsoft.com/nuget/create-packages/native-files-in-net-packages)). WhatsBox's `runtime.json` pointer pattern **only resolves when a RID is set at restore**, so a portable `dotnet build`/`run`/test gets no binary. It also depends on the RID graph that .NET 8 froze as "backwards compatibility" ([RID graph change](https://learn.microsoft.com/dotnet/core/compatibility/sdk/8.0/rid-graph)). nuget.org caps packages at about 250 MB, which is another reason to split by OS. No official statement deprecates `runtime.json`, so "legacy" is an inference.
 
 **Make the binary executable at runtime.** NuGet extracts files as 0766 on Unix ([NuGetExtractionFileIO.cs](https://source.dot.net/NuGet.Packaging/NuGetExtractionFileIO.cs.html)), but the execute bit is lost when you build on Windows and deploy to Linux, or use a Docker context. So always call `File.SetUnixFileMode(… | UserExecute | GroupExecute | OtherExecute)` before starting. If that fails on a read-only root, copy the binary to a writable cache directory, and never to a `noexec` `/tmp`.
 
@@ -434,7 +434,7 @@ A **single repo** keeps the Go and NuGet versions lock-stepped from one tag and 
   internal/transport/         # unix listener (0700 dir), windows named pipe (go-winio), peer creds
   gen/                        # buf-generated Go for whatsmeow.v1 only
   scripts/check-parity/       # whatsmeow Client method coverage report
-/.goreleaser.yaml
+/.goreleaser.yaml             # superseded: a plain go build in build/ci.sh package (docs/adr/0023-native-packages-build-pin-and-find.md)
 /dotnet/
   Whatsmeow.slnx  Directory.Build.props  Directory.Build.targets  Directory.Packages.props  global.json
   src/Whatsmeow.Protocol.WhatsApp/   # committed buf-generated upstream C# (Whatsmeow.Proto.*), marked unstable
@@ -442,7 +442,7 @@ A **single repo** keeps the Go and NuGet versions lock-stepped from one tag and 
   src/Whatsmeow.Client/              # public API, supervisor, transport, dispatcher, mapping, exceptions, telemetry
   src/Whatsmeow.Extensions.Hosting/  # AddWhatsmeow, options + [OptionsValidator], keyed sessions, hosted service
   src/Whatsmeow.Testing/             # FakeWhatsAppClient / in-memory transport
-  src/Whatsmeow.Sidecar.Native.{win,linux,osx}/  # pack-only projects, runtimes/{rid}/native/whatsmeow-net[.exe]
+  src/Whatsmeow.Sidecar.Native.{Linux,MacOS,Windows}/  # pack-only projects, runtimes/{rid}/native/whatsmeow-net[.exe] (names: ADR 0023)
   tests/Whatsmeow.Client.Tests/      # xUnit v3 on MTP, FakeTimeProvider
   tests/Whatsmeow.IntegrationTests/  # real sidecar binary, mock WA or recorded fixtures
   tests/AotSmoke/                 # PublishAot console app in CI
@@ -450,7 +450,7 @@ A **single repo** keeps the Go and NuGet versions lock-stepped from one tag and 
 /.github/workflows/
   ci.yml                      # buf lint/breaking, go test -race, dotnet test, Alpine/macOS/Windows smoke
   whatsmeow-bump.yml          # weekly: bump, copy protos, regenerate, WIRE report comment, parity diff, PR
-  release.yml                 # tag: goreleaser (+notarize), Windows signing job, dotnet pack, Trusted Publishing
+  release.yml                 # tag: goreleaser (+notarize), Windows signing job, dotnet pack, Trusted Publishing; the binaries come from build/ci.sh package instead (docs/adr/0023-native-packages-build-pin-and-find.md)
 /NOTICE                       # MPL-2.0 source offer for whatsmeow at the pinned commit
 ```
 
@@ -478,7 +478,7 @@ The notes contain unverified claims and outright disagreements. Each of these ca
 | 6 | Whether some event types are acked before dispatch even with `SynchronousAck` (15 call sites not audited) | at-least-once guarantee scope | audit `maybeDeferredAck`/`backgroundIfAsyncAck` call sites |
 | 7 | WhatsApp redelivery timing after a withheld receipt, and penalties for many unacked messages | outbox and error policy | controlled experiment on a test number |
 | 8 | .NET 11 `KillOnParentExit` platform support (blog: Win+Linux; RC2 docs: Windows only) | whether net11.0 lights up anything on Linux | check GA docs; test on net11.0 |
-| 9 | Does a portable build on Alpine pick `linux-musl-*` over `linux-x64` assets? | binary location | resolve the path yourself; test anyway |
+| 9 | Does a portable build on Alpine pick `linux-musl-*` over `linux-x64` assets? | binary location | resolve the path yourself; test anyway. Settled by #43 [observed]: the client resolves the path itself, and a portable build on Alpine finds `runtimes/linux-<arch>/native/` ([ADR 0023](adr/0023-native-packages-build-pin-and-find.md)) |
 | 10 | Go linker ad-hoc signing on darwin/arm64; whether NuGet restore sets quarantine | macOS launch failures | run on a clean Mac from a nuget.org restore |
 | 11 | Sidecar binary size (estimated 25–45 MB stripped) | package size and restore time | measure |
 | 12 | CDN lifetime of `DirectPath`/media URLs, and reuse of old `MediaRef`s | dedup cache TTL and re-upload policy | long-running observation |

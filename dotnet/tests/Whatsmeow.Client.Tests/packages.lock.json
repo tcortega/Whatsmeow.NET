@@ -31,6 +31,12 @@
         "resolved": "10.11.0",
         "contentHash": "DTivKZ2Du0dJideTTa6vPj/eXKNRu+RxtjBX7NOOUXHBtHx1ehbE+lM+j3/5M3wU6BqzcZqEEyR4+FnPKs2rTA=="
       },
+      "MinVer": {
+        "type": "Direct",
+        "requested": "[8.0.0, )",
+        "resolved": "8.0.0",
+        "contentHash": "AJy/KVjXgUbgjf6HiI8wAk4DSSq0SCmvXQF8aU6IB+pnIQq+YJvofvMczug2hqO8yEvnQY557ryew66KPpyCsA=="
+      },
       "xunit.v3": {
         "type": "Direct",
         "requested": "[4.0.2, )",
@@ -273,7 +279,10 @@
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.14, )",
           "Microsoft.Extensions.Options": "[10.0.14, )",
           "Vogen": "[8.0.7, )",
-          "Whatsmeow.Protocol": "[1.0.0, )"
+          "Whatsmeow.Protocol": "[1.0.0, )",
+          "Whatsmeow.Sidecar.Native.Linux": "[1.0.0, )",
+          "Whatsmeow.Sidecar.Native.MacOS": "[1.0.0, )",
+          "Whatsmeow.Sidecar.Native.Windows": "[1.0.0, )"
         }
       },
       "whatsmeow.protocol": {
@@ -289,6 +298,15 @@
         "dependencies": {
           "Google.Protobuf": "[3.36.2, )"
         }
+      },
+      "whatsmeow.sidecar.native.linux": {
+        "type": "Project"
+      },
+      "whatsmeow.sidecar.native.macos": {
+        "type": "Project"
+      },
+      "whatsmeow.sidecar.native.windows": {
+        "type": "Project"
       },
       "Google.Protobuf": {
         "type": "CentralTransitive",
