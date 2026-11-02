@@ -1,4 +1,5 @@
 using Whatsmeow.Events;
+using Whatsmeow.History;
 using Whatsmeow.Presence;
 
 namespace Whatsmeow.Testing.Tests;
@@ -25,6 +26,36 @@ internal static class Samples
 			PushName = null,
 			Timestamp = Now,
 			Content = new TextContent { Text = text },
+		};
+
+	public static HistoryReceived HistoryBatch(Jid chat, string text) =>
+		new()
+		{
+			SessionId = Session,
+			SyncType = HistorySyncType.Recent,
+			Messages =
+			[
+				new HistoryMessage
+				{
+					Id = MessageId.New(),
+					Source = Source(chat),
+					PushName = null,
+					Timestamp = Now,
+					Content = new TextContent { Text = text },
+				},
+			],
+		};
+
+	public static HistorySyncProgressed Progress() =>
+		new()
+		{
+			SessionId = Session,
+			SyncType = HistorySyncType.Recent,
+			ChunkOrder = 1,
+			Progress = 100,
+			MessageCount = 1,
+			SkippedCount = 0,
+			Failure = null,
 		};
 
 	public static ChatPresenceChanged Typing(Jid chat) =>

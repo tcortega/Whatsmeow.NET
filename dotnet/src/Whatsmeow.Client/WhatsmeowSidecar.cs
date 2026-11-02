@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Whatsmeow.Core.Errors;
 using Whatsmeow.Core.Transport;
+using Whatsmeow.History;
 using Whatsmeow.Protocol.V1;
 using Whatsmeow.Sessions;
 using Whatsmeow.Sidecar;
@@ -162,14 +163,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		ArgumentNullException.ThrowIfNull(loggerFactory);
 
 		// A copy: the caller's instance is left as it is.
-		var effective = new WhatsmeowSidecarOptions
-		{
-			SidecarPath = options.SidecarPath,
-			DatabasePath = options.DatabasePath,
-			StartupTimeout = options.StartupTimeout,
-			Transport = options.Transport,
-			MediaRoot = options.MediaRoot,
-		};
+		var effective = options.Copy();
 		WhatsmeowSidecarOptionsSetup.Apply(effective);
 		WhatsmeowSidecarOptionsSetup.Validate(effective);
 
@@ -363,7 +357,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		using var startup = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
 
 		var process = await SidecarProcess
-			.StartAsync(_binary!, _options.Transport, _socketDirectory, _options.DatabasePath!, _options.MediaRoot, _fakeWhatsApp, _options.StartupTimeout, _log, _sidecarLog, startup.Token, cancellationToken)
+			.StartAsync(_binary!, _options.Transport, _socketDirectory, _options.DatabasePath!, _options.MediaRoot, _options.History, _fakeWhatsApp, _options.StartupTimeout, _log, _sidecarLog, startup.Token, cancellationToken)
 			.ConfigureAwait(false);
 		_current = process;
 		SidecarLog.SidecarStarted(_log, process.Id, process.Version, process.Endpoint);

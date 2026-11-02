@@ -34,6 +34,7 @@ import (
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/contacts"
 	eventsslice "github.com/tcortega/Whatsmeow.NET/sidecar/internal/events"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/groups"
+	historyslice "github.com/tcortega/Whatsmeow.NET/sidecar/internal/history"
 	wmlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/media"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/messaging"
@@ -83,6 +84,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	mediaRoot := flags.String("media-root", "", "the absolute directory the sidecar reads and writes media paths under; empty: media only in chunks")
 	fake := flags.Bool("fake-whatsapp", false, "test builds only (-tags fakewhatsapp): replace WhatsApp with a scripted fake and serve its control")
 	parentPID := flags.Int("parent-pid", 0, "the client's process id: the sidecar stops once that is no longer its parent (Linux, macOS; on Windows the client's job object does this; default: its parent at start)")
+	history := historyFlags(flags)
 
 	if err := flags.Parse(args); err != nil {
 		return exitUsage
@@ -111,6 +113,8 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	// line would otherwise kill the sidecar (os/signal SIGPIPE).
 	signal.Ignore(os.Interrupt, syscall.SIGPIPE)
 	wmlog.SetupSignal(log)
+	// Process-wide, so once, before any session pairs (ARCHITECTURE §7.2).
+	history.apply(wastore.DeviceProps)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM)
 	defer stop()
@@ -199,7 +203,11 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 	chats := chatstate.New(log)
 	defer chats.Close()
 
-	sessions, err := session.New(ctx, db.DB, db.Devices, box, recording(newClient, events, chats), log) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
+	// Closed after the sessions too: its workers end with their sessions' clients.
+	histories := historyslice.New(db.DB, box, eventsslice.MessageEvent, log)
+	defer histories.Close()
+
+	sessions, err := session.New(ctx, db.DB, db.Devices, box, recording(newClient, events, chats, histories), log) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
 	if err != nil {
 		_ = lis.Close()
 
@@ -235,6 +243,9 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 
 	chats.Use(sessions)
 	whatsmeowv1.RegisterChatStateServiceServer(srv, chats)
+
+	histories.Use(sessions)
+	whatsmeowv1.RegisterHistoryServiceServer(srv, histories)
 
 	served := make(chan error, 1)
 
@@ -285,13 +296,15 @@ func serve(ctx context.Context, log zerolog.Logger, opts options, stdin *bufio.R
 }
 
 // recording gives every client the Events slice's handler, first, so each session's events go into the outbox
-// (ARCHITECTURE §7.3), then the Chat state slice's, which only signals its recovery; the session slice's own handler
-// comes after them.
-func recording(newClient session.NewClient, events *eventsslice.Service, chats *chatstate.Service) session.NewClient {
+// (ARCHITECTURE §7.3), then the Chat state slice's, which only signals its recovery, then the History slice's, which
+// queues history sync notifications and starts the session's history worker; the session slice's own handler comes
+// after them.
+func recording(newClient session.NewClient, events *eventsslice.Service, chats *chatstate.Service, histories *historyslice.Service) session.NewClient {
 	return func(sessionID string, device *wastore.Device) session.Client {
 		client := newClient(sessionID, device)
 		client.AddEventHandlerWithSuccessStatus(events.Handler(sessionID))
 		client.AddEventHandlerWithSuccessStatus(chats.Handler(sessionID))
+		client.AddEventHandlerWithSuccessStatus(histories.Handler(sessionID))
 
 		return client
 	}

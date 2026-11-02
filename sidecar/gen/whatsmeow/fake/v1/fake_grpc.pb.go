@@ -56,6 +56,9 @@ const (
 	FakeWhatsAppService_GetPhoneChatState_FullMethodName           = "/whatsmeow.fake.v1.FakeWhatsAppService/GetPhoneChatState"
 	FakeWhatsAppService_CorruptAppState_FullMethodName             = "/whatsmeow.fake.v1.FakeWhatsAppService/CorruptAppState"
 	FakeWhatsAppService_HoldFullSync_FullMethodName                = "/whatsmeow.fake.v1.FakeWhatsAppService/HoldFullSync"
+	FakeWhatsAppService_CompleteOfflineSync_FullMethodName         = "/whatsmeow.fake.v1.FakeWhatsAppService/CompleteOfflineSync"
+	FakeWhatsAppService_DeliverHistorySync_FullMethodName          = "/whatsmeow.fake.v1.FakeWhatsAppService/DeliverHistorySync"
+	FakeWhatsAppService_GetPairingDeviceProps_FullMethodName       = "/whatsmeow.fake.v1.FakeWhatsAppService/GetPairingDeviceProps"
 )
 
 // FakeWhatsAppServiceClient is the client API for FakeWhatsAppService service.
@@ -228,6 +231,22 @@ type FakeWhatsAppServiceClient interface {
 	// HoldFullSync makes the session's next full syncs wait, holding the client's app state lock, until it is called
 	// again with hold false. A full sync is recorded (Sent.app_state_full_sync) before it waits.
 	HoldFullSync(ctx context.Context, in *HoldFullSyncRequest, opts ...grpc.CallOption) (*HoldFullSyncResponse, error)
+	// CompleteOfflineSync makes WhatsApp tell the session's client that it sent everything the client missed while
+	// offline: the client dispatches OfflineSyncCompleted on its node queue, in order with the messages before it
+	// (connectionevents.go:72-90). It returns once the client's event handlers ran, with the index of the newest entry of
+	// the Sent log then. A session without a client is an error.
+	CompleteOfflineSync(ctx context.Context, in *CompleteOfflineSyncRequest, opts ...grpc.CallOption) (*CompleteOfflineSyncResponse, error)
+	// DeliverHistorySync makes the phone send a history sync blob: the media server keeps the blob, zlib-compressed as
+	// WhatsApp's are, in a file that outlives the process (or the notification carries it inline), and the session's
+	// client gets the notification, a protocol message from the account's own phone, as DeliverMessage delivers one.
+	// The client's DownloadHistorySync reads it back (Sent.media_download, unless inline) and its DeleteMedia deletes
+	// it (Sent.media_delete); ExpireMedia with the returned direct path makes it expired. It returns once the client's
+	// event handlers ran. A session without a client is an error.
+	DeliverHistorySync(ctx context.Context, in *DeliverHistorySyncRequest, opts ...grpc.CallOption) (*DeliverHistorySyncResponse, error)
+	// GetPairingDeviceProps reads the history options the session's latest pairing sent: the process-wide
+	// store.DeviceProps as they were when the phone linked the device (LinkDevice), which whatsmeow sends only in the
+	// registration payload (store/clientpayload.go:174-183).
+	GetPairingDeviceProps(ctx context.Context, in *GetPairingDevicePropsRequest, opts ...grpc.CallOption) (*GetPairingDevicePropsResponse, error)
 }
 
 type fakeWhatsAppServiceClient struct {
@@ -608,6 +627,36 @@ func (c *fakeWhatsAppServiceClient) HoldFullSync(ctx context.Context, in *HoldFu
 	return out, nil
 }
 
+func (c *fakeWhatsAppServiceClient) CompleteOfflineSync(ctx context.Context, in *CompleteOfflineSyncRequest, opts ...grpc.CallOption) (*CompleteOfflineSyncResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CompleteOfflineSyncResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_CompleteOfflineSync_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) DeliverHistorySync(ctx context.Context, in *DeliverHistorySyncRequest, opts ...grpc.CallOption) (*DeliverHistorySyncResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeliverHistorySyncResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_DeliverHistorySync_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) GetPairingDeviceProps(ctx context.Context, in *GetPairingDevicePropsRequest, opts ...grpc.CallOption) (*GetPairingDevicePropsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPairingDevicePropsResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_GetPairingDeviceProps_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FakeWhatsAppServiceServer is the server API for FakeWhatsAppService service.
 // All implementations must embed UnimplementedFakeWhatsAppServiceServer
 // for forward compatibility.
@@ -778,6 +827,22 @@ type FakeWhatsAppServiceServer interface {
 	// HoldFullSync makes the session's next full syncs wait, holding the client's app state lock, until it is called
 	// again with hold false. A full sync is recorded (Sent.app_state_full_sync) before it waits.
 	HoldFullSync(context.Context, *HoldFullSyncRequest) (*HoldFullSyncResponse, error)
+	// CompleteOfflineSync makes WhatsApp tell the session's client that it sent everything the client missed while
+	// offline: the client dispatches OfflineSyncCompleted on its node queue, in order with the messages before it
+	// (connectionevents.go:72-90). It returns once the client's event handlers ran, with the index of the newest entry of
+	// the Sent log then. A session without a client is an error.
+	CompleteOfflineSync(context.Context, *CompleteOfflineSyncRequest) (*CompleteOfflineSyncResponse, error)
+	// DeliverHistorySync makes the phone send a history sync blob: the media server keeps the blob, zlib-compressed as
+	// WhatsApp's are, in a file that outlives the process (or the notification carries it inline), and the session's
+	// client gets the notification, a protocol message from the account's own phone, as DeliverMessage delivers one.
+	// The client's DownloadHistorySync reads it back (Sent.media_download, unless inline) and its DeleteMedia deletes
+	// it (Sent.media_delete); ExpireMedia with the returned direct path makes it expired. It returns once the client's
+	// event handlers ran. A session without a client is an error.
+	DeliverHistorySync(context.Context, *DeliverHistorySyncRequest) (*DeliverHistorySyncResponse, error)
+	// GetPairingDeviceProps reads the history options the session's latest pairing sent: the process-wide
+	// store.DeviceProps as they were when the phone linked the device (LinkDevice), which whatsmeow sends only in the
+	// registration payload (store/clientpayload.go:174-183).
+	GetPairingDeviceProps(context.Context, *GetPairingDevicePropsRequest) (*GetPairingDevicePropsResponse, error)
 	mustEmbedUnimplementedFakeWhatsAppServiceServer()
 }
 
@@ -898,6 +963,15 @@ func (UnimplementedFakeWhatsAppServiceServer) CorruptAppState(context.Context, *
 }
 func (UnimplementedFakeWhatsAppServiceServer) HoldFullSync(context.Context, *HoldFullSyncRequest) (*HoldFullSyncResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method HoldFullSync not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) CompleteOfflineSync(context.Context, *CompleteOfflineSyncRequest) (*CompleteOfflineSyncResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CompleteOfflineSync not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) DeliverHistorySync(context.Context, *DeliverHistorySyncRequest) (*DeliverHistorySyncResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeliverHistorySync not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) GetPairingDeviceProps(context.Context, *GetPairingDevicePropsRequest) (*GetPairingDevicePropsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPairingDeviceProps not implemented")
 }
 func (UnimplementedFakeWhatsAppServiceServer) mustEmbedUnimplementedFakeWhatsAppServiceServer() {}
 func (UnimplementedFakeWhatsAppServiceServer) testEmbeddedByValue()                             {}
@@ -1586,6 +1660,60 @@ func _FakeWhatsAppService_HoldFullSync_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FakeWhatsAppService_CompleteOfflineSync_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteOfflineSyncRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).CompleteOfflineSync(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_CompleteOfflineSync_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).CompleteOfflineSync(ctx, req.(*CompleteOfflineSyncRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_DeliverHistorySync_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeliverHistorySyncRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).DeliverHistorySync(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_DeliverHistorySync_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).DeliverHistorySync(ctx, req.(*DeliverHistorySyncRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_GetPairingDeviceProps_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPairingDevicePropsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).GetPairingDeviceProps(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_GetPairingDeviceProps_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).GetPairingDeviceProps(ctx, req.(*GetPairingDevicePropsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FakeWhatsAppService_ServiceDesc is the grpc.ServiceDesc for FakeWhatsAppService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1740,6 +1868,18 @@ var FakeWhatsAppService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "HoldFullSync",
 			Handler:    _FakeWhatsAppService_HoldFullSync_Handler,
+		},
+		{
+			MethodName: "CompleteOfflineSync",
+			Handler:    _FakeWhatsAppService_CompleteOfflineSync_Handler,
+		},
+		{
+			MethodName: "DeliverHistorySync",
+			Handler:    _FakeWhatsAppService_DeliverHistorySync_Handler,
+		},
+		{
+			MethodName: "GetPairingDeviceProps",
+			Handler:    _FakeWhatsAppService_GetPairingDeviceProps_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

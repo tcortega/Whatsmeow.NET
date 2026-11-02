@@ -160,7 +160,7 @@ internal sealed class SessionEvents : IAsyncDisposable
 		WhatsAppEvent? e;
 		try
 		{
-			e = EventMapping.ToEvent(_sessionId, response);
+			e = EventMapping.ToEvent(_sessionId, response, _log);
 		}
 #pragma warning disable CA1031 // Justification: an event this client cannot map is skipped and acked, never the end of the stream
 		catch (Exception exception) when (exception is not OperationCanceledException)

@@ -21,12 +21,13 @@ import (
 func toEvent(evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) {
 	switch e := evt.(type) {
 	case *waevents.Message:
-		if onlySenderKey(e.Message) {
+		// A history sync notification is the History slice's (internal/history): never a live message.
+		if onlySenderKey(e.Message) || e.Message.GetProtocolMessage().GetHistorySyncNotification() != nil {
 			return "", nil, false
 		}
 
 		return key("m", &e.Info), &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_Message{
-			Message: &whatsmeowv1.MessageEvent{Info: info(&e.Info), Message: e.Message, ViewOnce: e.IsViewOnce},
+			Message: MessageEvent(e),
 		}}, true
 	case *waevents.UndecryptableMessage:
 		return key("u", &e.Info), &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_UndecryptableMessage{
@@ -50,6 +51,12 @@ func unavailableType(t waevents.UnavailableType) whatsmeowv1.UnavailableType {
 	}
 
 	return whatsmeowv1.UnavailableType_UNAVAILABLE_TYPE_UNSPECIFIED
+}
+
+// MessageEvent is a whatsmeow message as the contract's MessageEvent: a live one's, and a history message's, which the
+// History slice maps with it (internal/history), so a history message carries what a live one does.
+func MessageEvent(e *waevents.Message) *whatsmeowv1.MessageEvent {
+	return &whatsmeowv1.MessageEvent{Info: info(&e.Info), Message: e.Message, ViewOnce: e.IsViewOnce}
 }
 
 // onlySenderKey is a message with nothing but a sender key and its context info: the part of a group stanza that

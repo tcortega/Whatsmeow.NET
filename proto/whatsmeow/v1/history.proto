@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package whatsmeow.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// HistoryService asks the account's phone for older history (ARCHITECTURE §3, History sync, §7.7).
+//
+// History arrives as events (events.proto HistoryMessagesEvent and HistorySyncProgressEvent), never as live messages:
+// after pairing, WhatsApp sends it on its own, and the sidecar downloads it in the background once the session's
+// offline sync completed, always after live traffic.
+// The RPC needs the session logged in to WhatsApp right now: it fails at once with NOT_LOGGED_IN, LOGGED_OUT,
+// TEMPORARILY_BANNED or NOT_CONNECTED otherwise. It fails with SESSION_NOT_FOUND for an id no session has.
+service HistoryService {
+  // RequestHistory asks the phone for up to count messages of the chat sent before the given oldest message. The
+  // answer, if the phone sends one, arrives later as history events of type ON_DEMAND. A request that went out with
+  // no answer back is OUTCOME_UNKNOWN, and is never retried; asking again only repeats messages.
+  // Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, TEMPORARILY_BANNED, NOT_CONNECTED,
+  // OUTCOME_UNKNOWN.
+  rpc RequestHistory(RequestHistoryRequest) returns (RequestHistoryResponse);
+}
+
+// RequestHistoryRequest names the chat and the oldest message the application has of it.
+message RequestHistoryRequest {
+  // The session id.
+  string session_id = 1;
+  // The chat: a user's JID, by phone number or LID, or a group's. Anything else is INVALID_ARGUMENT (field "chat").
+  string chat = 2;
+  // The id of the oldest message the application has of the chat. Empty is INVALID_ARGUMENT.
+  string oldest_message_id = 3;
+  // True when the account itself sent that message.
+  bool oldest_from_me = 4;
+  // That message's WhatsApp timestamp. Unset is INVALID_ARGUMENT.
+  google.protobuf.Timestamp oldest_message_time = 5;
+  // How many messages to ask for, from 1 to 2147483647; WhatsApp recommends 50 at a time.
+  uint32 count = 6;
+}
+
+// RequestHistoryResponse has no fields.
+message RequestHistoryResponse {}

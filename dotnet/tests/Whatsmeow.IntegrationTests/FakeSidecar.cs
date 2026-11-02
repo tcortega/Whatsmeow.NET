@@ -25,6 +25,16 @@ public sealed class FakeSidecar : IAsyncLifetime
 	/// <summary>The sidecar's media root: a test hands over the files it puts under a directory of its own here.</summary>
 	internal string MediaRoot { get; private set; } = "";
 
+	/// <summary>The process-wide history options the sidecar starts with (History/HistoryOptionsTests.cs).</summary>
+	internal static Whatsmeow.History.HistorySyncOptions HistoryOptions =>
+		new()
+		{
+			RequestFullSync = true,
+			FullSyncDaysLimit = 30,
+			FullSyncSizeLimitMegabytes = 512,
+			StorageQuotaMegabytes = 2048,
+		};
+
 	/// <summary>The client's log, Debug level included.</summary>
 	internal LogCapture Logs { get; } = new();
 
@@ -46,7 +56,17 @@ public sealed class FakeSidecar : IAsyncLifetime
 		DatabasePath = Path.Combine(_directory, "whatsmeow-net.db");
 		MediaRoot = Directory.CreateDirectory(Path.Combine(_directory, "media")).FullName;
 		Sidecar = await WhatsmeowSidecar
-			.StartFakeWhatsAppAsync(new WhatsmeowSidecarOptions { SidecarPath = binary, DatabasePath = DatabasePath, MediaRoot = MediaRoot }, Logs.Factory, ct)
+			.StartFakeWhatsAppAsync(
+				new WhatsmeowSidecarOptions
+				{
+					SidecarPath = binary,
+					DatabasePath = DatabasePath,
+					MediaRoot = MediaRoot,
+					History = HistoryOptions,
+				},
+				Logs.Factory,
+				ct
+			)
 			.ConfigureAwait(false);
 		Fake = new FakeWhatsAppService.FakeWhatsAppServiceClient(Sidecar.CallInvoker);
 	}

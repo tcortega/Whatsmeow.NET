@@ -198,7 +198,70 @@ message StreamEventsResponse {
     GroupEvent group = 16;
     // A change to a chat's state; best effort (chatstate.proto).
     ChatStateEvent chat_state = 17;
+    // A batch of the account's history, from a history sync blob (history.proto).
+    HistoryMessagesEvent history_messages = 18;
+    // A history sync blob processed, or given up on (history.proto).
+    HistorySyncProgressEvent history_progress = 19;
   }
+}
+
+// HistorySyncType is which history a history sync blob carries, as WhatsApp names it.
+enum HistorySyncType {
+  // A type this list does not have.
+  HISTORY_SYNC_TYPE_UNSPECIFIED = 0;
+  // The first, recent history after pairing.
+  HISTORY_SYNC_TYPE_INITIAL_BOOTSTRAP = 1;
+  // Status updates after pairing.
+  HISTORY_SYNC_TYPE_INITIAL_STATUS_V3 = 2;
+  // Older history, as much as the history options ask for.
+  HISTORY_SYNC_TYPE_FULL = 3;
+  // Recent history.
+  HISTORY_SYNC_TYPE_RECENT = 4;
+  // Contacts' push names; no messages.
+  HISTORY_SYNC_TYPE_PUSH_NAME = 5;
+  // Other account data; no messages.
+  HISTORY_SYNC_TYPE_NON_BLOCKING_DATA = 6;
+  // The answer to a RequestHistory.
+  HISTORY_SYNC_TYPE_ON_DEMAND = 7;
+}
+
+// HistoryMessagesEvent is a batch of history messages: old messages, never live ones. A blob's messages arrive in one
+// or more batches, in the blob's order, each small enough for one gRPC message, then the blob's
+// HistorySyncProgressEvent. A batch delivered again carries the same messages.
+message HistoryMessagesEvent {
+  // Which history the blob carries.
+  HistorySyncType sync_type = 1;
+  // The messages, as live messages are: each with its chat, sender, id and content.
+  repeated MessageEvent messages = 2;
+}
+
+// HistorySyncFailure is why a history sync blob was given up on.
+enum HistorySyncFailure {
+  // None: the blob's messages were delivered.
+  HISTORY_SYNC_FAILURE_UNSPECIFIED = 0;
+  // WhatsApp's media server no longer has it (403, 404 or 410).
+  HISTORY_SYNC_FAILURE_EXPIRED = 1;
+  // It could not be read: it failed its checks, or did not decompress or parse.
+  HISTORY_SYNC_FAILURE_INVALID = 2;
+  // Its download kept failing, three times a minute apart, while the session was online.
+  HISTORY_SYNC_FAILURE_UNAVAILABLE = 3;
+}
+
+// HistorySyncProgressEvent is one history sync blob done: after its messages were delivered, or when it was given up
+// on. The sidecar deletes a blob from WhatsApp's server only once this event and its batches are recorded.
+message HistorySyncProgressEvent {
+  // Which history the blob carries.
+  HistorySyncType sync_type = 1;
+  // The blob's place among the sync's blobs, as WhatsApp numbers them.
+  uint32 chunk_order = 2;
+  // WhatsApp's progress value for the sync, as it sent it.
+  uint32 progress = 3;
+  // How many messages its batches delivered.
+  uint32 message_count = 4;
+  // How many of its messages were not delivered: one that does not parse, or one too large for a gRPC message.
+  uint32 skipped_count = 5;
+  // Why it was given up on; unspecified when its messages were delivered.
+  HistorySyncFailure failure = 6;
 }
 
 // AckEventsRequest moves a consumer's cursor.

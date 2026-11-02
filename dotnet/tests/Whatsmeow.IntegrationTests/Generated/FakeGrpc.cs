@@ -200,6 +200,18 @@ namespace Whatsmeow.IntegrationTests.Fake {
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncRequest> __Marshaller_whatsmeow_fake_v1_HoldFullSyncRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncResponse> __Marshaller_whatsmeow_fake_v1_HoldFullSyncResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.CompleteOfflineSyncRequest> __Marshaller_whatsmeow_fake_v1_CompleteOfflineSyncRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.CompleteOfflineSyncRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.CompleteOfflineSyncResponse> __Marshaller_whatsmeow_fake_v1_CompleteOfflineSyncResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.CompleteOfflineSyncResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncRequest> __Marshaller_whatsmeow_fake_v1_DeliverHistorySyncRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncResponse> __Marshaller_whatsmeow_fake_v1_DeliverHistorySyncResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsRequest> __Marshaller_whatsmeow_fake_v1_GetPairingDevicePropsRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsResponse> __Marshaller_whatsmeow_fake_v1_GetPairingDevicePropsResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsResponse.Parser));
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse> __Method_DeliverMessage = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse>(
@@ -496,6 +508,30 @@ namespace Whatsmeow.IntegrationTests.Fake {
         "HoldFullSync",
         __Marshaller_whatsmeow_fake_v1_HoldFullSyncRequest,
         __Marshaller_whatsmeow_fake_v1_HoldFullSyncResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.CompleteOfflineSyncRequest, global::Whatsmeow.IntegrationTests.Fake.CompleteOfflineSyncResponse> __Method_CompleteOfflineSync = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.CompleteOfflineSyncRequest, global::Whatsmeow.IntegrationTests.Fake.CompleteOfflineSyncResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "CompleteOfflineSync",
+        __Marshaller_whatsmeow_fake_v1_CompleteOfflineSyncRequest,
+        __Marshaller_whatsmeow_fake_v1_CompleteOfflineSyncResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncResponse> __Method_DeliverHistorySync = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "DeliverHistorySync",
+        __Marshaller_whatsmeow_fake_v1_DeliverHistorySyncRequest,
+        __Marshaller_whatsmeow_fake_v1_DeliverHistorySyncResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsRequest, global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsResponse> __Method_GetPairingDeviceProps = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsRequest, global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "GetPairingDeviceProps",
+        __Marshaller_whatsmeow_fake_v1_GetPairingDevicePropsRequest,
+        __Marshaller_whatsmeow_fake_v1_GetPairingDevicePropsResponse);
 
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
@@ -2649,6 +2685,190 @@ namespace Whatsmeow.IntegrationTests.Fake {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncResponse> HoldFullSyncAsync(global::Whatsmeow.IntegrationTests.Fake.HoldFullSyncRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_HoldFullSync, null, options, request);
+      }
+      /// <summary>
+      /// CompleteOfflineSync makes WhatsApp tell the session's client that it sent everything the client missed while
+      /// offline: the client dispatches OfflineSyncCompleted on its node queue, in order with the messages before it
+      /// (connectionevents.go:72-90). It returns once the client's event handlers ran, with the index of the newest entry of
+      /// the Sent log then. A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.CompleteOfflineSyncResponse CompleteOfflineSync(global::Whatsmeow.IntegrationTests.Fake.CompleteOfflineSyncRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return CompleteOfflineSync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// CompleteOfflineSync makes WhatsApp tell the session's client that it sent everything the client missed while
+      /// offline: the client dispatches OfflineSyncCompleted on its node queue, in order with the messages before it
+      /// (connectionevents.go:72-90). It returns once the client's event handlers ran, with the index of the newest entry of
+      /// the Sent log then. A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.CompleteOfflineSyncResponse CompleteOfflineSync(global::Whatsmeow.IntegrationTests.Fake.CompleteOfflineSyncRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_CompleteOfflineSync, null, options, request);
+      }
+      /// <summary>
+      /// CompleteOfflineSync makes WhatsApp tell the session's client that it sent everything the client missed while
+      /// offline: the client dispatches OfflineSyncCompleted on its node queue, in order with the messages before it
+      /// (connectionevents.go:72-90). It returns once the client's event handlers ran, with the index of the newest entry of
+      /// the Sent log then. A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.CompleteOfflineSyncResponse> CompleteOfflineSyncAsync(global::Whatsmeow.IntegrationTests.Fake.CompleteOfflineSyncRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return CompleteOfflineSyncAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// CompleteOfflineSync makes WhatsApp tell the session's client that it sent everything the client missed while
+      /// offline: the client dispatches OfflineSyncCompleted on its node queue, in order with the messages before it
+      /// (connectionevents.go:72-90). It returns once the client's event handlers ran, with the index of the newest entry of
+      /// the Sent log then. A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.CompleteOfflineSyncResponse> CompleteOfflineSyncAsync(global::Whatsmeow.IntegrationTests.Fake.CompleteOfflineSyncRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_CompleteOfflineSync, null, options, request);
+      }
+      /// <summary>
+      /// DeliverHistorySync makes the phone send a history sync blob: the media server keeps the blob, zlib-compressed as
+      /// WhatsApp's are, in a file that outlives the process (or the notification carries it inline), and the session's
+      /// client gets the notification, a protocol message from the account's own phone, as DeliverMessage delivers one.
+      /// The client's DownloadHistorySync reads it back (Sent.media_download, unless inline) and its DeleteMedia deletes
+      /// it (Sent.media_delete); ExpireMedia with the returned direct path makes it expired. It returns once the client's
+      /// event handlers ran. A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncResponse DeliverHistorySync(global::Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return DeliverHistorySync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// DeliverHistorySync makes the phone send a history sync blob: the media server keeps the blob, zlib-compressed as
+      /// WhatsApp's are, in a file that outlives the process (or the notification carries it inline), and the session's
+      /// client gets the notification, a protocol message from the account's own phone, as DeliverMessage delivers one.
+      /// The client's DownloadHistorySync reads it back (Sent.media_download, unless inline) and its DeleteMedia deletes
+      /// it (Sent.media_delete); ExpireMedia with the returned direct path makes it expired. It returns once the client's
+      /// event handlers ran. A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncResponse DeliverHistorySync(global::Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_DeliverHistorySync, null, options, request);
+      }
+      /// <summary>
+      /// DeliverHistorySync makes the phone send a history sync blob: the media server keeps the blob, zlib-compressed as
+      /// WhatsApp's are, in a file that outlives the process (or the notification carries it inline), and the session's
+      /// client gets the notification, a protocol message from the account's own phone, as DeliverMessage delivers one.
+      /// The client's DownloadHistorySync reads it back (Sent.media_download, unless inline) and its DeleteMedia deletes
+      /// it (Sent.media_delete); ExpireMedia with the returned direct path makes it expired. It returns once the client's
+      /// event handlers ran. A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncResponse> DeliverHistorySyncAsync(global::Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return DeliverHistorySyncAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// DeliverHistorySync makes the phone send a history sync blob: the media server keeps the blob, zlib-compressed as
+      /// WhatsApp's are, in a file that outlives the process (or the notification carries it inline), and the session's
+      /// client gets the notification, a protocol message from the account's own phone, as DeliverMessage delivers one.
+      /// The client's DownloadHistorySync reads it back (Sent.media_download, unless inline) and its DeleteMedia deletes
+      /// it (Sent.media_delete); ExpireMedia with the returned direct path makes it expired. It returns once the client's
+      /// event handlers ran. A session without a client is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncResponse> DeliverHistorySyncAsync(global::Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_DeliverHistorySync, null, options, request);
+      }
+      /// <summary>
+      /// GetPairingDeviceProps reads the history options the session's latest pairing sent: the process-wide
+      /// store.DeviceProps as they were when the phone linked the device (LinkDevice), which whatsmeow sends only in the
+      /// registration payload (store/clientpayload.go:174-183).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsResponse GetPairingDeviceProps(global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return GetPairingDeviceProps(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// GetPairingDeviceProps reads the history options the session's latest pairing sent: the process-wide
+      /// store.DeviceProps as they were when the phone linked the device (LinkDevice), which whatsmeow sends only in the
+      /// registration payload (store/clientpayload.go:174-183).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsResponse GetPairingDeviceProps(global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_GetPairingDeviceProps, null, options, request);
+      }
+      /// <summary>
+      /// GetPairingDeviceProps reads the history options the session's latest pairing sent: the process-wide
+      /// store.DeviceProps as they were when the phone linked the device (LinkDevice), which whatsmeow sends only in the
+      /// registration payload (store/clientpayload.go:174-183).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsResponse> GetPairingDevicePropsAsync(global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return GetPairingDevicePropsAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// GetPairingDeviceProps reads the history options the session's latest pairing sent: the process-wide
+      /// store.DeviceProps as they were when the phone linked the device (LinkDevice), which whatsmeow sends only in the
+      /// registration payload (store/clientpayload.go:174-183).
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsResponse> GetPairingDevicePropsAsync(global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_GetPairingDeviceProps, null, options, request);
       }
       /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]

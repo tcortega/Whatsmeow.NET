@@ -54,7 +54,7 @@ namespace Whatsmeow.Protocol.V1 {
             "ZUV2ZW50EjAKBXN0YXRlGAEgASgLMhoud2hhdHNtZW93LnYxLlNlc3Npb25T",
             "dGF0ZVIFc3RhdGUibQoTU3RyZWFtRXZlbnRzUmVxdWVzdBIdCgpzZXNzaW9u",
             "X2lkGAEgASgJUglzZXNzaW9uSWQSGgoIY29uc3VtZXIYAiABKAlSCGNvbnN1",
-            "bWVyEhsKCWFmdGVyX3NlcRgDIAEoBFIIYWZ0ZXJTZXEivwQKFFN0cmVhbUV2",
+            "bWVyEhsKCWFmdGVyX3NlcRgDIAEoBFIIYWZ0ZXJTZXEi5QUKFFN0cmVhbUV2",
             "ZW50c1Jlc3BvbnNlEhAKA3NlcRgBIAEoBFIDc2VxEjYKB21lc3NhZ2UYCiAB",
             "KAsyGi53aGF0c21lb3cudjEuTWVzc2FnZUV2ZW50SABSB21lc3NhZ2USNgoH",
             "cmVjZWlwdBgLIAEoCzIaLndoYXRzbWVvdy52MS5SZWNlaXB0RXZlbnRIAFIH",
@@ -67,48 +67,71 @@ namespace Whatsmeow.Protocol.V1 {
             "ZW93LnYxLk1lZGlhUmV0cnlFdmVudEgAUgptZWRpYVJldHJ5EjAKBWdyb3Vw",
             "GBAgASgLMhgud2hhdHNtZW93LnYxLkdyb3VwRXZlbnRIAFIFZ3JvdXASPQoK",
             "Y2hhdF9zdGF0ZRgRIAEoCzIcLndoYXRzbWVvdy52MS5DaGF0U3RhdGVFdmVu",
-            "dEgAUgljaGF0U3RhdGVCCQoHcGF5bG9hZCJpChBBY2tFdmVudHNSZXF1ZXN0",
-            "Eh0KCnNlc3Npb25faWQYASABKAlSCXNlc3Npb25JZBIaCghjb25zdW1lchgC",
-            "IAEoCVIIY29uc3VtZXISGgoJdXBfdG9fc2VxGAMgASgEUgd1cFRvU2VxIhMK",
-            "EUFja0V2ZW50c1Jlc3BvbnNlIo8BCg1QcmVzZW5jZUV2ZW50EhIKBGZyb20Y",
-            "ASABKAlSBGZyb20SMQoFc3RhdGUYAiABKA4yGy53aGF0c21lb3cudjEuUHJl",
-            "c2VuY2VTdGF0ZVIFc3RhdGUSNwoJbGFzdF9zZWVuGAMgASgLMhouZ29vZ2xl",
-            "LnByb3RvYnVmLlRpbWVzdGFtcFIIbGFzdFNlZW4ifwoRQ2hhdFByZXNlbmNl",
-            "RXZlbnQSMwoGc291cmNlGAEgASgLMhsud2hhdHNtZW93LnYxLk1lc3NhZ2VT",
-            "b3VyY2VSBnNvdXJjZRI1CgVzdGF0ZRgCIAEoDjIfLndoYXRzbWVvdy52MS5D",
-            "aGF0UHJlc2VuY2VTdGF0ZVIFc3RhdGUiLgoSUXVldWVPdmVyZmxvd0V2ZW50",
-            "EhgKB2Ryb3BwZWQYASABKARSB2Ryb3BwZWQiPQocU3RyZWFtRXBoZW1lcmFs",
-            "RXZlbnRzUmVxdWVzdBIdCgpzZXNzaW9uX2lkGAEgASgJUglzZXNzaW9uSWQi",
-            "+AEKHVN0cmVhbUVwaGVtZXJhbEV2ZW50c1Jlc3BvbnNlEjkKCHByZXNlbmNl",
-            "GAogASgLMhsud2hhdHNtZW93LnYxLlByZXNlbmNlRXZlbnRIAFIIcHJlc2Vu",
-            "Y2USRgoNY2hhdF9wcmVzZW5jZRgLIAEoCzIfLndoYXRzbWVvdy52MS5DaGF0",
-            "UHJlc2VuY2VFdmVudEgAUgxjaGF0UHJlc2VuY2USSQoOcXVldWVfb3ZlcmZs",
-            "b3cYDCABKAsyIC53aGF0c21lb3cudjEuUXVldWVPdmVyZmxvd0V2ZW50SABS",
-            "DXF1ZXVlT3ZlcmZsb3dCCQoHcGF5bG9hZCrWAgoLUmVjZWlwdFR5cGUSHAoY",
-            "UkVDRUlQVF9UWVBFX1VOU1BFQ0lGSUVEEAASGgoWUkVDRUlQVF9UWVBFX0RF",
-            "TElWRVJFRBABEhcKE1JFQ0VJUFRfVFlQRV9TRU5ERVIQAhIWChJSRUNFSVBU",
-            "X1RZUEVfUkVUUlkQAxIVChFSRUNFSVBUX1RZUEVfUkVBRBAEEhoKFlJFQ0VJ",
-            "UFRfVFlQRV9SRUFEX1NFTEYQBRIXChNSRUNFSVBUX1RZUEVfUExBWUVEEAYS",
-            "HAoYUkVDRUlQVF9UWVBFX1BMQVlFRF9TRUxGEAcSHQoZUkVDRUlQVF9UWVBF",
-            "X1NFUlZFUl9FUlJPUhAIEhkKFVJFQ0VJUFRfVFlQRV9JTkFDVElWRRAJEhkK",
-            "FVJFQ0VJUFRfVFlQRV9QRUVSX01TRxAKEh0KGVJFQ0VJUFRfVFlQRV9ISVNU",
-            "T1JZX1NZTkMQCypTCg9VbmF2YWlsYWJsZVR5cGUSIAocVU5BVkFJTEFCTEVf",
-            "VFlQRV9VTlNQRUNJRklFRBAAEh4KGlVOQVZBSUxBQkxFX1RZUEVfVklFV19P",
-            "TkNFEAEyqQIKDEV2ZW50U2VydmljZRJXCgxTdHJlYW1FdmVudHMSIS53aGF0",
-            "c21lb3cudjEuU3RyZWFtRXZlbnRzUmVxdWVzdBoiLndoYXRzbWVvdy52MS5T",
-            "dHJlYW1FdmVudHNSZXNwb25zZTABEkwKCUFja0V2ZW50cxIeLndoYXRzbWVv",
-            "dy52MS5BY2tFdmVudHNSZXF1ZXN0Gh8ud2hhdHNtZW93LnYxLkFja0V2ZW50",
-            "c1Jlc3BvbnNlEnIKFVN0cmVhbUVwaGVtZXJhbEV2ZW50cxIqLndoYXRzbWVv",
-            "dy52MS5TdHJlYW1FcGhlbWVyYWxFdmVudHNSZXF1ZXN0Gisud2hhdHNtZW93",
-            "LnYxLlN0cmVhbUVwaGVtZXJhbEV2ZW50c1Jlc3BvbnNlMAFCwQEKEGNvbS53",
-            "aGF0c21lb3cudjFCC0V2ZW50c1Byb3RvUAFaRmdpdGh1Yi5jb20vdGNvcnRl",
-            "Z2EvV2hhdHNtZW93Lk5FVC9zaWRlY2FyL2dlbi93aGF0c21lb3cvdjE7d2hh",
-            "dHNtZW93djGiAgNXWFiqAhVXaGF0c21lb3cuUHJvdG9jb2wuVjHKAgxXaGF0",
-            "c21lb3dcVjHiAhhXaGF0c21lb3dcVjFcR1BCTWV0YWRhdGHqAg1XaGF0c21l",
-            "b3c6OlYxYgZwcm90bzM="));
+            "dEgAUgljaGF0U3RhdGUSTwoQaGlzdG9yeV9tZXNzYWdlcxgSIAEoCzIiLndo",
+            "YXRzbWVvdy52MS5IaXN0b3J5TWVzc2FnZXNFdmVudEgAUg9oaXN0b3J5TWVz",
+            "c2FnZXMSUwoQaGlzdG9yeV9wcm9ncmVzcxgTIAEoCzImLndoYXRzbWVvdy52",
+            "MS5IaXN0b3J5U3luY1Byb2dyZXNzRXZlbnRIAFIPaGlzdG9yeVByb2dyZXNz",
+            "QgkKB3BheWxvYWQiigEKFEhpc3RvcnlNZXNzYWdlc0V2ZW50EjoKCXN5bmNf",
+            "dHlwZRgBIAEoDjIdLndoYXRzbWVvdy52MS5IaXN0b3J5U3luY1R5cGVSCHN5",
+            "bmNUeXBlEjYKCG1lc3NhZ2VzGAIgAygLMhoud2hhdHNtZW93LnYxLk1lc3Nh",
+            "Z2VFdmVudFIIbWVzc2FnZXMimQIKGEhpc3RvcnlTeW5jUHJvZ3Jlc3NFdmVu",
+            "dBI6CglzeW5jX3R5cGUYASABKA4yHS53aGF0c21lb3cudjEuSGlzdG9yeVN5",
+            "bmNUeXBlUghzeW5jVHlwZRIfCgtjaHVua19vcmRlchgCIAEoDVIKY2h1bmtP",
+            "cmRlchIaCghwcm9ncmVzcxgDIAEoDVIIcHJvZ3Jlc3MSIwoNbWVzc2FnZV9j",
+            "b3VudBgEIAEoDVIMbWVzc2FnZUNvdW50EiMKDXNraXBwZWRfY291bnQYBSAB",
+            "KA1SDHNraXBwZWRDb3VudBI6CgdmYWlsdXJlGAYgASgOMiAud2hhdHNtZW93",
+            "LnYxLkhpc3RvcnlTeW5jRmFpbHVyZVIHZmFpbHVyZSJpChBBY2tFdmVudHNS",
+            "ZXF1ZXN0Eh0KCnNlc3Npb25faWQYASABKAlSCXNlc3Npb25JZBIaCghjb25z",
+            "dW1lchgCIAEoCVIIY29uc3VtZXISGgoJdXBfdG9fc2VxGAMgASgEUgd1cFRv",
+            "U2VxIhMKEUFja0V2ZW50c1Jlc3BvbnNlIo8BCg1QcmVzZW5jZUV2ZW50EhIK",
+            "BGZyb20YASABKAlSBGZyb20SMQoFc3RhdGUYAiABKA4yGy53aGF0c21lb3cu",
+            "djEuUHJlc2VuY2VTdGF0ZVIFc3RhdGUSNwoJbGFzdF9zZWVuGAMgASgLMhou",
+            "Z29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcFIIbGFzdFNlZW4ifwoRQ2hhdFBy",
+            "ZXNlbmNlRXZlbnQSMwoGc291cmNlGAEgASgLMhsud2hhdHNtZW93LnYxLk1l",
+            "c3NhZ2VTb3VyY2VSBnNvdXJjZRI1CgVzdGF0ZRgCIAEoDjIfLndoYXRzbWVv",
+            "dy52MS5DaGF0UHJlc2VuY2VTdGF0ZVIFc3RhdGUiLgoSUXVldWVPdmVyZmxv",
+            "d0V2ZW50EhgKB2Ryb3BwZWQYASABKARSB2Ryb3BwZWQiPQocU3RyZWFtRXBo",
+            "ZW1lcmFsRXZlbnRzUmVxdWVzdBIdCgpzZXNzaW9uX2lkGAEgASgJUglzZXNz",
+            "aW9uSWQi+AEKHVN0cmVhbUVwaGVtZXJhbEV2ZW50c1Jlc3BvbnNlEjkKCHBy",
+            "ZXNlbmNlGAogASgLMhsud2hhdHNtZW93LnYxLlByZXNlbmNlRXZlbnRIAFII",
+            "cHJlc2VuY2USRgoNY2hhdF9wcmVzZW5jZRgLIAEoCzIfLndoYXRzbWVvdy52",
+            "MS5DaGF0UHJlc2VuY2VFdmVudEgAUgxjaGF0UHJlc2VuY2USSQoOcXVldWVf",
+            "b3ZlcmZsb3cYDCABKAsyIC53aGF0c21lb3cudjEuUXVldWVPdmVyZmxvd0V2",
+            "ZW50SABSDXF1ZXVlT3ZlcmZsb3dCCQoHcGF5bG9hZCrWAgoLUmVjZWlwdFR5",
+            "cGUSHAoYUkVDRUlQVF9UWVBFX1VOU1BFQ0lGSUVEEAASGgoWUkVDRUlQVF9U",
+            "WVBFX0RFTElWRVJFRBABEhcKE1JFQ0VJUFRfVFlQRV9TRU5ERVIQAhIWChJS",
+            "RUNFSVBUX1RZUEVfUkVUUlkQAxIVChFSRUNFSVBUX1RZUEVfUkVBRBAEEhoK",
+            "FlJFQ0VJUFRfVFlQRV9SRUFEX1NFTEYQBRIXChNSRUNFSVBUX1RZUEVfUExB",
+            "WUVEEAYSHAoYUkVDRUlQVF9UWVBFX1BMQVlFRF9TRUxGEAcSHQoZUkVDRUlQ",
+            "VF9UWVBFX1NFUlZFUl9FUlJPUhAIEhkKFVJFQ0VJUFRfVFlQRV9JTkFDVElW",
+            "RRAJEhkKFVJFQ0VJUFRfVFlQRV9QRUVSX01TRxAKEh0KGVJFQ0VJUFRfVFlQ",
+            "RV9ISVNUT1JZX1NZTkMQCypTCg9VbmF2YWlsYWJsZVR5cGUSIAocVU5BVkFJ",
+            "TEFCTEVfVFlQRV9VTlNQRUNJRklFRBAAEh4KGlVOQVZBSUxBQkxFX1RZUEVf",
+            "VklFV19PTkNFEAEqqwIKD0hpc3RvcnlTeW5jVHlwZRIhCh1ISVNUT1JZX1NZ",
+            "TkNfVFlQRV9VTlNQRUNJRklFRBAAEicKI0hJU1RPUllfU1lOQ19UWVBFX0lO",
+            "SVRJQUxfQk9PVFNUUkFQEAESJwojSElTVE9SWV9TWU5DX1RZUEVfSU5JVElB",
+            "TF9TVEFUVVNfVjMQAhIaChZISVNUT1JZX1NZTkNfVFlQRV9GVUxMEAMSHAoY",
+            "SElTVE9SWV9TWU5DX1RZUEVfUkVDRU5UEAQSHwobSElTVE9SWV9TWU5DX1RZ",
+            "UEVfUFVTSF9OQU1FEAUSJwojSElTVE9SWV9TWU5DX1RZUEVfTk9OX0JMT0NL",
+            "SU5HX0RBVEEQBhIfChtISVNUT1JZX1NZTkNfVFlQRV9PTl9ERU1BTkQQByqk",
+            "AQoSSGlzdG9yeVN5bmNGYWlsdXJlEiQKIEhJU1RPUllfU1lOQ19GQUlMVVJF",
+            "X1VOU1BFQ0lGSUVEEAASIAocSElTVE9SWV9TWU5DX0ZBSUxVUkVfRVhQSVJF",
+            "RBABEiAKHEhJU1RPUllfU1lOQ19GQUlMVVJFX0lOVkFMSUQQAhIkCiBISVNU",
+            "T1JZX1NZTkNfRkFJTFVSRV9VTkFWQUlMQUJMRRADMqkCCgxFdmVudFNlcnZp",
+            "Y2USVwoMU3RyZWFtRXZlbnRzEiEud2hhdHNtZW93LnYxLlN0cmVhbUV2ZW50",
+            "c1JlcXVlc3QaIi53aGF0c21lb3cudjEuU3RyZWFtRXZlbnRzUmVzcG9uc2Uw",
+            "ARJMCglBY2tFdmVudHMSHi53aGF0c21lb3cudjEuQWNrRXZlbnRzUmVxdWVz",
+            "dBofLndoYXRzbWVvdy52MS5BY2tFdmVudHNSZXNwb25zZRJyChVTdHJlYW1F",
+            "cGhlbWVyYWxFdmVudHMSKi53aGF0c21lb3cudjEuU3RyZWFtRXBoZW1lcmFs",
+            "RXZlbnRzUmVxdWVzdBorLndoYXRzbWVvdy52MS5TdHJlYW1FcGhlbWVyYWxF",
+            "dmVudHNSZXNwb25zZTABQsEBChBjb20ud2hhdHNtZW93LnYxQgtFdmVudHNQ",
+            "cm90b1ABWkZnaXRodWIuY29tL3Rjb3J0ZWdhL1doYXRzbWVvdy5ORVQvc2lk",
+            "ZWNhci9nZW4vd2hhdHNtZW93L3YxO3doYXRzbWVvd3YxogIDV1hYqgIVV2hh",
+            "dHNtZW93LlByb3RvY29sLlYxygIMV2hhdHNtZW93XFYx4gIYV2hhdHNtZW93",
+            "XFYxXEdQQk1ldGFkYXRh6gINV2hhdHNtZW93OjpWMWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, global::Whatsmeow.Proto.WAWebProtobufsE2E.WAWebProtobufsE2EReflection.Descriptor, global::Whatsmeow.Protocol.V1.ChatstateReflection.Descriptor, global::Whatsmeow.Protocol.V1.ContactReflection.Descriptor, global::Whatsmeow.Protocol.V1.MediaReflection.Descriptor, global::Whatsmeow.Protocol.V1.PresenceReflection.Descriptor, global::Whatsmeow.Protocol.V1.GroupReflection.Descriptor, global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor, },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Whatsmeow.Protocol.V1.ReceiptType), typeof(global::Whatsmeow.Protocol.V1.UnavailableType), }, null, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Whatsmeow.Protocol.V1.ReceiptType), typeof(global::Whatsmeow.Protocol.V1.UnavailableType), typeof(global::Whatsmeow.Protocol.V1.HistorySyncType), typeof(global::Whatsmeow.Protocol.V1.HistorySyncFailure), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.MessageSource), global::Whatsmeow.Protocol.V1.MessageSource.Parser, new[]{ "Chat", "Sender", "SenderAlt", "RecipientAlt", "IsFromMe" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.MessageInfo), global::Whatsmeow.Protocol.V1.MessageInfo.Parser, new[]{ "Source", "Id", "PushName", "MessageTime" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.MessageEvent), global::Whatsmeow.Protocol.V1.MessageEvent.Parser, new[]{ "Info", "Message", "ViewOnce" }, null, null, null, null),
@@ -116,7 +139,9 @@ namespace Whatsmeow.Protocol.V1 {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.UndecryptableMessageEvent), global::Whatsmeow.Protocol.V1.UndecryptableMessageEvent.Parser, new[]{ "Info", "HidePlaceholder", "Unavailable", "UnavailableType" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.ConnectionStateEvent), global::Whatsmeow.Protocol.V1.ConnectionStateEvent.Parser, new[]{ "State" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.StreamEventsRequest), global::Whatsmeow.Protocol.V1.StreamEventsRequest.Parser, new[]{ "SessionId", "Consumer", "AfterSeq" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.StreamEventsResponse), global::Whatsmeow.Protocol.V1.StreamEventsResponse.Parser, new[]{ "Seq", "Message", "Receipt", "UndecryptableMessage", "ConnectionState", "Contact", "MediaRetry", "Group", "ChatState" }, new[]{ "Payload" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.StreamEventsResponse), global::Whatsmeow.Protocol.V1.StreamEventsResponse.Parser, new[]{ "Seq", "Message", "Receipt", "UndecryptableMessage", "ConnectionState", "Contact", "MediaRetry", "Group", "ChatState", "HistoryMessages", "HistoryProgress" }, new[]{ "Payload" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.HistoryMessagesEvent), global::Whatsmeow.Protocol.V1.HistoryMessagesEvent.Parser, new[]{ "SyncType", "Messages" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.HistorySyncProgressEvent), global::Whatsmeow.Protocol.V1.HistorySyncProgressEvent.Parser, new[]{ "SyncType", "ChunkOrder", "Progress", "MessageCount", "SkippedCount", "Failure" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.AckEventsRequest), global::Whatsmeow.Protocol.V1.AckEventsRequest.Parser, new[]{ "SessionId", "Consumer", "UpToSeq" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.AckEventsResponse), global::Whatsmeow.Protocol.V1.AckEventsResponse.Parser, null, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.PresenceEvent), global::Whatsmeow.Protocol.V1.PresenceEvent.Parser, new[]{ "From", "State", "LastSeen" }, null, null, null, null),
@@ -197,6 +222,66 @@ namespace Whatsmeow.Protocol.V1 {
     /// message (message.go:870-877); whether the phone answers for a view-once is unknown, #36 checks it live.
     /// </summary>
     [pbr::OriginalName("UNAVAILABLE_TYPE_VIEW_ONCE")] ViewOnce = 1,
+  }
+
+  /// <summary>
+  /// HistorySyncType is which history a history sync blob carries, as WhatsApp names it.
+  /// </summary>
+  internal enum HistorySyncType {
+    /// <summary>
+    /// A type this list does not have.
+    /// </summary>
+    [pbr::OriginalName("HISTORY_SYNC_TYPE_UNSPECIFIED")] Unspecified = 0,
+    /// <summary>
+    /// The first, recent history after pairing.
+    /// </summary>
+    [pbr::OriginalName("HISTORY_SYNC_TYPE_INITIAL_BOOTSTRAP")] InitialBootstrap = 1,
+    /// <summary>
+    /// Status updates after pairing.
+    /// </summary>
+    [pbr::OriginalName("HISTORY_SYNC_TYPE_INITIAL_STATUS_V3")] InitialStatusV3 = 2,
+    /// <summary>
+    /// Older history, as much as the history options ask for.
+    /// </summary>
+    [pbr::OriginalName("HISTORY_SYNC_TYPE_FULL")] Full = 3,
+    /// <summary>
+    /// Recent history.
+    /// </summary>
+    [pbr::OriginalName("HISTORY_SYNC_TYPE_RECENT")] Recent = 4,
+    /// <summary>
+    /// Contacts' push names; no messages.
+    /// </summary>
+    [pbr::OriginalName("HISTORY_SYNC_TYPE_PUSH_NAME")] PushName = 5,
+    /// <summary>
+    /// Other account data; no messages.
+    /// </summary>
+    [pbr::OriginalName("HISTORY_SYNC_TYPE_NON_BLOCKING_DATA")] NonBlockingData = 6,
+    /// <summary>
+    /// The answer to a RequestHistory.
+    /// </summary>
+    [pbr::OriginalName("HISTORY_SYNC_TYPE_ON_DEMAND")] OnDemand = 7,
+  }
+
+  /// <summary>
+  /// HistorySyncFailure is why a history sync blob was given up on.
+  /// </summary>
+  internal enum HistorySyncFailure {
+    /// <summary>
+    /// None: the blob's messages were delivered.
+    /// </summary>
+    [pbr::OriginalName("HISTORY_SYNC_FAILURE_UNSPECIFIED")] Unspecified = 0,
+    /// <summary>
+    /// WhatsApp's media server no longer has it (403, 404 or 410).
+    /// </summary>
+    [pbr::OriginalName("HISTORY_SYNC_FAILURE_EXPIRED")] Expired = 1,
+    /// <summary>
+    /// It could not be read: it failed its checks, or did not decompress or parse.
+    /// </summary>
+    [pbr::OriginalName("HISTORY_SYNC_FAILURE_INVALID")] Invalid = 2,
+    /// <summary>
+    /// Its download kept failing, three times a minute apart, while the session was online.
+    /// </summary>
+    [pbr::OriginalName("HISTORY_SYNC_FAILURE_UNAVAILABLE")] Unavailable = 3,
   }
 
   #endregion
@@ -2440,6 +2525,12 @@ namespace Whatsmeow.Protocol.V1 {
         case PayloadOneofCase.ChatState:
           ChatState = other.ChatState.Clone();
           break;
+        case PayloadOneofCase.HistoryMessages:
+          HistoryMessages = other.HistoryMessages.Clone();
+          break;
+        case PayloadOneofCase.HistoryProgress:
+          HistoryProgress = other.HistoryProgress.Clone();
+          break;
       }
 
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -2586,6 +2677,36 @@ namespace Whatsmeow.Protocol.V1 {
       }
     }
 
+    /// <summary>Field number for the "history_messages" field.</summary>
+    public const int HistoryMessagesFieldNumber = 18;
+    /// <summary>
+    /// A batch of the account's history, from a history sync blob (history.proto).
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Protocol.V1.HistoryMessagesEvent HistoryMessages {
+      get { return payloadCase_ == PayloadOneofCase.HistoryMessages ? (global::Whatsmeow.Protocol.V1.HistoryMessagesEvent) payload_ : null; }
+      set {
+        payload_ = value;
+        payloadCase_ = value == null ? PayloadOneofCase.None : PayloadOneofCase.HistoryMessages;
+      }
+    }
+
+    /// <summary>Field number for the "history_progress" field.</summary>
+    public const int HistoryProgressFieldNumber = 19;
+    /// <summary>
+    /// A history sync blob processed, or given up on (history.proto).
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Protocol.V1.HistorySyncProgressEvent HistoryProgress {
+      get { return payloadCase_ == PayloadOneofCase.HistoryProgress ? (global::Whatsmeow.Protocol.V1.HistorySyncProgressEvent) payload_ : null; }
+      set {
+        payload_ = value;
+        payloadCase_ = value == null ? PayloadOneofCase.None : PayloadOneofCase.HistoryProgress;
+      }
+    }
+
     private object payload_;
     /// <summary>Enum of possible cases for the "payload" oneof.</summary>
     public enum PayloadOneofCase {
@@ -2598,6 +2719,8 @@ namespace Whatsmeow.Protocol.V1 {
       MediaRetry = 15,
       Group = 16,
       ChatState = 17,
+      HistoryMessages = 18,
+      HistoryProgress = 19,
     }
     private PayloadOneofCase payloadCase_ = PayloadOneofCase.None;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2637,6 +2760,8 @@ namespace Whatsmeow.Protocol.V1 {
       if (!object.Equals(MediaRetry, other.MediaRetry)) return false;
       if (!object.Equals(Group, other.Group)) return false;
       if (!object.Equals(ChatState, other.ChatState)) return false;
+      if (!object.Equals(HistoryMessages, other.HistoryMessages)) return false;
+      if (!object.Equals(HistoryProgress, other.HistoryProgress)) return false;
       if (PayloadCase != other.PayloadCase) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -2654,6 +2779,8 @@ namespace Whatsmeow.Protocol.V1 {
       if (payloadCase_ == PayloadOneofCase.MediaRetry) hash ^= MediaRetry.GetHashCode();
       if (payloadCase_ == PayloadOneofCase.Group) hash ^= Group.GetHashCode();
       if (payloadCase_ == PayloadOneofCase.ChatState) hash ^= ChatState.GetHashCode();
+      if (payloadCase_ == PayloadOneofCase.HistoryMessages) hash ^= HistoryMessages.GetHashCode();
+      if (payloadCase_ == PayloadOneofCase.HistoryProgress) hash ^= HistoryProgress.GetHashCode();
       hash ^= (int) payloadCase_;
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -2709,6 +2836,14 @@ namespace Whatsmeow.Protocol.V1 {
         output.WriteRawTag(138, 1);
         output.WriteMessage(ChatState);
       }
+      if (payloadCase_ == PayloadOneofCase.HistoryMessages) {
+        output.WriteRawTag(146, 1);
+        output.WriteMessage(HistoryMessages);
+      }
+      if (payloadCase_ == PayloadOneofCase.HistoryProgress) {
+        output.WriteRawTag(154, 1);
+        output.WriteMessage(HistoryProgress);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -2755,6 +2890,14 @@ namespace Whatsmeow.Protocol.V1 {
         output.WriteRawTag(138, 1);
         output.WriteMessage(ChatState);
       }
+      if (payloadCase_ == PayloadOneofCase.HistoryMessages) {
+        output.WriteRawTag(146, 1);
+        output.WriteMessage(HistoryMessages);
+      }
+      if (payloadCase_ == PayloadOneofCase.HistoryProgress) {
+        output.WriteRawTag(154, 1);
+        output.WriteMessage(HistoryProgress);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -2791,6 +2934,12 @@ namespace Whatsmeow.Protocol.V1 {
       }
       if (payloadCase_ == PayloadOneofCase.ChatState) {
         size += 2 + pb::CodedOutputStream.ComputeMessageSize(ChatState);
+      }
+      if (payloadCase_ == PayloadOneofCase.HistoryMessages) {
+        size += 2 + pb::CodedOutputStream.ComputeMessageSize(HistoryMessages);
+      }
+      if (payloadCase_ == PayloadOneofCase.HistoryProgress) {
+        size += 2 + pb::CodedOutputStream.ComputeMessageSize(HistoryProgress);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -2855,6 +3004,18 @@ namespace Whatsmeow.Protocol.V1 {
             ChatState = new global::Whatsmeow.Protocol.V1.ChatStateEvent();
           }
           ChatState.MergeFrom(other.ChatState);
+          break;
+        case PayloadOneofCase.HistoryMessages:
+          if (HistoryMessages == null) {
+            HistoryMessages = new global::Whatsmeow.Protocol.V1.HistoryMessagesEvent();
+          }
+          HistoryMessages.MergeFrom(other.HistoryMessages);
+          break;
+        case PayloadOneofCase.HistoryProgress:
+          if (HistoryProgress == null) {
+            HistoryProgress = new global::Whatsmeow.Protocol.V1.HistorySyncProgressEvent();
+          }
+          HistoryProgress.MergeFrom(other.HistoryProgress);
           break;
       }
 
@@ -2953,6 +3114,24 @@ namespace Whatsmeow.Protocol.V1 {
             ChatState = subBuilder;
             break;
           }
+          case 146: {
+            global::Whatsmeow.Protocol.V1.HistoryMessagesEvent subBuilder = new global::Whatsmeow.Protocol.V1.HistoryMessagesEvent();
+            if (payloadCase_ == PayloadOneofCase.HistoryMessages) {
+              subBuilder.MergeFrom(HistoryMessages);
+            }
+            input.ReadMessage(subBuilder);
+            HistoryMessages = subBuilder;
+            break;
+          }
+          case 154: {
+            global::Whatsmeow.Protocol.V1.HistorySyncProgressEvent subBuilder = new global::Whatsmeow.Protocol.V1.HistorySyncProgressEvent();
+            if (payloadCase_ == PayloadOneofCase.HistoryProgress) {
+              subBuilder.MergeFrom(HistoryProgress);
+            }
+            input.ReadMessage(subBuilder);
+            HistoryProgress = subBuilder;
+            break;
+          }
         }
       }
     #endif
@@ -3048,6 +3227,664 @@ namespace Whatsmeow.Protocol.V1 {
             ChatState = subBuilder;
             break;
           }
+          case 146: {
+            global::Whatsmeow.Protocol.V1.HistoryMessagesEvent subBuilder = new global::Whatsmeow.Protocol.V1.HistoryMessagesEvent();
+            if (payloadCase_ == PayloadOneofCase.HistoryMessages) {
+              subBuilder.MergeFrom(HistoryMessages);
+            }
+            input.ReadMessage(subBuilder);
+            HistoryMessages = subBuilder;
+            break;
+          }
+          case 154: {
+            global::Whatsmeow.Protocol.V1.HistorySyncProgressEvent subBuilder = new global::Whatsmeow.Protocol.V1.HistorySyncProgressEvent();
+            if (payloadCase_ == PayloadOneofCase.HistoryProgress) {
+              subBuilder.MergeFrom(HistoryProgress);
+            }
+            input.ReadMessage(subBuilder);
+            HistoryProgress = subBuilder;
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// HistoryMessagesEvent is a batch of history messages: old messages, never live ones. A blob's messages arrive in one
+  /// or more batches, in the blob's order, each small enough for one gRPC message, then the blob's
+  /// HistorySyncProgressEvent. A batch delivered again carries the same messages.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  internal sealed partial class HistoryMessagesEvent : pb::IMessage<HistoryMessagesEvent>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<HistoryMessagesEvent> _parser = new pb::MessageParser<HistoryMessagesEvent>(() => new HistoryMessagesEvent());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<HistoryMessagesEvent> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[8]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public HistoryMessagesEvent() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public HistoryMessagesEvent(HistoryMessagesEvent other) : this() {
+      syncType_ = other.syncType_;
+      messages_ = other.messages_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public HistoryMessagesEvent Clone() {
+      return new HistoryMessagesEvent(this);
+    }
+
+    /// <summary>Field number for the "sync_type" field.</summary>
+    public const int SyncTypeFieldNumber = 1;
+    private global::Whatsmeow.Protocol.V1.HistorySyncType syncType_ = global::Whatsmeow.Protocol.V1.HistorySyncType.Unspecified;
+    /// <summary>
+    /// Which history the blob carries.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Protocol.V1.HistorySyncType SyncType {
+      get { return syncType_; }
+      set {
+        syncType_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "messages" field.</summary>
+    public const int MessagesFieldNumber = 2;
+    private static readonly pb::FieldCodec<global::Whatsmeow.Protocol.V1.MessageEvent> _repeated_messages_codec
+        = pb::FieldCodec.ForMessage(18, global::Whatsmeow.Protocol.V1.MessageEvent.Parser);
+    private readonly pbc::RepeatedField<global::Whatsmeow.Protocol.V1.MessageEvent> messages_ = new pbc::RepeatedField<global::Whatsmeow.Protocol.V1.MessageEvent>();
+    /// <summary>
+    /// The messages, as live messages are: each with its chat, sender, id and content.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Whatsmeow.Protocol.V1.MessageEvent> Messages {
+      get { return messages_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as HistoryMessagesEvent);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(HistoryMessagesEvent other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (SyncType != other.SyncType) return false;
+      if(!messages_.Equals(other.messages_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (SyncType != global::Whatsmeow.Protocol.V1.HistorySyncType.Unspecified) hash ^= SyncType.GetHashCode();
+      hash ^= messages_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (SyncType != global::Whatsmeow.Protocol.V1.HistorySyncType.Unspecified) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) SyncType);
+      }
+      messages_.WriteTo(output, _repeated_messages_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (SyncType != global::Whatsmeow.Protocol.V1.HistorySyncType.Unspecified) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) SyncType);
+      }
+      messages_.WriteTo(ref output, _repeated_messages_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (SyncType != global::Whatsmeow.Protocol.V1.HistorySyncType.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) SyncType);
+      }
+      size += messages_.CalculateSize(_repeated_messages_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(HistoryMessagesEvent other) {
+      if (other == null) {
+        return;
+      }
+      if (other.SyncType != global::Whatsmeow.Protocol.V1.HistorySyncType.Unspecified) {
+        SyncType = other.SyncType;
+      }
+      messages_.Add(other.messages_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            SyncType = (global::Whatsmeow.Protocol.V1.HistorySyncType) input.ReadEnum();
+            break;
+          }
+          case 18: {
+            messages_.AddEntriesFrom(input, _repeated_messages_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            SyncType = (global::Whatsmeow.Protocol.V1.HistorySyncType) input.ReadEnum();
+            break;
+          }
+          case 18: {
+            messages_.AddEntriesFrom(ref input, _repeated_messages_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// HistorySyncProgressEvent is one history sync blob done: after its messages were delivered, or when it was given up
+  /// on. The sidecar deletes a blob from WhatsApp's server only once this event and its batches are recorded.
+  /// </summary>
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  internal sealed partial class HistorySyncProgressEvent : pb::IMessage<HistorySyncProgressEvent>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<HistorySyncProgressEvent> _parser = new pb::MessageParser<HistorySyncProgressEvent>(() => new HistorySyncProgressEvent());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<HistorySyncProgressEvent> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[9]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public HistorySyncProgressEvent() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public HistorySyncProgressEvent(HistorySyncProgressEvent other) : this() {
+      syncType_ = other.syncType_;
+      chunkOrder_ = other.chunkOrder_;
+      progress_ = other.progress_;
+      messageCount_ = other.messageCount_;
+      skippedCount_ = other.skippedCount_;
+      failure_ = other.failure_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public HistorySyncProgressEvent Clone() {
+      return new HistorySyncProgressEvent(this);
+    }
+
+    /// <summary>Field number for the "sync_type" field.</summary>
+    public const int SyncTypeFieldNumber = 1;
+    private global::Whatsmeow.Protocol.V1.HistorySyncType syncType_ = global::Whatsmeow.Protocol.V1.HistorySyncType.Unspecified;
+    /// <summary>
+    /// Which history the blob carries.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Protocol.V1.HistorySyncType SyncType {
+      get { return syncType_; }
+      set {
+        syncType_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "chunk_order" field.</summary>
+    public const int ChunkOrderFieldNumber = 2;
+    private uint chunkOrder_;
+    /// <summary>
+    /// The blob's place among the sync's blobs, as WhatsApp numbers them.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public uint ChunkOrder {
+      get { return chunkOrder_; }
+      set {
+        chunkOrder_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "progress" field.</summary>
+    public const int ProgressFieldNumber = 3;
+    private uint progress_;
+    /// <summary>
+    /// WhatsApp's progress value for the sync, as it sent it.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public uint Progress {
+      get { return progress_; }
+      set {
+        progress_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "message_count" field.</summary>
+    public const int MessageCountFieldNumber = 4;
+    private uint messageCount_;
+    /// <summary>
+    /// How many messages its batches delivered.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public uint MessageCount {
+      get { return messageCount_; }
+      set {
+        messageCount_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "skipped_count" field.</summary>
+    public const int SkippedCountFieldNumber = 5;
+    private uint skippedCount_;
+    /// <summary>
+    /// How many of its messages were not delivered: one that does not parse, or one too large for a gRPC message.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public uint SkippedCount {
+      get { return skippedCount_; }
+      set {
+        skippedCount_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "failure" field.</summary>
+    public const int FailureFieldNumber = 6;
+    private global::Whatsmeow.Protocol.V1.HistorySyncFailure failure_ = global::Whatsmeow.Protocol.V1.HistorySyncFailure.Unspecified;
+    /// <summary>
+    /// Why it was given up on; unspecified when its messages were delivered.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Protocol.V1.HistorySyncFailure Failure {
+      get { return failure_; }
+      set {
+        failure_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as HistorySyncProgressEvent);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(HistorySyncProgressEvent other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (SyncType != other.SyncType) return false;
+      if (ChunkOrder != other.ChunkOrder) return false;
+      if (Progress != other.Progress) return false;
+      if (MessageCount != other.MessageCount) return false;
+      if (SkippedCount != other.SkippedCount) return false;
+      if (Failure != other.Failure) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (SyncType != global::Whatsmeow.Protocol.V1.HistorySyncType.Unspecified) hash ^= SyncType.GetHashCode();
+      if (ChunkOrder != 0) hash ^= ChunkOrder.GetHashCode();
+      if (Progress != 0) hash ^= Progress.GetHashCode();
+      if (MessageCount != 0) hash ^= MessageCount.GetHashCode();
+      if (SkippedCount != 0) hash ^= SkippedCount.GetHashCode();
+      if (Failure != global::Whatsmeow.Protocol.V1.HistorySyncFailure.Unspecified) hash ^= Failure.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (SyncType != global::Whatsmeow.Protocol.V1.HistorySyncType.Unspecified) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) SyncType);
+      }
+      if (ChunkOrder != 0) {
+        output.WriteRawTag(16);
+        output.WriteUInt32(ChunkOrder);
+      }
+      if (Progress != 0) {
+        output.WriteRawTag(24);
+        output.WriteUInt32(Progress);
+      }
+      if (MessageCount != 0) {
+        output.WriteRawTag(32);
+        output.WriteUInt32(MessageCount);
+      }
+      if (SkippedCount != 0) {
+        output.WriteRawTag(40);
+        output.WriteUInt32(SkippedCount);
+      }
+      if (Failure != global::Whatsmeow.Protocol.V1.HistorySyncFailure.Unspecified) {
+        output.WriteRawTag(48);
+        output.WriteEnum((int) Failure);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (SyncType != global::Whatsmeow.Protocol.V1.HistorySyncType.Unspecified) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) SyncType);
+      }
+      if (ChunkOrder != 0) {
+        output.WriteRawTag(16);
+        output.WriteUInt32(ChunkOrder);
+      }
+      if (Progress != 0) {
+        output.WriteRawTag(24);
+        output.WriteUInt32(Progress);
+      }
+      if (MessageCount != 0) {
+        output.WriteRawTag(32);
+        output.WriteUInt32(MessageCount);
+      }
+      if (SkippedCount != 0) {
+        output.WriteRawTag(40);
+        output.WriteUInt32(SkippedCount);
+      }
+      if (Failure != global::Whatsmeow.Protocol.V1.HistorySyncFailure.Unspecified) {
+        output.WriteRawTag(48);
+        output.WriteEnum((int) Failure);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (SyncType != global::Whatsmeow.Protocol.V1.HistorySyncType.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) SyncType);
+      }
+      if (ChunkOrder != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(ChunkOrder);
+      }
+      if (Progress != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(Progress);
+      }
+      if (MessageCount != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(MessageCount);
+      }
+      if (SkippedCount != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(SkippedCount);
+      }
+      if (Failure != global::Whatsmeow.Protocol.V1.HistorySyncFailure.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Failure);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(HistorySyncProgressEvent other) {
+      if (other == null) {
+        return;
+      }
+      if (other.SyncType != global::Whatsmeow.Protocol.V1.HistorySyncType.Unspecified) {
+        SyncType = other.SyncType;
+      }
+      if (other.ChunkOrder != 0) {
+        ChunkOrder = other.ChunkOrder;
+      }
+      if (other.Progress != 0) {
+        Progress = other.Progress;
+      }
+      if (other.MessageCount != 0) {
+        MessageCount = other.MessageCount;
+      }
+      if (other.SkippedCount != 0) {
+        SkippedCount = other.SkippedCount;
+      }
+      if (other.Failure != global::Whatsmeow.Protocol.V1.HistorySyncFailure.Unspecified) {
+        Failure = other.Failure;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            SyncType = (global::Whatsmeow.Protocol.V1.HistorySyncType) input.ReadEnum();
+            break;
+          }
+          case 16: {
+            ChunkOrder = input.ReadUInt32();
+            break;
+          }
+          case 24: {
+            Progress = input.ReadUInt32();
+            break;
+          }
+          case 32: {
+            MessageCount = input.ReadUInt32();
+            break;
+          }
+          case 40: {
+            SkippedCount = input.ReadUInt32();
+            break;
+          }
+          case 48: {
+            Failure = (global::Whatsmeow.Protocol.V1.HistorySyncFailure) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            SyncType = (global::Whatsmeow.Protocol.V1.HistorySyncType) input.ReadEnum();
+            break;
+          }
+          case 16: {
+            ChunkOrder = input.ReadUInt32();
+            break;
+          }
+          case 24: {
+            Progress = input.ReadUInt32();
+            break;
+          }
+          case 32: {
+            MessageCount = input.ReadUInt32();
+            break;
+          }
+          case 40: {
+            SkippedCount = input.ReadUInt32();
+            break;
+          }
+          case 48: {
+            Failure = (global::Whatsmeow.Protocol.V1.HistorySyncFailure) input.ReadEnum();
+            break;
+          }
         }
       }
     }
@@ -3073,7 +3910,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[8]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[10]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3357,7 +4194,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[9]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[11]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3521,7 +4358,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[10]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[12]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3814,7 +4651,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[11]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[13]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4067,7 +4904,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[12]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[14]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4271,7 +5108,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[13]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[15]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4476,7 +5313,7 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[14]; }
+      get { return global::Whatsmeow.Protocol.V1.EventsReflection.Descriptor.MessageTypes[16]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

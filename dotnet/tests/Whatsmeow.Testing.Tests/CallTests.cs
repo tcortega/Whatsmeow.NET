@@ -188,6 +188,23 @@ public sealed partial class CallTests : IAsyncDisposable
 	}
 
 	[Fact(Timeout = 10_000)]
+	public async Task RequestHistory_IsRecordedWithItsArguments_AndRefusesACountBelowOne()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var id = MessageId.From("3EB0C0FFEE0000000000AB");
+
+		await _fake.RequestHistoryAsync(id, Source(Ana), Now, cancellationToken: ct);
+		_ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _fake.RequestHistoryAsync(id, Source(Ana), Now, 0, ct));
+
+		var call = Assert.Single(_fake.Calls);
+		Assert.Equal(nameof(IWhatsAppClient.RequestHistoryAsync), call.Member);
+		Assert.Equal(
+			new Dictionary<string, object?>(StringComparer.Ordinal) { ["oldest"] = id, ["source"] = Source(Ana), ["oldestTimestamp"] = Now, ["count"] = 50 },
+			call.Arguments
+		);
+	}
+
+	[Fact(Timeout = 10_000)]
 	public async Task Results_ArePlausible()
 	{
 		var ct = TestContext.Current.CancellationToken;

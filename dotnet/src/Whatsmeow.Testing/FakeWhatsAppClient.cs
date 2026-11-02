@@ -28,7 +28,8 @@ namespace Whatsmeow.Testing;
 /// Events run in the client's own dispatcher, so <see cref="On{TEvent}"/>, <see cref="WaitForAsync{TEvent}"/> and
 /// <see cref="OnHandlerError"/> behave as on a real session: one chat's events reach the handlers one at a time, in
 /// order, different chats run concurrently, presence and typing run in lanes of their own that never wait for the other
-/// events, and a handler that throws is reported on <see cref="OnHandlerError"/> while the event still counts as handled.
+/// events, history runs in one lane of its own that never waits for a chat's, and a handler that throws is reported on
+/// <see cref="OnHandlerError"/> while the event still counts as handled.
 /// </para>
 /// <para>
 /// Every other member is recorded and returns a plausible result at once; the fake enforces no WhatsApp rule, paces
@@ -105,6 +106,7 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 		nameof(MarkChatUnreadAsync),
 		nameof(StarMessageAsync),
 		nameof(UnstarMessageAsync),
+		nameof(RequestHistoryAsync),
 	}.ToFrozenSet(StringComparer.Ordinal);
 
 	private readonly TimeProvider _time;
@@ -630,6 +632,18 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 	{
 		ArgumentNullException.ThrowIfNull(source);
 		return CallAsync(nameof(UnstarMessageAsync), [(nameof(id), id), (nameof(source), source)], cancellationToken);
+	}
+
+	/// <inheritdoc/>
+	public Task RequestHistoryAsync(MessageId oldest, MessageSource source, DateTimeOffset oldestTimestamp, int count = 50, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(source);
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);
+		return CallAsync(
+			nameof(RequestHistoryAsync),
+			[(nameof(oldest), oldest), (nameof(source), source), (nameof(oldestTimestamp), oldestTimestamp), (nameof(count), count)],
+			cancellationToken
+		);
 	}
 
 	private static string Invariant(FormattableString text) => text.ToString(CultureInfo.InvariantCulture);

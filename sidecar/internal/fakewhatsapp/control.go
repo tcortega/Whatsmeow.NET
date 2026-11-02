@@ -11,6 +11,7 @@ import (
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/proto/waAdv"
 	"go.mau.fi/whatsmeow/proto/waE2E"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 	"google.golang.org/protobuf/proto"
@@ -166,6 +167,11 @@ func (c *Control) LinkDevice(ctx context.Context, req *fakev1.LinkDeviceRequest)
 			return nil, fmt.Errorf("link session %q: %w", req.GetSessionId(), err)
 		}
 	}
+
+	// What whatsmeow's registration payload sends, the only place it sends them (store/clientpayload.go:174-183).
+	c.whatsApp.mu.Lock()
+	c.whatsApp.pairingProps[req.GetSessionId()] = proto.CloneOf(store.DeviceProps)
+	c.whatsApp.mu.Unlock()
 
 	client.dispatch(&events.PairSuccess{ID: jid})
 

@@ -1531,3 +1531,85 @@ Whatsmeow.Messaging.VideoMetadata.Mimetype.init -> void
 Whatsmeow.Messaging.VideoMetadata.VideoMetadata() -> void
 Whatsmeow.Messaging.VideoMetadata.Width.get -> int?
 Whatsmeow.Messaging.VideoMetadata.Width.init -> void
+override sealed Whatsmeow.History.HistoryReceived.Equals(Whatsmeow.Events.WhatsAppEvent? other) -> bool
+override sealed Whatsmeow.History.HistorySyncProgressed.Equals(Whatsmeow.Events.WhatsAppEvent? other) -> bool
+override Whatsmeow.History.HistoryMessage.Equals(object? obj) -> bool
+override Whatsmeow.History.HistoryMessage.GetHashCode() -> int
+override Whatsmeow.History.HistoryMessage.ToString() -> string!
+override Whatsmeow.History.HistoryReceived.<Clone>$() -> Whatsmeow.History.HistoryReceived!
+override Whatsmeow.History.HistoryReceived.Equals(object? obj) -> bool
+override Whatsmeow.History.HistoryReceived.GetHashCode() -> int
+override Whatsmeow.History.HistoryReceived.ToString() -> string!
+override Whatsmeow.History.HistorySyncProgressed.<Clone>$() -> Whatsmeow.History.HistorySyncProgressed!
+override Whatsmeow.History.HistorySyncProgressed.Equals(object? obj) -> bool
+override Whatsmeow.History.HistorySyncProgressed.GetHashCode() -> int
+override Whatsmeow.History.HistorySyncProgressed.ToString() -> string!
+static Whatsmeow.History.HistoryMessage.operator !=(Whatsmeow.History.HistoryMessage? left, Whatsmeow.History.HistoryMessage? right) -> bool
+static Whatsmeow.History.HistoryMessage.operator ==(Whatsmeow.History.HistoryMessage? left, Whatsmeow.History.HistoryMessage? right) -> bool
+static Whatsmeow.History.HistoryReceived.operator !=(Whatsmeow.History.HistoryReceived? left, Whatsmeow.History.HistoryReceived? right) -> bool
+static Whatsmeow.History.HistoryReceived.operator ==(Whatsmeow.History.HistoryReceived? left, Whatsmeow.History.HistoryReceived? right) -> bool
+static Whatsmeow.History.HistorySyncProgressed.operator !=(Whatsmeow.History.HistorySyncProgressed? left, Whatsmeow.History.HistorySyncProgressed? right) -> bool
+static Whatsmeow.History.HistorySyncProgressed.operator ==(Whatsmeow.History.HistorySyncProgressed? left, Whatsmeow.History.HistorySyncProgressed? right) -> bool
+Whatsmeow.History.HistoryMessage
+Whatsmeow.History.HistoryMessage.<Clone>$() -> Whatsmeow.History.HistoryMessage!
+Whatsmeow.History.HistoryMessage.Content.get -> Whatsmeow.Events.MessageContent!
+Whatsmeow.History.HistoryMessage.Content.init -> void
+Whatsmeow.History.HistoryMessage.Equals(Whatsmeow.History.HistoryMessage? other) -> bool
+Whatsmeow.History.HistoryMessage.HistoryMessage() -> void
+Whatsmeow.History.HistoryMessage.Id.get -> Whatsmeow.MessageId
+Whatsmeow.History.HistoryMessage.Id.init -> void
+Whatsmeow.History.HistoryMessage.PushName.get -> string?
+Whatsmeow.History.HistoryMessage.PushName.init -> void
+Whatsmeow.History.HistoryMessage.Source.get -> Whatsmeow.Events.MessageSource!
+Whatsmeow.History.HistoryMessage.Source.init -> void
+Whatsmeow.History.HistoryMessage.Timestamp.get -> System.DateTimeOffset
+Whatsmeow.History.HistoryMessage.Timestamp.init -> void
+Whatsmeow.History.HistoryReceived
+Whatsmeow.History.HistoryReceived.Equals(Whatsmeow.History.HistoryReceived? other) -> bool
+Whatsmeow.History.HistoryReceived.HistoryReceived() -> void
+Whatsmeow.History.HistoryReceived.Messages.get -> System.Collections.Immutable.ImmutableArray<Whatsmeow.History.HistoryMessage!>
+Whatsmeow.History.HistoryReceived.Messages.init -> void
+Whatsmeow.History.HistoryReceived.SyncType.get -> Whatsmeow.History.HistorySyncType
+Whatsmeow.History.HistoryReceived.SyncType.init -> void
+Whatsmeow.History.HistorySyncFailure
+Whatsmeow.History.HistorySyncFailure.Expired = 1 -> Whatsmeow.History.HistorySyncFailure
+Whatsmeow.History.HistorySyncFailure.Invalid = 2 -> Whatsmeow.History.HistorySyncFailure
+Whatsmeow.History.HistorySyncFailure.Unavailable = 3 -> Whatsmeow.History.HistorySyncFailure
+Whatsmeow.History.HistorySyncFailure.Unknown = 0 -> Whatsmeow.History.HistorySyncFailure
+Whatsmeow.History.HistorySyncOptions
+Whatsmeow.History.HistorySyncOptions.FullSyncDaysLimit.get -> int?
+Whatsmeow.History.HistorySyncOptions.FullSyncDaysLimit.set -> void
+Whatsmeow.History.HistorySyncOptions.FullSyncSizeLimitMegabytes.get -> int?
+Whatsmeow.History.HistorySyncOptions.FullSyncSizeLimitMegabytes.set -> void
+Whatsmeow.History.HistorySyncOptions.HistorySyncOptions() -> void
+Whatsmeow.History.HistorySyncOptions.RequestFullSync.get -> bool
+Whatsmeow.History.HistorySyncOptions.RequestFullSync.set -> void
+Whatsmeow.History.HistorySyncOptions.StorageQuotaMegabytes.get -> int?
+Whatsmeow.History.HistorySyncOptions.StorageQuotaMegabytes.set -> void
+Whatsmeow.History.HistorySyncProgressed
+Whatsmeow.History.HistorySyncProgressed.ChunkOrder.get -> long
+Whatsmeow.History.HistorySyncProgressed.ChunkOrder.init -> void
+Whatsmeow.History.HistorySyncProgressed.Equals(Whatsmeow.History.HistorySyncProgressed? other) -> bool
+Whatsmeow.History.HistorySyncProgressed.Failure.get -> Whatsmeow.History.HistorySyncFailure?
+Whatsmeow.History.HistorySyncProgressed.Failure.init -> void
+Whatsmeow.History.HistorySyncProgressed.HistorySyncProgressed() -> void
+Whatsmeow.History.HistorySyncProgressed.MessageCount.get -> long
+Whatsmeow.History.HistorySyncProgressed.MessageCount.init -> void
+Whatsmeow.History.HistorySyncProgressed.Progress.get -> long
+Whatsmeow.History.HistorySyncProgressed.Progress.init -> void
+Whatsmeow.History.HistorySyncProgressed.SkippedCount.get -> long
+Whatsmeow.History.HistorySyncProgressed.SkippedCount.init -> void
+Whatsmeow.History.HistorySyncProgressed.SyncType.get -> Whatsmeow.History.HistorySyncType
+Whatsmeow.History.HistorySyncProgressed.SyncType.init -> void
+Whatsmeow.History.HistorySyncType
+Whatsmeow.History.HistorySyncType.Full = 3 -> Whatsmeow.History.HistorySyncType
+Whatsmeow.History.HistorySyncType.InitialBootstrap = 1 -> Whatsmeow.History.HistorySyncType
+Whatsmeow.History.HistorySyncType.InitialStatus = 2 -> Whatsmeow.History.HistorySyncType
+Whatsmeow.History.HistorySyncType.NonBlockingData = 6 -> Whatsmeow.History.HistorySyncType
+Whatsmeow.History.HistorySyncType.OnDemand = 7 -> Whatsmeow.History.HistorySyncType
+Whatsmeow.History.HistorySyncType.PushName = 5 -> Whatsmeow.History.HistorySyncType
+Whatsmeow.History.HistorySyncType.Recent = 4 -> Whatsmeow.History.HistorySyncType
+Whatsmeow.History.HistorySyncType.Unknown = 0 -> Whatsmeow.History.HistorySyncType
+Whatsmeow.IWhatsAppClient.RequestHistoryAsync(Whatsmeow.Jid chat, Whatsmeow.MessageId oldest, bool oldestIsFromMe, System.DateTimeOffset oldestTimestamp, int count = 50, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.WhatsmeowSidecarOptions.History.get -> Whatsmeow.History.HistorySyncOptions!
+Whatsmeow.WhatsmeowSidecarOptions.History.set -> void

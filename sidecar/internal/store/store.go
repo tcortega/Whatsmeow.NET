@@ -89,8 +89,32 @@ CREATE TABLE sent_message (
 	PRIMARY KEY (session_id, client_message_id)
 )`
 
+// schemaV5 is the history sync queue (#37, ADR 0035): each history sync notification the session's phone sent whose
+// blob is not done yet, written by the event handler before whatsmeow answers the notification, so a blob is never
+// dropped, also when it arrives before the session caught up or across a restart. The history worker delivers a blob's
+// batches in order, moving batches_done in the transaction of each, sets recorded in the transaction of its last
+// batch and progress event, and only then deletes the blob from WhatsApp's server and the row. Rows go with their
+// session (ON DELETE CASCADE).
+const schemaV5 = `
+CREATE TABLE history_blob (
+	-- The order the notifications arrived in.
+	seq          INTEGER PRIMARY KEY AUTOINCREMENT,
+	session_id   TEXT NOT NULL REFERENCES session (id) ON DELETE CASCADE,
+	-- The notification message's id; the blob's outbox keys derive from it.
+	message_id   TEXT NOT NULL,
+	-- The waE2E.HistorySyncNotification.
+	notification BLOB NOT NULL,
+	-- How many of the blob's batches are in the outbox.
+	batches_done INTEGER NOT NULL DEFAULT 0,
+	-- 1 once every batch and the progress event are in the outbox: what is left is deleting the blob from the server.
+	recorded     INTEGER NOT NULL DEFAULT 0,
+	-- How many downloads failed while the session was online.
+	attempts     INTEGER NOT NULL DEFAULT 0,
+	UNIQUE (session_id, message_id)
+)`
+
 // steps is every schema step, in order: steps()[n-1] is version n.
-func steps() []string { return []string{schemaV1, schemaV2, schemaV3, schemaV4} }
+func steps() []string { return []string{schemaV1, schemaV2, schemaV3, schemaV4, schemaV5} }
 
 // ErrInUse is returned when another whatsmeow-net holds the database.
 var ErrInUse = errors.New("in use by another whatsmeow-net")

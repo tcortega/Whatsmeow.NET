@@ -16,6 +16,7 @@ import (
 	"sync"
 
 	"github.com/rs/zerolog"
+	"go.mau.fi/whatsmeow/proto/waCompanionReg"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 
@@ -47,6 +48,8 @@ type WhatsApp struct {
 	expired  map[string]int32
 	// retries are the media retry receipts the phone has not answered, by session and message id.
 	retries map[string]retryRequest
+	// pairingProps is the store.DeviceProps each session's latest pairing sent (history.go).
+	pairingProps map[string]*waCompanionReg.DeviceProps
 	groupState
 }
 
@@ -108,7 +111,7 @@ func New(log zerolog.Logger, options ...Option) *WhatsApp {
 		log: log, clients: map[string]*Client{}, changed: make(chan struct{}), scripts: map[string]*script{}, appStates: map[string]*appState{},
 		directory:  directory{users: map[types.JID]*user{}, pictures: map[types.JID]picture{}, blocklists: map[string][]types.BlocklistItem{}},
 		groupState: groupState{groups: map[types.JID]*group{}, revoked: map[string]bool{}, refusals: map[types.JID]refusal{}},
-		expired:    map[string]int32{}, retries: map[string]retryRequest{},
+		expired:    map[string]int32{}, retries: map[string]retryRequest{}, pairingProps: map[string]*waCompanionReg.DeviceProps{},
 	}
 
 	for _, option := range options {
