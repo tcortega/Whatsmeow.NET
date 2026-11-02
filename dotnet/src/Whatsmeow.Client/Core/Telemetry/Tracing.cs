@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Grpc.Core;
 using Whatsmeow.Sidecar;
 
 namespace Whatsmeow.Core.Telemetry;
@@ -61,21 +62,25 @@ internal static class Tracing
 	/// <summary>
 	/// Marks the span failed with <paramref name="exception"/>'s <c>error.type</c> and the error status, with no
 	/// description: the conventions advise against repeating <c>error.type</c> there, and the exception's message, which
-	/// they suggest, may hold a JID or a phone number. A cancellation is no failure, and leaves the span as it is.
+	/// they suggest, may hold a JID or a phone number. The caller's own cancellation is no failure, and leaves the span
+	/// as it is.
 	/// </summary>
-	public static void Failed(Activity? activity, Exception exception)
+	public static void Failed(Activity? activity, Exception exception, CancellationToken caller)
 	{
-		if (activity is null || IsCancellation(exception))
+		if (activity is null || IsCancellation(exception, caller))
 			return;
 
 		_ = activity.SetTag(ErrorTypeTag, ErrorType(exception)).SetStatus(ActivityStatusCode.Error);
 	}
 
 	/// <summary>
-	/// The one rule for every span and instrument (ADR 0037): a cancellation is not an error, so it sets no
-	/// <c>error.type</c>, no error status, no error count and no handler duration.
+	/// The one rule for every span and instrument (ADR 0037): a cancellation is not an error when the
+	/// <paramref name="caller"/>'s token caused it, so it sets no <c>error.type</c>, no error status, no error count
+	/// and no handler duration. One the caller did not cause, as a call cut by a sidecar that died, is a failure.
+	/// <paramref name="exception"/> is null for a task that was cancelled with no exception.
 	/// </summary>
-	public static bool IsCancellation(Exception exception) => exception is OperationCanceledException;
+	public static bool IsCancellation(Exception? exception, CancellationToken caller) =>
+		caller.IsCancellationRequested && exception is null or OperationCanceledException or RpcException { StatusCode: StatusCode.Cancelled };
 
 	/// <summary>The <c>error.type</c> of <paramref name="exception"/>: its error code, or its type's full name.</summary>
 	public static string ErrorType(Exception exception) =>

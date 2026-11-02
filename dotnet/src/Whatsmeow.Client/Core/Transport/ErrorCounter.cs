@@ -6,11 +6,11 @@ using Whatsmeow.Core.Telemetry;
 namespace Whatsmeow.Core.Transport;
 
 /// <summary>
-/// Counts every failed sidecar call by its error code, as <see cref="RpcErrors"/> maps it, in the one place every call
-/// passes: unary calls, client streams and server streams alike, the library's own calls included. A unary or client
-/// stream call is returned as it is, its response counted on the side; a server stream counts its failure once, however
-/// often it is read after it. A cancelled call is not counted: with <c>ThrowOperationCanceledOnCancellation</c> the
-/// caller's cancellation is no <see cref="RpcException"/>, and a <see cref="StatusCode.Cancelled"/> one is skipped.
+/// Counts every failed sidecar call in the one place every call passes: unary calls, client streams and server streams
+/// alike, the library's own calls included. A unary or client stream call is returned as it is, its response counted
+/// on the side; a server stream counts its failure once, however often it is read after it. A status is counted by
+/// its error code, as <see cref="RpcErrors"/> maps it; a cancellation the caller's token did not cause, as a call cut
+/// by a sidecar that died, by its exception's type. The caller's own cancellation is not counted (ADR 0037).
 /// </summary>
 internal sealed class ErrorCounter(ClientMetrics metrics) : Interceptor
 {
@@ -21,7 +21,7 @@ internal sealed class ErrorCounter(ClientMetrics metrics) : Interceptor
 	)
 	{
 		var call = continuation(request, context);
-		CountWhenFaulted(call.ResponseAsync);
+		CountWhenFailed(call.ResponseAsync, context.Options.CancellationToken);
 		return call;
 	}
 
@@ -31,7 +31,7 @@ internal sealed class ErrorCounter(ClientMetrics metrics) : Interceptor
 	)
 	{
 		var call = continuation(context);
-		CountWhenFaulted(call.ResponseAsync);
+		CountWhenFailed(call.ResponseAsync, context.Options.CancellationToken);
 		return call;
 	}
 
@@ -42,33 +42,49 @@ internal sealed class ErrorCounter(ClientMetrics metrics) : Interceptor
 	)
 	{
 		var call = continuation(request, context);
-		return new AsyncServerStreamingCall<TResponse>(new CountedReader<TResponse>(call.ResponseStream, this), call.ResponseHeadersAsync, call.GetStatus, call.GetTrailers, call.Dispose);
+		return new AsyncServerStreamingCall<TResponse>(
+			new CountedReader<TResponse>(call.ResponseStream, this, context.Options.CancellationToken),
+			call.ResponseHeadersAsync,
+			call.GetStatus,
+			call.GetTrailers,
+			call.Dispose
+		);
 	}
 
 	/// <summary>
 	/// Counts the response's failure as it completes, before the caller's await resumes; reading its exception observes it,
-	/// as the caller's await does too.
+	/// as the caller's await does too. A response cancelled with no exception is counted as the caller's await sees it.
 	/// </summary>
-	private void CountWhenFaulted(Task response) =>
+	private void CountWhenFailed(Task response, CancellationToken caller) =>
 		_ = response.ContinueWith(
-			static (faulted, state) =>
+			static (failed, state) =>
 			{
-				if (faulted.Exception?.InnerException is RpcException e)
-					((ErrorCounter)state!).Count(e);
+				var (counter, caller) = ((ErrorCounter, CancellationToken))state!;
+				counter.Count(failed.Exception?.InnerException, caller);
 			},
-			this,
+			(this, caller),
 			CancellationToken.None,
-			TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+			TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
 			TaskScheduler.Default
 		);
 
-	private void Count(RpcException exception)
+	private void Count(Exception? exception, CancellationToken caller)
 	{
-		if (exception.StatusCode is not StatusCode.Cancelled)
-			metrics.Failed(RpcErrors.Code(exception));
+		if (Tracing.IsCancellation(exception, caller))
+			return;
+
+		var type = exception switch
+		{
+			RpcException e => Tracing.Name(RpcErrors.Code(e)),
+			OperationCanceledException e => Tracing.ErrorType(e),
+			null => typeof(TaskCanceledException).FullName,
+			_ => null,
+		};
+		if (type is not null)
+			metrics.Failed(type);
 	}
 
-	private sealed class CountedReader<TResponse>(IAsyncStreamReader<TResponse> inner, ErrorCounter counter) : IAsyncStreamReader<TResponse>
+	private sealed class CountedReader<TResponse>(IAsyncStreamReader<TResponse> inner, ErrorCounter counter, CancellationToken caller) : IAsyncStreamReader<TResponse>
 	{
 		private int _counted;
 
@@ -80,10 +96,11 @@ internal sealed class ErrorCounter(ClientMetrics metrics) : Interceptor
 			{
 				return await inner.MoveNext(cancellationToken).ConfigureAwait(false);
 			}
-			catch (RpcException e)
+			catch (Exception e) when (e is RpcException or OperationCanceledException)
 			{
-				if (Interlocked.Exchange(ref _counted, 1) == 0)
-					counter.Count(e);
+				// The read's token is the caller's too.
+				if (!Tracing.IsCancellation(e, cancellationToken) && Interlocked.Exchange(ref _counted, 1) == 0)
+					counter.Count(e, caller);
 				throw;
 			}
 		}

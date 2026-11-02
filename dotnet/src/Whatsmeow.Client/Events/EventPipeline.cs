@@ -112,10 +112,17 @@ internal sealed class EventPipeline : IAsyncDisposable
 	}
 
 	public IDisposable On<TEvent>(Func<TEvent, CancellationToken, ValueTask> handler)
+		where TEvent : WhatsAppEvent => On(handler, observed: true);
+
+	/// <param name="observed">
+	/// Whether the handler is the application's, which the telemetry observes; false for <see cref="WaitForAsync{TEvent}"/>'s
+	/// own, which starts no process span and records no duration.
+	/// </param>
+	private Registration On<TEvent>(Func<TEvent, CancellationToken, ValueTask> handler, bool observed)
 		where TEvent : WhatsAppEvent
 	{
 		ArgumentNullException.ThrowIfNull(handler);
-		var run = new Handler(static e => e is TEvent, (e, ct) => handler((TEvent)e, ct));
+		var run = new Handler(static e => e is TEvent, (e, ct) => handler((TEvent)e, ct), observed);
 		lock (_lock)
 			_handlers = _handlers.Add(run);
 		return new Registration(() =>
@@ -143,14 +150,15 @@ internal sealed class EventPipeline : IAsyncDisposable
 		ArgumentNullException.ThrowIfNull(predicate);
 		var found = new TaskCompletionSource<TEvent>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-		// A handler like any other, in the same dispatcher, so it sees the event in its lane's order.
+		// A handler like any other, in the same dispatcher, so it sees the event in its lane's order; not the application's.
 		using var registration = On<TEvent>(
 			(e, token) =>
 			{
 				if (predicate(e))
 					_ = found.TrySetResult(e);
 				return ValueTask.CompletedTask;
-			}
+			},
+			observed: false
 		);
 		using var stopped = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _stopping.Token);
 		try
@@ -198,9 +206,10 @@ internal sealed class EventPipeline : IAsyncDisposable
 	}
 
 	/// <summary>
-	/// Runs every handler of <paramref name="e"/> in order, inside its process span, which starts with the first handler
-	/// that takes the event: an event no handler takes has none. A handler that throws is logged and reported, and the
-	/// next one runs; each handler's duration is recorded, a throw's included, a cancellation's not (ADR 0037).
+	/// Runs every handler of <paramref name="e"/> in order, inside its process span, which starts with the first of the
+	/// application's handlers that takes the event: an event none takes has none. A handler that throws is logged and
+	/// reported, and the next one runs; each of the application's handlers records its duration, a throw's included, its
+	/// own cancellation's too; only the stop's cancellation is no failure (ADR 0037).
 	/// </summary>
 	private async ValueTask RunAsync(WhatsAppEvent e, CancellationToken cancellationToken)
 	{
@@ -217,10 +226,10 @@ internal sealed class EventPipeline : IAsyncDisposable
 				if (!handler.Accepts(e))
 					continue;
 
-				activity ??= _metrics is null ? null : Tracing.StartProcess(_sessionId, eventType);
+				if (handler.Observed)
+					activity ??= _metrics is null ? null : Tracing.StartProcess(_sessionId, eventType);
 				var started = _timeProvider.GetTimestamp();
 				string? failed = null;
-				var cancelled = false;
 				try
 				{
 					await handler.RunAsync(e, cancellationToken).ConfigureAwait(false);
@@ -237,13 +246,13 @@ internal sealed class EventPipeline : IAsyncDisposable
 #pragma warning restore CA1031
 				{
 					failed = Tracing.ErrorType(exception);
-					cancelled = Tracing.IsCancellation(exception);
-					Tracing.Failed(activity, exception);
+					if (handler.Observed)
+						Tracing.Failed(activity, exception, cancellationToken);
 					EventLog.HandlerFailed(_log, exception, eventType, _sessionId.Value);
 					ReportError(new HandlerError { Event = e, Exception = exception });
 				}
 
-				if (!cancelled)
+				if (handler.Observed)
 					_metrics?.HandlerRan(_sessionId, eventType, _timeProvider.GetElapsedTime(started), failed);
 			}
 		}
@@ -274,9 +283,11 @@ internal sealed class EventPipeline : IAsyncDisposable
 		}
 	}
 
-	/// <summary>One <see cref="On{TEvent}"/> handler: whether an event is its type, and the run of it.</summary>
-	private sealed class Handler(Func<WhatsAppEvent, bool> accepts, Func<WhatsAppEvent, CancellationToken, ValueTask> run)
+	/// <summary>One <see cref="On{TEvent}(Func{TEvent, CancellationToken, ValueTask})"/> handler: whether an event is its type, the run of it, and whether the telemetry observes it.</summary>
+	private sealed class Handler(Func<WhatsAppEvent, bool> accepts, Func<WhatsAppEvent, CancellationToken, ValueTask> run, bool observed)
 	{
+		public bool Observed => observed;
+
 		public bool Accepts(WhatsAppEvent e) => accepts(e);
 
 		public ValueTask RunAsync(WhatsAppEvent e, CancellationToken cancellationToken) => run(e, cancellationToken);

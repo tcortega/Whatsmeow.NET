@@ -73,29 +73,29 @@ internal sealed class SessionClient(
 	public Task<MediaRef> UploadMediaFileAsync(string path, MediaType type, CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
-		return UploadTracedAsync(type, () => _media.UploadAsync(path, type, cancellationToken));
+		return UploadTracedAsync(type, () => _media.UploadAsync(path, type, cancellationToken), cancellationToken);
 	}
 
 	public Task<MediaRef> UploadMediaAsync(Stream content, MediaType type, CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
-		return UploadTracedAsync(type, () => _media.UploadAsync(content, type, cancellationToken));
+		return UploadTracedAsync(type, () => _media.UploadAsync(content, type, cancellationToken), cancellationToken);
 	}
 
 	public Task DownloadMediaFileAsync(MediaRef media, string path, CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
-		return DownloadTracedAsync(media, () => _media.DownloadAsync(media, path, cancellationToken));
+		return DownloadTracedAsync(media, () => _media.DownloadAsync(media, path, cancellationToken), cancellationToken);
 	}
 
 	public Task DownloadMediaAsync(MediaRef media, Stream destination, CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
-		return DownloadTracedAsync(media, () => _media.DownloadAsync(media, destination, cancellationToken));
+		return DownloadTracedAsync(media, () => _media.DownloadAsync(media, destination, cancellationToken), cancellationToken);
 	}
 
 	/// <summary>Runs an upload in its span, which gets the size once it is known.</summary>
-	private async Task<MediaRef> UploadTracedAsync(MediaType type, Func<Task<MediaRef>> upload)
+	private async Task<MediaRef> UploadTracedAsync(MediaType type, Func<Task<MediaRef>> upload, CancellationToken cancellationToken)
 	{
 		using var activity = Tracing.StartUpload(sessionId, type);
 		try
@@ -106,13 +106,13 @@ internal sealed class SessionClient(
 		}
 		catch (Exception e)
 		{
-			Tracing.Failed(activity, e);
+			Tracing.Failed(activity, e, cancellationToken);
 			throw;
 		}
 	}
 
 	/// <summary>Runs a download in its span; a null <paramref name="media"/> fails in the returned task, as every argument failure does.</summary>
-	private async Task DownloadTracedAsync(MediaRef media, Func<Task> download)
+	private async Task DownloadTracedAsync(MediaRef media, Func<Task> download, CancellationToken cancellationToken)
 	{
 		ArgumentNullException.ThrowIfNull(media);
 		using var activity = Tracing.StartDownload(sessionId, media);
@@ -122,7 +122,7 @@ internal sealed class SessionClient(
 		}
 		catch (Exception e)
 		{
-			Tracing.Failed(activity, e);
+			Tracing.Failed(activity, e, cancellationToken);
 			throw;
 		}
 	}
@@ -160,7 +160,8 @@ internal sealed class SessionClient(
 				{
 					var response = await RpcErrors.CallAsync(_messages.SendTextAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
 					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
-				}
+				},
+				cancellationToken
 			)
 			.ConfigureAwait(false);
 	}
@@ -258,7 +259,8 @@ internal sealed class SessionClient(
 				{
 					var response = await RpcErrors.CallAsync(_messages.SendMediaAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
 					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
-				}
+				},
+				cancellationToken
 			)
 			.ConfigureAwait(false);
 	}
@@ -353,13 +355,14 @@ internal sealed class SessionClient(
 						)
 						.ConfigureAwait(false);
 					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
-				}
+				},
+				cancellationToken
 			)
 			.ConfigureAwait(false);
 	}
 
 	/// <summary>Runs a send in its span, and counts it once WhatsApp accepted it.</summary>
-	private async Task<SendResult> SendTracedAsync(string messageType, MessageId messageId, Func<Task<SendResult>> send)
+	private async Task<SendResult> SendTracedAsync(string messageType, MessageId messageId, Func<Task<SendResult>> send, CancellationToken cancellationToken)
 	{
 		using var activity = Tracing.StartSend(sessionId, messageId, messageType);
 		try
@@ -370,7 +373,7 @@ internal sealed class SessionClient(
 		}
 		catch (Exception e)
 		{
-			Tracing.Failed(activity, e);
+			Tracing.Failed(activity, e, cancellationToken);
 			throw;
 		}
 	}

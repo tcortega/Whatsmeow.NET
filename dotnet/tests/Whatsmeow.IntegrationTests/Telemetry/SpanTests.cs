@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Security.Cryptography;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.Metrics.Testing;
 using Whatsmeow.Events;
 using Whatsmeow.IntegrationTests.Events;
@@ -19,7 +21,7 @@ namespace Whatsmeow.IntegrationTests.Telemetry;
 /// cancellation tests' error counts, which carry no session id, run alone in the <see cref="TelemetryListeners"/> collection.
 /// </summary>
 [Collection(nameof(TelemetryListeners))]
-public sealed class SpanTests(FakeSidecar fixture)
+public sealed class SpanTests(FakeSidecar fixture, SidecarBinaries binaries)
 {
 	private const int Timeout = 120_000;
 	private const string Peer = "900000401@lid";
@@ -377,7 +379,7 @@ public sealed class SpanTests(FakeSidecar fixture)
 	}
 
 	[Fact(Timeout = Timeout)]
-	public async Task Event_AHandlerCancels_ItsProcessSpanHasNoError_AndNoDurationIsRecorded()
+	public async Task Event_AHandlersOwnCancellation_IsAFailure_OnItsProcessSpanAndItsDuration()
 	{
 		var ct = TestContext.Current.CancellationToken;
 		const string Session = "telemetry-process-cancels";
@@ -388,14 +390,86 @@ public sealed class SpanTests(FakeSidecar fixture)
 
 		await Deliveries.DeliverAsync(fixture.Fake, Session, ct, "M1");
 
-		// The span stops after its handlers ran, so a duration would have been recorded by then.
+		// Not the stop's: as an HTTP timeout in the handler would be. The span stops after the duration was recorded.
 		var process = await spans.WaitForAsync(
 			span => span.OperationName == "whatsmeow.process" && Equals(span.GetTagItem("whatsmeow.session.id"), Session) && Equals(span.GetTagItem("whatsmeow.event.type"), nameof(MessageReceived)),
 			ct
 		);
+		var failed = Tags.Of(("whatsmeow.session.id", Session), ("whatsmeow.event.type", nameof(MessageReceived)), ("error.type", "System.OperationCanceledException"));
+		Assert.Equal(failed, Tags.Of(process));
+		Assert.Equal(ActivityStatusCode.Error, process.Status);
+		var duration = Assert.Single(Measured.Of(durations, Session));
+		Assert.Equal(failed, Tags.Of(duration));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Event_TheStopCancelsAHandler_ItsProcessSpanHasNoError_AndNoDurationIsRecorded()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "telemetry-process-stopped";
+		using var logs = new LogCapture();
+		// A sidecar of its own, which the test stops while its handler runs.
+		await using var services = new ServiceCollection().AddMetrics().BuildServiceProvider();
+		var meterFactory = services.GetRequiredService<IMeterFactory>();
+		using var durations = new MetricCollector<double>(meterFactory, WhatsmeowTelemetry.MeterName, "whatsmeow.handler.duration");
+		var options = new WhatsmeowSidecarOptions { SidecarPath = fixture.Binary, DatabasePath = binaries.NewDatabase() };
+		await using var sidecar = await WhatsmeowSidecar.StartFakeWhatsAppWithMeterFactoryAsync(options, logs.Factory, meterFactory, ct);
+		var fake = new FakeWhatsAppService.FakeWhatsAppServiceClient(sidecar.CallInvoker);
+		var client = await sidecar.Sessions.GetOrCreateAsync(SessionId.From(Session), ct);
+		_ = await fake.LinkDeviceAsync(new LinkDeviceRequest { SessionId = Session, Jid = SessionSetup.Jid(Session) }, cancellationToken: ct);
+		var running = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+		var never = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+		using var handler = client.On<MessageReceived>(
+			async (_, token) =>
+			{
+				running.SetResult();
+				await never.Task.WaitAsync(token).ConfigureAwait(false);
+			}
+		);
+		using var spans = new Spans();
+		await client.ConnectAsync(ct);
+		await using (var watch = StateWatch.Start(client, ct))
+			await watch.ReachesAsync(new SessionState.Connected(), new SessionState.Connecting());
+		_ = await fake.DeliverMessageAsync(Deliveries.Message(Session, "M1"), cancellationToken: ct);
+		await running.Task.WaitAsync(ct);
+
+		await sidecar.DisposeAsync();
+
+		// The stop waited for the handler, so its span has stopped.
+		var process = Assert.Single(spans.Of("whatsmeow.process", Session), span => Equals(span.GetTagItem("whatsmeow.event.type"), nameof(MessageReceived)));
 		Assert.Equal(Tags.Of(("whatsmeow.session.id", Session), ("whatsmeow.event.type", nameof(MessageReceived))), Tags.Of(process));
 		Assert.Equal(ActivityStatusCode.Unset, process.Status);
 		Assert.Empty(Measured.Of(durations, Session));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Event_OnlyAWaitForAsyncTakesIt_HasNoProcessSpan_AndNoDuration()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "telemetry-process-waited";
+		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
+		using var durations = new MetricCollector<double>(fixture.MeterFactory, WhatsmeowTelemetry.MeterName, "whatsmeow.handler.duration");
+		var receipts = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+		using var handler = client.On<ReceiptReceived>(
+			(_, _) =>
+			{
+				_ = receipts.TrySetResult();
+				return ValueTask.CompletedTask;
+			}
+		);
+		using var spans = new Spans();
+		var waited = client.WaitForAsync<MessageReceived>(_ => true, TimeSpan.FromSeconds(60), ct);
+
+		// The waited message, then a receipt in the same chat, so its lane ran the message first.
+		await Deliveries.DeliverAsync(fixture.Fake, Session, ct, "M1");
+		_ = await fixture.Fake.DeliverReceiptAsync(new DeliverReceiptRequest { SessionId = Session, Chat = Deliveries.Chat, Sender = Deliveries.Chat, MessageIds = { "M0" } }, cancellationToken: ct);
+		await receipts.Task.WaitAsync(ct);
+
+		// The wait is no handler of the application's: only the receipt's handler made a span and a duration.
+		Assert.Equal("M1", (await waited).Id.Value);
+		_ = await spans.WaitForAsync(span => span.OperationName == "whatsmeow.process" && Equals(span.GetTagItem("whatsmeow.session.id"), Session), ct);
+		Assert.Equal([nameof(ReceiptReceived)], spans.Of("whatsmeow.process", Session).Select(span => span.GetTagItem("whatsmeow.event.type")));
+		Assert.Equal([nameof(ReceiptReceived)], Measured.Of(durations, Session).Select(measurement => measurement.Tags["whatsmeow.event.type"]));
 	}
 
 	[Fact(Timeout = Timeout)]

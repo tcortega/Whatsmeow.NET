@@ -28,7 +28,7 @@ internal sealed class ClientMetrics : IDisposable
 		_meter = meterFactory?.Create(options) ?? new Meter(options);
 		_ownsMeter = meterFactory is null;
 		_sent = _meter.CreateCounter<long>("whatsmeow.messages.sent", "{message}", "Messages WhatsApp accepted from a send.");
-		_errors = _meter.CreateCounter<long>("whatsmeow.errors", "{error}", "Failed calls to the sidecar, by error code; cancellations are not counted.");
+		_errors = _meter.CreateCounter<long>("whatsmeow.errors", "{error}", "Failed calls to the sidecar, by error code, or by exception type for a cancellation the caller did not cause; those the caller cancelled are not counted.");
 		_restarts = _meter.CreateCounter<long>("whatsmeow.sidecar.restarts", "{restart}", "Sidecars started again after one exited on its own.");
 		_received = _meter.CreateCounter<long>("whatsmeow.messages.received", "{message}", "Message events that arrived from the sidecar; a redelivery counts again.");
 		_handlerDuration = _meter.CreateHistogram(
@@ -43,7 +43,8 @@ internal sealed class ClientMetrics : IDisposable
 
 	public void MessageSent(SessionId sessionId) => _sent.Add(1, new KeyValuePair<string, object?>(Tracing.SessionIdTag, sessionId.Value));
 
-	public void Failed(WhatsmeowErrorCode code) => _errors.Add(1, new KeyValuePair<string, object?>(Tracing.ErrorTypeTag, Tracing.Name(code)));
+	/// <summary>A failed call, by its <c>error.type</c>: its error code, or the type of the exception it ended with.</summary>
+	public void Failed(string errorType) => _errors.Add(1, new KeyValuePair<string, object?>(Tracing.ErrorTypeTag, errorType));
 
 	public void Restarted() => _restarts.Add(1);
 
