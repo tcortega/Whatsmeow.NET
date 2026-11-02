@@ -51,7 +51,6 @@ FetchStickerPack: sticker packs are out of v1 scope (#36)
 
 # group.go
 GetGroupInfoFromInvite: invite messages are not in the groups slice (ADR 0030)
-GetGroupInfoFromLink: not built yet: #105
 GetGroupRequestParticipants: join-request approval is not in the groups slice (ADR 0030)
 GetLinkedGroupsParticipants: communities are not in the groups slice (ADR 0030)
 GetSubGroups: communities are not in the groups slice (ADR 0030)
@@ -59,7 +58,6 @@ JoinGroupWithInvite: invite messages are not in the groups slice (ADR 0030)
 LinkGroup: communities are not in the groups slice (ADR 0030)
 SetGroupDescription: deprecated upstream as a duplicate of SetGroupTopic (group.go:1099), which SetGroupTopic covers
 SetGroupJoinApprovalMode: join-request approval is not in the groups slice (ADR 0030)
-SetGroupMemberAddMode: not built yet: #104
 SetGroupPhoto: group photos are not in the groups slice (ADR 0030)
 UnlinkGroup: communities are not in the groups slice (ADR 0030)
 UpdateGroupRequestParticipants: join-request approval is not in the groups slice (ADR 0030)
@@ -117,7 +115,6 @@ BuildUnavailableMessageRequest: whatsmeow requests an undecryptable message from
 GenerateMessageID: the caller makes message ids, in the same format, so a repeat is idempotent (ADR 0025)
 RevokeMessage: deprecated upstream in favour of BuildRevoke (send.go:504), which SendRevoke covers
 SendPeerMessage: RequestHistory sends its peer message with SendMessage and Peer, as SendPeerMessage does (send.go:491-497), to pass an id of its own (history.go); whatsmeow sends its other peer messages itself (appstate.go:532, retry.go:455)
-SetDisappearingTimer: not built yet: #106
 
 # sendfb.go
 SendFBMessage: Messenger and Instagram (FB) messages are not WhatsApp
