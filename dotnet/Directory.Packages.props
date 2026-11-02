@@ -21,7 +21,10 @@
 		<!-- BindConfiguration, and the configuration binding generator it brings (Microsoft.Extensions.Configuration.Binder). -->
 		<PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.14" />
 		<PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.11.0" />
-		<!-- Whatsmeow.LiveTests only, to render the QR code a person scans; MIT. Never in a shipped project (build/ci.sh). -->
+		<!-- The sample's exporter only, never a library package's dependency (#42); Apache-2.0. -->
+		<PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.20.1" />
+		<PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.20.1" />
+		<!-- The live tests and the sample, to render the QR code a person scans; MIT. Never in a shipped project (build/ci.sh). -->
 		<PackageVersion Include="QRCoder" Version="1.8.1" />
 		<!-- A runtime dependency of consumers too (Vogen.SharedTypes): never PrivateAssets (ADR 0010). -->
 		<PackageVersion Include="Vogen" Version="8.0.7" />

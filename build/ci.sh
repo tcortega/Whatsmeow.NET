@@ -292,14 +292,15 @@ shipped_have_no_fake() {
 
 # The live tests (docs/guidelines/tests.md Live WhatsApp) are contained: [LiveFact] appears only in
 # Whatsmeow.LiveTests, Explicit, a declared exception to the banned list, only in its LiveFactAttribute.cs, every
-# test there is a [LiveFact] (no [Fact], [FactAttribute], [Xunit.Fact] or [Theory]), and QRCoder, which it alone uses, is in no shipped project.
+# test there is a [LiveFact] (no [Fact], [FactAttribute], [Xunit.Fact] or [Theory]), and QRCoder, which it and the sample use, is in no shipped
+# project; nor is OpenTelemetry, which only the sample uses (ADR 0049).
 # Each grep has a positive control, or it could prove nothing.
 live_tests_contained() {
-	local live=dotnet/tests/Whatsmeow.LiveTests attribute=dotnet/tests/Whatsmeow.LiveTests/LiveFactAttribute.cs
+	local live=dotnet/tests/Whatsmeow.LiveTests attribute=dotnet/tests/Whatsmeow.LiveTests/LiveFactAttribute.cs sample=dotnet/samples/EchoBot
 	local explicit='(^|[^A-Za-z0-9_])Explicit[[:space:]]*=[^=]' found lock rc=0
 	if ! grep -rqF --include='*.cs' '[LiveFact' "$live" || ! grep -qE "$explicit" "$attribute" ||
-		! grep -qF '"QRCoder"' "$live/packages.lock.json"; then
-		annotate error "live tests" "no [LiveFact] in $live, no Explicit in $attribute, or no QRCoder in its lock file, so this check cannot see them"
+		! grep -qF '"QRCoder"' "$live/packages.lock.json" || ! grep -qF '"OpenTelemetry"' "$sample/packages.lock.json"; then
+		annotate error "live tests" "no [LiveFact] in $live, no Explicit in $attribute, no QRCoder in its lock file, or no OpenTelemetry in $sample's, so this check cannot see them"
 		return 1
 	fi
 	# Generated/ is buf's output, which nobody writes (docs/guidelines/csharp.md); its protos have Explicit fields.
@@ -313,11 +314,15 @@ live_tests_contained() {
 	fi
 	for lock in dotnet/src/*/packages.lock.json; do
 		if grep -qF '"QRCoder"' "$lock"; then
-			annotate error "live tests" "$lock depends on QRCoder, which only $live may use"
+			annotate error "live tests" "$lock depends on QRCoder, which only $live and the sample may use"
+			rc=1
+		fi
+		if grep -qF '"OpenTelemetry' "$lock"; then
+			annotate error "live tests" "$lock depends on OpenTelemetry, which only $sample may use"
 			rc=1
 		fi
 	done
-	[ "$rc" -eq 0 ] && echo "LiveFact, Explicit, the live tests and QRCoder stay in $live"
+	[ "$rc" -eq 0 ] && echo "LiveFact, Explicit, the live tests and QRCoder stay in $live and the sample, OpenTelemetry in $sample"
 	return "$rc"
 }
 

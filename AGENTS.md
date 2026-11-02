@@ -19,7 +19,7 @@ third_party/whatsmeow/ upstream protos copied from the exact pinned version (`VE
 sidecar/               Go module `github.com/tcortega/Whatsmeow.NET/sidecar`: product code and dependencies only
 tools/                 Go module for repo tools (`check-repo`, `sync-protos`, `check-licenses`, `bump-report`, the tests' `stub-sidecar`), kept out of the product module
 build/ci.sh            every CI check; the workflow only calls it
-dotnet/                `Whatsmeow.slnx` (never a .sln), src/, tests/; samples/ later (Phase 3)
+dotnet/                `Whatsmeow.slnx` (never a .sln), src/, tests/, samples/ (`EchoBot`, the hosted sample, ADR 0049)
 docs/                  ARCHITECTURE, RESEARCH, guidelines/, adr/
 global.json mise.toml  .NET SDK pin; Go, buf, golangci-lint, protoc, protoc plugins and shellcheck pins
 nuget.config           nuget.org only
@@ -98,6 +98,7 @@ Sidecar (#4). Copy it for the next slice; do not invent a second pattern.
 | A schema change to the sidecar's tables | a new numbered step in `sidecar/internal/store/store.go` (`steps()`), never an edit to a merged one (ADR 0022) |
 | New error reason | `ErrorReason` in `proto/whatsmeow/v1/error.proto` + exception subtype (§8.7) |
 | DI, options, hosted supervisor | `dotnet/src/Whatsmeow.Extensions.Hosting/` |
+| A sample | `dotnet/samples/<Name>/`, public API only, its setup in one method; its FullCycle in `dotnet/tests/Whatsmeow.IntegrationTests/Samples/` calls that method plus `UseFakeWhatsApp()` (ADR 0049) |
 | Consumer fakes | `dotnet/src/Whatsmeow.Testing/`; their tests, public API only, in `dotnet/tests/Whatsmeow.Testing.Tests/` (ADR 0036) |
 | Integration test (default) | `dotnet/tests/Whatsmeow.IntegrationTests/<Slice>/`, on the `FakeSidecar` fixture |
 | Live test (real WhatsApp, opt-in) | `dotnet/tests/Whatsmeow.LiveTests/`, `[LiveFact]` in the `Live` collection, with the fake-mode checks (ADR 0021, 0032) |
