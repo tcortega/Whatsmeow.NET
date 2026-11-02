@@ -63,9 +63,10 @@ service FakeWhatsAppService {
   // handlers run.
   rpc DropConnection(DropConnectionRequest) returns (DropConnectionResponse);
 
-  // HoldNextLogin makes the session's next login, after a connect, hold Connected until ReleaseLogin: whatsmeow
-  // dispatches it on a goroutine of its own after two IQs (connectionevents.go:187-204), while the offline sync's
-  // OfflineSyncCompleted comes on the node queue (connectionevents.go:87-90), so CompleteOfflineSync can come first.
+  // HoldNextLogin makes the session's next login, after a connect or a reset's reconnect, hold Connected until
+  // ReleaseLogin, so the session stays connecting or reconnecting: whatsmeow dispatches it on a goroutine of its own
+  // after two IQs (connectionevents.go:187-204), while the offline sync's OfflineSyncCompleted comes on the node queue
+  // (connectionevents.go:87-90), so CompleteOfflineSync can come first.
   rpc HoldNextLogin(HoldNextLoginRequest) returns (HoldNextLoginResponse);
 
   // ReleaseLogin dispatches the session's held Connected off the node queue, and returns once its handlers ran. No

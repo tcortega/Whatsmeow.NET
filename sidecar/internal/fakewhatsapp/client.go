@@ -95,9 +95,7 @@ func (c *Client) ConnectContext(context.Context) error {
 	c.connection = make(chan struct{})
 	switch {
 	case c.Store.ID == nil:
-	case c.whatsApp.take(c.sessionID, func(s *script) bool { return s.holdLogin }, func(s *script) {
-		s.holdLogin, s.login = false, c.logIn
-	}):
+	case c.holdsLogin():
 	default:
 		c.whatsApp.background.Go(c.logIn)
 	}
@@ -211,7 +209,7 @@ func (c *Client) Disconnect() {
 
 // ResetConnection closes an open connection and reconnects at once, as whatsmeow's does after a login: Disconnected
 // off the node queue, then a reconnect with no delay, whose login WhatsApp accepts (client.go:612-631, 653-660,
-// 712-724; connectionevents.go:165). A Disconnect while its Disconnected handlers run cancels the reconnect, as one
+// 712-724; connectionevents.go:165), or HoldNextLogin holds. A Disconnect while its Disconnected handlers run cancels the reconnect, as one
 // during whatsmeow's reconnect wait does (client.go:657-659). Without a connection it does nothing.
 func (c *Client) ResetConnection() {
 	c.conn.Lock()
@@ -240,7 +238,16 @@ func (c *Client) ResetConnection() {
 		c.connection = make(chan struct{})
 		c.conn.Unlock()
 
-		c.logIn()
+		if !c.holdsLogin() {
+			c.logIn()
+		}
+	})
+}
+
+// holdsLogin holds this login for ReleaseLogin when HoldNextLogin scripted it, and reports whether it did.
+func (c *Client) holdsLogin() bool {
+	return c.whatsApp.take(c.sessionID, func(s *script) bool { return s.holdLogin }, func(s *script) {
+		s.holdLogin, s.login = false, c.logIn
 	})
 }
 

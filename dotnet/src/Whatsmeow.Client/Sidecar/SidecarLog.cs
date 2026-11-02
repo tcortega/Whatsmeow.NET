@@ -24,6 +24,22 @@ internal static partial class SidecarLog
 	[LoggerMessage(6, LogLevel.Warning, "Deleting the socket directory {Directory} failed")]
 	public static partial void SocketDirectoryNotDeleted(ILogger logger, Exception exception, string directory);
 
+	[LoggerMessage(10, LogLevel.Information, "Connected to the sidecar at {Address}, version {Version}")]
+	public static partial void ExternalSidecarConnected(ILogger logger, string address, string version);
+
+	[LoggerMessage(11, LogLevel.Warning, "The sidecar at {Address} went away")]
+	public static partial void ExternalSidecarLost(ILogger logger, string address);
+
+	/// <summary>Named as an embedded restart is: either way the sidecar is back, and the client resumed (ADR 0046).</summary>
+	[LoggerMessage(12, LogLevel.Information, "The sidecar at {Address} is back after {Delay} (attempt {Attempt})", EventName = "SidecarRestarted")]
+	public static partial void ExternalSidecarBack(ILogger logger, string address, TimeSpan delay, int attempt);
+
+	[LoggerMessage(13, LogLevel.Debug, "The health watch on the external sidecar ended")]
+	public static partial void ExternalWatchEnded(ILogger logger, Exception exception);
+
+	[LoggerMessage(14, LogLevel.Warning, "The sidecar at {Address} refused this client's token, as after a rotation; connecting again with the token its file holds")]
+	public static partial void ExternalTokenRefused(ILogger logger, string address);
+
 	/// <summary>One sidecar stderr line, at the level it reports.</summary>
 	[LoggerMessage(EventId = 7, Message = "{Line}")]
 	public static partial void SidecarOutput(ILogger logger, LogLevel level, string line);

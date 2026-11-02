@@ -1790,3 +1790,13 @@ Whatsmeow.Messaging.Poll.Poll() -> void
 Whatsmeow.Messaging.Poll.Question.get -> string!
 Whatsmeow.Messaging.Poll.Question.init -> void
 Whatsmeow.WhatsmeowErrorCode.PollSecretNotFound = 24 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.ExternalSidecarOptions
+Whatsmeow.ExternalSidecarOptions.Address.get -> string?
+Whatsmeow.ExternalSidecarOptions.Address.set -> void
+Whatsmeow.ExternalSidecarOptions.Consumer.get -> string!
+Whatsmeow.ExternalSidecarOptions.Consumer.set -> void
+Whatsmeow.ExternalSidecarOptions.ExternalSidecarOptions() -> void
+Whatsmeow.ExternalSidecarOptions.TokenPath.get -> string?
+Whatsmeow.ExternalSidecarOptions.TokenPath.set -> void
+Whatsmeow.WhatsmeowSidecarOptions.External.get -> Whatsmeow.ExternalSidecarOptions?
+Whatsmeow.WhatsmeowSidecarOptions.External.set -> void

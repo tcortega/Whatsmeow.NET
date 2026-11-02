@@ -14,9 +14,6 @@ namespace Whatsmeow.Events;
 /// </summary>
 internal sealed class SessionEvents : IAsyncDisposable
 {
-	/// <summary>The one consumer of a session's events in embedded mode: one client process per sidecar (ADR 0022).</summary>
-	public const string Consumer = "client";
-
 	/// <summary>How long the reader waits before it opens a stream again after a failure that is not the sidecar going away.</summary>
 	private static readonly TimeSpan s_retryDelay = TimeSpan.FromSeconds(1);
 
@@ -66,7 +63,7 @@ internal sealed class SessionEvents : IAsyncDisposable
 	{
 		ulong highest = 0;
 		return ReadAsync(
-			ct => _client.StreamEvents(new StreamEventsRequest { SessionId = _sessionId.Value, Consumer = Consumer, AfterSeq = highest }, cancellationToken: ct),
+			ct => _client.StreamEvents(new StreamEventsRequest { SessionId = _sessionId.Value, Consumer = _sidecar.Consumer, AfterSeq = highest }, cancellationToken: ct),
 			async (response, ct) =>
 			{
 				// The sidecar sends only seqs above after_seq, in order (events.proto).
@@ -200,7 +197,7 @@ internal sealed class SessionEvents : IAsyncDisposable
 	private async Task AckAsync(ulong seq, CancellationToken cancellationToken)
 	{
 		_ = await RpcErrors
-			.CallAsync(_client.AckEventsAsync(new AckEventsRequest { SessionId = _sessionId.Value, Consumer = Consumer, UpToSeq = seq }, cancellationToken: cancellationToken))
+			.CallAsync(_client.AckEventsAsync(new AckEventsRequest { SessionId = _sessionId.Value, Consumer = _sidecar.Consumer, UpToSeq = seq }, cancellationToken: cancellationToken))
 			.ConfigureAwait(false);
 		EventLog.Acked(_log, _sessionId.Value, seq);
 	}

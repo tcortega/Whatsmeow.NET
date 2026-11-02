@@ -367,6 +367,17 @@ job_dotnet() {
 	check "the dotnet job left the tree unchanged (a stale packages.lock.json shows here too)" tree_unchanged "$before" "the dotnet job"
 }
 
+# The integration suite once more, its shared fixture's sidecar standalone over TCP, as an orchestrator runs it
+# (External mode, ADR 0046): every slice's FullCycle against an external sidecar. Its own CI job, on linux-x64.
+job_external() {
+	# The noexec tests run in this pass too, and fail on linux-x64 CI without the mount.
+	check "noexec mount for the copy fallback test" noexec_mount
+	check "dotnet restore (locked)" dotnet restore dotnet/Whatsmeow.slnx --locked-mode &&
+		check "dotnet build" dotnet build dotnet/tests/Whatsmeow.IntegrationTests -c Release --no-restore -p:ContinuousIntegrationBuild=true &&
+		check "dotnet test, External mode" env -u WHATSMEOW_LIVE_DATABASE -u WHATSMEOW_LIVE_PHONE_NUMBER -u WHATSMEOW_LIVE_PEER_DATABASE -u WHATSMEOW_LIVE_OWNER \
+			WHATSMEOW_NET_TEST_SIDECAR=external dotnet test --project dotnet/tests/Whatsmeow.IntegrationTests -c Release --no-build
+}
+
 # Native packages (ADR 0023). The package job builds whatsmeow-net for every release target at the client's version,
 # packs every package into a local feed with the Corresponding Source archive beside them (ADR 0029), and installs from
 # it; CI packs on Windows, and the install job installs that feed on Linux and macOS, so packages built on Windows run
@@ -626,7 +637,7 @@ sha256_of() { # file
 # evidence tags ADR 0016 gave each claim about what redistributing owes.
 readme_tags=('[inferred: GPLv3 §5(c) and §14, ADR 0016]' '[inferred: FSF FAQ #MereAggregation, ADR 0016]' '[inferred: GPLv3 §0]'
 	"conveys it, and you take on GPLv3 §6 for \`whatsmeow-net\` [inferred]" '[inferred: GPLv3 §6 "User Product"]'
-	"\`ExcludeAssets\`) and run an external \`whatsmeow-net\` is [unknown]" 'Legal review of all of the above is [unknown]')
+	"which ships no binary in the app [observed: \`build/ci.sh install\`, ADR 0046]" 'Legal review of all of the above is [unknown]')
 
 # Each native package's README and GPL files equal the repository's, so they ship exactly what was reviewed; its
 # COPYING is the GPL-3.0 text itself, its NOTICE and README name the source archive, and its README keeps the tags.
@@ -931,6 +942,47 @@ install_noexec() {
 	echo "the sidecar ran from $copy"
 }
 
+# External mode (ADR 0046): a consumer that leaves every native package's assets out has no sidecar binary in its
+# publish output, and reaches a sidecar the feed's own binary runs standalone, as an orchestrator would. Linux and
+# macOS: the background process and its kill are POSIX.
+install_external() {
+	local path="External mode, the native assets excluded" app="$work/external-app" output="$work/external" dir="$work/standalone"
+	local os="${host_rid%%-*}" id binary pid rc=0
+	if [ "$os" = win ]; then
+		echo "Windows: External mode's consumer runs on Linux and macOS"
+		return 0
+	fi
+	cp -R "$work/app" "$app" && rm -rf "${app:?}/bin" "${app:?}/obj" || return
+	for id in Whatsmeow.Sidecar.Native.Linux Whatsmeow.Sidecar.Native.MacOS Whatsmeow.Sidecar.Native.Windows; do
+		sed -i.bak "s|</Project>|  <ItemGroup><PackageReference Include=\"$id\" Version=\"[$version]\" ExcludeAssets=\"all\" /></ItemGroup>\n</Project>|" "$app/Consumer.csproj" || return
+	done
+	rm -f "$app/Consumer.csproj.bak"
+	if ! in_consumer dotnet publish external-app -c Release -warnaserror -r "$host_rid" --self-contained false -o "$output"; then
+		annotate error "consumer: $path" "dotnet publish failed"
+		return 1
+	fi
+	if [ -n "$(find "$output" -name 'whatsmeow-net*')" ]; then
+		annotate error "consumer: $path" "the publish output holds a sidecar binary although every native package's assets are excluded"
+		find "$output" -name 'whatsmeow-net*'
+		return 1
+	fi
+
+	id="$(native_id "$os")"
+	binary="$packages/$(lowercase "$id")/$version/runtimes/$host_rid/native/whatsmeow-net"
+	mkdir -p "$dir" && cp "$binary" "$dir/whatsmeow-net" && chmod 0755 "$dir/whatsmeow-net" || return
+	od -An -tx1 -N32 /dev/urandom | tr -d ' \n' >"$dir/token" && chmod 0600 "$dir/token" || return
+	"$dir/whatsmeow-net" --database "$dir/whatsmeow-net.db" --listen "unix:$dir/s" --token-file "$dir/token" </dev/null >"$dir/stdout" 2>"$dir/stderr" &
+	pid=$!
+	if ! (unset WHATSMEOW_NET_SIDECAR_PATH && "$output/Consumer" external "$version" "unix:$dir/s" "$dir/token"); then
+		annotate error "consumer: $path" "the consumer did not reach the standalone sidecar"
+		cat "$dir/stderr"
+		rc=1
+	fi
+	kill "$pid" && wait "$pid" || rc=1
+	[ "$rc" -eq 0 ] && echo "no sidecar binary in $output; the consumer reached the standalone one"
+	return "$rc"
+}
+
 job_install() { # feed
 	package_source="$1"
 	check "install: a new consumer of the feed $1" consumer_setup "$1" || return
@@ -948,6 +1000,7 @@ job_install() { # feed
 	check "consumer: single-file publish" install_single_file "single-file publish" single
 	check "consumer: single-file publish with IncludeNativeLibrariesForSelfExtract" install_single_file "single-file publish with IncludeNativeLibrariesForSelfExtract" single-native -p:IncludeNativeLibrariesForSelfExtract=true
 	check "consumer: win-x86, where no binary ships" install_win_x86
+	check "consumer: External mode, the native assets excluded (ADR 0046)" install_external
 	check "consumer: portable build on Alpine" install_alpine "portable build on Alpine" \
 		"dotnet build app -c Release -warnaserror && dotnet run --project app -c Release --no-build -- start \"\$VERSION\""
 	check "consumer: linux-musl-x64 self-contained publish on Alpine" install_alpine "linux-musl-x64 self-contained publish on Alpine" \
@@ -973,7 +1026,7 @@ job_package() {
 }
 
 usage() {
-	echo "usage: bash build/ci.sh setup|contract|go|dotnet|package|all, or bash build/ci.sh install <feed>" >&2
+	echo "usage: bash build/ci.sh setup|contract|go|dotnet|external|package|all, or bash build/ci.sh install <feed>" >&2
 	exit 2
 }
 
@@ -989,9 +1042,10 @@ case "$1" in
 	contract) job_contract ;;
 	go) job_go ;;
 	dotnet) job_dotnet ;;
+	external) job_external ;;
 	package) job_package ;;
 	install) job_install "$2" ;;
-	all) job_contract; job_go; job_dotnet; job_package ;;
+	all) job_contract; job_go; job_dotnet; job_external; job_package ;;
 	*) usage ;;
 esac
 

@@ -3,7 +3,7 @@ using Whatsmeow.Messaging;
 
 namespace Whatsmeow;
 
-/// <summary>How <see cref="WhatsmeowSidecar"/> finds and starts the sidecar.</summary>
+/// <summary>How <see cref="WhatsmeowSidecar"/> finds and starts the sidecar, or connects to an external one.</summary>
 public sealed class WhatsmeowSidecarOptions
 {
 	/// <summary>
@@ -50,9 +50,21 @@ public sealed class WhatsmeowSidecarOptions
 	public SendPacingOptions SendPacing { get; set; } = new();
 
 	/// <summary>
-	/// A copy with copies of <see cref="History"/> and <see cref="SendPacing"/>, so changing the caller's instance later
-	/// changes nothing, a restart included. Member-wise, so a property added later is copied too; a member-wise copy shares
-	/// a reference, so a property added later whose type is a mutable class must be deep-copied here, as these two are.
+	/// When set, the client connects to a sidecar it does not start (External mode, ADR 0046), and
+	/// <see cref="SidecarPath"/>, <see cref="DatabasePath"/>, <see cref="Transport"/>, <see cref="History"/> and
+	/// <see cref="SendPacing"/> must keep their defaults: they configure a sidecar the client starts, and an external one
+	/// has its own flags.
+	/// <see cref="StartupTimeout"/> bounds the connect, and <see cref="MediaRoot"/> is this process's path to the media
+	/// root the sidecar was given with <c>--media-root</c>, which must be the same absolute path on both sides; without it
+	/// every transfer uses chunks. When null, the client starts its own sidecar (embedded mode).
+	/// </summary>
+	public ExternalSidecarOptions? External { get; set; }
+
+	/// <summary>
+	/// A copy with copies of <see cref="History"/>, <see cref="SendPacing"/> and <see cref="External"/>, so changing the
+	/// caller's instance later changes nothing, a restart included. Member-wise, so a property added later is copied too; a
+	/// member-wise copy shares a reference, so a property added later whose type is a mutable class must be deep-copied
+	/// here, as these three are.
 	/// </summary>
 	internal WhatsmeowSidecarOptions Copy()
 	{
@@ -61,6 +73,8 @@ public sealed class WhatsmeowSidecarOptions
 			copy.History = History.Copy();
 		if (SendPacing is not null)
 			copy.SendPacing = SendPacing.Copy();
+		if (External is not null)
+			copy.External = External.Copy();
 		return copy;
 	}
 }

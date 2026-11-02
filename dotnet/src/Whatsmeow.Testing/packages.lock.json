@@ -104,6 +104,7 @@
       "whatsmeow.client": {
         "type": "Project",
         "dependencies": {
+          "Grpc.HealthCheck": "[2.85.0, )",
           "Grpc.Net.Client": "[2.85.0, )",
           "Grpc.StatusProto": "[2.85.0, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.14, )",
@@ -157,6 +158,16 @@
         "requested": "[2.85.0, )",
         "resolved": "2.85.0",
         "contentHash": "cpYu/nw/QhwHcRZMJbYD8lEllKrdwYMiDS4U3oH61nhYPUMNkcCcef4ulv11svHvTBThYV+ju332N9bCrfe7cQ=="
+      },
+      "Grpc.HealthCheck": {
+        "type": "CentralTransitive",
+        "requested": "[2.85.0, )",
+        "resolved": "2.85.0",
+        "contentHash": "cuHDmUdXSSR+xeXPJ65lcCOuH5gHCqjaA/jXnTKNpl0jysdOoqGpeyElhaeIyEtJlenLth9VGGpGL7VYWKIsKA==",
+        "dependencies": {
+          "Google.Protobuf": "3.36.2",
+          "Grpc.Core.Api": "2.85.0"
+        }
       },
       "Grpc.Net.Client": {
         "type": "CentralTransitive",

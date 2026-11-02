@@ -84,13 +84,22 @@ public static class WhatsmeowServiceCollectionExtensions
 
 	/// <summary>
 	/// The one difference from the no-DI path (ADR 0034): relative paths, and the default database file, are the
-	/// content root's. A blank path stays blank, for the rules to report.
+	/// content root's. A blank path stays blank, for the rules to report. An external sidecar has a database of its own,
+	/// so there is no default one; its token file is in the content root too (ADR 0046).
 	/// </summary>
 	private static void InContentRoot(WhatsmeowSidecarOptions options, string contentRoot)
 	{
-		options.DatabasePath = InContentRoot(options.DatabasePath ?? WhatsmeowSidecarOptionsSetup.DefaultDatabaseFile, contentRoot);
 		if (options.MediaRoot is { } mediaRoot)
 			options.MediaRoot = InContentRoot(mediaRoot, contentRoot);
+
+		if (options.External is { } external)
+		{
+			if (external.TokenPath is { } tokenPath)
+				external.TokenPath = InContentRoot(tokenPath, contentRoot);
+			return;
+		}
+
+		options.DatabasePath = InContentRoot(options.DatabasePath ?? WhatsmeowSidecarOptionsSetup.DefaultDatabaseFile, contentRoot);
 	}
 
 	private static string InContentRoot(string path, string contentRoot) =>

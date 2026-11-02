@@ -25,5 +25,5 @@ It holds the whole tagged repository plus the `go mod vendor` output for `sideca
 - Running `whatsmeow-net` on your own machines or servers owes nothing under the GPL [inferred: GPLv3 §0].
 - Redistributing it, for example in an installer, a desktop app or a container image, conveys it, and you take on GPLv3 §6 for `whatsmeow-net` [inferred].
 - Shipping it in a consumer device also owes Installation Information [inferred: GPLv3 §6 "User Product"].
-- Whether an app can leave this package's assets out (for example with NuGet `ExcludeAssets`) and run an external `whatsmeow-net` is [unknown].
+- An app can leave this package's assets out (NuGet `ExcludeAssets="all"` on each native package) and use External mode with a `whatsmeow-net` it runs itself, which ships no binary in the app [observed: `build/ci.sh install`, ADR 0046].
 - Legal review of all of the above is [unknown]: this is the project's reading of the licences, not legal advice.

@@ -40,6 +40,21 @@ public sealed class SidecarUnavailableException : WhatsmeowException
 		);
 
 	[DoesNotReturn]
+	internal static void ThrowTokenUnreadable(string path, string reason, Exception? innerException) =>
+		throw new SidecarUnavailableException($"The sidecar's token file {path} cannot be used: {reason}.", innerException);
+
+	[DoesNotReturn]
+	internal static void ThrowTokenRefused(string address, SidecarUnavailableException exception) =>
+		throw new SidecarUnavailableException($"The sidecar at {address} refused the token: its --token-file and this client's TokenPath do not hold the same token.", exception)
+		{
+			ErrorCode = exception.ErrorCode,
+		};
+
+	[DoesNotReturn]
+	internal static void ThrowNotAnswering(string address, TimeSpan startupTimeout, Exception? innerException) =>
+		throw new SidecarUnavailableException($"The sidecar at {address} did not answer within {startupTimeout}.", innerException);
+
+	[DoesNotReturn]
 	internal static void ThrowUnreachable(RpcException exception, WhatsmeowErrorCode code) =>
 		throw new SidecarUnavailableException($"The sidecar cannot be reached: {exception.Status.Detail}", exception) { ErrorCode = code };
 }

@@ -9,6 +9,7 @@ using Microsoft.Extensions.Time.Testing;
 using Whatsmeow.Events;
 using Whatsmeow.Extensions.Hosting;
 using Whatsmeow.IntegrationTests.Events;
+using Whatsmeow.IntegrationTests.Fake;
 using Whatsmeow.IntegrationTests.Support;
 using Whatsmeow.Sessions;
 
@@ -723,5 +724,119 @@ public sealed class HostingTests(FakeSidecar fixture, SidecarBinaries binaries)
 		Assert.Equal(1L, measurement.Value);
 		Assert.Equal(Tags.Of(("error.type", "NotLoggedIn")), Tags.Of(measurement));
 		await host.StopAsync(ct);
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task HostStop_ExternalMode_LeavesTheSidecarAndItsSessionsRunning()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var contentRoot = binaries.NewDirectory();
+		var token = StandaloneSidecar.NewTokenFile(contentRoot);
+		await using var standalone = await StandaloneSidecar.StartAsync(fixture.Binary, binaries.NewDatabase(), "tcp:127.0.0.1:0", token, ["--fake-whatsapp"], ct);
+
+		// From configuration, as a container's appsettings or environment would give it; the token file in the content root.
+		var builder = Hosts.Builder(
+			logs,
+			new(StringComparer.Ordinal) { ["Whatsmeow:External:Address"] = standalone.Address, ["Whatsmeow:External:TokenPath"] = Path.GetFileName(token), ["Whatsmeow:External:Consumer"] = "hosting" },
+			contentRoot
+		);
+		_ = builder.Services.AddWhatsmeow().AddSession("hosting-external").AddHandler<MessageReceived, RecordingHandler>();
+		using (var host = builder.Build())
+		{
+			await host.StartAsync(ct);
+			await Hosts.LinkAsync(host, "hosting-external", ct);
+			await Hosts.Client(host, "hosting-external").ConnectAsync(ct);
+			await Deliveries.DeliverAsync(Hosts.Fake(host), "hosting-external", ct, "M1");
+			Assert.Equal(Deliveries.Received("hosting-external", "M1"), (await Hosts.Handled(host).NextAsync(ct)).Event);
+
+			await host.StopAsync(ct);
+		}
+
+		// The host stopped what it started, its client, and never the sidecar an orchestrator runs.
+		await using var after = await WhatsmeowSidecar.StartAsync(new WhatsmeowSidecarOptions { External = new ExternalSidecarOptions { Address = standalone.Address, TokenPath = token } }, ct);
+		var session = await after.Sessions.GetOrCreateAsync(SessionId.From("hosting-external"), ct);
+		Assert.Equal(new SessionState.Connected(), await Sessions.SessionSetup.StateAsync(session, ct));
+		Assert.False(standalone.HasExited, standalone.Stderr);
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task HostRestart_TheExternalSidecarKeptRunning_TheNewHostsHandlersGetEvents()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var contentRoot = binaries.NewDirectory();
+		var token = StandaloneSidecar.NewTokenFile(contentRoot);
+		await using var standalone = await StandaloneSidecar.StartAsync(fixture.Binary, binaries.NewDatabase(), "tcp:127.0.0.1:0", token, ["--fake-whatsapp"], ct);
+		var settings = new Dictionary<string, string?>(StringComparer.Ordinal) { ["Whatsmeow:External:Address"] = standalone.Address, ["Whatsmeow:External:TokenPath"] = token };
+
+		var first = Hosts.Builder(logs, settings, contentRoot);
+		_ = first.Services.AddWhatsmeow().AddSession("hosting-external-restart");
+		using (var firstHost = first.Build())
+		{
+			await firstHost.StartAsync(ct);
+			await Hosts.LinkAsync(firstHost, "hosting-external-restart", ct);
+			await Hosts.Client(firstHost, "hosting-external-restart").ConnectAsync(ct);
+			await firstHost.StopAsync(ct);
+		}
+
+		// The application restarts; the sidecar, and the session in it, stayed connected. The new host's handlers get its
+		// events all the same: its start connects the declared session, which for a connected one only starts its events.
+		var second = Hosts.Builder(logs, settings, contentRoot);
+		_ = second.Services.AddWhatsmeow().AddSession("hosting-external-restart").AddHandler<MessageReceived, RecordingHandler>();
+		using var secondHost = second.Build();
+		await secondHost.StartAsync(ct);
+		await Deliveries.DeliverAsync(Hosts.Fake(secondHost), "hosting-external-restart", ct, "M1");
+
+		Assert.Equal(Deliveries.Received("hosting-external-restart", "M1"), (await Hosts.Handled(secondHost).NextAsync(ct)).Event);
+		await secondHost.StopAsync(ct);
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task HostRestart_TheExternalSidecarIsReconnectingADeclaredSession_TheNewHostsHandlersGetItsEvents()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "hosting-external-reconnecting";
+		using var logs = new LogCapture();
+		var contentRoot = binaries.NewDirectory();
+		var token = StandaloneSidecar.NewTokenFile(contentRoot);
+		await using var standalone = await StandaloneSidecar.StartAsync(fixture.Binary, binaries.NewDatabase(), "tcp:127.0.0.1:0", token, ["--fake-whatsapp"], ct);
+		var settings = new Dictionary<string, string?>(StringComparer.Ordinal) { ["Whatsmeow:External:Address"] = standalone.Address, ["Whatsmeow:External:TokenPath"] = token };
+
+		var first = Hosts.Builder(logs, settings, contentRoot);
+		_ = first.Services.AddWhatsmeow().AddSession(Session);
+		using (var firstHost = first.Build())
+		{
+			await firstHost.StartAsync(ct);
+			await Hosts.LinkAsync(firstHost, Session, ct);
+			var client = Hosts.Client(firstHost, Session);
+			await using (var watch = StateWatch.Start(client, ct))
+			{
+				await client.ConnectAsync(ct);
+				await watch.ReachesAsync(new SessionState.Connected(), new SessionState.Disconnected(), new SessionState.Connecting());
+
+				// The sidecar resets the connection after an answer it withheld (ADR 0044), and the reconnect's login is held,
+				// as one waiting on the network: the session stays reconnecting.
+				_ = await Hosts.Fake(firstHost).HoldNextLoginAsync(new HoldNextLoginRequest { SessionId = Session }, cancellationToken: ct);
+				var withheld = Deliveries.Message(Session, "M1");
+				withheld.WithholdFirstAnswer = true;
+				_ = await Hosts.Fake(firstHost).DeliverMessageAsync(withheld, cancellationToken: ct);
+				await watch.ReachesAsync(new SessionState.Reconnecting(), new SessionState.CaughtUp());
+			}
+
+			await firstHost.StopAsync(ct);
+		}
+
+		// The application restarts while the sidecar reconnects the session, which is live for it (session.proto): the
+		// new host's start connects it, which only starts this host's events, and its handlers get the message WhatsApp
+		// delivers again at the login.
+		var second = Hosts.Builder(logs, settings, contentRoot);
+		_ = second.Services.AddWhatsmeow().AddSession(Session).AddHandler<MessageReceived, RecordingHandler>();
+		using var secondHost = second.Build();
+		await secondHost.StartAsync(ct);
+		_ = await Hosts.Fake(secondHost).ReleaseLoginAsync(new ReleaseLoginRequest { SessionId = Session }, cancellationToken: ct);
+
+		Assert.Equal(Deliveries.Received(Session, "M1"), (await Hosts.Handled(secondHost).NextAsync(ct)).Event);
+		await secondHost.StopAsync(ct);
 	}
 }

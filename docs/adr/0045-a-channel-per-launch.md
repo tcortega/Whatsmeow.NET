@@ -51,3 +51,4 @@ On main, `RestartTokenTests` failed in every run [observed: macOS]: 8 of 8 in it
 - For the platform pass, not run in PR CI, which is linux-x64 only: the pipe transport's bound (a reopen before the next ready line fails `Unavailable` within 2 s and the session's events go on after the restart), and the earlier sockets' removal on Windows (`fs.ModeSocket` on a `ReadDir` entry).
 - A hard-killed .NET process still leaves its socket directory behind (ADR 0017), now with the last launch's socket in it.
 - This also removes the refused calls that tripped grpc-go's ping policy in #77.
+- External mode keeps one address for every launch, so there a launch is a connect epoch, each with a channel and a token of its own; the rest of this decision holds ([ADR 0046](0046-external-mode.md)).

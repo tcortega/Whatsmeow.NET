@@ -1103,9 +1103,10 @@ namespace Whatsmeow.IntegrationTests.Fake {
         return CallInvoker.AsyncUnaryCall(__Method_DropConnection, null, options, request);
       }
       /// <summary>
-      /// HoldNextLogin makes the session's next login, after a connect, hold Connected until ReleaseLogin: whatsmeow
-      /// dispatches it on a goroutine of its own after two IQs (connectionevents.go:187-204), while the offline sync's
-      /// OfflineSyncCompleted comes on the node queue (connectionevents.go:87-90), so CompleteOfflineSync can come first.
+      /// HoldNextLogin makes the session's next login, after a connect or a reset's reconnect, hold Connected until
+      /// ReleaseLogin, so the session stays connecting or reconnecting: whatsmeow dispatches it on a goroutine of its own
+      /// after two IQs (connectionevents.go:187-204), while the offline sync's OfflineSyncCompleted comes on the node queue
+      /// (connectionevents.go:87-90), so CompleteOfflineSync can come first.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -1118,9 +1119,10 @@ namespace Whatsmeow.IntegrationTests.Fake {
         return HoldNextLogin(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
       /// <summary>
-      /// HoldNextLogin makes the session's next login, after a connect, hold Connected until ReleaseLogin: whatsmeow
-      /// dispatches it on a goroutine of its own after two IQs (connectionevents.go:187-204), while the offline sync's
-      /// OfflineSyncCompleted comes on the node queue (connectionevents.go:87-90), so CompleteOfflineSync can come first.
+      /// HoldNextLogin makes the session's next login, after a connect or a reset's reconnect, hold Connected until
+      /// ReleaseLogin, so the session stays connecting or reconnecting: whatsmeow dispatches it on a goroutine of its own
+      /// after two IQs (connectionevents.go:187-204), while the offline sync's OfflineSyncCompleted comes on the node queue
+      /// (connectionevents.go:87-90), so CompleteOfflineSync can come first.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -1131,9 +1133,10 @@ namespace Whatsmeow.IntegrationTests.Fake {
         return CallInvoker.BlockingUnaryCall(__Method_HoldNextLogin, null, options, request);
       }
       /// <summary>
-      /// HoldNextLogin makes the session's next login, after a connect, hold Connected until ReleaseLogin: whatsmeow
-      /// dispatches it on a goroutine of its own after two IQs (connectionevents.go:187-204), while the offline sync's
-      /// OfflineSyncCompleted comes on the node queue (connectionevents.go:87-90), so CompleteOfflineSync can come first.
+      /// HoldNextLogin makes the session's next login, after a connect or a reset's reconnect, hold Connected until
+      /// ReleaseLogin, so the session stays connecting or reconnecting: whatsmeow dispatches it on a goroutine of its own
+      /// after two IQs (connectionevents.go:187-204), while the offline sync's OfflineSyncCompleted comes on the node queue
+      /// (connectionevents.go:87-90), so CompleteOfflineSync can come first.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -1146,9 +1149,10 @@ namespace Whatsmeow.IntegrationTests.Fake {
         return HoldNextLoginAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
       /// <summary>
-      /// HoldNextLogin makes the session's next login, after a connect, hold Connected until ReleaseLogin: whatsmeow
-      /// dispatches it on a goroutine of its own after two IQs (connectionevents.go:187-204), while the offline sync's
-      /// OfflineSyncCompleted comes on the node queue (connectionevents.go:87-90), so CompleteOfflineSync can come first.
+      /// HoldNextLogin makes the session's next login, after a connect or a reset's reconnect, hold Connected until
+      /// ReleaseLogin, so the session stays connecting or reconnecting: whatsmeow dispatches it on a goroutine of its own
+      /// after two IQs (connectionevents.go:187-204), while the offline sync's OfflineSyncCompleted comes on the node queue
+      /// (connectionevents.go:87-90), so CompleteOfflineSync can come first.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>

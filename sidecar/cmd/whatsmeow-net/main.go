@@ -7,6 +7,10 @@
 // group, so the client decides when it stops. Once it listens, it prints exactly one JSON ready line on stdout. Logs are JSON lines on
 // stderr.
 //
+// Standalone (External mode, ADR 0046), an orchestrator starts it with --database, --listen and --token-file instead: the
+// token comes from the file, stdin is never read, nothing tethers it to its parent, and SIGTERM, SIGINT or a Shutdown call
+// stop it gracefully.
+//
 // A test build (-tags fakewhatsapp) started with --fake-whatsapp replaces WhatsApp with a scripted fake and serves its
 // control service; a release build refuses the flag (ADR 0019).
 package main
@@ -20,9 +24,11 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"os/signal"
 	"runtime/debug"
+	"slices"
 	"strings"
 	"syscall"
 
@@ -86,6 +92,8 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	mediaRoot := flags.String("media-root", "", "the absolute directory the sidecar reads and writes media paths under; empty: media only in chunks")
 	fake := flags.Bool("fake-whatsapp", false, "test builds only (-tags fakewhatsapp): replace WhatsApp with a scripted fake and serve its control")
 	parentPID := flags.Int("parent-pid", 0, "the client's process id: the sidecar stops once that is no longer its parent (Linux, macOS; on Windows the client's job object does this; default: its parent at start)")
+	listen := flags.String("listen", "", "standalone: unix:<absolute path> or tcp:<host>:<port>, with --token-file; stdin is never read and nothing tethers the sidecar (ADR 0046)")
+	tokenFile := flags.String("token-file", "", "standalone: the file that holds the token, 32 bytes as hex, with --listen")
 	history := historyFlags(flags)
 	sends := pacingFlags(flags)
 
@@ -93,8 +101,21 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return exitUsage
 	}
 
-	if *nonce == "" || flags.NArg() > 0 {
-		log.Error().Msg("usage: whatsmeow-net --nonce <nonce> [--transport unix|pipe] [--socket-dir <dir>]")
+	standalone := *listen != "" || *tokenFile != ""
+	if flags.NArg() > 0 || (!standalone && *nonce == "") {
+		log.Error().Msg("usage: whatsmeow-net --nonce <nonce> [--transport unix|pipe] [--socket-dir <dir>], or standalone: whatsmeow-net --listen <address> --token-file <file>")
+
+		return exitUsage
+	}
+
+	if standalone && (*listen == "" || *tokenFile == "" || anySet(flags, "transport", "socket-dir", "nonce", "parent-pid")) {
+		log.Error().Msg("usage: standalone, whatsmeow-net takes --listen and --token-file together, and none of --transport, --socket-dir, --nonce or --parent-pid")
+
+		return exitUsage
+	}
+
+	if _, err := transport.ParseAddress(*listen); standalone && err != nil {
+		log.Error().Err(err).Msg("usage: --listen is unix:<absolute path> or tcp:<host>:<port>")
 
 		return exitUsage
 	}
@@ -119,31 +140,50 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	}
 
 	// SIGPIPE too: a dead parent takes the read ends of stdout and stderr along, and the graceful stop's first log
-	// line would otherwise kill the sidecar (os/signal SIGPIPE).
-	signal.Ignore(os.Interrupt, syscall.SIGPIPE)
+	// line would otherwise kill the sidecar (os/signal SIGPIPE). SIGINT stops a standalone sidecar, which no client
+	// stops; a tethered one ignores it, since a terminal Ctrl+C reaches the whole process group.
+	signal.Ignore(syscall.SIGPIPE)
+
+	stopSignals := []os.Signal{syscall.SIGTERM}
+	if standalone {
+		stopSignals = append(stopSignals, os.Interrupt)
+	}
+
+	if !standalone {
+		signal.Ignore(os.Interrupt)
+	}
+
 	wmlog.SetupSignal(log)
 	// Process-wide, so once, before any session pairs (ARCHITECTURE §7.2).
 	history.apply(wastore.DeviceProps)
 
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM)
+	ctx, stop := signal.NotifyContext(context.Background(), stopSignals...)
 	defer stop()
 
-	parent := *parentPID
-	if parent == 0 {
-		parent = os.Getppid()
+	if !standalone {
+		parent := *parentPID
+		if parent == 0 {
+			parent = os.Getppid()
+		}
+
+		var (
+			untether func()
+			err      error
+		)
+
+		ctx, untether, err = tetherToParent(ctx, log, parent)
+		if err != nil {
+			log.Error().Err(err).Msg("tether to the parent failed")
+
+			return exitFailed
+		}
+		defer untether()
 	}
 
-	ctx, untether, err := tetherToParent(ctx, log, parent)
-	if err != nil {
-		log.Error().Err(err).Msg("tether to the parent failed")
+	log.Info().Str("version", version).Str("transport", *kind).Str("listen", *listen).Msg("starting")
 
-		return exitFailed
-	}
-	defer untether()
-
-	log.Info().Str("version", version).Str("transport", *kind).Msg("starting")
-
-	if err := serve(ctx, log, redactor, options{*kind, *socketDir, *nonce, *database, *mediaRoot, *fake, sends.value()}, bufio.NewReader(stdin), stdout); err != nil {
+	opts := options{kind: *kind, socketDir: *socketDir, nonce: *nonce, database: *database, mediaRoot: *mediaRoot, listen: *listen, tokenFile: *tokenFile, fake: *fake, pacing: sends.value()}
+	if err := serve(ctx, log, redactor, opts, bufio.NewReader(stdin), stdout); err != nil {
 		log.Error().Err(err).Msg("sidecar failed")
 
 		return exitFailed
@@ -161,15 +201,27 @@ func newLogger(stderr io.Writer, redactor *wmlog.Redactor) zerolog.Logger {
 	return zerolog.New(wmlog.Writer(stderr, redactor)).Level(zerolog.InfoLevel).With().Timestamp().Logger()
 }
 
-// options are the flags serve needs.
+// options are the flags serve needs. A listen address makes the sidecar standalone (ADR 0046).
 type options struct {
 	kind, socketDir, nonce, database, mediaRoot string
+	listen, tokenFile                           string
 	fake                                        bool
 	pacing                                      messaging.Pacing
 }
 
+// anySet reports whether any of the named flags was given.
+func anySet(flags *flag.FlagSet, names ...string) bool {
+	set := false
+
+	flags.Visit(func(f *flag.Flag) { set = set || slices.Contains(names, f.Name) })
+
+	return set
+}
+
 func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, opts options, stdin *bufio.Reader, stdout io.Writer) error {
-	token, err := awaitToken(ctx, stdin)
+	standalone := opts.listen != ""
+
+	token, err := tokenFor(ctx, opts, stdin)
 	if err != nil {
 		return err
 	}
@@ -191,12 +243,17 @@ func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, op
 	}
 	defer closeStore(log, db)
 
-	lis, endpoint, err := transport.Listen(ctx, opts.kind, opts.socketDir)
+	lis, endpoint, err := listenFor(ctx, opts)
 	if err != nil {
 		return fmt.Errorf("listen: %w", err)
 	}
 
 	srv := server.New(token, log, redactor)
+	if standalone {
+		// A rotated secret is followed without a restart: a refused token makes it read the file again (ADR 0046).
+		srv.ReloadToken(func() (string, error) { return readTokenFile(opts.tokenFile) })
+	}
+
 	svc := sidecar.New(version, build, srv.Shutdown)
 	whatsmeowv1.RegisterSidecarServiceServer(srv, svc)
 
@@ -263,13 +320,16 @@ func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, op
 	go func() { served <- srv.Serve(lis) }()
 
 	// The tether: stdin stays open for the sidecar's whole life, and EOF (the parent closed it or died) stops it.
-	// The read cannot be cancelled; the goroutine ends with the process.
+	// The read cannot be cancelled; the goroutine ends with the process. A standalone sidecar never reads stdin, so
+	// its tether never closes.
 	tether := make(chan struct{})
 
-	go func() {
-		_, _ = io.Copy(io.Discard, stdin)
-		close(tether)
-	}()
+	if !standalone {
+		go func() {
+			_, _ = io.Copy(io.Discard, stdin)
+			close(tether)
+		}()
+	}
 
 	err = json.NewEncoder(stdout).Encode(readyLine{
 		Event: "ready", Version: version, Protocol: sidecar.Protocol, Whatsmeow: svc.WhatsmeowVersion(), Listen: endpoint, Nonce: opts.nonce,
@@ -383,6 +443,15 @@ func awaitToken(ctx context.Context, stdin *bufio.Reader) (string, error) {
 	}
 }
 
+// tokenFor reads the token from the token file when the sidecar is standalone, else from stdin.
+func tokenFor(ctx context.Context, opts options, stdin *bufio.Reader) (string, error) {
+	if opts.listen != "" {
+		return readTokenFile(opts.tokenFile)
+	}
+
+	return awaitToken(ctx, stdin)
+}
+
 // readToken reads the first stdin line: the per-launch token, 32 bytes as hex.
 func readToken(stdin *bufio.Reader) (string, error) {
 	line, err := stdin.ReadString('\n')
@@ -390,7 +459,23 @@ func readToken(stdin *bufio.Reader) (string, error) {
 		return "", fmt.Errorf("read the token from stdin: %w", err)
 	}
 
-	token := strings.TrimRight(line, "\r\n")
+	return checkToken(line)
+}
+
+// readTokenFile reads a standalone sidecar's token from its file: one line, 32 bytes as hex, the final newline optional
+// (a secret mount may have none). An error never carries what the file holds.
+func readTokenFile(path string) (string, error) {
+	content, err := os.ReadFile(path) //nolint:gosec // G304: the operator's own --token-file
+	if err != nil {
+		return "", fmt.Errorf("read the token file: %w", err)
+	}
+
+	return checkToken(string(content))
+}
+
+// checkToken returns line without its line ending when that is 32 bytes as hex.
+func checkToken(line string) (string, error) {
+	token := strings.TrimSuffix(strings.TrimSuffix(line, "\n"), "\r")
 
 	raw, err := hex.DecodeString(token)
 	if err != nil || len(raw) != tokenBytes {
@@ -398,4 +483,13 @@ func readToken(stdin *bufio.Reader) (string, error) {
 	}
 
 	return token, nil
+}
+
+// listenFor opens the standalone sidecar's listen address, or the tethered one's private socket or pipe.
+func listenFor(ctx context.Context, opts options) (net.Listener, string, error) {
+	if opts.listen != "" {
+		return transport.ListenAddress(ctx, opts.listen) //nolint:wrapcheck // serve wraps it
+	}
+
+	return transport.Listen(ctx, opts.kind, opts.socketDir) //nolint:wrapcheck // serve wraps it
 }

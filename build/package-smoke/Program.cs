@@ -3,6 +3,9 @@
 // ADR 0036). It never names a sidecar path, so the client must find the packaged binary itself.
 //   start <version>  starts the sidecar with default options, calls GetInfo, and exits 0 only if it reports <version>.
 //   missing <rid>    expects the start to fail because no binary ships for <rid>, naming both bundled paths.
+//   external <version> <address> <token file>
+//                    connects to a sidecar started standalone (External mode, ADR 0046), calls GetInfo, and exits 0
+//                    only if it reports <version>; the consumer that runs it has no sidecar binary of its own.
 using Whatsmeow;
 
 switch (args)
@@ -11,8 +14,10 @@ switch (args)
 		return await StartAsync(version).ConfigureAwait(false);
 	case ["missing", var rid]:
 		return await MissingAsync(rid).ConfigureAwait(false);
+	case ["external", var version, var address, var tokenPath]:
+		return await VersionIsAsync(version, new WhatsmeowSidecarOptions { External = new ExternalSidecarOptions { Address = address, TokenPath = tokenPath } }).ConfigureAwait(false);
 	default:
-		await Console.Error.WriteLineAsync("usage: Consumer start <version> | missing <rid>").ConfigureAwait(false);
+		await Console.Error.WriteLineAsync("usage: Consumer start <version> | missing <rid> | external <version> <address> <token file>").ConfigureAwait(false);
 		return 2;
 }
 
@@ -21,22 +26,27 @@ static async Task<int> StartAsync(string version)
 	var directory = Directory.CreateTempSubdirectory("wmn-consumer-");
 	try
 	{
-		var options = new WhatsmeowSidecarOptions { DatabasePath = Path.Combine(directory.FullName, "whatsmeow-net.db") };
-		var sidecar = await WhatsmeowSidecar.StartAsync(options, CancellationToken.None).ConfigureAwait(false);
-		await using (sidecar.ConfigureAwait(false))
-		{
-			var info = await sidecar.GetInfoAsync(CancellationToken.None).ConfigureAwait(false);
-			await Console.Out.WriteLineAsync($"sidecar {info.Version}, protocol {info.Protocol}, beside {AppContext.BaseDirectory}").ConfigureAwait(false);
-			if (info.Version == version)
-				return 0;
-
-			await Console.Error.WriteLineAsync($"the sidecar reports version {info.Version}, the packages are {version}").ConfigureAwait(false);
-			return 1;
-		}
+		return await VersionIsAsync(version, new WhatsmeowSidecarOptions { DatabasePath = Path.Combine(directory.FullName, "whatsmeow-net.db") }).ConfigureAwait(false);
 	}
 	finally
 	{
 		directory.Delete(recursive: true);
+	}
+}
+
+// Starts or connects to the sidecar with options, and checks that it reports version.
+static async Task<int> VersionIsAsync(string version, WhatsmeowSidecarOptions options)
+{
+	var sidecar = await WhatsmeowSidecar.StartAsync(options, CancellationToken.None).ConfigureAwait(false);
+	await using (sidecar.ConfigureAwait(false))
+	{
+		var info = await sidecar.GetInfoAsync(CancellationToken.None).ConfigureAwait(false);
+		await Console.Out.WriteLineAsync($"sidecar {info.Version}, protocol {info.Protocol}, app in {AppContext.BaseDirectory}").ConfigureAwait(false);
+		if (info.Version == version)
+			return 0;
+
+		await Console.Error.WriteLineAsync($"the sidecar reports version {info.Version}, the packages are {version}").ConfigureAwait(false);
+		return 1;
 	}
 }
 

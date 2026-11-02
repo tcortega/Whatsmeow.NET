@@ -117,9 +117,10 @@ type FakeWhatsAppServiceClient interface {
 	// does not reconnect an unpaired client (client.go:648). No QR channel open is an error. It returns before the
 	// handlers run.
 	DropConnection(ctx context.Context, in *DropConnectionRequest, opts ...grpc.CallOption) (*DropConnectionResponse, error)
-	// HoldNextLogin makes the session's next login, after a connect, hold Connected until ReleaseLogin: whatsmeow
-	// dispatches it on a goroutine of its own after two IQs (connectionevents.go:187-204), while the offline sync's
-	// OfflineSyncCompleted comes on the node queue (connectionevents.go:87-90), so CompleteOfflineSync can come first.
+	// HoldNextLogin makes the session's next login, after a connect or a reset's reconnect, hold Connected until
+	// ReleaseLogin, so the session stays connecting or reconnecting: whatsmeow dispatches it on a goroutine of its own
+	// after two IQs (connectionevents.go:187-204), while the offline sync's OfflineSyncCompleted comes on the node queue
+	// (connectionevents.go:87-90), so CompleteOfflineSync can come first.
 	HoldNextLogin(ctx context.Context, in *HoldNextLoginRequest, opts ...grpc.CallOption) (*HoldNextLoginResponse, error)
 	// ReleaseLogin dispatches the session's held Connected off the node queue, and returns once its handlers ran. No
 	// held login is an error.
@@ -774,9 +775,10 @@ type FakeWhatsAppServiceServer interface {
 	// does not reconnect an unpaired client (client.go:648). No QR channel open is an error. It returns before the
 	// handlers run.
 	DropConnection(context.Context, *DropConnectionRequest) (*DropConnectionResponse, error)
-	// HoldNextLogin makes the session's next login, after a connect, hold Connected until ReleaseLogin: whatsmeow
-	// dispatches it on a goroutine of its own after two IQs (connectionevents.go:187-204), while the offline sync's
-	// OfflineSyncCompleted comes on the node queue (connectionevents.go:87-90), so CompleteOfflineSync can come first.
+	// HoldNextLogin makes the session's next login, after a connect or a reset's reconnect, hold Connected until
+	// ReleaseLogin, so the session stays connecting or reconnecting: whatsmeow dispatches it on a goroutine of its own
+	// after two IQs (connectionevents.go:187-204), while the offline sync's OfflineSyncCompleted comes on the node queue
+	// (connectionevents.go:87-90), so CompleteOfflineSync can come first.
 	HoldNextLogin(context.Context, *HoldNextLoginRequest) (*HoldNextLoginResponse, error)
 	// ReleaseLogin dispatches the session's held Connected off the node queue, and returns once its handlers ran. No
 	// held login is an error.

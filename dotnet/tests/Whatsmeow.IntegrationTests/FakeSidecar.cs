@@ -13,11 +13,27 @@ namespace Whatsmeow.IntegrationTests;
 /// <c>--fake-whatsapp</c>, for the whole run (ADR 0019). Tests talk to it through the public <see cref="Sidecar"/>,
 /// and script and observe the fake WhatsApp through <see cref="Fake"/>. Nothing here waits on a duration.
 /// The sidecar is shared, so each test uses session ids of its own.
+/// With <c>WHATSMEOW_NET_TEST_SIDECAR=external</c> (<c>build/ci.sh external</c>) the fixture runs that sidecar standalone
+/// over TCP itself, as an orchestrator would, and the client connects to it in External mode (ADR 0046).
 /// </summary>
 public sealed class FakeSidecar : IAsyncLifetime
 {
+	/// <summary>The fixture's mode, read here only: <c>external</c>, or embedded when unset.</summary>
+	private const string ModeVariable = "WHATSMEOW_NET_TEST_SIDECAR";
+
 	private string? _directory;
 	private ServiceProvider? _metrics;
+	private StandaloneSidecar? _standalone;
+	private string _listen = "";
+	private string _tokenPath = "";
+
+	/// <summary>Whether the run is the External-mode pass.</summary>
+	internal static bool IsExternal { get; } = Environment.GetEnvironmentVariable(ModeVariable) switch
+	{
+		null or "" => false,
+		"external" => true,
+		var mode => throw new InvalidOperationException($"{ModeVariable}={mode} is neither empty nor external."),
+	};
 
 	/// <summary>The test build of <c>whatsmeow-net</c>, for a test that starts a fake-mode sidecar of its own.</summary>
 	internal string Binary { get; private set; } = "";
@@ -70,6 +86,14 @@ public sealed class FakeSidecar : IAsyncLifetime
 
 		DatabasePath = Path.Combine(_directory, "whatsmeow-net.db");
 		MediaRoot = Directory.CreateDirectory(Path.Combine(_directory, "media")).FullName;
+		_metrics = new ServiceCollection().AddMetrics().BuildServiceProvider();
+		MeterFactory = _metrics.GetRequiredService<IMeterFactory>();
+		if (IsExternal)
+		{
+			await StartExternalAsync(ct).ConfigureAwait(false);
+			return;
+		}
+
 		Options = new WhatsmeowSidecarOptions
 		{
 			SidecarPath = binary,
@@ -77,8 +101,6 @@ public sealed class FakeSidecar : IAsyncLifetime
 			MediaRoot = MediaRoot,
 			History = HistoryOptions,
 		};
-		_metrics = new ServiceCollection().AddMetrics().BuildServiceProvider();
-		MeterFactory = _metrics.GetRequiredService<IMeterFactory>();
 		Sidecar = await WhatsmeowSidecar.StartFakeWhatsAppWithMeterFactoryAsync(Options, Logs.Factory, MeterFactory, ct).ConfigureAwait(false);
 		Fake = new FakeWhatsAppService.FakeWhatsAppServiceClient(Sidecar.CallInvoker);
 	}
@@ -94,12 +116,53 @@ public sealed class FakeSidecar : IAsyncLifetime
 			throw new InvalidOperationException($"CrashAsync runs only in the {nameof(SidecarCrashes)} collection, which never runs in parallel.");
 
 		var restarts = Logs.Named("SidecarRestarted").Count;
-		var (processId, _) = await Logs.StartedAsync(Logs.Named("SidecarStarted").Count, cancellationToken).ConfigureAwait(false);
+		if (_standalone is { } standalone)
+		{
+			// The orchestrator's part: the same database, address and token.
+			await standalone.DisposeAsync().ConfigureAwait(false);
+			_standalone = await StandaloneSidecar.StartAsync(Binary, DatabasePath, _listen, _tokenPath, StandaloneArguments(), cancellationToken).ConfigureAwait(false);
+		}
 
-		using (var process = Process.GetProcessById(processId))
+		if (_standalone is null)
+		{
+			var (processId, _) = await Logs.StartedAsync(Logs.Named("SidecarStarted").Count, cancellationToken).ConfigureAwait(false);
+			using var process = Process.GetProcessById(processId);
 			process.Kill();
+		}
 
 		_ = await Logs.WaitForAsync(_ => Logs.Named("SidecarRestarted").Count > restarts, cancellationToken).ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// The External-mode pass: the sidecar standalone over TCP, with the flags the embedded fixture's options give it,
+	/// and a client of it. A restart reuses the port the first start bound.
+	/// </summary>
+	private async Task StartExternalAsync(CancellationToken cancellationToken)
+	{
+		_tokenPath = StandaloneSidecar.NewTokenFile(_directory!);
+		_standalone = await StandaloneSidecar.StartAsync(Binary, DatabasePath, "tcp:127.0.0.1:0", _tokenPath, StandaloneArguments(), cancellationToken).ConfigureAwait(false);
+		_listen = _standalone.Address;
+		Options = new WhatsmeowSidecarOptions
+		{
+			MediaRoot = MediaRoot,
+			External = new ExternalSidecarOptions { Address = _listen, TokenPath = _tokenPath },
+		};
+		Sidecar = await WhatsmeowSidecar.StartAsync(Options, Logs.Factory, MeterFactory, cancellationToken).ConfigureAwait(false);
+		Fake = new FakeWhatsAppService.FakeWhatsAppServiceClient(Sidecar.CallInvoker);
+	}
+
+	private string[] StandaloneArguments()
+	{
+		var history = HistoryOptions;
+		return
+		[
+			"--fake-whatsapp",
+			"--media-root", MediaRoot,
+			"--history-full-sync",
+			"--history-days-limit", $"{history.FullSyncDaysLimit}",
+			"--history-size-limit-mb", $"{history.FullSyncSizeLimitMegabytes}",
+			"--history-storage-quota-mb", $"{history.StorageQuotaMegabytes}",
+		];
 	}
 
 	public async ValueTask DisposeAsync()
@@ -108,6 +171,8 @@ public sealed class FakeSidecar : IAsyncLifetime
 			await Sidecar.DisposeAsync().ConfigureAwait(false);
 		if (_metrics is not null)
 			await _metrics.DisposeAsync().ConfigureAwait(false);
+		if (_standalone is not null)
+			await _standalone.DisposeAsync().ConfigureAwait(false);
 		Logs.Dispose();
 		if (_directory is not null)
 			Directory.Delete(_directory, recursive: true);

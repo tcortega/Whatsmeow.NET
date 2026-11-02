@@ -7,6 +7,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Grpc.HealthCheck" />
 		<PackageReference Include="Grpc.Net.Client" />
 		<PackageReference Include="Grpc.StatusProto" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
