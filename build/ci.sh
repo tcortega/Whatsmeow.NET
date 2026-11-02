@@ -292,7 +292,7 @@ shipped_have_no_fake() {
 
 # The live tests (docs/guidelines/tests.md Live WhatsApp) are contained: [LiveFact] appears only in
 # Whatsmeow.LiveTests, Explicit, a declared exception to the banned list, only in its LiveFactAttribute.cs, every
-# test there is a [LiveFact] (no [Fact], [FactAttribute], [Xunit.Fact] or [Theory]), and QRCoder, which it alone uses, is in no shipped project.
+# test there is a [LiveFact] (no [Fact], [FactAttribute], [Xunit.Fact] or [Theory]), and QRCoder, which it and the sample use, is in no shipped project.
 # Each grep has a positive control, or it could prove nothing.
 live_tests_contained() {
 	local live=dotnet/tests/Whatsmeow.LiveTests attribute=dotnet/tests/Whatsmeow.LiveTests/LiveFactAttribute.cs
@@ -313,7 +313,7 @@ live_tests_contained() {
 	fi
 	for lock in dotnet/src/*/packages.lock.json; do
 		if grep -qF '"QRCoder"' "$lock"; then
-			annotate error "live tests" "$lock depends on QRCoder, which only $live may use"
+			annotate error "live tests" "$lock depends on QRCoder, which only $live and the sample may use"
 			rc=1
 		fi
 	done
