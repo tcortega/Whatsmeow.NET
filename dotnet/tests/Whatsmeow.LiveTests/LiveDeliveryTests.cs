@@ -98,23 +98,28 @@ public sealed class LiveDeliveryTests(LiveSidecar live, LiveSender sender)
 
 		var handledBefore = new List<MessageId>();
 		var started = LiveClock.Time.GetTimestamp();
+		// The host's log, redacted, beside the live sidecar's: read as it comes, so a full pipe never blocks the host.
+		using var hostLog = new LiveLog(Path.Combine(live.OutputDirectory, "host.log"));
 		using (var killed = Process.Start(info)!)
 		{
+			killed.ErrorDataReceived += (_, e) =>
+			{
+				if (e.Data is not null)
+					hostLog.Write(e.Data);
+			};
+			killed.BeginErrorReadLine();
 			try
 			{
 				using var bound = LiveClock.Bound(TimeSpan.FromMinutes(3), ct);
 				var line = await killed.StandardOutput.ReadLineAsync(bound.Token);
 				if (!int.TryParse(line, CultureInfo.InvariantCulture, out var sidecar))
-					Assert.Fail($"the host printed no sidecar process id: {line} {await killed.StandardError.ReadToEndAsync(bound.Token)}");
+					Assert.Fail($"the host printed no sidecar process id: {line} (its log is host.log)");
 
 				var sending = LiveSender.SendAsync(from, account, burst, ct);
-				while ((line = await killed.StandardOutput.ReadLineAsync(bound.Token) ?? throw new InvalidOperationException("the host ended")) != "acked")
-				{
-					// "session id" for each message; the account's other traffic is printed too.
-					var id = MessageId.From(line.Split(' ')[1]);
-					if (burst.Messages.Any(m => m.Id == id))
-						handledBefore.Add(id);
-				}
+				// "session id" for each message; the account's other traffic is printed too.
+				var (handled, ackedSeq) = await EventsHostOutput.UntilAckedAsync(killed.StandardOutput, bound.Token);
+				handledBefore.AddRange(handled.Select(label => MessageId.From(label.Split(' ')[1])).Where(id => burst.Messages.Any(m => m.Id == id)));
+				live.Write($"live: the killed process acked up to seq {ackedSeq}");
 
 				// The host alone, as a crash would: its sidecar stops on its own when stdin closes.
 				killed.Kill();

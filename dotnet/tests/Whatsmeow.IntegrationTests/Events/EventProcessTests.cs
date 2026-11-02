@@ -160,7 +160,8 @@ public sealed class EventProcessTests(FakeSidecar fixture, SidecarBinaries binar
 		foreach (var argument in new[] { "events", fixture.Binary, options.DatabasePath, "events-kill", "M3" })
 			info.ArgumentList.Add(argument);
 
-		var handledBefore = new List<string>();
+		IReadOnlyList<string> handledBefore = [];
+		var acked = "";
 		using (var killed = Process.Start(info)!)
 		{
 			try
@@ -169,8 +170,7 @@ public sealed class EventProcessTests(FakeSidecar fixture, SidecarBinaries binar
 				if (!int.TryParse(line, System.Globalization.CultureInfo.InvariantCulture, out var sidecar))
 					Assert.Fail($"the host printed no sidecar process id: {line} {await killed.StandardError.ReadToEndAsync(ct)}");
 
-				while (handledBefore.LastOrDefault()?.StartsWith("acked ", StringComparison.Ordinal) != true)
-					handledBefore.Add(await killed.StandardOutput.ReadLineAsync(ct) ?? throw new InvalidOperationException("the host ended"));
+				(handledBefore, acked) = await EventsHostOutput.UntilAckedAsync(killed.StandardOutput, ct);
 
 				// The host alone, as a crash would: its sidecar stops on its own when stdin closes.
 				killed.Kill();
@@ -190,8 +190,8 @@ public sealed class EventProcessTests(FakeSidecar fixture, SidecarBinaries binar
 		using var received = new Received<MessageReceived>(client);
 		await client.ConnectAsync(ct);
 
-		Assert.Equal(["events-kill M1", "events-kill M2", "events-kill M3"], handledBefore[..^1]);
-		Assert.Matches("^acked [0-9]+$", handledBefore[^1]);
+		Assert.Equal(["events-kill M1", "events-kill M2", "events-kill M3"], handledBefore);
+		Assert.Matches("^[0-9]+$", acked);
 		var after = await received.NextAsync(3, ct);
 		Assert.Equal(ids[2..].Select(id => Deliveries.Received("events-kill", id)), after);
 		DeliveryChecks.ValidateRepeatsFollowTheAck(Deliveries.Sent(ids), [MessageId.From("M1"), MessageId.From("M2")], after, SessionId.From("events-kill"));
@@ -219,7 +219,8 @@ public sealed class EventProcessTests(FakeSidecar fixture, SidecarBinaries binar
 		foreach (var argument in new[] { "events", fixture.Binary, options.DatabasePath, "events-kill-groups", "N3" })
 			info.ArgumentList.Add(argument);
 
-		var handledBefore = new List<string>();
+		IReadOnlyList<string> handledBefore = [];
+		var acked = "";
 		using (var killed = Process.Start(info)!)
 		{
 			try
@@ -228,8 +229,7 @@ public sealed class EventProcessTests(FakeSidecar fixture, SidecarBinaries binar
 				if (!int.TryParse(line, System.Globalization.CultureInfo.InvariantCulture, out var sidecar))
 					Assert.Fail($"the host printed no sidecar process id: {line} {await killed.StandardError.ReadToEndAsync(ct)}");
 
-				while (handledBefore.LastOrDefault()?.StartsWith("acked ", StringComparison.Ordinal) != true)
-					handledBefore.Add(await killed.StandardOutput.ReadLineAsync(ct) ?? throw new InvalidOperationException("the host ended"));
+				(handledBefore, acked) = await EventsHostOutput.UntilAckedAsync(killed.StandardOutput, ct);
 
 				// The host alone, as a crash would: its sidecar stops on its own when stdin closes.
 				killed.Kill();
@@ -249,8 +249,8 @@ public sealed class EventProcessTests(FakeSidecar fixture, SidecarBinaries binar
 		using var received = new Received<GroupInfoChanged>(client);
 		await client.ConnectAsync(ct);
 
-		Assert.Equal(["events-kill-groups N1", "events-kill-groups N2", "events-kill-groups N3"], handledBefore[..^1]);
-		Assert.Matches("^acked [0-9]+$", handledBefore[^1]);
+		Assert.Equal(["events-kill-groups N1", "events-kill-groups N2", "events-kill-groups N3"], handledBefore);
+		Assert.Matches("^[0-9]+$", acked);
 		Assert.Equal(names[2..].Select(name => Deliveries.Renaming("events-kill-groups", name)), await received.NextAsync(3, ct));
 	}
 
@@ -276,10 +276,7 @@ public sealed class EventProcessTests(FakeSidecar fixture, SidecarBinaries binar
 		try
 		{
 			var sidecar = int.Parse(await orphaned.StandardOutput.ReadLineAsync(ct) ?? "", System.Globalization.CultureInfo.InvariantCulture);
-			string? line;
-			while ((line = await orphaned.StandardOutput.ReadLineAsync(ct)) is not null && !line.StartsWith("acked ", StringComparison.Ordinal))
-			{
-			}
+			_ = await EventsHostOutput.UntilAckedAsync(orphaned.StandardOutput, ct);
 
 			// The test process's end, as the host sees it: its stdin closes while M1's handler is stuck.
 			orphaned.StandardInput.Close();

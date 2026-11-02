@@ -29,7 +29,7 @@ internal static class EventsHost
 {
 	public static async Task RunAsync(string sidecarPath, string database, string session, string blockOn, bool fakeWhatsApp)
 	{
-		// The live host's log goes to stderr, which the live test redacts into its artifacts; the fake one's stays here.
+		// The live host's log goes to stderr, which the live test redacts into host.log; the fake one's stays here.
 		var logs = new FakeLogCollector(Options.Create(new FakeLogCollectorOptions { OutputSink = fakeWhatsApp ? null : Console.Error.WriteLine }));
 		using var provider = new FakeLoggerProvider(logs);
 		using var loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(provider).SetMinimumLevel(LogLevel.Debug));
