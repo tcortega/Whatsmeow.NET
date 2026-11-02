@@ -387,7 +387,7 @@ internal sealed class SessionClient(
 				async () =>
 				{
 					var response = await RpcErrors.CallAsync(_messages.SendPollAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
-					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime, "SendPollResponse.chat");
 				},
 				cancellationToken
 			)
@@ -415,7 +415,7 @@ internal sealed class SessionClient(
 				async () =>
 				{
 					var response = await RpcErrors.CallAsync(_messages.SendPollVoteAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
-					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime, "SendPollVoteResponse.chat");
 				},
 				cancellationToken
 			)
