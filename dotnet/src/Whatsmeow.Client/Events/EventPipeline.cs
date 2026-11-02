@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading.Channels;
 using Whatsmeow.Core.Dispatching;
 using Whatsmeow.Core.Telemetry;
@@ -12,14 +13,15 @@ namespace Whatsmeow.Events;
 /// <see cref="IWhatsAppClient.OnHandlerError"/>, and two dispatchers: the durable one, which acks through
 /// <c>ackAsync</c>, and the ephemeral one, which never acks, so ephemeral events never move, hold back or delay the
 /// durable ones (ADR 0027). With the sidecar's <see cref="ClientMetrics"/> it publishes the event side of the telemetry
-/// (ADR 0037): a process span per event, a duration per handler, the queue length and the messages received; without,
-/// as for the fake, nothing.
+/// (ADR 0037): a process span per event a handler takes, a duration per handler, the queue length and the messages
+/// received; without, as for the fake, nothing.
 /// </summary>
 internal sealed class EventPipeline : IAsyncDisposable
 {
 	private readonly SessionId _sessionId;
 	private readonly TimeProvider _timeProvider;
 	private readonly ILogger _log;
+	/// <summary>The sidecar's instruments; null for the fake, which then makes no process span either.</summary>
 	private readonly ClientMetrics? _metrics;
 	private readonly Channel<Work> _durable = Channel.CreateBounded<Work>(new BoundedChannelOptions(Dispatcher.MaxPending) { SingleReader = true, SingleWriter = true });
 	private readonly Dispatcher _durableDispatcher;
@@ -41,7 +43,7 @@ internal sealed class EventPipeline : IAsyncDisposable
 	/// <param name="ackAsync">Acks the durable events up to a seq; null when nothing acks them, as for the fake.</param>
 	/// <param name="timeProvider">The clock of the dispatchers and of <see cref="WaitForAsync{TEvent}"/>'s timeout.</param>
 	/// <param name="log">The handlers' failures and the dispatchers' logs.</param>
-	/// <param name="metrics">The sidecar's instruments; null for the fake, which publishes no telemetry: it has no sidecar and no meter.</param>
+	/// <param name="metrics">The sidecar's instruments; null for the fake, which publishes no telemetry, spans included: it has no sidecar and no meter.</param>
 	public EventPipeline(SessionId sessionId, Func<ulong, CancellationToken, Task>? ackAsync, TimeProvider timeProvider, ILogger log, ClientMetrics? metrics)
 	{
 		_sessionId = sessionId;
@@ -66,17 +68,30 @@ internal sealed class EventPipeline : IAsyncDisposable
 	/// Starts the dispatchers, then each feed with the token of the stop, which waits for the feeds before it stops the
 	/// dispatchers. Calling it again does nothing.
 	/// </summary>
+	/// <remarks>
+	/// Nothing of the caller's <see cref="ExecutionContext"/> flows into them: the first connect starts them inside the
+	/// application's own code, whose <see cref="Activity.Current"/>, log scopes and other async locals
+	/// belong to that call, not to every event after it.
+	/// </remarks>
 	public void Start(params ReadOnlySpan<Func<CancellationToken, Task>> feeds)
 	{
 		if (_disposed != 0 || Interlocked.Exchange(ref _started, 1) != 0)
 			return;
 
-		_durableDispatcher.Start();
-		_ephemeralDispatcher.Start();
-		var started = new Task[feeds.Length];
-		for (var i = 0; i < feeds.Length; i++)
-			started[i] = feeds[i](_stopping.Token);
-		_feeds = started;
+		using (ExecutionContext.SuppressFlow())
+		{
+			_durableDispatcher.Start();
+			_ephemeralDispatcher.Start();
+			var started = new Task[feeds.Length];
+			var token = _stopping.Token;
+			for (var i = 0; i < feeds.Length; i++)
+			{
+				var feed = feeds[i];
+				started[i] = Task.Run(() => feed(token), CancellationToken.None);
+			}
+
+			_feeds = started;
+		}
 	}
 
 	/// <summary>
@@ -183,8 +198,9 @@ internal sealed class EventPipeline : IAsyncDisposable
 	}
 
 	/// <summary>
-	/// Runs every handler of <paramref name="e"/> in order, inside its process span. A handler that throws is logged and
-	/// reported, and the next one runs; each handler's duration is recorded, a throw's included.
+	/// Runs every handler of <paramref name="e"/> in order, inside its process span, which starts with the first handler
+	/// that takes the event: an event no handler takes has none. A handler that throws is logged and reported, and the
+	/// next one runs; each handler's duration is recorded, a throw's included, a cancellation's not (ADR 0037).
 	/// </summary>
 	private async ValueTask RunAsync(WhatsAppEvent e, CancellationToken cancellationToken)
 	{
@@ -193,36 +209,47 @@ internal sealed class EventPipeline : IAsyncDisposable
 			handlers = _handlers;
 
 		var eventType = e.GetType().Name;
-		using var activity = _metrics is null ? null : Tracing.StartProcess(_sessionId, eventType);
-		foreach (var handler in handlers)
+		Activity? activity = null;
+		try
 		{
-			if (!handler.Accepts(e))
-				continue;
-
-			var started = _timeProvider.GetTimestamp();
-			string? failed = null;
-			try
+			foreach (var handler in handlers)
 			{
-				await handler.RunAsync(e, cancellationToken).ConfigureAwait(false);
-			}
+				if (!handler.Accepts(e))
+					continue;
+
+				activity ??= _metrics is null ? null : Tracing.StartProcess(_sessionId, eventType);
+				var started = _timeProvider.GetTimestamp();
+				string? failed = null;
+				var cancelled = false;
+				try
+				{
+					await handler.RunAsync(e, cancellationToken).ConfigureAwait(false);
+				}
 #pragma warning disable CA1031 // Justification: rethrown; whatever a handler throws once the stop began means it did not finish
-			catch (Exception) when (cancellationToken.IsCancellationRequested)
+				catch (Exception) when (cancellationToken.IsCancellationRequested)
 #pragma warning restore CA1031
-			{
-				// Stopping: the event is not handled, and comes again.
-				throw;
-			}
+				{
+					// Stopping: the event is not handled, and comes again.
+					throw;
+				}
 #pragma warning disable CA1031 // Justification: a handler failure never blocks the stream; it is reported on OnHandlerError (ARCHITECTURE §8.4)
-			catch (Exception exception)
+				catch (Exception exception)
 #pragma warning restore CA1031
-			{
-				failed = Tracing.ErrorType(exception);
-				Tracing.Failed(activity, exception);
-				EventLog.HandlerFailed(_log, exception, eventType, _sessionId.Value);
-				ReportError(new HandlerError { Event = e, Exception = exception });
-			}
+				{
+					failed = Tracing.ErrorType(exception);
+					cancelled = Tracing.IsCancellation(exception);
+					Tracing.Failed(activity, exception);
+					EventLog.HandlerFailed(_log, exception, eventType, _sessionId.Value);
+					ReportError(new HandlerError { Event = e, Exception = exception });
+				}
 
-			_metrics?.HandlerRan(_sessionId, eventType, _timeProvider.GetElapsedTime(started), failed);
+				if (!cancelled)
+					_metrics?.HandlerRan(_sessionId, eventType, _timeProvider.GetElapsedTime(started), failed);
+			}
+		}
+		finally
+		{
+			activity?.Dispose();
 		}
 	}
 

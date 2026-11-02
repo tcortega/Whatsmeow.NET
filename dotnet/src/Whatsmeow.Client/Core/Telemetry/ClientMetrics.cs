@@ -38,7 +38,7 @@ internal sealed class ClientMetrics : IDisposable
 			tags: null,
 			new InstrumentAdvice<double> { HistogramBucketBoundaries = s_durationBuckets }
 		);
-		_queueLength = _meter.CreateUpDownCounter<int>("whatsmeow.dispatcher.queue.length", "{event}", "Events a session's dispatchers received and have not finished.");
+		_queueLength = _meter.CreateUpDownCounter<int>("whatsmeow.dispatcher.queue.length", "{event}", "Events a session's dispatchers received and have not finished; those still in the reader's channel are not counted.");
 	}
 
 	public void MessageSent(SessionId sessionId) => _sent.Add(1, new KeyValuePair<string, object?>(Tracing.SessionIdTag, sessionId.Value));
@@ -52,6 +52,9 @@ internal sealed class ClientMetrics : IDisposable
 	/// <summary>One handler of a <paramref name="eventType"/> event ran for <paramref name="duration"/>; <paramref name="errorType"/> when it threw.</summary>
 	public void HandlerRan(SessionId sessionId, string eventType, TimeSpan duration, string? errorType)
 	{
+		if (!_handlerDuration.Enabled)
+			return;
+
 		var tags = new TagList { { Tracing.SessionIdTag, sessionId.Value }, { Tracing.EventTypeTag, eventType } };
 		if (errorType is not null)
 			tags.Add(Tracing.ErrorTypeTag, errorType);

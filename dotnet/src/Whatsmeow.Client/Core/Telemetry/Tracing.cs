@@ -33,15 +33,10 @@ internal static class Tracing
 
 	/// <summary>
 	/// A span for running the handlers of one <paramref name="eventType"/> event, a root: no context crosses the socket,
-	/// and the context the reader started in, the application's connect, is not the event's. It clears
-	/// <see cref="Activity.Current"/>, so the caller is an async method, whose change stays its own.
+	/// and the dispatchers run with no context of the application's (<see cref="Events.EventPipeline.Start"/>).
 	/// </summary>
 	public static Activity? StartProcess(SessionId sessionId, string eventType)
 	{
-		if (!Source.HasListeners())
-			return null;
-
-		Activity.Current = null;
 		var activity = Source.StartActivity("whatsmeow.process", ActivityKind.Consumer);
 		if (activity is null)
 			return null;
@@ -63,15 +58,24 @@ internal static class Tracing
 
 	public static void Transferred(Activity? activity, MediaRef media) => activity?.SetTag(MediaSizeTag, media.FileLength);
 
-	/// <summary>Marks the span failed with <paramref name="exception"/>'s <c>error.type</c>, never its message.</summary>
+	/// <summary>
+	/// Marks the span failed with <paramref name="exception"/>'s <c>error.type</c> and the error status, with no
+	/// description: the conventions advise against repeating <c>error.type</c> there, and the exception's message, which
+	/// they suggest, may hold a JID or a phone number. A cancellation is no failure, and leaves the span as it is.
+	/// </summary>
 	public static void Failed(Activity? activity, Exception exception)
 	{
-		if (activity is null)
+		if (activity is null || IsCancellation(exception))
 			return;
 
-		var type = ErrorType(exception);
-		_ = activity.SetTag(ErrorTypeTag, type).SetStatus(ActivityStatusCode.Error, type);
+		_ = activity.SetTag(ErrorTypeTag, ErrorType(exception)).SetStatus(ActivityStatusCode.Error);
 	}
+
+	/// <summary>
+	/// The one rule for every span and instrument (ADR 0037): a cancellation is not an error, so it sets no
+	/// <c>error.type</c>, no error status, no error count and no handler duration.
+	/// </summary>
+	public static bool IsCancellation(Exception exception) => exception is OperationCanceledException;
 
 	/// <summary>The <c>error.type</c> of <paramref name="exception"/>: its error code, or its type's full name.</summary>
 	public static string ErrorType(Exception exception) =>

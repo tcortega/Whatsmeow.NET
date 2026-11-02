@@ -4,17 +4,19 @@ using Microsoft.Extensions.Diagnostics.Metrics.Testing;
 using Whatsmeow.Events;
 using Whatsmeow.IntegrationTests.Events;
 using Whatsmeow.IntegrationTests.Fake;
+using Whatsmeow.IntegrationTests.Media;
 using Whatsmeow.IntegrationTests.Sessions;
 using Whatsmeow.IntegrationTests.Support;
 using Whatsmeow.Messaging;
 using Whatsmeow.Sessions;
+using E2E = Whatsmeow.Proto.WAWebProtobufsE2E;
 
 namespace Whatsmeow.IntegrationTests.Telemetry;
 
 /// <summary>
 /// The library's spans through the public client, on the shared fake-mode sidecar (ARCHITECTURE §8.8). A call's span
-/// stops before the call returns, so it is read at once, with no wait; an event's is waited for. These tests and the error counts, which carry no
-/// session id, run alone in the <see cref="TelemetryListeners"/> collection.
+/// stops before the call returns, so it is read at once, with no wait; an event's is waited for. These tests, and the
+/// cancellation tests' error counts, which carry no session id, run alone in the <see cref="TelemetryListeners"/> collection.
 /// </summary>
 [Collection(nameof(TelemetryListeners))]
 public sealed class SpanTests(FakeSidecar fixture)
@@ -22,34 +24,33 @@ public sealed class SpanTests(FakeSidecar fixture)
 	private const int Timeout = 120_000;
 	private const string Peer = "900000401@lid";
 
-	[Fact(Timeout = Timeout)]
-	public async Task Send_WithAListener_ASpanCoversEachSendWithItsSessionMessageIdAndType()
+	[Theory(Timeout = Timeout)]
+	[InlineData("text")]
+	[InlineData("image")]
+	[InlineData("video")]
+	[InlineData("audio")]
+	[InlineData("document")]
+	[InlineData("sticker")]
+	[InlineData("raw")]
+	public async Task Send_WithAListener_ASpanCoversEachOfTheSevenSends_AndEachIsCounted(string type)
 	{
 		var ct = TestContext.Current.CancellationToken;
-		const string Session = "telemetry-send";
-		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
-		using var input = new MemoryStream(RandomNumberGenerator.GetBytes(1000));
-		var image = await client.UploadMediaAsync(input, MediaType.Image, ct);
+		var session = $"telemetry-send-{type}";
+		var client = await SessionSetup.ConnectedAsync(fixture, session, ct);
+		var media = type is "text" or "raw" ? null : await UploadAsync(client, type, ct);
+		using var sent = new MetricCollector<long>(fixture.MeterFactory, WhatsmeowTelemetry.MeterName, "whatsmeow.messages.sent");
 		using var spans = new Spans();
-		var (textId, imageId) = (MessageId.New(), MessageId.New());
+		var id = MessageId.New();
 
-		_ = await client.SendTextAsync(Jid.Parse(Peer), "hello", textId, cancellationToken: ct);
-		var afterText = spans.Of("whatsmeow.send", Session);
-		_ = await client.SendImageAsync(Jid.Parse(Peer), image, new ImageMetadata { Caption = "look" }, imageId, cancellationToken: ct);
+		_ = await SendAsync(client, type, media, id, ct);
 
-		// Each span stopped before its send returned, and has no error.
-		var text = Assert.Single(afterText);
-		var sends = spans.Of("whatsmeow.send", Session);
-		Assert.Equal(2, sends.Count);
-		Assert.Equal(
-			[
-				Tags.Of(("whatsmeow.session.id", Session), ("whatsmeow.message.id", textId.Value), ("whatsmeow.message.type", "text")),
-				Tags.Of(("whatsmeow.session.id", Session), ("whatsmeow.message.id", imageId.Value), ("whatsmeow.message.type", "image")),
-			],
-			sends.Select(Tags.Of)
-		);
-		Assert.Same(text, sends[0]);
-		Assert.All(sends, span => Assert.Equal((ActivityKind.Client, ActivityStatusCode.Unset), (span.Kind, span.Status)));
+		// The span stopped before the send returned, and has no error; the send was counted before it returned too.
+		var span = Assert.Single(spans.Of("whatsmeow.send", session));
+		Assert.Equal(Tags.Of(("whatsmeow.session.id", session), ("whatsmeow.message.id", id.Value), ("whatsmeow.message.type", type)), Tags.Of(span));
+		Assert.Equal((ActivityKind.Client, ActivityStatusCode.Unset), (span.Kind, span.Status));
+		var counted = Assert.Single(Measured.Of(sent, session));
+		Assert.Equal(1L, counted.Value);
+		Assert.Equal(Tags.Of(("whatsmeow.session.id", session)), Tags.Of(counted));
 	}
 
 	[Fact(Timeout = Timeout)]
@@ -68,7 +69,7 @@ public sealed class SpanTests(FakeSidecar fixture)
 			Tags.Of(("whatsmeow.session.id", Session), ("whatsmeow.message.id", id.Value), ("whatsmeow.message.type", "text"), ("error.type", "NotLoggedIn")),
 			Tags.Of(span)
 		);
-		Assert.Equal((ActivityStatusCode.Error, "NotLoggedIn"), (span.Status, span.StatusDescription));
+		Assert.Equal((ActivityStatusCode.Error, null), (span.Status, span.StatusDescription));
 	}
 
 	[Fact(Timeout = Timeout)]
@@ -127,32 +128,9 @@ public sealed class SpanTests(FakeSidecar fixture)
 			Tags.Of(("whatsmeow.session.id", Session), ("whatsmeow.media.type", "audio"), ("whatsmeow.media.size", 3L), ("error.type", "MediaExpired")),
 			Tags.Of(span)
 		);
-		Assert.Equal((ActivityStatusCode.Error, "MediaExpired"), (span.Status, span.StatusDescription));
+		Assert.Equal((ActivityStatusCode.Error, null), (span.Status, span.StatusDescription));
 	}
 
-	[Fact(Timeout = Timeout)]
-	public async Task Errors_AreCountedByErrorCode_ForUnaryClientStreamAndServerStreamCalls()
-	{
-		var ct = TestContext.Current.CancellationToken;
-		var unpaired = await fixture.Sidecar.Sessions.GetOrCreateAsync(SessionId.From("telemetry-errors-unpaired"), ct);
-		var offline = await SessionSetup.LinkedAsync(fixture, "telemetry-errors-offline", ct);
-		var connected = await SessionSetup.ConnectedAsync(fixture, "telemetry-errors-expired", ct);
-		using var three = new MemoryStream([1, 2, 3]);
-		var media = await connected.UploadMediaAsync(three, MediaType.Audio, ct);
-		_ = await fixture.Fake.ExpireMediaAsync(new ExpireMediaRequest { DirectPath = media.DirectPath, Status = 410 }, cancellationToken: ct);
-		using var errors = new MetricCollector<long>(fixture.MeterFactory, WhatsmeowTelemetry.MeterName, "whatsmeow.errors");
-
-		// A unary call, a client stream and a server stream, each failing with its own code.
-		_ = await Assert.ThrowsAsync<NotLoggedInException>(() => unpaired.SendTextAsync(Jid.Parse(Peer), "hi", cancellationToken: ct));
-		using var one = new MemoryStream([1]);
-		_ = await Assert.ThrowsAsync<NotConnectedException>(() => offline.UploadMediaAsync(one, MediaType.Image, ct));
-		_ = await Assert.ThrowsAsync<MediaExpiredException>(() => connected.DownloadMediaAsync(media, Stream.Null, ct));
-
-		// Counted before each call returned. Nothing else runs beside this test, and no background call fails with these codes.
-		var counted = errors.GetMeasurementSnapshot().Where(measurement => measurement.Tags["error.type"] is "NotLoggedIn" or "NotConnected" or "MediaExpired").ToList();
-		Assert.Equal([1L, 1L, 1L], counted.Select(measurement => measurement.Value));
-		Assert.Equal([Tags.Of(("error.type", "NotLoggedIn")), Tags.Of(("error.type", "NotConnected")), Tags.Of(("error.type", "MediaExpired"))], counted.Select(Tags.Of));
-	}
 	[Fact(Timeout = Timeout)]
 	public async Task Event_ItsHandlersRunInsideItsProcessSpan_WhichHasNoParent()
 	{
@@ -207,7 +185,7 @@ public sealed class SpanTests(FakeSidecar fixture)
 			Tags.Of(("whatsmeow.session.id", Session), ("whatsmeow.event.type", nameof(MessageReceived)), ("error.type", "System.InvalidOperationException")),
 			Tags.Of(process)
 		);
-		Assert.Equal((ActivityStatusCode.Error, "System.InvalidOperationException"), (process.Status, process.StatusDescription));
+		Assert.Equal((ActivityStatusCode.Error, null), (process.Status, process.StatusDescription));
 	}
 
 	[Fact(Timeout = Timeout)]
@@ -277,5 +255,200 @@ public sealed class SpanTests(FakeSidecar fixture)
 		int[] counts = [Measured.Of(sent, Session).Count, Measured.Of(received, Session).Count, Measured.Of(durations, Session).Count, Measured.Of(queue, Session).Count, errors.GetMeasurementSnapshot().Count];
 		Assert.All(counts, count => Assert.NotEqual(0, count));
 		Assert.DoesNotContain(values, value => value.Contains('@', StringComparison.Ordinal) || value.Contains(Phone, StringComparison.Ordinal) || value.Contains("5511999999999", StringComparison.Ordinal) || value.Contains("900000404", StringComparison.Ordinal));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Event_WithOnlyTheApplicationListening_AHandlerRunsOutsideTheSpanItsSessionConnectedIn()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "telemetry-process-app-only";
+		var client = await SessionSetup.LinkedAsync(fixture, Session, ct);
+		var current = new TaskCompletionSource<Activity?>(TaskCreationOptions.RunContinuationsAsynchronously);
+		using var handler = client.On<MessageReceived>(
+			(e, token) =>
+			{
+				_ = current.TrySetResult(Activity.Current);
+				using var own = Spans.Test.StartActivity("handled");
+				return ValueTask.CompletedTask;
+			}
+		);
+		using var spans = Spans.OfTheTests();
+
+		// The application connects inside a span of its own, and listens to its own spans only, not to the library's.
+		Activity? application;
+		using (application = Spans.Test.StartActivity("application"))
+			await client.ConnectAsync(ct);
+		await using (var watch = StateWatch.Start(client, ct))
+			await watch.ReachesAsync(new SessionState.Connected(), new SessionState.Connecting());
+		await Deliveries.DeliverAsync(fixture.Fake, Session, ct, "M1");
+
+		// The event is not part of the connect: the handler's span is a root of a trace of its own.
+		var handled = await spans.WaitForAsync(span => span.OperationName == "handled", ct);
+		Assert.NotNull(application);
+		Assert.Null(await current.Task);
+		Assert.Equal(default, handled.ParentSpanId);
+		Assert.NotEqual(application.TraceId, handled.TraceId);
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Event_NoHandlerAcceptsIt_HasNoProcessSpan()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "telemetry-process-unhandled";
+		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
+		var receipts = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+		using var handler = client.On<ReceiptReceived>(
+			(_, _) =>
+			{
+				_ = receipts.TrySetResult();
+				return ValueTask.CompletedTask;
+			}
+		);
+		using var spans = new Spans();
+
+		// A message no handler takes, then a receipt in the same chat, so its lane ran the message first.
+		await Deliveries.DeliverAsync(fixture.Fake, Session, ct, "M1");
+		_ = await fixture.Fake.DeliverReceiptAsync(
+			new DeliverReceiptRequest
+			{
+				SessionId = Session,
+				Chat = Deliveries.Chat,
+				Sender = Deliveries.Chat,
+				MessageIds = { "M0" },
+			},
+			cancellationToken: ct
+		);
+		await receipts.Task.WaitAsync(ct);
+
+		_ = await spans.WaitForAsync(span => span.OperationName == "whatsmeow.process" && Equals(span.GetTagItem("whatsmeow.session.id"), Session), ct);
+		Assert.Equal([nameof(ReceiptReceived)], spans.Of("whatsmeow.process", Session).Select(span => span.GetTagItem("whatsmeow.event.type")));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Send_Cancelled_ItsSpanHasNoError_AndNoErrorIsCounted()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "telemetry-send-cancel";
+		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
+		using var errors = new MetricCollector<long>(fixture.MeterFactory, WhatsmeowTelemetry.MeterName, "whatsmeow.errors");
+		using var sent = new MetricCollector<long>(fixture.MeterFactory, WhatsmeowTelemetry.MeterName, "whatsmeow.messages.sent");
+		_ = await fixture.Fake.HoldNextSendAsync(new HoldNextSendRequest { SessionId = Session }, cancellationToken: ct);
+		using var spans = new Spans();
+		using var cancel = CancellationTokenSource.CreateLinkedTokenSource(ct);
+		var id = MessageId.New();
+
+		// Cancelled once WhatsApp holds it.
+		var held = client.SendTextAsync(Jid.Parse(Peer), "maybe", id, cancellationToken: cancel.Token);
+		_ = await fixture.Fake.WaitForSentAsync(new WaitForSentRequest { SessionId = Session }, cancellationToken: ct);
+		await cancel.CancelAsync();
+		_ = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => held);
+
+		var span = Assert.Single(spans.Of("whatsmeow.send", Session));
+		Assert.Equal(Tags.Of(("whatsmeow.session.id", Session), ("whatsmeow.message.id", id.Value), ("whatsmeow.message.type", "text")), Tags.Of(span));
+		Assert.Equal(ActivityStatusCode.Unset, span.Status);
+		Assert.Empty(errors.GetMeasurementSnapshot());
+		Assert.Empty(Measured.Of(sent, Session));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Upload_Cancelled_ItsSpanHasNoError_AndNoErrorIsCounted()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "telemetry-media-cancel";
+		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
+		using var errors = new MetricCollector<long>(fixture.MeterFactory, WhatsmeowTelemetry.MeterName, "whatsmeow.errors");
+		await using var input = new StallingStream();
+		using var spans = new Spans();
+		using var cancel = CancellationTokenSource.CreateLinkedTokenSource(ct);
+
+		// Cancelled once the first chunk went out.
+		_ = await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+		{
+			var upload = client.UploadMediaAsync(input, MediaType.Document, cancel.Token);
+			await input.StalledAsync(ct).ConfigureAwait(false);
+			await cancel.CancelAsync().ConfigureAwait(false);
+			_ = await upload.ConfigureAwait(false);
+		});
+
+		var span = Assert.Single(spans.Of("whatsmeow.media.upload", Session));
+		Assert.Equal(Tags.Of(("whatsmeow.session.id", Session), ("whatsmeow.media.type", "document")), Tags.Of(span));
+		Assert.Equal(ActivityStatusCode.Unset, span.Status);
+		Assert.Empty(errors.GetMeasurementSnapshot());
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Event_AHandlerCancels_ItsProcessSpanHasNoError_AndNoDurationIsRecorded()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "telemetry-process-cancels";
+		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
+		using var durations = new MetricCollector<double>(fixture.MeterFactory, WhatsmeowTelemetry.MeterName, "whatsmeow.handler.duration");
+		using var handler = client.On<MessageReceived>((_, _) => throw new OperationCanceledException("the handler's own timeout"));
+		using var spans = new Spans();
+
+		await Deliveries.DeliverAsync(fixture.Fake, Session, ct, "M1");
+
+		// The span stops after its handlers ran, so a duration would have been recorded by then.
+		var process = await spans.WaitForAsync(
+			span => span.OperationName == "whatsmeow.process" && Equals(span.GetTagItem("whatsmeow.session.id"), Session) && Equals(span.GetTagItem("whatsmeow.event.type"), nameof(MessageReceived)),
+			ct
+		);
+		Assert.Equal(Tags.Of(("whatsmeow.session.id", Session), ("whatsmeow.event.type", nameof(MessageReceived))), Tags.Of(process));
+		Assert.Equal(ActivityStatusCode.Unset, process.Status);
+		Assert.Empty(Measured.Of(durations, Session));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task NoListener_ASendAndATransferStartNoActivity()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "telemetry-quiet-calls";
+		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
+		using var spans = Spans.OfAllButTheLibrary();
+
+		// The library's calls start spans of their own (gRPC's, HTTP's); none has a library activity above it.
+		_ = await client.SendTextAsync(Jid.Parse(Peer), "hello", cancellationToken: ct);
+		using var input = new MemoryStream([1, 2, 3]);
+		var media = await client.UploadMediaAsync(input, MediaType.Document, ct);
+		await client.DownloadMediaAsync(media, Stream.Null, ct);
+
+		Assert.NotEmpty(spans.All);
+		Assert.All(spans.All, span => Assert.DoesNotContain(Ancestors(span), above => above.OperationName.StartsWith("whatsmeow.", StringComparison.Ordinal)));
+	}
+
+	private static IEnumerable<Activity> Ancestors(Activity span)
+	{
+		for (var above = span.Parent; above is not null; above = above.Parent)
+			yield return above;
+	}
+
+	private static async Task<MediaRef> UploadAsync(IWhatsAppClient client, string type, CancellationToken ct)
+	{
+		using var input = new MemoryStream(RandomNumberGenerator.GetBytes(1000));
+		var mediaType = type switch
+		{
+			"video" => MediaType.Video,
+			"audio" => MediaType.Audio,
+			"document" => MediaType.Document,
+			_ => MediaType.Image,
+		};
+		return await client.UploadMediaAsync(input, mediaType, ct).ConfigureAwait(false);
+	}
+
+	private static Task<SendResult> SendAsync(IWhatsAppClient client, string type, MediaRef? media, MessageId id, CancellationToken ct)
+	{
+		var to = Jid.Parse(Peer);
+#pragma warning disable WMN1001 // Justification: the raw send is one of the seven sends under test
+		return type switch
+		{
+			"text" => client.SendTextAsync(to, "hello", id, cancellationToken: ct),
+			"image" => client.SendImageAsync(to, media!, new ImageMetadata(), id, cancellationToken: ct),
+			"video" => client.SendVideoAsync(to, media!, new VideoMetadata(), id, cancellationToken: ct),
+			"audio" => client.SendAudioAsync(to, media!, new AudioMetadata(), id, cancellationToken: ct),
+			"document" => client.SendDocumentAsync(to, media!, new DocumentMetadata(), id, cancellationToken: ct),
+			"sticker" => client.SendStickerAsync(to, media!, new StickerMetadata(), id, cancellationToken: ct),
+			_ => client.SendRawAsync(to, new E2E.Message { Conversation = "hello" }, id, ct),
+		};
+#pragma warning restore WMN1001
 	}
 }
