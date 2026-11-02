@@ -1,20 +1,24 @@
 #!/usr/bin/env bash
 # The release (#46, ADR 0050); .github/workflows/release.yml calls this and nothing else.
 #
-#   guard <tag>                      the tag is v<semver>, points at HEAD, and HEAD is on main; in a tag push, also
-#                                    that the nuget.org profile name is set
+#   guard <tag>                      the tag is v<semver>, points at HEAD here and on origin, and HEAD is on main; in a
+#                                    tag push, also that the release environment makes the publish wait for a reviewer
+#   environment                      only that last check
 #   verify <tag> <feed> <assets>     the feed holds exactly the release's packages at the tag's version, in an order
 #                                    that pushes every dependency first; writes the release assets
-#   github <tag> <assets>            creates the GitHub release as a draft, uploads what it lacks, then publishes it
+#   draft <tag> <assets>             the GitHub release as a draft with every asset, uploading only what it lacks
+#   publish <tag> <assets>           publishes that draft, Latest only when the tag is the highest stable version
 #   push <tag> <feed> 1|2            pushes one phase to nuget.org, skipping what is there
-#   wait <tag> <feed>                waits until nuget.org serves every package of the first phase
+#   wait <tag> <feed> 1|2            waits until nuget.org serves the phase; for phase 2 a timeout only warns
 #
-# github and push publish, so they refuse to run anywhere but in a push of that tag; with --dry-run they and wait only
-# print what they would do. Nothing here deletes or unlists anything (tools/check-repo, ADR 0029).
+# draft, publish and push publish, so they refuse to run anywhere but in a push of that tag; with --dry-run they and
+# wait only print what they would do. Nothing here deletes or unlists anything (tools/check-repo, ADR 0029).
 # Tests: build/release-test.sh.
 set -uo pipefail
 
-# release.yml's NUGET_USER until Antonio names the nuget.org profile (owner action 1, ADR 0050).
+# The release environment, as release.yml's publish job names it, and NUGET_USER until Antonio sets the variable
+# there (owner action 1, ADR 0050).
+environment=release
 nuget_user_placeholder=REPLACE-WITH-NUGET-PROFILE-NAME
 nuget_source=https://api.nuget.org/v3/index.json
 flat_container=https://api.nuget.org/v3-flatcontainer
@@ -32,13 +36,21 @@ binaries=6
 wait_minutes="${RELEASE_WAIT_MINUTES:-45}"
 
 die() {
-	if [ "${GITHUB_ACTIONS:-}" = true ]; then echo "::error title=release::$*"; else echo "error: $*"; fi
+	if [ "${GITHUB_ACTIONS:-}" = true ]; then echo "::error title=release::$*"; else echo "error: $*"; fi >&2
 	exit 1
 }
 
-# A release tag: v<major>.<minor>.<patch>, optionally -<pre-release>, as SemVer 2.0.0 writes them. Build metadata is
-# refused: NuGet ignores it, so v1.0.0+a and v1.0.0+b would be one package version.
-semver='^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?$'
+warn() {
+	if [ "${GITHUB_ACTIONS:-}" = true ]; then echo "::warning title=release::$*"; else echo "warning: $*"; fi >&2
+}
+
+# A release tag is v and a SemVer 2.0.0 version without build metadata: no leading zero in a number or a numeric
+# pre-release identifier, and no empty identifier. Build metadata is refused because NuGet ignores it, so v1.0.0+a and
+# v1.0.0+b would be one package version.
+number='(0|[1-9][0-9]*)'
+identifier='(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)'
+semver="^v$number\\.$number\\.$number(-$identifier(\\.$identifier)*)?\$"
+stable="^v$number\\.$number\\.$number\$"
 
 version_of() { # tag
 	echo "${1#v}"
@@ -52,20 +64,40 @@ sha256_of() { # file
 	if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1"; else shasum -a 256 "$1"; fi | cut -d' ' -f1
 }
 
-# Publishing runs only in a push of the tag itself. A rehearsal (workflow_dispatch) has no id-token permission either,
-# so it could not get a nuget.org key, but this refuses first, with a reason.
-require_publish() { # tag
+require_tag_push() { # tag
 	local tag="$1"
 	if [ "${GITHUB_EVENT_NAME:-}" != push ] || [ "${GITHUB_REF_TYPE:-}" != tag ] || [ "${GITHUB_REF:-}" != "refs/tags/$tag" ]; then
-		die "publishing runs only in a push of the tag $tag, not in this run (event ${GITHUB_EVENT_NAME:-none}, ref ${GITHUB_REF:-none}); a rehearsal never publishes"
-	fi
-	if [ -z "${NUGET_USER:-}" ] || [ "$NUGET_USER" = "$nuget_user_placeholder" ]; then
-		die "NUGET_USER in .github/workflows/release.yml is still the placeholder $nuget_user_placeholder: set it to the nuget.org profile name that owns the Trusted Publishing policy (owner action 1, ADR 0050)"
+		die "publishing runs only in a push of the tag $tag, not in this run (event ${GITHUB_EVENT_NAME:-none}, ref ${GITHUB_REF:-none}, type ${GITHUB_REF_TYPE:-none}); a rehearsal never publishes"
 	fi
 }
 
+# Publishing runs only in a push of the tag itself. A rehearsal (workflow_dispatch) has no id-token permission either,
+# so it could not get a nuget.org key, but this refuses first, with a reason.
+require_publish() { # tag
+	require_tag_push "$1"
+	if [ -z "${NUGET_USER:-}" ] || [ "$NUGET_USER" = "$nuget_user_placeholder" ]; then
+		die "NUGET_USER is unset or still the placeholder $nuget_user_placeholder: set the variable NUGET_USER on the $environment environment to the nuget.org username of the Trusted Publishing policy's creator (owner action 1, ADR 0050)"
+	fi
+}
+
+# A job that names an environment that does not exist makes it, with no protection rule, so the publish would run
+# without approval [observed: docs.github.com "Deployments and environments"]. Anyone with read access may read an
+# environment, and on a public repository so may an anonymous request [observed: GET
+# repos/cli/cli/environments/gh-acceptance-testing without a token, 2026-11-02]; release.yml passes GITHUB_TOKEN.
+require_protected_environment() {
+	local json reviewers
+	json="$(gh api "repos/${GITHUB_REPOSITORY:?}/environments/$environment" 2>&1)" ||
+		die "no $environment environment in ${GITHUB_REPOSITORY}, or it cannot be read ($json); GitHub would make it unprotected, so the publish would run without approval (owner action 3, ADR 0050)"
+	reviewers="$(jq -r '[.protection_rules[]? | select(.type == "required_reviewers") | .reviewers[]? | .reviewer.login // .reviewer.slug // .reviewer.name] | join(", ")' <<<"$json")" ||
+		die "cannot read the $environment environment's protection rules"
+	if [ -z "$reviewers" ]; then
+		die "the $environment environment has no required reviewers, so the publish would run without approval (owner action 3, ADR 0050)"
+	fi
+	echo "the $environment environment has required reviewers: $reviewers"
+}
+
 guard() { # tag
-	local tag="$1" commit head
+	local tag="$1" commit head remote peeled
 	if [[ ! "$tag" =~ $semver ]]; then
 		if [[ "$tag" == *+* ]]; then die "$tag has build metadata, which NuGet ignores; a release tag is v<major>.<minor>.<patch>[-<pre-release>]"; fi
 		die "$tag is not a release tag: v<major>.<minor>.<patch>[-<pre-release>], SemVer 2.0.0"
@@ -78,7 +110,19 @@ guard() { # tag
 	if ! git merge-base --is-ancestor "$head" refs/remotes/origin/main; then
 		die "the tag $tag is not on main: $head is not an ancestor of origin/main, and only main is released (ADR 0050)"
 	fi
-	if [ "${GITHUB_EVENT_NAME:-}" = push ]; then require_publish "$tag"; fi
+	# The tag on origin, peeled: a tag moved or made again since this run began would otherwise publish other content
+	# under its name. A rehearsal's tag is in its runner only.
+	remote="$(git ls-remote origin "refs/tags/$tag" "refs/tags/$tag^{}")" || die "cannot list the tags on origin"
+	peeled="$(awk -v t="refs/tags/$tag^{}" '$2 == t { print $1 }' <<<"$remote")"
+	[ -n "$peeled" ] || peeled="$(awk -v t="refs/tags/$tag" '$2 == t { print $1 }' <<<"$remote")"
+	if [ -n "$peeled" ] && [ "$peeled" != "$head" ]; then
+		die "the tag $tag on origin points at $peeled, not at HEAD $head: it moved or was made again; push a new tag"
+	fi
+	if [ "${GITHUB_EVENT_NAME:-}" = push ]; then
+		[ -n "$peeled" ] || die "the tag $tag is not on origin"
+		require_tag_push "$tag"
+		require_protected_environment
+	fi
 	echo "the tag $tag points at HEAD $head, which is on main"
 }
 
@@ -156,41 +200,101 @@ verify() { # tag feed assets
 	cat "$assets/whatsmeow-net_${version}_checksums.txt"
 }
 
-# The GitHub release goes up before any package, so the Corresponding Source every native package points to is there
-# first (ADR 0029). Immutable releases take no asset once published, so it is a draft until every asset is on it.
-# A re-run uploads only the assets the release lacks, and never replaces one.
-github() { # tag assets [--dry-run]
-	local tag="$1" assets="$2" dry="${3:-}" version prerelease=() json err existing file name draft
+# release_json tag: the release as gh shows it, or nothing when there is none. gh finds drafts too, and says
+# "release not found" when there is neither [observed: cli/cli pkg/cmd/release/shared/fetch.go].
+release_json() {
+	local out
+	if out="$(gh release view "$1" --json isDraft,assets 2>&1)"; then
+		echo "$out"
+		return 0
+	fi
+	grep -qF 'release not found' <<<"$out" || die "cannot read the release $1: $out"
+}
+
+# check_asset json file: 0 when the release holds file's bytes, 1 when it lacks the file, and a failure when it holds
+# something else. The source archive is not byte-identical from run to run (ADR 0029), so only its state is checked, and
+# the first upload stays; every other asset is reproducible, so its digest must be the local file's.
+check_asset() {
+	local json="$1" file="$2" name state digest
+	name="$(basename "$file")"
+	state="$(jq -r --arg n "$name" '.assets[] | select(.name == $n) | .state' <<<"$json")"
+	[ -n "$state" ] || return 1
+	if [ "$state" != uploaded ]; then
+		die "the asset $name on the release is $state, not uploaded: its upload never finished; a person removes it on GitHub, then re-runs"
+	fi
+	if [[ "$name" == *_source.tar.gz ]]; then
+		echo "$name is on the release; the source archive keeps its first upload (ADR 0029)"
+		return 0
+	fi
+	digest="$(jq -r --arg n "$name" '.assets[] | select(.name == $n) | .digest // ""' <<<"$json")"
+	if [ "$digest" != "sha256:$(sha256_of "$file")" ]; then
+		die "the release holds different bytes for $name (${digest:-no digest}) than this run built (sha256:$(sha256_of "$file")); the tag's content changed, so push a new tag"
+	fi
+	echo "$name is on the release, the same bytes"
+}
+
+# The GitHub release is a draft until every asset is on it, since an immutable release takes no asset once published;
+# it is published only after the nuget.org login worked, and before any package, so the Corresponding Source every
+# native package points to is there first (ADR 0029). A re-run uploads only what the release lacks, and never replaces
+# an asset.
+draft() { # tag assets [--dry-run]
+	local tag="$1" assets="$2" dry="${3:-}" version create json draft file rc
 	version="$(version_of "$tag")"
-	[[ "$version" == *-* ]] && prerelease=(--prerelease)
+	create=(gh release create "$tag" --draft --verify-tag --title "$tag" --generate-notes)
+	[[ "$version" == *-* ]] && create+=(--prerelease)
 	if [ "$dry" = --dry-run ]; then
-		echo "would create the draft release: gh release create $tag --draft --verify-tag --title $tag --generate-notes ${prerelease[*]}"
+		echo "would create the draft: ${create[*]}"
 		for file in "$assets"/*; do echo "would upload $(basename "$file"): gh release upload $tag $file"; done
-		echo "would publish it: gh release edit $tag --draft=false"
 		return 0
 	fi
 	require_publish "$tag"
-	err="$(mktemp)"
-	if ! json="$(gh release view "$tag" --json isDraft,assets 2>"$err")"; then
-		if ! grep -qF 'release not found' "$err"; then cat "$err"; die "cannot read the release $tag"; fi
-		gh release create "$tag" --draft --verify-tag --title "$tag" --generate-notes "${prerelease[@]}" || die "cannot create the draft release $tag"
-		json="$(gh release view "$tag" --json isDraft,assets)" || die "cannot read the draft release $tag"
+	json="$(release_json "$tag")" || exit 1
+	if [ -z "$json" ]; then
+		"${create[@]}" || die "cannot create the draft release $tag"
+		json="$(release_json "$tag")" || exit 1
+		[ -n "$json" ] || die "the draft release $tag is not there after creating it"
 	fi
-	rm -f "$err"
 	draft="$(jq -r .isDraft <<<"$json")"
-	existing="$(jq -r '.assets[].name' <<<"$json")"
 	for file in "$assets"/*; do
-		name="$(basename "$file")"
-		if grep -qxF "$name" <<<"$existing"; then
-			echo "$name is already on the release"
-			continue
-		fi
-		if [ "$draft" != true ]; then die "the published release $tag lacks $name, and a published immutable release takes no asset"; fi
-		gh release upload "$tag" "$file" || die "cannot upload $name"
+		check_asset "$json" "$file"
+		rc=$?
+		[ "$rc" -eq 0 ] && continue
+		if [ "$draft" != true ]; then die "the published release $tag lacks $(basename "$file"), and a published immutable release takes no asset"; fi
+		gh release upload "$tag" "$file" || die "cannot upload $(basename "$file")"
 	done
-	if [ "$draft" = true ]; then
-		gh release edit "$tag" --draft=false || die "cannot publish the release $tag"
+	echo "the release $tag holds every asset"
+}
+
+# Latest is the highest stable version among the tags on origin and this one; a pre-release never is.
+latest_flag() { # tag
+	local tag="$1" highest
+	highest="$({
+		git ls-remote --tags --refs origin 'v*' | awk '{ sub("refs/tags/", "", $2); print $2 }'
+		echo "$tag"
+	} | while IFS= read -r t; do if [[ "$t" =~ $stable ]]; then echo "$t"; fi; done |
+		sed 's/^v//' | LC_ALL=C sort -t. -k1,1n -k2,2n -k3,3n | tail -n1)" || die "cannot list the tags on origin"
+	if [ "v$highest" = "$tag" ]; then echo --latest; else echo --latest=false; fi
+}
+
+publish() { # tag assets [--dry-run]
+	local tag="$1" assets="$2" dry="${3:-}" edit json file latest
+	[ "$dry" = --dry-run ] || require_publish "$tag"
+	latest="$(latest_flag "$tag")" || exit 1
+	edit=(gh release edit "$tag" --draft=false "$latest")
+	if [ "$dry" = --dry-run ]; then
+		echo "would publish the draft: ${edit[*]}"
+		return 0
 	fi
+	json="$(release_json "$tag")" || exit 1
+	[ -n "$json" ] || die "no release $tag: draft makes it"
+	for file in "$assets"/*; do
+		check_asset "$json" "$file" >/dev/null || die "the release $tag lacks $(basename "$file"); run draft first"
+	done
+	if [ "$(jq -r .isDraft <<<"$json")" != true ]; then
+		echo "the release $tag is already published"
+		return 0
+	fi
+	"${edit[@]}" || die "cannot publish the release $tag"
 	echo "the release $tag is published with every asset"
 }
 
@@ -226,27 +330,35 @@ push() { # tag feed 1|2 [--dry-run]
 }
 
 # nuget.org validates a pushed package before it serves it; the flat container, which restore reads, lists a version
-# only then [inferred: nuget.org's documented validation step]. A timeout fails the job, and a re-run resumes.
-wait_served() { # tag feed [--dry-run]
-	local tag="$1" dry="${3:-}" version id url deadline pending
+# only then [inferred: nuget.org's documented validation step]. A phase 1 timeout fails the job, and a re-run resumes;
+# a phase 2 timeout only warns, since a package nuget.org has not indexed yet is not a failure.
+wait_served() { # tag feed 1|2 [--dry-run]
+	local tag="$1" phase="$3" dry="${4:-}" version id ids url deadline pending message
 	version="$(lowercase "$(version_of "$tag")")"
+	ids="$(phase_ids "$phase")" || exit 1
 	if [ "$dry" = --dry-run ]; then
-		for id in "${phase1[@]}"; do echo "would wait for $version in $flat_container/$(lowercase "$id")/index.json"; done
+		for id in $ids; do echo "would wait for $version in $flat_container/$(lowercase "$id")/index.json"; done
 		return 0
 	fi
 	deadline=$((SECONDS + wait_minutes * 60))
 	while :; do
 		pending=()
-		for id in "${phase1[@]}"; do
+		for id in $ids; do
 			url="$flat_container/$(lowercase "$id")/index.json"
-			curl -fsS "$url" 2>/dev/null | grep -qF "\"$version\"" || pending+=("$id")
+			curl -fsS --max-time 30 "$url" 2>/dev/null | grep -qF "\"$version\"" || pending+=("$id")
 		done
 		if [ "${#pending[@]}" -eq 0 ]; then
-			echo "nuget.org serves every first-phase package at $version"
+			echo "nuget.org serves every package of phase $phase at $version"
 			return 0
 		fi
 		if [ "$SECONDS" -ge "$deadline" ]; then
-			die "after $wait_minutes minutes nuget.org does not serve ${pending[*]} at $version yet; re-run the job, which skips what is there"
+			# Whether nuget.org takes a push of a version whose validation failed is [unknown].
+			message="after $wait_minutes minutes nuget.org does not serve ${pending[*]} at $version yet. If nuget.org e-mailed a validation failure for one of them, a re-run will not help: that version stays refused, and whether it can be pushed again is unknown"
+			if [ "$phase" = 2 ]; then
+				warn "$message; otherwise it is still validating, and nothing waits for it"
+				return 0
+			fi
+			die "$message; otherwise re-run the job, which skips what is there"
 		fi
 		echo "waiting for ${pending[*]} at $version"
 		sleep 30
@@ -254,7 +366,7 @@ wait_served() { # tag feed [--dry-run]
 }
 
 usage() {
-	sed -n '4,12p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
+	sed -n '4,15p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
 	exit 2
 }
 
@@ -262,9 +374,11 @@ cmd="${1:-}"
 [ $# -gt 0 ] && shift
 case "$cmd" in
 	guard) [ $# -eq 1 ] || usage; guard "$@" ;;
+	environment) [ $# -eq 0 ] || usage; require_protected_environment ;;
 	verify) [ $# -eq 3 ] || usage; verify "$@" ;;
-	github) [ $# -eq 2 ] || [ $# -eq 3 ] || usage; github "$@" ;;
+	draft) [ $# -eq 2 ] || [ $# -eq 3 ] || usage; draft "$@" ;;
+	publish) [ $# -eq 2 ] || [ $# -eq 3 ] || usage; publish "$@" ;;
 	push) [ $# -eq 3 ] || [ $# -eq 4 ] || usage; push "$@" ;;
-	wait) [ $# -eq 2 ] || [ $# -eq 3 ] || usage; wait_served "$@" ;;
+	wait) [ $# -eq 3 ] || [ $# -eq 4 ] || usage; wait_served "$@" ;;
 	*) usage ;;
 esac

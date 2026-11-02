@@ -12,6 +12,10 @@ on:
         description: A tag the package job makes in its runner only, never pushed, so a rehearsal builds at a tag's version.
         type: string
         default: ""
+      cache:
+        description: Restore and save the Go, NuGet and mise caches. A release builds without them (ADR 0050).
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -47,7 +51,7 @@ jobs:
       - uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5.2.5
         with:
           version: ${{ env.MISE_VERSION }}
-          cache: true
+          cache: ${{ inputs.cache }}
 
       - name: Go caches under the runner temp directory
         run: |
@@ -56,13 +60,15 @@ jobs:
             echo "GOCACHE=$RUNNER_TEMP/go/build"
           } >> "$GITHUB_ENV"
 
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - if: inputs.cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/go
           key: go-package-${{ runner.os }}-${{ hashFiles('mise.toml', 'tools/go.sum', 'sidecar/go.sum') }}
           restore-keys: go-package-${{ runner.os }}-
 
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - if: inputs.cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.nuget/packages
           key: nuget-${{ runner.os }}-${{ hashFiles('global.json', 'nuget.config', 'dotnet/**/packages.lock.json') }}
@@ -106,7 +112,7 @@ jobs:
       - uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5.2.5
         with:
           version: ${{ env.MISE_VERSION }}
-          cache: true
+          cache: ${{ inputs.cache }}
 
       - name: Go caches under the runner temp directory
         run: |
@@ -115,7 +121,8 @@ jobs:
             echo "GOCACHE=$RUNNER_TEMP/go/build"
           } >> "$GITHUB_ENV"
 
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - if: inputs.cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/go
           key: go-install-${{ runner.os }}-${{ hashFiles('mise.toml', 'tools/go.sum') }}

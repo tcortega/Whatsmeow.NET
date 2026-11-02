@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Tests for build/release.sh (#46, ADR 0050): every guard and every verify check, each case run in a git repository
-# and a feed of its own under a temporary directory, with a local bare repository as origin. Nothing here reaches
-# GitHub or nuget.org: no case pushes beyond the temporary origin, and the publishing commands run only to be refused.
+# Tests for build/release.sh (#46, ADR 0050): every guard, verify, release, push and wait check, each case run in a
+# git repository and a feed of its own under a temporary directory, with a local bare repository as origin. Nothing
+# here reaches GitHub or nuget.org: gh, dotnet and curl are stand-ins on PATH for the whole run, which record their
+# calls and answer from files.
 # build/ci.sh contract runs it; locally, bash build/release-test.sh.
 set -uo pipefail
 
@@ -13,18 +14,71 @@ trap 'rm -rf "$tmp"' EXIT
 failed=()
 
 # expect pass|fail MESSAGE NAME COMMAND...: run COMMAND, which must pass, or fail with MESSAGE in its output, so a
-# case proves the check it names and not another one that happens to fail first.
+# case proves the check it names and not another one that happens to fail first. A passing case may also name a
+# MESSAGE its output must hold.
 expect() {
 	local want="$1" message="$2" name="$3" out rc line
 	shift 3
 	out="$("$@" 2>&1)"
 	rc=$?
-	if [ "$want" = pass ] && [ "$rc" -eq 0 ]; then echo "ok: $name"; return; fi
+	if [ "$want" = pass ] && [ "$rc" -eq 0 ] && grep -qF -- "$message" <<<"$out"; then echo "ok: $name"; return; fi
 	if [ "$want" = fail ] && [ "$rc" -ne 0 ] && grep -qF -- "$message" <<<"$out"; then echo "ok: $name"; return; fi
 	echo "FAILED: $name (wanted $want${message:+ with \"$message\"}, exit $rc):"
 	while IFS= read -r line; do echo "    $line"; done <<<"$out"
 	failed+=("$name")
 }
+
+# --- stand-ins -------------------------------------------------------------------------------------------------
+
+# gh answers from $tmp/gh: env.json is the release environment (none: a 404), release.json the release (none: not
+# found); create, upload and edit change release.json as GitHub would. dotnet and curl record their arguments; curl
+# serves $tmp/flat/<id>.json for a flat container URL. Every call lands in $tmp/calls.
+stubs="$tmp/bin"
+mkdir -p "$stubs" "$tmp/gh" "$tmp/flat"
+export STUB="$tmp" PATH="$stubs:$PATH" GITHUB_REPOSITORY=tcortega/Whatsmeow.NET
+cat >"$stubs/gh" <<'STUB'
+#!/usr/bin/env bash
+echo "gh $*" >>"$STUB/calls"
+release="$STUB/gh/release.json"
+case "$1 $2" in
+	"api repos/tcortega/Whatsmeow.NET/environments/release")
+		[ -f "$STUB/gh/env.json" ] || { echo "gh: Not Found (HTTP 404)" >&2; exit 1; }
+		cat "$STUB/gh/env.json" ;;
+	"release view")
+		[ -f "$STUB/gh/release.error" ] && { cat "$STUB/gh/release.error" >&2; exit 1; }
+		[ -f "$release" ] || { echo "release not found" >&2; exit 1; }
+		cat "$release" ;;
+	"release create") echo '{"isDraft":true,"assets":[]}' >"$release" ;;
+	"release upload")
+		sum="$(if command -v sha256sum >/dev/null; then sha256sum "$4"; else shasum -a 256 "$4"; fi | cut -d' ' -f1)"
+		jq --arg n "$(basename "$4")" --arg d "sha256:$sum" '.assets += [{name: $n, state: "uploaded", digest: $d}]' "$release" >"$release.new" &&
+			mv "$release.new" "$release" ;;
+	"release edit") jq '.isDraft = false' "$release" >"$release.new" && mv "$release.new" "$release" ;;
+	*) echo "unexpected gh $*" >&2; exit 9 ;;
+esac
+STUB
+cat >"$stubs/dotnet" <<'STUB'
+#!/usr/bin/env bash
+echo "dotnet $*" >>"$STUB/calls"
+# dotnet.fail names a package whose push fails.
+[ -f "$STUB/dotnet.fail" ] && [[ "$*" == *"$(cat "$STUB/dotnet.fail")"* ]] && exit 1
+exit 0
+STUB
+cat >"$stubs/curl" <<'STUB'
+#!/usr/bin/env bash
+echo "curl $*" >>"$STUB/calls"
+url="${*: -1}"
+id="${url#https://api.nuget.org/v3-flatcontainer/}"
+id="${id%/index.json}"
+# The script asks for the lowercase id NuGet's API documents (LOWER_ID); nuget.org answers mixed case too [observed:
+# Newtonsoft.Json, 2026-11-02], so this holds the script to the documented form, on any file system.
+[ "$id" = "$(tr '[:upper:]' '[:lower:]' <<<"$id")" ] || exit 22
+[ -f "$STUB/flat/$id.json" ] || exit 22
+cat "$STUB/flat/$id.json"
+STUB
+chmod +x "$stubs/"*
+calls() { cat "$tmp/calls" 2>/dev/null; }
+reset_calls() { rm -f "$tmp/calls"; }
 
 # The environment of a tag push in GitHub Actions, and of a rehearsal.
 as_push() { # tag command...
@@ -36,6 +90,12 @@ as_dispatch() {
 	env GITHUB_EVENT_NAME=workflow_dispatch GITHUB_REF_TYPE=branch GITHUB_REF=refs/heads/main NUGET_USER=someone "$@"
 }
 
+protected='{"name":"release","protection_rules":[{"type":"required_reviewers","prevent_self_review":false,"reviewers":[{"type":"User","reviewer":{"login":"tcortega"}}]},{"type":"branch_policy"}]}'
+environment_is() { # json, or none
+	if [ "$1" = none ]; then rm -f "$tmp/gh/env.json"; else echo "$1" >"$tmp/gh/env.json"; fi
+}
+environment_is "$protected"
+
 # --- guard -----------------------------------------------------------------------------------------------------
 
 git_q() { git -c user.name=test -c user.email=test@example.com -c commit.gpgsign=false -c tag.gpgsign=false "$@" >/dev/null 2>&1; }
@@ -43,7 +103,6 @@ git_q() { git -c user.name=test -c user.email=test@example.com -c commit.gpgsign
 repo="$tmp/repo"
 git init -q --bare -b main "$tmp/origin.git"
 git clone -q "$tmp/origin.git" "$repo" 2>/dev/null
-cp "$release" "$repo/release.sh"
 (
 	cd "$repo" || exit 1
 	git_q checkout -b main
@@ -54,24 +113,30 @@ cp "$release" "$repo/release.sh"
 	git_q checkout main
 ) || exit 1
 
-guard() { (cd "$repo" && unset GITHUB_EVENT_NAME && bash release.sh guard "$@"); }
+in_repo() { (cd "$repo" && "$@"); }
+guard() { in_repo env -u GITHUB_EVENT_NAME bash "$release" guard "$@"; }
+push_guard() { in_repo as_push "$1" bash "$release" guard "$1"; }
 at() { git_q -C "$repo" checkout --detach "$1"; }
 tag_at() { git_q -C "$repo" tag -f "$1" "$2"; }
+publish_tag() { git_q -C "$repo" push -f origin "refs/tags/$1"; }
 
-tag_at v1.2.3 main
-tag_at v1.0.0-rc.1 main
+for tag in v1.2.3 v1.0.0-rc.1 v1.0.0-0.3.7 v1.0.0-x-y.0a vfoo v1.2 v1.2.3+build.5 v01.2.3 v1.0.0-rc..1 v1.0.0-. v1.0.0-rc.01 v1.0.0-; do
+	tag_at "$tag" main
+done
 tag_at v2.0.0 side
-tag_at vfoo main
-tag_at v1.2 main
-tag_at v1.2.3+build.5 main
-tag_at v01.2.3 main
 
 at main
 expect pass "" "guard: a v<semver> tag at HEAD on main" guard v1.2.3
 expect pass "" "guard: a pre-release tag at HEAD on main" guard v1.0.0-rc.1
+expect pass "" "guard: numeric pre-release identifiers" guard v1.0.0-0.3.7
+expect pass "" "guard: hyphens and a digit-led alphanumeric identifier" guard v1.0.0-x-y.0a
 expect fail "is not a release tag" "guard: vfoo is no release tag" guard vfoo
 expect fail "is not a release tag" "guard: v1.2 is no release tag" guard v1.2
 expect fail "is not a release tag" "guard: a leading zero is no SemVer" guard v01.2.3
+expect fail "is not a release tag" "guard: an empty pre-release identifier (rc..1)" guard v1.0.0-rc..1
+expect fail "is not a release tag" "guard: an empty pre-release identifier (-.)" guard v1.0.0-.
+expect fail "is not a release tag" "guard: a numeric pre-release identifier with a leading zero (rc.01)" guard v1.0.0-rc.01
+expect fail "is not a release tag" "guard: an empty pre-release" guard v1.0.0-
 expect fail "build metadata" "guard: build metadata, which NuGet ignores, is refused" guard v1.2.3+build.5
 expect fail "no tag v9.9.9" "guard: a tag that does not exist" guard v9.9.9
 expect fail "does not point at HEAD" "guard: a tag on another commit than HEAD" guard v2.0.0
@@ -83,21 +148,41 @@ expect fail "is not on main" "guard: a tag on a commit that is not on main" guar
 	cd "$tmp" && git clone -q origin.git other 2>/dev/null && cd other &&
 		git_q commit --allow-empty -m two && git_q push origin main && git rev-parse HEAD
 ) >"$tmp/two" || exit 1
-git_q -C "$repo" fetch origin "$(cat "$tmp/two")"
-at "$(cat "$tmp/two")"
+two="$(cat "$tmp/two")"
+git_q -C "$repo" fetch origin "$two"
+at "$two"
 tag_at v1.3.0 HEAD
 expect pass "" "guard: a commit main reached after the clone (the guard fetches main)" guard v1.3.0
 git_q -C "$repo" update-ref -d refs/remotes/origin/main
 expect pass "" "guard: no origin/main ref in the clone at all" guard v1.3.0
 
-# A tag push also needs the nuget.org profile name, before anything is built.
+# A tag push: the tag on origin is the one at HEAD, and the release environment makes the publish wait for a reviewer.
 at main
-push_guard() { (cd "$repo" && as_push v1.2.3 bash release.sh guard v1.2.3); }
-placeholder_guard() { (cd "$repo" && as_push v1.2.3 env NUGET_USER=REPLACE-WITH-NUGET-PROFILE-NAME bash release.sh guard v1.2.3); }
-other_ref_guard() { (cd "$repo" && as_push v1.0.0-rc.1 bash release.sh guard v1.2.3); }
-expect pass "" "guard: a push of the tag, with a profile name" push_guard
-expect fail "still the placeholder" "guard: a push of the tag while NUGET_USER is the placeholder" placeholder_guard
+publish_tag v1.2.3
+expect pass "" "guard: a push of the tag, at HEAD on origin too, into a protected environment" push_guard v1.2.3
+git_q -C "$repo" tag -a -m "annotated" v1.5.0 main
+publish_tag v1.5.0
+expect pass "" "guard: an annotated tag, peeled on origin" push_guard v1.5.0
+tag_at v1.7.0 main
+expect fail "is not on origin" "guard: a push of a tag origin does not have" push_guard v1.7.0
+tag_at v1.6.0 "$two"
+publish_tag v1.6.0
+tag_at v1.6.0 main
+expect fail "on origin points at $two" "guard: a tag moved or made again on origin" push_guard v1.6.0
+expect fail "on origin points at $two" "guard: in a rehearsal, a tag origin has elsewhere" guard v1.6.0
+other_ref_guard() { in_repo as_push v1.0.0-rc.1 bash "$release" guard v1.2.3; }
 expect fail "only in a push of the tag v1.2.3" "guard: a push of another tag than the one guarded" other_ref_guard
+environment_is none
+expect fail "no release environment" "guard: no release environment, which GitHub would make unprotected" push_guard v1.2.3
+environment_is '{"name":"release","protection_rules":[]}'
+expect fail "no required reviewers" "guard: an environment without protection rules" push_guard v1.2.3
+environment_is '{"name":"release","protection_rules":[{"type":"wait_timer","wait_timer":5},{"type":"branch_policy"}]}'
+expect fail "no required reviewers" "guard: an environment with only a wait timer and a tag policy" push_guard v1.2.3
+environment_is '{"name":"release","protection_rules":[{"type":"required_reviewers","reviewers":[]}]}'
+expect fail "no required reviewers" "guard: a required reviewers rule that names nobody" push_guard v1.2.3
+expect fail "no required reviewers" "environment: the same check, on its own" in_repo bash "$release" environment
+environment_is "$protected"
+expect pass "required reviewers: tcortega" "environment: a protected environment" in_repo bash "$release" environment
 
 # --- verify ----------------------------------------------------------------------------------------------------
 
@@ -249,70 +334,215 @@ assets_taken() {
 }
 expect fail "already exists" "verify: an assets directory that already exists" assets_taken
 
-# --- the order, and publishing only in a tag push --------------------------------------------------------------
+# --- push and wait ---------------------------------------------------------------------------------------------
+
+verify "$good" >/dev/null
 
 push_order() {
 	local out
-	out="$(bash "$release" push "v$version" "$good" 1 --dry-run && bash "$release" push "v$version" "$good" 2 --dry-run)" || return 1
+	out="$(env NUGET_API_KEY=secret bash "$release" push "v$version" "$good" 1 --dry-run &&
+		env NUGET_API_KEY=secret bash "$release" push "v$version" "$good" 2 --dry-run)" || return 1
 	echo "$out"
 	[ "$(grep -o 'Whatsmeow\.[A-Za-z.]*\.1\.2\.3\.nupkg' <<<"$out" | tr '\n' ' ')" = \
 		"Whatsmeow.Sidecar.Native.Linux.1.2.3.nupkg Whatsmeow.Sidecar.Native.MacOS.1.2.3.nupkg Whatsmeow.Sidecar.Native.Windows.1.2.3.nupkg Whatsmeow.Protocol.WhatsApp.1.2.3.nupkg Whatsmeow.Protocol.1.2.3.nupkg Whatsmeow.Client.1.2.3.nupkg Whatsmeow.Extensions.Hosting.1.2.3.nupkg Whatsmeow.Testing.1.2.3.nupkg " ] &&
-		grep -qF -- '--skip-duplicate' <<<"$out"
+		[ "$(grep -c -- '--skip-duplicate' <<<"$out")" = 8 ] && ! grep -qF 'secret' <<<"$out"
 }
-expect pass "" "push --dry-run: the native packages first, every package once, with --skip-duplicate" push_order
+expect pass "" "push --dry-run: the native packages first, every package once, with --skip-duplicate, never the key" push_order
 
-wait_urls() {
+pushed() { # phase: the packages dotnet was given, in order
+	reset_calls
+	as_push "v$version" env NUGET_API_KEY=secret bash "$release" push "v$version" "$good" "$1" || return 1
+	calls
+	grep '^dotnet nuget push' "$tmp/calls" | grep -F -- '--skip-duplicate' | grep -F -- '--api-key secret' |
+		grep -F -- '--source https://api.nuget.org/v3/index.json' | grep -oE 'Whatsmeow\.[A-Za-z.]*\.1\.2\.3\.nupkg' | tr '\n' ' '
+}
+push_phase() { # phase expected
 	local out
-	out="$(bash "$release" wait "v$version" "$good" --dry-run)" || return 1
+	out="$(pushed "$1")" || return 1
 	echo "$out"
-	[ "$(grep -c 'https://api.nuget.org/v3-flatcontainer/whatsmeow\.[a-z.]*/index.json' <<<"$out")" = 4 ] &&
-		grep -qF 'whatsmeow.sidecar.native.windows/index.json' <<<"$out"
+	[ "$(tail -n1 <<<"$out")" = "$2" ]
 }
-expect pass "" "wait --dry-run: waits for the four first-phase packages" wait_urls
+expect pass "" "push 1: the native packages, then Whatsmeow.Protocol.WhatsApp, each with the key and --skip-duplicate" push_phase 1 \
+	"Whatsmeow.Sidecar.Native.Linux.1.2.3.nupkg Whatsmeow.Sidecar.Native.MacOS.1.2.3.nupkg Whatsmeow.Sidecar.Native.Windows.1.2.3.nupkg Whatsmeow.Protocol.WhatsApp.1.2.3.nupkg "
+expect pass "" "push 2: the packages that depend on them, in dependency order" push_phase 2 \
+	"Whatsmeow.Protocol.1.2.3.nupkg Whatsmeow.Client.1.2.3.nupkg Whatsmeow.Extensions.Hosting.1.2.3.nupkg Whatsmeow.Testing.1.2.3.nupkg "
 
-github_plan() {
+stops_at_failure() {
+	echo Whatsmeow.Client. >"$tmp/dotnet.fail"
+	pushed 2
+	local rc=$?
+	rm -f "$tmp/dotnet.fail"
+	[ "$rc" -ne 0 ] || return 0
+	! grep -qE 'Whatsmeow\.(Extensions\.Hosting|Testing)\.' "$tmp/calls" || { echo "pushed past the failure"; return 0; }
+	return 1
+}
+expect fail "cannot push Whatsmeow.Client" "push: stops at the first package that fails, before its dependents" stops_at_failure
+
+wait_urls() { # phase count
 	local out
-	verify "$good" >/dev/null || return 1
-	out="$(bash "$release" github "v$version" "$tmp/assets" --dry-run)" || return 1
+	out="$(bash "$release" wait "v$version" "$good" "$1" --dry-run)" || return 1
 	echo "$out"
-	grep -qF 'draft' <<<"$out" && [ "$(grep -c 'upload' <<<"$out")" = 8 ] && grep -qF 'publish' <<<"$out"
+	[ "$(grep -c 'https://api.nuget.org/v3-flatcontainer/whatsmeow\.[a-z.]*/index.json' <<<"$out")" = "$2" ]
 }
-expect pass "" "github --dry-run: a draft, eight uploads, then publish" github_plan
+expect pass "whatsmeow.sidecar.native.windows/index.json" "wait 1 --dry-run: the four first-phase packages, lowercased" wait_urls 1 4
+expect pass "whatsmeow.testing/index.json" "wait 2 --dry-run: the four second-phase packages" wait_urls 2 4
 
-prerelease_plan() {
-	rm -rf "$tmp/assets"
-	mkdir -p "$tmp/assets" && echo x >"$tmp/assets/whatsmeow-net_1.0.0-rc.1_linux-x64"
-	local out
-	out="$(bash "$release" github v1.0.0-rc.1 "$tmp/assets" --dry-run)" || return 1
-	echo "$out"
-	grep -qF -- '--prerelease' <<<"$out"
+served() { # ids...: the flat container lists 1.2.3 for these
+	local id
+	rm -f "$tmp/flat/"*
+	for id in "$@"; do echo '{"versions":["1.2.2","1.2.3"]}' >"$tmp/flat/$id.json"; done
 }
-expect pass "" "github --dry-run: a pre-release tag makes a pre-release" prerelease_plan
+waited() { # phase
+	reset_calls
+	RELEASE_WAIT_MINUTES=0 bash "$release" wait "v$version" "$good" "$1"
+}
+served whatsmeow.sidecar.native.linux whatsmeow.sidecar.native.macos whatsmeow.sidecar.native.windows whatsmeow.protocol.whatsapp
+expect pass "serves every package of phase 1" "wait 1: nuget.org serves all four" waited 1
+curl_bounded() { waited 1 >/dev/null && [ "$(grep -c '^curl .*--max-time 30 ' "$tmp/calls")" = 4 ]; }
+expect pass "" "wait: every request is bounded by --max-time 30" curl_bounded
+served whatsmeow.sidecar.native.linux whatsmeow.sidecar.native.macos whatsmeow.protocol.whatsapp
+expect fail "a re-run will not help" "wait 1: a package nuget.org does not serve fails, naming a validation e-mail" waited 1
+expect fail "Whatsmeow.Sidecar.Native.Windows" "wait 1: the timeout names the package" waited 1
+served whatsmeow.protocol whatsmeow.client whatsmeow.extensions.hosting
+expect pass "does not serve Whatsmeow.Testing at 1.2.3 yet" "wait 2: only warns, since not indexed yet is not a failure" waited 2
 
-refused() { # name env-runner subcommand args...: a publishing command that must refuse before it does anything
-	local runner="$1"
+# --- the GitHub release ----------------------------------------------------------------------------------------
+
+release_is() { # json, or none
+	if [ "$1" = none ]; then rm -f "$tmp/gh/release.json"; else echo "$1" >"$tmp/gh/release.json"; fi
+}
+asset() { # name state [digest]: one asset of the release, by default with the digest of the local file
+	local digest="${3:-sha256:$(if command -v sha256sum >/dev/null; then sha256sum "$tmp/assets/$1"; else shasum -a 256 "$tmp/assets/$1"; fi | cut -d' ' -f1)}"
+	jq -n --arg n "$1" --arg s "$2" --arg d "$digest" '{name: $n, state: $s, digest: $d}'
+}
+release_with() { # draft asset-json...
+	local draft="$1"
 	shift
-	PATH="$tmp/no-publish:$PATH" "$runner" bash "$release" "$@"
+	jq -n --argjson d "$draft" --slurpfile a <(printf '%s\n' "$@") '{isDraft: $d, assets: $a}'
 }
-# Stand-ins that fail loudly, so a refusal that came too late shows as the wrong message, never as a publish.
-mkdir -p "$tmp/no-publish"
-printf '#!/usr/bin/env bash\necho "dotnet ran: $*"\nexit 3\n' >"$tmp/no-publish/dotnet"
-printf '#!/usr/bin/env bash\necho "gh ran: $*"\nexit 3\n' >"$tmp/no-publish/gh"
-printf '#!/usr/bin/env bash\necho "curl ran: $*"\nexit 3\n' >"$tmp/no-publish/curl"
-chmod +x "$tmp/no-publish/"*
-verify "$good" >/dev/null
-none() { env -u GITHUB_EVENT_NAME -u GITHUB_REF -u GITHUB_REF_TYPE NUGET_USER=someone "$@"; }
-push_other() { as_push v1.0.0-rc.1 "$@"; }
-push_branch() { env GITHUB_EVENT_NAME=push GITHUB_REF_TYPE=branch GITHUB_REF=refs/heads/main NUGET_USER=someone "$@"; }
-push_placeholder() { as_push "v$version" env NUGET_USER=REPLACE-WITH-NUGET-PROFILE-NAME "$@"; }
-for sub in "push v$version $good 1" "push v$version $good 2" "github v$version $tmp/assets"; do
+gh_calls() { grep -c "^gh release $1" "$tmp/calls"; }
+draft() { reset_calls; in_repo as_push "v$version" bash "$release" draft "v$version" "$tmp/assets"; }
+publish() { reset_calls; in_repo as_push "${1:-v$version}" bash "$release" publish "${1:-v$version}" "$tmp/assets"; }
+names=()
+while IFS= read -r name; do names+=("$name"); done < <(cd "$tmp/assets" && find . -type f | sed 's#^\./##' | LC_ALL=C sort)
+binary=whatsmeow-net_1.2.3_linux-x64
+source_archive=whatsmeow-net_1.2.3_source.tar.gz
+
+new_draft() { release_is none; draft || return 1; calls; [ "$(gh_calls create)" = 1 ] && [ "$(gh_calls upload)" = 8 ] && [ "$(gh_calls edit)" = 0 ]; }
+expect pass "" "draft: a new release is a draft with all eight assets, not yet published" new_draft
+create_flags() { release_is none; draft >/dev/null || return 1; grep '^gh release create' "$tmp/calls" | grep -F -- '--draft' | grep -F -- '--verify-tag' | grep -vF -- '--prerelease'; }
+expect pass "" "draft: created with --draft --verify-tag, no --prerelease for a stable tag" create_flags
+draft_again() { draft || return 1; [ "$(gh_calls create)" = 0 ] && [ "$(gh_calls upload)" = 0 ]; }
+expect pass "" "draft: a re-run on a complete draft uploads nothing" draft_again
+partial() { release_with true "$(asset "${names[0]}" uploaded)" "$(asset "${names[1]}" uploaded)" "$(asset "${names[2]}" uploaded)" >"$tmp/gh/release.json"; draft || return 1; [ "$(gh_calls upload)" = 5 ]; }
+expect pass "" "draft: a re-run on a partial draft uploads only the five missing assets" partial
+release_with true "$(asset "$binary" uploaded sha256:0000)" >"$tmp/gh/release.json"
+expect fail "holds different bytes" "draft: a binary on the release that is not the local one fails" draft
+source_kept() { release_with true "$(asset "$source_archive" uploaded sha256:0000)" >"$tmp/gh/release.json"; draft || return 1; ! grep -q "upload.*$source_archive" "$tmp/calls" && [ "$(gh_calls upload)" = 7 ]; }
+expect pass "keeps its first upload" "draft: the source archive, never byte-identical, keeps its first upload" source_kept
+release_with true "$(asset "$binary" starter)" >"$tmp/gh/release.json"
+expect fail "is starter, not uploaded" "draft: an asset whose upload never finished fails" draft
+release_with true "$(asset "$source_archive" starter)" >"$tmp/gh/release.json"
+expect fail "is starter, not uploaded" "draft: the source archive's state is checked too" draft
+complete() { # draft: every local asset on the release
+	local name list=()
+	for name in "${names[@]}"; do list+=("$(asset "$name" uploaded)"); done
+	release_with "$1" "${list[@]}"
+}
+complete false >"$tmp/gh/release.json"
+published_done() { draft || return 1; [ "$(gh_calls upload)" = 0 ]; }
+expect pass "" "draft: a published release with every asset is left as it is" published_done
+release_with false "$(asset "${names[0]}" uploaded)" >"$tmp/gh/release.json"
+expect fail "takes no asset" "draft: a published release that lacks an asset fails" draft
+prerelease_draft() {
+	release_is none
+	reset_calls
+	in_repo as_push v1.0.0-rc.1 bash "$release" draft v1.0.0-rc.1 "$tmp/assets" || return 1
+	grep '^gh release create' "$tmp/calls" | grep -qF -- '--prerelease'
+}
+expect pass "" "draft: a pre-release tag makes a pre-release" prerelease_draft
+
+complete true >"$tmp/gh/release.json"
+publish_draft() { publish || return 1; calls; [ "$(gh_calls edit)" = 1 ] && grep '^gh release edit' "$tmp/calls" | grep -qF -- '--draft=false'; }
+expect pass "" "publish: a complete draft is published" publish_draft
+complete false >"$tmp/gh/release.json"
+publish_again() { publish || return 1; [ "$(gh_calls edit)" = 0 ]; }
+expect pass "" "publish: a published release is left as it is" publish_again
+release_with true "$(asset "${names[0]}" uploaded)" >"$tmp/gh/release.json"
+expect fail "lacks" "publish: a draft without every asset is not published" publish
+release_is none
+expect fail "no release v1.2.3" "publish: no draft at all" publish
+echo "HTTP 502: Bad Gateway" >"$tmp/gh/release.error"
+no_create() { draft; local rc=$?; ! grep -q '^gh release create' "$tmp/calls" || { echo "created a release"; return 0; }; return "$rc"; }
+expect fail "cannot read the release v1.2.3: HTTP 502" "draft: a failure to read the release is no missing release" no_create
+rm -f "$tmp/gh/release.error"
+
+# Latest: the highest stable v<semver> on origin, never a pre-release; origin has v1.2.3, v1.5.0 and v1.6.0 here.
+latest_flag() { # tag: the --latest flag publish would pass
+	in_repo bash "$release" publish "$1" "$tmp/assets" --dry-run | grep -oE -- '--latest(=false)?'
+}
+latest_is() { # tag expected
+	local got
+	got="$(latest_flag "$1")"
+	echo "$1: $got"
+	[ "$got" = "$2" ]
+}
+expect pass "" "publish --dry-run: a stable tag below the highest is not latest" latest_is v1.2.3 --latest=false
+expect pass "" "publish --dry-run: the highest stable tag is latest" latest_is v1.6.0 --latest
+expect pass "" "publish --dry-run: a pre-release is never latest" latest_is v2.0.0-rc.1 --latest=false
+tag_at v1.9.0 main
+tag_at v1.10.0 main
+publish_tag v1.9.0
+publish_tag v1.10.0
+expect pass "" "publish --dry-run: versions compare as numbers (1.10.0 over 1.9.0)" latest_is v1.10.0 --latest
+expect pass "" "publish --dry-run: 1.9.0 is not latest beside 1.10.0" latest_is v1.9.0 --latest=false
+expect pass "" "publish --dry-run: a new tag origin does not have yet is compared too" latest_is v1.11.0 --latest
+real_latest() { complete true >"$tmp/gh/release.json"; publish v1.10.0 >/dev/null || return 1; grep '^gh release edit' "$tmp/calls" | grep -qE -- '--latest( |$)'; }
+expect pass "" "publish: the edit passes the same --latest" real_latest
+draft_plan() {
+	local out
+	out="$(in_repo bash "$release" draft "v$version" "$tmp/assets" --dry-run)" || return 1
+	echo "$out"
+	grep -qF -- '--draft' <<<"$out" && [ "$(grep -c 'would upload' <<<"$out")" = 8 ]
+}
+expect pass "" "draft --dry-run: a draft and eight uploads" draft_plan
+
+# --- publishing only in a push of the tag ----------------------------------------------------------------------
+
+# A refusal must come before any side effect: a call to gh release create, upload or edit, or to dotnet.
+refused() { # runner subcommand args...
+	local runner="$1" rc
+	shift
+	reset_calls
+	release_is none
+	in_repo "$runner" bash "$release" "$@"
+	rc=$?
+	if grep -qE '^(gh release (create|upload|edit)|dotnet)' "$tmp/calls" 2>/dev/null; then
+		echo "SIDE EFFECT:"
+		calls
+		return 0
+	fi
+	return "$rc"
+}
+none() { env -u GITHUB_EVENT_NAME -u GITHUB_REF -u GITHUB_REF_TYPE NUGET_USER=someone NUGET_API_KEY=secret "$@"; }
+dispatch() { as_dispatch env NUGET_API_KEY=secret "$@"; }
+dispatch_on_tag() { env GITHUB_EVENT_NAME=workflow_dispatch GITHUB_REF_TYPE=tag GITHUB_REF=refs/tags/v1.2.3 NUGET_USER=someone NUGET_API_KEY=secret "$@"; }
+push_other() { as_push v1.0.0-rc.1 env NUGET_API_KEY=secret "$@"; }
+push_branch() { env GITHUB_EVENT_NAME=push GITHUB_REF_TYPE=branch GITHUB_REF=refs/heads/main NUGET_USER=someone NUGET_API_KEY=secret "$@"; }
+push_branch_named_like_tag() { env GITHUB_EVENT_NAME=push GITHUB_REF_TYPE=branch GITHUB_REF=refs/tags/v1.2.3 NUGET_USER=someone NUGET_API_KEY=secret "$@"; }
+push_placeholder() { as_push "v$version" env NUGET_USER=REPLACE-WITH-NUGET-PROFILE-NAME NUGET_API_KEY=secret "$@"; }
+push_no_user() { as_push "v$version" env -u NUGET_USER NUGET_API_KEY=secret "$@"; }
+for sub in "push v$version $good 1" "push v$version $good 2" "draft v$version $tmp/assets" "publish v$version $tmp/assets"; do
 	read -r -a args <<<"$sub"
 	what="${args[0]}${args[3]:+ ${args[3]}}"
-	expect fail "only in a push of the tag v1.2.3" "$what: refused in a rehearsal (workflow_dispatch)" refused as_dispatch "${args[@]}"
+	expect fail "only in a push of the tag v1.2.3" "$what: refused in a rehearsal (workflow_dispatch)" refused dispatch "${args[@]}"
+	expect fail "only in a push of the tag v1.2.3" "$what: refused in a workflow_dispatch on the tag's ref" refused dispatch_on_tag "${args[@]}"
 	expect fail "only in a push of the tag v1.2.3" "$what: refused outside GitHub Actions" refused none "${args[@]}"
 	expect fail "only in a push of the tag v1.2.3" "$what: refused in a push of another tag" refused push_other "${args[@]}"
 	expect fail "only in a push of the tag v1.2.3" "$what: refused in a push to a branch" refused push_branch "${args[@]}"
+	expect fail "only in a push of the tag v1.2.3" "$what: refused when the ref is no tag" refused push_branch_named_like_tag "${args[@]}"
 	expect fail "still the placeholder" "$what: refused while NUGET_USER is the placeholder" refused push_placeholder "${args[@]}"
+	expect fail "still the placeholder" "$what: refused without NUGET_USER" refused push_no_user "${args[@]}"
 done
 push_without_key() { as_push "v$version" env -u NUGET_API_KEY "$@"; }
 expect fail "no NUGET_API_KEY" "push: refused without an API key" refused push_without_key push "v$version" "$good" 1
