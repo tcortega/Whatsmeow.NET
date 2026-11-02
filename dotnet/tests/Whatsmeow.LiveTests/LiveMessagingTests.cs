@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using Whatsmeow.Events;
+using Whatsmeow.IntegrationTests.Events;
 
 namespace Whatsmeow.LiveTests;
 
@@ -10,13 +11,13 @@ namespace Whatsmeow.LiveTests;
 /// docs/guidelines/tests.md Live WhatsApp).
 /// </summary>
 [Collection(nameof(Live))]
-public sealed class LiveMessagingTests(LiveSidecar live)
+public sealed class LiveMessagingTests(LiveSidecar live, LivePeer peer)
 {
 	/// <summary>How long a test watches for receipts and echoes of what it sent.</summary>
 	private static readonly TimeSpan s_watch = TimeSpan.FromSeconds(60);
 
 	/// <summary>The phone's own message to its own chat reaches the companion as the account's, IsFromMe.</summary>
-	[LiveFact]
+	[LiveFact(NeedsOwner = true)]
 	public async Task Live_AMessageThePhoneSendsToItself_ReachesTheCompanionAsFromMe()
 	{
 		var ct = TestContext.Current.CancellationToken;
@@ -39,8 +40,8 @@ public sealed class LiveMessagingTests(LiveSidecar live)
 	public async Task Live_SendTextToSelf_ARepeatGivesTheSameResult_AndTheReceiptsAreRecorded()
 	{
 		var ct = TestContext.Current.CancellationToken;
-		var account = (await live.PingAsync(ct)).Source.Chat;
 		var client = await live.LiveAsync(ct);
+		var (account, _) = await live.AccountAsync(ct);
 		var id = MessageId.New();
 		var echoes = new ConcurrentQueue<MessageReceived>();
 		var receipts = new ConcurrentQueue<ReceiptReceived>();
@@ -64,7 +65,7 @@ public sealed class LiveMessagingTests(LiveSidecar live)
 		var first = await client.SendTextAsync(account, $"wmn self {id} (one message expected)", id, ct);
 		var repeat = await client.SendTextAsync(account, $"wmn self {id} (one message expected)", id, ct);
 		Assert.Equal(first, repeat);
-		live.Write($"live: sent to self as {first.Chat} (the ping's chat {account}), at {first.Timestamp:O}");
+		live.Write($"live: sent to self as {first.Chat} (the account's chat {account}), at {first.Timestamp:O}");
 
 		await Task.Delay(s_watch, LiveClock.Time, ct);
 		live.Write($"live: {receipts.Count} receipts in {s_watch.TotalSeconds:F0} s: {string.Join(", ", receipts.Select(r => $"{r.Type} from {r.Source.Sender}"))}");
@@ -72,10 +73,72 @@ public sealed class LiveMessagingTests(LiveSidecar live)
 	}
 
 	/// <summary>
+	/// A text from the live session to the peer, another account: the peer receives it with its id, and the live session
+	/// records the peer's delivery receipt. The peer then marks it read; whether the read receipt comes is recorded, not
+	/// checked, since the peer account's privacy settings decide it [unknown].
+	/// </summary>
+	[LiveFact(NeedsPeer = true)]
+	public async Task Live_SendTextToThePeer_ItArrivesWithItsId_AndTheDeliveryReceiptIsRecorded()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var client = await live.LiveAsync(ct);
+		var other = await peer.ConnectedAsync(live, ct);
+		var (to, _) = await peer.AccountAsync(ct);
+		var id = MessageId.New();
+		var text = $"wmn to peer {id}";
+		var arrived = new TaskCompletionSource<MessageReceived>(TaskCreationOptions.RunContinuationsAsynchronously);
+		var delivered = new TaskCompletionSource<ReceiptReceived>(TaskCreationOptions.RunContinuationsAsynchronously);
+		var read = new TaskCompletionSource<ReceiptReceived>(TaskCreationOptions.RunContinuationsAsynchronously);
+		using var messages = other.On<MessageReceived>(
+			(e, token) =>
+			{
+				if (e.Id == id)
+					_ = arrived.TrySetResult(e);
+				return ValueTask.CompletedTask;
+			}
+		);
+		using var receipts = client.On<ReceiptReceived>(
+			(e, token) =>
+			{
+				if (e.MessageIds.Contains(id) && e.Type is ReceiptType.Delivered)
+					_ = delivered.TrySetResult(e);
+				if (e.MessageIds.Contains(id) && e.Type is ReceiptType.Read)
+					_ = read.TrySetResult(e);
+				return ValueTask.CompletedTask;
+			}
+		);
+
+		var started = LiveClock.Time.GetTimestamp();
+		var sent = await client.SendTextAsync(to, text, id, ct);
+		var message = await arrived.Task.WaitAsync(s_watch, LiveClock.Time, ct);
+		var arrivedAt = LiveClock.Time.GetElapsedTime(started);
+		var receipt = await delivered.Task.WaitAsync(s_watch, LiveClock.Time, ct);
+		live.Write(
+			$"live: sent to the peer as {sent.Chat}; it arrived {arrivedAt.TotalSeconds:F1} s after the send began, in chat {message.Source.Chat.Server}, "
+				+ $"and the delivery receipt from {receipt.Source.Sender} {LiveClock.Time.GetElapsedTime(started).TotalSeconds:F1} s after"
+		);
+		Assert.Equal(id, sent.Id);
+		Assert.Equal(text, DeliveryChecks.TextOf(message));
+		Assert.False(message.Source.IsFromMe);
+
+		await other.MarkReadAsync(message.Source.Chat, [id], cancellationToken: ct);
+		var marked = LiveClock.Time.GetTimestamp();
+		try
+		{
+			var readReceipt = await read.Task.WaitAsync(s_watch, LiveClock.Time, ct);
+			live.Write($"live: the read receipt from {readReceipt.Source.Sender} came {LiveClock.Time.GetElapsedTime(marked).TotalSeconds:F1} s after the peer marked it read");
+		}
+		catch (TimeoutException)
+		{
+			live.Write($"live: no read receipt within {s_watch.TotalSeconds:F0} s of the peer marking it read");
+		}
+	}
+
+	/// <summary>
 	/// One text whose id is in the format the phone made the ping's, not whatsmeow's 3EB0 (ADR 0025): whether WhatsApp
 	/// takes it is recorded either way; the live build's id rule lets it through (ADR 0032).
 	/// </summary>
-	[LiveFact]
+	[LiveFact(NeedsOwner = true)]
 	public async Task Live_SendTextWithAnIdInThePhonesFormat_TheAnswerIsRecorded()
 	{
 		var ct = TestContext.Current.CancellationToken;

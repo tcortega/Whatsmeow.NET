@@ -7,7 +7,10 @@ namespace Whatsmeow.LiveTests;
 [Collection(nameof(Live))]
 public sealed class LiveContactsTests(LiveSidecar live)
 {
-	/// <summary>Numbers in the range reserved for fiction (NANP 555-0100 to 0199), so none is on WhatsApp [inferred].</summary>
+	/// <summary>
+	/// Numbers in the range reserved for fiction (NANP 555-0100 to 0199); +12025550101 is on WhatsApp all the same
+	/// [observed: the #10 live run, 2026-11-02], so a batch has both answers.
+	/// </summary>
 	private static readonly string[] s_unregistered = ["+12025550100", "+12025550101", "+12025550102"];
 
 	/// <summary>What WhatsApp answers for an unregistered number, alone and in a batch, and whether it answers each one.</summary>
@@ -29,10 +32,10 @@ public sealed class LiveContactsTests(LiveSidecar live)
 	public async Task Live_GetUserInfo_ByTheAccountsLid_TheAnswersKeyIsRecorded()
 	{
 		var ct = TestContext.Current.CancellationToken;
-		var account = (await live.PingAsync(ct)).Source.Chat;
 		var client = await live.LiveAsync(ct);
-		var lid = account.IsLid ? account : (await client.ResolveJidsAsync([account], ct))[0].JidAlt;
-		Assert.True(lid is { IsLid: true }, "the store has no LID for the account's own chat");
+		var (account, lid) = await live.AccountAsync(ct);
+		lid ??= (await client.ResolveJidsAsync([account], ct))[0].JidAlt;
+		Assert.True(lid is { IsLid: true }, "neither the session nor the store has a LID for the account");
 
 		var answers = await client.GetUserInfoAsync([lid.Value], ct);
 

@@ -30,7 +30,7 @@ public sealed class LiveSidecar : IAsyncLifetime
 	public const string PingText = "wmn ping";
 
 	/// <summary>How long a test waits for the owner's ping.</summary>
-	private static readonly TimeSpan s_pingBound = TimeSpan.FromMinutes(5);
+	internal static TimeSpan PingBound { get; } = TimeSpan.FromMinutes(5);
 
 	private readonly SemaphoreSlim _starting = new(1, 1);
 	private readonly List<string> _throwaway = [];
@@ -92,8 +92,24 @@ public sealed class LiveSidecar : IAsyncLifetime
 	{
 		if (!_ping.Task.IsCompleted)
 			_ = await LiveAsync(cancellationToken).ConfigureAwait(false);
-		Write($"live: waiting at most {s_pingBound.TotalMinutes:F0} min for the owner's \"{PingText}\" to Message yourself");
-		return await _ping.Task.WaitAsync(s_pingBound, LiveClock.Time, cancellationToken).ConfigureAwait(false);
+		Write($"live: waiting at most {PingBound.TotalMinutes:F0} min for the owner's \"{PingText}\" to Message yourself");
+		return await _ping.Task.WaitAsync(PingBound, LiveClock.Time, cancellationToken).ConfigureAwait(false);
+	}
+
+	/// <summary>The live session's account, from <see cref="SessionInfo"/> (<see cref="AccountOfAsync"/>).</summary>
+	public async Task<(Jid Chat, Jid? Lid)> AccountAsync(CancellationToken cancellationToken) =>
+		await AccountOfAsync(await StartAsync(cancellationToken).ConfigureAwait(false), SessionId.From(LiveSessionId), cancellationToken).ConfigureAwait(false);
+
+	/// <summary>
+	/// A paired session's account: its own chat, this device's JID without the device, and its LID the same way, null
+	/// when WhatsApp sent none. It never creates the session.
+	/// </summary>
+	internal static async Task<(Jid Chat, Jid? Lid)> AccountOfAsync(WhatsmeowSidecar sidecar, SessionId id, CancellationToken cancellationToken)
+	{
+		var sessions = await sidecar.Sessions.ListAsync(cancellationToken).ConfigureAwait(false);
+		if (sessions.SingleOrDefault(s => s.Id == id) is not { Jid: { } jid } info)
+			throw new InvalidOperationException($"The session {id} is not paired (docs/guidelines/tests.md Live WhatsApp).");
+		return (jid with { Device = 0 }, info.Lid is { } lid ? lid with { Device = 0 } : null);
 	}
 
 	/// <summary>

@@ -168,32 +168,35 @@ Time is faked, never waited on: one `FakeTimeProvider` drives now, delays and Po
 The default suite and CI use `--fake-whatsapp`.
 
 `tests/Whatsmeow.LiveTests` runs against real WhatsApp with a dedicated test number and manual pairing ([ADR 0021](../adr/0021-pairing.md)).
-Its tests are `[LiveFact]`: they run only when `WHATSMEOW_LIVE_DATABASE` names the live database, and otherwise start nothing and are reported as not run; the phone-code test also needs `WHATSMEOW_LIVE_PHONE_NUMBER`, the dedicated number.
-`build/ci.sh` runs `dotnet test` without either variable, so CI never runs them, and the live sidecar refuses to start without the database.
+Its tests are `[LiveFact]`: they run only when `WHATSMEOW_LIVE_DATABASE` names the live database, and otherwise start nothing and are reported as not run.
+A test that needs more says so, and is not run without it: `NeedsPhoneNumber` (the phone-code test) needs `WHATSMEOW_LIVE_PHONE_NUMBER`, the dedicated number; `NeedsPeer` needs `WHATSMEOW_LIVE_PEER_DATABASE`, the peer session's database; `NeedsOwner` needs `WHATSMEOW_LIVE_OWNER` set, the owner at the phone.
+`build/ci.sh` runs `dotnet test` without any of them, so CI never runs them, and the live sidecar refuses to start without the database.
 The live session `live` is persistent: it is paired by QR code once and reused by every later run, #10's included, with no scan; it is never logged out or deleted.
 Its database (`~/.whatsmeow-net-live/live.db` in `~/secrets.env`, a 0700 directory outside the repository, the file 0600) holds the account's keys: a secret, never committed, copied, or used by CI.
 If the phone logs the session out, that run fails with `LoggedOut`, and the next run pairs it again by QR code.
 The phone-code test pairs a throwaway session, `live-phone`, and logs it out and deletes it at the end, so the phone keeps only the live session's device.
 Same assertions as the fake-mode suite: a live test calls the fake-mode tests' own checks (`Whatsmeow.IntegrationTests/Pairing/PairingChecks.cs`, through a project reference), and only the person replaces the fake. No live-only skips and no weakened equals.
 The number and the database path are secrets: keep them in `~/secrets.env` and never print them; the live sidecar log redacts the number.
-Run, from the repository root, exporting only the variables the tests need (never source `~/secrets.env`; for the phone-code test, export `WHATSMEOW_LIVE_PHONE_NUMBER` the same way):
+Run, from the repository root, exporting only the variables the tests need (never source `~/secrets.env`; for the phone-code test, export `WHATSMEOW_LIVE_PHONE_NUMBER` the same way, and `WHATSMEOW_LIVE_OWNER=1` when the owner is at the phone):
 
 ```sh
 eval "$(mise env -s bash)"
 export WHATSMEOW_LIVE_DATABASE="$(grep '^WHATSMEOW_LIVE_DATABASE=' ~/secrets.env | cut -d= -f2-)"
+export WHATSMEOW_LIVE_PEER_DATABASE="$(grep '^WHATSMEOW_LIVE_PEER_DATABASE=' ~/secrets.env | cut -d= -f2-)"
 dotnet test --project dotnet/tests/Whatsmeow.LiveTests -c Release
 ```
 
 The person watches `dotnet/artifacts/live/`: `qr.png` is the QR code to scan (rewritten on each rotation), only when the live session is not paired yet, and `pairing-code.txt` the code to enter on the phone; both are deleted at the end, and a QR payload is never written as text (it carries the device's ADV secret). `sidecar.log` is the sidecar's log, with every JID's user part and the test number redacted.
 The QR test stays connected until the live session is `CaughtUp`, at most two minutes, and prints how long that took: a device that went offline right after pairing stayed "connecting" on the phone (ADR 0021).
 
-Every live test is in the `Live` collection: one after the other, on one `LiveSidecar` and one `LiveSender`.
-The live sidecar is a release build with `-tags livetest`, the live tests' seams ([ADR 0032](../adr/0032-live-test-seams-and-the-throwaway-sender.md)): a loose id rule, and a handler that withholds the first answer to a text starting `wmn-withhold `. CI proves no release binary links them.
-The incoming bursts come from `live-sender`, a throwaway second companion of the same account in a sidecar and a temporary database of its own: paired by QR code (`qr.png`) when a test first needs it, it sends to the account's own chat, and at the end it is logged out, deleted, checked gone, and its database deleted, also when a test failed.
-The account's own JID comes from the owner's ping: `wmn ping` sent from the phone to "Message yourself", before the run or within five minutes of the first test that needs it.
+Every live test is in the `Live` collection: one after the other, on one `LiveSidecar` and one `LivePeer`.
+The live sidecar is a release build with `-tags livetest`, the live tests' seams ([ADR 0032](../adr/0032-live-test-seams-and-the-peer-session.md)): a loose id rule, and a handler that withholds the first answer to a text starting `wmn-withhold `. CI proves no release binary links them.
+The traffic is between two accounts: `peer`, a persistent session on the owner's second number, paired once like `live` and never logged out, deleted or re-paired, runs in a sidecar and on a database of its own; it sends the bursts to the live account and receives what the live session sends.
+A session's own JID comes from `SessionInfo.Jid` (this device's JID; the account's chat is it with device 0).
+Only the `NeedsOwner` tests need the owner's ping: `wmn ping` sent from the phone to "Message yourself", before the run or within five minutes of the first such test, a wait bounded apart from the test's own work.
 The kill tests call the fake-mode kill tests' checks (`Whatsmeow.IntegrationTests/Events/DeliveryChecks.cs`); the .NET kill runs `SidecarHost events-live` on the live database, so the live sidecar stops first and starts again after it.
-Every measurement goes to `sidecar.log` and the test output, redacted, for ARCHITECTURE §14.
-Back up the live database before a run with new code: `sqlite3 "$WHATSMEOW_LIVE_DATABASE" ".backup ~/.whatsmeow-net-live/backup/live-before-<issue>-<timestamp>.db"`, then `chmod 600` it.
+Every measurement goes to `sidecar.log` and the test output, redacted, for ARCHITECTURE §14; the peer's log goes to `peer.log`, and the .NET kill's host log to `host.log`.
+Back up the live and peer databases before a run with new code: `sqlite3 "$WHATSMEOW_LIVE_DATABASE" ".backup ~/.whatsmeow-net-live/backup/live-before-<issue>-<timestamp>.db"`, the same for `$WHATSMEOW_LIVE_PEER_DATABASE` to `peer-before-...`, then `chmod 600` them.
 
 Other fake-only seams (injected failures, scripted disconnects) stay on fake-mode fixtures. They are not a live concern.
 

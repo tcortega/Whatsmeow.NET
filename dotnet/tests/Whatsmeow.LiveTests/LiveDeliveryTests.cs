@@ -9,12 +9,12 @@ namespace Whatsmeow.LiveTests;
 
 /// <summary>
 /// The Phase 1 exit (#10): real WhatsApp, either process killed mid-stream, no lost messages, with the fake-mode kill
-/// tests' own checks (<see cref="DeliveryChecks"/>). The throwaway sender (<see cref="LiveSender"/>) sends each burst
-/// to the account's own chat, which it learns from the owner's ping (<see cref="LiveSidecar.PingAsync"/>). Every
-/// timing goes to <c>sidecar.log</c> and the test output, for ARCHITECTURE §14.
+/// tests' own checks (<see cref="DeliveryChecks"/>). The peer (<see cref="LivePeer"/>) sends each burst to the live
+/// account (<see cref="LiveSidecar.AccountAsync"/>). Every timing goes to <c>sidecar.log</c> and the test output, for
+/// ARCHITECTURE §14.
 /// </summary>
 [Collection(nameof(Live))]
-public sealed class LiveDeliveryTests(LiveSidecar live, LiveSender sender)
+public sealed class LiveDeliveryTests(LiveSidecar live, LivePeer peer)
 {
 	/// <summary>How long a burst may take to arrive after its last send, and the wait for repeats after it.</summary>
 	private static readonly TimeSpan s_arrivalBound = TimeSpan.FromMinutes(5);
@@ -22,17 +22,17 @@ public sealed class LiveDeliveryTests(LiveSidecar live, LiveSender sender)
 	private static readonly TimeSpan s_repeatGrace = TimeSpan.FromSeconds(30);
 
 	/// <summary>
-	/// 20 messages; the handler of the 8th holds while the sidecar is killed, the sender goes on, and the client
+	/// 20 messages; the handler of the 8th holds while the sidecar is killed, the peer goes on, and the client
 	/// restarts the sidecar. The client keeps its place across a sidecar restart, so each message comes exactly once,
 	/// as in the fake-mode <c>EventCrashTests</c>: a repeat here would be one of an acked event, which the design rules
 	/// out.
 	/// </summary>
-	[LiveFact]
+	[LiveFact(NeedsPeer = true)]
 	public async Task Live_TheSidecarIsKilledMidStream_EveryMessageReachesTheHandlersOnce()
 	{
 		var ct = TestContext.Current.CancellationToken;
-		var account = (await live.PingAsync(ct)).Source.Chat;
-		var from = await sender.PairedAsync(live, ct);
+		var (account, _) = await live.AccountAsync(ct);
+		var from = await peer.ConnectedAsync(live, ct);
 		var client = await live.LiveAsync(ct);
 		var burst = Burst.Of("sidecar-kill", 20);
 		var holdOn = burst.Messages[7].Id;
@@ -58,7 +58,7 @@ public sealed class LiveDeliveryTests(LiveSidecar live, LiveSender sender)
 			}
 		);
 
-		var sending = LiveSender.SendAsync(from, account, burst, ct);
+		var sending = LivePeer.SendAsync(from, account, burst, ct);
 		await held.Task.WaitAsync(TimeSpan.FromMinutes(2), LiveClock.Time, ct);
 		var killedAt = LiveClock.Time.GetElapsedTime(arrivals.Origin);
 		await live.CrashAsync(ct);
@@ -79,12 +79,12 @@ public sealed class LiveDeliveryTests(LiveSidecar live, LiveSender sender)
 	/// acks once exactly the messages before the 4th, holds in the 4th's handler and is killed there; its sidecar ends
 	/// with it. The next process gets the 4th and every later one, with the same ids, and none of the acked ones.
 	/// </summary>
-	[LiveFact]
+	[LiveFact(NeedsPeer = true)]
 	public async Task Live_TheDotNetProcessIsKilledMidStream_TheMessagesAfterTheAckComeAgainWithTheSameIds()
 	{
 		var ct = TestContext.Current.CancellationToken;
-		var account = (await live.PingAsync(ct)).Source.Chat;
-		var from = await sender.PairedAsync(live, ct);
+		var (account, _) = await live.AccountAsync(ct);
+		var from = await peer.ConnectedAsync(live, ct);
 		var binary = await live.BinaryAsync(ct);
 		var burst = Burst.Of("dotnet-kill", 10);
 		var blockOn = burst.Messages[3].Id;
@@ -115,7 +115,7 @@ public sealed class LiveDeliveryTests(LiveSidecar live, LiveSender sender)
 				if (!int.TryParse(line, CultureInfo.InvariantCulture, out var sidecar))
 					Assert.Fail($"the host printed no sidecar process id: {line} (its log is host.log)");
 
-				var sending = LiveSender.SendAsync(from, account, burst, ct);
+				var sending = LivePeer.SendAsync(from, account, burst, ct);
 				// "session id" for each message; the account's other traffic is printed too.
 				var (handled, ackedSeq) = await EventsHostOutput.UntilAckedAsync(killed.StandardOutput, bound.Token);
 				handledBefore.AddRange(handled.Select(label => MessageId.From(label.Split(' ')[1])).Where(id => burst.Messages.Any(m => m.Id == id)));
@@ -156,12 +156,12 @@ public sealed class LiveDeliveryTests(LiveSidecar live, LiveSender sender)
 	/// (ADR 0032). The session stays connected for up to ten minutes; if nothing came by then, it reconnects and measures
 	/// from Connected. Either way the message must come, with its id.
 	/// </summary>
-	[LiveFact(Timeout = 1_200_000)]
+	[LiveFact(NeedsPeer = true, Timeout = 1_200_000)]
 	public async Task Live_AWithheldAnswer_WhatsAppDeliversTheMessageAgain_TheTimeIsRecorded()
 	{
 		var ct = TestContext.Current.CancellationToken;
-		var account = (await live.PingAsync(ct)).Source.Chat;
-		var from = await sender.PairedAsync(live, ct);
+		var (account, _) = await live.AccountAsync(ct);
+		var from = await peer.ConnectedAsync(live, ct);
 		var client = await live.LiveAsync(ct);
 		var id = MessageId.New();
 		var text = $"{WithholdPrefix}{id}";
