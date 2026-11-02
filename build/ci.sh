@@ -296,7 +296,12 @@ job_dotnet() {
 		{
 			check "no shipped assembly contains the fake WhatsApp control (ADR 0019)" shipped_have_no_fake
 			# Never the live tests, even with their variables exported in the shell that runs this.
+			rm -f dotnet/artifacts/TestResults/media-transfers.txt
 			check "dotnet test" env -u WHATSMEOW_LIVE_DATABASE -u WHATSMEOW_LIVE_PHONE_NUMBER dotnet test --solution dotnet/Whatsmeow.slnx -c Release --no-build
+			# The media transfer test's throughput and memory on each transport, for ARCHITECTURE §8.6 (ADR 0026).
+			if [ -f dotnet/artifacts/TestResults/media-transfers.txt ]; then
+				cat dotnet/artifacts/TestResults/media-transfers.txt
+			fi
 			check "AotSmoke publish (zero trim and AOT warnings)" dotnet publish dotnet/tests/AotSmoke/AotSmoke.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true &&
 				check "AotSmoke run" aot_smoke_run
 		}

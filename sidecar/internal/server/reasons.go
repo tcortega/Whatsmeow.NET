@@ -35,6 +35,8 @@ var (
 	ErrWhatsAppTimedOut = errors.New("WhatsApp did not answer in time")
 	// ErrNoPushName is SendPresence before the app state sync set the account's push name: nothing was sent.
 	ErrNoPushName = errors.New("the account has no push name yet")
+	// ErrMediaExpired is media WhatsApp no longer has (403, 404 or 410 on a download).
+	ErrMediaExpired = errors.New("WhatsApp no longer has the media")
 )
 
 // reasons is each error's gRPC code and reason, as error.proto lists them.
@@ -61,6 +63,7 @@ var reasons = []struct { //nolint:gochecknoglobals // a read-only table, the one
 	{ErrRecipientNotOnWhatsApp, codes.NotFound, whatsmeowv1.ErrorReason_ERROR_REASON_RECIPIENT_NOT_ON_WHATSAPP},
 	{ErrWhatsAppTimedOut, codes.Unavailable, whatsmeowv1.ErrorReason_ERROR_REASON_WHATSAPP_TIMED_OUT},
 	{ErrNoPushName, codes.FailedPrecondition, whatsmeowv1.ErrorReason_ERROR_REASON_NO_PUSH_NAME},
+	{ErrMediaExpired, codes.NotFound, whatsmeowv1.ErrorReason_ERROR_REASON_MEDIA_EXPIRED},
 }
 
 // metadataError adds one ErrorInfo metadata entry to the error it wraps.

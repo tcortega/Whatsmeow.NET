@@ -61,4 +61,7 @@ enum ErrorReason {
   // FAILED_PRECONDITION. The account has no push name yet, which whatsmeow needs to send presence: WhatsApp sends it
   // with the first app state sync after pairing. Nothing was sent.
   ERROR_REASON_NO_PUSH_NAME = 21;
+  // NOT_FOUND. WhatsApp no longer has the media (it answered 403, 404 or 410); RequestMediaRetry can ask the phone to
+  // upload it again.
+  ERROR_REASON_MEDIA_EXPIRED = 22;
 }

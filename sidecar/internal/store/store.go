@@ -60,8 +60,23 @@ CREATE TABLE outbox_cursor (
 	PRIMARY KEY (session_id, consumer)
 )`
 
+// schemaV3 is the media retry requests no final answer settled yet (#28): the answer is encrypted with the media key
+// the request named, so the sidecar keeps it to decrypt the answer, also after a restart. A final answer deletes its
+// request (media.Mapper); one the phone never answers, or answers only with a general error, stays until its session
+// is deleted, which takes its requests with it.
+const schemaV3 = `
+CREATE TABLE media_retry (
+	session_id TEXT NOT NULL REFERENCES session (id) ON DELETE CASCADE,
+	message_id TEXT NOT NULL,
+	-- The message's chat, as the request named it; an answer is matched on the message id, the chat only breaks a tie.
+	chat       TEXT NOT NULL,
+	-- The requested MediaRef (media.proto).
+	media      BLOB NOT NULL,
+	PRIMARY KEY (session_id, message_id, chat)
+)`
+
 // steps is every schema step, in order: steps()[n-1] is version n.
-func steps() []string { return []string{schemaV1, schemaV2} }
+func steps() []string { return []string{schemaV1, schemaV2, schemaV3} }
 
 // ErrInUse is returned when another whatsmeow-net holds the database.
 var ErrInUse = errors.New("in use by another whatsmeow-net")

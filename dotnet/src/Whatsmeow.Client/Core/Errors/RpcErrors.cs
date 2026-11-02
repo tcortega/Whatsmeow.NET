@@ -89,6 +89,9 @@ internal static class RpcErrors
 			case ErrorReason.RecipientNotOnWhatsapp:
 				RecipientNotFoundException.Throw(exception);
 				break;
+			case ErrorReason.MediaExpired:
+				MediaExpiredException.Throw(exception);
+				break;
 			case null or ErrorReason.Unspecified or ErrorReason.Internal or ErrorReason.Unauthenticated or ErrorReason.SidecarShuttingDown
 				or ErrorReason.ConsumerReplaced or ErrorReason.WhatsappError or ErrorReason.WhatsappTimedOut or ErrorReason.NoPushName:
 			default:
@@ -137,6 +140,7 @@ internal static class RpcErrors
 			ErrorReason.WhatsappError => WhatsmeowErrorCode.WhatsAppError,
 			ErrorReason.WhatsappTimedOut => WhatsmeowErrorCode.WhatsAppTimedOut,
 			ErrorReason.NoPushName => WhatsmeowErrorCode.NoPushName,
+			ErrorReason.MediaExpired => WhatsmeowErrorCode.MediaExpired,
 			null or ErrorReason.Unspecified => WhatsmeowErrorCode.Unknown,
 			_ => WhatsmeowErrorCode.Unknown,
 		};

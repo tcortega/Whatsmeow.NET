@@ -1,6 +1,7 @@
 using Google.Protobuf.WellKnownTypes;
 using Whatsmeow.Contacts;
 using Whatsmeow.Presence;
+using Whatsmeow.Media;
 using Whatsmeow.Protocol.V1;
 using Whatsmeow.Sessions;
 using E2E = Whatsmeow.Proto.WAWebProtobufsE2E;
@@ -43,6 +44,24 @@ internal static class EventMapping
 			},
 			Payload.ConnectionState => new ConnectionStateChanged { SessionId = sessionId, State = SessionMapping.ToState(response.ConnectionState.State) },
 			Payload.Contact => ContactMapping.ToEvent(sessionId, response.Contact),
+			Payload.MediaRetry => new MediaRetryReceived
+			{
+				SessionId = sessionId,
+				Id = MessageId.From(response.MediaRetry.MessageId),
+				Chat = Jid.Parse(response.MediaRetry.Chat),
+				Sender = ToJid(response.MediaRetry.Sender),
+				IsFromMe = response.MediaRetry.IsFromMe,
+				Timestamp = ToTime(response.MediaRetry.RetryTime),
+				Result = response.MediaRetry.ResultCase switch
+				{
+					MediaRetryEvent.ResultOneofCase.Media => new MediaRetryResult.Reuploaded { Media = MediaMapping.ToRef(response.MediaRetry.Media) },
+					MediaRetryEvent.ResultOneofCase.Failure or MediaRetryEvent.ResultOneofCase.None => new MediaRetryResult.Failed
+					{
+						Reason = MediaMapping.ToFailure(response.MediaRetry.Failure),
+					},
+					_ => new MediaRetryResult.Failed { Reason = MediaRetryFailure.Unknown },
+				},
+			},
 			// Receipts come with #9: skipped, and acked.
 			Payload.Receipt or Payload.None => null,
 			_ => null,
@@ -56,6 +75,7 @@ internal static class EventMapping
 			Payload.UndecryptableMessage => response.UndecryptableMessage.Info?.Source?.Chat ?? SessionLane,
 			// The contact's lane: a user's changes run in order with their direct chat when it uses the same form.
 			Payload.Contact => response.Contact.Jid,
+			Payload.MediaRetry => response.MediaRetry.Chat,
 			Payload.ConnectionState or Payload.Receipt or Payload.None => SessionLane,
 			_ => SessionLane,
 		};

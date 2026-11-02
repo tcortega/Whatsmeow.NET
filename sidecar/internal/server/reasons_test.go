@@ -120,3 +120,16 @@ func TestNoPushNameBecomesItsStatus(t *testing.T) {
 		t.Errorf("ErrorInfo %v, want NO_PUSH_NAME", info)
 	}
 }
+
+func TestMediaExpiredBecomesNotFound(t *testing.T) {
+	t.Parallel()
+
+	st, _ := status.FromError(New(token, zerolog.Nop()).toStatus("/test", fmt.Errorf("download: %w", ErrMediaExpired)))
+	if st.Code() != codes.NotFound || len(st.Details()) != 1 {
+		t.Fatalf("status %v, want NOT_FOUND with one ErrorInfo", st)
+	}
+
+	if info, _ := st.Details()[0].(*errdetails.ErrorInfo); info.GetReason() != "MEDIA_EXPIRED" {
+		t.Fatalf("reason %q, want MEDIA_EXPIRED", info.GetReason())
+	}
+}

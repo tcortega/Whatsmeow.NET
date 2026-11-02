@@ -803,3 +803,108 @@ Whatsmeow.Presence.PresenceState
 Whatsmeow.Presence.PresenceState.Available = 0 -> Whatsmeow.Presence.PresenceState
 Whatsmeow.Presence.PresenceState.Unavailable = 1 -> Whatsmeow.Presence.PresenceState
 Whatsmeow.WhatsmeowErrorCode.NoPushName = 21 -> Whatsmeow.WhatsmeowErrorCode
+abstract Whatsmeow.Events.MediaRetryResult.<Clone>$() -> Whatsmeow.Events.MediaRetryResult!
+override sealed Whatsmeow.Events.MediaRetryReceived.Equals(Whatsmeow.Events.WhatsAppEvent? other) -> bool
+override sealed Whatsmeow.Events.MediaRetryResult.Failed.Equals(Whatsmeow.Events.MediaRetryResult? other) -> bool
+override sealed Whatsmeow.Events.MediaRetryResult.Reuploaded.Equals(Whatsmeow.Events.MediaRetryResult? other) -> bool
+override Whatsmeow.Events.MediaRetryReceived.<Clone>$() -> Whatsmeow.Events.MediaRetryReceived!
+override Whatsmeow.Events.MediaRetryReceived.Equals(object? obj) -> bool
+override Whatsmeow.Events.MediaRetryReceived.GetHashCode() -> int
+override Whatsmeow.Events.MediaRetryReceived.ToString() -> string!
+override Whatsmeow.Events.MediaRetryResult.Equals(object? obj) -> bool
+override Whatsmeow.Events.MediaRetryResult.Failed.<Clone>$() -> Whatsmeow.Events.MediaRetryResult.Failed!
+override Whatsmeow.Events.MediaRetryResult.Failed.Equals(object? obj) -> bool
+override Whatsmeow.Events.MediaRetryResult.Failed.GetHashCode() -> int
+override Whatsmeow.Events.MediaRetryResult.Failed.ToString() -> string!
+override Whatsmeow.Events.MediaRetryResult.GetHashCode() -> int
+override Whatsmeow.Events.MediaRetryResult.Reuploaded.<Clone>$() -> Whatsmeow.Events.MediaRetryResult.Reuploaded!
+override Whatsmeow.Events.MediaRetryResult.Reuploaded.Equals(object? obj) -> bool
+override Whatsmeow.Events.MediaRetryResult.Reuploaded.GetHashCode() -> int
+override Whatsmeow.Events.MediaRetryResult.Reuploaded.ToString() -> string!
+override Whatsmeow.Events.MediaRetryResult.ToString() -> string!
+override Whatsmeow.MediaRef.Equals(object? obj) -> bool
+override Whatsmeow.MediaRef.GetHashCode() -> int
+override Whatsmeow.MediaRef.ToString() -> string!
+static Whatsmeow.Events.MediaRetryReceived.operator !=(Whatsmeow.Events.MediaRetryReceived? left, Whatsmeow.Events.MediaRetryReceived? right) -> bool
+static Whatsmeow.Events.MediaRetryReceived.operator ==(Whatsmeow.Events.MediaRetryReceived? left, Whatsmeow.Events.MediaRetryReceived? right) -> bool
+static Whatsmeow.Events.MediaRetryResult.Failed.operator !=(Whatsmeow.Events.MediaRetryResult.Failed? left, Whatsmeow.Events.MediaRetryResult.Failed? right) -> bool
+static Whatsmeow.Events.MediaRetryResult.Failed.operator ==(Whatsmeow.Events.MediaRetryResult.Failed? left, Whatsmeow.Events.MediaRetryResult.Failed? right) -> bool
+static Whatsmeow.Events.MediaRetryResult.operator !=(Whatsmeow.Events.MediaRetryResult? left, Whatsmeow.Events.MediaRetryResult? right) -> bool
+static Whatsmeow.Events.MediaRetryResult.operator ==(Whatsmeow.Events.MediaRetryResult? left, Whatsmeow.Events.MediaRetryResult? right) -> bool
+static Whatsmeow.Events.MediaRetryResult.Reuploaded.operator !=(Whatsmeow.Events.MediaRetryResult.Reuploaded? left, Whatsmeow.Events.MediaRetryResult.Reuploaded? right) -> bool
+static Whatsmeow.Events.MediaRetryResult.Reuploaded.operator ==(Whatsmeow.Events.MediaRetryResult.Reuploaded? left, Whatsmeow.Events.MediaRetryResult.Reuploaded? right) -> bool
+static Whatsmeow.MediaRef.operator !=(Whatsmeow.MediaRef? left, Whatsmeow.MediaRef? right) -> bool
+static Whatsmeow.MediaRef.operator ==(Whatsmeow.MediaRef? left, Whatsmeow.MediaRef? right) -> bool
+virtual Whatsmeow.Events.MediaRetryResult.EqualityContract.get -> System.Type!
+virtual Whatsmeow.Events.MediaRetryResult.Equals(Whatsmeow.Events.MediaRetryResult? other) -> bool
+virtual Whatsmeow.Events.MediaRetryResult.PrintMembers(System.Text.StringBuilder! builder) -> bool
+Whatsmeow.Events.MediaRetryFailure
+Whatsmeow.Events.MediaRetryFailure.DecryptionError = 3 -> Whatsmeow.Events.MediaRetryFailure
+Whatsmeow.Events.MediaRetryFailure.GeneralError = 1 -> Whatsmeow.Events.MediaRetryFailure
+Whatsmeow.Events.MediaRetryFailure.NotFound = 2 -> Whatsmeow.Events.MediaRetryFailure
+Whatsmeow.Events.MediaRetryFailure.NotOnPhone = 4 -> Whatsmeow.Events.MediaRetryFailure
+Whatsmeow.Events.MediaRetryFailure.Unknown = 0 -> Whatsmeow.Events.MediaRetryFailure
+Whatsmeow.Events.MediaRetryReceived
+Whatsmeow.Events.MediaRetryReceived.Chat.get -> Whatsmeow.Jid
+Whatsmeow.Events.MediaRetryReceived.Chat.init -> void
+Whatsmeow.Events.MediaRetryReceived.Equals(Whatsmeow.Events.MediaRetryReceived? other) -> bool
+Whatsmeow.Events.MediaRetryReceived.Id.get -> Whatsmeow.MessageId
+Whatsmeow.Events.MediaRetryReceived.Id.init -> void
+Whatsmeow.Events.MediaRetryReceived.IsFromMe.get -> bool
+Whatsmeow.Events.MediaRetryReceived.IsFromMe.init -> void
+Whatsmeow.Events.MediaRetryReceived.MediaRetryReceived() -> void
+Whatsmeow.Events.MediaRetryReceived.Result.get -> Whatsmeow.Events.MediaRetryResult!
+Whatsmeow.Events.MediaRetryReceived.Result.init -> void
+Whatsmeow.Events.MediaRetryReceived.Sender.get -> Whatsmeow.Jid?
+Whatsmeow.Events.MediaRetryReceived.Sender.init -> void
+Whatsmeow.Events.MediaRetryReceived.Timestamp.get -> System.DateTimeOffset
+Whatsmeow.Events.MediaRetryReceived.Timestamp.init -> void
+Whatsmeow.Events.MediaRetryResult
+Whatsmeow.Events.MediaRetryResult.Failed
+Whatsmeow.Events.MediaRetryResult.Failed.Equals(Whatsmeow.Events.MediaRetryResult.Failed? other) -> bool
+Whatsmeow.Events.MediaRetryResult.Failed.Failed() -> void
+Whatsmeow.Events.MediaRetryResult.Failed.Reason.get -> Whatsmeow.Events.MediaRetryFailure
+Whatsmeow.Events.MediaRetryResult.Failed.Reason.init -> void
+Whatsmeow.Events.MediaRetryResult.MediaRetryResult(Whatsmeow.Events.MediaRetryResult! original) -> void
+Whatsmeow.Events.MediaRetryResult.Reuploaded
+Whatsmeow.Events.MediaRetryResult.Reuploaded.Equals(Whatsmeow.Events.MediaRetryResult.Reuploaded? other) -> bool
+Whatsmeow.Events.MediaRetryResult.Reuploaded.Media.get -> Whatsmeow.MediaRef!
+Whatsmeow.Events.MediaRetryResult.Reuploaded.Media.init -> void
+Whatsmeow.Events.MediaRetryResult.Reuploaded.Reuploaded() -> void
+Whatsmeow.IWhatsAppClient.DownloadMediaFileAsync(Whatsmeow.MediaRef! media, string! path, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.DownloadMediaAsync(Whatsmeow.MediaRef! media, System.IO.Stream! destination, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.RequestMediaRetryAsync(Whatsmeow.MessageId id, Whatsmeow.Events.MessageSource! source, Whatsmeow.MediaRef! media, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.UploadMediaFileAsync(string! path, Whatsmeow.MediaType type, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.MediaRef!>!
+Whatsmeow.IWhatsAppClient.UploadMediaAsync(System.IO.Stream! content, Whatsmeow.MediaType type, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.MediaRef!>!
+Whatsmeow.MediaExpiredException
+Whatsmeow.MediaExpiredException.MediaExpiredException() -> void
+Whatsmeow.MediaExpiredException.MediaExpiredException(string! message, System.Exception? innerException) -> void
+Whatsmeow.MediaExpiredException.MediaExpiredException(string! message) -> void
+Whatsmeow.MediaRef
+Whatsmeow.MediaRef.<Clone>$() -> Whatsmeow.MediaRef!
+Whatsmeow.MediaRef.DirectPath.get -> string!
+Whatsmeow.MediaRef.DirectPath.init -> void
+Whatsmeow.MediaRef.Equals(Whatsmeow.MediaRef? other) -> bool
+Whatsmeow.MediaRef.FileEncSha256.get -> System.Collections.Immutable.ImmutableArray<byte>
+Whatsmeow.MediaRef.FileEncSha256.init -> void
+Whatsmeow.MediaRef.FileLength.get -> long
+Whatsmeow.MediaRef.FileLength.init -> void
+Whatsmeow.MediaRef.FileSha256.get -> System.Collections.Immutable.ImmutableArray<byte>
+Whatsmeow.MediaRef.FileSha256.init -> void
+Whatsmeow.MediaRef.MediaKey.get -> System.Collections.Immutable.ImmutableArray<byte>
+Whatsmeow.MediaRef.MediaKey.init -> void
+Whatsmeow.MediaRef.MediaRef() -> void
+Whatsmeow.MediaRef.StreamingSidecar.get -> System.Collections.Immutable.ImmutableArray<byte>
+Whatsmeow.MediaRef.StreamingSidecar.init -> void
+Whatsmeow.MediaRef.Type.get -> Whatsmeow.MediaType
+Whatsmeow.MediaRef.Type.init -> void
+Whatsmeow.MediaRef.Url.get -> System.Uri?
+Whatsmeow.MediaRef.Url.init -> void
+Whatsmeow.MediaType
+Whatsmeow.MediaType.Audio = 2 -> Whatsmeow.MediaType
+Whatsmeow.MediaType.Document = 3 -> Whatsmeow.MediaType
+Whatsmeow.MediaType.Image = 0 -> Whatsmeow.MediaType
+Whatsmeow.MediaType.Video = 1 -> Whatsmeow.MediaType
+Whatsmeow.WhatsmeowErrorCode.MediaExpired = 22 -> Whatsmeow.WhatsmeowErrorCode
+Whatsmeow.WhatsmeowSidecarOptions.MediaRoot.get -> string?
+Whatsmeow.WhatsmeowSidecarOptions.MediaRoot.set -> void

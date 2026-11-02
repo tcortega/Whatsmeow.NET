@@ -4,6 +4,7 @@ using Grpc.Core;
 using Whatsmeow.Contacts;
 using Whatsmeow.Core.Errors;
 using Whatsmeow.Events;
+using Whatsmeow.Media;
 using Whatsmeow.Pairing;
 using Whatsmeow.Presence;
 using ChatPresenceState = Whatsmeow.Presence.ChatPresenceState;
@@ -33,6 +34,7 @@ internal sealed class SessionClient(
 	private readonly SessionEvents _events = new(sidecar, invoker, sessionId, sidecar.TimeProvider, log);
 	private readonly ContactService.ContactServiceClient _contacts = new(invoker);
 	private readonly PresenceService.PresenceServiceClient _presence = new(invoker);
+	private readonly MediaTransfer _media = new(new MediaService.MediaServiceClient(invoker), sessionId, sidecar.MediaRoot, log);
 
 	public SessionId SessionId => sessionId;
 
@@ -54,6 +56,36 @@ internal sealed class SessionClient(
 	{
 		ObjectDisposedException.ThrowIf(_events.IsDisposed, this);
 		return _events.OnHandlerError(handler);
+	}
+
+	public Task<MediaRef> UploadMediaFileAsync(string path, MediaType type, CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		return _media.UploadAsync(path, type, cancellationToken);
+	}
+
+	public Task<MediaRef> UploadMediaAsync(Stream content, MediaType type, CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		return _media.UploadAsync(content, type, cancellationToken);
+	}
+
+	public Task DownloadMediaFileAsync(MediaRef media, string path, CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		return _media.DownloadAsync(media, path, cancellationToken);
+	}
+
+	public Task DownloadMediaAsync(MediaRef media, Stream destination, CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		return _media.DownloadAsync(media, destination, cancellationToken);
+	}
+
+	public Task RequestMediaRetryAsync(MessageId id, Events.MessageSource source, MediaRef media, CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		return _media.RequestRetryAsync(id, source, media, cancellationToken);
 	}
 
 	/// <summary>Stops the session's events and acks what was handled.</summary>

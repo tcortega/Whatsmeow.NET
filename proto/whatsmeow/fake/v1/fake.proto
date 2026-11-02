@@ -108,7 +108,93 @@ service FakeWhatsAppService {
   // sets the device's push name and saves the device (appstate.go:364-374). Until then SendPresence fails with
   // whatsmeow's ErrNoPushName (presence.go:67-68). A session without a client is an error.
   rpc SetPushName(SetPushNameRequest) returns (SetPushNameResponse);
+
+  // FailNextUploads makes the session's next count uploads fail after they encrypted the file, as a POST that fails
+  // does (upload.go:291-302). Each attempt shows in WaitForSent as a MediaUpload.
+  rpc FailNextUploads(FailNextUploadsRequest) returns (FailNextUploadsResponse);
+
+  // ExpireMedia makes WhatsApp answer every download of direct_path with status, as whatsmeow reports it
+  // (ErrMediaDownloadFailedWith403, 404 or 410, errors.go:133-135).
+  rpc ExpireMedia(ExpireMediaRequest) returns (ExpireMediaResponse);
+
+  // CorruptMedia flips one byte of the ciphertext stored at direct_path, so every download of it fails verification
+  // (ErrInvalidMediaEncSHA256, download-to-file.go:218-219) and leaves ciphertext in the file, as whatsmeow does.
+  rpc CorruptMedia(CorruptMediaRequest) returns (CorruptMediaResponse);
+
+  // HoldNextDownload makes the session's next download write part of the file and then wait until its call ends.
+  rpc HoldNextDownload(HoldNextDownloadRequest) returns (HoldNextDownloadResponse);
+
+  // AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
+  // showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
+  // and returns once the client's event handlers ran. With reupload, the phone uploads the media at
+  // from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+  // (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
+  rpc AnswerMediaRetry(AnswerMediaRetryRequest) returns (AnswerMediaRetryResponse);
 }
+
+// FailNextUploadsRequest names the session and how many uploads fail.
+message FailNextUploadsRequest {
+  // The session whose next uploads fail.
+  string session_id = 1;
+  // How many.
+  uint32 count = 2;
+}
+
+// FailNextUploadsResponse has no fields.
+message FailNextUploadsResponse {}
+
+// ExpireMediaRequest names the media and WhatsApp's answer.
+message ExpireMediaRequest {
+  // The media's direct path.
+  string direct_path = 1;
+  // 403, 404 or 410.
+  int32 status = 2;
+}
+
+// ExpireMediaResponse has no fields.
+message ExpireMediaResponse {}
+
+// CorruptMediaRequest names the media.
+message CorruptMediaRequest {
+  // The media's direct path.
+  string direct_path = 1;
+}
+
+// CorruptMediaResponse has no fields.
+message CorruptMediaResponse {}
+
+// HoldNextDownloadRequest names the session.
+message HoldNextDownloadRequest {
+  // The session whose next download is held.
+  string session_id = 1;
+}
+
+// HoldNextDownloadResponse has no fields.
+message HoldNextDownloadResponse {}
+
+// AnswerMediaRetryRequest is the phone's answer.
+message AnswerMediaRetryRequest {
+  // The session whose request is answered.
+  string session_id = 1;
+  // The message id the request named.
+  string message_id = 2;
+
+  // The answer.
+  oneof answer {
+    // The direct path of the media to upload again: the answer is SUCCESS with a new path.
+    string reupload_from = 3;
+    // An encrypted answer without media: 0 GENERAL_ERROR, 2 NOT_FOUND or 3 DECRYPTION_ERROR (WAMmsRetry ResultType).
+    int32 result = 4;
+    // An unencrypted error code, as the phone sends one when it has nothing (2: not on the phone).
+    int32 error_code = 5;
+  }
+
+  // When the phone answered; unset is the zero time.
+  google.protobuf.Timestamp answer_time = 6;
+}
+
+// AnswerMediaRetryResponse has no fields.
+message AnswerMediaRetryResponse {}
 
 // LinkDeviceRequest names the session and the device's JID.
 message LinkDeviceRequest {
@@ -328,6 +414,12 @@ message Sent {
     SubscribePresence subscribe_presence = 7;
     // The client set its state in a chat (SendChatPresence).
     ChatPresence chat_presence = 8;
+    // The client uploaded media, or tried to.
+    MediaUpload media_upload = 9;
+    // The client started downloading media.
+    MediaDownload media_download = 10;
+    // The client asked the phone to upload a message's media again.
+    MediaRetryReceipt media_retry_receipt = 11;
   }
 }
 
@@ -397,6 +489,31 @@ message SetPushNameRequest {
 
 // SetPushNameResponse has no fields.
 message SetPushNameResponse {}
+// MediaUpload is one upload attempt: whatsmeow's POST to the media host (upload.go:243-302).
+message MediaUpload {
+  // whatsmeow's media type, its key info: "WhatsApp Image Keys" and so on (download.go:42-52).
+  string media_type = 1;
+  // The direct path WhatsApp assigned; empty for an attempt that failed.
+  string direct_path = 2;
+}
+
+// MediaDownload is the start of one download.
+message MediaDownload {
+  // The direct path asked for.
+  string direct_path = 1;
+}
+
+// MediaRetryReceipt is the server-error receipt SendMediaRetryReceipt sends (mediaretry.go:77-119).
+message MediaRetryReceipt {
+  // The message id.
+  string message_id = 1;
+  // The chat.
+  string chat = 2;
+  // The sender, set in a group.
+  string sender = 3;
+  // True for a message the account itself sent.
+  bool is_from_me = 4;
+}
 
 // Disconnect is the client closing a connection that was open.
 message Disconnect {}

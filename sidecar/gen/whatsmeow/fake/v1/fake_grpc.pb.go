@@ -39,6 +39,11 @@ const (
 	FakeWhatsAppService_DeliverPresence_FullMethodName             = "/whatsmeow.fake.v1.FakeWhatsAppService/DeliverPresence"
 	FakeWhatsAppService_DeliverChatPresence_FullMethodName         = "/whatsmeow.fake.v1.FakeWhatsAppService/DeliverChatPresence"
 	FakeWhatsAppService_SetPushName_FullMethodName                 = "/whatsmeow.fake.v1.FakeWhatsAppService/SetPushName"
+	FakeWhatsAppService_FailNextUploads_FullMethodName             = "/whatsmeow.fake.v1.FakeWhatsAppService/FailNextUploads"
+	FakeWhatsAppService_ExpireMedia_FullMethodName                 = "/whatsmeow.fake.v1.FakeWhatsAppService/ExpireMedia"
+	FakeWhatsAppService_CorruptMedia_FullMethodName                = "/whatsmeow.fake.v1.FakeWhatsAppService/CorruptMedia"
+	FakeWhatsAppService_HoldNextDownload_FullMethodName            = "/whatsmeow.fake.v1.FakeWhatsAppService/HoldNextDownload"
+	FakeWhatsAppService_AnswerMediaRetry_FullMethodName            = "/whatsmeow.fake.v1.FakeWhatsAppService/AnswerMediaRetry"
 )
 
 // FakeWhatsAppServiceClient is the client API for FakeWhatsAppService service.
@@ -130,6 +135,23 @@ type FakeWhatsAppServiceClient interface {
 	// sets the device's push name and saves the device (appstate.go:364-374). Until then SendPresence fails with
 	// whatsmeow's ErrNoPushName (presence.go:67-68). A session without a client is an error.
 	SetPushName(ctx context.Context, in *SetPushNameRequest, opts ...grpc.CallOption) (*SetPushNameResponse, error)
+	// FailNextUploads makes the session's next count uploads fail after they encrypted the file, as a POST that fails
+	// does (upload.go:291-302). Each attempt shows in WaitForSent as a MediaUpload.
+	FailNextUploads(ctx context.Context, in *FailNextUploadsRequest, opts ...grpc.CallOption) (*FailNextUploadsResponse, error)
+	// ExpireMedia makes WhatsApp answer every download of direct_path with status, as whatsmeow reports it
+	// (ErrMediaDownloadFailedWith403, 404 or 410, errors.go:133-135).
+	ExpireMedia(ctx context.Context, in *ExpireMediaRequest, opts ...grpc.CallOption) (*ExpireMediaResponse, error)
+	// CorruptMedia flips one byte of the ciphertext stored at direct_path, so every download of it fails verification
+	// (ErrInvalidMediaEncSHA256, download-to-file.go:218-219) and leaves ciphertext in the file, as whatsmeow does.
+	CorruptMedia(ctx context.Context, in *CorruptMediaRequest, opts ...grpc.CallOption) (*CorruptMediaResponse, error)
+	// HoldNextDownload makes the session's next download write part of the file and then wait until its call ends.
+	HoldNextDownload(ctx context.Context, in *HoldNextDownloadRequest, opts ...grpc.CallOption) (*HoldNextDownloadResponse, error)
+	// AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
+	// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
+	// and returns once the client's event handlers ran. With reupload, the phone uploads the media at
+	// from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+	// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
+	AnswerMediaRetry(ctx context.Context, in *AnswerMediaRetryRequest, opts ...grpc.CallOption) (*AnswerMediaRetryResponse, error)
 }
 
 type fakeWhatsAppServiceClient struct {
@@ -340,6 +362,56 @@ func (c *fakeWhatsAppServiceClient) SetPushName(ctx context.Context, in *SetPush
 	return out, nil
 }
 
+func (c *fakeWhatsAppServiceClient) FailNextUploads(ctx context.Context, in *FailNextUploadsRequest, opts ...grpc.CallOption) (*FailNextUploadsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FailNextUploadsResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_FailNextUploads_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) ExpireMedia(ctx context.Context, in *ExpireMediaRequest, opts ...grpc.CallOption) (*ExpireMediaResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ExpireMediaResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_ExpireMedia_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) CorruptMedia(ctx context.Context, in *CorruptMediaRequest, opts ...grpc.CallOption) (*CorruptMediaResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CorruptMediaResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_CorruptMedia_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) HoldNextDownload(ctx context.Context, in *HoldNextDownloadRequest, opts ...grpc.CallOption) (*HoldNextDownloadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(HoldNextDownloadResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_HoldNextDownload_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fakeWhatsAppServiceClient) AnswerMediaRetry(ctx context.Context, in *AnswerMediaRetryRequest, opts ...grpc.CallOption) (*AnswerMediaRetryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AnswerMediaRetryResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_AnswerMediaRetry_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FakeWhatsAppServiceServer is the server API for FakeWhatsAppService service.
 // All implementations must embed UnimplementedFakeWhatsAppServiceServer
 // for forward compatibility.
@@ -429,6 +501,23 @@ type FakeWhatsAppServiceServer interface {
 	// sets the device's push name and saves the device (appstate.go:364-374). Until then SendPresence fails with
 	// whatsmeow's ErrNoPushName (presence.go:67-68). A session without a client is an error.
 	SetPushName(context.Context, *SetPushNameRequest) (*SetPushNameResponse, error)
+	// FailNextUploads makes the session's next count uploads fail after they encrypted the file, as a POST that fails
+	// does (upload.go:291-302). Each attempt shows in WaitForSent as a MediaUpload.
+	FailNextUploads(context.Context, *FailNextUploadsRequest) (*FailNextUploadsResponse, error)
+	// ExpireMedia makes WhatsApp answer every download of direct_path with status, as whatsmeow reports it
+	// (ErrMediaDownloadFailedWith403, 404 or 410, errors.go:133-135).
+	ExpireMedia(context.Context, *ExpireMediaRequest) (*ExpireMediaResponse, error)
+	// CorruptMedia flips one byte of the ciphertext stored at direct_path, so every download of it fails verification
+	// (ErrInvalidMediaEncSHA256, download-to-file.go:218-219) and leaves ciphertext in the file, as whatsmeow does.
+	CorruptMedia(context.Context, *CorruptMediaRequest) (*CorruptMediaResponse, error)
+	// HoldNextDownload makes the session's next download write part of the file and then wait until its call ends.
+	HoldNextDownload(context.Context, *HoldNextDownloadRequest) (*HoldNextDownloadResponse, error)
+	// AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
+	// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
+	// and returns once the client's event handlers ran. With reupload, the phone uploads the media at
+	// from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+	// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
+	AnswerMediaRetry(context.Context, *AnswerMediaRetryRequest) (*AnswerMediaRetryResponse, error)
 	mustEmbedUnimplementedFakeWhatsAppServiceServer()
 }
 
@@ -498,6 +587,21 @@ func (UnimplementedFakeWhatsAppServiceServer) DeliverChatPresence(context.Contex
 }
 func (UnimplementedFakeWhatsAppServiceServer) SetPushName(context.Context, *SetPushNameRequest) (*SetPushNameResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetPushName not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) FailNextUploads(context.Context, *FailNextUploadsRequest) (*FailNextUploadsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FailNextUploads not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) ExpireMedia(context.Context, *ExpireMediaRequest) (*ExpireMediaResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ExpireMedia not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) CorruptMedia(context.Context, *CorruptMediaRequest) (*CorruptMediaResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CorruptMedia not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) HoldNextDownload(context.Context, *HoldNextDownloadRequest) (*HoldNextDownloadResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method HoldNextDownload not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) AnswerMediaRetry(context.Context, *AnswerMediaRetryRequest) (*AnswerMediaRetryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AnswerMediaRetry not implemented")
 }
 func (UnimplementedFakeWhatsAppServiceServer) mustEmbedUnimplementedFakeWhatsAppServiceServer() {}
 func (UnimplementedFakeWhatsAppServiceServer) testEmbeddedByValue()                             {}
@@ -880,6 +984,96 @@ func _FakeWhatsAppService_SetPushName_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FakeWhatsAppService_FailNextUploads_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FailNextUploadsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).FailNextUploads(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_FailNextUploads_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).FailNextUploads(ctx, req.(*FailNextUploadsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_ExpireMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExpireMediaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).ExpireMedia(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_ExpireMedia_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).ExpireMedia(ctx, req.(*ExpireMediaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_CorruptMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CorruptMediaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).CorruptMedia(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_CorruptMedia_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).CorruptMedia(ctx, req.(*CorruptMediaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_HoldNextDownload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HoldNextDownloadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).HoldNextDownload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_HoldNextDownload_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).HoldNextDownload(ctx, req.(*HoldNextDownloadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FakeWhatsAppService_AnswerMediaRetry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AnswerMediaRetryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).AnswerMediaRetry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_AnswerMediaRetry_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).AnswerMediaRetry(ctx, req.(*AnswerMediaRetryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FakeWhatsAppService_ServiceDesc is the grpc.ServiceDesc for FakeWhatsAppService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -966,6 +1160,26 @@ var FakeWhatsAppService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetPushName",
 			Handler:    _FakeWhatsAppService_SetPushName_Handler,
+		},
+		{
+			MethodName: "FailNextUploads",
+			Handler:    _FakeWhatsAppService_FailNextUploads_Handler,
+		},
+		{
+			MethodName: "ExpireMedia",
+			Handler:    _FakeWhatsAppService_ExpireMedia_Handler,
+		},
+		{
+			MethodName: "CorruptMedia",
+			Handler:    _FakeWhatsAppService_CorruptMedia_Handler,
+		},
+		{
+			MethodName: "HoldNextDownload",
+			Handler:    _FakeWhatsAppService_HoldNextDownload_Handler,
+		},
+		{
+			MethodName: "AnswerMediaRetry",
+			Handler:    _FakeWhatsAppService_AnswerMediaRetry_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

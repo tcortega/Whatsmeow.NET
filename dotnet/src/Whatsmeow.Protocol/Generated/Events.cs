@@ -26,77 +26,79 @@ namespace Whatsmeow.Protocol.V1 {
           string.Concat(
             "Chl3aGF0c21lb3cvdjEvZXZlbnRzLnByb3RvEgx3aGF0c21lb3cudjEaH2dv",
             "b2dsZS9wcm90b2J1Zi90aW1lc3RhbXAucHJvdG8aHXdhRTJFL1dBV2ViUHJv",
-            "dG9idWZzRTJFLnByb3RvGhp3aGF0c21lb3cvdjEvY29udGFjdC5wcm90bxob",
-            "d2hhdHNtZW93L3YxL3ByZXNlbmNlLnByb3RvGhp3aGF0c21lb3cvdjEvc2Vz",
-            "c2lvbi5wcm90byKdAQoNTWVzc2FnZVNvdXJjZRISCgRjaGF0GAEgASgJUgRj",
-            "aGF0EhYKBnNlbmRlchgCIAEoCVIGc2VuZGVyEh0KCnNlbmRlcl9hbHQYAyAB",
-            "KAlSCXNlbmRlckFsdBIjCg1yZWNpcGllbnRfYWx0GAQgASgJUgxyZWNpcGll",
-            "bnRBbHQSHAoKaXNfZnJvbV9tZRgFIAEoCFIIaXNGcm9tTWUirgEKC01lc3Nh",
-            "Z2VJbmZvEjMKBnNvdXJjZRgBIAEoCzIbLndoYXRzbWVvdy52MS5NZXNzYWdl",
-            "U291cmNlUgZzb3VyY2USDgoCaWQYAiABKAlSAmlkEhsKCXB1c2hfbmFtZRgD",
-            "IAEoCVIIcHVzaE5hbWUSPQoMbWVzc2FnZV90aW1lGAQgASgLMhouZ29vZ2xl",
-            "LnByb3RvYnVmLlRpbWVzdGFtcFILbWVzc2FnZVRpbWUicwoMTWVzc2FnZUV2",
-            "ZW50Ei0KBGluZm8YASABKAsyGS53aGF0c21lb3cudjEuTWVzc2FnZUluZm9S",
-            "BGluZm8SNAoHbWVzc2FnZRgCIAEoCzIaLldBV2ViUHJvdG9idWZzRTJFLk1l",
-            "c3NhZ2VSB21lc3NhZ2Ui0gEKDFJlY2VpcHRFdmVudBIzCgZzb3VyY2UYASAB",
-            "KAsyGy53aGF0c21lb3cudjEuTWVzc2FnZVNvdXJjZVIGc291cmNlEh8KC21l",
-            "c3NhZ2VfaWRzGAIgAygJUgptZXNzYWdlSWRzEj0KDHJlY2VpcHRfdGltZRgD",
-            "IAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBSC3JlY2VpcHRUaW1l",
-            "Ei0KBHR5cGUYBCABKA4yGS53aGF0c21lb3cudjEuUmVjZWlwdFR5cGVSBHR5",
-            "cGUidQoZVW5kZWNyeXB0YWJsZU1lc3NhZ2VFdmVudBItCgRpbmZvGAEgASgL",
-            "Mhkud2hhdHNtZW93LnYxLk1lc3NhZ2VJbmZvUgRpbmZvEikKEGhpZGVfcGxh",
-            "Y2Vob2xkZXIYAiABKAhSD2hpZGVQbGFjZWhvbGRlciJIChRDb25uZWN0aW9u",
-            "U3RhdGVFdmVudBIwCgVzdGF0ZRgBIAEoCzIaLndoYXRzbWVvdy52MS5TZXNz",
-            "aW9uU3RhdGVSBXN0YXRlIm0KE1N0cmVhbUV2ZW50c1JlcXVlc3QSHQoKc2Vz",
-            "c2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkEhoKCGNvbnN1bWVyGAIgASgJUghj",
-            "b25zdW1lchIbCglhZnRlcl9zZXEYAyABKARSCGFmdGVyU2VxIowDChRTdHJl",
-            "YW1FdmVudHNSZXNwb25zZRIQCgNzZXEYASABKARSA3NlcRI2CgdtZXNzYWdl",
-            "GAogASgLMhoud2hhdHNtZW93LnYxLk1lc3NhZ2VFdmVudEgAUgdtZXNzYWdl",
-            "EjYKB3JlY2VpcHQYCyABKAsyGi53aGF0c21lb3cudjEuUmVjZWlwdEV2ZW50",
-            "SABSB3JlY2VpcHQSXgoVdW5kZWNyeXB0YWJsZV9tZXNzYWdlGAwgASgLMicu",
-            "d2hhdHNtZW93LnYxLlVuZGVjcnlwdGFibGVNZXNzYWdlRXZlbnRIAFIUdW5k",
-            "ZWNyeXB0YWJsZU1lc3NhZ2USTwoQY29ubmVjdGlvbl9zdGF0ZRgNIAEoCzIi",
-            "LndoYXRzbWVvdy52MS5Db25uZWN0aW9uU3RhdGVFdmVudEgAUg9jb25uZWN0",
-            "aW9uU3RhdGUSNgoHY29udGFjdBgOIAEoCzIaLndoYXRzbWVvdy52MS5Db250",
-            "YWN0RXZlbnRIAFIHY29udGFjdEIJCgdwYXlsb2FkImkKEEFja0V2ZW50c1Jl",
-            "cXVlc3QSHQoKc2Vzc2lvbl9pZBgBIAEoCVIJc2Vzc2lvbklkEhoKCGNvbnN1",
-            "bWVyGAIgASgJUghjb25zdW1lchIaCgl1cF90b19zZXEYAyABKARSB3VwVG9T",
-            "ZXEiEwoRQWNrRXZlbnRzUmVzcG9uc2UijwEKDVByZXNlbmNlRXZlbnQSEgoE",
-            "ZnJvbRgBIAEoCVIEZnJvbRIxCgVzdGF0ZRgCIAEoDjIbLndoYXRzbWVvdy52",
-            "MS5QcmVzZW5jZVN0YXRlUgVzdGF0ZRI3CglsYXN0X3NlZW4YAyABKAsyGi5n",
-            "b29nbGUucHJvdG9idWYuVGltZXN0YW1wUghsYXN0U2VlbiJ/ChFDaGF0UHJl",
-            "c2VuY2VFdmVudBIzCgZzb3VyY2UYASABKAsyGy53aGF0c21lb3cudjEuTWVz",
-            "c2FnZVNvdXJjZVIGc291cmNlEjUKBXN0YXRlGAIgASgOMh8ud2hhdHNtZW93",
-            "LnYxLkNoYXRQcmVzZW5jZVN0YXRlUgVzdGF0ZSIuChJRdWV1ZU92ZXJmbG93",
-            "RXZlbnQSGAoHZHJvcHBlZBgBIAEoBFIHZHJvcHBlZCI9ChxTdHJlYW1FcGhl",
-            "bWVyYWxFdmVudHNSZXF1ZXN0Eh0KCnNlc3Npb25faWQYASABKAlSCXNlc3Np",
-            "b25JZCL4AQodU3RyZWFtRXBoZW1lcmFsRXZlbnRzUmVzcG9uc2USOQoIcHJl",
-            "c2VuY2UYCiABKAsyGy53aGF0c21lb3cudjEuUHJlc2VuY2VFdmVudEgAUghw",
-            "cmVzZW5jZRJGCg1jaGF0X3ByZXNlbmNlGAsgASgLMh8ud2hhdHNtZW93LnYx",
-            "LkNoYXRQcmVzZW5jZUV2ZW50SABSDGNoYXRQcmVzZW5jZRJJCg5xdWV1ZV9v",
-            "dmVyZmxvdxgMIAEoCzIgLndoYXRzbWVvdy52MS5RdWV1ZU92ZXJmbG93RXZl",
-            "bnRIAFINcXVldWVPdmVyZmxvd0IJCgdwYXlsb2FkKtYCCgtSZWNlaXB0VHlw",
-            "ZRIcChhSRUNFSVBUX1RZUEVfVU5TUEVDSUZJRUQQABIaChZSRUNFSVBUX1RZ",
-            "UEVfREVMSVZFUkVEEAESFwoTUkVDRUlQVF9UWVBFX1NFTkRFUhACEhYKElJF",
-            "Q0VJUFRfVFlQRV9SRVRSWRADEhUKEVJFQ0VJUFRfVFlQRV9SRUFEEAQSGgoW",
-            "UkVDRUlQVF9UWVBFX1JFQURfU0VMRhAFEhcKE1JFQ0VJUFRfVFlQRV9QTEFZ",
-            "RUQQBhIcChhSRUNFSVBUX1RZUEVfUExBWUVEX1NFTEYQBxIdChlSRUNFSVBU",
-            "X1RZUEVfU0VSVkVSX0VSUk9SEAgSGQoVUkVDRUlQVF9UWVBFX0lOQUNUSVZF",
-            "EAkSGQoVUkVDRUlQVF9UWVBFX1BFRVJfTVNHEAoSHQoZUkVDRUlQVF9UWVBF",
-            "X0hJU1RPUllfU1lOQxALMqkCCgxFdmVudFNlcnZpY2USVwoMU3RyZWFtRXZl",
-            "bnRzEiEud2hhdHNtZW93LnYxLlN0cmVhbUV2ZW50c1JlcXVlc3QaIi53aGF0",
-            "c21lb3cudjEuU3RyZWFtRXZlbnRzUmVzcG9uc2UwARJMCglBY2tFdmVudHMS",
-            "Hi53aGF0c21lb3cudjEuQWNrRXZlbnRzUmVxdWVzdBofLndoYXRzbWVvdy52",
-            "MS5BY2tFdmVudHNSZXNwb25zZRJyChVTdHJlYW1FcGhlbWVyYWxFdmVudHMS",
-            "Ki53aGF0c21lb3cudjEuU3RyZWFtRXBoZW1lcmFsRXZlbnRzUmVxdWVzdBor",
-            "LndoYXRzbWVvdy52MS5TdHJlYW1FcGhlbWVyYWxFdmVudHNSZXNwb25zZTAB",
-            "QsEBChBjb20ud2hhdHNtZW93LnYxQgtFdmVudHNQcm90b1ABWkZnaXRodWIu",
-            "Y29tL3Rjb3J0ZWdhL1doYXRzbWVvdy5ORVQvc2lkZWNhci9nZW4vd2hhdHNt",
-            "ZW93L3YxO3doYXRzbWVvd3YxogIDV1hYqgIVV2hhdHNtZW93LlByb3RvY29s",
-            "LlYxygIMV2hhdHNtZW93XFYx4gIYV2hhdHNtZW93XFYxXEdQQk1ldGFkYXRh",
-            "6gINV2hhdHNtZW93OjpWMWIGcHJvdG8z"));
+            "dG9idWZzRTJFLnByb3RvGhp3aGF0c21lb3cvdjEvY29udGFjdC5wcm90bxoY",
+            "d2hhdHNtZW93L3YxL21lZGlhLnByb3RvGht3aGF0c21lb3cvdjEvcHJlc2Vu",
+            "Y2UucHJvdG8aGndoYXRzbWVvdy92MS9zZXNzaW9uLnByb3RvIp0BCg1NZXNz",
+            "YWdlU291cmNlEhIKBGNoYXQYASABKAlSBGNoYXQSFgoGc2VuZGVyGAIgASgJ",
+            "UgZzZW5kZXISHQoKc2VuZGVyX2FsdBgDIAEoCVIJc2VuZGVyQWx0EiMKDXJl",
+            "Y2lwaWVudF9hbHQYBCABKAlSDHJlY2lwaWVudEFsdBIcCgppc19mcm9tX21l",
+            "GAUgASgIUghpc0Zyb21NZSKuAQoLTWVzc2FnZUluZm8SMwoGc291cmNlGAEg",
+            "ASgLMhsud2hhdHNtZW93LnYxLk1lc3NhZ2VTb3VyY2VSBnNvdXJjZRIOCgJp",
+            "ZBgCIAEoCVICaWQSGwoJcHVzaF9uYW1lGAMgASgJUghwdXNoTmFtZRI9Cgxt",
+            "ZXNzYWdlX3RpbWUYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1w",
+            "UgttZXNzYWdlVGltZSJzCgxNZXNzYWdlRXZlbnQSLQoEaW5mbxgBIAEoCzIZ",
+            "LndoYXRzbWVvdy52MS5NZXNzYWdlSW5mb1IEaW5mbxI0CgdtZXNzYWdlGAIg",
+            "ASgLMhouV0FXZWJQcm90b2J1ZnNFMkUuTWVzc2FnZVIHbWVzc2FnZSLSAQoM",
+            "UmVjZWlwdEV2ZW50EjMKBnNvdXJjZRgBIAEoCzIbLndoYXRzbWVvdy52MS5N",
+            "ZXNzYWdlU291cmNlUgZzb3VyY2USHwoLbWVzc2FnZV9pZHMYAiADKAlSCm1l",
+            "c3NhZ2VJZHMSPQoMcmVjZWlwdF90aW1lGAMgASgLMhouZ29vZ2xlLnByb3Rv",
+            "YnVmLlRpbWVzdGFtcFILcmVjZWlwdFRpbWUSLQoEdHlwZRgEIAEoDjIZLndo",
+            "YXRzbWVvdy52MS5SZWNlaXB0VHlwZVIEdHlwZSJ1ChlVbmRlY3J5cHRhYmxl",
+            "TWVzc2FnZUV2ZW50Ei0KBGluZm8YASABKAsyGS53aGF0c21lb3cudjEuTWVz",
+            "c2FnZUluZm9SBGluZm8SKQoQaGlkZV9wbGFjZWhvbGRlchgCIAEoCFIPaGlk",
+            "ZVBsYWNlaG9sZGVyIkgKFENvbm5lY3Rpb25TdGF0ZUV2ZW50EjAKBXN0YXRl",
+            "GAEgASgLMhoud2hhdHNtZW93LnYxLlNlc3Npb25TdGF0ZVIFc3RhdGUibQoT",
+            "U3RyZWFtRXZlbnRzUmVxdWVzdBIdCgpzZXNzaW9uX2lkGAEgASgJUglzZXNz",
+            "aW9uSWQSGgoIY29uc3VtZXIYAiABKAlSCGNvbnN1bWVyEhsKCWFmdGVyX3Nl",
+            "cRgDIAEoBFIIYWZ0ZXJTZXEizgMKFFN0cmVhbUV2ZW50c1Jlc3BvbnNlEhAK",
+            "A3NlcRgBIAEoBFIDc2VxEjYKB21lc3NhZ2UYCiABKAsyGi53aGF0c21lb3cu",
+            "djEuTWVzc2FnZUV2ZW50SABSB21lc3NhZ2USNgoHcmVjZWlwdBgLIAEoCzIa",
+            "LndoYXRzbWVvdy52MS5SZWNlaXB0RXZlbnRIAFIHcmVjZWlwdBJeChV1bmRl",
+            "Y3J5cHRhYmxlX21lc3NhZ2UYDCABKAsyJy53aGF0c21lb3cudjEuVW5kZWNy",
+            "eXB0YWJsZU1lc3NhZ2VFdmVudEgAUhR1bmRlY3J5cHRhYmxlTWVzc2FnZRJP",
+            "ChBjb25uZWN0aW9uX3N0YXRlGA0gASgLMiIud2hhdHNtZW93LnYxLkNvbm5l",
+            "Y3Rpb25TdGF0ZUV2ZW50SABSD2Nvbm5lY3Rpb25TdGF0ZRI2Cgdjb250YWN0",
+            "GA4gASgLMhoud2hhdHNtZW93LnYxLkNvbnRhY3RFdmVudEgAUgdjb250YWN0",
+            "EkAKC21lZGlhX3JldHJ5GA8gASgLMh0ud2hhdHNtZW93LnYxLk1lZGlhUmV0",
+            "cnlFdmVudEgAUgptZWRpYVJldHJ5QgkKB3BheWxvYWQiaQoQQWNrRXZlbnRz",
+            "UmVxdWVzdBIdCgpzZXNzaW9uX2lkGAEgASgJUglzZXNzaW9uSWQSGgoIY29u",
+            "c3VtZXIYAiABKAlSCGNvbnN1bWVyEhoKCXVwX3RvX3NlcRgDIAEoBFIHdXBU",
+            "b1NlcSITChFBY2tFdmVudHNSZXNwb25zZSKPAQoNUHJlc2VuY2VFdmVudBIS",
+            "CgRmcm9tGAEgASgJUgRmcm9tEjEKBXN0YXRlGAIgASgOMhsud2hhdHNtZW93",
+            "LnYxLlByZXNlbmNlU3RhdGVSBXN0YXRlEjcKCWxhc3Rfc2VlbhgDIAEoCzIa",
+            "Lmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBSCGxhc3RTZWVuIn8KEUNoYXRQ",
+            "cmVzZW5jZUV2ZW50EjMKBnNvdXJjZRgBIAEoCzIbLndoYXRzbWVvdy52MS5N",
+            "ZXNzYWdlU291cmNlUgZzb3VyY2USNQoFc3RhdGUYAiABKA4yHy53aGF0c21l",
+            "b3cudjEuQ2hhdFByZXNlbmNlU3RhdGVSBXN0YXRlIi4KElF1ZXVlT3ZlcmZs",
+            "b3dFdmVudBIYCgdkcm9wcGVkGAEgASgEUgdkcm9wcGVkIj0KHFN0cmVhbUVw",
+            "aGVtZXJhbEV2ZW50c1JlcXVlc3QSHQoKc2Vzc2lvbl9pZBgBIAEoCVIJc2Vz",
+            "c2lvbklkIvgBCh1TdHJlYW1FcGhlbWVyYWxFdmVudHNSZXNwb25zZRI5Cghw",
+            "cmVzZW5jZRgKIAEoCzIbLndoYXRzbWVvdy52MS5QcmVzZW5jZUV2ZW50SABS",
+            "CHByZXNlbmNlEkYKDWNoYXRfcHJlc2VuY2UYCyABKAsyHy53aGF0c21lb3cu",
+            "djEuQ2hhdFByZXNlbmNlRXZlbnRIAFIMY2hhdFByZXNlbmNlEkkKDnF1ZXVl",
+            "X292ZXJmbG93GAwgASgLMiAud2hhdHNtZW93LnYxLlF1ZXVlT3ZlcmZsb3dF",
+            "dmVudEgAUg1xdWV1ZU92ZXJmbG93QgkKB3BheWxvYWQq1gIKC1JlY2VpcHRU",
+            "eXBlEhwKGFJFQ0VJUFRfVFlQRV9VTlNQRUNJRklFRBAAEhoKFlJFQ0VJUFRf",
+            "VFlQRV9ERUxJVkVSRUQQARIXChNSRUNFSVBUX1RZUEVfU0VOREVSEAISFgoS",
+            "UkVDRUlQVF9UWVBFX1JFVFJZEAMSFQoRUkVDRUlQVF9UWVBFX1JFQUQQBBIa",
+            "ChZSRUNFSVBUX1RZUEVfUkVBRF9TRUxGEAUSFwoTUkVDRUlQVF9UWVBFX1BM",
+            "QVlFRBAGEhwKGFJFQ0VJUFRfVFlQRV9QTEFZRURfU0VMRhAHEh0KGVJFQ0VJ",
+            "UFRfVFlQRV9TRVJWRVJfRVJST1IQCBIZChVSRUNFSVBUX1RZUEVfSU5BQ1RJ",
+            "VkUQCRIZChVSRUNFSVBUX1RZUEVfUEVFUl9NU0cQChIdChlSRUNFSVBUX1RZ",
+            "UEVfSElTVE9SWV9TWU5DEAsyqQIKDEV2ZW50U2VydmljZRJXCgxTdHJlYW1F",
+            "dmVudHMSIS53aGF0c21lb3cudjEuU3RyZWFtRXZlbnRzUmVxdWVzdBoiLndo",
+            "YXRzbWVvdy52MS5TdHJlYW1FdmVudHNSZXNwb25zZTABEkwKCUFja0V2ZW50",
+            "cxIeLndoYXRzbWVvdy52MS5BY2tFdmVudHNSZXF1ZXN0Gh8ud2hhdHNtZW93",
+            "LnYxLkFja0V2ZW50c1Jlc3BvbnNlEnIKFVN0cmVhbUVwaGVtZXJhbEV2ZW50",
+            "cxIqLndoYXRzbWVvdy52MS5TdHJlYW1FcGhlbWVyYWxFdmVudHNSZXF1ZXN0",
+            "Gisud2hhdHNtZW93LnYxLlN0cmVhbUVwaGVtZXJhbEV2ZW50c1Jlc3BvbnNl",
+            "MAFCwQEKEGNvbS53aGF0c21lb3cudjFCC0V2ZW50c1Byb3RvUAFaRmdpdGh1",
+            "Yi5jb20vdGNvcnRlZ2EvV2hhdHNtZW93Lk5FVC9zaWRlY2FyL2dlbi93aGF0",
+            "c21lb3cvdjE7d2hhdHNtZW93djGiAgNXWFiqAhVXaGF0c21lb3cuUHJvdG9j",
+            "b2wuVjHKAgxXaGF0c21lb3dcVjHiAhhXaGF0c21lb3dcVjFcR1BCTWV0YWRh",
+            "dGHqAg1XaGF0c21lb3c6OlYxYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, global::Whatsmeow.Proto.WAWebProtobufsE2E.WAWebProtobufsE2EReflection.Descriptor, global::Whatsmeow.Protocol.V1.ContactReflection.Descriptor, global::Whatsmeow.Protocol.V1.PresenceReflection.Descriptor, global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, global::Whatsmeow.Proto.WAWebProtobufsE2E.WAWebProtobufsE2EReflection.Descriptor, global::Whatsmeow.Protocol.V1.ContactReflection.Descriptor, global::Whatsmeow.Protocol.V1.MediaReflection.Descriptor, global::Whatsmeow.Protocol.V1.PresenceReflection.Descriptor, global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Whatsmeow.Protocol.V1.ReceiptType), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.MessageSource), global::Whatsmeow.Protocol.V1.MessageSource.Parser, new[]{ "Chat", "Sender", "SenderAlt", "RecipientAlt", "IsFromMe" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.MessageInfo), global::Whatsmeow.Protocol.V1.MessageInfo.Parser, new[]{ "Source", "Id", "PushName", "MessageTime" }, null, null, null, null),
@@ -105,7 +107,7 @@ namespace Whatsmeow.Protocol.V1 {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.UndecryptableMessageEvent), global::Whatsmeow.Protocol.V1.UndecryptableMessageEvent.Parser, new[]{ "Info", "HidePlaceholder" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.ConnectionStateEvent), global::Whatsmeow.Protocol.V1.ConnectionStateEvent.Parser, new[]{ "State" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.StreamEventsRequest), global::Whatsmeow.Protocol.V1.StreamEventsRequest.Parser, new[]{ "SessionId", "Consumer", "AfterSeq" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.StreamEventsResponse), global::Whatsmeow.Protocol.V1.StreamEventsResponse.Parser, new[]{ "Seq", "Message", "Receipt", "UndecryptableMessage", "ConnectionState", "Contact" }, new[]{ "Payload" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.StreamEventsResponse), global::Whatsmeow.Protocol.V1.StreamEventsResponse.Parser, new[]{ "Seq", "Message", "Receipt", "UndecryptableMessage", "ConnectionState", "Contact", "MediaRetry" }, new[]{ "Payload" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.AckEventsRequest), global::Whatsmeow.Protocol.V1.AckEventsRequest.Parser, new[]{ "SessionId", "Consumer", "UpToSeq" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.AckEventsResponse), global::Whatsmeow.Protocol.V1.AckEventsResponse.Parser, null, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.PresenceEvent), global::Whatsmeow.Protocol.V1.PresenceEvent.Parser, new[]{ "From", "State", "LastSeen" }, null, null, null, null),
@@ -2284,6 +2286,9 @@ namespace Whatsmeow.Protocol.V1 {
         case PayloadOneofCase.Contact:
           Contact = other.Contact.Clone();
           break;
+        case PayloadOneofCase.MediaRetry:
+          MediaRetry = other.MediaRetry.Clone();
+          break;
       }
 
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -2385,6 +2390,21 @@ namespace Whatsmeow.Protocol.V1 {
       }
     }
 
+    /// <summary>Field number for the "media_retry" field.</summary>
+    public const int MediaRetryFieldNumber = 15;
+    /// <summary>
+    /// The phone's answer to a media retry request (media.proto).
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Protocol.V1.MediaRetryEvent MediaRetry {
+      get { return payloadCase_ == PayloadOneofCase.MediaRetry ? (global::Whatsmeow.Protocol.V1.MediaRetryEvent) payload_ : null; }
+      set {
+        payload_ = value;
+        payloadCase_ = value == null ? PayloadOneofCase.None : PayloadOneofCase.MediaRetry;
+      }
+    }
+
     private object payload_;
     /// <summary>Enum of possible cases for the "payload" oneof.</summary>
     public enum PayloadOneofCase {
@@ -2394,6 +2414,7 @@ namespace Whatsmeow.Protocol.V1 {
       UndecryptableMessage = 12,
       ConnectionState = 13,
       Contact = 14,
+      MediaRetry = 15,
     }
     private PayloadOneofCase payloadCase_ = PayloadOneofCase.None;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2430,6 +2451,7 @@ namespace Whatsmeow.Protocol.V1 {
       if (!object.Equals(UndecryptableMessage, other.UndecryptableMessage)) return false;
       if (!object.Equals(ConnectionState, other.ConnectionState)) return false;
       if (!object.Equals(Contact, other.Contact)) return false;
+      if (!object.Equals(MediaRetry, other.MediaRetry)) return false;
       if (PayloadCase != other.PayloadCase) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -2444,6 +2466,7 @@ namespace Whatsmeow.Protocol.V1 {
       if (payloadCase_ == PayloadOneofCase.UndecryptableMessage) hash ^= UndecryptableMessage.GetHashCode();
       if (payloadCase_ == PayloadOneofCase.ConnectionState) hash ^= ConnectionState.GetHashCode();
       if (payloadCase_ == PayloadOneofCase.Contact) hash ^= Contact.GetHashCode();
+      if (payloadCase_ == PayloadOneofCase.MediaRetry) hash ^= MediaRetry.GetHashCode();
       hash ^= (int) payloadCase_;
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -2487,6 +2510,10 @@ namespace Whatsmeow.Protocol.V1 {
         output.WriteRawTag(114);
         output.WriteMessage(Contact);
       }
+      if (payloadCase_ == PayloadOneofCase.MediaRetry) {
+        output.WriteRawTag(122);
+        output.WriteMessage(MediaRetry);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -2521,6 +2548,10 @@ namespace Whatsmeow.Protocol.V1 {
         output.WriteRawTag(114);
         output.WriteMessage(Contact);
       }
+      if (payloadCase_ == PayloadOneofCase.MediaRetry) {
+        output.WriteRawTag(122);
+        output.WriteMessage(MediaRetry);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -2548,6 +2579,9 @@ namespace Whatsmeow.Protocol.V1 {
       }
       if (payloadCase_ == PayloadOneofCase.Contact) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(Contact);
+      }
+      if (payloadCase_ == PayloadOneofCase.MediaRetry) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(MediaRetry);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -2594,6 +2628,12 @@ namespace Whatsmeow.Protocol.V1 {
             Contact = new global::Whatsmeow.Protocol.V1.ContactEvent();
           }
           Contact.MergeFrom(other.Contact);
+          break;
+        case PayloadOneofCase.MediaRetry:
+          if (MediaRetry == null) {
+            MediaRetry = new global::Whatsmeow.Protocol.V1.MediaRetryEvent();
+          }
+          MediaRetry.MergeFrom(other.MediaRetry);
           break;
       }
 
@@ -2665,6 +2705,15 @@ namespace Whatsmeow.Protocol.V1 {
             Contact = subBuilder;
             break;
           }
+          case 122: {
+            global::Whatsmeow.Protocol.V1.MediaRetryEvent subBuilder = new global::Whatsmeow.Protocol.V1.MediaRetryEvent();
+            if (payloadCase_ == PayloadOneofCase.MediaRetry) {
+              subBuilder.MergeFrom(MediaRetry);
+            }
+            input.ReadMessage(subBuilder);
+            MediaRetry = subBuilder;
+            break;
+          }
         }
       }
     #endif
@@ -2731,6 +2780,15 @@ namespace Whatsmeow.Protocol.V1 {
             }
             input.ReadMessage(subBuilder);
             Contact = subBuilder;
+            break;
+          }
+          case 122: {
+            global::Whatsmeow.Protocol.V1.MediaRetryEvent subBuilder = new global::Whatsmeow.Protocol.V1.MediaRetryEvent();
+            if (payloadCase_ == PayloadOneofCase.MediaRetry) {
+              subBuilder.MergeFrom(MediaRetry);
+            }
+            input.ReadMessage(subBuilder);
+            MediaRetry = subBuilder;
             break;
           }
         }

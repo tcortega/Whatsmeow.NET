@@ -1,0 +1,178 @@
+syntax = "proto3";
+
+package whatsmeow.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// MediaService moves media between the client and WhatsApp: encrypted uploads, verified downloads, and the media
+// retry that asks the phone to upload expired media again (ARCHITECTURE §7.6).
+//
+// A file never travels as one message (ARCHITECTURE invariant 8). On the same host it is handed over by path: an
+// absolute path inside the sidecar's media root (--media-root), which the sidecar resolves itself and refuses when it
+// leaves the root, by ".." or by a symlink (also an absolute one). Otherwise it travels in chunks of at most 65536
+// bytes. A transfer is bounded only by the call's deadline and cancellation.
+// Every RPC needs the session online (Connected or CaughtUp): whatsmeow asks WhatsApp for its media hosts over the
+// session's connection. Errors on every RPC: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, TEMPORARILY_BANNED,
+// NOT_CONNECTED.
+service MediaService {
+  // UploadMedia encrypts a file with a new media key and uploads it. The first message is the header; when its path
+  // is empty, the file follows in chunks and the client ends the stream. The sidecar never writes the file it reads:
+  // whatsmeow encrypts into a temporary file of the sidecar's own. A failed upload is retried with backoff within the
+  // call, 3 attempts in all, each with a new media key; the client sees one MediaRef or one error.
+  // Errors: INVALID_ARGUMENT (a missing or repeated header, an unspecified media type, chunks after a path, a chunk
+  // over 65536 bytes, field "chunk"; a path that is not absolute, not inside the media root, escapes it, or is not a
+  // regular file, or no media root configured, field "header.path"), INTERNAL (every attempt failed).
+  rpc UploadMedia(stream UploadMediaRequest) returns (UploadMediaResponse);
+
+  // DownloadMedia downloads and decrypts media. The sidecar verifies the whole file (the MAC covers all of the
+  // ciphertext) before any plaintext leaves it. With a path, it writes the file there and the stream ends with OK and
+  // no messages; the path then holds the verified file, a new file with mode 0600 that replaces atomically whatever
+  // file was there, or nothing new. Without one, the
+  // plaintext follows in chunks. A plaintext SHA-256 that differs after a valid MAC is delivered, with a warning log,
+  // as mautrix does.
+  // Errors: INVALID_ARGUMENT (an incomplete media, field "media"; a path as for UploadMedia, field "path", or one
+  // whose directory does not exist), MEDIA_EXPIRED, INTERNAL (the MAC or the ciphertext hash did not verify; nothing
+  // was delivered).
+  rpc DownloadMedia(DownloadMediaRequest) returns (stream DownloadMediaResponse);
+
+  // RequestMediaRetry asks the account's phone to upload a received message's media again, and returns once the
+  // request was sent. The phone's answer arrives later, as a MediaRetryEvent on the event stream; it may never come,
+  // and the sidecar sets no timeout for it. The sidecar keeps the request, so an answer after a restart still maps.
+  // Errors: INVALID_ARGUMENT (an empty message_id, a malformed chat or sender, a group chat without a sender, an
+  // incomplete media).
+  rpc RequestMediaRetry(RequestMediaRetryRequest) returns (RequestMediaRetryResponse);
+}
+
+// MediaType is the kind of key a file is encrypted with.
+enum MediaType {
+  // Not a media type; refused.
+  MEDIA_TYPE_UNSPECIFIED = 0;
+  // An image, and a sticker.
+  MEDIA_TYPE_IMAGE = 1;
+  // A video.
+  MEDIA_TYPE_VIDEO = 2;
+  // Audio, voice notes included.
+  MEDIA_TYPE_AUDIO = 3;
+  // A document.
+  MEDIA_TYPE_DOCUMENT = 4;
+}
+
+// MediaRef is an uploaded file on WhatsApp's servers: enough to download it, or to send it again without uploading,
+// also after a sidecar restart and without the message it came in.
+message MediaRef {
+  // The key type it is encrypted with.
+  MediaType media_type = 1;
+  // The server path it downloads from; starts with "/".
+  string direct_path = 2;
+  // The URL the upload returned; empty when unknown.
+  string url = 3;
+  // The 32-byte media key.
+  bytes media_key = 4;
+  // The SHA-256 of the plaintext.
+  bytes file_sha256 = 5;
+  // The SHA-256 of what was uploaded: the ciphertext and its MAC.
+  bytes file_enc_sha256 = 6;
+  // The plaintext's length in bytes.
+  uint64 file_length = 7;
+  // A video's streaming sidecar (a MAC per 64 KiB of ciphertext); empty for the other types.
+  bytes streaming_sidecar = 8;
+}
+
+// UploadMediaRequest is one message of an upload: the header first, then the chunks.
+message UploadMediaRequest {
+  // What is uploaded, and from where.
+  message Header {
+    // The session id.
+    string session_id = 1;
+    // The key type to encrypt with.
+    MediaType media_type = 2;
+    // An absolute path inside the media root; empty when the file follows in chunks.
+    string path = 3;
+  }
+
+  // The part.
+  oneof part {
+    // The first message.
+    Header header = 1;
+    // The next at most 65536 bytes of the file.
+    bytes chunk = 2;
+  }
+}
+
+// UploadMediaResponse is the uploaded file.
+message UploadMediaResponse {
+  // The file on WhatsApp's servers.
+  MediaRef media = 1;
+}
+
+// DownloadMediaRequest names the media and where it goes.
+message DownloadMediaRequest {
+  // The session id.
+  string session_id = 1;
+  // The media; it needs media_type, direct_path, media_key, file_sha256 and file_enc_sha256.
+  MediaRef media = 2;
+  // An absolute path inside the media root to write the file to; empty for chunks.
+  string path = 3;
+}
+
+// DownloadMediaResponse is the next part of the verified plaintext.
+message DownloadMediaResponse {
+  // At most 65536 bytes.
+  bytes chunk = 1;
+}
+
+// RequestMediaRetryRequest names the received message whose media expired.
+message RequestMediaRetryRequest {
+  // The session id.
+  string session_id = 1;
+  // The WhatsApp message id.
+  string message_id = 2;
+  // The message's chat, as in MessageSource.chat.
+  string chat = 3;
+  // In a group chat, the message's sender; empty in a direct chat.
+  string sender = 4;
+  // True when the account itself sent the message.
+  bool is_from_me = 5;
+  // The message's media, as it came; the answer replaces its direct_path.
+  MediaRef media = 6;
+}
+
+// RequestMediaRetryResponse has no fields.
+message RequestMediaRetryResponse {}
+
+// MediaRetryEvent is the phone's answer to RequestMediaRetry. It is best effort: whatsmeow acknowledges the
+// notification it comes in whatever the handler does (notification.go:510-511), and the phone may never answer.
+message MediaRetryEvent {
+  // The WhatsApp message id the request named.
+  string message_id = 1;
+  // The message's chat.
+  string chat = 2;
+  // In a group chat, the message's sender; empty in a direct chat.
+  string sender = 3;
+  // True when the account itself sent the message.
+  bool is_from_me = 4;
+  // When the phone answered.
+  google.protobuf.Timestamp retry_time = 5;
+
+  // The answer.
+  oneof result {
+    // The phone uploaded it again: the requested media with its new direct_path and no url.
+    MediaRef media = 6;
+    // The phone could not.
+    MediaRetryFailure failure = 7;
+  }
+}
+
+// MediaRetryFailure is why the phone did not upload the media again.
+enum MediaRetryFailure {
+  // A failure this list does not have, or an answer the sidecar could not decrypt.
+  MEDIA_RETRY_FAILURE_UNSPECIFIED = 0;
+  // The phone reported a general error.
+  MEDIA_RETRY_FAILURE_GENERAL_ERROR = 1;
+  // The phone does not have the message.
+  MEDIA_RETRY_FAILURE_NOT_FOUND = 2;
+  // The phone could not decrypt the request.
+  MEDIA_RETRY_FAILURE_DECRYPTION_ERROR = 3;
+  // The media is no longer on the phone.
+  MEDIA_RETRY_FAILURE_NOT_ON_PHONE = 4;
+}

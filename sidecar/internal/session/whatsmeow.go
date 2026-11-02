@@ -4,14 +4,15 @@ import (
 	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/store"
-	waLog "go.mau.fi/whatsmeow/util/log"
+
+	sidecarlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 )
 
 // NewWhatsmeowClient returns the release build's client factory: a whatsmeow client configured as ARCHITECTURE
-// §7.2 says, following mautrix-whatsapp (ADR 0013).
+// §7.2 says, following mautrix-whatsapp (ADR 0013), whose log lines have no URL query (sidecarlog.Whatsmeow).
 func NewWhatsmeowClient(log zerolog.Logger) NewClient {
 	return func(sessionID string, device *store.Device) Client {
-		return configure(whatsmeow.NewClient(device, waLog.Zerolog(log.With().Str("session_id", sessionID).Str("component", "whatsmeow").Logger())))
+		return configure(whatsmeow.NewClient(device, sidecarlog.Whatsmeow(log.With().Str("session_id", sessionID).Str("component", "whatsmeow").Logger())))
 	}
 }
 

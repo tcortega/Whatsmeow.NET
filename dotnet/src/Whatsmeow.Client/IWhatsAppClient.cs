@@ -205,6 +205,108 @@ public interface IWhatsAppClient
 		where TEvent : WhatsAppEvent;
 
 	/// <summary>
+	/// Encrypts the file at <paramref name="path"/> with a new media key and uploads it. A path under
+	/// <see cref="WhatsmeowSidecarOptions.MediaRoot"/> is handed to the sidecar, which reads it in place, so no file bytes
+	/// cross the socket; any other file is read here and sent in 64 KiB chunks. The file is never changed. A failed
+	/// upload is retried by the sidecar, 3 attempts in all; the call ends with one <see cref="MediaRef"/> or one error.
+	/// Only <paramref name="cancellationToken"/> bounds it, so a file of any size can finish.
+	/// </summary>
+	/// <exception cref="WhatsmeowValidationException">A path under the media root the sidecar refused: not a regular file, leaving the root by a symlink, or removed after the client found it.</exception>
+	/// <exception cref="WhatsmeowException">Every attempt failed (<see cref="WhatsmeowErrorCode.Internal"/>).</exception>
+	/// <exception cref="NotConnectedException">The session is not Connected or CaughtUp.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
+	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="FileNotFoundException">The file is missing, under the media root or not.</exception>
+	/// <exception cref="DirectoryNotFoundException">The file's directory is missing, under the media root or not.</exception>
+	/// <exception cref="IOException">A file outside the media root could not be read.</exception>
+	/// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
+	/// <exception cref="ArgumentException"><paramref name="path"/> is empty, or <paramref name="type"/> is not a media type.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
+	Task<MediaRef> UploadMediaFileAsync(string path, MediaType type, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Encrypts what <paramref name="content"/> holds from its position to its end, and uploads it, in 64 KiB chunks,
+	/// as <see cref="UploadMediaFileAsync"/> does. The stream is read, not disposed.
+	/// </summary>
+	/// <exception cref="WhatsmeowException">Every attempt failed (<see cref="WhatsmeowErrorCode.Internal"/>).</exception>
+	/// <exception cref="NotConnectedException">The session is not Connected or CaughtUp.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
+	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
+	/// <exception cref="ArgumentException"><paramref name="type"/> is not a media type.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+	Task<MediaRef> UploadMediaAsync(Stream content, MediaType type, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Downloads and decrypts <paramref name="media"/> to <paramref name="path"/>, replacing a file there: the path
+	/// gets a new file, readable and writable by its owner only on Linux and macOS (0600), never the old one's mode. The
+	/// whole file is verified (its MAC covers all of it) before it is put in place, so the path holds the verified file,
+	/// or what it held before: never a part of it, also when the download fails or is cancelled. Under
+	/// <see cref="WhatsmeowSidecarOptions.MediaRoot"/> the sidecar writes the file itself; elsewhere it travels in
+	/// 64 KiB chunks. The file's directory must exist. Only <paramref name="cancellationToken"/> bounds it.
+	/// </summary>
+	/// <exception cref="MediaExpiredException">WhatsApp no longer has it; <see cref="RequestMediaRetryAsync"/> can ask the phone for it.</exception>
+	/// <exception cref="WhatsmeowValidationException"><paramref name="media"/> is incomplete, or a path under the media root the sidecar refused.</exception>
+	/// <exception cref="WhatsmeowException">The file did not verify (<see cref="WhatsmeowErrorCode.Internal"/>); nothing was written.</exception>
+	/// <exception cref="NotConnectedException">The session is not Connected or CaughtUp.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
+	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="DirectoryNotFoundException">The file's directory is missing, under the media root or not.</exception>
+	/// <exception cref="IOException">A path outside the media root could not be written.</exception>
+	/// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
+	/// <exception cref="ArgumentException"><paramref name="path"/> is empty.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="media"/> or <paramref name="path"/> is null.</exception>
+	Task DownloadMediaFileAsync(MediaRef media, string path, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Downloads and decrypts <paramref name="media"/>, and writes it to <paramref name="destination"/> in 64 KiB chunks.
+	/// The sidecar verifies the whole file before the first byte is written. If the transfer then breaks, the stream
+	/// holds the start of the verified file; <see cref="DownloadMediaFileAsync"/> is all or nothing. The stream is written, not disposed.
+	/// </summary>
+	/// <exception cref="MediaExpiredException">WhatsApp no longer has it; <see cref="RequestMediaRetryAsync"/> can ask the phone for it.</exception>
+	/// <exception cref="WhatsmeowValidationException"><paramref name="media"/> is incomplete.</exception>
+	/// <exception cref="WhatsmeowException">The file did not verify (<see cref="WhatsmeowErrorCode.Internal"/>); nothing was written.</exception>
+	/// <exception cref="NotConnectedException">The session is not Connected or CaughtUp.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
+	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="media"/> or <paramref name="destination"/> is null.</exception>
+	Task DownloadMediaAsync(MediaRef media, Stream destination, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Asks the account's phone to upload a received message's media again, after a download threw
+	/// <see cref="MediaExpiredException"/>, and returns once the request is sent. The answer arrives later as a
+	/// <see cref="MediaRetryReceived"/> event (<see cref="On{TEvent}"/>), with the media at its new path or the phone's
+	/// failure. It is best effort: the phone may never answer, and nothing here times the request out; the
+	/// application decides how long to wait. The sidecar keeps the request, so an answer after a restart still arrives.
+	/// </summary>
+	/// <param name="id">The message's id.</param>
+	/// <param name="source">The message's source, as it was received: its chat, its sender and whether the account sent it.</param>
+	/// <param name="media">The message's media.</param>
+	/// <param name="cancellationToken">Cancels the request.</param>
+	/// <exception cref="WhatsmeowValidationException"><paramref name="media"/> is incomplete, or a group message has no sender.</exception>
+	/// <exception cref="NotConnectedException">The session is not Connected or CaughtUp.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
+	/// <exception cref="SessionLoggedOutException">The session was logged out.</exception>
+	/// <exception cref="TemporarilyBannedException">The account is temporarily banned.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="source"/> or <paramref name="media"/> is null.</exception>
+	Task RequestMediaRetryAsync(MessageId id, MessageSource source, MediaRef media, CancellationToken cancellationToken = default);
+
+	/// <summary>
 	/// Calls <paramref name="handler"/> whenever a handler of the session's events throws, until the returned
 	/// registration is disposed. It runs right after the failure, before the next handler of the same chat.
 	/// </summary>
