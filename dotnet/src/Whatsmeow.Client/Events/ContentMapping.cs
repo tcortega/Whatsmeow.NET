@@ -17,17 +17,18 @@ internal static class ContentMapping
 	/// <param name="viewOnce">True when whatsmeow unwrapped it from a view-once wrapper.</param>
 	/// <param name="target">
 	/// The message a reaction, an edit or a revoke names, as the sidecar read its key; null for every other message, and
-	/// for a key that names none, which makes the action malformed: unknown content.
+	/// for a key that names none, which makes the action malformed: unknown content, as is a target whose sender is not
+	/// a JID, since no sender is the account's.
 	/// </param>
 	public static MessageContent ToContent(E2E.Message? message, bool viewOnce, MessageTarget? target) =>
-		(message, target) switch
+		(message, ToKey(target)) switch
 		{
 			// REVOKE is the type's zero value (WAWebProtobufsE2E.proto), so only a set type is one.
-			({ ReactionMessage: { } reaction }, { } key) => new ReactionContent { Target = ToKey(key), Emoji = reaction.Text },
-			({ ProtocolMessage: { HasType: true, Type: ProtocolType.Revoke } }, { } key) => new RevokeContent { Target = ToKey(key) },
+			({ ReactionMessage: { } reaction }, { } key) => new ReactionContent { Target = key, Emoji = reaction.Text },
+			({ ProtocolMessage: { HasType: true, Type: ProtocolType.Revoke } }, { } key) => new RevokeContent { Target = key },
 			({ ProtocolMessage: { HasType: true, Type: ProtocolType.MessageEdit, EditedMessage: { } edited } }, { } key) => new EditContent
 			{
-				Target = ToKey(key),
+				Target = key,
 				Content = ToContent(edited, viewOnce: false, target: null),
 			},
 			({ HasConversation: true }, _) => new TextContent { Text = message.Conversation },
@@ -145,22 +146,32 @@ internal static class ContentMapping
 			StreamingSidecar = [.. streamingSidecar.Span],
 		};
 
-	/// <summary>The message a reaction, an edit or a revoke names; an empty sender is the account's own message.</summary>
-	private static MessageKey ToKey(MessageTarget target) =>
-		new()
+	/// <summary>
+	/// The message a reaction, an edit or a revoke names, or a reply quotes; an empty sender is the account's own message.
+	/// Null for none, and for a sender that is not a JID: no sender would read as the account's.
+	/// </summary>
+	private static MessageKey? ToKey(MessageTarget? target) =>
+		target switch
 		{
-			Id = MessageId.From(target.Id),
-			Sender = Jid.TryParse(target.Sender, out var sender) ? sender : null,
+			null => null,
+			{ Sender.Length: 0 } => new MessageKey { Id = MessageId.From(target.Id) },
+			_ when Jid.TryParse(target.Sender, out var sender) => new MessageKey { Id = MessageId.From(target.Id), Sender = sender },
+			_ => null,
 		};
 
-	/// <summary>The message a received one replies to, from its content's context; null for no reply.</summary>
-	public static QuotedMessage? ToReplyTo(E2E.Message? message) =>
-		ContextOf(message) is { StanzaID.Length: > 0 } context
+	/// <summary>
+	/// The message a received one replies to: the quote the sidecar named, with the quoted content from the content's
+	/// context; null for no reply, and for a quote that names no sender the client can tell.
+	/// </summary>
+	/// <param name="message">The message as whatsmeow unwrapped it.</param>
+	/// <param name="replyTo">The quote as the sidecar named it, whose empty sender is the account's own message.</param>
+	public static QuotedMessage? ToReplyTo(E2E.Message? message, MessageTarget? replyTo) =>
+		ToKey(replyTo) is { } quoted
 			? new QuotedMessage
 			{
-				Id = MessageId.From(context.StanzaID),
-				Sender = Jid.TryParse(context.Participant, out var sender) ? sender : null,
-				Content = context.QuotedMessage is { } quoted ? ToContent(quoted, viewOnce: false, target: null) : null,
+				Id = quoted.Id,
+				Sender = quoted.Sender,
+				Content = ContextOf(message)?.QuotedMessage is { } content ? ToContent(content, viewOnce: false, target: null) : null,
 			}
 			: null;
 

@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
 	"google.golang.org/grpc/codes"
@@ -16,8 +17,9 @@ import (
 )
 
 const (
-	group  = "120363000000000000@g.us"
-	member = "5511900000002:7@s.whatsapp.net"
+	group    = "120363000000000000@g.us"
+	lidGroup = "120363000000000001@g.us"
+	member   = "5511900000002:7@s.whatsapp.net"
 )
 
 // withoutTimes is message without the times whatsmeow's builders stamp (send.go:551-635), so two builds compare.
@@ -353,17 +355,27 @@ func TestEveryKindOfSendCarriesTheReplyAndTheMentionsOnItsMessage(t *testing.T) 
 	}
 }
 
-// A reply without a sender quotes the account's own message, named as the chat names the account: by its LID in a LID
-// chat, by its phone number otherwise. Which form a LID-addressed group needs is unknown (#36).
-func TestAReplyToTheAccountsOwnMessageNamesTheAccountAsTheChatDoes(t *testing.T) {
+// A reply without a sender quotes the account's own message, named as whatsmeow names the account when it sends to
+// the chat (send.go:304-365): by its LID in a direct chat, by phone number or LID, as whatsmeow sends a phone number's
+// message to its LID, and in a LID-addressed group; by its phone number in any other group, and in a direct chat while
+// the LID is unknown. Whether WhatsApp resolves the quote either way is unknown (#36).
+func TestAReplyToTheAccountsOwnMessageNamesTheAccountAsWhatsmeowSendsToTheChat(t *testing.T) {
 	t.Parallel()
 
-	for _, c := range []struct{ chat, account string }{
-		{"111@lid", "900000001@lid"},
-		{"5511900000009@s.whatsapp.net", "5511900000001@s.whatsapp.net"},
-		{group, "5511900000001@s.whatsapp.net"},
+	for _, c := range []struct {
+		chat, account string
+		noLID         bool
+	}{
+		{"111@lid", "900000001@lid", false},
+		{"5511900000009@s.whatsapp.net", "900000001@lid", false},
+		{lidGroup, "900000001@lid", false},
+		{group, "5511900000001@s.whatsapp.net", false},
+		{"5511900000009@s.whatsapp.net", "5511900000001@s.whatsapp.net", true},
 	} {
 		h := start(t)
+		if c.noLID {
+			h.stub.wa.Store.LID = types.EmptyJID
+		}
 
 		if _, err := h.client.SendText(h.ctx, &whatsmeowv1.SendTextRequest{SessionId: "s1", Chat: c.chat, ClientMessageId: id(1), Text: "more", ReplyTo: &whatsmeowv1.MessageReply{Id: "ABC"}}); err != nil {
 			t.Fatalf("SendText to %s: %v", c.chat, err)
@@ -374,8 +386,25 @@ func TestAReplyToTheAccountsOwnMessageNamesTheAccountAsTheChatDoes(t *testing.T)
 			QuotedMessage: &waE2E.Message{Conversation: proto.String("")}, QuotedType: waE2E.ContextInfo_EXPLICIT.Enum(),
 		}}}
 		if sent := h.only(t); !proto.Equal(sent.message, want) {
-			t.Fatalf("in %s whatsmeow got %v, want %v", c.chat, sent.message, want)
+			t.Fatalf("in %s (no LID: %v) whatsmeow got %v, want %v", c.chat, c.noLID, sent.message, want)
 		}
+	}
+}
+
+// In a group, the account's own reply reads the group's addressing mode first, as whatsmeow's send does
+// (send.go:307-323): when WhatsApp refuses it, the send fails as whatsmeow's would, with WhatsApp's code, and sends
+// nothing, so a repeat may send.
+func TestAnOwnReplyInAGroupWhoseInfoWhatsAppRefusesFailsAndSendsNothing(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.stub.groupErr = fmt.Errorf("%w: %w", whatsmeow.ErrNotInGroup, &whatsmeow.IQError{Code: 403, Text: "forbidden"})
+
+	_, err := h.client.SendText(h.ctx, &whatsmeowv1.SendTextRequest{SessionId: "s1", Chat: group, ClientMessageId: id(1), Text: "more", ReplyTo: &whatsmeowv1.MessageReply{Id: "ABC"}})
+	wantReason(t, err, codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "403"})
+
+	if exists, _, _, _ := h.record(1); exists || len(h.stub.sent()) != 0 {
+		t.Fatal("a refused group info left a record or reached whatsmeow")
 	}
 }
 

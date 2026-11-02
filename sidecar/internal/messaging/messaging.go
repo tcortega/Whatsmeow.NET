@@ -36,6 +36,8 @@ type whatsApp interface {
 	BuildReaction(chat, sender types.JID, id types.MessageID, reaction string) *waE2E.Message
 	BuildRevoke(chat, sender types.JID, id types.MessageID) *waE2E.Message
 	BuildEdit(chat types.JID, id types.MessageID, newContent *waE2E.Message) *waE2E.Message
+	// A group's info, whose addressing mode says how whatsmeow names the account in it (send.go:307-323).
+	GetGroupInfo(ctx context.Context, jid types.JID) (*types.GroupInfo, error)
 }
 
 var _ whatsApp = (*whatsmeow.Client)(nil)

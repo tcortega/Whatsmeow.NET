@@ -477,7 +477,11 @@ type MessageEvent struct {
 	// For a reaction, an edit or a revoke, the message its key names; unset for every other message, and for a key
 	// that names none: one without an id, one whose participant is not a JID, or, outside a direct chat, one that is
 	// not the actor's and names no participant.
-	Target        *MessageTarget `protobuf:"bytes,7,opt,name=target,proto3" json:"target,omitempty"`
+	Target *MessageTarget `protobuf:"bytes,7,opt,name=target,proto3" json:"target,omitempty"`
+	// For a reply, the message it quotes, as the context of its content names it (an edit's is its new content's): its
+	// id and sender, read as a target's sender is. Unset for every other message, and for a quote that names no sender
+	// the sidecar can tell: one whose participant is missing or is not a user's JID.
+	ReplyTo       *MessageTarget `protobuf:"bytes,8,opt,name=reply_to,json=replyTo,proto3" json:"reply_to,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -561,15 +565,23 @@ func (x *MessageEvent) GetTarget() *MessageTarget {
 	return nil
 }
 
+func (x *MessageEvent) GetReplyTo() *MessageTarget {
+	if x != nil {
+		return x.ReplyTo
+	}
+	return nil
+}
+
 // MessageTarget is the message a reaction, an edit or a revoke names by its key.
 type MessageTarget struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The message's WhatsApp id.
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// Its sender, a user's JID without a device, as mautrix reads a key (pkg/msgconv/wa-poll.go:97-132 at 5dd621f): the
-	// actor when the key says the actor sent it, else the key's participant, else, in a direct chat, the other side:
-	// the chat when the account acted, else the account. Empty for the account's own message, by its phone number or
-	// LID and from any device, so empty always means the account's.
+	// Its sender, a user's JID without a device. For an action, as mautrix reads a key (pkg/msgconv/wa-poll.go:97-132
+	// at 5dd621f): the actor when the key says the actor sent it, else the key's participant, else, in a direct chat,
+	// the other side: the chat when the account acted, else the account. For a quote, the context's participant. A
+	// participant's c.us reads as s.whatsapp.net. Empty for the account's own message, by its phone number or LID and
+	// from any device, so empty always means the account's.
 	Sender        string `protobuf:"bytes,2,opt,name=sender,proto3" json:"sender,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1706,7 +1718,7 @@ const file_whatsmeow_v1_events_proto_rawDesc = "" +
 	"\x06source\x18\x01 \x01(\v2\x1b.whatsmeow.v1.MessageSourceR\x06source\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\tR\x02id\x12\x1b\n" +
 	"\tpush_name\x18\x03 \x01(\tR\bpushName\x12=\n" +
-	"\fmessage_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\vmessageTime\"\xd8\x02\n" +
+	"\fmessage_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\vmessageTime\"\x90\x03\n" +
 	"\fMessageEvent\x12-\n" +
 	"\x04info\x18\x01 \x01(\v2\x19.whatsmeow.v1.MessageInfoR\x04info\x124\n" +
 	"\amessage\x18\x02 \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\x12\x1b\n" +
@@ -1715,7 +1727,8 @@ const file_whatsmeow_v1_events_proto_rawDesc = "" +
 	"\x17device_sent_destination\x18\x05 \x01(\tR\x15deviceSentDestination\x12;\n" +
 	"\vraw_message\x18\x06 \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\n" +
 	"rawMessage\x123\n" +
-	"\x06target\x18\a \x01(\v2\x1b.whatsmeow.v1.MessageTargetR\x06target\"7\n" +
+	"\x06target\x18\a \x01(\v2\x1b.whatsmeow.v1.MessageTargetR\x06target\x126\n" +
+	"\breply_to\x18\b \x01(\v2\x1b.whatsmeow.v1.MessageTargetR\areplyTo\"7\n" +
 	"\rMessageTarget\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
 	"\x06sender\x18\x02 \x01(\tR\x06sender\"\xf9\x01\n" +
@@ -1882,44 +1895,45 @@ var file_whatsmeow_v1_events_proto_depIdxs = []int32{
 	23, // 3: whatsmeow.v1.MessageEvent.message:type_name -> WAWebProtobufsE2E.Message
 	23, // 4: whatsmeow.v1.MessageEvent.raw_message:type_name -> WAWebProtobufsE2E.Message
 	7,  // 5: whatsmeow.v1.MessageEvent.target:type_name -> whatsmeow.v1.MessageTarget
-	4,  // 6: whatsmeow.v1.ReceiptEvent.source:type_name -> whatsmeow.v1.MessageSource
-	22, // 7: whatsmeow.v1.ReceiptEvent.receipt_time:type_name -> google.protobuf.Timestamp
-	0,  // 8: whatsmeow.v1.ReceiptEvent.type:type_name -> whatsmeow.v1.ReceiptType
-	5,  // 9: whatsmeow.v1.UndecryptableMessageEvent.info:type_name -> whatsmeow.v1.MessageInfo
-	1,  // 10: whatsmeow.v1.UndecryptableMessageEvent.unavailable_type:type_name -> whatsmeow.v1.UnavailableType
-	24, // 11: whatsmeow.v1.ConnectionStateEvent.state:type_name -> whatsmeow.v1.SessionState
-	6,  // 12: whatsmeow.v1.StreamEventsResponse.message:type_name -> whatsmeow.v1.MessageEvent
-	8,  // 13: whatsmeow.v1.StreamEventsResponse.receipt:type_name -> whatsmeow.v1.ReceiptEvent
-	9,  // 14: whatsmeow.v1.StreamEventsResponse.undecryptable_message:type_name -> whatsmeow.v1.UndecryptableMessageEvent
-	10, // 15: whatsmeow.v1.StreamEventsResponse.connection_state:type_name -> whatsmeow.v1.ConnectionStateEvent
-	25, // 16: whatsmeow.v1.StreamEventsResponse.contact:type_name -> whatsmeow.v1.ContactEvent
-	26, // 17: whatsmeow.v1.StreamEventsResponse.media_retry:type_name -> whatsmeow.v1.MediaRetryEvent
-	27, // 18: whatsmeow.v1.StreamEventsResponse.group:type_name -> whatsmeow.v1.GroupEvent
-	28, // 19: whatsmeow.v1.StreamEventsResponse.chat_state:type_name -> whatsmeow.v1.ChatStateEvent
-	13, // 20: whatsmeow.v1.StreamEventsResponse.history_messages:type_name -> whatsmeow.v1.HistoryMessagesEvent
-	14, // 21: whatsmeow.v1.StreamEventsResponse.history_progress:type_name -> whatsmeow.v1.HistorySyncProgressEvent
-	2,  // 22: whatsmeow.v1.HistoryMessagesEvent.sync_type:type_name -> whatsmeow.v1.HistorySyncType
-	6,  // 23: whatsmeow.v1.HistoryMessagesEvent.messages:type_name -> whatsmeow.v1.MessageEvent
-	2,  // 24: whatsmeow.v1.HistorySyncProgressEvent.sync_type:type_name -> whatsmeow.v1.HistorySyncType
-	3,  // 25: whatsmeow.v1.HistorySyncProgressEvent.failure:type_name -> whatsmeow.v1.HistorySyncFailure
-	29, // 26: whatsmeow.v1.PresenceEvent.state:type_name -> whatsmeow.v1.PresenceState
-	22, // 27: whatsmeow.v1.PresenceEvent.last_seen:type_name -> google.protobuf.Timestamp
-	4,  // 28: whatsmeow.v1.ChatPresenceEvent.source:type_name -> whatsmeow.v1.MessageSource
-	30, // 29: whatsmeow.v1.ChatPresenceEvent.state:type_name -> whatsmeow.v1.ChatPresenceState
-	17, // 30: whatsmeow.v1.StreamEphemeralEventsResponse.presence:type_name -> whatsmeow.v1.PresenceEvent
-	18, // 31: whatsmeow.v1.StreamEphemeralEventsResponse.chat_presence:type_name -> whatsmeow.v1.ChatPresenceEvent
-	19, // 32: whatsmeow.v1.StreamEphemeralEventsResponse.queue_overflow:type_name -> whatsmeow.v1.QueueOverflowEvent
-	11, // 33: whatsmeow.v1.EventService.StreamEvents:input_type -> whatsmeow.v1.StreamEventsRequest
-	15, // 34: whatsmeow.v1.EventService.AckEvents:input_type -> whatsmeow.v1.AckEventsRequest
-	20, // 35: whatsmeow.v1.EventService.StreamEphemeralEvents:input_type -> whatsmeow.v1.StreamEphemeralEventsRequest
-	12, // 36: whatsmeow.v1.EventService.StreamEvents:output_type -> whatsmeow.v1.StreamEventsResponse
-	16, // 37: whatsmeow.v1.EventService.AckEvents:output_type -> whatsmeow.v1.AckEventsResponse
-	21, // 38: whatsmeow.v1.EventService.StreamEphemeralEvents:output_type -> whatsmeow.v1.StreamEphemeralEventsResponse
-	36, // [36:39] is the sub-list for method output_type
-	33, // [33:36] is the sub-list for method input_type
-	33, // [33:33] is the sub-list for extension type_name
-	33, // [33:33] is the sub-list for extension extendee
-	0,  // [0:33] is the sub-list for field type_name
+	7,  // 6: whatsmeow.v1.MessageEvent.reply_to:type_name -> whatsmeow.v1.MessageTarget
+	4,  // 7: whatsmeow.v1.ReceiptEvent.source:type_name -> whatsmeow.v1.MessageSource
+	22, // 8: whatsmeow.v1.ReceiptEvent.receipt_time:type_name -> google.protobuf.Timestamp
+	0,  // 9: whatsmeow.v1.ReceiptEvent.type:type_name -> whatsmeow.v1.ReceiptType
+	5,  // 10: whatsmeow.v1.UndecryptableMessageEvent.info:type_name -> whatsmeow.v1.MessageInfo
+	1,  // 11: whatsmeow.v1.UndecryptableMessageEvent.unavailable_type:type_name -> whatsmeow.v1.UnavailableType
+	24, // 12: whatsmeow.v1.ConnectionStateEvent.state:type_name -> whatsmeow.v1.SessionState
+	6,  // 13: whatsmeow.v1.StreamEventsResponse.message:type_name -> whatsmeow.v1.MessageEvent
+	8,  // 14: whatsmeow.v1.StreamEventsResponse.receipt:type_name -> whatsmeow.v1.ReceiptEvent
+	9,  // 15: whatsmeow.v1.StreamEventsResponse.undecryptable_message:type_name -> whatsmeow.v1.UndecryptableMessageEvent
+	10, // 16: whatsmeow.v1.StreamEventsResponse.connection_state:type_name -> whatsmeow.v1.ConnectionStateEvent
+	25, // 17: whatsmeow.v1.StreamEventsResponse.contact:type_name -> whatsmeow.v1.ContactEvent
+	26, // 18: whatsmeow.v1.StreamEventsResponse.media_retry:type_name -> whatsmeow.v1.MediaRetryEvent
+	27, // 19: whatsmeow.v1.StreamEventsResponse.group:type_name -> whatsmeow.v1.GroupEvent
+	28, // 20: whatsmeow.v1.StreamEventsResponse.chat_state:type_name -> whatsmeow.v1.ChatStateEvent
+	13, // 21: whatsmeow.v1.StreamEventsResponse.history_messages:type_name -> whatsmeow.v1.HistoryMessagesEvent
+	14, // 22: whatsmeow.v1.StreamEventsResponse.history_progress:type_name -> whatsmeow.v1.HistorySyncProgressEvent
+	2,  // 23: whatsmeow.v1.HistoryMessagesEvent.sync_type:type_name -> whatsmeow.v1.HistorySyncType
+	6,  // 24: whatsmeow.v1.HistoryMessagesEvent.messages:type_name -> whatsmeow.v1.MessageEvent
+	2,  // 25: whatsmeow.v1.HistorySyncProgressEvent.sync_type:type_name -> whatsmeow.v1.HistorySyncType
+	3,  // 26: whatsmeow.v1.HistorySyncProgressEvent.failure:type_name -> whatsmeow.v1.HistorySyncFailure
+	29, // 27: whatsmeow.v1.PresenceEvent.state:type_name -> whatsmeow.v1.PresenceState
+	22, // 28: whatsmeow.v1.PresenceEvent.last_seen:type_name -> google.protobuf.Timestamp
+	4,  // 29: whatsmeow.v1.ChatPresenceEvent.source:type_name -> whatsmeow.v1.MessageSource
+	30, // 30: whatsmeow.v1.ChatPresenceEvent.state:type_name -> whatsmeow.v1.ChatPresenceState
+	17, // 31: whatsmeow.v1.StreamEphemeralEventsResponse.presence:type_name -> whatsmeow.v1.PresenceEvent
+	18, // 32: whatsmeow.v1.StreamEphemeralEventsResponse.chat_presence:type_name -> whatsmeow.v1.ChatPresenceEvent
+	19, // 33: whatsmeow.v1.StreamEphemeralEventsResponse.queue_overflow:type_name -> whatsmeow.v1.QueueOverflowEvent
+	11, // 34: whatsmeow.v1.EventService.StreamEvents:input_type -> whatsmeow.v1.StreamEventsRequest
+	15, // 35: whatsmeow.v1.EventService.AckEvents:input_type -> whatsmeow.v1.AckEventsRequest
+	20, // 36: whatsmeow.v1.EventService.StreamEphemeralEvents:input_type -> whatsmeow.v1.StreamEphemeralEventsRequest
+	12, // 37: whatsmeow.v1.EventService.StreamEvents:output_type -> whatsmeow.v1.StreamEventsResponse
+	16, // 38: whatsmeow.v1.EventService.AckEvents:output_type -> whatsmeow.v1.AckEventsResponse
+	21, // 39: whatsmeow.v1.EventService.StreamEphemeralEvents:output_type -> whatsmeow.v1.StreamEphemeralEventsResponse
+	37, // [37:40] is the sub-list for method output_type
+	34, // [34:37] is the sub-list for method input_type
+	34, // [34:34] is the sub-list for extension type_name
+	34, // [34:34] is the sub-list for extension extendee
+	0,  // [0:34] is the sub-list for field type_name
 }
 
 func init() { file_whatsmeow_v1_events_proto_init() }

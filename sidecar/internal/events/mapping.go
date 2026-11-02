@@ -60,11 +60,12 @@ func unavailableType(t waevents.UnavailableType) whatsmeowv1.UnavailableType {
 // History slice maps with it (internal/history), so a history message carries what a live one does. It carries what
 // the message's wrappers said (UnwrapRaw, types/events/events.go:377-425): view-once, ephemeral, and the destination a
 // device-sent message names. The raw message goes along only when whatsmeow unwrapped something, so a message without
-// wrappers is not recorded twice. A reaction's, an edit's or a revoke's target is read from its key (target), where
-// account, the session's device, names the account.
+// wrappers is not recorded twice. A reaction's, an edit's or a revoke's target is read from its key (target), and a
+// reply's quote from its context (replyTo), where account, the session's device, names the account.
 func MessageEvent(e *waevents.Message, account *store.Device) *whatsmeowv1.MessageEvent {
 	event := &whatsmeowv1.MessageEvent{
 		Info: info(&e.Info), Message: e.Message, ViewOnce: e.IsViewOnce, Ephemeral: e.IsEphemeral, Target: target(e, account),
+		ReplyTo: replyTo(e.Message, account),
 	}
 	if e.Info.DeviceSentMeta != nil {
 		event.DeviceSentDestination = server.Text(e.Info.DeviceSentMeta.DestinationJID)
@@ -132,12 +133,57 @@ func target(e *waevents.Message, account *store.Device) *whatsmeowv1.MessageTarg
 		return nil
 	}
 
-	t := &whatsmeowv1.MessageTarget{Id: server.Text(k.GetID())}
+	return named(k.GetID(), sender, account)
+}
+
+// named is the message id names, sent by sender, with no sender when that is the account (events.proto
+// MessageTarget).
+func named(id string, sender types.JID, account *store.Device) *whatsmeowv1.MessageTarget {
+	t := &whatsmeowv1.MessageTarget{Id: server.Text(id)}
 	if !sender.IsEmpty() && !isAccount(sender, account) {
 		t.Sender = server.Text(sender.String())
 	}
 
 	return t
+}
+
+// replyTo is the message a reply quotes, named as a target is; nil for a message that quotes none, and for a quote
+// whose participant names no user (events.proto MessageEvent.reply_to): with no sender it would read as the account's.
+func replyTo(m *waE2E.Message, account *store.Device) *whatsmeowv1.MessageTarget {
+	c := contextOf(m)
+	if c.GetStanzaID() == "" {
+		return nil
+	}
+
+	sender, ok := participant(c.GetParticipant())
+	if !ok {
+		return nil
+	}
+
+	return named(c.GetStanzaID(), sender, account)
+}
+
+// contextOf is the context of the content kinds the client maps, in the client's order (ContentMapping.ContextOf); an
+// edit's is its new content's.
+func contextOf(m *waE2E.Message) *waE2E.ContextInfo {
+	if p := m.GetProtocolMessage(); p != nil && p.Type != nil && p.GetType() == waE2E.ProtocolMessage_MESSAGE_EDIT && p.GetEditedMessage() != nil {
+		return contextOf(p.GetEditedMessage())
+	}
+
+	for _, c := range []*waE2E.ContextInfo{
+		m.GetExtendedTextMessage().GetContextInfo(),
+		m.GetImageMessage().GetContextInfo(),
+		m.GetVideoMessage().GetContextInfo(),
+		m.GetAudioMessage().GetContextInfo(),
+		m.GetDocumentMessage().GetContextInfo(),
+		m.GetStickerMessage().GetContextInfo(),
+	} {
+		if c != nil {
+			return c
+		}
+	}
+
+	return nil
 }
 
 // actionKey is the key of a reaction, a revoke or an edit, which whatsmeow unwrapped from its EditedMessage
@@ -164,23 +210,14 @@ func actionKey(m *waE2E.Message) *waCommon.MessageKey {
 // keySender is the sender of the message a key names, without a device, as mautrix reads it (KeyToMessageID,
 // pkg/msgconv/wa-poll.go:97-132 at 5dd621f): the actor when the key says the actor sent it, else its participant,
 // else, in a direct chat, the other side: the chat when the account acted, else the account, which is the empty JID.
-// Outside a direct chat such a key names nobody, nor does a participant that is not a JID: false.
+// Outside a direct chat such a key names nobody, nor does a participant that is not a user's JID: false.
 func keySender(k *waCommon.MessageKey, src *types.MessageSource) (types.JID, bool) {
 	if k.GetFromMe() {
 		return src.Sender.ToNonAD(), true
 	}
 
 	if p := k.GetParticipant(); p != "" {
-		j, err := types.ParseJID(p)
-		if err != nil || j.User == "" {
-			return types.JID{}, false
-		}
-
-		if j.Server == types.LegacyUserServer {
-			j.Server = types.DefaultUserServer
-		}
-
-		return j.ToNonAD(), true
+		return participant(p)
 	}
 
 	switch src.Chat.Server {
@@ -190,6 +227,28 @@ func keySender(k *waCommon.MessageKey, src *types.MessageSource) (types.JID, boo
 		}
 
 		return types.EmptyJID, true
+	default:
+		return types.JID{}, false
+	}
+}
+
+// participant is a key's or a quote's participant as a user's JID without a device, c.us read as s.whatsapp.net as
+// mautrix reads it (pkg/msgconv/wa-poll.go:97-132 at 5dd621f); false for one that is not a JID, has no user, or whose
+// server is not one of a user's, the servers whatsmeow keeps a user's devices for (send.go:482). One without a server
+// would be the empty JID, which is the account's, and a group's is no sender.
+func participant(p string) (types.JID, bool) {
+	j, err := types.ParseJID(p)
+	if err != nil || j.User == "" {
+		return types.JID{}, false
+	}
+
+	if j.Server == types.LegacyUserServer {
+		j.Server = types.DefaultUserServer
+	}
+
+	switch j.Server {
+	case types.DefaultUserServer, types.HiddenUserServer, types.BotServer, types.HostedServer, types.HostedLIDServer:
+		return j.ToNonAD(), true
 	default:
 		return types.JID{}, false
 	}

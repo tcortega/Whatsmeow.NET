@@ -151,7 +151,7 @@ internal static class EventMapping
 			PushName = NullIfEmpty(message.Info.PushName),
 			Timestamp = ToTime(message.Info.MessageTime),
 			Content = ContentMapping.ToContent(message.Message, message.ViewOnce, message.Target),
-			ReplyTo = ContentMapping.ToReplyTo(message.Message),
+			ReplyTo = ContentMapping.ToReplyTo(message.Message, message.ReplyTo),
 			Mentions = ContentMapping.ToMentions(message.Message),
 			IsEphemeral = ContentMapping.IsEphemeral(message.Message, message.Ephemeral),
 			DestinationChat = ToJid(message.DeviceSentDestination),

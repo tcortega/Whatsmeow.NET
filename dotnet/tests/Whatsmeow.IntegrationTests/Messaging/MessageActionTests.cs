@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Security.Cryptography;
 using Google.Protobuf.WellKnownTypes;
 using Whatsmeow.Events;
@@ -441,17 +442,98 @@ public sealed class MessageActionTests(FakeSidecar fixture)
 		Assert.Equal(
 			Received(Session, "R1", s_group, s_member, new TextContent { Text = "@me yes" }) with
 			{
-				ReplyTo = new QuotedMessage { Id = MessageId.From("Q1"), Sender = self, Content = new TextContent { Text = "the question" } },
+				ReplyTo = new QuotedMessage { Id = MessageId.From("Q1"), Sender = null, Content = new TextContent { Text = "the question" } },
 				Mentions = [self],
 			},
 			await received.NextAsync(ct)
 		);
 
-		// A quote WhatsApp sent without its content or sender, on a media message.
-		await DeliverAsync(Session, "R2", s_group, s_member, new E2E.Message { StickerMessage = new E2E.StickerMessage { ContextInfo = new E2E.ContextInfo { StanzaID = "Q2" } } }, ct);
+		// A quote WhatsApp sent without its content, on a media message.
+		await DeliverAsync(
+			Session,
+			"R2",
+			s_group,
+			s_member,
+			new E2E.Message { StickerMessage = new E2E.StickerMessage { ContextInfo = new E2E.ContextInfo { StanzaID = "Q2", Participant = s_admin.ToString() } } },
+			ct
+		);
 		var sticker = await received.NextAsync(ct);
-		Assert.Equal(new QuotedMessage { Id = MessageId.From("Q2"), Sender = null, Content = null }, sticker.ReplyTo);
+		Assert.Equal(new QuotedMessage { Id = MessageId.From("Q2"), Sender = s_admin, Content = null }, sticker.ReplyTo);
 		Assert.Empty(sticker.Mentions);
+	}
+
+	/// <summary>
+	/// A quote of the account's own message has no sender, however its context names the account, as a received action's
+	/// target has none: null always means the account's. A quote that names no user, without a participant or with one
+	/// that is not a user's JID, could only read as the account's, so the message is no reply.
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task Receive_AReplyToTheAccountsOwnMessage_NamesNoSender_HoweverItsContextNamesTheAccount()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "message-actions-receive-own-quote";
+		var client = await fixture.Sidecar.Sessions.GetOrCreateAsync(SessionId.From(Session), ct);
+		var lid = Jid.Parse("900000399:1@lid");
+		_ = await fixture.Fake.LinkDeviceAsync(new LinkDeviceRequest { SessionId = Session, Jid = SessionSetup.Jid(Session), Lid = lid.ToString() }, cancellationToken: ct);
+		using var received = new Received<MessageReceived>(client);
+		await ConnectAsync(client, ct);
+		var device = Jid.Parse(SessionSetup.Jid(Session));
+		var phone = device with { Device = 0 };
+		var reply = static (string? participant) =>
+			new E2E.Message
+			{
+				ExtendedTextMessage = new E2E.ExtendedTextMessage
+				{
+					Text = "yes",
+					ContextInfo = participant is null
+						? new E2E.ContextInfo { StanzaID = "Q1", QuotedMessage = new E2E.Message { Conversation = "mine" } }
+						: new E2E.ContextInfo { StanzaID = "Q1", Participant = participant, QuotedMessage = new E2E.Message { Conversation = "mine" } },
+				},
+			};
+		var text = new TextContent { Text = "yes" };
+
+		// By the account's phone number or LID, from one of its devices, and in the legacy form.
+		string[] own = [phone.ToString(), (device with { Device = 5 }).ToString(), $"{Session}@c.us", (lid with { Device = 0 }).ToString(), (lid with { Device = 4 }).ToString()];
+		for (var i = 0; i < own.Length; i++)
+		{
+			await DeliverAsync(Session, $"Q{i}", s_group, s_member, reply(own[i]), ct);
+			Assert.Equal(
+				Received(Session, $"Q{i}", s_group, s_member, text) with
+				{
+					ReplyTo = new QuotedMessage { Id = MessageId.From("Q1"), Sender = null, Content = new TextContent { Text = "mine" } },
+				},
+				await received.NextAsync(ct)
+			);
+		}
+
+		string?[] none = [null, "333@", s_group.ToString()];
+		for (var i = 0; i < none.Length; i++)
+		{
+			await DeliverAsync(Session, $"N{i}", s_group, s_member, reply(none[i]), ct);
+			Assert.Equal(Received(Session, $"N{i}", s_group, s_member, text), await received.NextAsync(ct));
+		}
+	}
+
+	/// <summary>
+	/// A received message prints every public member but the experimental <c>Raw</c>, whose text carries media keys: a
+	/// member added later and left out of the hand-written printing fails here.
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task Receive_AMessage_PrintsEveryMemberButRaw()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "message-actions-print";
+		var client = await SessionSetup.LinkedAsync(fixture, Session, ct);
+		using var received = new Received<MessageReceived>(client);
+		await ConnectAsync(client, ct);
+
+		await DeliverAsync(Session, "P1", s_peer, s_peer, new E2E.Message { Conversation = "hi" }, ct);
+		var printed = (await received.NextAsync(ct)).ToString();
+
+		var members = typeof(MessageReceived).GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(static p => p.Name).ToArray();
+		Assert.Contains("Raw", members, StringComparer.Ordinal);
+		Assert.All(members.Where(static m => m != "Raw"), m => Assert.Matches($"[{{,] {m} = ", printed));
+		Assert.DoesNotMatch("[{,] Raw = ", printed);
 	}
 
 	[Fact(Timeout = Timeout)]

@@ -83,6 +83,8 @@ type stub struct {
 	got chan call
 	// wa is a real whatsmeow client of self's device, never connected: the builders are whatsmeow's own.
 	wa *whatsmeow.Client
+	// groupErr is what GetGroupInfo answers when set; otherwise lidGroup is LID-addressed and every other group is not.
+	groupErr error
 }
 
 // The account the stub's device is: its device JID and LID, as WhatsApp assigns them.
@@ -101,6 +103,20 @@ func (s *stub) BuildRevoke(chat, sender types.JID, id types.MessageID) *waE2E.Me
 
 func (s *stub) BuildEdit(chat types.JID, id types.MessageID, newContent *waE2E.Message) *waE2E.Message {
 	return s.wa.BuildEdit(chat, id, newContent)
+}
+
+// GetGroupInfo answers as whatsmeow parses WhatsApp's answer, with only the group's addressing mode (group.go:742-811).
+func (s *stub) GetGroupInfo(_ context.Context, jid types.JID) (*types.GroupInfo, error) {
+	if s.groupErr != nil {
+		return nil, s.groupErr
+	}
+
+	info := &types.GroupInfo{JID: jid, AddressingMode: types.AddressingModePN}
+	if jid.String() == lidGroup {
+		info.AddressingMode = types.AddressingModeLID
+	}
+
+	return info, nil
 }
 
 func (s *stub) SendMessage(ctx context.Context, to types.JID, message *waE2E.Message, extra ...whatsmeow.SendRequestExtra) (whatsmeow.SendResponse, error) {

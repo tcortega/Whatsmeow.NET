@@ -75,11 +75,11 @@ type job struct {
 // build makes a send's message with the session's whatsmeow client, once the session is known to be online and the
 // send was not recorded before: a reaction, a revoke and an edit are whatsmeow's own, which name the account through
 // its device, and a reply to the account's own message names the account (replyContext). An error sends nothing.
-type build func(wa whatsApp, chat types.JID) (*waE2E.Message, error)
+type build func(ctx context.Context, wa whatsApp, chat types.JID) (*waE2E.Message, error)
 
 // as is the build of a message made already.
 func as(message *waE2E.Message) build {
-	return func(whatsApp, types.JID) (*waE2E.Message, error) { return message, nil }
+	return func(context.Context, whatsApp, types.JID) (*waE2E.Message, error) { return message, nil }
 }
 
 // send sends the message build makes to chat as id, at most once per (session, id) (message.proto).
@@ -168,7 +168,7 @@ func (svc *Service) sendOnce(ctx context.Context, sessionID string, to types.JID
 		return outcome{err: fmt.Errorf("send: the client %T of session %q cannot send", client, sessionID), sentNothing: true}
 	}
 
-	built, err := message(wa, to)
+	built, err := message(ctx, wa, to)
 	if err != nil {
 		return outcome{err: fmt.Errorf("send: %w", err), sentNothing: true}
 	}

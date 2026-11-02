@@ -105,16 +105,21 @@ message MessageEvent {
   // that names none: one without an id, one whose participant is not a JID, or, outside a direct chat, one that is
   // not the actor's and names no participant.
   MessageTarget target = 7;
+  // For a reply, the message it quotes, as the context of its content names it (an edit's is its new content's): its
+  // id and sender, read as a target's sender is. Unset for every other message, and for a quote that names no sender
+  // the sidecar can tell: one whose participant is missing or is not a user's JID.
+  MessageTarget reply_to = 8;
 }
 
 // MessageTarget is the message a reaction, an edit or a revoke names by its key.
 message MessageTarget {
   // The message's WhatsApp id.
   string id = 1;
-  // Its sender, a user's JID without a device, as mautrix reads a key (pkg/msgconv/wa-poll.go:97-132 at 5dd621f): the
-  // actor when the key says the actor sent it, else the key's participant, else, in a direct chat, the other side:
-  // the chat when the account acted, else the account. Empty for the account's own message, by its phone number or
-  // LID and from any device, so empty always means the account's.
+  // Its sender, a user's JID without a device. For an action, as mautrix reads a key (pkg/msgconv/wa-poll.go:97-132
+  // at 5dd621f): the actor when the key says the actor sent it, else the key's participant, else, in a direct chat,
+  // the other side: the chat when the account acted, else the account. For a quote, the context's participant. A
+  // participant's c.us reads as s.whatsapp.net. Empty for the account's own message, by its phone number or LID and
+  // from any device, so empty always means the account's.
   string sender = 2;
 }
 

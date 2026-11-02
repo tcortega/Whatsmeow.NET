@@ -22,7 +22,7 @@ func (svc *Service) SendReaction(ctx context.Context, req *whatsmeowv1.SendReact
 		return nil, err
 	}
 
-	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), func(wa whatsApp, chat types.JID) (*waE2E.Message, error) {
+	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), func(_ context.Context, wa whatsApp, chat types.JID) (*waE2E.Message, error) {
 		return wa.BuildReaction(chat, sender, req.GetTargetId(), req.GetEmoji()), nil
 	})
 	if err != nil {
@@ -43,7 +43,7 @@ func (svc *Service) SendEdit(ctx context.Context, req *whatsmeowv1.SendEditReque
 		return nil, invalid("text", "the text is empty")
 	}
 
-	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), func(wa whatsApp, chat types.JID) (*waE2E.Message, error) {
+	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), func(_ context.Context, wa whatsApp, chat types.JID) (*waE2E.Message, error) {
 		return wa.BuildEdit(chat, req.GetTargetId(), &waE2E.Message{Conversation: proto.String(req.GetText())}), nil
 	})
 	if err != nil {
@@ -62,7 +62,7 @@ func (svc *Service) SendRevoke(ctx context.Context, req *whatsmeowv1.SendRevokeR
 		return nil, err
 	}
 
-	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), func(wa whatsApp, chat types.JID) (*waE2E.Message, error) {
+	sent, err := svc.send(ctx, req.GetSessionId(), req.GetChat(), req.GetClientMessageId(), func(_ context.Context, wa whatsApp, chat types.JID) (*waE2E.Message, error) {
 		return wa.BuildRevoke(chat, sender, req.GetTargetId()), nil
 	})
 	if err != nil {
@@ -145,8 +145,8 @@ func (svc *Service) named(sessionID string, c replyContext, message *waE2E.Messa
 		return as(message)
 	}
 
-	return func(_ whatsApp, chat types.JID) (*waE2E.Message, error) {
-		account, err := svc.account(sessionID, chat)
+	return func(ctx context.Context, wa whatsApp, chat types.JID) (*waE2E.Message, error) {
+		account, err := svc.account(ctx, sessionID, wa, chat)
 		if err != nil {
 			return nil, err
 		}
@@ -157,15 +157,36 @@ func (svc *Service) named(sessionID string, c replyContext, message *waE2E.Messa
 	}
 }
 
-// account is the account's own JID without a device, as chat names it: its LID in a LID chat, else its phone number.
-// Which form a LID-addressed group needs is unknown (#36).
-func (svc *Service) account(sessionID string, chat types.JID) (types.JID, error) {
+// account is the account's own JID without a device, as whatsmeow names the account when it sends to chat
+// (SendMessage's ownID, send.go:304-365): its LID in a direct chat, by phone number or LID, since whatsmeow sends a
+// phone number's message to its LID, and in a LID-addressed group, whose addressing mode it reads from WhatsApp as
+// whatsmeow's send does (getCachedGroupData, group.go:700-711, which GetGroupInfo fills); its phone number in any other
+// chat, and while the LID is unknown. whatsmeow's other LID case, a community announcement group, needs a send's Meta,
+// which the sidecar never sets. Whether WhatsApp resolves the quote either way is unknown (#36).
+func (svc *Service) account(ctx context.Context, sessionID string, wa whatsApp, chat types.JID) (types.JID, error) {
 	device, err := svc.sessions.Device(sessionID)
 	if err != nil {
 		return types.JID{}, fmt.Errorf("reply: %w", err)
 	}
 
-	if chat.Server == types.HiddenUserServer && !device.LID.IsEmpty() {
+	byLID := false
+
+	switch chat.Server {
+	case types.DefaultUserServer, types.HiddenUserServer, types.BotServer:
+		byLID = true
+	case types.GroupServer:
+		info, err := wa.GetGroupInfo(ctx, chat)
+		if err != nil {
+			// As SendMessage's own read of the group fails: before the node, so nothing was sent (classify).
+			_, reason := classify(err)
+
+			return types.JID{}, fmt.Errorf("reply: read the group: %w", reason)
+		}
+
+		byLID = info.AddressingMode == types.AddressingModeLID
+	}
+
+	if byLID && !device.LID.IsEmpty() {
 		return device.LID.ToNonAD(), nil
 	}
 
