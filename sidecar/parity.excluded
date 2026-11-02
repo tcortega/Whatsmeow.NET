@@ -1,0 +1,139 @@
+# Every exported method of whatsmeow's Client that the sidecar does not call on purpose, with the reason (ADR 0048).
+# tools/parity-report reads this file: a method the sidecar's code does not reach and this file does not list is
+# missing, as a method a whatsmeow bump adds is. One method per line, `Name: reason`; grouped by whatsmeow file.
+# A follow-up issue as the reason means the method is in scope and not built yet; "out of v1 scope (#36)" is a scope
+# decision made with the report, in #36.
+
+# appstate.go
+MarkNotDirty: clearing an app state dirty bit is out of v1 scope (#36); chat state recovery fetches the app state instead (ADR 0031), and whatsmeow's own call is commented out (connectionevents.go:95)
+
+# broadcast.go
+GetStatusPrivacy: statuses are a §1 non-goal
+
+# business.go
+GetOrderDetails: business features are a §1 non-goal
+
+# call.go
+RejectCall: calls are a §1 non-goal
+
+# client.go
+AddEventHandler: the sidecar's handlers use AddEventHandlerWithSuccessStatus, whose false return withholds the answer to a gated stanza (§13 invariant 2)
+Connect: the sidecar connects with ConnectContext and its own lifetime context (ADR 0020, client.go:541-599)
+IsLoggedIn: a session's state comes from whatsmeow's events and the store (§7.4)
+RemoveEventHandler: the sidecar adds its handlers once per client and never removes them
+RemoveEventHandlers: the sidecar adds its handlers once per client and never removes them
+SetMaxParallelRetryReceiptHandling: whatsmeow's default (unlimited) is kept; no option, out of v1 scope (#36)
+SetMediaHTTPClient: whatsmeow's HTTP clients are not configurable, out of v1 scope (#36)
+SetPreLoginHTTPClient: whatsmeow's HTTP clients are not configurable, out of v1 scope (#36)
+SetProxy: a proxy is not configurable, out of v1 scope (#36)
+SetProxyAddress: a proxy is not configurable, out of v1 scope (#36)
+SetSOCKSProxy: a proxy is not configurable, out of v1 scope (#36)
+SetWebsocketHTTPClient: whatsmeow's HTTP clients are not configurable, out of v1 scope (#36)
+StoreLIDPNMapping: whatsmeow stores the mappings it learns itself (message.go:52-54, notification.go:124, pair.go:231); the application only reads them (ADR 0028)
+WaitForConnection: a session's state comes from whatsmeow's events (§7.4)
+
+# connectionevents.go
+SetPassive: whatsmeow sets passive false itself after it connects (connectionevents.go:200)
+
+# download-to-file.go
+DownloadFBToFile: Messenger and Instagram (FB) messages are not WhatsApp
+DownloadMediaWithOnlyPathToFile: a MediaRef carries the keys and hashes, so DownloadMedia downloads and checks with DownloadMediaWithPathToFile (§7.6)
+DownloadToFile: a MediaRef replaces the message as what DownloadMedia takes; it uses DownloadMediaWithPathToFile (§7.6)
+
+# download.go
+Download: DownloadMedia decrypts to the sidecar's own file and checks it whole before any plaintext leaves (§7.6), with DownloadMediaWithPathToFile; this one returns the plaintext in memory
+DownloadAny: deprecated upstream (download.go)
+DownloadFB: Messenger and Instagram (FB) messages are not WhatsApp
+DownloadMediaWithOnlyPath: it takes no media key or hashes (download.go:248-250), which a MediaRef carries; DownloadMedia decrypts to the sidecar's own file and checks it (§7.6)
+DownloadMediaWithPath: DownloadMedia decrypts to the sidecar's own file (§7.6), with DownloadMediaWithPathToFile; this one returns the plaintext in memory
+DownloadThumbnail: a thumbnail's own download is out of v1 scope (#36); the message's inline thumbnail is in its content and Raw
+FetchStickerPack: sticker packs are out of v1 scope (#36)
+
+# group.go
+GetGroupInfoFromInvite: invite messages are not in the groups slice (ADR 0030)
+GetGroupInfoFromLink: not built yet: #105
+GetGroupRequestParticipants: join-request approval is not in the groups slice (ADR 0030)
+GetLinkedGroupsParticipants: communities are not in the groups slice (ADR 0030)
+GetSubGroups: communities are not in the groups slice (ADR 0030)
+JoinGroupWithInvite: invite messages are not in the groups slice (ADR 0030)
+LinkGroup: communities are not in the groups slice (ADR 0030)
+SetGroupDescription: deprecated upstream as a duplicate of SetGroupTopic (group.go:1099), which SetGroupTopic covers
+SetGroupJoinApprovalMode: join-request approval is not in the groups slice (ADR 0030)
+SetGroupMemberAddMode: not built yet: #104
+SetGroupPhoto: group photos are not in the groups slice (ADR 0030)
+UnlinkGroup: communities are not in the groups slice (ADR 0030)
+UpdateGroupRequestParticipants: join-request approval is not in the groups slice (ADR 0030)
+
+# internals.go
+DangerousInternals: whatsmeow's unexported internals are never called
+
+# message.go
+SendHistorySyncServerErrorReceipt: history sync reports a blob that cannot be downloaded (EXPIRED, INVALID, UNAVAILABLE) and never asks the phone to upload it again (ADR 0035)
+SendProtocolMessageReceipt: whatsmeow sends the history sync and peer message receipts itself (message.go:901, 929)
+
+# msgsecret.go
+DecryptComment: encrypted comments are out of v1 scope (#36); one arrives with its content in Raw
+DecryptReaction: encrypted reactions are out of v1 scope (#36); one arrives with its content in Raw
+DecryptSecretEncryptedMessage: secret-encrypted edits (of events, polls and messages) are out of v1 scope (#36); one arrives with its content in Raw
+EncryptComment: encrypted comments are out of v1 scope (#36)
+EncryptPollVote: BuildPollVote calls it (msgsecret.go:392), which SendPollVote covers
+EncryptReaction: encrypted reactions are out of v1 scope (#36)
+
+# newsletter.go
+AcceptTOSNotice: newsletters (channels) are a §1 non-goal
+CreateNewsletter: newsletters (channels) are a §1 non-goal
+FollowNewsletter: newsletters (channels) are a §1 non-goal
+GetNewsletterInfo: newsletters (channels) are a §1 non-goal
+GetNewsletterInfoWithInvite: newsletters (channels) are a §1 non-goal
+GetNewsletterMessageUpdates: newsletters (channels) are a §1 non-goal
+GetNewsletterMessages: newsletters (channels) are a §1 non-goal
+GetSubscribedNewsletters: newsletters (channels) are a §1 non-goal
+NewsletterMarkViewed: newsletters (channels) are a §1 non-goal
+NewsletterSendReaction: newsletters (channels) are a §1 non-goal
+NewsletterSubscribeLiveUpdates: newsletters (channels) are a §1 non-goal
+NewsletterToggleMute: newsletters (channels) are a §1 non-goal
+UnfollowNewsletter: newsletters (channels) are a §1 non-goal
+
+# pair-passkey.go
+SendPasskeyConfirmation: pairing is by QR code or phone code (ADR 0021); passkey pairing is out of v1 scope (#36)
+SendPasskeyResponse: pairing is by QR code or phone code (ADR 0021); passkey pairing is out of v1 scope (#36)
+
+# privacysettings.go
+GetPrivacySettings: the account's privacy settings are out of v1 scope (#36)
+SetDefaultDisappearingTimer: the account's default disappearing timer is an account setting, out of v1 scope (#36)
+SetPrivacySetting: the account's privacy settings are out of v1 scope (#36)
+TryFetchPrivacySettings: the account's privacy settings are out of v1 scope (#36)
+
+# push.go
+GetServerPushNotificationConfig: push notifications are for a mobile app, not a companion device
+RegisterForPushNotifications: push notifications are for a mobile app, not a companion device
+
+# receipt.go
+SetForceActiveDeliveryReceipts: delivery receipts follow the presence the application sets with SendPresence, as whatsmeow does by default (receipt.go:243-254, ADR 0027)
+
+# send.go
+BuildMessageKey: BuildRevoke and BuildReaction call it (send.go:540, 554), which SendRevoke and SendReaction cover; BuildEdit builds its key itself (send.go:616-633)
+BuildUnavailableMessageRequest: whatsmeow requests an undecryptable message from the phone itself with AutomaticMessageRerequestFromPhone (retry.go:455, §7.2)
+GenerateMessageID: the caller makes message ids, in the same format, so a repeat is idempotent (ADR 0025)
+RevokeMessage: deprecated upstream in favour of BuildRevoke (send.go:504), which SendRevoke covers
+SendPeerMessage: RequestHistory sends its peer message with SendMessage and Peer, as SendPeerMessage does (send.go:491-497), to pass an id of its own (history.go); whatsmeow sends its other peer messages itself (appstate.go:532, retry.go:455)
+SetDisappearingTimer: not built yet: #106
+
+# sendfb.go
+SendFBMessage: Messenger and Instagram (FB) messages are not WhatsApp
+
+# upload.go
+Upload: UploadMedia streams a path or chunks into UploadReader, which encrypts into the sidecar's temporary file (§7.6); this one takes the whole plaintext in memory
+UploadNewsletter: newsletters (channels) are a §1 non-goal
+UploadNewsletterReader: newsletters (channels) are a §1 non-goal
+
+# user.go
+GetBotListV2: bots are out of v1 scope (#36)
+GetBotProfiles: bots are out of v1 scope (#36)
+GetBusinessProfile: business features are a §1 non-goal
+GetContactQRLink: contact QR links are out of v1 scope (#36)
+GetUserDevices: whatsmeow looks up the devices it sends to itself (send.go:1198); the application addresses users, not devices
+GetUserDevicesContext: whatsmeow looks up the devices it sends to itself (send.go:1198); the application addresses users, not devices
+ResolveBusinessMessageLink: business features are a §1 non-goal
+ResolveContactQRLink: contact QR links are out of v1 scope (#36)
+SetStatusMessage: the account's about text is out of v1 scope (#36)

@@ -19,10 +19,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"go/ast"
-	"go/parser"
-	"go/token"
-	"go/types"
 	"go/version"
 	"io"
 	"io/fs"
@@ -30,7 +26,6 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"path"
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -38,6 +33,8 @@ import (
 	"unicode/utf8"
 
 	"golang.org/x/mod/modfile"
+
+	"github.com/tcortega/Whatsmeow.NET/tools/internal/whatsmeowapi"
 )
 
 const (
@@ -348,16 +345,17 @@ func read(ctx context.Context, fsys fs.FS) (map[string][]byte, error) {
 	return files, nil
 }
 
-// writeMethods lists the exported Client methods added, removed or changed from one version to the other.
+// writeMethods lists the exported Client methods added, removed or changed from one version to the other; a method
+// that only moved to another file is unchanged.
 func writeMethods(b *strings.Builder, atFrom, atTo fs.FS) error {
-	before, err := clientMethods(atFrom)
+	before, err := whatsmeowapi.ClientMethods(atFrom)
 	if err != nil {
-		return err
+		return fmt.Errorf("main's pin: %w", err)
 	}
 
-	after, err := clientMethods(atTo)
+	after, err := whatsmeowapi.ClientMethods(atTo)
 	if err != nil {
-		return err
+		return fmt.Errorf("the new pin: %w", err)
 	}
 
 	b.WriteString("### Client methods\n\n")
@@ -368,9 +366,9 @@ func writeMethods(b *strings.Builder, atFrom, atTo fs.FS) error {
 		old, ok := before[name]
 		switch {
 		case !ok:
-			fmt.Fprintf(b, "- added `%s`\n", after[name])
-		case old != after[name]:
-			fmt.Fprintf(b, "- changed `%s` to `%s`\n", old, after[name])
+			fmt.Fprintf(b, "- added `%s`\n", after[name].Signature)
+		case old.Signature != after[name].Signature:
+			fmt.Fprintf(b, "- changed `%s` to `%s`\n", old.Signature, after[name].Signature)
 		default:
 			continue
 		}
@@ -380,7 +378,7 @@ func writeMethods(b *strings.Builder, atFrom, atTo fs.FS) error {
 
 	for _, name := range slices.Sorted(maps.Keys(before)) {
 		if _, ok := after[name]; !ok {
-			fmt.Fprintf(b, "- removed `%s`\n", before[name])
+			fmt.Fprintf(b, "- removed `%s`\n", before[name].Signature)
 
 			listed++
 		}
@@ -393,71 +391,6 @@ func writeMethods(b *strings.Builder, atFrom, atTo fs.FS) error {
 	b.WriteString("\n")
 
 	return nil
-}
-
-// clientMethods is each exported method of package whatsmeow's Client, by name, as its one-line signature.
-func clientMethods(fsys fs.FS) (map[string]string, error) {
-	names, err := fs.Glob(fsys, "*.go")
-	if err != nil {
-		return nil, fmt.Errorf("list the module root: %w", err)
-	}
-
-	fset := token.NewFileSet()
-	methods := map[string]string{}
-
-	for _, name := range names {
-		if strings.HasSuffix(name, "_test.go") {
-			continue
-		}
-
-		src, err := fs.ReadFile(fsys, name)
-		if err != nil {
-			return nil, fmt.Errorf("read %s: %w", name, err)
-		}
-
-		file, err := parser.ParseFile(fset, path.Base(name), src, parser.SkipObjectResolution)
-		if err != nil {
-			return nil, fmt.Errorf("parse %s: %w", name, err)
-		}
-
-		if file.Name.Name != "whatsmeow" {
-			continue
-		}
-
-		for _, decl := range file.Decls {
-			fn, ok := decl.(*ast.FuncDecl)
-			if !ok || fn.Recv == nil || !fn.Name.IsExported() || !onClient(fn.Recv) {
-				continue
-			}
-
-			methods[fn.Name.Name] = signature(fn)
-		}
-	}
-
-	return methods, nil
-}
-
-func onClient(recv *ast.FieldList) bool {
-	typ := recv.List[0].Type
-	if star, ok := typ.(*ast.StarExpr); ok {
-		typ = star.X
-	}
-
-	ident, ok := typ.(*ast.Ident)
-
-	return ok && ident.Name == "Client"
-}
-
-// signature is a method as `func (cli *Client) Name(params) results`, on one line.
-func signature(fn *ast.FuncDecl) string {
-	recv := fn.Recv.List[0]
-
-	receiver := types.ExprString(recv.Type)
-	if len(recv.Names) > 0 {
-		receiver = recv.Names[0].Name + " " + receiver
-	}
-
-	return "func (" + receiver + ") " + fn.Name.Name + strings.TrimPrefix(types.ExprString(fn.Type), "func")
 }
 
 // goModDownload fetches a module with `go mod download -json`, in an empty temporary directory so it never edits a

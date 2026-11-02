@@ -17,7 +17,7 @@ proto/whatsmeow/v1/    our contract, one file per slice, plus error.proto (the E
 proto/whatsmeow/fake/  the fake WhatsApp's test-only control, not the contract (ADR 0019)
 third_party/whatsmeow/ upstream protos copied from the exact pinned version (`VERSION`)
 sidecar/               Go module `github.com/tcortega/Whatsmeow.NET/sidecar`: product code and dependencies only
-tools/                 Go module for repo tools (`check-repo`, `sync-protos`, `check-licenses`, `bump-report`, the tests' `stub-sidecar`), kept out of the product module
+tools/                 Go module for repo tools (`check-repo`, `sync-protos`, `check-licenses`, `bump-report`, `parity-report`, the tests' `stub-sidecar`), kept out of the product module
 build/ci.sh            every CI check; the workflow only calls it
 dotnet/                `Whatsmeow.slnx` (never a .sln), src/, tests/, samples/ (`EchoBot`, the hosted sample, ADR 0049)
 docs/                  ARCHITECTURE, RESEARCH, guidelines/, adr/
@@ -106,6 +106,7 @@ Sidecar (#4). Copy it for the next slice; do not invent a second pattern.
 | Fake WhatsApp control for a slice | `proto/whatsmeow/fake/v1/fake.proto` + `sidecar/internal/fakewhatsapp/` (ADR 0019) |
 | Dispatcher / supervisor / request body fence unit test | `dotnet/tests/Whatsmeow.Client.Tests/` |
 | A new module linked into the sidecar | read its licence, then its lines in `sidecar/licenses.allow` (ADR 0016) |
+| A whatsmeow `Client` method the sidecar does not call on purpose | its reason in `sidecar/parity.excluded`; `go -C tools run ./parity-report` lists every method as covered, excluded or missing (ADR 0048) |
 | Decision | `docs/adr/NNNN-title.md` |
 
 ## Tests
