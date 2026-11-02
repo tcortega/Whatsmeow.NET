@@ -96,7 +96,7 @@ Sidecar (#4). Copy it for the next slice; do not invent a second pattern.
 | A schema change to the sidecar's tables | a new numbered step in `sidecar/internal/store/store.go` (`steps()`), never an edit to a merged one (ADR 0022) |
 | New error reason | `ErrorReason` in `proto/whatsmeow/v1/error.proto` + exception subtype (§8.7) |
 | DI, options, hosted supervisor | `dotnet/src/Whatsmeow.Extensions.Hosting/` |
-| Consumer fakes | `dotnet/src/Whatsmeow.Testing/` |
+| Consumer fakes | `dotnet/src/Whatsmeow.Testing/`; their tests, public API only, in `dotnet/tests/Whatsmeow.Testing.Tests/` (ADR 0036) |
 | Integration test (default) | `dotnet/tests/Whatsmeow.IntegrationTests/<Slice>/`, on the `FakeSidecar` fixture |
 | Live test (real WhatsApp, opt-in) | `dotnet/tests/Whatsmeow.LiveTests/`, `[LiveFact]` with the fake-mode checks (ADR 0021) |
 | Fake WhatsApp control for a slice | `proto/whatsmeow/fake/v1/fake.proto` + `sidecar/internal/fakewhatsapp/` (ADR 0019) |

@@ -25,8 +25,11 @@ public class WhatsmeowException : Exception
 	{
 	}
 
-	/// <summary>Why the call failed; <see cref="WhatsmeowErrorCode.Unknown"/> when the sidecar sent no reason this client knows.</summary>
-	public WhatsmeowErrorCode ErrorCode { get; internal init; }
+	/// <summary>
+	/// Why the call failed; <see cref="WhatsmeowErrorCode.Unknown"/> when the sidecar sent no reason this client knows.
+	/// Settable so a test can build the exception the library throws, for a fake to throw (ADR 0036).
+	/// </summary>
+	public WhatsmeowErrorCode ErrorCode { get; init; }
 
 	[DoesNotReturn]
 	internal static void ThrowUnmapped(RpcException exception, WhatsmeowErrorCode code) =>

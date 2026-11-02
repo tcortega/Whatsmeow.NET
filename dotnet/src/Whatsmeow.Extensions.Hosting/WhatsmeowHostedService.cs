@@ -12,15 +12,34 @@ namespace Whatsmeow.Extensions.Hosting;
 /// connects the paired ones: a host that fails to start never had events flowing into handlers whose container it then
 /// disposes. <see cref="StoppedAsync"/>, after every service stopped using it, stops it. Crashes in between are the
 /// supervisor's: it restarts the sidecar with its backoff and never throws (ARCHITECTURE §8.5).
+/// A host whose sessions a test replaced with fakes (<see cref="ReplacedSession"/>, ADR 0036) starts no sidecar: the
+/// handlers go on the fakes, and nothing is created or connected.
 /// </summary>
-internal sealed class WhatsmeowHostedService(WhatsmeowSidecar sidecar, IEnumerable<DeclaredSession> declared, IServiceProvider services) : IHostedLifecycleService
+internal sealed class WhatsmeowHostedService(
+	WhatsmeowSidecar sidecar,
+	IEnumerable<DeclaredSession> declared,
+	IEnumerable<ReplacedSession> replaced,
+	IServiceProvider services
+) : IHostedLifecycleService
 {
 	private readonly ILogger _log = (services.GetService<ILoggerFactory>() ?? NullLoggerFactory.Instance).CreateLogger(SidecarLog.Category);
 	private readonly HashSet<SessionId> _declared = [.. declared.Select(static session => session.Id)];
+	private readonly ReplacedSession[] _replaced = [.. replaced];
+	private readonly List<IDisposable> _onFakes = [];
 
-	/// <summary>Starts the sidecar and creates the declared sessions; a failure leaves no sidecar behind.</summary>
+	/// <summary>
+	/// Starts the sidecar and creates the declared sessions; a failure leaves no sidecar behind. With fakes, it puts the
+	/// handlers on them instead.
+	/// </summary>
+	/// <exception cref="InvalidOperationException">A host with fakes has a declared session without one.</exception>
 	public async Task StartingAsync(CancellationToken cancellationToken)
 	{
+		if (_replaced.Length > 0)
+		{
+			AttachToFakes();
+			return;
+		}
+
 		try
 		{
 			await sidecar.StartProcessAsync(cancellationToken).ConfigureAwait(false);
@@ -39,6 +58,9 @@ internal sealed class WhatsmeowHostedService(WhatsmeowSidecar sidecar, IEnumerab
 	/// <summary>Connects the declared sessions that are paired; a failure fails the host's start and leaves no sidecar behind.</summary>
 	public async Task StartedAsync(CancellationToken cancellationToken)
 	{
+		if (_replaced.Length > 0)
+			return;
+
 		try
 		{
 			await ConnectAsync(cancellationToken).ConfigureAwait(false);
@@ -60,7 +82,37 @@ internal sealed class WhatsmeowHostedService(WhatsmeowSidecar sidecar, IEnumerab
 	/// then come again; the process stop is never cut short, and the host waits for it, so the sidecar never outlives
 	/// the host (§13 invariant 9).
 	/// </summary>
-	public Task StoppedAsync(CancellationToken cancellationToken) => sidecar.StopAsync(cancellationToken);
+	public Task StoppedAsync(CancellationToken cancellationToken)
+	{
+		// The fakes are the test's and outlive the host: the host's handlers, whose container goes away, come off them.
+		foreach (var registration in _onFakes)
+			registration.Dispose();
+		_onFakes.Clear();
+		return sidecar.StopAsync(cancellationToken);
+	}
+
+	/// <summary>Every declared session has a fake; the handlers go on each, as they go on a sidecar's new client.</summary>
+	private void AttachToFakes()
+	{
+		var faked = _replaced.Select(static session => session.Id).ToHashSet();
+		foreach (var id in _declared)
+		{
+			if (!faked.Contains(id))
+				throw new InvalidOperationException(
+					$"Session {id.Value} is declared with AddSession but has no fake: a host with fakes starts no sidecar, so each declared session needs one (UseFakeClient)."
+				);
+		}
+
+		var handlers = services.GetServices<HandlerRegistration>().ToArray();
+		foreach (var session in _replaced)
+		{
+			foreach (var handler in handlers)
+			{
+				if (handler.AttachTo(session.Client, services) is { } registration)
+					_onFakes.Add(registration);
+			}
+		}
+	}
 
 	private async Task ConnectAsync(CancellationToken cancellationToken)
 	{

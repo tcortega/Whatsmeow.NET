@@ -146,6 +146,13 @@
       "whatsmeow.sidecar.native.windows": {
         "type": "Project"
       },
+      "whatsmeow.testing": {
+        "type": "Project",
+        "dependencies": {
+          "Whatsmeow.Client": "[1.0.0, )",
+          "Whatsmeow.Extensions.Hosting": "[1.0.0, )"
+        }
+      },
       "Google.Protobuf": {
         "type": "CentralTransitive",
         "requested": "[3.36.2, )",

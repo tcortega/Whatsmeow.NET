@@ -4,6 +4,7 @@
 - Date: 2026-11-02
 - Evidence: issue #39, its plan review and the two PR #75 reviews; throwaway measurements at SDK 10.0.403 with Microsoft.Extensions.* 10.0.14 (Native AOT on osx-arm64 unless named), listed below; `Hosting/HostingTests.cs`; `DispatcherTests.Stop_OnceItsWaitIsCancelled_AcksWhatFinishedWithoutWaitingForAHandlerThatIgnoresItsToken`
 - Amends: ARCHITECTURE §8.4, the DI handler's signature
+- Amended by: [ADR 0036](0036-testing-package-and-fake-client.md) (a key replaced with `UseFakeClient` gets the handlers, and the host starts no sidecar)
 
 ## Context
 

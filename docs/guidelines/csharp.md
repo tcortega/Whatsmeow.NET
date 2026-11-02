@@ -209,7 +209,7 @@ Copy from tcortega/bridge when scaffolding `dotnet/`, then apply the deltas list
 - `Directory.Build.props` also turns on `RestorePackagesWithLockFile`: `packages.lock.json` is committed and CI restores with `--locked-mode`. Its CI group applies to a local build with `-p:ContinuousIntegrationBuild=true`, the pre-push build in AGENTS.md.
 - `/nuget.config`: `<clear />` and nuget.org only, so no machine or user feed changes a restore.
 - `src/Directory.Build.props`: `IsAotCompatible` and `IsTrimmable` for every shipped project, and CS1591 back on (above).
-- Stable shipped projects (`Whatsmeow.Client` and `Whatsmeow.Extensions.Hosting`; `Whatsmeow.Testing` when it exists) reference `Microsoft.CodeAnalysis.PublicApiAnalyzers` and track their API in `PublicAPI.Shipped.txt` / `PublicAPI.Unshipped.txt`; RS0016 and RS0017 are errors in `dotnet/.globalconfig`. `Whatsmeow.Protocol*` are unstable and untracked. This is a library delta.
+- Stable shipped projects (`Whatsmeow.Client`, `Whatsmeow.Extensions.Hosting` and `Whatsmeow.Testing`) reference `Microsoft.CodeAnalysis.PublicApiAnalyzers` and track their API in `PublicAPI.Shipped.txt` / `PublicAPI.Unshipped.txt`; RS0016 and RS0017 are errors in `dotnet/.globalconfig`. `Whatsmeow.Protocol*` are unstable and untracked. This is a library delta.
 - `Directory.Build.targets`: bridge's source-control `AssemblyMetadata` target without `SourceBranch` (house delta: the same commit built from two branches gives the same assembly), plus:
   - `WMN0001`: Grpc.Core or Newtonsoft.Json anywhere in the resolved package graph fails the build.
   - `WMN0002`: a project named `*Tests` that is not a Microsoft.Testing.Platform app fails the build, because `dotnet test` would skip it.

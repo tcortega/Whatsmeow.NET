@@ -1,5 +1,3 @@
-using System.Collections.Immutable;
-using System.Threading.Channels;
 using Grpc.Core;
 using Whatsmeow.Core.Dispatching;
 using Whatsmeow.Core.Errors;
@@ -9,10 +7,10 @@ namespace Whatsmeow.Events;
 
 /// <summary>
 /// One session's events in this process (ARCHITECTURE §8.4): the reader of <c>StreamEvents</c>, which only decodes
-/// and writes to a bounded channel, the <see cref="Dispatcher"/> behind it, and the handlers it runs. The ephemeral
-/// events (presence, chat presence) come on <c>StreamEphemeralEvents</c>, with a reader, channel and dispatcher of
-/// their own that never ack, so they never move, hold back or delay the durable ones (ADR 0027). It starts on the
-/// first successful connect of the session in this process.
+/// and writes to a bounded channel, the <see cref="Dispatcher"/> behind it, and the handlers it runs, which are the
+/// <see cref="EventPipeline"/>'s. The ephemeral events (presence, chat presence) come on <c>StreamEphemeralEvents</c>,
+/// with a reader, channel and dispatcher of their own that never ack, so they never move, hold back or delay the
+/// durable ones (ADR 0027). It starts on the first successful connect of the session in this process.
 /// </summary>
 internal sealed class SessionEvents : IAsyncDisposable
 {
@@ -27,22 +25,7 @@ internal sealed class SessionEvents : IAsyncDisposable
 	private readonly SessionId _sessionId;
 	private readonly TimeProvider _timeProvider;
 	private readonly ILogger _log;
-	private readonly Channel<Work> _channel = Channel.CreateBounded<Work>(new BoundedChannelOptions(Dispatcher.MaxPending) { SingleReader = true, SingleWriter = true });
-	private readonly Dispatcher _dispatcher;
-	private readonly Channel<Work> _ephemeralChannel = Channel.CreateBounded<Work>(new BoundedChannelOptions(Dispatcher.MaxPending) { SingleReader = true, SingleWriter = true });
-	private readonly Dispatcher _ephemeralDispatcher;
-
-	// Never disposed: a handler that deletes its own session still runs, and reads its token, after the stop returned.
-#pragma warning disable CA2213 // Justification: see above; it holds no timer and no unmanaged resource
-	private readonly CancellationTokenSource _stopping = new();
-#pragma warning restore CA2213
-	private readonly Lock _lock = new();
-	private ImmutableArray<Func<WhatsAppEvent, CancellationToken, ValueTask>> _handlers = [];
-	private ImmutableArray<Action<HandlerError>> _errorHandlers = [];
-	private Task _reader = Task.CompletedTask;
-	private Task _ephemeralReader = Task.CompletedTask;
-	private int _started;
-	private int _disposed;
+	private readonly EventPipeline _pipeline;
 
 	public SessionEvents(WhatsmeowSidecar sidecar, CallInvoker invoker, SessionId sessionId, TimeProvider timeProvider, ILogger log)
 	{
@@ -51,155 +34,28 @@ internal sealed class SessionEvents : IAsyncDisposable
 		_sessionId = sessionId;
 		_timeProvider = timeProvider;
 		_log = log;
-		_dispatcher = new Dispatcher(_channel.Reader, AckAsync, timeProvider, log);
-		_ephemeralDispatcher = new Dispatcher(_ephemeralChannel.Reader, ackAsync: null, timeProvider, log);
+		_pipeline = new EventPipeline(sessionId, AckAsync, timeProvider, log);
 	}
 
 	/// <summary>The client was deleted or its sidecar disposed: no event comes any more.</summary>
-	public bool IsDisposed => _disposed != 0;
+	public bool IsDisposed => _pipeline.IsDisposed;
 
 	/// <summary>Starts reading the session's events; calling it again does nothing.</summary>
-	public void Start()
-	{
-		if (_disposed != 0 || Interlocked.Exchange(ref _started, 1) != 0)
-			return;
-
-		_dispatcher.Start();
-		_ephemeralDispatcher.Start();
-		_reader = ReadDurableAsync(_stopping.Token);
-		_ephemeralReader = ReadEphemeralAsync(_stopping.Token);
-	}
+	public void Start() => _pipeline.Start(ReadDurableAsync, ReadEphemeralAsync);
 
 	public IDisposable On<TEvent>(Func<TEvent, CancellationToken, ValueTask> handler)
-		where TEvent : WhatsAppEvent
-	{
-		ArgumentNullException.ThrowIfNull(handler);
-		Func<WhatsAppEvent, CancellationToken, ValueTask> run = (e, ct) => e is TEvent typed ? handler(typed, ct) : ValueTask.CompletedTask;
-		lock (_lock)
-			_handlers = _handlers.Add(run);
-		return new Registration(() =>
-		{
-			lock (_lock)
-				_handlers = _handlers.Remove(run);
-		});
-	}
+		where TEvent : WhatsAppEvent => _pipeline.On(handler);
 
-	public IDisposable OnHandlerError(Action<HandlerError> handler)
-	{
-		ArgumentNullException.ThrowIfNull(handler);
-		lock (_lock)
-			_errorHandlers = _errorHandlers.Add(handler);
-		return new Registration(() =>
-		{
-			lock (_lock)
-				_errorHandlers = _errorHandlers.Remove(handler);
-		});
-	}
+	public IDisposable OnHandlerError(Action<HandlerError> handler) => _pipeline.OnHandlerError(handler);
 
-	public async Task<TEvent> WaitForAsync<TEvent>(Func<TEvent, bool> predicate, TimeSpan timeout, CancellationToken cancellationToken)
-		where TEvent : WhatsAppEvent
-	{
-		ArgumentNullException.ThrowIfNull(predicate);
-		var found = new TaskCompletionSource<TEvent>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-		// A handler like any other, in the same dispatcher, so it sees the event in its lane's order.
-		using var registration = On<TEvent>(
-			(e, token) =>
-			{
-				if (predicate(e))
-					_ = found.TrySetResult(e);
-				return ValueTask.CompletedTask;
-			}
-		);
-		using var stopped = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _stopping.Token);
-		try
-		{
-			return await found.Task.WaitAsync(timeout, _timeProvider, stopped.Token).ConfigureAwait(false);
-		}
-		catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-		{
-			// No event comes any more: the client was deleted or its sidecar disposed.
-			ObjectDisposedException.ThrowIf(condition: true, typeof(IWhatsAppClient));
-			throw;
-		}
-	}
+	public Task<TEvent> WaitForAsync<TEvent>(Func<TEvent, bool> predicate, TimeSpan timeout, CancellationToken cancellationToken)
+		where TEvent : WhatsAppEvent => _pipeline.WaitForAsync(predicate, timeout, cancellationToken);
 
 	/// <summary>Stops reading, lets the dispatcher stop its handlers, and acks what they finished (ARCHITECTURE §8.4).</summary>
-	public ValueTask DisposeAsync() => new(StopAsync(CancellationToken.None));
+	public ValueTask DisposeAsync() => _pipeline.DisposeAsync();
 
 	/// <summary><see cref="DisposeAsync"/>; once <paramref name="stopWaiting"/> is cancelled, it no longer waits for handlers that ignore their cancellation (ADR 0034).</summary>
-	public async Task StopAsync(CancellationToken stopWaiting)
-	{
-		if (Interlocked.Exchange(ref _disposed, 1) != 0)
-			return;
-
-		await _stopping.CancelAsync().ConfigureAwait(false);
-		try
-		{
-			await _reader.ConfigureAwait(false);
-			await _ephemeralReader.ConfigureAwait(false);
-		}
-		finally
-		{
-			await _dispatcher.StopAsync(stopWaiting).ConfigureAwait(false);
-			await _ephemeralDispatcher.StopAsync(stopWaiting).ConfigureAwait(false);
-
-			// Already stopped, so these return at once; they keep the dispose visible to the analyzers.
-			await _dispatcher.DisposeAsync().ConfigureAwait(false);
-			await _ephemeralDispatcher.DisposeAsync().ConfigureAwait(false);
-		}
-	}
-
-	/// <summary>Runs every handler of <paramref name="e"/> in order. A handler that throws is logged and reported, and the next one runs.</summary>
-	private async ValueTask RunAsync(WhatsAppEvent e, CancellationToken cancellationToken)
-	{
-		ImmutableArray<Func<WhatsAppEvent, CancellationToken, ValueTask>> handlers;
-		lock (_lock)
-			handlers = _handlers;
-
-		foreach (var handler in handlers)
-		{
-			try
-			{
-				await handler(e, cancellationToken).ConfigureAwait(false);
-			}
-#pragma warning disable CA1031 // Justification: rethrown; whatever a handler throws once the stop began means it did not finish
-			catch (Exception) when (cancellationToken.IsCancellationRequested)
-#pragma warning restore CA1031
-			{
-				// Stopping: the event is not handled, and comes again.
-				throw;
-			}
-#pragma warning disable CA1031 // Justification: a handler failure never blocks the stream; it is reported on OnHandlerError (ARCHITECTURE §8.4)
-			catch (Exception exception)
-#pragma warning restore CA1031
-			{
-				EventLog.HandlerFailed(_log, exception, e.GetType().Name, _sessionId.Value);
-				ReportError(new HandlerError { Event = e, Exception = exception });
-			}
-		}
-	}
-
-	private void ReportError(HandlerError error)
-	{
-		ImmutableArray<Action<HandlerError>> callbacks;
-		lock (_lock)
-			callbacks = _errorHandlers;
-
-		foreach (var callback in callbacks)
-		{
-			try
-			{
-				callback(error);
-			}
-#pragma warning disable CA1031 // Justification: an error callback that throws must not stop the others or the stream
-			catch (Exception exception)
-#pragma warning restore CA1031
-			{
-				EventLog.ErrorCallbackFailed(_log, exception, _sessionId.Value);
-			}
-		}
-	}
+	public Task StopAsync(CancellationToken stopWaiting) => _pipeline.StopAsync(stopWaiting);
 
 	/// <summary>
 	/// Reads the durable stream into its channel. When the sidecar goes away it waits for the next launch and opens the
@@ -215,7 +71,7 @@ internal sealed class SessionEvents : IAsyncDisposable
 			{
 				// The sidecar sends only seqs above after_seq, in order (events.proto).
 				highest = response.Seq;
-				await _channel.Writer.WriteAsync(ToWork(response), ct).ConfigureAwait(false);
+				await _pipeline.Durable.WriteAsync(ToWork(response), ct).ConfigureAwait(false);
 			},
 			cancellationToken
 		);
@@ -231,7 +87,7 @@ internal sealed class SessionEvents : IAsyncDisposable
 		ulong arrived = 0;
 		return ReadAsync(
 			ct => _client.StreamEphemeralEvents(new StreamEphemeralEventsRequest { SessionId = _sessionId.Value }, cancellationToken: ct),
-			async (response, ct) => await _ephemeralChannel.Writer.WriteAsync(ToWork(++arrived, response), ct).ConfigureAwait(false),
+			async (response, ct) => await _pipeline.Ephemeral.WriteAsync(ToWork(++arrived, response), ct).ConfigureAwait(false),
 			cancellationToken
 		);
 	}
@@ -314,14 +170,8 @@ internal sealed class SessionEvents : IAsyncDisposable
 			e = null;
 		}
 
-		return new Work
-		{
-			Seq = response.Seq,
-			Lane = EventMapping.Lane(response),
-
-			// A payload case this client does not know is skipped, and still acked (events.proto).
-			RunAsync = e is null ? static _ => ValueTask.CompletedTask : ct => RunAsync(e, ct),
-		};
+		// A payload case this client does not know is skipped, and still acked (events.proto).
+		return _pipeline.ToWork(response.Seq, e);
 	}
 
 	/// <summary>The ephemeral event as the dispatcher's work: <paramref name="arrived"/> orders it, and nothing acks it.</summary>
@@ -344,12 +194,7 @@ internal sealed class SessionEvents : IAsyncDisposable
 			e = null;
 		}
 
-		return new Work
-		{
-			Seq = arrived,
-			Lane = EventMapping.Lane(response),
-			RunAsync = e is null ? static _ => ValueTask.CompletedTask : ct => RunAsync(e, ct),
-		};
+		return _pipeline.ToWork(arrived, e);
 	}
 
 	private async Task AckAsync(ulong seq, CancellationToken cancellationToken)
@@ -358,16 +203,5 @@ internal sealed class SessionEvents : IAsyncDisposable
 			.CallAsync(_client.AckEventsAsync(new AckEventsRequest { SessionId = _sessionId.Value, Consumer = Consumer, UpToSeq = seq }, cancellationToken: cancellationToken))
 			.ConfigureAwait(false);
 		EventLog.Acked(_log, _sessionId.Value, seq);
-	}
-
-	private sealed class Registration(Action remove) : IDisposable
-	{
-		private int _disposed;
-
-		public void Dispose()
-		{
-			if (Interlocked.Exchange(ref _disposed, 1) == 0)
-				remove();
-		}
 	}
 }

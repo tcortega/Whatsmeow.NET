@@ -43,6 +43,9 @@
 		<!-- The hosting package creates the sidecar unstarted and shares the options' setup step and rules (ADR 0034); it
 		depends on this package at exactly its version, so the internals always match. -->
 		<InternalsVisibleTo Include="Whatsmeow.Extensions.Hosting" />
+		<!-- FakeWhatsAppClient runs the client's own event pipeline, so its ordering and handler errors are the client's
+		(ADR 0036); it depends on this package at exactly its version. -->
+		<InternalsVisibleTo Include="Whatsmeow.Testing" />
 	</ItemGroup>
 
 	<ItemGroup Label="Usings">

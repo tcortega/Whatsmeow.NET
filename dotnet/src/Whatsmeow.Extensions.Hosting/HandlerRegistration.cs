@@ -6,12 +6,15 @@ internal sealed class HandlerRegistration(Type eventType, Type handlerType, Sess
 	/// <summary>Whether this registers <paramref name="handler"/> for <paramref name="e"/> on the same sessions, so registering it again adds nothing.</summary>
 	public bool Is(Type e, Type handler, SessionId? on) => eventType == e && handlerType == handler && session == on;
 
-	/// <summary>Registers the handler on a new <paramref name="client"/> when it is for the client's session; it lasts as long as the client.</summary>
-	public void AttachTo(IWhatsAppClient client, IServiceProvider services)
+	/// <summary>
+	/// Registers the handler on <paramref name="client"/> when it is for the client's session, and returns the
+	/// registration; null when it is for another session.
+	/// </summary>
+	public IDisposable? AttachTo(IWhatsAppClient client, IServiceProvider services)
 	{
 		if (session is { } only && only != client.SessionId)
-			return;
+			return null;
 
-		_ = attach(client, services);
+		return attach(client, services);
 	}
 }

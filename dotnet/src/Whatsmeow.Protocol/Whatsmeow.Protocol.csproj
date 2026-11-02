@@ -8,5 +8,7 @@
 
 	<ItemGroup>
 		<InternalsVisibleTo Include="Whatsmeow.Client" />
+		<!-- The lane test builds a sample of every event payload, to check its lane is the proto field's (ADR 0036). -->
+		<InternalsVisibleTo Include="Whatsmeow.Client.Tests" />
 	</ItemGroup>
 </Project>

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<!--
+		The fake's own tests use only its public API (docs/guidelines/tests.md, ADR 0036): no project gives this one its
+		internals, so the compiler holds the rule.
+	-->
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Hosting" />
+		<PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+		<PackageReference Include="xunit.v3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="../../src/Whatsmeow.Testing/Whatsmeow.Testing.csproj" />
+	</ItemGroup>
+
+	<ItemGroup Label="Usings">
+		<Using Include="Xunit" />
+	</ItemGroup>
+</Project>

@@ -22,8 +22,8 @@ public sealed class TemporarilyBannedException : WhatsmeowException
 	{
 	}
 
-	/// <summary>When the ban ends; null when WhatsApp sent no end.</summary>
-	public DateTimeOffset? Until { get; internal init; }
+	/// <summary>When the ban ends; null when WhatsApp sent no end. Settable so a test can build the exception the library throws (ADR 0036).</summary>
+	public DateTimeOffset? Until { get; init; }
 
 	[DoesNotReturn]
 	internal static void Throw(RpcException exception, DateTimeOffset? until) =>
