@@ -49,6 +49,11 @@ const (
 // backoff is how long a send waits before each new try after WhatsApp rate limited it.
 func backoff() []time.Duration { return []time.Duration{time.Second, 2 * time.Second, 4 * time.Second} }
 
+// tryMargin is the least time a try needs beyond its backoff, so a send is not tried again with no time left. A try
+// that runs out of time after the hand-off is an unknown outcome, and its id is never sent again. A send's IQs and the
+// node's answer usually take well under a second [inferred]; WhatsApp may take up to 75 s to answer (send.go:445).
+const tryMargin = time.Second
+
 // clientMessageID is the only id format accepted: the one whatsmeow generates (send.go:41, 47-61). Whether WhatsApp
 // accepts others is unknown, so the rule is strict until it is measured (ADR 0025).
 var clientMessageID = regexp.MustCompile(`^3EB0[0-9A-F]{18}$`)
@@ -67,6 +72,7 @@ type Service struct {
 	pace    time.Duration
 	burst   int
 	backoff []time.Duration
+	margin  time.Duration
 	// onQueue and onWait, when set, run when a send has to wait behind another and when a repeat waits for the same
 	// send in flight; tests wait on them.
 	onQueue, onWait func()
@@ -83,7 +89,7 @@ func New(db *sql.DB, sessions Sessions, log zerolog.Logger) *Service {
 
 	return &Service{
 		db: db, sessions: sessions, log: log, lifetime: lifetime, end: end,
-		pace: pace, burst: burst, backoff: backoff(),
+		pace: pace, burst: burst, backoff: backoff(), margin: tryMargin,
 		flights: map[flightKey]*flight{}, queues: map[string]*queue{},
 	}
 }

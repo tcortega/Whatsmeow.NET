@@ -233,6 +233,7 @@ func start(t *testing.T) *harness {
 	h.svc = New(db.DB, h.sessions, log)
 	// Fast enough for a test, and still measurable.
 	h.svc.pace, h.svc.burst, h.svc.backoff = 40*time.Millisecond, 100, []time.Duration{time.Millisecond, 2 * time.Millisecond, 4 * time.Millisecond}
+	h.svc.margin = time.Millisecond
 	h.svc.onQueue = func() { h.queued <- struct{}{} }
 	h.svc.onWait = func() { h.waiting <- struct{}{} }
 
@@ -752,6 +753,32 @@ func TestARateLimitIsBackedOffThenFailsWithRateLimited(t *testing.T) {
 
 	_, err = h.sendText(ctx, 3, "hi")
 	wantReason(t, err, codes.ResourceExhausted, "RATE_LIMITED", nil)
+}
+
+// A try needs time beyond its backoff: one started with no time left would run out after the hand-off, an unknown
+// outcome, and the id could never be sent again. So a backoff that leaves less than the margin is not waited.
+func TestARateLimitIsNotTriedAgainWithoutTimeForTheTry(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.svc.backoff, h.svc.margin = []time.Duration{10 * time.Millisecond}, time.Hour
+	limited := fmt.Errorf("failed to get devices: %w", whatsmeow.ErrIQRateOverLimit)
+	h.script(limited, limited)
+
+	ctx, cancel := context.WithTimeout(h.ctx, 10*time.Second)
+	defer cancel()
+
+	_, err := h.sendText(ctx, 1, "hi")
+	wantReason(t, err, codes.ResourceExhausted, "RATE_LIMITED", nil)
+
+	if got := h.stub.ids(); len(got) != 1 {
+		t.Fatalf("whatsmeow got %v, want one try", got)
+	}
+
+	// Nothing was sent: the id is free for a repeat.
+	if exists, _, _, _ := h.record(1); exists {
+		t.Fatal("a rate-limited send left a record")
+	}
 }
 
 func TestQueuedSendsGoOutInOrderAndPaced(t *testing.T) {

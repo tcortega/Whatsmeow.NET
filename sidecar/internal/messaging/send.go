@@ -318,7 +318,7 @@ func (svc *Service) run(q *queue, j *job) outcome {
 
 		switch class, reason := classify(err); class {
 		case rateLimited:
-			if try < len(svc.backoff) && fits(j.ctx, svc.backoff[try]) {
+			if try < len(svc.backoff) && fits(j.ctx, svc.backoff[try], svc.margin) {
 				if err := svc.sleep(j, svc.backoff[try]); err == nil {
 					continue
 				}
@@ -403,11 +403,11 @@ func (svc *Service) sleep(j *job, d time.Duration) error {
 	}
 }
 
-// fits is a wait of d that ends before ctx's deadline.
-func fits(ctx context.Context, d time.Duration) bool {
+// fits is a wait of d, then a try of at least margin, that ends before ctx's deadline.
+func fits(ctx context.Context, d, margin time.Duration) bool {
 	deadline, ok := ctx.Deadline()
 
-	return !ok || time.Until(deadline) > d
+	return !ok || time.Until(deadline) > d+margin
 }
 
 // class is what a SendMessage error says about the send.
