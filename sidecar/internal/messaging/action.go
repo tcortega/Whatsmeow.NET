@@ -159,9 +159,10 @@ func (svc *Service) named(sessionID string, c replyContext, message *waE2E.Messa
 
 // account is the account's own JID without a device, as whatsmeow names the account when it sends to chat
 // (SendMessage's ownID, send.go:304-365): its LID in a direct chat, by phone number or LID, since whatsmeow sends a
-// phone number's message to its LID, and in a LID-addressed group, whose addressing mode it reads from WhatsApp as
-// whatsmeow's send does (getCachedGroupData, group.go:700-711, which GetGroupInfo fills); its phone number in any other
-// chat, and while the LID is unknown. whatsmeow's other LID case, a community announcement group, needs a send's Meta,
+// phone number's message to its LID, and in a LID-addressed group; its phone number in any other chat, and while the
+// LID is unknown. whatsmeow keeps a group's addressing mode only in its private group cache (group.go:657-711, 1023)
+// and its store has none, so a group's comes from WhatsApp (GetGroupInfo, which fills that cache for the send): one
+// request per own reply in a group, made in the send's paced turn (build), never by a repeat. whatsmeow's other LID case, a community announcement group, needs a send's Meta,
 // which the sidecar never sets. Whether WhatsApp resolves the quote either way is unknown (#36).
 func (svc *Service) account(ctx context.Context, sessionID string, wa whatsApp, chat types.JID) (types.JID, error) {
 	device, err := svc.sessions.Device(sessionID)

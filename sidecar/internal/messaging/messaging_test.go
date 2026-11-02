@@ -85,6 +85,8 @@ type stub struct {
 	wa *whatsmeow.Client
 	// groupErr is what GetGroupInfo answers when set; otherwise lidGroup is LID-addressed and every other group is not.
 	groupErr error
+	// groupInfos counts the GetGroupInfo calls, each a request to WhatsApp.
+	groupInfos int
 }
 
 // The account the stub's device is: its device JID and LID, as WhatsApp assigns them.
@@ -107,6 +109,10 @@ func (s *stub) BuildEdit(chat types.JID, id types.MessageID, newContent *waE2E.M
 
 // GetGroupInfo answers as whatsmeow parses WhatsApp's answer, with only the group's addressing mode (group.go:742-811).
 func (s *stub) GetGroupInfo(_ context.Context, jid types.JID) (*types.GroupInfo, error) {
+	s.mu.Lock()
+	s.groupInfos++
+	s.mu.Unlock()
+
 	if s.groupErr != nil {
 		return nil, s.groupErr
 	}
@@ -143,6 +149,13 @@ func (s *stub) MarkRead(_ context.Context, ids []types.MessageID, timestamp time
 	s.reads = append(s.reads, read{ids: ids, at: timestamp, chat: chat, sender: sender})
 
 	return s.readErr
+}
+
+func (s *stub) groupInfoCalls() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return s.groupInfos
 }
 
 func (s *stub) sent() []call {

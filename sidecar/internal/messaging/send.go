@@ -62,19 +62,22 @@ type job struct {
 	session string
 	client  whatsApp
 	// left is closed once the session stops being online.
-	left    <-chan struct{}
-	chat    types.JID
-	id      string
-	message *waE2E.Message
+	left <-chan struct{}
+	chat types.JID
+	id   string
+	// build makes the message in the job's turn (run).
+	build build
 	// started is set, under the Service's lock, once the queue took it; until then its caller may take it back.
 	started bool
 	done    chan struct{}
 	outcome outcome
 }
 
-// build makes a send's message with the session's whatsmeow client, once the session is known to be online and the
-// send was not recorded before: a reaction, a revoke and an edit are whatsmeow's own, which name the account through
-// its device, and a reply to the account's own message names the account (replyContext). An error sends nothing.
+// build makes a send's message with the session's whatsmeow client in the send's paced turn, once the session is known
+// to be online and the send was not recorded before: a reaction, a revoke and an edit are whatsmeow's own, which name
+// the account through its device, and a reply to the account's own message names the account (replyContext), which in
+// a group asks WhatsApp for the group's info, so that request is paced with the send and a repeat never makes it. An
+// error sends nothing.
 type build func(ctx context.Context, wa whatsApp, chat types.JID) (*waE2E.Message, error)
 
 // as is the build of a message made already.
@@ -168,12 +171,7 @@ func (svc *Service) sendOnce(ctx context.Context, sessionID string, to types.JID
 		return outcome{err: fmt.Errorf("send: the client %T of session %q cannot send", client, sessionID), sentNothing: true}
 	}
 
-	built, err := message(ctx, wa, to)
-	if err != nil {
-		return outcome{err: fmt.Errorf("send: %w", err), sentNothing: true}
-	}
-
-	j := &job{ctx: ctx, session: sessionID, client: wa, left: left, chat: to, id: id, message: built, done: make(chan struct{})}
+	j := &job{ctx: ctx, session: sessionID, client: wa, left: left, chat: to, id: id, build: message, done: make(chan struct{})}
 	svc.enqueue(j) //nolint:contextcheck // the job carries ctx, and its queue runs it under ctx
 
 	return svc.await(j)
@@ -336,9 +334,14 @@ func (svc *Service) work(q *queue) {
 	}
 }
 
-// run paces j, records it, hands it to whatsmeow, and records what came back.
+// run paces j, builds its message, records it, hands it to whatsmeow, and records what came back.
 func (svc *Service) run(q *queue, j *job) outcome {
 	if err := svc.sleep(j, svc.due(q)); err != nil {
+		return outcome{err: fmt.Errorf("send: %w", err), sentNothing: true}
+	}
+
+	message, err := j.build(j.ctx, j.client, j.chat)
+	if err != nil {
 		return outcome{err: fmt.Errorf("send: %w", err), sentNothing: true}
 	}
 
@@ -350,7 +353,7 @@ func (svc *Service) run(q *queue, j *job) outcome {
 	svc.spend(q)
 
 	for try := 0; ; try++ {
-		resp, err := j.client.SendMessage(j.ctx, j.chat, j.message, whatsmeow.SendRequestExtra{ID: j.id})
+		resp, err := j.client.SendMessage(j.ctx, j.chat, message, whatsmeow.SendRequestExtra{ID: j.id})
 		if err == nil {
 			svc.write(j, "UPDATE sent_message SET chat = ?, message_time = ? WHERE session_id = ? AND client_message_id = ?",
 				resp.Chat.String(), resp.Timestamp.Unix(), j.session, j.id)

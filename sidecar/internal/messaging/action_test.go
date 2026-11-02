@@ -408,6 +408,70 @@ func TestAnOwnReplyInAGroupWhoseInfoWhatsAppRefusesFailsAndSendsNothing(t *testi
 	}
 }
 
+// The group-info request of an own reply in a group is part of the send's paced turn: it waits for the sends queued
+// before it, so it is never an unpaced extra request.
+func TestAnOwnReplyInAGroupReadsTheGroupInItsTurn(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	release := h.hold()
+	first := h.async(h.ctx, 1)
+	h.next()
+
+	reply := make(chan error, 1)
+
+	go func() {
+		_, err := h.client.SendText(h.ctx, &whatsmeowv1.SendTextRequest{SessionId: "s1", Chat: group, ClientMessageId: id(2), Text: "more", ReplyTo: &whatsmeowv1.MessageReply{Id: "ABC"}})
+		reply <- err
+	}()
+
+	h.wait(h.queued, "reply queued behind the first send")
+
+	if n := h.stub.groupInfoCalls(); n != 0 {
+		t.Fatalf("the queued reply asked for the group's info %d times before its turn", n)
+	}
+
+	close(release)
+
+	if r := h.outcome(first); r.err != nil {
+		t.Fatalf("the first send: %v", r.err)
+	}
+
+	if c := h.next(); c.id != id(2) {
+		t.Fatalf("whatsmeow got %s, want the reply", c.id)
+	}
+
+	if err := <-reply; err != nil {
+		t.Fatalf("the reply: %v", err)
+	}
+
+	if n := h.stub.groupInfoCalls(); n != 1 {
+		t.Fatalf("the reply asked for the group's info %d times, want once", n)
+	}
+}
+
+// A repeat of a recorded own reply in a group gets its record and asks WhatsApp nothing, the group's info included.
+func TestARepeatOfARecordedOwnReplyInAGroupAsksForNoGroupInfo(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	req := &whatsmeowv1.SendTextRequest{SessionId: "s1", Chat: group, ClientMessageId: id(1), Text: "more", ReplyTo: &whatsmeowv1.MessageReply{Id: "ABC"}}
+
+	first, err := h.client.SendText(h.ctx, req)
+	if err != nil {
+		t.Fatalf("SendText: %v", err)
+	}
+
+	again, err := h.client.SendText(h.ctx, req)
+	if err != nil || !proto.Equal(again, first) {
+		t.Fatalf("the repeat = %v, %v; want the recorded %v", again, err, first)
+	}
+
+	if n, sent := h.stub.groupInfoCalls(), len(h.stub.sent()); n != 1 || sent != 1 {
+		t.Fatalf("the reply and its repeat asked for the group's info %d times and sent %d; want once each", n, sent)
+	}
+}
+
 // The account's own JID is read only when the reply is sent, after its record: a repeat of a sent reply once the
 // session logged out gets its recorded result, as every other repeat does.
 func TestARepeatOfARecordedReplyAfterLogoutGetsItsRecordedResult(t *testing.T) {
