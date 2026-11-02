@@ -173,18 +173,35 @@ release_links_no_fake() {
 }
 
 # The release build must not link the live tests' seams (ADR 0032): they are the files named livetest_* behind the
-# livetest tag (tools/check-repo allows the tag nowhere else). The same listing with the tag must show them, so this
-# check can see them at all.
+# livetest tag (tools/check-repo allows the tag nowhere else), and a release build may link only their livetest_off.go
+# twins. The tagged build must link a livetest_on.go, so this check can see the seams at all.
+# livetest_seams reads "package file..." lines and prints each livetest_* file but livetest_off.go as package/file.
+livetest_seams() {
+	local -a fields
+	local file
+	while read -r -a fields; do
+		for file in "${fields[@]:1}"; do
+			case "$file" in
+			livetest_off.go) ;;
+			livetest_*) echo "${fields[0]}/$file" ;;
+			esac
+		done
+	done
+}
+
 release_links_no_livetest() {
-	local files='{{.ImportPath}} {{join .GoFiles " "}}' release live
+	local files='{{.ImportPath}} {{join .GoFiles " "}}' release live leaked
 	release="$(CGO_ENABLED=0 go -C sidecar list -deps -f "$files" ./cmd/whatsmeow-net)" || return
 	live="$(CGO_ENABLED=0 go -C sidecar list -deps -tags livetest -f "$files" ./cmd/whatsmeow-net)" || return
-	if ! grep -q ' livetest_on\.go\b' <<<"$live"; then
+	# Captured first: grep -q ends the pipe at its first match, which pipefail would report as a failure.
+	live="$(livetest_seams <<<"$live")"
+	if ! grep -q '/livetest_on\.go$' <<<"$live"; then
 		annotate error "livetest in the release build" "whatsmeow-net with -tags livetest links no livetest_on.go, so this check cannot see the seams"
 		return 1
 	fi
-	if grep -q ' livetest_on\.go\b' <<<"$release"; then
-		annotate error "livetest in the release build" "whatsmeow-net without -tags livetest links $(grep ' livetest_on\.go\b' <<<"$release" | cut -d' ' -f1)"
+	leaked="$(livetest_seams <<<"$release")"
+	if [ -n "$leaked" ]; then
+		annotate error "livetest in the release build" "whatsmeow-net without -tags livetest links $leaked"
 		return 1
 	fi
 	echo "whatsmeow-net without -tags livetest links no live test seam"
