@@ -76,6 +76,60 @@ public sealed class PairingTests(FakeSidecar fixture)
 	}
 
 	[Fact(Timeout = Timeout)]
+	public async Task FullCycle_PairWithPhoneNumber_ThenAMessageArrives_TheHandlerGetsItWithNoConnect()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var client = await Sessions.GetOrCreateAsync(SessionId.From("pair-events-phone"), ct);
+		using var received = new Received<MessageReceived>(client);
+
+		await foreach (var update in client.PairWithPhoneNumberAsync("+1 555 123 4567", ct))
+		{
+			if (update is PairingUpdate.PairingCode)
+				_ = await fixture.Fake.LinkDeviceAsync(new LinkDeviceRequest { SessionId = "pair-events-phone", Jid = SessionSetup.Jid("pair-events-phone") }, cancellationToken: ct);
+		}
+
+		_ = await fixture.Fake.DeliverMessageAsync(Deliveries.Message("pair-events-phone", "M1"), cancellationToken: ct);
+
+		Assert.Equal(Deliveries.Received("pair-events-phone", "M1"), await received.NextAsync(ct));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Pair_Cancelled_StartsNoEvents_AHandlerAddedBeforeTheConnectGetsThePairingStates()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var client = await Sessions.GetOrCreateAsync(SessionId.From("pair-events-cancelled"), ct);
+		using var cancel = CancellationTokenSource.CreateLinkedTokenSource(ct);
+		_ = await Assert.ThrowsAnyAsync<OperationCanceledException>(
+			async () =>
+			{
+				await foreach (var update in client.PairWithQrCodeAsync(cancel.Token).ConfigureAwait(false))
+					await cancel.CancelAsync().ConfigureAwait(false);
+			}
+		);
+		await ReachesUnpairedAsync(client, ct);
+
+		await ValidateNoEventsStartedAsync(client, "pair-events-cancelled", ct);
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Pair_TheCodesRunOut_StartsNoEvents_AHandlerAddedBeforeTheConnectGetsThePairingStates()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var client = await Sessions.GetOrCreateAsync(SessionId.From("pair-events-expired"), ct);
+		_ = await Assert.ThrowsAsync<PairingException>(
+			() =>
+				PairAsync(
+					client,
+					() => fixture.Fake.ExpireQrCodesAsync(new ExpireQrCodesRequest { SessionId = "pair-events-expired" }, cancellationToken: ct).ResponseAsync,
+					ct
+				)
+		);
+		await ReachesUnpairedAsync(client, ct);
+
+		await ValidateNoEventsStartedAsync(client, "pair-events-expired", ct);
+	}
+
+	[Fact(Timeout = Timeout)]
 	public async Task Pair_ThePreKeyUploadFails_ThrowsPairingFailed_AndTheSessionIsDisconnectedAndStillPaired()
 	{
 		var ct = TestContext.Current.CancellationToken;
@@ -255,6 +309,25 @@ public sealed class PairingTests(FakeSidecar fixture)
 			if (update is PairingUpdate.QrCode && ++codes == 1)
 				await onFirstCode().ConfigureAwait(false);
 		}
+	}
+
+	/// <summary>
+	/// After a pairing that ended without <see cref="PairingUpdate.Paired"/>, the session's events have not started: a
+	/// handler added only now, before the first connect, still gets the pairing's states, which an event dispatched to
+	/// no handler would never repeat (ADR 0022).
+	/// </summary>
+	private async Task ValidateNoEventsStartedAsync(IWhatsAppClient client, string id, CancellationToken cancellationToken)
+	{
+		_ = await fixture.Fake.LinkDeviceAsync(new LinkDeviceRequest { SessionId = id, Jid = SessionSetup.Jid(id) }, cancellationToken: cancellationToken).ConfigureAwait(false);
+		using var received = new Received<ConnectionStateChanged>(client);
+
+		await client.ConnectAsync(cancellationToken).ConfigureAwait(false);
+
+		SessionState[] states = [new SessionState.Pairing(), new SessionState.Created()];
+		Assert.Equal(
+			states.Select(state => new ConnectionStateChanged { SessionId = SessionId.From(id), State = state }),
+			await received.NextAsync(states.Length, cancellationToken).ConfigureAwait(false)
+		);
 	}
 
 	/// <summary>The session goes back to Created: the sidecar records it once the pairing ended.</summary>
