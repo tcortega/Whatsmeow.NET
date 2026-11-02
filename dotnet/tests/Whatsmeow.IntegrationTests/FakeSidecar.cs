@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
+using Microsoft.Extensions.DependencyInjection;
 using Whatsmeow.IntegrationTests.Fake;
 using Whatsmeow.IntegrationTests.Support;
 
@@ -15,6 +17,7 @@ namespace Whatsmeow.IntegrationTests;
 public sealed class FakeSidecar : IAsyncLifetime
 {
 	private string? _directory;
+	private ServiceProvider? _metrics;
 
 	/// <summary>The test build of <c>whatsmeow-net</c>, for a test that starts a fake-mode sidecar of its own.</summary>
 	internal string Binary { get; private set; } = "";
@@ -44,6 +47,12 @@ public sealed class FakeSidecar : IAsyncLifetime
 	/// <summary>The client's log, Debug level included.</summary>
 	internal LogCapture Logs { get; } = new();
 
+	/// <summary>
+	/// The sidecar's meter's factory: a collector on it sees this sidecar's measurements only, not those of a test's
+	/// own sidecar; tests tell their sessions apart by the session id tag.
+	/// </summary>
+	internal IMeterFactory MeterFactory { get; private set; } = null!;
+
 	/// <summary>The public client.</summary>
 	public WhatsmeowSidecar Sidecar { get; private set; } = null!;
 
@@ -68,7 +77,9 @@ public sealed class FakeSidecar : IAsyncLifetime
 			MediaRoot = MediaRoot,
 			History = HistoryOptions,
 		};
-		Sidecar = await WhatsmeowSidecar.StartFakeWhatsAppAsync(Options, Logs.Factory, ct).ConfigureAwait(false);
+		_metrics = new ServiceCollection().AddMetrics().BuildServiceProvider();
+		MeterFactory = _metrics.GetRequiredService<IMeterFactory>();
+		Sidecar = await WhatsmeowSidecar.StartFakeWhatsAppWithMeterFactoryAsync(Options, Logs.Factory, MeterFactory, ct).ConfigureAwait(false);
 		Fake = new FakeWhatsAppService.FakeWhatsAppServiceClient(Sidecar.CallInvoker);
 	}
 
@@ -95,6 +106,8 @@ public sealed class FakeSidecar : IAsyncLifetime
 	{
 		if (Sidecar is not null)
 			await Sidecar.DisposeAsync().ConfigureAwait(false);
+		if (_metrics is not null)
+			await _metrics.DisposeAsync().ConfigureAwait(false);
 		Logs.Dispose();
 		if (_directory is not null)
 			Directory.Delete(_directory, recursive: true);

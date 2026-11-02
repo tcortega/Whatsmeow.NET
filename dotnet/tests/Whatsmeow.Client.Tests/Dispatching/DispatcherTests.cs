@@ -17,6 +17,7 @@ public sealed class DispatcherTests : IAsyncDisposable
 	private readonly Channel<string> _log = Channel.CreateUnbounded<string>();
 	private readonly Dictionary<ulong, TaskCompletionSource> _release = [];
 	private readonly Channel<Exception> _failedAcks = Channel.CreateUnbounded<Exception>();
+	private readonly Channel<int> _depth = Channel.CreateUnbounded<int>();
 	private readonly Dispatcher _dispatcher;
 	private readonly Logs _logs = new();
 	private int _acksToFail;
@@ -39,7 +40,8 @@ public sealed class DispatcherTests : IAsyncDisposable
 				return Task.CompletedTask;
 			},
 			_time,
-			new FakeLogger(_logs.Collector, "Whatsmeow.Client")
+			new FakeLogger(_logs.Collector, "Whatsmeow.Client"),
+			delta => _depth.Writer.TryWrite(delta)
 		);
 		_dispatcher.Start();
 	}
@@ -338,6 +340,8 @@ public sealed class DispatcherTests : IAsyncDisposable
 		);
 		Post(3, "c");
 		Assert.Equal(["end 1", "end 3", "start 1", "start 2", "start 3"], (await NextAsync(5, ct)).Order(StringComparer.Ordinal), StringComparer.Ordinal);
+		// A handler logs its end before it returns, and its event finishes after: wait until 1 and 3 have.
+		await FinishedAsync(2, ct);
 
 		try
 		{
@@ -376,6 +380,16 @@ public sealed class DispatcherTests : IAsyncDisposable
 	}
 
 	private void Release(ulong seq) => _release[seq].SetResult();
+
+	/// <summary>Waits until <paramref name="count"/> more events finished: the dispatcher reports -1 once it recorded each.</summary>
+	private async Task FinishedAsync(int count, CancellationToken cancellationToken)
+	{
+		while (count > 0)
+		{
+			if (await _depth.Reader.ReadAsync(cancellationToken).ConfigureAwait(false) < 0)
+				count--;
+		}
+	}
 
 	private void Log(string line) => _ = _log.Writer.TryWrite(line);
 

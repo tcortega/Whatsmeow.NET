@@ -34,7 +34,7 @@ internal sealed class SessionEvents : IAsyncDisposable
 		_sessionId = sessionId;
 		_timeProvider = timeProvider;
 		_log = log;
-		_pipeline = new EventPipeline(sessionId, AckAsync, timeProvider, log);
+		_pipeline = new EventPipeline(sessionId, AckAsync, timeProvider, log, sidecar.Metrics);
 	}
 
 	/// <summary>The client was deleted or its sidecar disposed: no event comes any more.</summary>

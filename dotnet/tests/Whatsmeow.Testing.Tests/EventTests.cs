@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Globalization;
 using Microsoft.Extensions.Time.Testing;
 using Whatsmeow.Events;
 using Whatsmeow.History;
@@ -13,6 +15,7 @@ namespace Whatsmeow.Testing.Tests;
 /// </summary>
 public sealed class EventTests : IAsyncDisposable
 {
+	private static readonly AsyncLocal<string?> s_local = new();
 	private readonly FakeWhatsAppClient _fake = new(Session);
 
 	public async ValueTask DisposeAsync() => await _fake.DisposeAsync().ConfigureAwait(false);
@@ -94,6 +97,41 @@ public sealed class EventTests : IAsyncDisposable
 
 		Assert.Equal([new HandlerError { Event = first, Exception = boom }], errors);
 		Assert.Equal(["first", "second"], handled, StringComparer.Ordinal);
+	}
+
+	[Fact(Timeout = 10_000)]
+	public async Task Handler_RunsOutsideTheContextOfTheCodeThatMadeTheFakeAndRaisedTheEvent()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var culture = CultureInfo.CurrentCulture;
+		var seen = new TaskCompletionSource<(string? Local, Activity? Activity, string Culture)>(TaskCreationOptions.RunContinuationsAsynchronously);
+		using var raiser = new Activity("raiser");
+		_ = raiser.Start();
+		s_local.Value = "the test's";
+		CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("is-IS");
+		try
+		{
+			await using var fake = new FakeWhatsAppClient(Session);
+			using var handler = fake.On<MessageReceived>(
+				(_, _) =>
+				{
+					_ = seen.TrySetResult((s_local.Value, Activity.Current, CultureInfo.CurrentCulture.Name));
+					return ValueTask.CompletedTask;
+				}
+			);
+
+			await fake.RaiseAsync(Message(Ana, "m1"), ct);
+		}
+		finally
+		{
+			CultureInfo.CurrentCulture = culture;
+		}
+
+		// None of the test's async locals, its activity or its culture reached the handler.
+		var (local, activity, name) = await seen.Task.WaitAsync(ct);
+		Assert.Null(local);
+		Assert.Null(activity);
+		Assert.NotEqual("is-IS", name, StringComparer.Ordinal);
 	}
 
 	[Fact(Timeout = 10_000)]

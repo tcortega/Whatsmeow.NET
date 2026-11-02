@@ -1,6 +1,8 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading.Channels;
 using Whatsmeow.Core.Dispatching;
+using Whatsmeow.Core.Telemetry;
 
 namespace Whatsmeow.Events;
 
@@ -10,13 +12,17 @@ namespace Whatsmeow.Events;
 /// <see cref="IWhatsAppClient.On{TEvent}"/>, <see cref="IWhatsAppClient.WaitForAsync{TEvent}"/> and
 /// <see cref="IWhatsAppClient.OnHandlerError"/>, and two dispatchers: the durable one, which acks through
 /// <c>ackAsync</c>, and the ephemeral one, which never acks, so ephemeral events never move, hold back or delay the
-/// durable ones (ADR 0027).
+/// durable ones (ADR 0027). With the sidecar's <see cref="ClientMetrics"/> it publishes the event side of the telemetry
+/// (ADR 0037): a process span per event a handler takes, a duration per handler, the queue length and the messages
+/// received; without, as for the fake, nothing.
 /// </summary>
 internal sealed class EventPipeline : IAsyncDisposable
 {
 	private readonly SessionId _sessionId;
 	private readonly TimeProvider _timeProvider;
 	private readonly ILogger _log;
+	/// <summary>The sidecar's instruments; null for the fake, which then makes no process span either.</summary>
+	private readonly ClientMetrics? _metrics;
 	private readonly Channel<Work> _durable = Channel.CreateBounded<Work>(new BoundedChannelOptions(Dispatcher.MaxPending) { SingleReader = true, SingleWriter = true });
 	private readonly Dispatcher _durableDispatcher;
 	private readonly Channel<Work> _ephemeral = Channel.CreateBounded<Work>(new BoundedChannelOptions(Dispatcher.MaxPending) { SingleReader = true, SingleWriter = true });
@@ -27,7 +33,7 @@ internal sealed class EventPipeline : IAsyncDisposable
 	private readonly CancellationTokenSource _stopping = new();
 #pragma warning restore CA2213
 	private readonly Lock _lock = new();
-	private ImmutableArray<Func<WhatsAppEvent, CancellationToken, ValueTask>> _handlers = [];
+	private ImmutableArray<Handler> _handlers = [];
 	private ImmutableArray<Action<HandlerError>> _errorHandlers = [];
 	private Task[] _feeds = [];
 	private int _started;
@@ -37,13 +43,16 @@ internal sealed class EventPipeline : IAsyncDisposable
 	/// <param name="ackAsync">Acks the durable events up to a seq; null when nothing acks them, as for the fake.</param>
 	/// <param name="timeProvider">The clock of the dispatchers and of <see cref="WaitForAsync{TEvent}"/>'s timeout.</param>
 	/// <param name="log">The handlers' failures and the dispatchers' logs.</param>
-	public EventPipeline(SessionId sessionId, Func<ulong, CancellationToken, Task>? ackAsync, TimeProvider timeProvider, ILogger log)
+	/// <param name="metrics">The sidecar's instruments; null for the fake, which publishes no telemetry, spans included: it has no sidecar and no meter.</param>
+	public EventPipeline(SessionId sessionId, Func<ulong, CancellationToken, Task>? ackAsync, TimeProvider timeProvider, ILogger log, ClientMetrics? metrics)
 	{
 		_sessionId = sessionId;
 		_timeProvider = timeProvider;
 		_log = log;
-		_durableDispatcher = new Dispatcher(_durable.Reader, ackAsync, timeProvider, log);
-		_ephemeralDispatcher = new Dispatcher(_ephemeral.Reader, ackAsync: null, timeProvider, log);
+		_metrics = metrics;
+		Action<int>? depthChanged = metrics is null ? null : delta => metrics.QueueChanged(sessionId, delta);
+		_durableDispatcher = new Dispatcher(_durable.Reader, ackAsync, timeProvider, log, depthChanged);
+		_ephemeralDispatcher = new Dispatcher(_ephemeral.Reader, ackAsync: null, timeProvider, log, depthChanged);
 	}
 
 	/// <summary>Stopped: no event comes any more.</summary>
@@ -59,33 +68,61 @@ internal sealed class EventPipeline : IAsyncDisposable
 	/// Starts the dispatchers, then each feed with the token of the stop, which waits for the feeds before it stops the
 	/// dispatchers. Calling it again does nothing.
 	/// </summary>
+	/// <remarks>
+	/// Nothing of the caller's <see cref="ExecutionContext"/> flows into them: the first connect starts them inside the
+	/// application's own code, whose <see cref="Activity.Current"/>, log scopes and other async locals
+	/// belong to that call, not to every event after it.
+	/// </remarks>
 	public void Start(params ReadOnlySpan<Func<CancellationToken, Task>> feeds)
 	{
 		if (_disposed != 0 || Interlocked.Exchange(ref _started, 1) != 0)
 			return;
 
-		_durableDispatcher.Start();
-		_ephemeralDispatcher.Start();
-		var started = new Task[feeds.Length];
-		for (var i = 0; i < feeds.Length; i++)
-			started[i] = feeds[i](_stopping.Token);
-		_feeds = started;
+		using (ExecutionContext.SuppressFlow())
+		{
+			_durableDispatcher.Start();
+			_ephemeralDispatcher.Start();
+			var started = new Task[feeds.Length];
+			var token = _stopping.Token;
+			for (var i = 0; i < feeds.Length; i++)
+			{
+				var feed = feeds[i];
+				started[i] = Task.Run(() => feed(token), CancellationToken.None);
+			}
+
+			_feeds = started;
+		}
 	}
 
-	/// <summary>The dispatcher's work for <paramref name="e"/>, in its lane; an event this client cannot map (null) runs no handler.</summary>
-	public Work ToWork(ulong seq, WhatsAppEvent? e) =>
-		new()
+	/// <summary>
+	/// The dispatcher's work for <paramref name="e"/>, in its lane; an event this client cannot map (null) runs no handler.
+	/// A message counts as received here, as it arrives.
+	/// </summary>
+	public Work ToWork(ulong seq, WhatsAppEvent? e)
+	{
+		if (e is MessageReceived)
+			_metrics?.MessageReceived(_sessionId);
+
+		return new()
 		{
 			Seq = seq,
 			Lane = EventMapping.Lane(e),
 			RunAsync = e is null ? static _ => ValueTask.CompletedTask : ct => RunAsync(e, ct),
 		};
+	}
 
 	public IDisposable On<TEvent>(Func<TEvent, CancellationToken, ValueTask> handler)
+		where TEvent : WhatsAppEvent => On(handler, observed: true);
+
+	/// <param name="observed">
+	/// Whether the handler is the application's, which the telemetry observes; false for <see cref="WaitForAsync{TEvent}"/>'s
+	/// own, which starts no process span and records no duration.
+	/// </param>
+	private Registration On<TEvent>(Func<TEvent, CancellationToken, ValueTask> handler, bool observed)
 		where TEvent : WhatsAppEvent
 	{
 		ArgumentNullException.ThrowIfNull(handler);
-		Func<WhatsAppEvent, CancellationToken, ValueTask> run = (e, ct) => e is TEvent typed ? handler(typed, ct) : ValueTask.CompletedTask;
+		var run = new Handler(static e => e is TEvent, (e, ct) => handler((TEvent)e, ct), observed);
 		lock (_lock)
 			_handlers = _handlers.Add(run);
 		return new Registration(() =>
@@ -113,14 +150,15 @@ internal sealed class EventPipeline : IAsyncDisposable
 		ArgumentNullException.ThrowIfNull(predicate);
 		var found = new TaskCompletionSource<TEvent>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-		// A handler like any other, in the same dispatcher, so it sees the event in its lane's order.
+		// A handler like any other, in the same dispatcher, so it sees the event in its lane's order; not the application's.
 		using var registration = On<TEvent>(
 			(e, token) =>
 			{
 				if (predicate(e))
 					_ = found.TrySetResult(e);
 				return ValueTask.CompletedTask;
-			}
+			},
+			observed: false
 		);
 		using var stopped = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _stopping.Token);
 		try
@@ -167,33 +205,60 @@ internal sealed class EventPipeline : IAsyncDisposable
 		}
 	}
 
-	/// <summary>Runs every handler of <paramref name="e"/> in order. A handler that throws is logged and reported, and the next one runs.</summary>
+	/// <summary>
+	/// Runs every handler of <paramref name="e"/> in order, inside its process span, which starts with the first of the
+	/// application's handlers that takes the event: an event none takes has none. A handler that throws is logged and
+	/// reported, and the next one runs; each of the application's handlers records its duration, a throw's included, its
+	/// own cancellation's too; only the stop's cancellation is no failure (ADR 0037).
+	/// </summary>
 	private async ValueTask RunAsync(WhatsAppEvent e, CancellationToken cancellationToken)
 	{
-		ImmutableArray<Func<WhatsAppEvent, CancellationToken, ValueTask>> handlers;
+		ImmutableArray<Handler> handlers;
 		lock (_lock)
 			handlers = _handlers;
 
-		foreach (var handler in handlers)
+		var eventType = e.GetType().Name;
+		Activity? activity = null;
+		try
 		{
-			try
+			foreach (var handler in handlers)
 			{
-				await handler(e, cancellationToken).ConfigureAwait(false);
-			}
+				if (!handler.Accepts(e))
+					continue;
+
+				if (handler.Observed)
+					activity ??= _metrics is null ? null : Tracing.StartProcess(_sessionId, eventType);
+				var started = _timeProvider.GetTimestamp();
+				string? failed = null;
+				try
+				{
+					await handler.RunAsync(e, cancellationToken).ConfigureAwait(false);
+				}
 #pragma warning disable CA1031 // Justification: rethrown; whatever a handler throws once the stop began means it did not finish
-			catch (Exception) when (cancellationToken.IsCancellationRequested)
+				catch (Exception) when (cancellationToken.IsCancellationRequested)
 #pragma warning restore CA1031
-			{
-				// Stopping: the event is not handled, and comes again.
-				throw;
-			}
+				{
+					// Stopping: the event is not handled, and comes again.
+					throw;
+				}
 #pragma warning disable CA1031 // Justification: a handler failure never blocks the stream; it is reported on OnHandlerError (ARCHITECTURE §8.4)
-			catch (Exception exception)
+				catch (Exception exception)
 #pragma warning restore CA1031
-			{
-				EventLog.HandlerFailed(_log, exception, e.GetType().Name, _sessionId.Value);
-				ReportError(new HandlerError { Event = e, Exception = exception });
+				{
+					failed = Tracing.ErrorType(exception);
+					if (handler.Observed)
+						Tracing.Failed(activity, exception, cancellationToken);
+					EventLog.HandlerFailed(_log, exception, eventType, _sessionId.Value);
+					ReportError(new HandlerError { Event = e, Exception = exception });
+				}
+
+				if (handler.Observed)
+					_metrics?.HandlerRan(_sessionId, eventType, _timeProvider.GetElapsedTime(started), failed);
 			}
+		}
+		finally
+		{
+			activity?.Dispose();
 		}
 	}
 
@@ -216,6 +281,16 @@ internal sealed class EventPipeline : IAsyncDisposable
 				EventLog.ErrorCallbackFailed(_log, exception, _sessionId.Value);
 			}
 		}
+	}
+
+	/// <summary>One <see cref="On{TEvent}(Func{TEvent, CancellationToken, ValueTask})"/> handler: whether an event is its type, the run of it, and whether the telemetry observes it.</summary>
+	private sealed class Handler(Func<WhatsAppEvent, bool> accepts, Func<WhatsAppEvent, CancellationToken, ValueTask> run, bool observed)
+	{
+		public bool Observed => observed;
+
+		public bool Accepts(WhatsAppEvent e) => accepts(e);
+
+		public ValueTask RunAsync(WhatsAppEvent e, CancellationToken cancellationToken) => run(e, cancellationToken);
 	}
 
 	private sealed class Registration(Action remove) : IDisposable

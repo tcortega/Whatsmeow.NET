@@ -1,7 +1,9 @@
+using System.Diagnostics.Metrics;
 using Grpc.Core;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Whatsmeow.Core.Errors;
+using Whatsmeow.Core.Telemetry;
 using Whatsmeow.Core.Transport;
 using Whatsmeow.Protocol.V1;
 using Whatsmeow.Sessions;
@@ -45,6 +47,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		int maxProtocol,
 		bool fakeWhatsApp,
 		ILoggerFactory loggerFactory,
+		IMeterFactory? meterFactory,
 		TimeProvider timeProvider,
 		Action<IWhatsAppClient>? clientCreated,
 		IReadOnlySet<SessionId> declared
@@ -57,7 +60,8 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		TimeProvider = timeProvider;
 		_log = loggerFactory.CreateLogger(SidecarLog.Category);
 		_sidecarLog = loggerFactory.CreateLogger(SidecarLog.SidecarCategory);
-		_channel = new LocalChannel(options.Transport is SidecarTransport.NamedPipe, () => _current?.Endpoint, () => _current?.Token ?? "", loggerFactory);
+		Metrics = new ClientMetrics(meterFactory);
+		_channel = new LocalChannel(options.Transport is SidecarTransport.NamedPipe, () => _current?.Endpoint, () => _current?.Token ?? "", loggerFactory, Metrics);
 		_client = new SidecarService.SidecarServiceClient(_channel.CallInvoker);
 		_supervisor = new SidecarSupervisor(LaunchAsync, timeProvider, _log);
 		Sessions = new WhatsmeowSessions(this, _channel.CallInvoker, _log, clientCreated, declared);
@@ -71,14 +75,22 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 	/// <exception cref="SidecarUnavailableException">The binary was not found, or the sidecar did not start.</exception>
 	/// <exception cref="SidecarVersionMismatchException">The sidecar is another version; it was stopped.</exception>
 	public static Task<WhatsmeowSidecar> StartAsync(WhatsmeowSidecarOptions options, CancellationToken cancellationToken) =>
-		StartAsync(options, NullLoggerFactory.Instance, cancellationToken);
+		StartAsync(options, NullLoggerFactory.Instance, meterFactory: null, cancellationToken);
+
+	/// <inheritdoc cref="StartAsync(WhatsmeowSidecarOptions, ILoggerFactory, IMeterFactory?, CancellationToken)"/>
+	public static Task<WhatsmeowSidecar> StartAsync(WhatsmeowSidecarOptions options, ILoggerFactory loggerFactory, CancellationToken cancellationToken) =>
+		StartAsync(options, loggerFactory, meterFactory: null, cancellationToken);
 
 	/// <inheritdoc cref="StartAsync(WhatsmeowSidecarOptions, CancellationToken)"/>
 	/// <param name="options">How to find and start the sidecar.</param>
 	/// <param name="loggerFactory">For the client's logs (category <c>Whatsmeow.Client</c>) and the sidecar's stderr (category <c>Whatsmeow.Sidecar</c>).</param>
+	/// <param name="meterFactory">
+	/// Creates the sidecar's <see cref="Meter"/>, named <see cref="WhatsmeowTelemetry.MeterName"/>, and owns it. When null,
+	/// the sidecar creates a meter of the same name itself and disposes it with itself.
+	/// </param>
 	/// <param name="cancellationToken">Cancels the start; a half-started process is killed.</param>
-	public static Task<WhatsmeowSidecar> StartAsync(WhatsmeowSidecarOptions options, ILoggerFactory loggerFactory, CancellationToken cancellationToken) =>
-		StartAsync(options, loggerFactory, MinProtocol, MaxProtocol, cancellationToken);
+	public static Task<WhatsmeowSidecar> StartAsync(WhatsmeowSidecarOptions options, ILoggerFactory loggerFactory, IMeterFactory? meterFactory, CancellationToken cancellationToken) =>
+		StartCoreAsync(options, loggerFactory, meterFactory, MinProtocol, MaxProtocol, fakeWhatsApp: false, timeProvider: null, cancellationToken);
 
 	/// <summary>Takes the protocol range the client accepts, so a test can make the real sidecar mismatch.</summary>
 	internal static Task<WhatsmeowSidecar> StartAsync(
@@ -88,7 +100,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		int maxProtocol,
 		CancellationToken cancellationToken
 	) =>
-		StartCoreAsync(options, loggerFactory, minProtocol, maxProtocol, fakeWhatsApp: false, timeProvider: null, cancellationToken);
+		StartCoreAsync(options, loggerFactory, meterFactory: null, minProtocol, maxProtocol, fakeWhatsApp: false, timeProvider: null, cancellationToken);
 
 	/// <summary>
 	/// Starts the sidecar on <paramref name="timeProvider"/>, so the live tests' host can hold the clock still and ack
@@ -100,14 +112,23 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		TimeProvider timeProvider,
 		CancellationToken cancellationToken
 	) =>
-		StartCoreAsync(options, loggerFactory, MinProtocol, MaxProtocol, fakeWhatsApp: false, timeProvider, cancellationToken);
+		StartCoreAsync(options, loggerFactory, meterFactory: null, MinProtocol, MaxProtocol, fakeWhatsApp: false, timeProvider, cancellationToken);
 
 	/// <summary>
 	/// Starts a test build of the sidecar with <c>--fake-whatsapp</c>, for the integration tests' shared fixture
 	/// (ADR 0019). A release build refuses the flag, so this fails with <see cref="SidecarUnavailableException"/> there.
 	/// </summary>
 	internal static Task<WhatsmeowSidecar> StartFakeWhatsAppAsync(WhatsmeowSidecarOptions options, ILoggerFactory loggerFactory, CancellationToken cancellationToken) =>
-		StartCoreAsync(options, loggerFactory, MinProtocol, MaxProtocol, fakeWhatsApp: true, timeProvider: null, cancellationToken);
+		StartCoreAsync(options, loggerFactory, meterFactory: null, MinProtocol, MaxProtocol, fakeWhatsApp: true, timeProvider: null, cancellationToken);
+
+	/// <summary>Starts a test build with <c>--fake-whatsapp</c> whose meter comes from <paramref name="meterFactory"/>.</summary>
+	internal static Task<WhatsmeowSidecar> StartFakeWhatsAppWithMeterFactoryAsync(
+		WhatsmeowSidecarOptions options,
+		ILoggerFactory loggerFactory,
+		IMeterFactory meterFactory,
+		CancellationToken cancellationToken
+	) =>
+		StartCoreAsync(options, loggerFactory, meterFactory, MinProtocol, MaxProtocol, fakeWhatsApp: true, timeProvider: null, cancellationToken);
 
 	/// <summary>Starts a test build with <c>--fake-whatsapp</c> on <paramref name="timeProvider"/>, so a test can hold the clock still.</summary>
 	internal static Task<WhatsmeowSidecar> StartFakeWhatsAppAsync(
@@ -116,11 +137,12 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		TimeProvider timeProvider,
 		CancellationToken cancellationToken
 	) =>
-		StartCoreAsync(options, loggerFactory, MinProtocol, MaxProtocol, fakeWhatsApp: true, timeProvider, cancellationToken);
+		StartCoreAsync(options, loggerFactory, meterFactory: null, MinProtocol, MaxProtocol, fakeWhatsApp: true, timeProvider, cancellationToken);
 
 	private static async Task<WhatsmeowSidecar> StartCoreAsync(
 		WhatsmeowSidecarOptions options,
 		ILoggerFactory loggerFactory,
+		IMeterFactory? meterFactory,
 		int minProtocol,
 		int maxProtocol,
 		bool fakeWhatsApp,
@@ -128,7 +150,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		CancellationToken cancellationToken
 	)
 	{
-		var sidecar = Create(options, loggerFactory, minProtocol, maxProtocol, fakeWhatsApp, timeProvider, clientCreated: null, declared: s_none);
+		var sidecar = Create(options, loggerFactory, meterFactory, minProtocol, maxProtocol, fakeWhatsApp, timeProvider, clientCreated: null, declared: s_none);
 		try
 		{
 			await sidecar.StartProcessAsync(cancellationToken).ConfigureAwait(false);
@@ -152,16 +174,18 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 	internal static WhatsmeowSidecar Create(
 		WhatsmeowSidecarOptions options,
 		ILoggerFactory loggerFactory,
+		IMeterFactory? meterFactory,
 		TimeProvider? timeProvider,
 		bool fakeWhatsApp,
 		Action<IWhatsAppClient>? clientCreated,
 		IReadOnlySet<SessionId> declared
 	) =>
-		Create(options, loggerFactory, MinProtocol, MaxProtocol, fakeWhatsApp, timeProvider, clientCreated, declared);
+		Create(options, loggerFactory, meterFactory, MinProtocol, MaxProtocol, fakeWhatsApp, timeProvider, clientCreated, declared);
 
 	private static WhatsmeowSidecar Create(
 		WhatsmeowSidecarOptions options,
 		ILoggerFactory loggerFactory,
+		IMeterFactory? meterFactory,
 		int minProtocol,
 		int maxProtocol,
 		bool fakeWhatsApp,
@@ -182,12 +206,12 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		timeProvider ??= TimeProvider.System;
 #pragma warning restore RS0030
 
-		return new WhatsmeowSidecar(effective, minProtocol, maxProtocol, fakeWhatsApp, loggerFactory, timeProvider, clientCreated, declared);
+		return new WhatsmeowSidecar(effective, minProtocol, maxProtocol, fakeWhatsApp, loggerFactory, meterFactory, timeProvider, clientCreated, declared);
 	}
 
 	/// <summary>
 	/// Finds the binary, starts the first sidecar and its supervisor. Called once, on a sidecar from
-	/// <see cref="Create(WhatsmeowSidecarOptions, ILoggerFactory, TimeProvider?, bool, Action{IWhatsAppClient}?, IReadOnlySet{SessionId})"/>.
+	/// <see cref="Create(WhatsmeowSidecarOptions, ILoggerFactory, IMeterFactory?, TimeProvider?, bool, Action{IWhatsAppClient}?, IReadOnlySet{SessionId})"/>.
 	/// A dispose meanwhile cancels it and waits for it, so it leaves no process and no socket directory behind.
 	/// </summary>
 	/// <exception cref="SidecarUnavailableException">The binary was not found, or the sidecar did not start.</exception>
@@ -238,6 +262,9 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 
 	/// <summary>The clock and timers of everything this sidecar's clients do.</summary>
 	internal TimeProvider TimeProvider { get; }
+
+	/// <summary>The instruments of this sidecar and its clients.</summary>
+	internal ClientMetrics Metrics { get; }
 
 	/// <summary>How many sidecars started so far, counting the first.</summary>
 	internal int Launches
@@ -329,6 +356,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 				_current = null;
 				_channel.Dispose();
 				_disposing.Dispose();
+				Metrics.Dispose();
 				DeleteSocketDirectory();
 			}
 		}
@@ -396,12 +424,16 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		await Sessions.ReconnectAsync(cancellationToken).ConfigureAwait(false);
 
 		TaskCompletionSource launched;
+		bool restarted;
 		lock (_launchLock)
 		{
-			_launches++;
+			restarted = ++_launches > 1;
 			launched = _launched;
 			_launched = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 		}
+
+		if (restarted)
+			Metrics.Restarted();
 
 		launched.SetResult();
 		return (process.Id, process.Exited);

@@ -29,7 +29,10 @@ namespace Whatsmeow.Testing;
 /// <see cref="OnHandlerError"/> behave as on a real session: one chat's events reach the handlers one at a time, in
 /// order, different chats run concurrently, presence and typing run in lanes of their own that never wait for the other
 /// events, history runs in one lane of its own that never waits for a chat's, and a handler that throws is reported on
-/// <see cref="OnHandlerError"/> while the event still counts as handled.
+/// <see cref="OnHandlerError"/> while the event still counts as handled. As on a real session, a handler runs outside
+/// the <see cref="ExecutionContext"/> of the code that made the fake or raised the event: it sees none of the test's
+/// async locals, so no <c>TestContext.Current</c>, culture, log scope, <see cref="System.Diagnostics.Activity"/> or
+/// <c>HttpContext</c> of the test's (ADR 0037).
 /// </para>
 /// <para>
 /// Every other member is recorded and returns a plausible result at once; the fake enforces no WhatsApp rule, paces
@@ -139,7 +142,8 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 #pragma warning disable RS0030 // Justification: the default when the test gives none (docs/guidelines/csharp.md Time)
 		_time = timeProvider ?? TimeProvider.System;
 #pragma warning restore RS0030
-		_pipeline = new EventPipeline(sessionId, ackAsync: null, _time, NullLogger.Instance);
+		// No telemetry: the fake has no sidecar and no meter (ADR 0037).
+		_pipeline = new EventPipeline(sessionId, ackAsync: null, _time, NullLogger.Instance, metrics: null);
 		_pipeline.Start();
 	}
 

@@ -990,6 +990,7 @@ Whatsmeow.WhatsmeowSidecar
 Whatsmeow.WhatsmeowSidecar.DisposeAsync() -> System.Threading.Tasks.ValueTask
 Whatsmeow.WhatsmeowSidecar.GetInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.SidecarInfo!>!
 Whatsmeow.WhatsmeowSidecar.Sessions.get -> Whatsmeow.Sessions.WhatsmeowSessions!
+static Whatsmeow.WhatsmeowSidecar.StartAsync(Whatsmeow.WhatsmeowSidecarOptions! options, Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory, System.Diagnostics.Metrics.IMeterFactory? meterFactory, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Whatsmeow.WhatsmeowSidecar!>!
 static Whatsmeow.WhatsmeowSidecar.StartAsync(Whatsmeow.WhatsmeowSidecarOptions! options, Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Whatsmeow.WhatsmeowSidecar!>!
 static Whatsmeow.WhatsmeowSidecar.StartAsync(Whatsmeow.WhatsmeowSidecarOptions! options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Whatsmeow.WhatsmeowSidecar!>!
 Whatsmeow.WhatsmeowSidecarOptions
@@ -1002,6 +1003,9 @@ Whatsmeow.WhatsmeowSidecarOptions.StartupTimeout.set -> void
 Whatsmeow.WhatsmeowSidecarOptions.Transport.get -> Whatsmeow.SidecarTransport
 Whatsmeow.WhatsmeowSidecarOptions.Transport.set -> void
 Whatsmeow.WhatsmeowSidecarOptions.WhatsmeowSidecarOptions() -> void
+Whatsmeow.WhatsmeowTelemetry
+const Whatsmeow.WhatsmeowTelemetry.ActivitySourceName = "Whatsmeow.Client" -> string!
+const Whatsmeow.WhatsmeowTelemetry.MeterName = "Whatsmeow.Client" -> string!
 Whatsmeow.WhatsmeowValidationException
 Whatsmeow.WhatsmeowValidationException.WhatsmeowValidationException() -> void
 Whatsmeow.WhatsmeowValidationException.WhatsmeowValidationException(string! message) -> void
