@@ -3,13 +3,13 @@ using System.Net.Sockets;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Grpc.Net.Client;
-using Whatsmeow.Core.Telemetry;
 
 namespace Whatsmeow.Core.Transport;
 
 /// <summary>
-/// The one gRPC channel to the sidecar, over a Unix domain socket or a Windows named pipe (ARCHITECTURE §8.6).
-/// The endpoint and the token are read on every connection and call, so the channel outlives sidecar restarts.
+/// One launch's gRPC channel to the sidecar, over a Unix domain socket or a Windows named pipe (ARCHITECTURE §8.6).
+/// Its endpoint and token are fixed: every launch listens at an endpoint of its own, so this channel never reaches
+/// another launch, and every call it makes carries its launch's token (#85, ADR 0045).
 /// </summary>
 internal sealed class LocalChannel : IDisposable
 {
@@ -19,11 +19,10 @@ internal sealed class LocalChannel : IDisposable
 	private readonly GrpcChannel _channel;
 
 	/// <param name="namedPipe">Connect to a named pipe instead of a Unix domain socket.</param>
-	/// <param name="endpoint">The current socket path or pipe name; null while no sidecar is ready.</param>
-	/// <param name="token">The current sidecar's token.</param>
+	/// <param name="endpoint">The launch's socket path or pipe name; null for a channel that never connects.</param>
+	/// <param name="token">The launch's token.</param>
 	/// <param name="loggerFactory">For gRPC's own logs.</param>
-	/// <param name="metrics">Counts the failed calls.</param>
-	public LocalChannel(bool namedPipe, Func<string?> endpoint, Func<string> token, ILoggerFactory loggerFactory, ClientMetrics metrics)
+	public LocalChannel(bool namedPipe, string? endpoint, string token, ILoggerFactory loggerFactory)
 	{
 		// Never call ConnectAsync or read State: both throw with a ConnectCallback (ARCHITECTURE §8.6).
 		_channel = GrpcChannel.ForAddress("http://localhost", new GrpcChannelOptions
@@ -34,8 +33,8 @@ internal sealed class LocalChannel : IDisposable
 				InnerHandler = new SocketsHttpHandler
 				{
 					ConnectCallback = namedPipe
-						? (_, ct) => ConnectPipeAsync(endpoint(), ct)
-						: (_, ct) => ConnectSocketAsync(endpoint(), ct),
+						? (_, ct) => ConnectPipeAsync(endpoint, ct)
+						: (_, ct) => ConnectSocketAsync(endpoint, ct),
 				},
 			},
 			DisposeHttpClient = true,
@@ -45,17 +44,15 @@ internal sealed class LocalChannel : IDisposable
 			LoggerFactory = loggerFactory,
 		});
 
-		// Every failed call is counted here, by its error code, the library's own calls included (ADR 0037).
-		CallInvoker = _channel
-			.Intercept(new ErrorCounter(metrics))
-			.Intercept(metadata =>
-			{
-				metadata.Add("authorization", "Bearer " + token());
-				return metadata;
-			});
+		var authorization = "Bearer " + token;
+		CallInvoker = _channel.Intercept(metadata =>
+		{
+			metadata.Add("authorization", authorization);
+			return metadata;
+		});
 	}
 
-	/// <summary>Every call goes through this invoker, which adds the token and counts the failures.</summary>
+	/// <summary>This launch's calls go through this invoker, which adds its token.</summary>
 	public CallInvoker CallInvoker { get; }
 
 	public void Dispose() => _channel.Dispose();
