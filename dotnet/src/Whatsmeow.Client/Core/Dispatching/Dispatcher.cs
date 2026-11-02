@@ -11,13 +11,22 @@ namespace Whatsmeow.Core.Dispatching;
 /// watermark that does not move for <see cref="StuckAfter"/> while events wait is logged.
 /// </summary>
 /// <param name="input">The events, in seq order.</param>
+/// <param name="depthChanged">
+/// Told +1 for each event received and -1 for each one finished or left unrun by the stop, so the sum is what the
+/// dispatcher holds; a handler the stop abandoned counts until it returns. Null when nothing measures it.
+/// </param>
 /// <param name="ackAsync">
 /// Sends the ack; a <see cref="WhatsmeowException"/> from it is logged and retried on the next tick. Null for events
 /// nothing acks, the ephemeral ones: then there is no watermark, no ack timer, no stuck watermark warning and no last
 /// ack, and the seq only orders the events.
 /// </param>
-internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, CancellationToken, Task>? ackAsync, TimeProvider timeProvider, ILogger logger)
-	: IAsyncDisposable
+internal sealed class Dispatcher(
+	ChannelReader<Work> input,
+	Func<ulong, CancellationToken, Task>? ackAsync,
+	TimeProvider timeProvider,
+	ILogger logger,
+	Action<int>? depthChanged = null
+) : IAsyncDisposable
 {
 	/// <summary>Events received and not finished, at most.</summary>
 	public const int MaxPending = 64;
@@ -221,6 +230,7 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 
 	private void Dispatch(Entry entry, CancellationToken cancellationToken)
 	{
+		depthChanged?.Invoke(1);
 		lock (_lock)
 		{
 			// Without an ack nothing waits for the watermark: an event behind one that never finishes is not kept.
@@ -292,6 +302,7 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 				}
 
 				Finish(lane, next);
+				depthChanged?.Invoke(-1);
 				_ = _pending.Release();
 			}
 		}
@@ -299,6 +310,28 @@ internal sealed class Dispatcher(ChannelReader<Work> input, Func<ulong, Cancella
 		{
 			// Stopping.
 		}
+		finally
+		{
+			LeaveUnrun(lane);
+		}
+	}
+
+	/// <summary>
+	/// Reports the events a lane the stop ended leaves unrun, and lets it go, so an event dispatched after it ended gets a
+	/// lane of its own, which ends at once and reports that event too. A lane that ran dry left nothing.
+	/// </summary>
+	private void LeaveUnrun(Lane lane)
+	{
+		int left;
+		lock (_lock)
+		{
+			left = lane.Queue.Count;
+			if (left != 0 && _lanes.TryGetValue(lane.Key, out var current) && current == lane)
+				_ = _lanes.Remove(lane.Key);
+		}
+
+		if (left != 0)
+			depthChanged?.Invoke(-left);
 	}
 
 	/// <summary>Without an ack the seq is only an arrival number, so it is not logged as one.</summary>

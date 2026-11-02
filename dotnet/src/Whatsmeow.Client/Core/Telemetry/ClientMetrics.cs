@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using Whatsmeow.Sidecar;
 
@@ -9,11 +10,17 @@ namespace Whatsmeow.Core.Telemetry;
 /// </summary>
 internal sealed class ClientMetrics : IDisposable
 {
+	/// <summary>Seconds, as ASP.NET Core's request duration buckets them: the default buckets are for milliseconds.</summary>
+	private static readonly double[] s_durationBuckets = [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10];
+
 	private readonly Meter _meter;
 	private readonly bool _ownsMeter;
 	private readonly Counter<long> _sent;
 	private readonly Counter<long> _errors;
 	private readonly Counter<long> _restarts;
+	private readonly Counter<long> _received;
+	private readonly Histogram<double> _handlerDuration;
+	private readonly UpDownCounter<int> _queueLength;
 
 	public ClientMetrics(IMeterFactory? meterFactory)
 	{
@@ -23,6 +30,15 @@ internal sealed class ClientMetrics : IDisposable
 		_sent = _meter.CreateCounter<long>("whatsmeow.messages.sent", "{message}", "Messages WhatsApp accepted from a send.");
 		_errors = _meter.CreateCounter<long>("whatsmeow.errors", "{error}", "Failed calls to the sidecar, by error code; cancellations are not counted.");
 		_restarts = _meter.CreateCounter<long>("whatsmeow.sidecar.restarts", "{restart}", "Sidecars started again after one exited on its own.");
+		_received = _meter.CreateCounter<long>("whatsmeow.messages.received", "{message}", "Message events that arrived from the sidecar; a redelivery counts again.");
+		_handlerDuration = _meter.CreateHistogram(
+			"whatsmeow.handler.duration",
+			"s",
+			"How long one handler ran for one event, a handler that threw included.",
+			tags: null,
+			new InstrumentAdvice<double> { HistogramBucketBoundaries = s_durationBuckets }
+		);
+		_queueLength = _meter.CreateUpDownCounter<int>("whatsmeow.dispatcher.queue.length", "{event}", "Events a session's dispatchers received and have not finished.");
 	}
 
 	public void MessageSent(SessionId sessionId) => _sent.Add(1, new KeyValuePair<string, object?>(Tracing.SessionIdTag, sessionId.Value));
@@ -30,6 +46,19 @@ internal sealed class ClientMetrics : IDisposable
 	public void Failed(WhatsmeowErrorCode code) => _errors.Add(1, new KeyValuePair<string, object?>(Tracing.ErrorTypeTag, Tracing.Name(code)));
 
 	public void Restarted() => _restarts.Add(1);
+
+	public void MessageReceived(SessionId sessionId) => _received.Add(1, new KeyValuePair<string, object?>(Tracing.SessionIdTag, sessionId.Value));
+
+	/// <summary>One handler of a <paramref name="eventType"/> event ran for <paramref name="duration"/>; <paramref name="errorType"/> when it threw.</summary>
+	public void HandlerRan(SessionId sessionId, string eventType, TimeSpan duration, string? errorType)
+	{
+		var tags = new TagList { { Tracing.SessionIdTag, sessionId.Value }, { Tracing.EventTypeTag, eventType } };
+		if (errorType is not null)
+			tags.Add(Tracing.ErrorTypeTag, errorType);
+		_handlerDuration.Record(duration.TotalSeconds, tags);
+	}
+
+	public void QueueChanged(SessionId sessionId, int delta) => _queueLength.Add(delta, new KeyValuePair<string, object?>(Tracing.SessionIdTag, sessionId.Value));
 
 	/// <summary>Disposes the meter when it is this sidecar's own; one from a factory is the factory's.</summary>
 	public void Dispose()

@@ -12,6 +12,7 @@ internal static class Tracing
 {
 	public const string SessionIdTag = "whatsmeow.session.id";
 	public const string ErrorTypeTag = "error.type";
+	public const string EventTypeTag = "whatsmeow.event.type";
 	private const string MessageIdTag = "whatsmeow.message.id";
 	private const string MessageTypeTag = "whatsmeow.message.type";
 	private const string MediaTypeTag = "whatsmeow.media.type";
@@ -27,6 +28,25 @@ internal static class Tracing
 			return null;
 
 		_ = activity.SetTag(SessionIdTag, sessionId.Value).SetTag(MessageIdTag, messageId.Value).SetTag(MessageTypeTag, messageType);
+		return activity;
+	}
+
+	/// <summary>
+	/// A span for running the handlers of one <paramref name="eventType"/> event, a root: no context crosses the socket,
+	/// and the context the reader started in, the application's connect, is not the event's. It clears
+	/// <see cref="Activity.Current"/>, so the caller is an async method, whose change stays its own.
+	/// </summary>
+	public static Activity? StartProcess(SessionId sessionId, string eventType)
+	{
+		if (!Source.HasListeners())
+			return null;
+
+		Activity.Current = null;
+		var activity = Source.StartActivity("whatsmeow.process", ActivityKind.Consumer);
+		if (activity is null)
+			return null;
+
+		_ = activity.SetTag(SessionIdTag, sessionId.Value).SetTag(EventTypeTag, eventType);
 		return activity;
 	}
 

@@ -139,7 +139,8 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 #pragma warning disable RS0030 // Justification: the default when the test gives none (docs/guidelines/csharp.md Time)
 		_time = timeProvider ?? TimeProvider.System;
 #pragma warning restore RS0030
-		_pipeline = new EventPipeline(sessionId, ackAsync: null, _time, NullLogger.Instance);
+		// No telemetry: the fake has no sidecar and no meter (ADR 0037).
+		_pipeline = new EventPipeline(sessionId, ackAsync: null, _time, NullLogger.Instance, metrics: null);
 		_pipeline.Start();
 	}
 

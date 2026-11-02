@@ -1,6 +1,8 @@
 using System.Diagnostics.Metrics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.Metrics.Testing;
+using Whatsmeow.Events;
+using Whatsmeow.IntegrationTests.Events;
 using Whatsmeow.IntegrationTests.Fake;
 using Whatsmeow.IntegrationTests.Sessions;
 using Whatsmeow.IntegrationTests.Support;
@@ -36,6 +38,84 @@ public sealed class MeterTests(FakeSidecar fixture, SidecarBinaries binaries)
 		Assert.Equal([1L, 1L], measurements.Select(measurement => measurement.Value));
 		Assert.Equal([expected, expected], measurements.Select(Tags.Of));
 		Assert.Empty(Measured.Of(sent, "telemetry-sent-unpaired"));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task MessagesReceived_CountsEachMessageEvent_BySession()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "telemetry-received";
+		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
+		using var messages = new Received<MessageReceived>(client);
+		using var received = new MetricCollector<long>(fixture.MeterFactory, WhatsmeowTelemetry.MeterName, "whatsmeow.messages.received");
+
+		await Deliveries.DeliverAsync(fixture.Fake, Session, ct, "M1", "M2");
+		_ = await messages.NextAsync(2, ct);
+
+		// Counted as each arrived, before its handlers ran.
+		var measurements = Measured.Of(received, Session);
+		Assert.Equal([1L, 1L], measurements.Select(measurement => measurement.Value));
+		Assert.Equal([Tags.Of(("whatsmeow.session.id", Session)), Tags.Of(("whatsmeow.session.id", Session))], measurements.Select(Tags.Of));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task HandlerDuration_IsRecordedForEachHandlerOfTheEvent_OneThatThrewIncluded()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "telemetry-duration";
+		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
+		using var durations = new MetricCollector<double>(fixture.MeterFactory, WhatsmeowTelemetry.MeterName, "whatsmeow.handler.duration");
+		var reached = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+		var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+		// The first handler holds M2 in its lane, so once M2 reached it every handler of M1 has run and none of M2's has ended.
+		using var first = new Received<MessageReceived>(
+			client,
+			async (e, token) =>
+			{
+				if (e.Id.Value != "M2")
+					return;
+				reached.SetResult();
+				await release.Task.WaitAsync(token).ConfigureAwait(false);
+			}
+		);
+		using var fine = client.On<MessageReceived>((_, _) => ValueTask.CompletedTask);
+		using var failing = client.On<MessageReceived>((_, _) => throw new InvalidOperationException("a handler bug"));
+		using var receipts = client.On<ReceiptReceived>((_, _) => ValueTask.CompletedTask);
+
+		await Deliveries.DeliverAsync(fixture.Fake, Session, ct, "M1", "M2");
+		await reached.Task.WaitAsync(ct);
+
+		// One per handler of M1, in order, the one that threw included; the receipt handler did not run.
+		var measurements = Measured.Of(durations, Session);
+		release.SetResult();
+		var message = Tags.Of(("whatsmeow.session.id", Session), ("whatsmeow.event.type", nameof(MessageReceived)));
+		Assert.Equal(
+			[message, message, Tags.Of(("whatsmeow.session.id", Session), ("whatsmeow.event.type", nameof(MessageReceived)), ("error.type", "System.InvalidOperationException"))],
+			measurements.Select(Tags.Of)
+		);
+		Assert.All(measurements, measurement => Assert.True(measurement.Value >= 0));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task QueueLength_RisesWhileAHandlerHoldsItsLane_AndFallsBackToZero()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "telemetry-queue";
+		// From before the session's first event, so the sum of the changes is the length.
+		using var queue = new MetricCollector<int>(fixture.MeterFactory, WhatsmeowTelemetry.MeterName, "whatsmeow.dispatcher.queue.length");
+		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
+		var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+		using var messages = new Received<MessageReceived>(client, async (_, token) => await release.Task.WaitAsync(token).ConfigureAwait(false));
+
+		// Two messages of one chat: the first holds the lane, the second waits behind it.
+		await Deliveries.DeliverAsync(fixture.Fake, Session, ct, "M1", "M2");
+		_ = await Measured.WaitForAsync(queue, Session, measurements => measurements.Sum(measurement => measurement.Value) == 2, ct);
+
+		release.SetResult();
+		_ = await messages.NextAsync(2, ct);
+		var all = await Measured.WaitForAsync(queue, Session, measurements => measurements.Sum(measurement => measurement.Value) == 0, ct);
+		Assert.All(all, measurement => Assert.Equal(Tags.Of(("whatsmeow.session.id", Session)), Tags.Of(measurement)));
 	}
 
 	[Fact(Timeout = Timeout)]

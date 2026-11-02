@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Threading.Channels;
 using Whatsmeow.Core.Dispatching;
+using Whatsmeow.Core.Telemetry;
 
 namespace Whatsmeow.Events;
 
@@ -10,13 +11,16 @@ namespace Whatsmeow.Events;
 /// <see cref="IWhatsAppClient.On{TEvent}"/>, <see cref="IWhatsAppClient.WaitForAsync{TEvent}"/> and
 /// <see cref="IWhatsAppClient.OnHandlerError"/>, and two dispatchers: the durable one, which acks through
 /// <c>ackAsync</c>, and the ephemeral one, which never acks, so ephemeral events never move, hold back or delay the
-/// durable ones (ADR 0027).
+/// durable ones (ADR 0027). With the sidecar's <see cref="ClientMetrics"/> it publishes the event side of the telemetry
+/// (ADR 0037): a process span per event, a duration per handler, the queue length and the messages received; without,
+/// as for the fake, nothing.
 /// </summary>
 internal sealed class EventPipeline : IAsyncDisposable
 {
 	private readonly SessionId _sessionId;
 	private readonly TimeProvider _timeProvider;
 	private readonly ILogger _log;
+	private readonly ClientMetrics? _metrics;
 	private readonly Channel<Work> _durable = Channel.CreateBounded<Work>(new BoundedChannelOptions(Dispatcher.MaxPending) { SingleReader = true, SingleWriter = true });
 	private readonly Dispatcher _durableDispatcher;
 	private readonly Channel<Work> _ephemeral = Channel.CreateBounded<Work>(new BoundedChannelOptions(Dispatcher.MaxPending) { SingleReader = true, SingleWriter = true });
@@ -27,7 +31,7 @@ internal sealed class EventPipeline : IAsyncDisposable
 	private readonly CancellationTokenSource _stopping = new();
 #pragma warning restore CA2213
 	private readonly Lock _lock = new();
-	private ImmutableArray<Func<WhatsAppEvent, CancellationToken, ValueTask>> _handlers = [];
+	private ImmutableArray<Handler> _handlers = [];
 	private ImmutableArray<Action<HandlerError>> _errorHandlers = [];
 	private Task[] _feeds = [];
 	private int _started;
@@ -37,13 +41,16 @@ internal sealed class EventPipeline : IAsyncDisposable
 	/// <param name="ackAsync">Acks the durable events up to a seq; null when nothing acks them, as for the fake.</param>
 	/// <param name="timeProvider">The clock of the dispatchers and of <see cref="WaitForAsync{TEvent}"/>'s timeout.</param>
 	/// <param name="log">The handlers' failures and the dispatchers' logs.</param>
-	public EventPipeline(SessionId sessionId, Func<ulong, CancellationToken, Task>? ackAsync, TimeProvider timeProvider, ILogger log)
+	/// <param name="metrics">The sidecar's instruments; null for the fake, which publishes no telemetry: it has no sidecar and no meter.</param>
+	public EventPipeline(SessionId sessionId, Func<ulong, CancellationToken, Task>? ackAsync, TimeProvider timeProvider, ILogger log, ClientMetrics? metrics)
 	{
 		_sessionId = sessionId;
 		_timeProvider = timeProvider;
 		_log = log;
-		_durableDispatcher = new Dispatcher(_durable.Reader, ackAsync, timeProvider, log);
-		_ephemeralDispatcher = new Dispatcher(_ephemeral.Reader, ackAsync: null, timeProvider, log);
+		_metrics = metrics;
+		Action<int>? depthChanged = metrics is null ? null : delta => metrics.QueueChanged(sessionId, delta);
+		_durableDispatcher = new Dispatcher(_durable.Reader, ackAsync, timeProvider, log, depthChanged);
+		_ephemeralDispatcher = new Dispatcher(_ephemeral.Reader, ackAsync: null, timeProvider, log, depthChanged);
 	}
 
 	/// <summary>Stopped: no event comes any more.</summary>
@@ -72,20 +79,28 @@ internal sealed class EventPipeline : IAsyncDisposable
 		_feeds = started;
 	}
 
-	/// <summary>The dispatcher's work for <paramref name="e"/>, in its lane; an event this client cannot map (null) runs no handler.</summary>
-	public Work ToWork(ulong seq, WhatsAppEvent? e) =>
-		new()
+	/// <summary>
+	/// The dispatcher's work for <paramref name="e"/>, in its lane; an event this client cannot map (null) runs no handler.
+	/// A message counts as received here, as it arrives.
+	/// </summary>
+	public Work ToWork(ulong seq, WhatsAppEvent? e)
+	{
+		if (e is MessageReceived)
+			_metrics?.MessageReceived(_sessionId);
+
+		return new()
 		{
 			Seq = seq,
 			Lane = EventMapping.Lane(e),
 			RunAsync = e is null ? static _ => ValueTask.CompletedTask : ct => RunAsync(e, ct),
 		};
+	}
 
 	public IDisposable On<TEvent>(Func<TEvent, CancellationToken, ValueTask> handler)
 		where TEvent : WhatsAppEvent
 	{
 		ArgumentNullException.ThrowIfNull(handler);
-		Func<WhatsAppEvent, CancellationToken, ValueTask> run = (e, ct) => e is TEvent typed ? handler(typed, ct) : ValueTask.CompletedTask;
+		var run = new Handler(static e => e is TEvent, (e, ct) => handler((TEvent)e, ct));
 		lock (_lock)
 			_handlers = _handlers.Add(run);
 		return new Registration(() =>
@@ -167,18 +182,28 @@ internal sealed class EventPipeline : IAsyncDisposable
 		}
 	}
 
-	/// <summary>Runs every handler of <paramref name="e"/> in order. A handler that throws is logged and reported, and the next one runs.</summary>
+	/// <summary>
+	/// Runs every handler of <paramref name="e"/> in order, inside its process span. A handler that throws is logged and
+	/// reported, and the next one runs; each handler's duration is recorded, a throw's included.
+	/// </summary>
 	private async ValueTask RunAsync(WhatsAppEvent e, CancellationToken cancellationToken)
 	{
-		ImmutableArray<Func<WhatsAppEvent, CancellationToken, ValueTask>> handlers;
+		ImmutableArray<Handler> handlers;
 		lock (_lock)
 			handlers = _handlers;
 
+		var eventType = e.GetType().Name;
+		using var activity = _metrics is null ? null : Tracing.StartProcess(_sessionId, eventType);
 		foreach (var handler in handlers)
 		{
+			if (!handler.Accepts(e))
+				continue;
+
+			var started = _timeProvider.GetTimestamp();
+			string? failed = null;
 			try
 			{
-				await handler(e, cancellationToken).ConfigureAwait(false);
+				await handler.RunAsync(e, cancellationToken).ConfigureAwait(false);
 			}
 #pragma warning disable CA1031 // Justification: rethrown; whatever a handler throws once the stop began means it did not finish
 			catch (Exception) when (cancellationToken.IsCancellationRequested)
@@ -191,9 +216,13 @@ internal sealed class EventPipeline : IAsyncDisposable
 			catch (Exception exception)
 #pragma warning restore CA1031
 			{
-				EventLog.HandlerFailed(_log, exception, e.GetType().Name, _sessionId.Value);
+				failed = Tracing.ErrorType(exception);
+				Tracing.Failed(activity, exception);
+				EventLog.HandlerFailed(_log, exception, eventType, _sessionId.Value);
 				ReportError(new HandlerError { Event = e, Exception = exception });
 			}
+
+			_metrics?.HandlerRan(_sessionId, eventType, _timeProvider.GetElapsedTime(started), failed);
 		}
 	}
 
@@ -216,6 +245,14 @@ internal sealed class EventPipeline : IAsyncDisposable
 				EventLog.ErrorCallbackFailed(_log, exception, _sessionId.Value);
 			}
 		}
+	}
+
+	/// <summary>One <see cref="On{TEvent}"/> handler: whether an event is its type, and the run of it.</summary>
+	private sealed class Handler(Func<WhatsAppEvent, bool> accepts, Func<WhatsAppEvent, CancellationToken, ValueTask> run)
+	{
+		public bool Accepts(WhatsAppEvent e) => accepts(e);
+
+		public ValueTask RunAsync(WhatsAppEvent e, CancellationToken cancellationToken) => run(e, cancellationToken);
 	}
 
 	private sealed class Registration(Action remove) : IDisposable
