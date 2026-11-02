@@ -4090,7 +4090,8 @@ namespace Whatsmeow.Protocol.V1 {
   /// HistorySyncProgressEvent. A batch delivered again carries the same messages. Status updates (statuses) a blob carries
   /// are never delivered; they count in the progress event's skipped_count. A poll is followed, in its batch, by each vote
   /// the blob carries decrypted on it, as a live vote's MessageEvent without a message; a vote message the blob also
-  /// carries, encrypted, is then not delivered.
+  /// carries, encrypted, with the id of one so delivered in its chat is not delivered. One whose decrypted vote is not
+  /// delivered (a vote that names no voter, or whose poll is skipped) is delivered as before, undecryptable.
   /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   internal sealed partial class HistoryMessagesEvent : pb::IMessage<HistoryMessagesEvent>
@@ -4426,7 +4427,7 @@ namespace Whatsmeow.Protocol.V1 {
     private uint messageCount_;
     /// <summary>
     /// How many of its messages the sidecar delivered in its batches. A poll's votes are not the blob's messages and do
-    /// not count; an encrypted vote message delivered decrypted with its poll does.
+    /// not count; an encrypted vote message whose vote was delivered decrypted after its poll does.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]

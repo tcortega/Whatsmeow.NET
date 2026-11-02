@@ -821,32 +821,53 @@ func (svc *Service) finish(ctx context.Context, sessionID string, client Client,
 // parse, which hold their places as nil, and every status update, which history never delivers (ARCHITECTURE §1).
 // Stub messages, without content, are delivered as they are.
 //
-// A vote message whose vote a poll of the blob carries decrypted, the same id in the same chat, is an empty entry: an
-// application dedupes on the message id (HistoryMessage), so delivering both could keep the undecryptable one and
-// drop the vote. That a blob carries both is [unknown] (ADR 0047).
+// A vote message whose vote is delivered decrypted, after its poll, with the same id in the same chat, is an empty
+// entry: an application dedupes on the message id (HistoryMessage), so delivering both could keep the undecryptable
+// one and drop the vote. Only a delivered vote counts: one the mapping dropped, or whose poll is skipped, leaves its
+// encrypted copy delivered. That a blob carries both is [unknown] (ADR 0047).
 func (svc *Service) parse(client Client, account *store.Device, blob *waHistorySync.HistorySync) ([][]*whatsmeowv1.MessageEvent, int) {
-	var messages [][]*whatsmeowv1.MessageEvent
+	var (
+		messages [][]*whatsmeowv1.MessageEvent
+		// votes is, for each entry, the chat and id of the vote message it is, empty for any other.
+		votes []string
+	)
 
 	decrypted := map[string]bool{}
-
-	for _, conv := range blob.GetConversations() {
-		for _, m := range conv.GetMessages() {
-			for _, u := range m.GetMessage().GetPollUpdates() {
-				decrypted[conv.GetID()+"\x00"+u.GetPollUpdateMessageKey().GetID()] = true
-			}
-		}
-	}
 
 	for _, conv := range blob.GetConversations() {
 		chat, err := types.ParseJID(conv.GetID())
 		if err != nil || chat.IsEmpty() {
 			messages = append(messages, make([][]*whatsmeowv1.MessageEvent, len(conv.GetMessages()))...)
+			votes = append(votes, make([]string, len(conv.GetMessages()))...)
 
 			continue
 		}
 
 		for _, m := range conv.GetMessages() {
-			messages = append(messages, svc.parseOne(client, account, chat, m.GetMessage(), func(id string) bool { return decrypted[conv.GetID()+"\x00"+id] }))
+			entry, vote := svc.parseOne(client, account, chat, m.GetMessage())
+			messages = append(messages, entry)
+			votes = append(votes, "")
+
+			if vote {
+				votes[len(votes)-1] = conv.GetID() + "\x00" + entry[0].GetInfo().GetId()
+			}
+
+			if entry == nil || oversized(entry) {
+				continue
+			}
+
+			for _, e := range entry {
+				// A vote a history poll carries decrypted: no message (events.HistoryMessage).
+				if e.GetPollVote() != nil && e.GetMessage() == nil {
+					decrypted[conv.GetID()+"\x00"+e.GetInfo().GetId()] = true
+				}
+			}
+		}
+	}
+
+	for i, vote := range votes {
+		if vote != "" && decrypted[vote] {
+			messages[i] = []*whatsmeowv1.MessageEvent{}
 		}
 	}
 
@@ -854,25 +875,38 @@ func (svc *Service) parse(client Client, account *store.Device, blob *waHistoryS
 }
 
 // parseOne is one message parsed and mapped, or nil when it does not parse or its parse panics: one bad message is
-// skipped, never its blob. A vote message whose id decrypted says the blob carries decrypted is empty. The deliver's
-// own recover stays the guard of everything else.
-func (svc *Service) parseOne(client Client, account *store.Device, chat types.JID, m *waWeb.WebMessageInfo, decrypted func(id string) bool) (events []*whatsmeowv1.MessageEvent) {
+// skipped, never its blob; and whether it is a vote message. The deliver's own recover stays the guard of everything
+// else.
+func (svc *Service) parseOne(client Client, account *store.Device, chat types.JID, m *waWeb.WebMessageInfo) (events []*whatsmeowv1.MessageEvent, vote bool) {
 	defer func() {
 		if recover() != nil {
-			events = nil
+			events, vote = nil, false
 		}
 	}()
 
 	evt, err := client.ParseWebMessage(chat, m)
 	if err != nil {
-		return nil
+		return nil, false
 	}
 
-	if evt.Message.GetPollUpdateMessage() != nil && decrypted(evt.Info.ID) {
-		return []*whatsmeowv1.MessageEvent{}
+	events = svc.toEvent(evt, account)
+
+	return events, evt.Message.GetPollUpdateMessage() != nil && len(events) > 0
+}
+
+// cost is what an entry takes in a batch: each message as a repeated field, its tag and length, then its bytes.
+func cost(entry []*whatsmeowv1.MessageEvent) int {
+	n := 0
+	for _, m := range entry {
+		n += 1 + varintSize(proto.Size(m)) + proto.Size(m)
 	}
 
-	return svc.toEvent(evt, account)
+	return n
+}
+
+// oversized is an entry that alone takes more than maxEventBytes as an event, which batch skips.
+func oversized(entry []*whatsmeowv1.MessageEvent) bool {
+	return eventSize(cost(entry)+2) > maxEventBytes
 }
 
 // batched is one batch, and the blob indexes of its first message and of the one after its last.
@@ -899,13 +933,8 @@ func batch(syncType whatsmeowv1.HistorySyncType, messages [][]*whatsmeowv1.Messa
 			continue
 		}
 
-		// Each message as a repeated field of the batch: its tag and length, then its bytes.
-		cost := 0
-		for _, m := range entry {
-			cost += 1 + varintSize(proto.Size(m)) + proto.Size(m)
-		}
-
-		if eventSize(cost+2) > maxEventBytes {
+		c := cost(entry)
+		if eventSize(c+2) > maxEventBytes {
 			skipped++
 
 			continue
@@ -917,7 +946,7 @@ func batch(syncType whatsmeowv1.HistorySyncType, messages [][]*whatsmeowv1.Messa
 			continue
 		}
 
-		if current >= 0 && (len(batches[current].event.GetMessages())+len(entry) > maxBatchMessages || eventSize(size+cost) > maxBatchBytes) {
+		if current >= 0 && (len(batches[current].event.GetMessages())+len(entry) > maxBatchMessages || eventSize(size+c) > maxBatchBytes) {
 			current = -1
 		}
 
@@ -929,7 +958,7 @@ func batch(syncType whatsmeowv1.HistorySyncType, messages [][]*whatsmeowv1.Messa
 
 		batches[current].event.Messages = append(batches[current].event.Messages, entry...)
 		batches[current].end = i + 1
-		size += cost
+		size += c
 	}
 
 	return batches, delivered, skipped

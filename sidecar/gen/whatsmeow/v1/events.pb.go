@@ -1206,7 +1206,8 @@ func (*StreamEventsResponse_HistoryProgress) isStreamEventsResponse_Payload() {}
 // HistorySyncProgressEvent. A batch delivered again carries the same messages. Status updates (statuses) a blob carries
 // are never delivered; they count in the progress event's skipped_count. A poll is followed, in its batch, by each vote
 // the blob carries decrypted on it, as a live vote's MessageEvent without a message; a vote message the blob also
-// carries, encrypted, is then not delivered.
+// carries, encrypted, with the id of one so delivered in its chat is not delivered. One whose decrypted vote is not
+// delivered (a vote that names no voter, or whose poll is skipped) is delivered as before, undecryptable.
 type HistoryMessagesEvent struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Which history the blob carries.
@@ -1272,7 +1273,7 @@ type HistorySyncProgressEvent struct {
 	// WhatsApp's progress value for the sync, as it sent it.
 	Progress uint32 `protobuf:"varint,3,opt,name=progress,proto3" json:"progress,omitempty"`
 	// How many of its messages the sidecar delivered in its batches. A poll's votes are not the blob's messages and do
-	// not count; an encrypted vote message delivered decrypted with its poll does.
+	// not count; an encrypted vote message whose vote was delivered decrypted after its poll does.
 	MessageCount uint32 `protobuf:"varint,4,opt,name=message_count,json=messageCount,proto3" json:"message_count,omitempty"`
 	// How many of its messages the sidecar did not deliver: one that does not parse, one too large for a gRPC message,
 	// and every status update.

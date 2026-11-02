@@ -879,6 +879,76 @@ func TestAHistoryPollsVotesFollowItInItsBatch_AndTheirEncryptedCopiesAreNotDeliv
 	}
 }
 
+// Only a vote that is delivered decrypted takes the place of its encrypted copy: one the mapping drops for naming no
+// voter, one whose poll does not parse, and one whose poll is too large to deliver leave their copy delivered as
+// before, undecryptable, never lost while counted as delivered.
+func TestAnEncryptedVoteWhoseDecryptedOneIsNotDeliveredArrivesUndecryptable(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.svc.toEvent = func(m *events.Message, account *store.Device) []*whatsmeowv1.MessageEvent {
+		e := eventsslice.HistoryMessage(m, account)
+		if e[0].GetInfo().GetId() == "P5" {
+			e[0].Message = &waE2E.Message{Conversation: proto.String(strings.Repeat("x", maxEventBytes))}
+		}
+
+		return e
+	}
+
+	poll := func(id, participant string, vote *waCommon.MessageKey) *waWeb.WebMessageInfo {
+		p := webMessage(group, id, false, participant, "")
+		p.Message = &waE2E.Message{PollCreationMessage: &waE2E.PollCreationMessage{Name: proto.String("Lunch?")}}
+		p.PollUpdates = []*waWeb.PollUpdate{{PollUpdateMessageKey: vote, Vote: &waE2E.PollVoteMessage{}}}
+
+		return p
+	}
+	key := func(id, participant string) *waCommon.MessageKey {
+		k := &waCommon.MessageKey{RemoteJID: proto.String(group), ID: proto.String(id)}
+		if participant != "" {
+			k.Participant = proto.String(participant)
+		}
+
+		return k
+	}
+	encrypted := func(id string) *waWeb.WebMessageInfo {
+		m := webMessage(group, id, false, direct, "")
+		m.Message = &waE2E.Message{PollUpdateMessage: &waE2E.PollUpdateMessage{PollCreationMessageKey: key("P", member)}}
+
+		return m
+	}
+
+	conv := &waHistorySync.Conversation{ID: proto.String(group), Messages: []*waHistorySync.HistorySyncMsg{
+		// A vote whose key names no voter: the mapping drops it.
+		{Message: poll("P2", member, key("V3", ""))},
+		{Message: encrypted("V3")},
+		// A poll whose sender ParseWebMessage cannot find, in a group without a participant.
+		{Message: poll("P4", "", key("V4", direct))},
+		{Message: encrypted("V4")},
+		// A poll too large to deliver.
+		{Message: poll("P5", member, key("V5", direct))},
+		{Message: encrypted("V5")},
+	}}
+	h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, conv))
+	h.caughtUp("s1")
+
+	got := h.read("s1", 0, 2)
+
+	ids, progress := messageIDs(t, got)
+	if !slices.Equal(ids, []string{"P2", "V3", "V4", "V5"}) {
+		t.Fatalf("messages %v, want P2 and every encrypted vote", ids)
+	}
+
+	for _, m := range got[0].GetHistoryMessages().GetMessages()[1:] {
+		if m.GetMessage().GetPollUpdateMessage() == nil || m.GetPollVote() != nil {
+			t.Fatalf("%v, want the encrypted vote as before", m)
+		}
+	}
+
+	if p := progress[0]; p.GetMessageCount() != 4 || p.GetSkippedCount() != 2 {
+		t.Fatalf("progress %v, want 4 delivered and the two polls skipped", p)
+	}
+}
+
 func TestASecondOfflineSyncInOneConnectionWakesTheWorker(t *testing.T) {
 	t.Parallel()
 

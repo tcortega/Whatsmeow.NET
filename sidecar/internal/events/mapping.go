@@ -130,7 +130,8 @@ func HistoryMessage(e *waevents.Message, account *store.Device) []*whatsmeowv1.M
 }
 
 // historyVote is a vote a history poll carries, as a live vote's event: its id and voter from its key, its sender's
-// time (mautrix's for a history reaction, pkg/connector/backfill.go:909-930 at 5dd621f), the poll as its target and
+// time (mautrix's for a history reaction, pkg/connector/backfill.go:909-930 at 5dd621f), the poll as its target, its
+// sender without the device ParseWebMessage keeps from a participant (client.go:1058-1060), as every target has it, and
 // the selection as history has it, without a message, which history does not carry. nil for a key that names no voter.
 // The key's unread flag and server time have no counterpart on a live vote, and are dropped.
 func historyVote(u *waWeb.PollUpdate, poll *types.MessageInfo, account *store.Device) *whatsmeowv1.MessageEvent {
@@ -149,7 +150,7 @@ func historyVote(u *waWeb.PollUpdate, poll *types.MessageInfo, account *store.De
 
 	return &whatsmeowv1.MessageEvent{
 		Info:     info(&vote),
-		Target:   named(poll.ID, poll.Sender, account),
+		Target:   named(poll.ID, poll.Sender.ToNonAD(), account),
 		PollVote: &whatsmeowv1.PollVote{SelectedOptionHashes: u.GetVote().GetSelectedOptions()},
 	}
 }

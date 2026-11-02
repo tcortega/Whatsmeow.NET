@@ -99,8 +99,9 @@ func TestAHistoryPollsVotesFollowItAsLiveVotes(t *testing.T) {
 		want []*whatsmeowv1.MessageEvent
 	}{
 		{
-			"a member's group poll: a LID member's vote, the account's by its phone number, one that names no voter",
-			poll(groupChat, member, "P1", false,
+			"a member's group poll, its sender with a device as ParseWebMessage keeps a participant's (client.go:1058-1060): a " +
+				"LID member's vote, the account's by its phone number, one that names no voter",
+			poll(groupChat, "5511912345678:3@s.whatsapp.net", "P1", false,
 				update(vkey(groupChat, "V1", false, "333:2@lid"), pizza, sushi),
 				update(vkey(groupChat, "V2", true, ""), sushi),
 				update(vkey(groupChat, "V3", false, "")),
