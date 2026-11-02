@@ -1,7 +1,7 @@
 name: whatsmeow-bump
 
-# The weekly whatsmeow bump (#48, ADR 0043). build/bump.sh pins whatsmeow's latest main and opens the one bump PR, or
-# adds a commit to it; it never builds, tests, merges or publishes. The PR's ci run does the checks once someone with
+# The weekly whatsmeow bump (#48, ADR 0043). build/bump.sh pins whatsmeow's latest main and adds a commit to the open
+# bump PR, or opens one from a new branch; it never builds, tests, merges, publishes or deletes a branch. The PR's ci run does the checks once someone with
 # write access approves it: a pull_request event from GITHUB_TOKEN creates its runs awaiting approval (GitHub docs,
 # "When GITHUB_TOKEN triggers workflow runs"). Opening the PR needs the repository setting "Allow GitHub Actions to
 # create and approve pull requests".
@@ -36,7 +36,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
-          # The bump branch is fetched and extended, never rewritten, and pushed with this token.
+          # An open bump PR's branch is fetched and extended, never rewritten, and pushed with this token.
           fetch-depth: 0
 
       - uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5.2.5

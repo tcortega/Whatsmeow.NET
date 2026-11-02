@@ -654,9 +654,9 @@ How to write each test, what is banned, and the can-it-fail check: [guidelines/t
 - **Weekly `whatsmeow-bump` workflow** (`build/bump.sh`, [ADR 0043](adr/0043-weekly-whatsmeow-bump.md)), Mondays and on demand:
   1. Pin whatsmeow's latest `main`; with no change since main's pin, stop.
   2. Copy the protos from the **exact** module version (`sync-protos -write`), regenerate the C# and the licence notices.
-  3. Open the one bump PR from `GITHUB_TOKEN`, or add a commit to it, never a force push.
+  3. Add a commit to the open bump PR's branch, or, with none open, cut `whatsmeow-bump/<commit>` from main and open the PR from `GITHUB_TOKEN`; never a force push.
      Its `ci` run checks everything once someone with write access approves it; a bump that breaks the build opens red.
-  4. Its body (`tools/bump-report`) lists whatsmeow's Go floor, each line of this document citing a whatsmeow file that changed since the pin §14 records, as unconfirmed, the `Client` methods added, removed or changed, the non-gating WIRE diff, and the licence findings.
+  4. Its body (`tools/bump-report`) lists whatsmeow's Go floor, each line of this document citing a whatsmeow file that changed since the pin §14 records, as unconfirmed, the `Client` methods added, removed or changed, the non-gating WIRE diff, and the licence findings, cut to fit GitHub's limit.
   5. A person re-checks the listed facts, moves §14's pin, and merges; the workflow never edits a fact, merges or publishes.
 - The whatsmeow pin is an implementation detail; a bump that passes CI is a patch release.
 - A release build never passes `-tags fakewhatsapp`: `build/ci.sh` fails when the untagged `whatsmeow-net` links the fake, when `go version -m` on any packaged binary shows the tag, or when a shipped assembly contains its control (ADR 0019, ADR 0023).
@@ -1009,7 +1009,7 @@ Phase 0 decisions:
 - [0039](adr/0039-pii-redaction-of-stderr-and-status-messages.md): PII redaction: every run of seven or more digits a per-process keyed token in stderr lines of info and above (one `LevelWriter`, JSON strings only, the session id as given) and in status messages, the account's own JID included, debug kept, `Jid.Parse` without the text it refused (#62)
 - [0040](adr/0040-a-fair-write-gate-for-the-sidecars-writes.md): Writes: every write of the sidecar goes through one fair, cancellable gate owned by the store, `store.Writer`, held from `BEGIN` to `COMMIT` or `ROLLBACK`, in arrival order, a write inside a write fails at once, whatsmeow's own store writes stay on SQLite's `busy_timeout`, `forbidigo` rejects a write on a `*sql.DB` outside `internal/store` (#89)
 - [0042](adr/0042-send-pacing-options-and-jitter.md): Send pacing: `SendPacing` options (a burst of 5, then one a second, by default) for every session alike, a budget each, checked at start and by the sidecar's flags; jitter of up to half an interval that only delays a send that waits; the queue's clock a field the tests fake; no `RetryAfter`, a 429's attribute names logged; a message node answered 429 stays `WHATSAPP_ERROR`; no deadline on sends (#35)
-- [0043](adr/0043-weekly-whatsmeow-bump.md): The weekly whatsmeow bump: one PR from `GITHUB_TOKEN` whose CI a person approves, extended and never rewritten, never built, merged or published by the workflow; its body lists each fact citing a changed whatsmeow file since the pin §14 records, the `Client` method changes, the WIRE diff and the licence findings (#48)
+- [0043](adr/0043-weekly-whatsmeow-bump.md): The weekly whatsmeow bump: one open PR from `GITHUB_TOKEN` whose CI a person approves, extended and never rewritten, a new branch from main otherwise, never built, merged or published by the workflow; its body lists each fact citing a changed whatsmeow file since the pin §14 records, the `Client` method changes, the WIRE diff and the licence findings (#48)
 
 House-rule alignment (applied, or opted out of with a measured reason):
 

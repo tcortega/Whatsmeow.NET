@@ -59,28 +59,30 @@ var (
 func main() {
 	from := flag.String("from", "", "the whatsmeow version main pins")
 	to := flag.String("to", "", "the whatsmeow version the bump pins")
-	docPath := flag.String("doc", filepath.Join("..", "docs", "ARCHITECTURE.md"), "ARCHITECTURE.md")
-	goModPath := flag.String("gomod", filepath.Join("..", "sidecar", "go.mod"), "the sidecar go.mod, whose toolchain line is the pinned Go")
 	flag.Parse()
 
-	err := start(*from, *to, *docPath, *goModPath)
+	err := start(*from, *to)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "bump-report:", err)
 		os.Exit(1)
 	}
 }
 
-func start(from, to, docPath, goModPath string) error {
+// start reads ARCHITECTURE.md and the sidecar's go.mod, whose toolchain line is the pinned Go, from the tools module.
+func start(from, to string) error {
 	if from == "" || to == "" {
 		return errors.New("-from and -to are required")
 	}
 
-	architecture, err := os.ReadFile(docPath) //nolint:gosec // G304: a repository file named by the caller
+	docPath := filepath.Join("..", "docs", "ARCHITECTURE.md")
+	goModPath := filepath.Join("..", "sidecar", "go.mod")
+
+	architecture, err := os.ReadFile(docPath) //nolint:gosec // G304: a fixed repository file
 	if err != nil {
 		return fmt.Errorf("read %s: %w", docPath, err)
 	}
 
-	goMod, err := os.ReadFile(goModPath) //nolint:gosec // G304: a repository file named by the caller
+	goMod, err := os.ReadFile(goModPath) //nolint:gosec // G304: a fixed repository file
 	if err != nil {
 		return fmt.Errorf("read %s: %w", goModPath, err)
 	}
