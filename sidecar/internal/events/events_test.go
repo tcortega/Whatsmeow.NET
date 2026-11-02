@@ -670,9 +670,11 @@ func TestAReplacedStreamWhoseClientStoppedReadingEnds(t *testing.T) {
 
 	h := start(t, "s1")
 
-	// Far more than grpc-go's 64 KiB stream window: the first stream's handler blocks in Send on flow control.
-	big := strings.Repeat("x", 32<<10)
-	for i := range 64 {
+	// 512 KiB, far more than grpc-go's 64 KiB stream window and its 64 KiB write quota: the first stream's handler
+	// blocks in Send on flow control. In few events, because each is a commit, and the 30 s bound starts before them:
+	// 64 commits took up to 24.8 s on a loaded Windows disk (#89).
+	big := strings.Repeat("x", 64<<10)
+	for i := range 8 {
 		evt := messageEvent(fmt.Sprintf("M%d", i))
 		evt.Message.Conversation = proto.String(big)
 		h.mustDeliver("s1", evt)

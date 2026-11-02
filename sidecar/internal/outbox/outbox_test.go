@@ -339,7 +339,9 @@ func TestRecordWakesTheWatchAndDeleteEndsIt(t *testing.T) {
 func TestConcurrentRecordsNeverLetAReaderSkipASeq(t *testing.T) {
 	t.Parallel()
 
-	const writers, each = 4, 50
+	// 40 commits: a seq taken before the transaction fails this as often as with 200, and 200 took up to 27 s of the
+	// 30 s bound on a loaded Windows disk (#89, ADR 0040).
+	const writers, each = 4, 10
 
 	o, _, ctx := open(t, "s1")
 	w, _, err := o.Watch(ctx, "s1")
