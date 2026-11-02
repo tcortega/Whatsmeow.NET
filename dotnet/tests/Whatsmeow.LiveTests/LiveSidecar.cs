@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Threading.Channels;
 using QRCoder;
 using Whatsmeow.Events;
 using Whatsmeow.IntegrationTests;
@@ -30,12 +31,16 @@ public sealed class LiveSidecar : IAsyncLifetime
 	/// <summary>What the owner sends to "Message yourself" from the phone (docs/guidelines/tests.md Live WhatsApp).</summary>
 	public const string PingText = "wmn ping";
 
-	/// <summary>How long a test waits for the owner's ping.</summary>
+	/// <summary>How the owner answers a question (<see cref="AskOwnerAsync"/>): a text to "Message yourself" starting with one of these.</summary>
+	public const string AnswerHint = "answer with \"wmn yes\" or \"wmn no\", and what you saw, to Message yourself";
+
+	/// <summary>How long a test waits for the owner's ping, or for an answer.</summary>
 	internal static TimeSpan PingBound { get; } = TimeSpan.FromMinutes(5);
 
 	private readonly SemaphoreSlim _starting = new(1, 1);
 	private readonly List<string> _throwaway = [];
 	private readonly TaskCompletionSource<MessageReceived> _ping = new(TaskCreationOptions.RunContinuationsAsynchronously);
+	private readonly Channel<MessageReceived> _answers = Channel.CreateUnbounded<MessageReceived>();
 	private string? _directory;
 	private string? _binary;
 	private LiveLog? _log;
@@ -60,8 +65,8 @@ public sealed class LiveSidecar : IAsyncLifetime
 
 	/// <summary>
 	/// The live session, connected and CaughtUp. It must be paired already: the QR test pairs it. The first call on a
-	/// sidecar also starts watching for the owner's ping (<see cref="PingAsync"/>), before it connects, so a ping the
-	/// phone sent while the session was offline is seen too.
+	/// sidecar also starts watching for the owner's ping (<see cref="PingAsync"/>) and answers (<see cref="AskOwnerAsync"/>),
+	/// before it connects, so a ping the phone sent while the session was offline is seen too.
 	/// </summary>
 	public async Task<IWhatsAppClient> LiveAsync(CancellationToken cancellationToken)
 	{
@@ -71,6 +76,8 @@ public sealed class LiveSidecar : IAsyncLifetime
 			{
 				if (IsPing(e))
 					_ = _ping.TrySetResult(e);
+				if (IsAnswer(e))
+					_ = _answers.Writer.TryWrite(e);
 				return ValueTask.CompletedTask;
 			}
 		);
@@ -96,6 +103,39 @@ public sealed class LiveSidecar : IAsyncLifetime
 			_ = await LiveAsync(cancellationToken).ConfigureAwait(false);
 		Write($"live: waiting at most {PingBound.TotalMinutes:F0} min for the owner's \"{PingText}\" to Message yourself");
 		return await _ping.Task.WaitAsync(PingBound, LiveClock.Time, cancellationToken).ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Asks the owner, who looks at a phone, what it shows: the question goes to <c>owner-question.txt</c>, the log and
+	/// the test output, and the answer is the owner's next text to "Message yourself" that starts <c>wmn yes</c> or
+	/// <c>wmn no</c> (<see cref="AnswerHint"/>), sent after the question, within five minutes. The answer is logged and
+	/// returned; what it means is recorded, not checked.
+	/// </summary>
+	public async Task<string> AskOwnerAsync(string question, CancellationToken cancellationToken)
+	{
+		_ = await LiveAsync(cancellationToken).ConfigureAwait(false);
+		// An answer sent before this question is not one to it.
+		while (_answers.Reader.TryRead(out _)) { }
+
+		var shown = Path.Combine(OutputDirectory, "owner-question.txt");
+		await File.WriteAllTextAsync(shown, $"{question}{Environment.NewLine}({AnswerHint}){Environment.NewLine}", cancellationToken).ConfigureAwait(false);
+		Write($"live: OWNER QUESTION: {question} ({AnswerHint}, within {PingBound.TotalMinutes:F0} min)");
+		try
+		{
+			using var bound = LiveClock.Bound(PingBound, cancellationToken);
+			var text = DeliveryChecks.TextOf(await _answers.Reader.ReadAsync(bound.Token).ConfigureAwait(false))!.Trim();
+			Write($"live: the owner answered: {text}");
+			return text;
+		}
+		catch (OperationCanceledException e) when (!cancellationToken.IsCancellationRequested)
+		{
+			Write($"live: the owner did not answer within {PingBound.TotalMinutes:F0} min");
+			throw new TimeoutException($"The owner did not answer within {PingBound.TotalMinutes:F0} min: {question}", e);
+		}
+		finally
+		{
+			File.Delete(shown);
+		}
 	}
 
 	/// <summary>The live session's account, from <see cref="SessionInfo"/> (<see cref="AccountOfAsync"/>).</summary>
@@ -195,7 +235,7 @@ public sealed class LiveSidecar : IAsyncLifetime
 	/// <summary>Deletes what a person was shown, once a pairing ended.</summary>
 	public void DeleteShown()
 	{
-		foreach (var shown in new[] { "qr.png", "pairing-code.txt" })
+		foreach (var shown in new[] { "qr.png", "pairing-code.txt", "owner-question.txt" })
 			File.Delete(Path.Combine(OutputDirectory, shown));
 	}
 
@@ -252,10 +292,15 @@ public sealed class LiveSidecar : IAsyncLifetime
 		Assert.DoesNotContain(await sidecar.Sessions.ListAsync(cancellationToken).ConfigureAwait(false), session => session.Id == client.SessionId);
 	}
 
-	private static bool IsPing(MessageReceived e) =>
-		e.Source.IsFromMe
-		&& string.Equals(e.Source.Chat.User, e.Source.Sender.User, StringComparison.Ordinal)
-		&& string.Equals(DeliveryChecks.TextOf(e)?.Trim(), PingText, StringComparison.OrdinalIgnoreCase);
+	private static bool IsPing(MessageReceived e) => IsToSelf(e) && string.Equals(DeliveryChecks.TextOf(e)?.Trim(), PingText, StringComparison.OrdinalIgnoreCase);
+
+	private static bool IsAnswer(MessageReceived e) =>
+		IsToSelf(e)
+		&& DeliveryChecks.TextOf(e)?.Trim() is { } text
+		&& (text.StartsWith("wmn yes", StringComparison.OrdinalIgnoreCase) || text.StartsWith("wmn no", StringComparison.OrdinalIgnoreCase));
+
+	/// <summary>A message the account's own phone sent to its own chat.</summary>
+	private static bool IsToSelf(MessageReceived e) => e.Source.IsFromMe && string.Equals(e.Source.Chat.User, e.Source.Sender.User, StringComparison.Ordinal);
 
 	private async Task<WhatsmeowSidecar> StartAsync(CancellationToken cancellationToken)
 	{

@@ -24,6 +24,13 @@ internal static class LiveSettings
 	/// <summary>Set, to any value, when the owner is at the phone for the run: the tests that need the phone itself need it.</summary>
 	public const string OwnerVariable = "WHATSMEOW_LIVE_OWNER";
 
+	/// <summary>
+	/// The file of media refs an earlier run uploaded, kept outside the repository, which the ref lifetime test reads and
+	/// appends to (<c>LiveMediaTests</c>). Optional: without it that test tries this run's ref only. It holds media keys,
+	/// so it is created 0600.
+	/// </summary>
+	public const string MediaRefsVariable = "WHATSMEOW_LIVE_MEDIA_REFS";
+
 	/// <summary>The live database; empty when the live tests are off.</summary>
 	public static string Database { get; } = Environment.GetEnvironmentVariable(DatabaseVariable) ?? "";
 
@@ -32,6 +39,9 @@ internal static class LiveSettings
 
 	/// <summary>The peer database; empty when it is not set.</summary>
 	public static string PeerDatabase { get; } = Environment.GetEnvironmentVariable(PeerDatabaseVariable) ?? "";
+
+	/// <summary>The media refs file; empty when it is not set.</summary>
+	public static string MediaRefs { get; } = Environment.GetEnvironmentVariable(MediaRefsVariable) ?? "";
 
 	/// <summary>Whether the owner is at the phone.</summary>
 	public static bool Owner { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(OwnerVariable));

@@ -47,8 +47,8 @@ public sealed class LiveFactAttribute : FactAttribute
 	}
 
 	/// <summary>
-	/// Whether the test needs the owner at the phone: it waits for the owner's ping (<see cref="LiveSidecar.PingAsync"/>),
-	/// with a bound of its own on top of the test's work.
+	/// Whether the test needs the owner at a phone: it waits for the owner's ping (<see cref="LiveSidecar.PingAsync"/>) or
+	/// answer (<see cref="LiveSidecar.AskOwnerAsync"/>), with a bound of its own on top of the test's work.
 	/// </summary>
 	public bool NeedsOwner
 	{
