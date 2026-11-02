@@ -1,3 +1,4 @@
+using System.Diagnostics.Metrics;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -30,8 +31,10 @@ public static class WhatsmeowServiceCollectionExtensions
 	/// is <c>System32</c>.
 	/// </para>
 	/// <para>
-	/// The sidecar uses the <see cref="ILoggerFactory"/> and <see cref="TimeProvider"/> from the container when there
-	/// are ones. Calling it again adds nothing: there is one sidecar.
+	/// The sidecar uses the <see cref="ILoggerFactory"/>, <see cref="TimeProvider"/> and <see cref="IMeterFactory"/>
+	/// from the container when there are ones; a host builder registers an <see cref="IMeterFactory"/>, and the
+	/// sidecar's meter, <see cref="WhatsmeowTelemetry.MeterName"/>, comes from it. Calling it again adds nothing: there
+	/// is one sidecar.
 	/// </para>
 	/// </summary>
 	/// <returns>A builder to declare sessions and register handlers.</returns>
@@ -66,6 +69,7 @@ public static class WhatsmeowServiceCollectionExtensions
 		return WhatsmeowSidecar.Create(
 			services.GetRequiredService<IOptions<WhatsmeowSidecarOptions>>().Value,
 			services.GetService<ILoggerFactory>() ?? NullLoggerFactory.Instance,
+			services.GetService<IMeterFactory>(),
 			services.GetService<TimeProvider>(),
 			services.GetService<FakeWhatsAppMode>() is not null,
 			client =>

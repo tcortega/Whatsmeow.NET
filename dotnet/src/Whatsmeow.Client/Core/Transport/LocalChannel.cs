@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Grpc.Net.Client;
+using Whatsmeow.Core.Telemetry;
 
 namespace Whatsmeow.Core.Transport;
 
@@ -21,7 +22,8 @@ internal sealed class LocalChannel : IDisposable
 	/// <param name="endpoint">The current socket path or pipe name; null while no sidecar is ready.</param>
 	/// <param name="token">The current sidecar's token.</param>
 	/// <param name="loggerFactory">For gRPC's own logs.</param>
-	public LocalChannel(bool namedPipe, Func<string?> endpoint, Func<string> token, ILoggerFactory loggerFactory)
+	/// <param name="metrics">Counts the failed calls.</param>
+	public LocalChannel(bool namedPipe, Func<string?> endpoint, Func<string> token, ILoggerFactory loggerFactory, ClientMetrics metrics)
 	{
 		// Never call ConnectAsync or read State: both throw with a ConnectCallback (ARCHITECTURE §8.6).
 		_channel = GrpcChannel.ForAddress("http://localhost", new GrpcChannelOptions
@@ -43,14 +45,17 @@ internal sealed class LocalChannel : IDisposable
 			LoggerFactory = loggerFactory,
 		});
 
-		CallInvoker = _channel.Intercept(metadata =>
-		{
-			metadata.Add("authorization", "Bearer " + token());
-			return metadata;
-		});
+		// Every failed call is counted here, by its error code, the library's own calls included (ADR 0037).
+		CallInvoker = _channel
+			.Intercept(new ErrorCounter(metrics))
+			.Intercept(metadata =>
+			{
+				metadata.Add("authorization", "Bearer " + token());
+				return metadata;
+			});
 	}
 
-	/// <summary>Every call goes through this invoker, which adds the token.</summary>
+	/// <summary>Every call goes through this invoker, which adds the token and counts the failures.</summary>
 	public CallInvoker CallInvoker { get; }
 
 	public void Dispose() => _channel.Dispose();

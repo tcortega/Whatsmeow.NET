@@ -4,6 +4,7 @@ using Grpc.Core;
 using Whatsmeow.ChatState;
 using Whatsmeow.Contacts;
 using Whatsmeow.Core.Errors;
+using Whatsmeow.Core.Telemetry;
 using Whatsmeow.Events;
 using Whatsmeow.Media;
 using Whatsmeow.Messaging;
@@ -72,25 +73,58 @@ internal sealed class SessionClient(
 	public Task<MediaRef> UploadMediaFileAsync(string path, MediaType type, CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
-		return _media.UploadAsync(path, type, cancellationToken);
+		return UploadTracedAsync(type, () => _media.UploadAsync(path, type, cancellationToken));
 	}
 
 	public Task<MediaRef> UploadMediaAsync(Stream content, MediaType type, CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
-		return _media.UploadAsync(content, type, cancellationToken);
+		return UploadTracedAsync(type, () => _media.UploadAsync(content, type, cancellationToken));
 	}
 
 	public Task DownloadMediaFileAsync(MediaRef media, string path, CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
-		return _media.DownloadAsync(media, path, cancellationToken);
+		return DownloadTracedAsync(media, () => _media.DownloadAsync(media, path, cancellationToken));
 	}
 
 	public Task DownloadMediaAsync(MediaRef media, Stream destination, CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
-		return _media.DownloadAsync(media, destination, cancellationToken);
+		return DownloadTracedAsync(media, () => _media.DownloadAsync(media, destination, cancellationToken));
+	}
+
+	/// <summary>Runs an upload in its span, which gets the size once it is known.</summary>
+	private async Task<MediaRef> UploadTracedAsync(MediaType type, Func<Task<MediaRef>> upload)
+	{
+		using var activity = Tracing.StartUpload(sessionId, type);
+		try
+		{
+			var media = await upload().ConfigureAwait(false);
+			Tracing.Transferred(activity, media);
+			return media;
+		}
+		catch (Exception e)
+		{
+			Tracing.Failed(activity, e);
+			throw;
+		}
+	}
+
+	/// <summary>Runs a download in its span; a null <paramref name="media"/> fails in the returned task, as every argument failure does.</summary>
+	private async Task DownloadTracedAsync(MediaRef media, Func<Task> download)
+	{
+		ArgumentNullException.ThrowIfNull(media);
+		using var activity = Tracing.StartDownload(sessionId, media);
+		try
+		{
+			await download().ConfigureAwait(false);
+		}
+		catch (Exception e)
+		{
+			Tracing.Failed(activity, e);
+			throw;
+		}
 	}
 
 	public Task RequestMediaRetryAsync(MessageId id, Events.MessageSource source, MediaRef media, CancellationToken cancellationToken = default)
@@ -119,8 +153,16 @@ internal sealed class SessionClient(
 			ReplyTo = MessagingMapping.ToProto(options?.ReplyTo),
 		};
 		request.Mentions.Add(MessagingMapping.ToMentions(options));
-		var response = await RpcErrors.CallAsync(_messages.SendTextAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
-		return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+		return await SendTracedAsync(
+				"text",
+				messageId,
+				async () =>
+				{
+					var response = await RpcErrors.CallAsync(_messages.SendTextAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+				}
+			)
+			.ConfigureAwait(false);
 	}
 
 	public async Task<SendResult> SendImageAsync(
@@ -136,7 +178,7 @@ internal sealed class SessionClient(
 		ArgumentNullException.ThrowIfNull(metadata);
 		var request = MediaMessageMapping.ToRequest(sessionId, chat, id ?? MessageId.New(), image, nameof(image));
 		request.Image = MediaMessageMapping.ToProto(metadata);
-		return await SendMediaAsync(request, options, cancellationToken).ConfigureAwait(false);
+		return await SendMediaAsync("image", request, options, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<SendResult> SendVideoAsync(
@@ -152,7 +194,7 @@ internal sealed class SessionClient(
 		ArgumentNullException.ThrowIfNull(metadata);
 		var request = MediaMessageMapping.ToRequest(sessionId, chat, id ?? MessageId.New(), video, nameof(video));
 		request.Video = MediaMessageMapping.ToProto(metadata);
-		return await SendMediaAsync(request, options, cancellationToken).ConfigureAwait(false);
+		return await SendMediaAsync("video", request, options, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<SendResult> SendAudioAsync(
@@ -168,7 +210,7 @@ internal sealed class SessionClient(
 		ArgumentNullException.ThrowIfNull(metadata);
 		var request = MediaMessageMapping.ToRequest(sessionId, chat, id ?? MessageId.New(), audio, nameof(audio));
 		request.Audio = MediaMessageMapping.ToProto(metadata);
-		return await SendMediaAsync(request, options, cancellationToken).ConfigureAwait(false);
+		return await SendMediaAsync("audio", request, options, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<SendResult> SendDocumentAsync(
@@ -184,7 +226,7 @@ internal sealed class SessionClient(
 		ArgumentNullException.ThrowIfNull(metadata);
 		var request = MediaMessageMapping.ToRequest(sessionId, chat, id ?? MessageId.New(), document, nameof(document));
 		request.Document = MediaMessageMapping.ToProto(metadata);
-		return await SendMediaAsync(request, options, cancellationToken).ConfigureAwait(false);
+		return await SendMediaAsync("document", request, options, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<SendResult> SendStickerAsync(
@@ -200,16 +242,25 @@ internal sealed class SessionClient(
 		ArgumentNullException.ThrowIfNull(metadata);
 		var request = MediaMessageMapping.ToRequest(sessionId, chat, id ?? MessageId.New(), sticker, nameof(sticker));
 		request.Sticker = MediaMessageMapping.ToProto(metadata);
-		return await SendMediaAsync(request, options, cancellationToken).ConfigureAwait(false);
+		return await SendMediaAsync("sticker", request, options, cancellationToken).ConfigureAwait(false);
 	}
 
-	private async Task<SendResult> SendMediaAsync(SendMediaRequest request, SendOptions? options, CancellationToken cancellationToken)
+	private async Task<SendResult> SendMediaAsync(string messageType, SendMediaRequest request, SendOptions? options, CancellationToken cancellationToken)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		request.ReplyTo = MessagingMapping.ToProto(options?.ReplyTo);
 		request.Mentions.Add(MessagingMapping.ToMentions(options));
-		var response = await RpcErrors.CallAsync(_messages.SendMediaAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
-		return MessagingMapping.ToResult(MessageId.From(request.ClientMessageId), response.Chat, response.MessageTime);
+		var messageId = MessageId.From(request.ClientMessageId);
+		return await SendTracedAsync(
+				messageType,
+				messageId,
+				async () =>
+				{
+					var response = await RpcErrors.CallAsync(_messages.SendMediaAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+				}
+			)
+			.ConfigureAwait(false);
 	}
 
 	public async Task<SendResult> SendReactionAsync(Jid chat, MessageKey target, string emoji, MessageId? id = null, CancellationToken cancellationToken = default)
@@ -288,15 +339,40 @@ internal sealed class SessionClient(
 		ArgumentNullException.ThrowIfNull(message);
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var messageId = id ?? MessageId.New();
-		var response = await RpcErrors
-			.CallAsync(
-				_messages.SendMessageAsync(
-					new SendMessageRequest { SessionId = sessionId.Value, Chat = chat.ToString(), ClientMessageId = messageId.Value, Message = message },
-					cancellationToken: cancellationToken
-				)
+		return await SendTracedAsync(
+				"raw",
+				messageId,
+				async () =>
+				{
+					var response = await RpcErrors
+						.CallAsync(
+							_messages.SendMessageAsync(
+								new SendMessageRequest { SessionId = sessionId.Value, Chat = chat.ToString(), ClientMessageId = messageId.Value, Message = message },
+								cancellationToken: cancellationToken
+							)
+						)
+						.ConfigureAwait(false);
+					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+				}
 			)
 			.ConfigureAwait(false);
-		return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime);
+	}
+
+	/// <summary>Runs a send in its span, and counts it once WhatsApp accepted it.</summary>
+	private async Task<SendResult> SendTracedAsync(string messageType, MessageId messageId, Func<Task<SendResult>> send)
+	{
+		using var activity = Tracing.StartSend(sessionId, messageId, messageType);
+		try
+		{
+			var result = await send().ConfigureAwait(false);
+			sidecar.Metrics.MessageSent(sessionId);
+			return result;
+		}
+		catch (Exception e)
+		{
+			Tracing.Failed(activity, e);
+			throw;
+		}
 	}
 
 	public async Task MarkReadAsync(Jid chat, IReadOnlyCollection<MessageId> messageIds, Jid? sender = null, CancellationToken cancellationToken = default)

@@ -1,6 +1,8 @@
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.Metrics.Testing;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
@@ -667,5 +669,24 @@ public sealed class HostingTests(FakeSidecar fixture, SidecarBinaries binaries)
 		{
 			gate.Open.SetResult();
 		}
+	}
+	[Fact(Timeout = Timeout)]
+	public async Task HostWithAMeterFactory_TheSidecarsMeterComesFromIt()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var builder = Hosts.Builder(logs, Hosts.Settings(fixture.Binary, binaries.NewDatabase()));
+		_ = builder.Services.AddWhatsmeow().UseFakeWhatsApp().AddSession("hosting-meter");
+		using var host = builder.Build();
+		// Every host builder registers one; a collector on it sees this host's measurements only.
+		using var errors = new MetricCollector<long>(host.Services.GetRequiredService<IMeterFactory>(), WhatsmeowTelemetry.MeterName, "whatsmeow.errors");
+		await host.StartAsync(ct);
+
+		_ = await Assert.ThrowsAsync<NotLoggedInException>(() => Hosts.Client(host, "hosting-meter").SendTextAsync(Jid.Parse("900000403@lid"), "hi", cancellationToken: ct));
+
+		var measurement = Assert.Single(errors.GetMeasurementSnapshot());
+		Assert.Equal(1L, measurement.Value);
+		Assert.Equal(Tags.Of(("error.type", "NotLoggedIn")), Tags.Of(measurement));
+		await host.StopAsync(ct);
 	}
 }
