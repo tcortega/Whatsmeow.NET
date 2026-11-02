@@ -59,7 +59,7 @@ func recorded(t *testing.T) (*store.Store, *handlers, *int) {
 
 	box := outbox.New(db.DB, db.Writer)
 	chats := chatstate.New(log)
-	histories := historyslice.New(db.DB, db.Writer, box, eventsslice.MessageEvent, log)
+	histories := historyslice.New(db.DB, db.Writer, box, eventsslice.HistoryMessage, log)
 
 	t.Cleanup(func() {
 		histories.Close()
