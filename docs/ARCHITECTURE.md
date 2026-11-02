@@ -526,6 +526,7 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
 - **A channel per launch** ([ADR 0045](adr/0045-a-channel-per-launch.md)): each launch gets a channel of its own, made at its ready line with its endpoint and its token fixed, and every launch listens at an endpoint of its own, so a call reaches only the launch it started on and carries that launch's token.
   One stable invoker (`Core/Transport/LaunchInvoker.cs`) starts every call on the current launch's channel, or, with no launch, on a channel with no endpoint that fails it as unreachable; the error counter wraps it.
   A launch's channel is disposed when the launch after the next one is published: disposing it cancels its calls still running.
+  A pipe connect gives up after 2 s with an `IOException`, so a call to a dead launch's pipe fails `Unavailable` instead of waiting forever for a name that never comes back; a Unix socket connect to one is refused at once.
 - The token is added to every call by an interceptor, together with `ThrowOperationCanceledOnCancellation = true`.
 - `MaxReceiveMessageSize` and `MaxSendMessageSize` are set explicitly to 16 MiB on both sides.
 - The `SocketsHttpHandler` sits behind `RequestBodyFence` (`Core/Transport/`), which ends a request body only once no write is in flight on it (#71).
