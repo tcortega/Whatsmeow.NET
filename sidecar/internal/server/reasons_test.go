@@ -174,3 +174,22 @@ func TestAStatusCarriesNoNumberOrCredential(t *testing.T) {
 		}
 	}
 }
+
+// A status a slice or grpc-go built passes through with its code and details, and its message redacted too.
+func TestAPassedThroughStatusCarriesNoNumber(t *testing.T) {
+	t.Parallel()
+
+	built, err := status.New(codes.NotFound, `no chat "5511900000001@s.whatsapp.net"`).WithDetails(&errdetails.ErrorInfo{Reason: "TEST", Domain: "whatsmeow.net"})
+	if err != nil {
+		t.Fatalf("build the status: %v", err)
+	}
+
+	st, _ := status.FromError(New(token, zerolog.Nop(), sidecarlog.NewRedactor()).toStatus("/test", built.Err()))
+	if st.Code() != codes.NotFound || strings.Contains(st.Message(), "5511900000001") || !strings.Contains(st.Message(), `no chat "~`) {
+		t.Fatalf("status %v", st)
+	}
+
+	if info, ok := st.Details()[0].(*errdetails.ErrorInfo); !ok || info.GetReason() != "TEST" {
+		t.Fatalf("details %v, want the ErrorInfo kept", st.Details())
+	}
+}

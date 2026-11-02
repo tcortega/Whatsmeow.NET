@@ -188,16 +188,20 @@ func (s *Server) admit(method string) error {
 }
 
 // toStatus maps a slice error to a status with an ErrorInfo. Slices return %w errors and never build a status,
-// so a status here came from grpc-go or this package and passes through. A context error keeps its own status
-// (CANCELLED, DEADLINE_EXCEEDED); an error that wraps one of the reason errors (reasons.go) gets its reason and
-// metadata; every other error is INTERNAL.
+// so a status here came from grpc-go or this package and passes through with its code and details. A context error
+// keeps its own status (CANCELLED, DEADLINE_EXCEEDED); an error that wraps one of the reason errors (reasons.go) gets
+// its reason and metadata; every other error is INTERNAL.
 //
-// The message reaches the application as an exception's message, and an INTERNAL one the error log too, so it has no
-// phone number, JID user part or URL query (sidecarlog.Redactor.Text): a slice may wrap whatsmeow's text, which names
-// JIDs and prints URLs with their credential, or echo a JID it refused (ADR 0039). The debug line keeps err as it is.
+// Every message, a passed-through one's too, reaches the application as an exception's message, and an INTERNAL one
+// the error log too, so it has no phone number, JID user part or URL query (sidecarlog.Redactor.Text): a slice may
+// wrap whatsmeow's text, which names JIDs and prints URLs with their credential, or echo a JID it refused (ADR 0039).
+// The debug line keeps err as it is.
 func (s *Server) toStatus(method string, err error) error {
-	if _, ok := status.FromError(err); ok {
-		return err
+	if st, ok := status.FromError(err); ok {
+		passed := st.Proto()
+		passed.Message = s.redactor.Text(passed.GetMessage())
+
+		return status.ErrorProto(passed) //nolint:wrapcheck // a gRPC status reaches grpc-go unwrapped
 	}
 
 	// The caller cancelled or its deadline passed: nothing failed here, so it is not INTERNAL.

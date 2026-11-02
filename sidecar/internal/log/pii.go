@@ -14,11 +14,18 @@ import (
 // (pair-code.go:98), and a JID's user part, a LID or a group's id, is longer.
 const minDigits = 7
 
+// tokenDigits is the length of a token after its "~".
+const tokenDigits = 8
+
+// sessionIDKey is the key of the session id in a zerolog line, whose value the writer keeps.
+const sessionIDKey = `"session_id":`
+
 // Redactor replaces every run of seven or more digits, a phone number or the user part of a JID, with a token: "~"
 // and 8 hex digits of a SHA-256 of a per-process random key and the digits (ARCHITECTURE §8.8, ADR 0039). The rest
 // stays, so "5511900000001:3@s.whatsapp.net" becomes "~1a2b3c4d:3@s.whatsapp.net", and one user has one token in
-// every form, JID, signal address or "+" number, for the life of the process. A run that touches a letter or a digit,
-// or follows a "." or a "~", is not a number on its own (an id, a version, a token) and stays.
+// every form, JID, signal address or "+" number, for the life of the process. A run stays only when it is not a number
+// on its own: one that touches a letter or a digit (a hex message id), one after a "." that follows a digit (a
+// version, "2.3000.1027954720"), and a token, eight digits after a "~". Anything else is redacted: it fails closed.
 type Redactor struct {
 	key [32]byte
 }
@@ -37,8 +44,9 @@ func (r *Redactor) Text(s string) string {
 }
 
 // Writer is w with every line of info level and above redacted, inside its JSON strings only, so a line stays JSON
-// and a number field stays a number. A debug line is written as it is: ARCHITECTURE §8.8 allows a JID at debug, and
-// the sidecar logs none (newLogger).
+// and a number field stays a number. The value of "session_id" stays too: it is the application's own name for the
+// session, which the .NET client logs as given. A debug line is written as it is: ARCHITECTURE §8.8 allows a JID at
+// debug, and the sidecar logs none (newLogger).
 func Writer(w io.Writer, r *Redactor) zerolog.LevelWriter { return &writer{w: w, r: r} }
 
 type writer struct {
@@ -63,37 +71,43 @@ func (w *writer) WriteLevel(level zerolog.Level, p []byte) (int, error) {
 }
 
 // redact is p with each run of digits redacted, in JSON strings only when inJSON; p itself when there is none. In
-// JSON an escape sequence ("\n", "é") separates, as the character it stands for would.
+// JSON an escape sequence ("\n", "\u0001") separates, as the character it stands for would, and the value of
+// "session_id" is skipped.
 func (r *Redactor) redact(p []byte, inJSON bool) []byte {
 	var out []byte
 
 	last := 0
 	inString := !inJSON
-	// prev is the byte before i as the run's guard sees it: an escape sequence counts as a space.
-	prev := byte(' ')
+	// prev is the byte before i as the run's guard sees it, an escape sequence as a space, and before the one before it.
+	prev, before := byte(' '), byte(' ')
 
 	for i := 0; i < len(p); {
 		c := p[i]
 
 		switch {
+		case inJSON && c == '"' && !inString && i >= len(sessionIDKey) && string(p[i-len(sessionIDKey):i]) == sessionIDKey:
+			i = stringEnd(p, i)
+			before, prev = prev, '"'
+
+			continue
 		case inJSON && c == '"':
 			inString = !inString
-			prev = c
+			before, prev = prev, c
 			i++
 
 			continue
 		case !inString:
-			prev = c
+			before, prev = prev, c
 			i++
 
 			continue
 		case inJSON && c == '\\':
 			i += escapeLen(p[i:])
-			prev = ' '
+			before, prev = prev, ' '
 
 			continue
 		case !isDigit(c):
-			prev = c
+			before, prev = prev, c
 			i++
 
 			continue
@@ -104,9 +118,11 @@ func (r *Redactor) redact(p []byte, inJSON bool) []byte {
 			j++
 		}
 
-		if j-i >= minDigits && !isWord(prev) && prev != '.' && prev != '~' && (j == len(p) || !isWord(p[j])) {
+		kept := isWord(prev) || (prev == '.' && isDigit(before)) || (prev == '~' && j-i == tokenDigits) || (j < len(p) && isWord(p[j]))
+		if j-i >= minDigits && !kept {
 			if out == nil {
-				out = make([]byte, 0, len(p))
+				// A token is at most 2 bytes longer than the run it replaces.
+				out = make([]byte, 0, len(p)+len(p)/4)
 			}
 
 			out = append(out, p[last:i]...)
@@ -114,7 +130,7 @@ func (r *Redactor) redact(p []byte, inJSON bool) []byte {
 			last = j
 		}
 
-		prev = p[j-1]
+		before, prev = prev, p[j-1]
 		i = j
 	}
 
@@ -136,6 +152,20 @@ func (r *Redactor) appendToken(out, digits []byte) []byte {
 	out = append(out, '~')
 
 	return hex.AppendEncode(out, h.Sum(sum[:0])[:4])
+}
+
+// stringEnd is the index after the end of the JSON string that starts at p[start], a quote; len(p) when it does not end.
+func stringEnd(p []byte, start int) int {
+	for i := start + 1; i < len(p); i++ {
+		switch p[i] {
+		case '\\':
+			i++
+		case '"':
+			return i + 1
+		}
+	}
+
+	return len(p)
 }
 
 // escapeLen is the length of the JSON escape sequence p starts with: \uXXXX or a backslash and one character.

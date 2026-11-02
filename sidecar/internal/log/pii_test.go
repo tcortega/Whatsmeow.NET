@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/rs/zerolog"
 	signallogger "go.mau.fi/libsignal/logger"
@@ -37,6 +38,9 @@ func TestTextRedactsEveryPhoneNumberAndJIDUserPart(t *testing.T) {
 		{"an international number", `"+5511900000001" is not a JID`, []string{"5511900000001"}, []string{`"+~`, `" is not a JID`}},
 		{"seven digits", "+6834002 typed", []string{"6834002"}, []string{"+~"}},
 		{"in a node", `<message from="5511900000001@s.whatsapp.net" t="1730000000">`, []string{"5511900000001"}, []string{`from="~`}},
+		{"after a dot that ends a word", "foo.5511900000001@s.whatsapp.net", []string{"5511900000001"}, []string{"foo.~", "@s.whatsapp.net"}},
+		{"after a tilde, not a token", "~5511900000001@s.whatsapp.net", []string{"5511900000001"}, []string{"~~", "@s.whatsapp.net"}},
+		{"after a tilde, longer than a token", "~123456789", []string{"123456789"}, []string{"~~"}},
 	} {
 		got := r.Text(tc.text)
 		for _, gone := range tc.gone {
@@ -66,6 +70,8 @@ func TestTextKeepsWhatIsNotAPhoneNumber(t *testing.T) {
 		"dial tcp 157.240.12.35:443: refused",
 		"Got 515 code from s.whatsapp.net, reconnecting",
 		"user 123456 is six digits",
+		// A letter before a run keeps it: hex message ids are runs of digits between letters.
+		"x5511900000001",
 	} {
 		if got := r.Text(text); got != text {
 			t.Errorf("Text(%q) = %q, want it unchanged", text, got)
@@ -123,8 +129,17 @@ func line(t *testing.T, write func(zerolog.Logger)) string {
 	write(zerolog.New(Writer(&buf, NewRedactor())).Level(zerolog.DebugLevel).With().Timestamp().Logger())
 
 	got := buf.String()
-	if !json.Valid(buf.Bytes()) {
-		t.Fatalf("not one JSON line: %s", got)
+
+	var fields struct {
+		Time string `json:"time"`
+	}
+	if err := json.Unmarshal(buf.Bytes(), &fields); err != nil {
+		t.Fatalf("not one JSON line (%v): %s", err, got)
+	}
+
+	// The time field is RFC 3339 (zerolog TimeFieldFormat), with no run of seven digits to redact.
+	if _, err := time.Parse(time.RFC3339, fields.Time); err != nil {
+		t.Fatalf("the time field does not parse (%v): %s", err, got)
 	}
 
 	return got
@@ -140,6 +155,21 @@ func TestTheWriterRedactsEveryLineAtInfoAndAbove(t *testing.T) {
 		})
 		if strings.Contains(got, "5511900000001") || !token.MatchString(got) || !strings.Contains(got, `"session_id":"s1"`) {
 			t.Errorf("%v: logged %s", level, got)
+		}
+	}
+}
+
+// A session id is the application's own name for a session, logged as given by the .NET client too: a token would only
+// break the correlation between the two logs.
+func TestTheWriterKeepsTheSessionID(t *testing.T) {
+	t.Parallel()
+
+	for _, id := range []string{"5511900000001", "12345678-90ab-cdef-1234-567890abcdef"} {
+		got := line(t, func(log zerolog.Logger) {
+			log.Warn().Str("session_id", id).Msg("No LID found for 5511900000002@s.whatsapp.net")
+		})
+		if !strings.Contains(got, `"session_id":"`+id+`"`) || strings.Contains(got, "5511900000002") {
+			t.Errorf("logged %s, want session id %s as given and the JID redacted", got, id)
 		}
 	}
 }
