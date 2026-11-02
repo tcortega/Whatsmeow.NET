@@ -718,13 +718,26 @@ func TestACancelWhileQueuedSendsNothingAndLeavesNoRecord(t *testing.T) {
 	first := h.async(h.ctx, 1)
 	h.next()
 
+	// Called on the slice itself: a gRPC client returns CANCELLED as soon as its context ends, before the handler saw
+	// the cancel, so the queue could take the send after the test checked.
 	ctx, cancel := context.WithCancel(h.ctx)
-	queued := h.async(ctx, 2)
+	queued := make(chan error, 1)
+
+	go func() {
+		_, err := h.svc.SendText(ctx, &whatsmeowv1.SendTextRequest{SessionId: "s1", Chat: "111@lid", ClientMessageId: id(2), Text: "hello"})
+		queued <- err
+	}()
+
 	h.wait(h.queued, "second queued")
 	cancel()
 
-	if r := h.outcome(queued); status.Code(r.err) != codes.Canceled {
-		t.Fatalf("the cancelled queued send = %v; want CANCELLED", r.err)
+	select {
+	case err := <-queued:
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("the cancelled queued send = %v; want its context's end", err)
+		}
+	case <-h.ctx.Done():
+		t.Fatal("the cancelled queued send did not return")
 	}
 
 	close(release)
