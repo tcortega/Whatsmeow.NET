@@ -14,8 +14,9 @@ import "waE2E/WAWebProtobufsE2E.proto";
 service FakeWhatsAppService {
   // DeliverMessage makes WhatsApp deliver a decrypted message to a session's client, and returns once the client's
   // event handlers ran. As whatsmeow does at the pin, the client answers with a receipt only when every handler
-  // succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A session without a client is an error: the
-  // fake never answers on behalf of a client the sidecar did not create.
+  // succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A message left unanswered is delivered again
+  // at the device's next login, and never while the connection stays up, as measured live (ARCHITECTURE §14, #10).
+  // A session without a client is an error: the fake never answers on behalf of a client the sidecar did not create.
   rpc DeliverMessage(DeliverMessageRequest) returns (DeliverMessageResponse);
 
   // DeliverPollVote makes WhatsApp deliver a poll vote from sender to a session's client, as DeliverMessage does. The
@@ -483,6 +484,10 @@ message DeliverMessageRequest {
   // The message as WhatsApp sends it, wrappers included, instead of text: the client dispatches it unwrapped by
   // whatsmeow's own events.Message.UnwrapRaw, as whatsmeow does (message.go:1172-1178). Unset sends text.
   WAWebProtobufsE2E.Message message = 12;
+  // True to fail the sidecar's own recording of this message's first delivery, as a failed outbox write would: in
+  // fake mode the sidecar's Events handler fails it without recording it, so its answer is withheld and the sidecar's
+  // redelivery runs (ADR 0044). Every later delivery of it is recorded.
+  bool withhold_first_answer = 13;
 }
 
 // DeliverPollVoteRequest is one inbound poll vote. A JID is whatsmeow's string form.

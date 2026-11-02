@@ -734,8 +734,8 @@ func TestAFailedConnectEndsPairingWithConnectionFailed(t *testing.T) {
 
 	h := start(t)
 	makeClient := h.svc.newClient
-	h.svc.newClient = func(id string, device *store.Device) Client {
-		c := makeClient(id, device)
+	h.svc.newClient = func(id string, device *store.Device, withheld func()) Client {
+		c := makeClient(id, device, withheld)
 		c.(*stub).connectErr = errors.New("websocket: bad handshake") //nolint:forcetypeassert,err113 // the harness's stub; whatsmeow's error
 
 		return c

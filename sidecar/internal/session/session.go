@@ -35,6 +35,7 @@ type Client interface {
 	AddEventHandlerWithSuccessStatus(handler whatsmeow.EventHandlerWithSuccessStatus) uint32
 	ConnectContext(ctx context.Context) error
 	Disconnect()
+	ResetConnection()
 	IsConnected() bool
 	Logout(ctx context.Context) error
 	GetQRChannel(ctx context.Context) (<-chan whatsmeow.QRChannelItem, error)
@@ -43,8 +44,9 @@ type Client interface {
 
 var _ Client = (*whatsmeow.Client)(nil)
 
-// NewClient returns the client of one session's device.
-type NewClient func(sessionID string, device *store.Device) Client
+// NewClient returns the client of one session's device. withheld wakes the session's redelivery without waiting: a
+// factory that registers an event handler calls it each time the handler withholds an answer to WhatsApp (ADR 0044).
+type NewClient func(sessionID string, device *store.Device, withheld func()) Client
 
 // Service implements whatsmeowv1.SessionServiceServer.
 type Service struct {
@@ -69,8 +71,9 @@ type Service struct {
 	mu       sync.Mutex
 	sessions map[string]*session
 
-	// background runs the goroutines the Service owns, the waits for a login after a link (pair.go) and the
-	// disconnects of retired clients; Close waits for them. spawning guards closed, so none starts once Close waits.
+	// background runs the goroutines the Service owns, the waits for a login after a link (pair.go), the
+	// disconnects of retired clients and the sessions' redeliveries (redelivery.go); Close waits for them. spawning
+	// guards closed, so none starts once Close waits.
 	background sync.WaitGroup
 	spawning   sync.Mutex
 	closed     bool
@@ -99,6 +102,8 @@ type session struct {
 	// offlineFirst is an offline sync that completed before its login's Connected: Connected then makes the session
 	// CaughtUp too. Every transition forgets it (ARCHITECTURE §7.4).
 	offlineFirst bool
+	// withholds wakes the session's redelivery (redelivery.go); one slot, so a handler never waits.
+	withholds chan struct{}
 }
 
 // New loads every session from the database. It never connects one: the client calls Connect (session.proto).
@@ -219,13 +224,15 @@ func (svc *Service) pairedDevice(ctx context.Context, jid string) (*store.Device
 	return device, nil
 }
 
-// add creates the session's client and registers its event handler; the caller puts it in svc.sessions.
+// add creates the session's client, registers its event handler and starts its redelivery; the caller puts it in
+// svc.sessions.
 func (svc *Service) add(id string, device *store.Device, state *whatsmeowv1.SessionState, jid, lid string) *session {
 	s := &session{
 		id: id, state: state, jid: jid, lid: lid,
-		watchers: map[chan *whatsmeowv1.SessionState]struct{}{}, deleted: make(chan struct{}),
+		watchers: map[chan *whatsmeowv1.SessionState]struct{}{}, deleted: make(chan struct{}), withholds: make(chan struct{}, 1),
 	}
 	svc.attach(s, device)
+	svc.spawn(func() { svc.redeliver(s) })
 
 	return s
 }
@@ -233,7 +240,7 @@ func (svc *Service) add(id string, device *store.Device, state *whatsmeowv1.Sess
 // attach gives the session device and a new client for it, whose events the session handles until the next attach.
 // A new session is not shared yet; otherwise s.ops and s.mu are held.
 func (svc *Service) attach(s *session, device *store.Device) {
-	client := svc.newClient(s.id, device)
+	client := svc.newClient(s.id, device, s.withheld)
 	client.AddEventHandlerWithSuccessStatus(func(evt any) bool {
 		svc.handle(s, client, evt)
 

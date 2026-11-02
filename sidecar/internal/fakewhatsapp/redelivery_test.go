@@ -233,3 +233,45 @@ func TestResetConnectionDoesNothingWithoutAConnectionAndADisconnectStopsItsRecon
 		t.Fatal("the reset reconnected after the Disconnect that followed it")
 	}
 }
+
+func TestAMessageMarkedWithholdFirstAnswerFailsItsFirstRecordingOnly(t *testing.T) {
+	t.Parallel()
+
+	whatsApp, control, ctx := start(t)
+	recorded := make(chan string, 4)
+	client := whatsApp.NewClient("s1")
+	client.AddEventHandlerWithSuccessStatus(whatsApp.Failing("s1", func(evt any) bool {
+		if msg, ok := evt.(*events.Message); ok {
+			recorded <- msg.Info.ID
+		}
+
+		return true
+	}))
+
+	req := &fakev1.DeliverMessageRequest{SessionId: "s1", Id: "M1", Chat: "1666@s.whatsapp.net", Sender: "1666@s.whatsapp.net", WithholdFirstAnswer: true}
+	if _, err := control.DeliverMessage(ctx, req); err != nil {
+		t.Fatalf("DeliverMessage: %v", err)
+	}
+
+	if _, err := control.DeliverMessage(ctx, &fakev1.DeliverMessageRequest{SessionId: "s1", Id: "M2", Chat: "1666@s.whatsapp.net", Sender: "1666@s.whatsapp.net"}); err != nil {
+		t.Fatalf("DeliverMessage: %v", err)
+	}
+
+	// M1's first delivery failed before the handler ran, unanswered; M2, not marked, was recorded and answered.
+	if id := <-recorded; id != "M2" {
+		t.Fatalf("recorded %q first, want M2: the marked message's first delivery was recorded", id)
+	}
+
+	wantSent(t, waitForSent(ctx, t, control, "s1", 0), receipt(1, "s1", "M2"))
+
+	// Its next delivery is recorded and answered.
+	if _, err := control.DeliverMessage(ctx, &fakev1.DeliverMessageRequest{SessionId: "s1", Id: "M1", Chat: "1666@s.whatsapp.net", Sender: "1666@s.whatsapp.net"}); err != nil {
+		t.Fatalf("DeliverMessage: %v", err)
+	}
+
+	if id := <-recorded; id != "M1" {
+		t.Fatalf("recorded %q, want M1", id)
+	}
+
+	wantSent(t, waitForSent(ctx, t, control, "s1", 1), receipt(2, "s1", "M1"))
+}

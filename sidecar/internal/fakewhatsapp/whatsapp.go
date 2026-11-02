@@ -16,6 +16,7 @@ import (
 	"sync"
 
 	"github.com/rs/zerolog"
+	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/proto/waCompanionReg"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
@@ -48,10 +49,15 @@ type WhatsApp struct {
 	expired  map[string]int32
 	// retries are the media retry receipts the phone has not answered, by session and message id.
 	retries map[string]retryRequest
+	// withhold are the messages DeliverMessage marked to fail their first recording (Failing).
+	withhold map[marked]bool
 	// pairingProps is the store.DeviceProps each session's latest pairing sent (history.go).
 	pairingProps map[string]*waCompanionReg.DeviceProps
 	groupState
 }
+
+// marked is a message of a session that DeliverMessage marked.
+type marked struct{ session, id string }
 
 // script is what the controls scripted for a session's next calls. It is the session's, not its client's: each Pair
 // call gives the session a new client (ADR 0021), and a script set before it still applies.
@@ -116,7 +122,7 @@ func New(log zerolog.Logger, options ...Option) *WhatsApp {
 		log: log, clients: map[string]*Client{}, changed: make(chan struct{}), scripts: map[string]*script{}, appStates: map[string]*appState{},
 		directory:  directory{users: map[types.JID]*user{}, pictures: map[types.JID]picture{}, blocklists: map[string][]types.BlocklistItem{}},
 		groupState: groupState{groups: map[types.JID]*group{}, revoked: map[string]bool{}, refusals: map[types.JID]refusal{}},
-		expired:    map[string]int32{}, retries: map[string]retryRequest{}, pairingProps: map[string]*waCompanionReg.DeviceProps{},
+		expired:    map[string]int32{}, retries: map[string]retryRequest{}, withhold: map[marked]bool{}, pairingProps: map[string]*waCompanionReg.DeviceProps{},
 	}
 
 	for _, option := range options {
@@ -257,4 +263,32 @@ func (w *WhatsApp) waiters() int {
 	defer w.mu.Unlock()
 
 	return w.waiting
+}
+
+// Failing wraps a session's event handler h so that the first delivery of each message DeliverMessage marked
+// withhold_first_answer fails without running h, as a failed outbox write fails it; every later delivery runs h.
+// cmd/whatsmeow-net wraps the Events slice's handler with it in fake mode (ADR 0044).
+func (w *WhatsApp) Failing(sessionID string, h whatsmeow.EventHandlerWithSuccessStatus) whatsmeow.EventHandlerWithSuccessStatus {
+	return func(evt any) bool {
+		if msg, ok := evt.(*events.Message); ok && w.takeWithhold(sessionID, msg.Info.ID) {
+			return false
+		}
+
+		return h(evt)
+	}
+}
+
+// takeWithhold reports whether the session's message is marked to fail its first recording, and clears the mark.
+func (w *WhatsApp) takeWithhold(sessionID, id string) bool {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	key := marked{sessionID, id}
+	if !w.withhold[key] {
+		return false
+	}
+
+	delete(w.withhold, key)
+
+	return true
 }
