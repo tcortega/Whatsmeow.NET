@@ -1,8 +1,9 @@
 name: release
 
 # A v<semver> tag on main publishes that commit (#46, ADR 0050). The guard job refuses a tag that is not a release tag
-# at HEAD on main and on origin, or a release environment without required reviewers; packaging.yml builds and checks
-# the feed, without caches. After approval in the release environment, the publish job drafts the GitHub release with
+# at HEAD on main and on origin, or a release environment that is not as owner action 3 sets it; packaging.yml builds
+# and checks the feed, without caches. After approval in the release environment, the publish job checks that no
+# package id is someone else's on nuget.org, drafts the GitHub release with
 # the binaries, their checksums and the Corresponding Source, gets a nuget.org key through Trusted Publishing (no
 # stored API key), publishes the release, then pushes the packages, the native packages first. A re-run pushes and
 # uploads only what is missing; nothing is ever deleted or unlisted.
@@ -107,6 +108,11 @@ jobs:
       - name: build/release.sh verify
         run: bash build/release.sh verify "$TAG" "$RUNNER_TEMP/feed" "$RUNNER_TEMP/assets"
 
+      # Before anything goes up: the nuget.org login proves no right to these ids, so one someone else holds would
+      # otherwise be refused only after the release is public.
+      - name: build/release.sh owners
+        run: bash build/release.sh owners "$TAG"
+
       - name: build/release.sh draft
         run: bash build/release.sh draft "$TAG" "$RUNNER_TEMP/assets"
 
@@ -177,6 +183,10 @@ jobs:
 
       - name: build/release.sh verify
         run: bash build/release.sh verify "$TAG" "$RUNNER_TEMP/feed" "$RUNNER_TEMP/assets"
+
+      # Without the release environment there is no NUGET_USER, so an id already on nuget.org can only be reported.
+      - name: build/release.sh owners (reported, never failing a rehearsal)
+        run: bash build/release.sh owners "$TAG" || echo "::warning title=release::a tag push would stop at owners until each id is absent on nuget.org or NUGET_USER owns it"
 
       - name: what publish would do
         run: |

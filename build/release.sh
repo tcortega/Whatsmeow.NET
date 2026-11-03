@@ -4,6 +4,7 @@
 #   guard <tag>                      the tag is v<semver>, points at HEAD here and on origin, and HEAD is on main; in a
 #                                    tag push, also that the release environment makes the publish wait for a reviewer
 #   environment                      only that last check
+#   owners <tag>                     each package id is absent on nuget.org, or NUGET_USER owns it
 #   verify <tag> <feed> <assets>     the feed holds exactly the release's packages at the tag's version, in an order
 #                                    that pushes every dependency first; writes the release assets
 #   draft <tag> <assets>             the GitHub release as a draft with every asset, uploading only what it lacks
@@ -81,11 +82,16 @@ require_publish() { # tag
 }
 
 # A job that names an environment that does not exist makes it, with no protection rule, so the publish would run
-# without approval [observed: docs.github.com "Deployments and environments"]. Anyone with read access may read an
-# environment, and on a public repository so may an anonymous request [observed: GET
-# repos/cli/cli/environments/gh-acceptance-testing without a token, 2026-11-02]; release.yml passes GITHUB_TOKEN.
+# without approval [observed: docs.github.com "Managing environments for deployment"]. Owner action 3 asks for required
+# reviewers, no administrator bypass, and deployments from v* tags only; anything else fails closed. Anyone with read
+# access may read an environment and its deployment policies, and on a public repository so may an anonymous request
+# [observed: GET repos/cli/cli/environments/gh-acceptance-testing and repos/pypa/pip/environments/PyPI/
+# deployment-branch-policies without a token, 2026-11-02]; release.yml passes GITHUB_TOKEN. The response carries
+# can_admins_bypass, which the REST schema of "Get an environment" does not list [observed: those responses, and the
+# schema at docs.github.com/rest/deployments/environments]; deployment_branch_policy {protected_branches,
+# custom_branch_policies} and the policies' {name, type: branch|tag} are in it [observed: the schema].
 require_protected_environment() {
-	local json reviewers
+	local json reviewers policies
 	json="$(gh api "repos/${GITHUB_REPOSITORY:?}/environments/$environment" 2>&1)" ||
 		die "no $environment environment in ${GITHUB_REPOSITORY}, or it cannot be read ($json); GitHub would make it unprotected, so the publish would run without approval (owner action 3, ADR 0050)"
 	reviewers="$(jq -r '[.protection_rules[]? | select(.type == "required_reviewers") | .reviewers[]? | .reviewer.login // .reviewer.slug // .reviewer.name] | join(", ")' <<<"$json")" ||
@@ -93,7 +99,18 @@ require_protected_environment() {
 	if [ -z "$reviewers" ]; then
 		die "the $environment environment has no required reviewers, so the publish would run without approval (owner action 3, ADR 0050)"
 	fi
-	echo "the $environment environment has required reviewers: $reviewers"
+	if [ "$(jq -r '.can_admins_bypass' <<<"$json")" != false ]; then
+		die "the $environment environment lets administrators bypass its rules (can_admins_bypass is not false), so the publish could run without approval (owner action 3, ADR 0050)"
+	fi
+	if [ "$(jq -c '.deployment_branch_policy' <<<"$json")" != '{"protected_branches":false,"custom_branch_policies":true}' ]; then
+		die "the $environment environment's deployment policy is $(jq -c '.deployment_branch_policy' <<<"$json"), not selected branches and tags, so it may deploy from any branch or tag (owner action 3, ADR 0050)"
+	fi
+	policies="$(gh api "repos/${GITHUB_REPOSITORY}/environments/$environment/deployment-branch-policies" 2>&1)" ||
+		die "cannot read the $environment environment's deployment policies ($policies)"
+	if [ "$(jq -c '[.total_count, [.branch_policies[]? | {name, type}]]' <<<"$policies")" != '[1,[{"name":"v*","type":"tag"}]]' ]; then
+		die "the $environment environment's deployment policies are not exactly the tag pattern v* ($(jq -c '[.branch_policies[]? | {name, type}]' <<<"$policies")) (owner action 3, ADR 0050)"
+	fi
+	echo "the $environment environment has required reviewers: $reviewers; no administrator bypass; only v* tags deploy"
 }
 
 guard() { # tag
@@ -267,12 +284,14 @@ draft() { # tag assets [--dry-run]
 
 # Latest is the highest stable version among the tags on origin and this one; a pre-release never is.
 latest_flag() { # tag
-	local tag="$1" highest
+	local tag="$1" remote highest
+	# Read first: a failure inside the group below would be masked by its last command.
+	remote="$(git ls-remote --tags --refs origin 'v*')" || die "cannot list the tags on origin, so cannot tell whether $tag is the latest"
 	highest="$({
-		git ls-remote --tags --refs origin 'v*' | awk '{ sub("refs/tags/", "", $2); print $2 }'
+		awk '{ sub("refs/tags/", "", $2); print $2 }' <<<"$remote"
 		echo "$tag"
 	} | while IFS= read -r t; do if [[ "$t" =~ $stable ]]; then echo "$t"; fi; done |
-		sed 's/^v//' | LC_ALL=C sort -t. -k1,1n -k2,2n -k3,3n | tail -n1)" || die "cannot list the tags on origin"
+		sed 's/^v//' | LC_ALL=C sort -t. -k1,1n -k2,2n -k3,3n | tail -n1)"
 	if [ "v$highest" = "$tag" ]; then echo --latest; else echo --latest=false; fi
 }
 
@@ -296,6 +315,37 @@ publish() { # tag assets [--dry-run]
 	fi
 	"${edit[@]}" || die "cannot publish the release $tag"
 	echo "the release $tag is published with every asset"
+}
+
+# Before the release goes public: each id is absent on nuget.org, or NUGET_USER owns it, so a push is not refused for an
+# id someone else holds after the release is up (the nuget.org login alone proves no right to these ids). The flat
+# container answers 404 for an id nobody has; search with packageid: matches one id exactly, without case, and lists
+# its owners' usernames [observed: azuresearch-usnc.nuget.org/query?q=packageid:newtonsoft.json, 2026-11-02]. An id
+# that exists but that search does not list (unlisted, or not indexed yet) fails closed. Search's owners may be a
+# string or an array [inferred: NuGet's search API docs].
+owners() { # tag
+	local tag="$1" index search id lower code hits names
+	index="$(curl -fsS --max-time 30 https://api.nuget.org/v3/index.json)" || die "cannot read nuget.org's service index"
+	search="$(jq -r '[.resources[]? | select(.["@type"] == "SearchQueryService")][0]["@id"] // empty' <<<"$index")"
+	[ -n "$search" ] || die "nuget.org's service index has no SearchQueryService"
+	for id in "${phase1[@]}" "${phase2[@]}"; do
+		lower="$(lowercase "$id")"
+		code="$(curl -sS --max-time 30 -o /dev/null -w '%{http_code}' "$flat_container/$lower/index.json")" || die "cannot reach nuget.org for $id"
+		hits="$(curl -fsS --max-time 30 "$search?q=packageid:$id&prerelease=true&semVerLevel=2.0.0")" || die "cannot search nuget.org for $id"
+		names="$(jq -r --arg id "$lower" '.data[]? | select((.id | ascii_downcase) == $id) | .owners | if type == "array" then .[] else . end' <<<"$hits")"
+		case "$code" in
+			404) [ -n "$names" ] || { echo "$id is absent on nuget.org"; continue; } ;;
+			200) ;;
+			*) die "nuget.org answered $code for $id" ;;
+		esac
+		[ -n "$names" ] || die "$id is on nuget.org, but search lists no owner (unlisted, or not indexed yet), so it cannot be told ours; re-run later, or check its owners on nuget.org"
+		if [ -z "${NUGET_USER:-}" ] || [ "$NUGET_USER" = "$nuget_user_placeholder" ]; then
+			die "$id is on nuget.org and NUGET_USER is unset or still the placeholder $nuget_user_placeholder (owner action 1, ADR 0050)"
+		fi
+		grep -qixF -- "$NUGET_USER" <<<"$names" ||
+			die "$id is on nuget.org, owned by $(paste -sd, - <<<"$names"), not $NUGET_USER: its push would be refused after the release went public"
+		echo "$id is on nuget.org, owned by $NUGET_USER"
+	done
 }
 
 phase_ids() { # 1|2
@@ -366,7 +416,7 @@ wait_served() { # tag feed 1|2 [--dry-run]
 }
 
 usage() {
-	sed -n '4,15p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
+	sed -n '4,16p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
 	exit 2
 }
 
@@ -375,6 +425,7 @@ cmd="${1:-}"
 case "$cmd" in
 	guard) [ $# -eq 1 ] || usage; guard "$@" ;;
 	environment) [ $# -eq 0 ] || usage; require_protected_environment ;;
+	owners) [ $# -eq 1 ] || usage; owners "$@" ;;
 	verify) [ $# -eq 3 ] || usage; verify "$@" ;;
 	draft) [ $# -eq 2 ] || [ $# -eq 3 ] || usage; draft "$@" ;;
 	publish) [ $# -eq 2 ] || [ $# -eq 3 ] || usage; publish "$@" ;;

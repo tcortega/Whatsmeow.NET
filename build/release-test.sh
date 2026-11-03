@@ -44,6 +44,9 @@ case "$1 $2" in
 	"api repos/tcortega/Whatsmeow.NET/environments/release")
 		[ -f "$STUB/gh/env.json" ] || { echo "gh: Not Found (HTTP 404)" >&2; exit 1; }
 		cat "$STUB/gh/env.json" ;;
+	"api repos/tcortega/Whatsmeow.NET/environments/release/deployment-branch-policies")
+		[ -f "$STUB/gh/policies.json" ] || { echo "gh: Not Found (HTTP 404)" >&2; exit 1; }
+		cat "$STUB/gh/policies.json" ;;
 	"release view")
 		[ -f "$STUB/gh/release.error" ] && { cat "$STUB/gh/release.error" >&2; exit 1; }
 		[ -f "$release" ] || { echo "release not found" >&2; exit 1; }
@@ -66,17 +69,52 @@ exit 0
 STUB
 cat >"$stubs/curl" <<'STUB'
 #!/usr/bin/env bash
+# curl [-f] [-o FILE] [-w FORMAT] URL: the service index, the flat container and the search service of nuget.org,
+# from files; a missing file is a 404, and $STUB/nuget.down makes every answer a 503.
 echo "curl $*" >>"$STUB/calls"
-url="${*: -1}"
-id="${url#https://api.nuget.org/v3-flatcontainer/}"
-id="${id%/index.json}"
-# The script asks for the lowercase id NuGet's API documents (LOWER_ID); nuget.org answers mixed case too [observed:
-# Newtonsoft.Json, 2026-11-02], so this holds the script to the documented form, on any file system.
-[ "$id" = "$(tr '[:upper:]' '[:lower:]' <<<"$id")" ] || exit 22
-[ -f "$STUB/flat/$id.json" ] || exit 22
-cat "$STUB/flat/$id.json"
+url="${*: -1}" out="" format="" fail=false
+while [ $# -gt 1 ]; do
+	case "$1" in
+		-o) out="$2"; shift ;;
+		-w) format="$2"; shift ;;
+		-f*) fail=true ;;
+	esac
+	shift
+done
+lower() { tr '[:upper:]' '[:lower:]' <<<"$1"; }
+code=200 body=""
+case "$url" in
+	https://api.nuget.org/v3/index.json) file="$STUB/index.json" ;;
+	https://api.nuget.org/v3-flatcontainer/*)
+		id="${url#https://api.nuget.org/v3-flatcontainer/}"
+		id="${id%/index.json}"
+		# The script asks for the lowercase id NuGet's API documents (LOWER_ID); nuget.org answers mixed case too
+		# [observed: Newtonsoft.Json, 2026-11-02], so this holds the script to the documented form, on any file system.
+		[ "$id" = "$(lower "$id")" ] || code=400
+		file="$STUB/flat/$id.json"
+		# flat.status makes the flat container answer that status.
+		[ -f "$STUB/flat.status" ] && { file=""; code="$(cat "$STUB/flat.status")"; } ;;
+	https://search.example/query\?q=packageid:*)
+		id="${url#*q=packageid:}"
+		id="${id%%&*}"
+		file="$STUB/search/$(lower "$id").json"
+		[ -f "$file" ] || { file=""; body='{"totalHits":0,"data":[]}'; }
+		# search.down makes only the search service fail.
+		[ -f "$STUB/search.down" ] && { file=""; code=503; } ;;
+	*) code=404 file="" ;;
+esac
+if [ -n "$file" ]; then
+	if [ -f "$file" ]; then body="$(cat "$file")"; else code=404; fi
+fi
+[ -f "$STUB/nuget.down" ] && code=503
+if [ "$code" -ge 400 ] && [ "$fail" = true ]; then exit 22; fi
+if [ -n "$out" ]; then printf '%s' "$body" >"$out"; else printf '%s' "$body"; fi
+[ -z "$format" ] || printf '%s' "$code"
+exit 0
 STUB
 chmod +x "$stubs/"*
+echo '{"resources":[{"@id":"https://search.example/query","@type":"SearchQueryService"},{"@id":"https://api.nuget.org/v3-flatcontainer/","@type":"PackageBaseAddress/3.0.0"}]}' >"$tmp/index.json"
+mkdir -p "$tmp/search"
 calls() { cat "$tmp/calls" 2>/dev/null; }
 reset_calls() { rm -f "$tmp/calls"; }
 
@@ -90,11 +128,17 @@ as_dispatch() {
 	env GITHUB_EVENT_NAME=workflow_dispatch GITHUB_REF_TYPE=branch GITHUB_REF=refs/heads/main NUGET_USER=someone "$@"
 }
 
-protected='{"name":"release","protection_rules":[{"type":"required_reviewers","prevent_self_review":false,"reviewers":[{"type":"User","reviewer":{"login":"tcortega"}}]},{"type":"branch_policy"}]}'
+# As GitHub answers for owner action 3 [observed: the shape of pypa/pip's PyPI environment and its policies, 2026-11-02].
+protected='{"name":"release","can_admins_bypass":false,"deployment_branch_policy":{"protected_branches":false,"custom_branch_policies":true},"protection_rules":[{"type":"required_reviewers","prevent_self_review":false,"reviewers":[{"type":"User","reviewer":{"login":"tcortega"}}]},{"type":"branch_policy"}]}'
+v_tags='{"total_count":1,"branch_policies":[{"id":1,"name":"v*","type":"tag"}]}'
 environment_is() { # json, or none
 	if [ "$1" = none ]; then rm -f "$tmp/gh/env.json"; else echo "$1" >"$tmp/gh/env.json"; fi
 }
+policies_are() { # json, or none
+	if [ "$1" = none ]; then rm -f "$tmp/gh/policies.json"; else echo "$1" >"$tmp/gh/policies.json"; fi
+}
 environment_is "$protected"
+policies_are "$v_tags"
 
 # --- guard -----------------------------------------------------------------------------------------------------
 
@@ -174,15 +218,35 @@ other_ref_guard() { in_repo as_push v1.0.0-rc.1 bash "$release" guard v1.2.3; }
 expect fail "only in a push of the tag v1.2.3" "guard: a push of another tag than the one guarded" other_ref_guard
 environment_is none
 expect fail "no release environment" "guard: no release environment, which GitHub would make unprotected" push_guard v1.2.3
-environment_is '{"name":"release","protection_rules":[]}'
+environment_is "$(jq -c '.protection_rules = []' <<<"$protected")"
 expect fail "no required reviewers" "guard: an environment without protection rules" push_guard v1.2.3
-environment_is '{"name":"release","protection_rules":[{"type":"wait_timer","wait_timer":5},{"type":"branch_policy"}]}'
+environment_is "$(jq -c '.protection_rules = [{"type":"wait_timer","wait_timer":5},{"type":"branch_policy"}]' <<<"$protected")"
 expect fail "no required reviewers" "guard: an environment with only a wait timer and a tag policy" push_guard v1.2.3
-environment_is '{"name":"release","protection_rules":[{"type":"required_reviewers","reviewers":[]}]}'
+environment_is "$(jq -c '.protection_rules = [{"type":"required_reviewers","reviewers":[]}]' <<<"$protected")"
 expect fail "no required reviewers" "guard: a required reviewers rule that names nobody" push_guard v1.2.3
 expect fail "no required reviewers" "environment: the same check, on its own" in_repo bash "$release" environment
+environment_is "$(jq -c '.can_admins_bypass = true' <<<"$protected")"
+expect fail "lets administrators bypass" "environment: administrators may bypass the rules" in_repo bash "$release" environment
+environment_is "$(jq -c 'del(.can_admins_bypass)' <<<"$protected")"
+expect fail "lets administrators bypass" "environment: no can_admins_bypass field fails closed" in_repo bash "$release" environment
+environment_is "$(jq -c '.deployment_branch_policy = null' <<<"$protected")"
+expect fail "deploy from any branch or tag" "environment: no deployment policy, so every ref deploys" in_repo bash "$release" environment
+environment_is "$(jq -c '.deployment_branch_policy = {"protected_branches":true,"custom_branch_policies":false}' <<<"$protected")"
+expect fail "deploy from any branch or tag" "environment: protected branches only" in_repo bash "$release" environment
 environment_is "$protected"
+policies_are none
+expect fail "cannot read the release environment's deployment policies" "environment: policies that cannot be read fail closed" in_repo bash "$release" environment
+policies_are '{"total_count":0,"branch_policies":[]}'
+expect fail "not exactly the tag pattern v*" "environment: custom policies, but none" in_repo bash "$release" environment
+policies_are '{"total_count":1,"branch_policies":[{"name":"v*","type":"branch"}]}'
+expect fail "not exactly the tag pattern v*" "environment: v* as a branch pattern" in_repo bash "$release" environment
+policies_are '{"total_count":1,"branch_policies":[{"name":"*","type":"tag"}]}'
+expect fail "not exactly the tag pattern v*" "environment: every tag" in_repo bash "$release" environment
+policies_are '{"total_count":2,"branch_policies":[{"name":"v*","type":"tag"},{"name":"main","type":"branch"}]}'
+expect fail "not exactly the tag pattern v*" "environment: v* and a branch" in_repo bash "$release" environment
+policies_are "$v_tags"
 expect pass "required reviewers: tcortega" "environment: a protected environment" in_repo bash "$release" environment
+expect pass "only v* tags deploy" "environment: the tag pattern is reported" in_repo bash "$release" environment
 
 # --- verify ----------------------------------------------------------------------------------------------------
 
@@ -406,6 +470,57 @@ expect fail "Whatsmeow.Sidecar.Native.Windows" "wait 1: the timeout names the pa
 served whatsmeow.protocol whatsmeow.client whatsmeow.extensions.hosting
 expect pass "does not serve Whatsmeow.Testing at 1.2.3 yet" "wait 2: only warns, since not indexed yet is not a failure" waited 2
 
+# --- owners ----------------------------------------------------------------------------------------------------
+
+# Each of the eight ids is absent on nuget.org, or NUGET_USER owns it, before the release goes public.
+ids=(Whatsmeow.Sidecar.Native.Linux Whatsmeow.Sidecar.Native.MacOS Whatsmeow.Sidecar.Native.Windows Whatsmeow.Protocol.WhatsApp
+	Whatsmeow.Protocol Whatsmeow.Client Whatsmeow.Extensions.Hosting Whatsmeow.Testing)
+nothing_on_nuget() { rm -f "$tmp/flat/"* "$tmp/search/"* "$tmp/nuget.down"; }
+on_nuget() { # id owners-json: the id exists, and search lists it with those owners
+	local lower
+	lower="$(tr '[:upper:]' '[:lower:]' <<<"$1")"
+	echo '{"versions":["0.9.0"]}' >"$tmp/flat/$lower.json"
+	jq -n --arg id "$1" --argjson o "$2" '{totalHits: 1, data: [{id: $id, owners: $o, verified: false}]}' >"$tmp/search/$lower.json"
+}
+owners() { reset_calls; env NUGET_USER="${1:-someone}" bash "$release" owners "v$version"; }
+nothing_on_nuget
+expect pass "absent on nuget.org" "owners: eight ids nobody has" owners
+expect pass "absent on nuget.org" "owners: absent ids need no NUGET_USER (a rehearsal)" env -u NUGET_USER bash "$release" owners "v$version"
+all_bounded() { owners >/dev/null && [ "$(grep -c '^curl ' "$tmp/calls")" -gt 0 ] && ! grep '^curl ' "$tmp/calls" | grep -qvF -- '--max-time 30'; }
+expect pass "" "owners: every request is bounded by --max-time 30" all_bounded
+for id in "${ids[@]}"; do on_nuget "$id" '["SomeOne","an-org"]'; done
+expect pass "owned by someone" "owners: eight ids NUGET_USER owns, matched without case (a re-run)" owners
+on_nuget Whatsmeow.Testing '"someone"'
+expect pass "owned by someone" "owners: owners as one string" owners
+on_nuget Whatsmeow.Client '["mallory"]'
+expect fail "Whatsmeow.Client is on nuget.org, owned by mallory, not someone" "owners: an id someone else owns" owners
+on_nuget Whatsmeow.Client '["someones"]'
+expect fail "owned by someones, not someone" "owners: an owner whose name only contains NUGET_USER's" owners
+nothing_on_nuget
+on_nuget Whatsmeow.Testing '["mallory"]'
+rm -f "$tmp/flat/whatsmeow.testing.json"
+expect fail "owned by mallory, not someone" "owners: an id search lists while the flat container says 404 is not absent" owners
+nothing_on_nuget
+touch "$tmp/search.down"
+expect fail "cannot search nuget.org for Whatsmeow.Sidecar.Native.Linux" "owners: a search failure fails closed" owners
+rm -f "$tmp/search.down"
+nothing_on_nuget
+echo '{"versions":["1.0.0"]}' >"$tmp/flat/whatsmeow.protocol.json"
+expect fail "search lists no owner" "owners: an id on nuget.org that search does not list fails closed" owners
+nothing_on_nuget
+on_nuget Whatsmeow.Protocol '["someone"]'
+expect fail "still the placeholder" "owners: an existing id while NUGET_USER is the placeholder" owners REPLACE-WITH-NUGET-PROFILE-NAME
+nothing_on_nuget
+touch "$tmp/nuget.down"
+expect fail "cannot read nuget.org's service index" "owners: nuget.org down fails closed" owners
+rm -f "$tmp/nuget.down"
+cp "$tmp/index.json" "$tmp/index.good"
+echo '{"resources":[]}' >"$tmp/index.json"
+expect fail "no SearchQueryService" "owners: a service index without search fails closed" owners
+cp "$tmp/index.good" "$tmp/index.json"
+flat_error() { echo 500 >"$tmp/flat.status"; owners; local rc=$?; rm -f "$tmp/flat.status"; return "$rc"; }
+expect fail "nuget.org answered 500 for Whatsmeow.Sidecar.Native.Linux" "owners: a flat container error is no absent id" flat_error
+
 # --- the GitHub release ----------------------------------------------------------------------------------------
 
 release_is() { # json, or none
@@ -497,6 +612,16 @@ publish_tag v1.10.0
 expect pass "" "publish --dry-run: versions compare as numbers (1.10.0 over 1.9.0)" latest_is v1.10.0 --latest
 expect pass "" "publish --dry-run: 1.9.0 is not latest beside 1.10.0" latest_is v1.9.0 --latest=false
 expect pass "" "publish --dry-run: a new tag origin does not have yet is compared too" latest_is v1.11.0 --latest
+no_origin() {
+	local url rc
+	url="$(git -C "$repo" remote get-url origin)"
+	git -C "$repo" remote set-url origin "$tmp/no-such-origin.git"
+	in_repo bash "$release" publish v1.4.1 "$tmp/assets" --dry-run
+	rc=$?
+	git -C "$repo" remote set-url origin "$url"
+	return "$rc"
+}
+expect fail "cannot list the tags on origin" "publish --dry-run: tags origin cannot list fail, never a guess at latest" no_origin
 real_latest() { complete true >"$tmp/gh/release.json"; publish v1.10.0 >/dev/null || return 1; grep '^gh release edit' "$tmp/calls" | grep -qE -- '--latest( |$)'; }
 expect pass "" "publish: the edit passes the same --latest" real_latest
 draft_plan() {
