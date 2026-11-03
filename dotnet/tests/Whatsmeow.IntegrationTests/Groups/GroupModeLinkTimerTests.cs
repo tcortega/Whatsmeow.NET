@@ -47,15 +47,7 @@ public sealed class GroupModeLinkTimerTests(FakeSidecar fixture)
 		};
 
 	private static GroupInfoChanged Changed(string session, Jid group, Jid? sender, params GroupChange[] changes) =>
-		new()
-		{
-			SessionId = SessionId.From(session),
-			Group = group,
-			Sender = sender,
-			SenderAlt = null,
-			Timestamp = s_at,
-			Changes = [.. changes],
-		};
+		GroupChecks.Changed(SessionId.From(session), group, sender, senderAlt: null, s_at, changes);
 
 	[Fact(Timeout = Timeout)]
 	public async Task FullCycle_MemberAddMode_AdminsOnlyThenAllMembers_MembersSeeEachChangeAndOnlyThoseAllowedAdd()

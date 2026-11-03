@@ -72,7 +72,7 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 		{
 			await GroupChecks.SetSettingsAsync(client, jid, $"{name} crew", "wmn plans for Monday", ct);
 			var seen = await changes.NextAsync(4, LiveChecks.Watch, ct);
-			live.Write($"live: the peer got {seen.Count} group changes for 4 settings, from a {LiveChecks.Form(seen.Count > 0 ? seen[0].Sender : null)}: {string.Join("; ", seen.Select(c => string.Join(", ", c.Changes.Select(x => x.GetType().Name))))}");
+			live.Write($"live: the peer got {seen.Count} group changes for 4 settings, from a {LiveChecks.Form(seen.Count > 0 ? seen[0].Sender : null)}: {Kinds(seen)}");
 
 			LiveChecks.Equal(4, seen.Count);
 			var by = seen[0];
@@ -94,12 +94,13 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 	}
 
 	/// <summary>
-	/// The group locked, the peer, no admin, sets its name and promotes itself: WhatsApp's code for each goes to the log
-	/// (the [unknown] #34 left), then the name is checked as the fake-mode test checks it, refused with WhatsApp's code
-	/// and unchanged. The group is unlocked after.
+	/// The group locked, the peer, no admin, sets its name, who may add members and the disappearing timer, and promotes
+	/// itself: WhatsApp's code for each goes to the log (the [unknown]s #34 and #104 to #106 left), then the name and the
+	/// add mode are checked as the fake-mode tests check them, refused with WhatsApp's code. Whatever WhatsApp took is
+	/// undone after: the name, the peer's role, the add mode, the timer (off) and the lock.
 	/// </summary>
 	[LiveFact(NeedsPeer = true, Timeout = GroupTimeout)]
-	public async Task Live_TheNonAdminPeerSetsTheNameOrPromotesItself_WhatsAppRefusesWithItsCode()
+	public async Task Live_TheNonAdminPeerChangesTheLockedGroup_WhatsAppRefusesWithItsCode()
 	{
 		var ct = TestContext.Current.CancellationToken;
 		var jid = await group.WithPeerAsync(ct);
@@ -107,7 +108,10 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 		var other = await peer.ConnectedAsync(live, ct);
 		var (to, _) = await peer.AccountAsync(ct);
 		var peerAccount = await peer.AccountAsync(ct);
-		var name = (await client.GetGroupInfoAsync(jid, ct)).Name;
+		var before = await client.GetGroupInfoAsync(jid, ct);
+		var name = before.Name;
+		var mode = before.MemberAddMode;
+		live.Write($"live: the group's member add mode is {mode?.ToString() ?? "unknown"}");
 		await client.SetGroupLockedAsync(jid, locked: true, ct);
 		try
 		{
@@ -119,9 +123,17 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 				$"live: the non-admin peer promoting itself: {(promoting is null ? string.Join(", ", promoted.Select(r => r.Outcome is ParticipantOutcome.Refused refused ? $"refused with {refused.Code}" : r.Outcome.GetType().Name)) : Outcome(promoting))}"
 			);
 
+			var addMode = await Record.ExceptionAsync(() => other.SetGroupMemberAddModeAsync(jid, mode is GroupMemberAddMode.AllMembers ? GroupMemberAddMode.AdminsOnly : GroupMemberAddMode.AllMembers, ct));
+			live.Write($"live: the non-admin peer setting who may add members: {Outcome(addMode)}");
+			var timer = await Record.ExceptionAsync(() => other.SetDisappearingTimerAsync(jid, TimeSpan.FromDays(7), cancellationToken: ct));
+			live.Write($"live: the non-admin peer setting the group's disappearing timer to 7 days: {Outcome(timer)}");
+
 			var thrown = Assert.IsType<WhatsAppErrorException>(renamed);
 			LiveChecks.Equal((WhatsmeowErrorCode.WhatsAppError, 403), (thrown.ErrorCode, thrown.Code));
 			LiveChecks.Equal(name, (await other.GetGroupInfoAsync(jid, ct)).Name);
+			var refusedMode = Assert.IsType<WhatsAppErrorException>(addMode);
+			LiveChecks.Equal((WhatsmeowErrorCode.WhatsAppError, 403), (refusedMode.ErrorCode, refusedMode.Code));
+			LiveChecks.Equal(mode, (await other.GetGroupInfoAsync(jid, ct)).MemberAddMode);
 		}
 		finally
 		{
@@ -132,13 +144,18 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 				_ = await client.DemoteParticipantsAsync(jid, admins, CancellationToken.None);
 			if (info.Name != name)
 				await client.SetGroupNameAsync(jid, name, CancellationToken.None);
+			if (mode is { } m && info.MemberAddMode != m)
+				await client.SetGroupMemberAddModeAsync(jid, m, CancellationToken.None);
+			await client.SetDisappearingTimerAsync(jid, TimeSpan.Zero, cancellationToken: CancellationToken.None);
 			await client.SetGroupLockedAsync(jid, locked: false, CancellationToken.None);
 		}
 	}
 
 	/// <summary>
-	/// The live session removes the peer and resets the invite link: the old link no longer works, and the peer joins by
-	/// the new one, gets <see cref="GroupJoined"/>, and the live session sees it join, as in the fake-mode invite test.
+	/// The live session removes the peer; the peer, no member, reads the group from its link without joining, what it is
+	/// shown going to the log (the members a non-member sees, and their forms, are [unknown]). The live session resets
+	/// the link: the old one no longer works, and the peer joins by the new one, gets <see cref="GroupJoined"/>, and the
+	/// live session sees it join, as in the fake-mode invite and preview tests.
 	/// </summary>
 	[LiveFact(NeedsPeer = true, Timeout = GroupTimeout)]
 	public async Task Live_InviteLinkResetThenJoined_TheOldLinkStopsWorking_AndThePeerJoinsByTheNewOne()
@@ -156,6 +173,13 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 		{
 			LiveChecks.Equal(new ParticipantResult { Jid = removed.Jid, JidAlt = removed.JidAlt, Outcome = new ParticipantOutcome.Done() }, removed);
 			var link = await client.GetGroupInviteLinkAsync(jid, ct);
+			var adminView = await client.GetGroupInfoAsync(jid, ct);
+			var preview = await other.GetGroupInfoFromLinkAsync(link, ct);
+			live.Write(
+				$"live: the peer, no member, read the group from its link: {preview.Participants.Length} of {adminView.Participants.Length} members listed, as {LiveGroup.Members(preview)}; "
+					+ $"the owner a {LiveChecks.Form(preview.Owner)}, the add mode {preview.MemberAddMode?.ToString() ?? "unknown"}"
+			);
+			Assert.True((await other.GetGroupsAsync(ct)).All(g => g.Jid != jid), "reading the group from its link made the peer a member");
 			var reset = await client.ResetGroupInviteLinkAsync(jid, ct);
 			Assert.NotEqual(link, reset);
 			var old = await Assert.ThrowsAsync<WhatsmeowException>(() => other.JoinGroupWithLinkAsync(link, ct));
@@ -172,6 +196,9 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 			live.Write($"live: the live session saw the peer join, from a {LiveChecks.Form(change.Sender)}, the member a {LiveChecks.Form(change.Changes.OfType<GroupChange.ParticipantJoined>().First().Jid)}");
 			var joiner = change.Changes.OfType<GroupChange.ParticipantJoined>().First().Jid;
 			LiveChecks.Equal(GroupChecks.Changed(client.SessionId, jid, change.Sender, change.SenderAlt, change.Timestamp, new GroupChange.ParticipantJoined { Jid = joiner }), change);
+
+			// The fake-mode preview test's check, last, so a difference the log shows never hides the rest: a non-member reads the group as its admin does.
+			LiveChecks.Equal(adminView, preview);
 		}
 		finally
 		{
@@ -209,6 +236,77 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 		finally
 		{
 			_ = await group.WithPeerAsync(CancellationToken.None);
+		}
+	}
+
+	/// <summary>
+	/// The live session changes who may add members: the peer gets the change by the live account, as in the fake-mode
+	/// add mode test, and reads the new mode. What the notification carried goes to the log, by kind, with no JID. The
+	/// mode is set back after.
+	/// </summary>
+	[LiveFact(NeedsPeer = true, Timeout = GroupTimeout)]
+	public async Task Live_TheAdminSetsWhoMayAddMembers_ThePeerSeesTheChange()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var jid = await group.WithPeerAsync(ct);
+		var client = await live.LiveAsync(ct);
+		var other = await peer.ConnectedAsync(live, ct);
+		var liveAccount = await live.AccountAsync(ct);
+		var mode = (await client.GetGroupInfoAsync(jid, ct)).MemberAddMode;
+		Assert.True(mode is not null, "WhatsApp did not say the group's member add mode, so the test could not set it back");
+		var next = mode is GroupMemberAddMode.AdminsOnly ? GroupMemberAddMode.AllMembers : GroupMemberAddMode.AdminsOnly;
+		using var changes = new LiveEvents<GroupInfoChanged>(other, c => c.Group == jid);
+		try
+		{
+			await client.SetGroupMemberAddModeAsync(jid, next, ct);
+			var seen = await changes.NextAsync(1, LiveChecks.Watch, ct);
+			live.Write($"live: the add mode went from {mode} to {next}; the peer got {Kinds(seen)}");
+
+			var by = LiveChecks.Redacting(() => Assert.Single(seen));
+			Assert.True(by.Sender is { } sender && LiveChecks.Names(liveAccount, sender), $"the change came from a {LiveChecks.Form(by.Sender)} that is not the live account");
+			LiveChecks.Equal(GroupChecks.Changed(other.SessionId, jid, by.Sender, by.SenderAlt, by.Timestamp, new GroupChange.MemberAddModeChanged { Mode = next }), by);
+			LiveChecks.Equal(next, (await other.GetGroupInfoAsync(jid, ct)).MemberAddMode);
+		}
+		finally
+		{
+			await client.SetGroupMemberAddModeAsync(jid, mode.Value, CancellationToken.None);
+		}
+	}
+
+	/// <summary>
+	/// The live session sets the group's disappearing timer to 7 days, then off: the peer gets each as a change by the
+	/// live account, as in the fake-mode group timer test. The timer is turned off after, whatever happened.
+	/// </summary>
+	[LiveFact(NeedsPeer = true, Timeout = GroupTimeout)]
+	public async Task Live_TheAdminSetsTheGroupsTimerToSevenDaysThenOff_ThePeerSeesEachChange()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var jid = await group.WithPeerAsync(ct);
+		var client = await live.LiveAsync(ct);
+		var other = await peer.ConnectedAsync(live, ct);
+		var liveAccount = await live.AccountAsync(ct);
+		using var changes = new LiveEvents<GroupInfoChanged>(other, c => c.Group == jid && c.Changes.Any(x => x is GroupChange.DisappearingTimerChanged));
+		var seen = new List<(TimeSpan Timer, IReadOnlyList<GroupInfoChanged> Seen)>();
+		try
+		{
+			foreach (var timer in new[] { TimeSpan.FromDays(7), TimeSpan.Zero })
+			{
+				await client.SetDisappearingTimerAsync(jid, timer, cancellationToken: ct);
+				var got = await changes.NextAsync(1, LiveChecks.Watch, ct);
+				live.Write($"live: the group's timer set to {timer.TotalDays:F0} days; the peer got {Kinds(got)}");
+				seen.Add((timer, got));
+			}
+		}
+		finally
+		{
+			await client.SetDisappearingTimerAsync(jid, TimeSpan.Zero, cancellationToken: CancellationToken.None);
+		}
+
+		foreach (var (timer, got) in seen)
+		{
+			var by = LiveChecks.Redacting(() => Assert.Single(got));
+			Assert.True(by.Sender is { } sender && LiveChecks.Names(liveAccount, sender), $"the change came from a {LiveChecks.Form(by.Sender)} that is not the live account");
+			LiveChecks.Equal(GroupChecks.Changed(other.SessionId, jid, by.Sender, by.SenderAlt, by.Timestamp, new GroupChange.DisappearingTimerChanged { Timer = timer }), by);
 		}
 	}
 
@@ -374,6 +472,29 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 		Assert.True(LiveChecks.Names(liveAccount, got.Source.Sender), $"the group message came from a {LiveChecks.Form(got.Source.Sender)} that is not the live account");
 		return (id, got);
 	}
+
+	/// <summary>The kinds of change each event carried, for the log, with the mode or the timer they set and never a JID.</summary>
+	private static string Kinds(IReadOnlyList<GroupInfoChanged> seen) =>
+		seen.Count == 0
+			? $"nothing within {LiveChecks.Watch.TotalSeconds:F0} s"
+			: string.Join(
+				"; ",
+				seen.Select(c =>
+					string.Join(
+						", ",
+						c.Changes.Select(x =>
+							x switch
+							{
+								GroupChange.MemberAddModeChanged m => $"MemberAddModeChanged({m.Mode})",
+								GroupChange.DisappearingTimerChanged t => $"DisappearingTimerChanged({t.Timer.TotalDays:F0} days)",
+								GroupChange.AnnounceChanged a => $"AnnounceChanged({a.IsAnnounce})",
+								GroupChange.LockedChanged l => $"LockedChanged({l.IsLocked})",
+								_ => x.GetType().Name,
+							}
+						)
+					)
+				)
+			);
 
 	/// <summary>A call's outcome, for the log: what it threw, with WhatsApp's code, or that it went through.</summary>
 	private static string Outcome(Exception? thrown) =>
