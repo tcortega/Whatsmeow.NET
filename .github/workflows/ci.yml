@@ -205,115 +205,17 @@ jobs:
       - name: build/ci.sh external
         run: bash build/ci.sh external
 
-  # Native packages (ADR 0023): Windows builds every binary and packs every package, then installs them there; the
-  # install jobs install that same feed on Linux and macOS, so packages built on Windows must run there.
-  package:
-    name: package (win-x64)
+  # Native packages (ADR 0023), in packaging.yml, which the release workflow runs too.
+  packaging:
+    name: packaging
     # Manual only until the platform pass: the native packages build on Windows (ADR 0023).
     if: github.event_name == 'workflow_dispatch'
-    timeout-minutes: 30
-    runs-on: windows-2025
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
-        with:
-          global-json-file: global.json
-
-      - uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5.2.5
-        with:
-          version: ${{ env.MISE_VERSION }}
-          cache: true
-
-      - name: Go caches under the runner temp directory
-        run: |
-          {
-            echo "GOMODCACHE=$RUNNER_TEMP/go/mod"
-            echo "GOCACHE=$RUNNER_TEMP/go/build"
-          } >> "$GITHUB_ENV"
-
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ${{ runner.temp }}/go
-          key: go-package-${{ runner.os }}-${{ hashFiles('mise.toml', 'tools/go.sum', 'sidecar/go.sum') }}
-          restore-keys: go-package-${{ runner.os }}-
-
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.nuget/packages
-          key: nuget-${{ runner.os }}-${{ hashFiles('global.json', 'nuget.config', 'dotnet/**/packages.lock.json') }}
-          restore-keys: nuget-${{ runner.os }}-
-
-      - name: build/ci.sh package
-        run: bash build/ci.sh package
-
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: native-packages
-          path: dotnet/artifacts/package/
-          if-no-files-found: error
-          retention-days: 7
-
-  install:
-    name: install (${{ matrix.name }})
-    needs: package
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { name: linux-x64, os: ubuntu-26.04 }
-          - { name: osx-arm64, os: macos-26 }
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
-        with:
-          global-json-file: global.json
-
-      # Go reads the packaged binaries' build information (go version -m) and the release targets.
-      - uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5.2.5
-        with:
-          version: ${{ env.MISE_VERSION }}
-          cache: true
-
-      - name: Go caches under the runner temp directory
-        run: |
-          {
-            echo "GOMODCACHE=$RUNNER_TEMP/go/mod"
-            echo "GOCACHE=$RUNNER_TEMP/go/build"
-          } >> "$GITHUB_ENV"
-
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ${{ runner.temp }}/go
-          key: go-install-${{ runner.os }}-${{ hashFiles('mise.toml', 'tools/go.sum') }}
-          restore-keys: go-install-${{ runner.os }}-
-
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: native-packages
-          path: ${{ runner.temp }}/native-packages
-
-      - name: build/ci.sh install
-        run: bash build/ci.sh install "$RUNNER_TEMP/native-packages"
+    uses: ./.github/workflows/packaging.yml
 
   ci:
     name: ci
     if: always()
-    needs: [contract, go, dotnet, external, package, install]
+    needs: [contract, go, dotnet, external, packaging]
     runs-on: ubuntu-26.04
     timeout-minutes: 30
     steps:
@@ -323,7 +225,7 @@ jobs:
         run: |
           echo "results: $RESULTS"
           for result in $RESULTS; do
-            # package and install are skipped outside workflow_dispatch until the platform pass.
+            # packaging is skipped outside workflow_dispatch until the platform pass.
             if [ "$result" != success ] && [ "$result" != skipped ]; then
               exit 1
             fi

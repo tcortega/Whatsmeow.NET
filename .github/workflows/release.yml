@@ -1,0 +1,208 @@
+name: release
+
+# A v<semver> tag on main publishes that commit (#46, ADR 0050). The guard job refuses a tag that is not a release tag
+# at HEAD on main and on origin, or a release environment that is not as owner action 3 sets it; packaging.yml builds
+# and checks the feed, without caches. After approval in the release environment, the publish job checks that no
+# package id is someone else's on nuget.org, drafts the GitHub release with
+# the binaries, their checksums and the Corresponding Source, gets a nuget.org key through Trusted Publishing (no
+# stored API key), publishes the release, then pushes the packages, the native packages first. A re-run pushes and
+# uploads only what is missing; nothing is ever deleted or unlisted.
+#
+# A mistaken tag: refuse the approval, so nothing is published, then delete the tag (owner action 4 gives Antonio the
+# bypass), because build/ci.sh's buf breaking gate counts every v<semver> tag main can reach (ADR 0015).
+#
+# workflow_dispatch is the rehearsal: the same guard, packaging and verify, at a tag made in each runner only and never
+# pushed, with every publishing command printed instead of run. It has no environment and no id-token permission, and
+# build/release.sh refuses to publish outside a push of the tag. Every step lives in build/release.sh.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  TAG: ${{ github.event_name == 'push' && github.ref_name || format('v0.0.0-rehearsal.{0}', github.run_number) }}
+
+jobs:
+  guard:
+    name: guard
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: the rehearsal's tag, in this runner only
+        if: github.event_name == 'workflow_dispatch'
+        run: git tag "$TAG"
+
+      # In a tag push it also reads the release environment, which contents: read allows.
+      - name: build/release.sh guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash build/release.sh guard "$TAG"
+
+  packaging:
+    name: packaging
+    needs: guard
+    uses: ./.github/workflows/packaging.yml
+    with:
+      rehearsal-tag: ${{ github.event_name == 'workflow_dispatch' && format('v0.0.0-rehearsal.{0}', github.run_number) || '' }}
+      # A release never restores a cache another ref saved.
+      cache: false
+
+  publish:
+    name: publish
+    needs: packaging
+    if: github.event_name == 'push'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 150
+    # Owner action 3: required reviewers, and only v* tags deploy to it. The guard job fails without reviewers.
+    environment: release
+    permissions:
+      # The GitHub release.
+      contents: write
+      # The OIDC token NuGet/login trades for a nuget.org API key that lasts an hour.
+      id-token: write
+    env:
+      # Owner action 1 (ADR 0050): the variable NUGET_USER on the release environment, the nuget.org username of the
+      # Trusted Publishing policy's creator, not the policy's owner and not an e-mail address [observed: NuGet/login
+      # src/index.ts]. build/release.sh refuses to publish while it is unset or this placeholder, so a wrong name is fixed
+      # in the variable and a re-run.
+      NUGET_USER: ${{ vars.NUGET_USER || 'REPLACE-WITH-NUGET-PROFILE-NAME' }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: native-packages
+          path: ${{ runner.temp }}/feed
+
+      - name: build/release.sh guard
+        run: bash build/release.sh guard "$TAG"
+
+      - name: build/release.sh verify
+        run: bash build/release.sh verify "$TAG" "$RUNNER_TEMP/feed" "$RUNNER_TEMP/assets"
+
+      # Before anything goes up: the nuget.org login proves no right to these ids, so one someone else holds would
+      # otherwise be refused only after the release is public.
+      - name: build/release.sh owners
+        run: bash build/release.sh owners "$TAG"
+
+      - name: build/release.sh draft
+        run: bash build/release.sh draft "$TAG" "$RUNNER_TEMP/assets"
+
+      # Before the release goes public, so a wrong NUGET_USER or policy stops the run with nothing published.
+      - name: nuget.org key for the first phase
+        id: login-1
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ env.NUGET_USER }}
+
+      - name: build/release.sh publish
+        run: bash build/release.sh publish "$TAG" "$RUNNER_TEMP/assets"
+
+      - name: build/release.sh push 1 (the native packages and Whatsmeow.Protocol.WhatsApp)
+        env:
+          NUGET_API_KEY: ${{ steps.login-1.outputs.NUGET_API_KEY }}
+        run: bash build/release.sh push "$TAG" "$RUNNER_TEMP/feed" 1
+
+      - name: build/release.sh wait 1
+        run: bash build/release.sh wait "$TAG" "$RUNNER_TEMP/feed" 1
+
+      # A new key: the wait can outlast the first one's hour, and each OIDC token buys one key.
+      - name: nuget.org key for the second phase
+        id: login-2
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ env.NUGET_USER }}
+
+      - name: build/release.sh push 2 (the packages that depend on them)
+        env:
+          NUGET_API_KEY: ${{ steps.login-2.outputs.NUGET_API_KEY }}
+        run: bash build/release.sh push "$TAG" "$RUNNER_TEMP/feed" 2
+
+      - name: build/release.sh wait 2 (only warns)
+        run: bash build/release.sh wait "$TAG" "$RUNNER_TEMP/feed" 2
+
+  rehearsal:
+    name: rehearsal
+    needs: packaging
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: native-packages
+          path: ${{ runner.temp }}/feed
+
+      - name: the rehearsal's tag, in this runner only
+        run: git tag "$TAG"
+
+      - name: build/release.sh guard
+        run: bash build/release.sh guard "$TAG"
+
+      # A tag push fails here until owner action 3; a rehearsal only reports it.
+      - name: build/release.sh environment (reported, never failing a rehearsal)
+        run: bash build/release.sh environment || echo "::warning title=release::a tag push would fail in the guard until the release environment has required reviewers (owner action 3)"
+
+      - name: build/release.sh verify
+        run: bash build/release.sh verify "$TAG" "$RUNNER_TEMP/feed" "$RUNNER_TEMP/assets"
+
+      # Without the release environment there is no NUGET_USER, so an id already on nuget.org can only be reported.
+      - name: build/release.sh owners (reported, never failing a rehearsal)
+        run: bash build/release.sh owners "$TAG" || echo "::warning title=release::a tag push would stop at owners until each id is absent on nuget.org or NUGET_USER owns it"
+
+      - name: what publish would do
+        run: |
+          bash build/release.sh draft "$TAG" "$RUNNER_TEMP/assets" --dry-run
+          bash build/release.sh publish "$TAG" "$RUNNER_TEMP/assets" --dry-run
+          bash build/release.sh push "$TAG" "$RUNNER_TEMP/feed" 1 --dry-run
+          bash build/release.sh wait "$TAG" "$RUNNER_TEMP/feed" 1 --dry-run
+          bash build/release.sh push "$TAG" "$RUNNER_TEMP/feed" 2 --dry-run
+          bash build/release.sh wait "$TAG" "$RUNNER_TEMP/feed" 2 --dry-run
+
+      - name: publishing refuses a rehearsal
+        run: |
+          for command in "draft $TAG $RUNNER_TEMP/assets" "publish $TAG $RUNNER_TEMP/assets" "push $TAG $RUNNER_TEMP/feed 1"; do
+            # shellcheck disable=SC2086 # the words of one command
+            if bash build/release.sh $command; then
+              echo "::error title=rehearsal::build/release.sh $command published in a rehearsal"
+              exit 1
+            fi
+          done
