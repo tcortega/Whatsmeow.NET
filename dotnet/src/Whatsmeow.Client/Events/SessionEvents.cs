@@ -10,7 +10,8 @@ namespace Whatsmeow.Events;
 /// and writes to a bounded channel, the <see cref="Dispatcher"/> behind it, and the handlers it runs, which are the
 /// <see cref="EventPipeline"/>'s. The ephemeral events (presence, chat presence) come on <c>StreamEphemeralEvents</c>,
 /// with a reader, channel and dispatcher of their own that never ack, so they never move, hold back or delay the
-/// durable ones (ADR 0027). It starts on the first successful connect of the session in this process.
+/// durable ones (ADR 0027). It starts on the first successful connect of the session in this process, or when its
+/// pairing yields <c>Paired</c> (ADR 0052).
 /// </summary>
 internal sealed class SessionEvents : IAsyncDisposable
 {
@@ -36,6 +37,9 @@ internal sealed class SessionEvents : IAsyncDisposable
 
 	/// <summary>The client was deleted or its sidecar disposed: no event comes any more.</summary>
 	public bool IsDisposed => _pipeline.IsDisposed;
+
+	/// <summary>Whether <see cref="Start"/> ran: the events flow, or did until a stop.</summary>
+	public bool IsStarted => _pipeline.IsStarted;
 
 	/// <summary>Starts reading the session's events; calling it again does nothing.</summary>
 	public void Start() => _pipeline.Start(ReadDurableAsync, ReadEphemeralAsync);

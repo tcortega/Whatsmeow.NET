@@ -144,6 +144,12 @@ internal sealed class SessionClient(
 	/// <summary>Stops the session's events for the sidecar's stop; see <see cref="SessionEvents.StopAsync"/>.</summary>
 	internal Task StopEventsAsync(CancellationToken stopWaiting) => _events.StopAsync(stopWaiting);
 
+	/// <summary>
+	/// Whether the session's events started in this process: what a test checks to show a pairing that ended without
+	/// <see cref="PairingUpdate.Paired"/> started none, which no handler can show without waiting (ADR 0052).
+	/// </summary>
+	internal bool EventsStarted => _events.IsStarted;
+
 	public async Task<SendResult> SendTextAsync(Jid chat, string text, MessageId? id = null, SendOptions? options = null, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(text);
@@ -521,7 +527,7 @@ internal sealed class SessionClient(
 			.ConfigureAwait(false);
 		sessions.Remember(sessionId);
 
-		// Events flow from the first connect in this process (ADR 0022).
+		// Events flow from the first connect or pairing in this process (ADR 0022, ADR 0052).
 		_events.Start();
 	}
 
@@ -609,6 +615,11 @@ internal sealed class SessionClient(
 			// connects it again. A refused call (paired, invalid, gone) never got this far.
 			if (update is PairingUpdate.QrCode or PairingUpdate.PairingCode)
 				sessions.Remember(sessionId);
+
+			// Paired comes once the session is usable and Connected: its events flow from here, as from a first
+			// connect, before the caller gets it; a pairing that ends without it starts none (ADR 0052).
+			if (update is PairingUpdate.Paired)
+				_events.Start();
 			yield return update;
 		}
 	}

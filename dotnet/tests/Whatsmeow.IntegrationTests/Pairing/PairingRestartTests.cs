@@ -1,3 +1,5 @@
+using Whatsmeow.Events;
+using Whatsmeow.IntegrationTests.Events;
 using Whatsmeow.IntegrationTests.Fake;
 using Whatsmeow.IntegrationTests.Sessions;
 using Whatsmeow.IntegrationTests.Support;
@@ -13,10 +15,11 @@ public sealed class PairingRestartTests(FakeSidecar fixture)
 	private const int Timeout = 120_000;
 
 	[Fact(Timeout = Timeout)]
-	public async Task Pair_ThenTheSidecarRestarts_ConnectsTheSessionAgain()
+	public async Task Pair_ThenTheSidecarRestarts_ConnectsTheSessionAgain_AndItsMessagesReachTheHandler()
 	{
 		var ct = TestContext.Current.CancellationToken;
 		var client = await fixture.Sidecar.Sessions.GetOrCreateAsync(SessionId.From("pair-restart"), ct);
+		using var received = new Received<MessageReceived>(client);
 		await foreach (var update in client.PairWithQrCodeAsync(ct))
 		{
 			if (update is PairingUpdate.QrCode)
@@ -27,6 +30,10 @@ public sealed class PairingRestartTests(FakeSidecar fixture)
 
 		// CrashAsync returns after the client's reconnects: a session connected again is Connecting or Connected by now.
 		Assert.Contains(await SessionSetup.StateAsync(client, ct), new SessionState[] { new SessionState.Connecting(), new SessionState.Connected() });
+		await using (var watch = StateWatch.Start(client, ct))
+			await watch.ReachesAsync(new SessionState.Connected(), new SessionState.Connecting());
+		_ = await fixture.Fake.DeliverMessageAsync(Deliveries.Message("pair-restart", "M1"), cancellationToken: ct);
+		Assert.Equal(Deliveries.Received("pair-restart", "M1"), await received.NextAsync(ct));
 	}
 
 	[Fact(Timeout = Timeout)]

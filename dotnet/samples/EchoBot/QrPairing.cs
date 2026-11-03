@@ -40,15 +40,13 @@ public sealed partial class QrPairing([FromKeyedServices(EchoBotServices.Alice)]
 					Console.WriteLine(AsciiQRCodeHelper.GetQRCode(code.Code, QRCodeGenerator.ECCLevel.L, drawQuietZones: true, invert: true));
 					break;
 				case PairingUpdate.Paired:
+					// The session is connected, and its events reach the handlers with no ConnectAsync.
 					Paired(logger, client.SessionId.Value);
 					break;
 				default:
 					break;
 			}
 		}
-
-		// Paired, the session is connected; its events reach the handlers from its first connect in this process.
-		await client.ConnectAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	[LoggerMessage(10, LogLevel.Information, "Scan the QR code below with the phone of session {SessionId}: WhatsApp, Linked devices, Link a device")]

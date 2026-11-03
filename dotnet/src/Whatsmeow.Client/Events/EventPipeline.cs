@@ -58,6 +58,9 @@ internal sealed class EventPipeline : IAsyncDisposable
 	/// <summary>Stopped: no event comes any more.</summary>
 	public bool IsDisposed => _disposed != 0;
 
+	/// <summary>Whether <see cref="Start"/> ran.</summary>
+	public bool IsStarted => Volatile.Read(ref _started) != 0;
+
 	/// <summary>Where the durable events go, in seq order, from one writer.</summary>
 	public ChannelWriter<Work> Durable => _durable.Writer;
 
@@ -69,9 +72,9 @@ internal sealed class EventPipeline : IAsyncDisposable
 	/// dispatchers. Calling it again does nothing.
 	/// </summary>
 	/// <remarks>
-	/// Nothing of the caller's <see cref="ExecutionContext"/> flows into them: the first connect starts them inside the
-	/// application's own code, whose <see cref="Activity.Current"/>, log scopes and other async locals
-	/// belong to that call, not to every event after it.
+	/// Nothing of the caller's <see cref="ExecutionContext"/> flows into them: the first connect, or the pairing that
+	/// yields <c>Paired</c> (ADR 0052), starts them inside the application's own code, whose
+	/// <see cref="Activity.Current"/>, log scopes and other async locals belong to that call, not to every event after it.
 	/// </remarks>
 	public void Start(params ReadOnlySpan<Func<CancellationToken, Task>> feeds)
 	{

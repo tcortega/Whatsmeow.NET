@@ -25,7 +25,8 @@ public interface IWhatsAppClient
 	/// <see cref="SessionState.Connecting"/> until WhatsApp accepts the login, or once whatsmeow is retrying
 	/// (<see cref="SessionState.Reconnecting"/>). A login WhatsApp refuses arrives as the session's state. Connecting
 	/// a session that is connecting or connected does nothing. The client connects it again after a sidecar restart
-	/// when it comes back <see cref="SessionState.Disconnected"/>.
+	/// when it comes back <see cref="SessionState.Disconnected"/>. The session's events start flowing on the first
+	/// successful connect in this process, unless a pairing here already started them.
 	/// </summary>
 	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
 	/// <exception cref="NotLoggedInException">The session has never been paired.</exception>
@@ -55,7 +56,9 @@ public interface IWhatsAppClient
 	/// the last, once the session is usable and <see cref="SessionState.Connected"/>. Each enumeration starts a new
 	/// pairing. Keep the session connected after <see cref="PairingUpdate.Paired"/> until it is
 	/// <see cref="SessionState.CaughtUp"/>: a device that went offline right after pairing was seen to stay
-	/// "connecting" on the phone. Once the first code came, the client connects the session again after a sidecar
+	/// "connecting" on the phone. The session's events start flowing right before <see cref="PairingUpdate.Paired"/>
+	/// is yielded, with no <see cref="ConnectAsync"/>, so register handlers before pairing; a pairing that ends
+	/// without it starts none. Once the first code came, the client connects the session again after a sidecar
 	/// restart, as after <see cref="ConnectAsync"/>.
 	/// Cancel <paramref name="cancellationToken"/>, or stop enumerating (a <see langword="break"/>, <c>FirstAsync</c>, disposing
 	/// the enumerator), to stop: before the phone linked the device, the session goes back to its state before; after,
@@ -169,8 +172,9 @@ public interface IWhatsAppClient
 	/// <summary>
 	/// Calls <paramref name="handler"/> for every event of the session that is a <typeparamref name="TEvent"/>, until
 	/// the returned registration is disposed. Events flow once the session was connected in this process
-	/// (<see cref="ConnectAsync"/>), starting with the ones not handled before, also by an earlier process: register
-	/// handlers before connecting, because an event dispatched before a handler exists is not repeated for it.
+	/// (<see cref="ConnectAsync"/>) or paired in it (<see cref="PairingUpdate.Paired"/>), starting with the ones not
+	/// handled before, also by an earlier process: register handlers before connecting or pairing, because an event
+	/// dispatched before a handler exists is not repeated for it.
 	/// Events of one chat reach the handlers one at a time, in order; different chats run concurrently. An event's
 	/// handlers run one after the other, and the event is acknowledged to the sidecar only after all of them returned.
 	/// A handler that throws does not stop the stream: the event counts as handled, and <see cref="OnHandlerError"/>
