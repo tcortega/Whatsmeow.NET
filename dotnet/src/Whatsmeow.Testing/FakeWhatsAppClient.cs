@@ -88,6 +88,7 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 		nameof(RevokeMessageAsync),
 		nameof(SendPollAsync),
 		nameof(SendPollVoteAsync),
+		nameof(SetDisappearingTimerAsync),
 		nameof(MarkReadAsync),
 		nameof(GetGroupsAsync),
 		nameof(GetGroupInfoAsync),
@@ -100,9 +101,11 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 		nameof(SetGroupTopicAsync),
 		nameof(SetGroupAnnounceAsync),
 		nameof(SetGroupLockedAsync),
+		nameof(SetGroupMemberAddModeAsync),
 		nameof(GetGroupInviteLinkAsync),
 		nameof(ResetGroupInviteLinkAsync),
 		nameof(JoinGroupWithLinkAsync),
+		nameof(GetGroupInfoFromLinkAsync),
 		nameof(LeaveGroupAsync),
 		nameof(MuteChatAsync),
 		nameof(UnmuteChatAsync),
@@ -554,6 +557,10 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 	}
 
 	/// <inheritdoc/>
+	public Task SetDisappearingTimerAsync(Jid chat, TimeSpan timer, MessageId? id = null, CancellationToken cancellationToken = default) =>
+		CallAsync(nameof(SetDisappearingTimerAsync), [(nameof(chat), chat), (nameof(timer), timer), (nameof(id), id)], cancellationToken);
+
+	/// <inheritdoc/>
 	public Task MarkReadAsync(Jid chat, IReadOnlyCollection<MessageId> messageIds, Jid? sender = null, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(messageIds);
@@ -619,6 +626,10 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 		CallAsync(nameof(SetGroupLockedAsync), [(nameof(group), group), (nameof(locked), locked)], cancellationToken);
 
 	/// <inheritdoc/>
+	public Task SetGroupMemberAddModeAsync(Jid group, GroupMemberAddMode mode, CancellationToken cancellationToken = default) =>
+		CallAsync(nameof(SetGroupMemberAddModeAsync), [(nameof(group), group), (nameof(mode), mode)], cancellationToken);
+
+	/// <inheritdoc/>
 	public Task<Uri> GetGroupInviteLinkAsync(Jid group, CancellationToken cancellationToken = default) =>
 		CallAsync(nameof(GetGroupInviteLinkAsync), [(nameof(group), group)], NewInviteLink, cancellationToken);
 
@@ -631,6 +642,13 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 	{
 		ArgumentNullException.ThrowIfNull(link);
 		return CallAsync(nameof(JoinGroupWithLinkAsync), [(nameof(link), link)], NewGroup, cancellationToken);
+	}
+
+	/// <inheritdoc/>
+	public Task<GroupInfo> GetGroupInfoFromLinkAsync(Uri link, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(link);
+		return CallAsync(nameof(GetGroupInfoFromLinkAsync), [(nameof(link), link)], () => ToGroup(NewGroup(), name: "", createdAt: null, []), cancellationToken);
 	}
 
 	/// <inheritdoc/>

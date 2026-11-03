@@ -1800,3 +1800,47 @@ Whatsmeow.ExternalSidecarOptions.TokenPath.get -> string?
 Whatsmeow.ExternalSidecarOptions.TokenPath.set -> void
 Whatsmeow.WhatsmeowSidecarOptions.External.get -> Whatsmeow.ExternalSidecarOptions?
 Whatsmeow.WhatsmeowSidecarOptions.External.set -> void
+Whatsmeow.Events.DisappearingTimerContent
+Whatsmeow.Events.DisappearingTimerContent.DisappearingTimerContent() -> void
+Whatsmeow.Events.DisappearingTimerContent.Equals(Whatsmeow.Events.DisappearingTimerContent? other) -> bool
+Whatsmeow.Events.DisappearingTimerContent.Timer.get -> System.TimeSpan
+Whatsmeow.Events.DisappearingTimerContent.Timer.init -> void
+Whatsmeow.Groups.GroupChange.DisappearingTimerChanged
+Whatsmeow.Groups.GroupChange.DisappearingTimerChanged.DisappearingTimerChanged() -> void
+Whatsmeow.Groups.GroupChange.DisappearingTimerChanged.Equals(Whatsmeow.Groups.GroupChange.DisappearingTimerChanged? other) -> bool
+Whatsmeow.Groups.GroupChange.DisappearingTimerChanged.Timer.get -> System.TimeSpan
+Whatsmeow.Groups.GroupChange.DisappearingTimerChanged.Timer.init -> void
+Whatsmeow.Groups.GroupChange.MemberAddModeChanged
+Whatsmeow.Groups.GroupChange.MemberAddModeChanged.Equals(Whatsmeow.Groups.GroupChange.MemberAddModeChanged? other) -> bool
+Whatsmeow.Groups.GroupChange.MemberAddModeChanged.MemberAddModeChanged() -> void
+Whatsmeow.Groups.GroupChange.MemberAddModeChanged.Mode.get -> Whatsmeow.Groups.GroupMemberAddMode
+Whatsmeow.Groups.GroupChange.MemberAddModeChanged.Mode.init -> void
+Whatsmeow.Groups.GroupInfo.MemberAddMode.get -> Whatsmeow.Groups.GroupMemberAddMode?
+Whatsmeow.Groups.GroupInfo.MemberAddMode.init -> void
+Whatsmeow.Groups.GroupMemberAddMode
+Whatsmeow.Groups.GroupMemberAddMode.AdminsOnly = 0 -> Whatsmeow.Groups.GroupMemberAddMode
+Whatsmeow.Groups.GroupMemberAddMode.AllMembers = 1 -> Whatsmeow.Groups.GroupMemberAddMode
+Whatsmeow.IWhatsAppClient.GetGroupInfoFromLinkAsync(System.Uri! link, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Groups.GroupInfo!>!
+Whatsmeow.IWhatsAppClient.SetDisappearingTimerAsync(Whatsmeow.Jid chat, System.TimeSpan timer, Whatsmeow.MessageId? id = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.SetGroupMemberAddModeAsync(Whatsmeow.Jid group, Whatsmeow.Groups.GroupMemberAddMode mode, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+override Whatsmeow.Events.DisappearingTimerContent.<Clone>$() -> Whatsmeow.Events.DisappearingTimerContent!
+override Whatsmeow.Events.DisappearingTimerContent.Equals(object? obj) -> bool
+override Whatsmeow.Events.DisappearingTimerContent.GetHashCode() -> int
+override Whatsmeow.Events.DisappearingTimerContent.ToString() -> string!
+override Whatsmeow.Groups.GroupChange.DisappearingTimerChanged.<Clone>$() -> Whatsmeow.Groups.GroupChange.DisappearingTimerChanged!
+override Whatsmeow.Groups.GroupChange.DisappearingTimerChanged.Equals(object? obj) -> bool
+override Whatsmeow.Groups.GroupChange.DisappearingTimerChanged.GetHashCode() -> int
+override Whatsmeow.Groups.GroupChange.DisappearingTimerChanged.ToString() -> string!
+override Whatsmeow.Groups.GroupChange.MemberAddModeChanged.<Clone>$() -> Whatsmeow.Groups.GroupChange.MemberAddModeChanged!
+override Whatsmeow.Groups.GroupChange.MemberAddModeChanged.Equals(object? obj) -> bool
+override Whatsmeow.Groups.GroupChange.MemberAddModeChanged.GetHashCode() -> int
+override Whatsmeow.Groups.GroupChange.MemberAddModeChanged.ToString() -> string!
+override sealed Whatsmeow.Events.DisappearingTimerContent.Equals(Whatsmeow.Events.MessageContent? other) -> bool
+override sealed Whatsmeow.Groups.GroupChange.DisappearingTimerChanged.Equals(Whatsmeow.Groups.GroupChange? other) -> bool
+override sealed Whatsmeow.Groups.GroupChange.MemberAddModeChanged.Equals(Whatsmeow.Groups.GroupChange? other) -> bool
+static Whatsmeow.Events.DisappearingTimerContent.operator !=(Whatsmeow.Events.DisappearingTimerContent? left, Whatsmeow.Events.DisappearingTimerContent? right) -> bool
+static Whatsmeow.Events.DisappearingTimerContent.operator ==(Whatsmeow.Events.DisappearingTimerContent? left, Whatsmeow.Events.DisappearingTimerContent? right) -> bool
+static Whatsmeow.Groups.GroupChange.DisappearingTimerChanged.operator !=(Whatsmeow.Groups.GroupChange.DisappearingTimerChanged? left, Whatsmeow.Groups.GroupChange.DisappearingTimerChanged? right) -> bool
+static Whatsmeow.Groups.GroupChange.DisappearingTimerChanged.operator ==(Whatsmeow.Groups.GroupChange.DisappearingTimerChanged? left, Whatsmeow.Groups.GroupChange.DisappearingTimerChanged? right) -> bool
+static Whatsmeow.Groups.GroupChange.MemberAddModeChanged.operator !=(Whatsmeow.Groups.GroupChange.MemberAddModeChanged? left, Whatsmeow.Groups.GroupChange.MemberAddModeChanged? right) -> bool
+static Whatsmeow.Groups.GroupChange.MemberAddModeChanged.operator ==(Whatsmeow.Groups.GroupChange.MemberAddModeChanged? left, Whatsmeow.Groups.GroupChange.MemberAddModeChanged? right) -> bool

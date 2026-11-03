@@ -41,20 +41,21 @@ public sealed class SpanTests(FakeSidecar fixture, SidecarBinaries binaries)
 	[InlineData("revoke")]
 	[InlineData("poll")]
 	[InlineData("poll_vote")]
-	public async Task Send_WithAListener_ASpanCoversEachOfTheTwelveSends_AndEachIsCounted(string type)
+	[InlineData("disappearing_timer")]
+	public async Task Send_WithAListener_ASpanCoversEachOfTheThirteenSends_AndEachIsCounted(string type)
 	{
 		var ct = TestContext.Current.CancellationToken;
 		var session = $"telemetry-send-{type}";
 		// A vote's session has a LID, which names the account where whatsmeow keeps a sent poll's secret, so the vote finds it.
 		var client = await SessionSetup.ConnectedAsync(fixture, session, type is "poll_vote" ? "900000481:1@lid" : "", ct);
-		var media = type is "text" or "raw" or "reaction" or "edit" or "revoke" or "poll" or "poll_vote" ? null : await UploadAsync(client, type, ct);
+		var media = type is "text" or "raw" or "reaction" or "edit" or "revoke" or "poll" or "poll_vote" or "disappearing_timer" ? null : await UploadAsync(client, type, ct);
 		if (type is "poll_vote")
 			_ = await client.SendPollAsync(Jid.Parse(Peer), s_poll, MessageId.From("3EB0000000000000000F01"), cancellationToken: ct);
 		using var sent = new MetricCollector<long>(fixture.MeterFactory, WhatsmeowTelemetry.MeterName, "whatsmeow.messages.sent");
 		using var spans = new Spans();
 		var id = MessageId.New();
 
-		_ = await SendAsync(client, type, media, id, ct);
+		await SendAsync(client, type, media, id, ct);
 
 		// The span stopped before the send returned, and has no error; the send was counted before it returned too.
 		var span = Assert.Single(spans.Of("whatsmeow.send", session));
@@ -519,10 +520,10 @@ public sealed class SpanTests(FakeSidecar fixture, SidecarBinaries binaries)
 		return await client.UploadMediaAsync(input, mediaType, ct).ConfigureAwait(false);
 	}
 
-	private static Task<SendResult> SendAsync(IWhatsAppClient client, string type, MediaRef? media, MessageId id, CancellationToken ct)
+	private static Task SendAsync(IWhatsAppClient client, string type, MediaRef? media, MessageId id, CancellationToken ct)
 	{
 		var to = Jid.Parse(Peer);
-#pragma warning disable WMN1001 // Justification: the raw send is one of the twelve sends under test
+#pragma warning disable WMN1001 // Justification: the raw send is one of the thirteen sends under test
 		return type switch
 		{
 			"text" => client.SendTextAsync(to, "hello", id, cancellationToken: ct),
@@ -536,6 +537,7 @@ public sealed class SpanTests(FakeSidecar fixture, SidecarBinaries binaries)
 			"revoke" => client.RevokeMessageAsync(to, new MessageKey { Id = MessageId.From("T1") }, id, ct),
 			"poll" => client.SendPollAsync(to, s_poll, id, cancellationToken: ct),
 			"poll_vote" => client.SendPollVoteAsync(to, new MessageKey { Id = MessageId.From("3EB0000000000000000F01") }, ["Yes"], id, ct),
+			"disappearing_timer" => client.SetDisappearingTimerAsync(to, TimeSpan.FromDays(7), id, ct),
 			_ => client.SendRawAsync(to, new E2E.Message { Conversation = "hello" }, id, ct),
 		};
 #pragma warning restore WMN1001

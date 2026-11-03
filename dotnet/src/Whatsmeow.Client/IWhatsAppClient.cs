@@ -723,6 +723,44 @@ public interface IWhatsAppClient
 	Task<SendResult> SendPollVoteAsync(Jid chat, MessageKey poll, IReadOnlyList<string> selectedOptions, MessageId? id = null, CancellationToken cancellationToken = default);
 
 	/// <summary>
+	/// Sets how long a chat's new messages last, or turns disappearing messages off with <see cref="TimeSpan.Zero"/>.
+	/// In a direct chat it is a message the other side's phone applies, a send like a text: queued, paced and at most once
+	/// per <paramref name="id"/>, the setting's own id, as <see cref="SendTextAsync"/> is, so a repeat with the same id
+	/// after an unknown outcome sends nothing again. In a group it is a setting of the group, with no id, which a locked group lets only admins change; the members get
+	/// <see cref="GroupInfoChanged"/> with a <see cref="GroupChange.DisappearingTimerChanged"/>. A change by the other
+	/// side arrives as <see cref="Events.DisappearingTimerContent"/> in a direct chat. The session's later messages do
+	/// not carry the timer: the library sets none on a send, so a message that should disappear sets its own
+	/// (<see cref="SendRawAsync"/>, <c>ContextInfo.Expiration</c>).
+	/// </summary>
+	/// <param name="chat">A user (by phone number or LID, without a device) or a group.</param>
+	/// <param name="timer">
+	/// One of the durations WhatsApp's phones offer, 24 hours, 7 days or 90 days, or <see cref="TimeSpan.Zero"/>: whether
+	/// WhatsApp accepts any other is unknown, so the library refuses it.
+	/// </param>
+	/// <param name="id">
+	/// In a direct chat, the setting's own id, in <see cref="MessageId.New"/>'s format; null makes a new one. A group's
+	/// setting has no id, so it is ignored there.
+	/// </param>
+	/// <param name="cancellationToken">Cancels the call; in a direct chat, as for <see cref="SendTextAsync"/>.</param>
+	/// <exception cref="WhatsmeowValidationException">The chat or the id is malformed, or the timer is not one offered; nothing was sent.</exception>
+	/// <exception cref="WhatsAppErrorException">
+	/// WhatsApp refused, with its <see cref="WhatsAppErrorException.Code"/>: in a direct chat as for
+	/// <see cref="SendTextAsync"/>; in a group as for <see cref="SetGroupNameAsync"/>, 403 for a member who is not an
+	/// admin of a locked group, and 400 for a timer WhatsApp does not take.
+	/// </exception>
+	/// <exception cref="OutcomeUnknownException">The request went out and no answer came back: the timer may or may not be set; in a direct chat, a repeat of the id throws the same and sends nothing.</exception>
+	/// <exception cref="RateLimitedException">In a group, as for <see cref="IsOnWhatsAppAsync"/>; in a direct chat, as for <see cref="SendTextAsync"/>.</exception>
+	/// <exception cref="NotConnectedException">In a group, as for <see cref="IsOnWhatsAppAsync"/>; in a direct chat, as for <see cref="SendTextAsync"/>.</exception>
+	/// <exception cref="NotLoggedInException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	/// <exception cref="WhatsmeowException">In a direct chat, as for <see cref="SendTextAsync"/>, with the same subtypes.</exception>
+	Task SetDisappearingTimerAsync(Jid chat, TimeSpan timer, MessageId? id = null, CancellationToken cancellationToken = default);
+
+	/// <summary>
 	/// Sends <paramref name="message"/> exactly as given, as <see cref="SendTextAsync"/> sends a text: once per id, queued,
 	/// never waiting for a connection. The message type is WhatsApp's own protobuf, which changes with every whatsmeow
 	/// version, so this member is experimental (<c>WMN1001</c>): it has no stability promise.
@@ -959,6 +997,27 @@ public interface IWhatsAppClient
 	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
 	Task SetGroupLockedAsync(Jid group, bool locked, CancellationToken cancellationToken = default);
 
+	/// <summary>
+	/// Sets who can add participants, as an admin: only admins, or every member. The members get
+	/// <see cref="GroupInfoChanged"/> with a <see cref="GroupChange.MemberAddModeChanged"/>, and
+	/// <see cref="GroupInfo.MemberAddMode"/> says the group's mode.
+	/// </summary>
+	/// <param name="group">The group's JID.</param>
+	/// <param name="mode">Who can add participants.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The group is malformed, or the mode is not one <see cref="GroupMemberAddMode"/> names; nothing was asked.</exception>
+	/// <exception cref="WhatsAppErrorException">As for <see cref="SetGroupAnnounceAsync"/>.</exception>
+	/// <exception cref="OutcomeUnknownException">As for <see cref="SetGroupNameAsync"/>.</exception>
+	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotConnectedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotLoggedInException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	Task SetGroupMemberAddModeAsync(Jid group, GroupMemberAddMode mode, CancellationToken cancellationToken = default);
+
 	/// <summary>Reads a group's invite link, as an admin.</summary>
 	/// <param name="group">The group's JID.</param>
 	/// <param name="cancellationToken">Cancels the call.</param>
@@ -1018,6 +1077,30 @@ public interface IWhatsAppClient
 	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
 	/// <exception cref="ArgumentNullException"><paramref name="link"/> is null.</exception>
 	Task<Jid> JoinGroupWithLinkAsync(Uri link, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Reads the group of an invite link, as WhatsApp shows it to someone who is not a member, without joining it.
+	/// Which participants WhatsApp lists for a non-member, and in which address form, is unknown.
+	/// </summary>
+	/// <param name="link">The link or its code, as for <see cref="JoinGroupWithLinkAsync"/>.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The link is empty; nothing was asked.</exception>
+	/// <exception cref="WhatsmeowException">
+	/// The link is malformed, unknown or was reset, with <see cref="WhatsmeowErrorCode.InviteLinkInvalid"/>, as
+	/// <see cref="JoinGroupWithLinkAsync"/> fails with it; or WhatsApp did not answer in time, with
+	/// <see cref="WhatsmeowErrorCode.WhatsAppTimedOut"/>.
+	/// </exception>
+	/// <exception cref="WhatsAppErrorException">WhatsApp refused for another reason, with its <see cref="WhatsAppErrorException.Code"/>.</exception>
+	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotConnectedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotLoggedInException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="link"/> is null.</exception>
+	Task<GroupInfo> GetGroupInfoFromLinkAsync(Uri link, CancellationToken cancellationToken = default);
 
 	/// <summary>Leaves a group; the session is no longer a member, and the members get <see cref="GroupInfoChanged"/>.</summary>
 	/// <param name="group">The group's JID.</param>

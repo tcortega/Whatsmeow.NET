@@ -24,6 +24,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
@@ -162,6 +163,33 @@ func (s *stub) JoinGroupWithLink(_ context.Context, code string) (types.JID, err
 	s.call("join %s", code)
 
 	return s.joined, s.err
+}
+
+func (s *stub) SetGroupMemberAddMode(_ context.Context, jid types.JID, mode types.GroupMemberAddMode) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.call("member add mode %s %s", jid, mode)
+
+	return s.err
+}
+
+func (s *stub) SetDisappearingTimer(_ context.Context, chat types.JID, timer time.Duration, settingTS time.Time) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.call("timer %s %v at %v", chat, timer, settingTS.IsZero())
+
+	return s.err
+}
+
+func (s *stub) GetGroupInfoFromLink(_ context.Context, code string) (*types.GroupInfo, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.call("link info %s", code)
+
+	return s.info, s.err
 }
 
 func (s *stub) LeaveGroup(_ context.Context, jid types.JID) error {
@@ -890,7 +918,6 @@ func TestEachGroupNotificationMapsToOneGroupEventAndOthersToNone(t *testing.T) {
 		{
 			"only changes the contract has no case for",
 			eventInfo(at, func(e *events.GroupInfo) {
-				e.Ephemeral = &types.GroupEphemeral{IsEphemeral: true, DisappearingTimer: 86400}
 				e.Delete = &types.GroupDelete{Deleted: true}
 				e.NewInviteLink = new(string)
 				e.MembershipApprovalMode = &types.GroupMembershipApprovalMode{IsJoinApprovalRequired: true}
@@ -962,4 +989,225 @@ func errOf[T any](_ T, err error) error { return err }
 // namedWithV is a store failure as whatsmeow wraps it, with %v and the participant's JID (group.go:84, 221).
 func namedWithV() error {
 	return fmt.Errorf("failed to get privacy token for participant %s: %v", "5511777000009@s.whatsapp.net", errors.New("database is locked")) //nolint:errorlint // as whatsmeow wraps it
+}
+
+func TestTheMemberAddModeTheTimerAndALinksInfoReachWhatsApp(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.stub.info = lidGroup()
+	h.stub.info.MemberAddMode = types.GroupMemberAddModeAdmin
+
+	admins, all := whatsmeowv1.GroupMemberAddMode_GROUP_MEMBER_ADD_MODE_ADMINS, whatsmeowv1.GroupMemberAddMode_GROUP_MEMBER_ADD_MODE_ALL_MEMBERS
+	timer := func(d time.Duration) error {
+		return errOf(h.client.SetGroupDisappearingTimer(h.ctx, &whatsmeowv1.SetGroupDisappearingTimerRequest{SessionId: "s1", Group: group, Timer: durationpb.New(d)}))
+	}
+
+	for n, err := range []error{
+		errOf(h.client.SetGroupMemberAddMode(h.ctx, &whatsmeowv1.SetGroupMemberAddModeRequest{SessionId: "s1", Group: group, Mode: admins})),
+		errOf(h.client.SetGroupMemberAddMode(h.ctx, &whatsmeowv1.SetGroupMemberAddModeRequest{SessionId: "s1", Group: group, Mode: all})),
+		timer(24 * time.Hour), timer(7 * 24 * time.Hour), timer(90 * 24 * time.Hour), timer(0),
+	} {
+		if err != nil {
+			t.Fatalf("call %d: %v", n, err)
+		}
+	}
+
+	// whatsmeow takes the link or its code (stripURLPrefix, group.go:490-497).
+	for _, link := range []string{"https://chat.whatsapp.com/CODE1", "CODE1"} {
+		resp, err := h.client.GetGroupInfoFromLink(h.ctx, &whatsmeowv1.GetGroupInfoFromLinkRequest{SessionId: "s1", Link: link})
+		if err != nil {
+			t.Fatalf("GetGroupInfoFromLink(%s): %v", link, err)
+		}
+
+		want := lidGroupProto()
+		want.MemberAddMode = admins
+		wantProto(t, resp, &whatsmeowv1.GetGroupInfoFromLinkResponse{Group: want})
+	}
+
+	// A group's timer is an IQ, for which whatsmeow takes no setting time (send.go:679-691).
+	wantCalls(t, h.stub,
+		"member add mode "+group+" admin_add",
+		"member add mode "+group+" all_member_add",
+		"timer "+group+" 24h0m0s at true", "timer "+group+" 168h0m0s at true", "timer "+group+" 2160h0m0s at true", "timer "+group+" 0s at true",
+		"link info https://chat.whatsapp.com/CODE1", "link info CODE1",
+	)
+}
+
+func TestAGroupsMemberAddModeIsTheContractsOrUnspecified(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		mode types.GroupMemberAddMode
+		want whatsmeowv1.GroupMemberAddMode
+	}{
+		{types.GroupMemberAddModeAdmin, whatsmeowv1.GroupMemberAddMode_GROUP_MEMBER_ADD_MODE_ADMINS},
+		{types.GroupMemberAddModeAllMember, whatsmeowv1.GroupMemberAddMode_GROUP_MEMBER_ADD_MODE_ALL_MEMBERS},
+		// Not sent (group.go:785-787 sets it only from its child), or a mode the contract does not have.
+		{"", whatsmeowv1.GroupMemberAddMode_GROUP_MEMBER_ADD_MODE_UNSPECIFIED},
+		{"owner_add", whatsmeowv1.GroupMemberAddMode_GROUP_MEMBER_ADD_MODE_UNSPECIFIED},
+	} {
+		h := start(t)
+		h.stub.info = lidGroup()
+		h.stub.info.MemberAddMode = tc.mode
+
+		resp, err := h.client.GetGroup(h.ctx, &whatsmeowv1.GetGroupRequest{SessionId: "s1", Group: group})
+		if err != nil {
+			t.Fatalf("GetGroup: %v", err)
+		}
+
+		want := lidGroupProto()
+		want.MemberAddMode = tc.want
+		wantProto(t, resp, &whatsmeowv1.GetGroupResponse{Group: want})
+	}
+}
+
+func TestAMalformedModeTimerOrLinkIsInvalidArgumentAndAsksNothing(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	admins := whatsmeowv1.GroupMemberAddMode_GROUP_MEMBER_ADD_MODE_ADMINS
+	timer := func(d *durationpb.Duration) error {
+		return errOf(h.client.SetGroupDisappearingTimer(h.ctx, &whatsmeowv1.SetGroupDisappearingTimerRequest{SessionId: "s1", Group: group, Timer: d}))
+	}
+
+	for _, tc := range []struct {
+		field string
+		err   error
+	}{
+		{"group", errOf(h.client.SetGroupMemberAddMode(h.ctx, &whatsmeowv1.SetGroupMemberAddModeRequest{SessionId: "s1", Group: "111@lid", Mode: admins}))},
+		{"mode", errOf(h.client.SetGroupMemberAddMode(h.ctx, &whatsmeowv1.SetGroupMemberAddModeRequest{SessionId: "s1", Group: group}))},
+		{"mode", errOf(h.client.SetGroupMemberAddMode(h.ctx, &whatsmeowv1.SetGroupMemberAddModeRequest{SessionId: "s1", Group: group, Mode: 7}))},
+		{"group", errOf(h.client.SetGroupDisappearingTimer(h.ctx, &whatsmeowv1.SetGroupDisappearingTimerRequest{SessionId: "s1", Group: "111@lid", Timer: durationpb.New(0)}))},
+		{"timer", timer(nil)},
+		{"timer", timer(durationpb.New(48 * time.Hour))},
+		{"timer", timer(durationpb.New(-24 * time.Hour))},
+		{"timer", timer(durationpb.New(24*time.Hour + time.Second))},
+		{"timer", timer(&durationpb.Duration{Seconds: 86400, Nanos: -1})},
+		{"link", errOf(h.client.GetGroupInfoFromLink(h.ctx, &whatsmeowv1.GetGroupInfoFromLinkRequest{SessionId: "s1"}))},
+		{"session_id", errOf(h.client.GetGroupInfoFromLink(h.ctx, &whatsmeowv1.GetGroupInfoFromLinkRequest{Link: "CODE1"}))},
+	} {
+		wantReason(t, tc.err, codes.InvalidArgument, "INVALID_ARGUMENT", map[string]string{"field": tc.field})
+	}
+
+	wantCalls(t, h.stub)
+}
+
+func TestTheNewCallsErrorsBecomeTheirReasons(t *testing.T) {
+	t.Parallel()
+
+	mode := func(h *harness) error {
+		return errOf(h.client.SetGroupMemberAddMode(h.ctx, &whatsmeowv1.SetGroupMemberAddModeRequest{
+			SessionId: "s1", Group: group, Mode: whatsmeowv1.GroupMemberAddMode_GROUP_MEMBER_ADD_MODE_ADMINS,
+		}))
+	}
+	timer := func(h *harness) error {
+		return errOf(h.client.SetGroupDisappearingTimer(h.ctx, &whatsmeowv1.SetGroupDisappearingTimerRequest{SessionId: "s1", Group: group, Timer: durationpb.New(24 * time.Hour)}))
+	}
+	link := func(h *harness) error {
+		return errOf(h.client.GetGroupInfoFromLink(h.ctx, &whatsmeowv1.GetGroupInfoFromLinkRequest{SessionId: "s1", Link: "https://chat.whatsapp.com/OLD"}))
+	}
+
+	for _, tc := range []struct {
+		name     string
+		call     func(*harness) error
+		err      error
+		code     codes.Code
+		reason   string
+		metadata map[string]string
+	}{
+		{"a mode that timed out", mode, whatsmeow.ErrIQTimedOut, codes.Unknown, "OUTCOME_UNKNOWN", nil},
+		{"a mode a member may not set", mode, whatsmeow.ErrIQForbidden, codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "403"}},
+		{"a timer that timed out", timer, whatsmeow.ErrIQTimedOut, codes.Unknown, "OUTCOME_UNKNOWN", nil},
+		// As whatsmeow wraps a 400 (send.go:687-690).
+		{"a timer WhatsApp refuses", timer, &wrapped{whatsmeow.ErrInvalidDisappearingTimer, whatsmeow.ErrIQBadRequest}, codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "400"}},
+		{"a timer in a group the session is not in", timer, whatsmeow.ErrIQForbidden, codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "403"}},
+		// As whatsmeow wraps them, the same as for a join (group.go:497-502).
+		{"a malformed or unknown link", link, fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkInvalid, whatsmeow.ErrIQNotAcceptable), codes.NotFound, "INVITE_LINK_INVALID", nil},
+		{"a reset link", link, fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkRevoked, whatsmeow.ErrIQGone), codes.NotFound, "INVITE_LINK_INVALID", nil},
+		{"a link read that timed out", link, whatsmeow.ErrIQTimedOut, codes.Unavailable, "WHATSAPP_TIMED_OUT", nil},
+		{"a link answer without its group", link, &whatsmeow.ElementMissingError{Tag: "group", In: "response to group link info query"}, codes.Internal, "INTERNAL", nil},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			h := start(t)
+			h.stub.err = tc.err
+
+			wantReason(t, tc.call(h), tc.code, tc.reason, tc.metadata)
+		})
+	}
+}
+
+// wrapped is an error as whatsmeow's wrapIQError makes it (errors.go:157-176): Is the human error, unwrapping to the IQ
+// error.
+type wrapped struct{ human, iq error }
+
+func (w *wrapped) Error() string       { return w.human.Error() }
+func (w *wrapped) Is(other error) bool { return errors.Is(other, w.human) }
+func (w *wrapped) Unwrap() error       { return w.iq }
+
+func TestMemberAddModeAndTimerNotificationsMapToTheirChanges(t *testing.T) {
+	t.Parallel()
+
+	at := time.Date(2026, 11, 2, 10, 0, 0, 0, time.UTC)
+	changed := func(changes ...*whatsmeowv1.GroupChange) *whatsmeowv1.StreamEventsResponse {
+		return &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_Group{Group: &whatsmeowv1.GroupEvent{
+			Group: group, Sender: "777000001@lid", SenderAlt: "5511777000001@s.whatsapp.net", Time: timestamppb.New(at),
+			Kind: &whatsmeowv1.GroupEvent_Changed_{Changed: &whatsmeowv1.GroupEvent_Changed{Changes: changes}},
+		}}}
+	}
+	// whatsmeow has no case for member_add_mode and keeps the child as it came (group.go:1006-1007).
+	addMode := func(content any) *waBinary.Node { return &waBinary.Node{Tag: "member_add_mode", Content: content} }
+	mode := func(m whatsmeowv1.GroupMemberAddMode) *whatsmeowv1.GroupChange {
+		return &whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_MemberAddModeChanged_{MemberAddModeChanged: &whatsmeowv1.GroupChange_MemberAddModeChanged{Mode: m}}}
+	}
+	timer := func(d time.Duration) *whatsmeowv1.GroupChange {
+		return &whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_DisappearingTimerChanged_{DisappearingTimerChanged: &whatsmeowv1.GroupChange_DisappearingTimerChanged{Timer: durationpb.New(d)}}}
+	}
+
+	for _, tc := range []struct {
+		name string
+		evt  any
+		want *whatsmeowv1.StreamEventsResponse
+	}{
+		{
+			"only admins add, in the contract's order",
+			eventInfo(at, func(e *events.GroupInfo) {
+				e.Join = []types.JID{jid("777000002@lid")}
+				e.UnknownChanges = []*waBinary.Node{{Tag: "something_new"}, addMode([]byte("admin_add"))}
+				e.Ephemeral = &types.GroupEphemeral{IsEphemeral: true, DisappearingTimer: 604800}
+				e.Locked = &types.GroupLocked{IsLocked: true}
+			}),
+			changed(
+				&whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_LockedChanged_{LockedChanged: &whatsmeowv1.GroupChange_LockedChanged{Locked: true}}},
+				mode(whatsmeowv1.GroupMemberAddMode_GROUP_MEMBER_ADD_MODE_ADMINS),
+				timer(7*24*time.Hour),
+				&whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_Joined{Joined: &whatsmeowv1.GroupChange_Participants{Jids: []string{"777000002@lid"}}}},
+			),
+		},
+		{
+			"every member adds",
+			eventInfo(at, func(e *events.GroupInfo) { e.UnknownChanges = []*waBinary.Node{addMode([]byte("all_member_add"))} }),
+			changed(mode(whatsmeowv1.GroupMemberAddMode_GROUP_MEMBER_ADD_MODE_ALL_MEMBERS)),
+		},
+		{
+			// not_ephemeral (group.go:963-970).
+			"disappearing messages turned off",
+			eventInfo(at, func(e *events.GroupInfo) { e.Ephemeral = &types.GroupEphemeral{} }),
+			changed(timer(0)),
+		},
+		{
+			"a mode the contract does not have, or one that is not text",
+			eventInfo(at, func(e *events.GroupInfo) {
+				e.UnknownChanges = []*waBinary.Node{addMode([]byte("owner_add")), addMode(nil), addMode([]waBinary.Node{})}
+			}),
+			nil,
+		},
+	} {
+		key, got, ok := Event("s1", tc.evt)
+		if ok != (tc.want != nil) || key != "" || !proto.Equal(got, tc.want) {
+			t.Errorf("%s: Event = %q, %v, %v; want %v", tc.name, key, got, ok, tc.want)
+		}
+	}
 }

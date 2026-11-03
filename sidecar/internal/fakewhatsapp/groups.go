@@ -5,12 +5,14 @@ package fakewhatsapp
 import (
 	"cmp"
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
 	"time"
 
 	"go.mau.fi/whatsmeow"
+	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 
@@ -33,6 +35,11 @@ type group struct {
 	members               []member
 	// code is the current invite code; empty until the first request for the link.
 	code string
+	// addMode is who can add participants: the mode a create asked for, none for a group AddGroup put there until one
+	// is set; only admins add unless it is all_member_add [inferred].
+	addMode types.GroupMemberAddMode
+	// timer is the disappearing messages timer in seconds; zero is off.
+	timer uint32
 }
 
 // refusal is how WhatsApp refuses to add one user (RefuseGroupAdd).
@@ -115,7 +122,8 @@ func (w *WhatsApp) info(g *group) *types.GroupInfo {
 	info := &types.GroupInfo{
 		JID: g.jid, GroupName: types.GroupName{Name: g.name}, GroupTopic: types.GroupTopic{Topic: g.topic, TopicID: g.topicID},
 		GroupLocked: types.GroupLocked{IsLocked: g.locked}, GroupAnnounce: types.GroupAnnounce{IsAnnounce: g.announce},
-		GroupCreated: g.created, AddressingMode: types.AddressingModePN,
+		GroupCreated: g.created, AddressingMode: types.AddressingModePN, MemberAddMode: g.addMode,
+		GroupEphemeral: types.GroupEphemeral{IsEphemeral: g.timer != 0, DisappearingTimer: g.timer},
 	}
 
 	if g.lid {
@@ -283,7 +291,8 @@ func (c *Client) GetGroupInfo(_ context.Context, jid types.JID) (*types.GroupInf
 }
 
 // CreateGroup creates a group with the session as its super admin and adds each participant WhatsApp does not refuse;
-// the answer lists a refused one with its error [inferred]. Each added session gets a create notification; the
+// the answer lists a refused one with its error [inferred]. The group has the member add mode the create asked for,
+// all_member_add unless told otherwise, as whatsmeow asks (group.go:59-63); what WhatsApp answers is [unknown]. Each added session gets a create notification; the
 // creator gets none [inferred].
 func (c *Client) CreateGroup(_ context.Context, req whatsmeow.ReqCreateGroup) (*types.GroupInfo, error) {
 	if err := c.groupQuery(); err != nil {
@@ -297,7 +306,7 @@ func (c *Client) CreateGroup(_ context.Context, req whatsmeow.ReqCreateGroup) (*
 	self := c.self()
 	g := &group{
 		jid: types.NewJID(fmt.Sprintf("1203639%011d", w.serial), types.GroupServer), name: req.Name, owner: self, created: now(),
-		members: []member{{id: self, super: true}},
+		members: []member{{id: self, super: true}}, addMode: cmp.Or(req.MemberAddMode, types.GroupMemberAddModeAllMember),
 	}
 	w.groups[g.jid] = g
 
@@ -337,8 +346,8 @@ func (w *WhatsApp) refused(g *group, id types.JID, r refusal) types.GroupPartici
 	return p
 }
 
-// UpdateGroupParticipants is an admin's change to participants, answered for each one [inferred: 409 for adding a
-// member, 404 for a non-member otherwise]. Every member, and each one removed, is notified of the changes made; a
+// UpdateGroupParticipants is an admin's change to participants, or any member's add when the group's member add mode
+// is all_member_add, answered for each one [inferred: 409 for adding a member, 404 for a non-member otherwise]. Every member, and each one removed, is notified of the changes made; a
 // session added gets a create notification instead.
 func (c *Client) UpdateGroupParticipants(_ context.Context, jid types.JID, changes []types.JID, action whatsmeow.ParticipantChange) ([]types.GroupParticipant, error) {
 	if err := c.groupQuery(); err != nil {
@@ -351,7 +360,7 @@ func (c *Client) UpdateGroupParticipants(_ context.Context, jid types.JID, chang
 	self := c.self()
 
 	g, i, err := w.find(jid, self)
-	if err == nil {
+	if err == nil && (action != whatsmeow.ParticipantChangeAdd || g.addMode != types.GroupMemberAddModeAllMember) {
 		err = admin(g, i)
 	}
 
@@ -489,6 +498,43 @@ func (c *Client) SetGroupLocked(_ context.Context, jid types.JID, locked bool) e
 	})
 }
 
+// SetGroupMemberAddMode sets who can add participants; only an admin may. The members' notification carries a
+// member_add_mode child, which whatsmeow leaves in UnknownChanges [inferred: named and filled as the IQ,
+// group.go:1084-1097].
+func (c *Client) SetGroupMemberAddMode(_ context.Context, jid types.JID, mode types.GroupMemberAddMode) error {
+	if mode != types.GroupMemberAddModeAdmin && mode != types.GroupMemberAddModeAllMember {
+		return errors.New("invalid mode, must be 'admin_add' or 'all_member_add'") //nolint:err113 // whatsmeow's own error text (group.go:1086-1088)
+	}
+
+	return c.changeInfo(jid, true, func(g *group, evt *events.GroupInfo) {
+		g.addMode = mode
+		evt.UnknownChanges = []*waBinary.Node{{Tag: "member_add_mode", Content: []byte(mode)}}
+	})
+}
+
+// SetDisappearingTimer sets a group's disappearing messages timer, as SetGroupName may; a timer the phones do not offer
+// is 400, as whatsmeow names it (send.go:687-690). A direct chat's timer is a message the sidecar sends itself, so the
+// fake has none.
+func (c *Client) SetDisappearingTimer(_ context.Context, chat types.JID, timer time.Duration, _ time.Time) error {
+	if chat.Server != types.GroupServer {
+		return errors.New("fake WhatsApp: a direct chat's timer is a message; the sidecar sends it") //nolint:err113 // a misuse of the fake
+	}
+
+	offered := []time.Duration{whatsmeow.DisappearingTimerOff, whatsmeow.DisappearingTimer24Hours, whatsmeow.DisappearingTimer7Days, whatsmeow.DisappearingTimer90Days}
+	if !slices.Contains(offered, timer) {
+		if err := c.groupQuery(); err != nil {
+			return err
+		}
+
+		return fmt.Errorf("%w: %w", whatsmeow.ErrInvalidDisappearingTimer, whatsmeow.ErrIQBadRequest)
+	}
+
+	return c.changeInfo(chat, false, func(g *group, evt *events.GroupInfo) {
+		g.timer = uint32(timer.Seconds())
+		evt.Ephemeral = &types.GroupEphemeral{IsEphemeral: g.timer != 0, DisappearingTimer: g.timer}
+	})
+}
+
 // GetGroupInviteLink answers the group's link, as an admin may [inferred: 401 otherwise, whatsmeow's
 // ErrGroupInviteLinkUnauthorized, group.go:432]; reset revokes the current code first.
 func (c *Client) GetGroupInviteLink(_ context.Context, jid types.JID, reset bool) (string, error) {
@@ -530,29 +576,14 @@ func (c *Client) JoinGroupWithLink(_ context.Context, code string) (types.JID, e
 		return types.EmptyJID, err
 	}
 
-	code = strings.TrimPrefix(code, whatsmeow.InviteLinkPrefix)
-
 	w := c.whatsApp
 	w.mu.Lock()
 
-	if w.revoked[code] {
+	g, err := w.byCode(code)
+	if err != nil {
 		w.mu.Unlock()
 
-		return types.EmptyJID, fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkRevoked, whatsmeow.ErrIQGone)
-	}
-
-	var g *group
-
-	for _, each := range w.groups {
-		if each.code != "" && each.code == code {
-			g = each
-		}
-	}
-
-	if g == nil {
-		w.mu.Unlock()
-
-		return types.EmptyJID, fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkInvalid, whatsmeow.ErrIQNotAcceptable)
+		return types.EmptyJID, err
 	}
 
 	self := c.self()
@@ -573,6 +604,43 @@ func (c *Client) JoinGroupWithLink(_ context.Context, code string) (types.JID, e
 	w.deliver(notices)
 
 	return g.jid, nil
+}
+
+// GetGroupInfoFromLink answers the group of a link's code, with every member [inferred], and joins nothing; its codes
+// are the join's (group.go:497-502).
+func (c *Client) GetGroupInfoFromLink(_ context.Context, code string) (*types.GroupInfo, error) {
+	if err := c.groupQuery(); err != nil {
+		return nil, err
+	}
+
+	w := c.whatsApp
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	g, err := w.byCode(code)
+	if err != nil {
+		return nil, err
+	}
+
+	return w.info(g), nil
+}
+
+// byCode is the group whose invite link has the code, taken from a link as whatsmeow strips it (group.go:494, 516): a
+// reset code is 410 and an unknown one 406. w.mu is held.
+func (w *WhatsApp) byCode(code string) (*group, error) {
+	code = strings.TrimPrefix(code, whatsmeow.InviteLinkPrefix)
+
+	if w.revoked[code] {
+		return nil, fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkRevoked, whatsmeow.ErrIQGone)
+	}
+
+	for _, g := range w.groups {
+		if g.code != "" && g.code == code {
+			return g, nil
+		}
+	}
+
+	return nil, fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkInvalid, whatsmeow.ErrIQNotAcceptable)
 }
 
 // LeaveGroup leaves the group; every member, the session included, is notified [inferred].

@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package whatsmeow.v1;
 
+import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
 // GroupService lists, inspects, creates and manages the session's groups: their participants, settings and invite
@@ -61,6 +62,20 @@ service GroupService {
   // Errors: as CreateGroup; INVALID_ARGUMENT (field "group").
   rpc SetGroupLocked(SetGroupLockedRequest) returns (SetGroupLockedResponse);
 
+  // SetGroupMemberAddMode sets who can add participants: only admins, or every member. Members get a GroupEvent with
+  // the change.
+  // Errors: as CreateGroup; INVALID_ARGUMENT (field "group", or "mode" for an unspecified one).
+  rpc SetGroupMemberAddMode(SetGroupMemberAddModeRequest) returns (SetGroupMemberAddModeResponse);
+
+  // SetGroupDisappearingTimer sets how long the group's new messages last, or turns disappearing messages off with a
+  // zero timer; members get a GroupEvent with the change. The timer is one WhatsApp's phones offer: 24 hours, 7 days or
+  // 90 days, or zero; whether WhatsApp accepts others is [unknown], so any other is INVALID_ARGUMENT and nothing is
+  // asked. The session's later messages do not carry the timer: whatsmeow sets none on a send [observed: whatsmeow
+  // send.go], so a message that should disappear sets its own (SendMessage, ContextInfo.expiration). A direct chat's
+  // timer is a message instead, MessageService.SendDisappearingTimer.
+  // Errors: as CreateGroup; INVALID_ARGUMENT (field "group", or "timer").
+  rpc SetGroupDisappearingTimer(SetGroupDisappearingTimerRequest) returns (SetGroupDisappearingTimerResponse);
+
   // GetInviteLink reads the group's invite link.
   // Errors: as GetGroup.
   rpc GetInviteLink(GetInviteLinkRequest) returns (GetInviteLinkResponse);
@@ -73,6 +88,12 @@ service GroupService {
   // the group too, while the session only asked to join and is not a member yet.
   // Errors: as CreateGroup; INVALID_ARGUMENT (field "link" for an empty one), INVITE_LINK_INVALID.
   rpc JoinGroupWithLink(JoinGroupWithLinkRequest) returns (JoinGroupWithLinkResponse);
+
+  // GetGroupInfoFromLink reads the group of an invite link, as WhatsApp shows it to someone who is not a member, without
+  // joining it. Which participants WhatsApp lists for a non-member, and in which address form, is [unknown]. A link
+  // WhatsApp does not accept fails as JoinGroupWithLink fails with it.
+  // Errors: as GetGroup but INVALID_ARGUMENT (field "link" for an empty one); INVITE_LINK_INVALID.
+  rpc GetGroupInfoFromLink(GetGroupInfoFromLinkRequest) returns (GetGroupInfoFromLinkResponse);
 
   // LeaveGroup leaves the group.
   // Errors: as CreateGroup; INVALID_ARGUMENT (field "group").
@@ -99,6 +120,18 @@ message Group {
   bool locked = 8;
   // The participants, in WhatsApp's order.
   repeated GroupParticipant participants = 9;
+  // Who can add participants; unspecified when WhatsApp did not say, or said a mode this list does not have.
+  GroupMemberAddMode member_add_mode = 10;
+}
+
+// GroupMemberAddMode is who can add participants to a group.
+enum GroupMemberAddMode {
+  // Not said; INVALID_ARGUMENT in a request.
+  GROUP_MEMBER_ADD_MODE_UNSPECIFIED = 0;
+  // Only admins (WhatsApp's admin_add).
+  GROUP_MEMBER_ADD_MODE_ADMINS = 1;
+  // Every member (WhatsApp's all_member_add).
+  GROUP_MEMBER_ADD_MODE_ALL_MEMBERS = 2;
 }
 
 // GroupParticipant is one participant of a group.
@@ -272,6 +305,32 @@ message SetGroupLockedRequest {
 // SetGroupLockedResponse has no fields.
 message SetGroupLockedResponse {}
 
+// SetGroupMemberAddModeRequest is who can add participants.
+message SetGroupMemberAddModeRequest {
+  // The session id.
+  string session_id = 1;
+  // The group's JID.
+  string group = 2;
+  // The mode; not unspecified.
+  GroupMemberAddMode mode = 3;
+}
+
+// SetGroupMemberAddModeResponse has no fields.
+message SetGroupMemberAddModeResponse {}
+
+// SetGroupDisappearingTimerRequest is the group's disappearing messages timer.
+message SetGroupDisappearingTimerRequest {
+  // The session id.
+  string session_id = 1;
+  // The group's JID.
+  string group = 2;
+  // How long new messages last: 24 hours, 7 days or 90 days, or zero to turn disappearing messages off; required.
+  google.protobuf.Duration timer = 3;
+}
+
+// SetGroupDisappearingTimerResponse has no fields.
+message SetGroupDisappearingTimerResponse {}
+
 // GetInviteLinkRequest names the group.
 message GetInviteLinkRequest {
   // The session id.
@@ -314,6 +373,20 @@ message JoinGroupWithLinkResponse {
   string group = 1;
 }
 
+// GetGroupInfoFromLinkRequest is the invite link.
+message GetGroupInfoFromLinkRequest {
+  // The session id.
+  string session_id = 1;
+  // The link, or its code alone.
+  string link = 2;
+}
+
+// GetGroupInfoFromLinkResponse is the link's group.
+message GetGroupInfoFromLinkResponse {
+  // The group, as WhatsApp shows it to a non-member.
+  Group group = 1;
+}
+
 // LeaveGroupRequest names the group.
 message LeaveGroupRequest {
   // The session id.
@@ -334,9 +407,9 @@ message LeaveGroupResponse {}
 message GroupEvent {
   // A change to the group.
   message Changed {
-    // What changed, never empty: renamed, topic, announce, locked, joined, left, promoted, demoted, each at most once
-    // and in that order. A participant in these lists is addressed as in the group's participants; the store learned
-    // their other form with the notification (ResolveJids).
+    // What changed, never empty: renamed, topic, announce, locked, member add mode, disappearing timer, joined, left,
+    // promoted, demoted, each at most once and in that order. A participant in these lists is addressed as in the
+    // group's participants; the store learned their other form with the notification (ResolveJids).
     repeated GroupChange changes = 1;
   }
 
@@ -389,6 +462,18 @@ message GroupChange {
     bool locked = 1;
   }
 
+  // Who can add participants changed.
+  message MemberAddModeChanged {
+    // The new mode, never unspecified.
+    GroupMemberAddMode mode = 1;
+  }
+
+  // The disappearing messages timer changed.
+  message DisappearingTimerChanged {
+    // How long new messages last; zero when disappearing messages were turned off.
+    google.protobuf.Duration timer = 1;
+  }
+
   // Users whose membership or role changed.
   message Participants {
     // The users.
@@ -413,5 +498,9 @@ message GroupChange {
     Participants promoted = 7;
     // Users who stopped being admins.
     Participants demoted = 8;
+    // See MemberAddModeChanged.
+    MemberAddModeChanged member_add_mode_changed = 9;
+    // See DisappearingTimerChanged.
+    DisappearingTimerChanged disappearing_timer_changed = 10;
   }
 }

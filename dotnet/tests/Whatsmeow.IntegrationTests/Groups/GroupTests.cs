@@ -29,7 +29,10 @@ public sealed class GroupTests(FakeSidecar fixture)
 
 	private static GroupParticipant Member(Jid jid, GroupRole role = GroupRole.Member, Jid? alt = null) => new() { Jid = jid, JidAlt = alt, Role = role };
 
-	/// <summary>A group the session created alone in the fake, as WhatsApp answers it.</summary>
+	/// <summary>
+	/// A group the session created alone in the fake, as WhatsApp answers it: with the member add mode whatsmeow's create
+	/// asks for (group.go:59-63); what WhatsApp answers after a create is [unknown].
+	/// </summary>
 	private static GroupInfo Created(Jid jid, string session, string name, params GroupParticipant[] others) =>
 		new()
 		{
@@ -42,6 +45,7 @@ public sealed class GroupTests(FakeSidecar fixture)
 			IsAnnounce = false,
 			IsLocked = false,
 			Participants = [Member(Self(session), GroupRole.SuperAdmin), .. others],
+			MemberAddMode = GroupMemberAddMode.AllMembers,
 		};
 
 	private static GroupInfoChanged Changed(string session, Jid group, Jid? sender, params GroupChange[] changes) =>
@@ -429,7 +433,7 @@ public sealed class GroupTests(FakeSidecar fixture)
 				Id = "GN-NOTIFIED-2",
 				Group = "120363109000000001@g.us",
 				Time = Timestamp.FromDateTimeOffset(at),
-				Ephemeral = true,
+				MembershipApproval = true,
 			},
 			cancellationToken: ct
 		);

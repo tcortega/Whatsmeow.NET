@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 
+	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 
@@ -118,8 +119,17 @@ func (c *Control) DeliverGroupNotification(_ context.Context, req *fakev1.Delive
 		evt.Locked = &types.GroupLocked{IsLocked: req.GetLocked()}
 	}
 
-	if req.GetEphemeral() {
-		evt.Ephemeral = &types.GroupEphemeral{IsEphemeral: true, DisappearingTimer: 86400}
+	if req.MemberAddMode != nil {
+		evt.UnknownChanges = []*waBinary.Node{{Tag: "member_add_mode", Content: []byte(req.GetMemberAddMode())}}
+	}
+
+	if req.GetDisappearingTimer() != nil {
+		timer := uint32(req.GetDisappearingTimer().AsDuration().Seconds())
+		evt.Ephemeral = &types.GroupEphemeral{IsEphemeral: timer != 0, DisappearingTimer: timer}
+	}
+
+	if req.GetMembershipApproval() {
+		evt.MembershipApprovalMode = &types.GroupMembershipApprovalMode{IsJoinApprovalRequired: true}
 	}
 
 	for _, list := range []struct {

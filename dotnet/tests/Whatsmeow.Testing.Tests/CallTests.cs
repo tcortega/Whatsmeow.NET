@@ -205,6 +205,42 @@ public sealed partial class CallTests : IAsyncDisposable
 	}
 
 	[Fact(Timeout = 10_000)]
+	public async Task MemberAddModeLinkInfoAndTimer_AreRecordedWithTheirArguments_AndTheLinksGroupIsANewOne()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var link = new Uri("https://chat.whatsapp.com/AbCdEfGhIjKlMnOpQrStUv");
+
+		await _fake.SetGroupMemberAddModeAsync(Team, GroupMemberAddMode.AdminsOnly, ct);
+		var info = await _fake.GetGroupInfoFromLinkAsync(link, ct);
+		await _fake.SetDisappearingTimerAsync(Ana, TimeSpan.FromDays(7), cancellationToken: ct);
+
+		Assert.Equal(
+			[
+				(nameof(IWhatsAppClient.SetGroupMemberAddModeAsync), new Dictionary<string, object?>(StringComparer.Ordinal) { ["group"] = Team, ["mode"] = GroupMemberAddMode.AdminsOnly }),
+				(nameof(IWhatsAppClient.GetGroupInfoFromLinkAsync), new Dictionary<string, object?>(StringComparer.Ordinal) { ["link"] = link }),
+				(nameof(IWhatsAppClient.SetDisappearingTimerAsync), new Dictionary<string, object?>(StringComparer.Ordinal) { ["chat"] = Ana, ["timer"] = TimeSpan.FromDays(7), ["id"] = null }),
+			],
+			_fake.Calls.Select(static call => (call.Member, new Dictionary<string, object?>(call.Arguments, StringComparer.Ordinal)))
+		);
+		Assert.Equal(
+			new GroupInfo
+			{
+				Jid = info.Jid,
+				Name = "",
+				Topic = null,
+				Owner = null,
+				OwnerAlt = null,
+				CreatedAt = null,
+				IsAnnounce = false,
+				IsLocked = false,
+				Participants = [],
+			},
+			info
+		);
+		Assert.Equal("g.us", info.Jid.Server);
+	}
+
+	[Fact(Timeout = 10_000)]
 	public async Task Results_ArePlausible()
 	{
 		var ct = TestContext.Current.CancellationToken;

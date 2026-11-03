@@ -9,6 +9,7 @@ package whatsmeowv1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
@@ -21,6 +22,59 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+// GroupMemberAddMode is who can add participants to a group.
+type GroupMemberAddMode int32
+
+const (
+	// Not said; INVALID_ARGUMENT in a request.
+	GroupMemberAddMode_GROUP_MEMBER_ADD_MODE_UNSPECIFIED GroupMemberAddMode = 0
+	// Only admins (WhatsApp's admin_add).
+	GroupMemberAddMode_GROUP_MEMBER_ADD_MODE_ADMINS GroupMemberAddMode = 1
+	// Every member (WhatsApp's all_member_add).
+	GroupMemberAddMode_GROUP_MEMBER_ADD_MODE_ALL_MEMBERS GroupMemberAddMode = 2
+)
+
+// Enum value maps for GroupMemberAddMode.
+var (
+	GroupMemberAddMode_name = map[int32]string{
+		0: "GROUP_MEMBER_ADD_MODE_UNSPECIFIED",
+		1: "GROUP_MEMBER_ADD_MODE_ADMINS",
+		2: "GROUP_MEMBER_ADD_MODE_ALL_MEMBERS",
+	}
+	GroupMemberAddMode_value = map[string]int32{
+		"GROUP_MEMBER_ADD_MODE_UNSPECIFIED": 0,
+		"GROUP_MEMBER_ADD_MODE_ADMINS":      1,
+		"GROUP_MEMBER_ADD_MODE_ALL_MEMBERS": 2,
+	}
+)
+
+func (x GroupMemberAddMode) Enum() *GroupMemberAddMode {
+	p := new(GroupMemberAddMode)
+	*p = x
+	return p
+}
+
+func (x GroupMemberAddMode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (GroupMemberAddMode) Descriptor() protoreflect.EnumDescriptor {
+	return file_whatsmeow_v1_group_proto_enumTypes[0].Descriptor()
+}
+
+func (GroupMemberAddMode) Type() protoreflect.EnumType {
+	return &file_whatsmeow_v1_group_proto_enumTypes[0]
+}
+
+func (x GroupMemberAddMode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use GroupMemberAddMode.Descriptor instead.
+func (GroupMemberAddMode) EnumDescriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{0}
+}
 
 // GroupRole is a participant's role.
 type GroupRole int32
@@ -63,11 +117,11 @@ func (x GroupRole) String() string {
 }
 
 func (GroupRole) Descriptor() protoreflect.EnumDescriptor {
-	return file_whatsmeow_v1_group_proto_enumTypes[0].Descriptor()
+	return file_whatsmeow_v1_group_proto_enumTypes[1].Descriptor()
 }
 
 func (GroupRole) Type() protoreflect.EnumType {
-	return &file_whatsmeow_v1_group_proto_enumTypes[0]
+	return &file_whatsmeow_v1_group_proto_enumTypes[1]
 }
 
 func (x GroupRole) Number() protoreflect.EnumNumber {
@@ -76,7 +130,7 @@ func (x GroupRole) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use GroupRole.Descriptor instead.
 func (GroupRole) EnumDescriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{0}
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{1}
 }
 
 // ParticipantAction is a change to participants.
@@ -124,11 +178,11 @@ func (x ParticipantAction) String() string {
 }
 
 func (ParticipantAction) Descriptor() protoreflect.EnumDescriptor {
-	return file_whatsmeow_v1_group_proto_enumTypes[1].Descriptor()
+	return file_whatsmeow_v1_group_proto_enumTypes[2].Descriptor()
 }
 
 func (ParticipantAction) Type() protoreflect.EnumType {
-	return &file_whatsmeow_v1_group_proto_enumTypes[1]
+	return &file_whatsmeow_v1_group_proto_enumTypes[2]
 }
 
 func (x ParticipantAction) Number() protoreflect.EnumNumber {
@@ -137,7 +191,7 @@ func (x ParticipantAction) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ParticipantAction.Descriptor instead.
 func (ParticipantAction) EnumDescriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{1}
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{2}
 }
 
 // Group is one group as WhatsApp answered. An empty field is one WhatsApp did not send.
@@ -160,7 +214,9 @@ type Group struct {
 	// Only admins can change the group's info.
 	Locked bool `protobuf:"varint,8,opt,name=locked,proto3" json:"locked,omitempty"`
 	// The participants, in WhatsApp's order.
-	Participants  []*GroupParticipant `protobuf:"bytes,9,rep,name=participants,proto3" json:"participants,omitempty"`
+	Participants []*GroupParticipant `protobuf:"bytes,9,rep,name=participants,proto3" json:"participants,omitempty"`
+	// Who can add participants; unspecified when WhatsApp did not say, or said a mode this list does not have.
+	MemberAddMode GroupMemberAddMode `protobuf:"varint,10,opt,name=member_add_mode,json=memberAddMode,proto3,enum=whatsmeow.v1.GroupMemberAddMode" json:"member_add_mode,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -256,6 +312,13 @@ func (x *Group) GetParticipants() []*GroupParticipant {
 		return x.Participants
 	}
 	return nil
+}
+
+func (x *Group) GetMemberAddMode() GroupMemberAddMode {
+	if x != nil {
+		return x.MemberAddMode
+	}
+	return GroupMemberAddMode_GROUP_MEMBER_ADD_MODE_UNSPECIFIED
 }
 
 // GroupParticipant is one participant of a group.
@@ -1286,6 +1349,208 @@ func (*SetGroupLockedResponse) Descriptor() ([]byte, []int) {
 	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{19}
 }
 
+// SetGroupMemberAddModeRequest is who can add participants.
+type SetGroupMemberAddModeRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The session id.
+	SessionId string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// The group's JID.
+	Group string `protobuf:"bytes,2,opt,name=group,proto3" json:"group,omitempty"`
+	// The mode; not unspecified.
+	Mode          GroupMemberAddMode `protobuf:"varint,3,opt,name=mode,proto3,enum=whatsmeow.v1.GroupMemberAddMode" json:"mode,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetGroupMemberAddModeRequest) Reset() {
+	*x = SetGroupMemberAddModeRequest{}
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetGroupMemberAddModeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetGroupMemberAddModeRequest) ProtoMessage() {}
+
+func (x *SetGroupMemberAddModeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetGroupMemberAddModeRequest.ProtoReflect.Descriptor instead.
+func (*SetGroupMemberAddModeRequest) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *SetGroupMemberAddModeRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *SetGroupMemberAddModeRequest) GetGroup() string {
+	if x != nil {
+		return x.Group
+	}
+	return ""
+}
+
+func (x *SetGroupMemberAddModeRequest) GetMode() GroupMemberAddMode {
+	if x != nil {
+		return x.Mode
+	}
+	return GroupMemberAddMode_GROUP_MEMBER_ADD_MODE_UNSPECIFIED
+}
+
+// SetGroupMemberAddModeResponse has no fields.
+type SetGroupMemberAddModeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetGroupMemberAddModeResponse) Reset() {
+	*x = SetGroupMemberAddModeResponse{}
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetGroupMemberAddModeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetGroupMemberAddModeResponse) ProtoMessage() {}
+
+func (x *SetGroupMemberAddModeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetGroupMemberAddModeResponse.ProtoReflect.Descriptor instead.
+func (*SetGroupMemberAddModeResponse) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{21}
+}
+
+// SetGroupDisappearingTimerRequest is the group's disappearing messages timer.
+type SetGroupDisappearingTimerRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The session id.
+	SessionId string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// The group's JID.
+	Group string `protobuf:"bytes,2,opt,name=group,proto3" json:"group,omitempty"`
+	// How long new messages last: 24 hours, 7 days or 90 days, or zero to turn disappearing messages off; required.
+	Timer         *durationpb.Duration `protobuf:"bytes,3,opt,name=timer,proto3" json:"timer,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetGroupDisappearingTimerRequest) Reset() {
+	*x = SetGroupDisappearingTimerRequest{}
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetGroupDisappearingTimerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetGroupDisappearingTimerRequest) ProtoMessage() {}
+
+func (x *SetGroupDisappearingTimerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetGroupDisappearingTimerRequest.ProtoReflect.Descriptor instead.
+func (*SetGroupDisappearingTimerRequest) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *SetGroupDisappearingTimerRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *SetGroupDisappearingTimerRequest) GetGroup() string {
+	if x != nil {
+		return x.Group
+	}
+	return ""
+}
+
+func (x *SetGroupDisappearingTimerRequest) GetTimer() *durationpb.Duration {
+	if x != nil {
+		return x.Timer
+	}
+	return nil
+}
+
+// SetGroupDisappearingTimerResponse has no fields.
+type SetGroupDisappearingTimerResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetGroupDisappearingTimerResponse) Reset() {
+	*x = SetGroupDisappearingTimerResponse{}
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetGroupDisappearingTimerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetGroupDisappearingTimerResponse) ProtoMessage() {}
+
+func (x *SetGroupDisappearingTimerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetGroupDisappearingTimerResponse.ProtoReflect.Descriptor instead.
+func (*SetGroupDisappearingTimerResponse) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{23}
+}
+
 // GetInviteLinkRequest names the group.
 type GetInviteLinkRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1299,7 +1564,7 @@ type GetInviteLinkRequest struct {
 
 func (x *GetInviteLinkRequest) Reset() {
 	*x = GetInviteLinkRequest{}
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[20]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1311,7 +1576,7 @@ func (x *GetInviteLinkRequest) String() string {
 func (*GetInviteLinkRequest) ProtoMessage() {}
 
 func (x *GetInviteLinkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[20]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1324,7 +1589,7 @@ func (x *GetInviteLinkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInviteLinkRequest.ProtoReflect.Descriptor instead.
 func (*GetInviteLinkRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{20}
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GetInviteLinkRequest) GetSessionId() string {
@@ -1352,7 +1617,7 @@ type GetInviteLinkResponse struct {
 
 func (x *GetInviteLinkResponse) Reset() {
 	*x = GetInviteLinkResponse{}
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[21]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1364,7 +1629,7 @@ func (x *GetInviteLinkResponse) String() string {
 func (*GetInviteLinkResponse) ProtoMessage() {}
 
 func (x *GetInviteLinkResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[21]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1377,7 +1642,7 @@ func (x *GetInviteLinkResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInviteLinkResponse.ProtoReflect.Descriptor instead.
 func (*GetInviteLinkResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{21}
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *GetInviteLinkResponse) GetLink() string {
@@ -1400,7 +1665,7 @@ type ResetInviteLinkRequest struct {
 
 func (x *ResetInviteLinkRequest) Reset() {
 	*x = ResetInviteLinkRequest{}
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[22]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1412,7 +1677,7 @@ func (x *ResetInviteLinkRequest) String() string {
 func (*ResetInviteLinkRequest) ProtoMessage() {}
 
 func (x *ResetInviteLinkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[22]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1425,7 +1690,7 @@ func (x *ResetInviteLinkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResetInviteLinkRequest.ProtoReflect.Descriptor instead.
 func (*ResetInviteLinkRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{22}
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ResetInviteLinkRequest) GetSessionId() string {
@@ -1453,7 +1718,7 @@ type ResetInviteLinkResponse struct {
 
 func (x *ResetInviteLinkResponse) Reset() {
 	*x = ResetInviteLinkResponse{}
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[23]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1465,7 +1730,7 @@ func (x *ResetInviteLinkResponse) String() string {
 func (*ResetInviteLinkResponse) ProtoMessage() {}
 
 func (x *ResetInviteLinkResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[23]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1478,7 +1743,7 @@ func (x *ResetInviteLinkResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResetInviteLinkResponse.ProtoReflect.Descriptor instead.
 func (*ResetInviteLinkResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{23}
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ResetInviteLinkResponse) GetLink() string {
@@ -1501,7 +1766,7 @@ type JoinGroupWithLinkRequest struct {
 
 func (x *JoinGroupWithLinkRequest) Reset() {
 	*x = JoinGroupWithLinkRequest{}
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[24]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1513,7 +1778,7 @@ func (x *JoinGroupWithLinkRequest) String() string {
 func (*JoinGroupWithLinkRequest) ProtoMessage() {}
 
 func (x *JoinGroupWithLinkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[24]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1526,7 +1791,7 @@ func (x *JoinGroupWithLinkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JoinGroupWithLinkRequest.ProtoReflect.Descriptor instead.
 func (*JoinGroupWithLinkRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{24}
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *JoinGroupWithLinkRequest) GetSessionId() string {
@@ -1554,7 +1819,7 @@ type JoinGroupWithLinkResponse struct {
 
 func (x *JoinGroupWithLinkResponse) Reset() {
 	*x = JoinGroupWithLinkResponse{}
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[25]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1566,7 +1831,7 @@ func (x *JoinGroupWithLinkResponse) String() string {
 func (*JoinGroupWithLinkResponse) ProtoMessage() {}
 
 func (x *JoinGroupWithLinkResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[25]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1579,7 +1844,7 @@ func (x *JoinGroupWithLinkResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JoinGroupWithLinkResponse.ProtoReflect.Descriptor instead.
 func (*JoinGroupWithLinkResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{25}
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *JoinGroupWithLinkResponse) GetGroup() string {
@@ -1587,6 +1852,107 @@ func (x *JoinGroupWithLinkResponse) GetGroup() string {
 		return x.Group
 	}
 	return ""
+}
+
+// GetGroupInfoFromLinkRequest is the invite link.
+type GetGroupInfoFromLinkRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The session id.
+	SessionId string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// The link, or its code alone.
+	Link          string `protobuf:"bytes,2,opt,name=link,proto3" json:"link,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetGroupInfoFromLinkRequest) Reset() {
+	*x = GetGroupInfoFromLinkRequest{}
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetGroupInfoFromLinkRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetGroupInfoFromLinkRequest) ProtoMessage() {}
+
+func (x *GetGroupInfoFromLinkRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetGroupInfoFromLinkRequest.ProtoReflect.Descriptor instead.
+func (*GetGroupInfoFromLinkRequest) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *GetGroupInfoFromLinkRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *GetGroupInfoFromLinkRequest) GetLink() string {
+	if x != nil {
+		return x.Link
+	}
+	return ""
+}
+
+// GetGroupInfoFromLinkResponse is the link's group.
+type GetGroupInfoFromLinkResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The group, as WhatsApp shows it to a non-member.
+	Group         *Group `protobuf:"bytes,1,opt,name=group,proto3" json:"group,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetGroupInfoFromLinkResponse) Reset() {
+	*x = GetGroupInfoFromLinkResponse{}
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetGroupInfoFromLinkResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetGroupInfoFromLinkResponse) ProtoMessage() {}
+
+func (x *GetGroupInfoFromLinkResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetGroupInfoFromLinkResponse.ProtoReflect.Descriptor instead.
+func (*GetGroupInfoFromLinkResponse) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *GetGroupInfoFromLinkResponse) GetGroup() *Group {
+	if x != nil {
+		return x.Group
+	}
+	return nil
 }
 
 // LeaveGroupRequest names the group.
@@ -1602,7 +1968,7 @@ type LeaveGroupRequest struct {
 
 func (x *LeaveGroupRequest) Reset() {
 	*x = LeaveGroupRequest{}
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[26]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1614,7 +1980,7 @@ func (x *LeaveGroupRequest) String() string {
 func (*LeaveGroupRequest) ProtoMessage() {}
 
 func (x *LeaveGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[26]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1627,7 +1993,7 @@ func (x *LeaveGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LeaveGroupRequest.ProtoReflect.Descriptor instead.
 func (*LeaveGroupRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{26}
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *LeaveGroupRequest) GetSessionId() string {
@@ -1653,7 +2019,7 @@ type LeaveGroupResponse struct {
 
 func (x *LeaveGroupResponse) Reset() {
 	*x = LeaveGroupResponse{}
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[27]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1665,7 +2031,7 @@ func (x *LeaveGroupResponse) String() string {
 func (*LeaveGroupResponse) ProtoMessage() {}
 
 func (x *LeaveGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[27]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1678,7 +2044,7 @@ func (x *LeaveGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LeaveGroupResponse.ProtoReflect.Descriptor instead.
 func (*LeaveGroupResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{27}
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{33}
 }
 
 // GroupEvent is a group notification WhatsApp sent the session: a change to a group it is in, or its joining one.
@@ -1710,7 +2076,7 @@ type GroupEvent struct {
 
 func (x *GroupEvent) Reset() {
 	*x = GroupEvent{}
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[28]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1722,7 +2088,7 @@ func (x *GroupEvent) String() string {
 func (*GroupEvent) ProtoMessage() {}
 
 func (x *GroupEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[28]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1735,7 +2101,7 @@ func (x *GroupEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupEvent.ProtoReflect.Descriptor instead.
 func (*GroupEvent) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{28}
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *GroupEvent) GetGroup() string {
@@ -1824,6 +2190,8 @@ type GroupChange struct {
 	//	*GroupChange_Left
 	//	*GroupChange_Promoted
 	//	*GroupChange_Demoted
+	//	*GroupChange_MemberAddModeChanged_
+	//	*GroupChange_DisappearingTimerChanged_
 	Change        isGroupChange_Change `protobuf_oneof:"change"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1831,7 +2199,7 @@ type GroupChange struct {
 
 func (x *GroupChange) Reset() {
 	*x = GroupChange{}
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[29]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1843,7 +2211,7 @@ func (x *GroupChange) String() string {
 func (*GroupChange) ProtoMessage() {}
 
 func (x *GroupChange) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[29]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1856,7 +2224,7 @@ func (x *GroupChange) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupChange.ProtoReflect.Descriptor instead.
 func (*GroupChange) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{29}
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *GroupChange) GetChange() isGroupChange_Change {
@@ -1938,6 +2306,24 @@ func (x *GroupChange) GetDemoted() *GroupChange_Participants {
 	return nil
 }
 
+func (x *GroupChange) GetMemberAddModeChanged() *GroupChange_MemberAddModeChanged {
+	if x != nil {
+		if x, ok := x.Change.(*GroupChange_MemberAddModeChanged_); ok {
+			return x.MemberAddModeChanged
+		}
+	}
+	return nil
+}
+
+func (x *GroupChange) GetDisappearingTimerChanged() *GroupChange_DisappearingTimerChanged {
+	if x != nil {
+		if x, ok := x.Change.(*GroupChange_DisappearingTimerChanged_); ok {
+			return x.DisappearingTimerChanged
+		}
+	}
+	return nil
+}
+
 type isGroupChange_Change interface {
 	isGroupChange_Change()
 }
@@ -1982,6 +2368,16 @@ type GroupChange_Demoted struct {
 	Demoted *GroupChange_Participants `protobuf:"bytes,8,opt,name=demoted,proto3,oneof"`
 }
 
+type GroupChange_MemberAddModeChanged_ struct {
+	// See MemberAddModeChanged.
+	MemberAddModeChanged *GroupChange_MemberAddModeChanged `protobuf:"bytes,9,opt,name=member_add_mode_changed,json=memberAddModeChanged,proto3,oneof"`
+}
+
+type GroupChange_DisappearingTimerChanged_ struct {
+	// See DisappearingTimerChanged.
+	DisappearingTimerChanged *GroupChange_DisappearingTimerChanged `protobuf:"bytes,10,opt,name=disappearing_timer_changed,json=disappearingTimerChanged,proto3,oneof"`
+}
+
 func (*GroupChange_Renamed_) isGroupChange_Change() {}
 
 func (*GroupChange_TopicChanged_) isGroupChange_Change() {}
@@ -1998,12 +2394,16 @@ func (*GroupChange_Promoted) isGroupChange_Change() {}
 
 func (*GroupChange_Demoted) isGroupChange_Change() {}
 
+func (*GroupChange_MemberAddModeChanged_) isGroupChange_Change() {}
+
+func (*GroupChange_DisappearingTimerChanged_) isGroupChange_Change() {}
+
 // A change to the group.
 type GroupEvent_Changed struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// What changed, never empty: renamed, topic, announce, locked, joined, left, promoted, demoted, each at most once
-	// and in that order. A participant in these lists is addressed as in the group's participants; the store learned
-	// their other form with the notification (ResolveJids).
+	// What changed, never empty: renamed, topic, announce, locked, member add mode, disappearing timer, joined, left,
+	// promoted, demoted, each at most once and in that order. A participant in these lists is addressed as in the
+	// group's participants; the store learned their other form with the notification (ResolveJids).
 	Changes       []*GroupChange `protobuf:"bytes,1,rep,name=changes,proto3" json:"changes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2011,7 +2411,7 @@ type GroupEvent_Changed struct {
 
 func (x *GroupEvent_Changed) Reset() {
 	*x = GroupEvent_Changed{}
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[30]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2023,7 +2423,7 @@ func (x *GroupEvent_Changed) String() string {
 func (*GroupEvent_Changed) ProtoMessage() {}
 
 func (x *GroupEvent_Changed) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[30]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2036,7 +2436,7 @@ func (x *GroupEvent_Changed) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupEvent_Changed.ProtoReflect.Descriptor instead.
 func (*GroupEvent_Changed) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{28, 0}
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{34, 0}
 }
 
 func (x *GroupEvent_Changed) GetChanges() []*GroupChange {
@@ -2057,7 +2457,7 @@ type GroupEvent_Joined struct {
 
 func (x *GroupEvent_Joined) Reset() {
 	*x = GroupEvent_Joined{}
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[31]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2069,7 +2469,7 @@ func (x *GroupEvent_Joined) String() string {
 func (*GroupEvent_Joined) ProtoMessage() {}
 
 func (x *GroupEvent_Joined) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[31]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2082,7 +2482,7 @@ func (x *GroupEvent_Joined) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupEvent_Joined.ProtoReflect.Descriptor instead.
 func (*GroupEvent_Joined) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{28, 1}
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{34, 1}
 }
 
 func (x *GroupEvent_Joined) GetGroup() *Group {
@@ -2103,7 +2503,7 @@ type GroupChange_Renamed struct {
 
 func (x *GroupChange_Renamed) Reset() {
 	*x = GroupChange_Renamed{}
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[32]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2115,7 +2515,7 @@ func (x *GroupChange_Renamed) String() string {
 func (*GroupChange_Renamed) ProtoMessage() {}
 
 func (x *GroupChange_Renamed) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[32]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2128,7 +2528,7 @@ func (x *GroupChange_Renamed) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupChange_Renamed.ProtoReflect.Descriptor instead.
 func (*GroupChange_Renamed) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{29, 0}
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{35, 0}
 }
 
 func (x *GroupChange_Renamed) GetName() string {
@@ -2149,7 +2549,7 @@ type GroupChange_TopicChanged struct {
 
 func (x *GroupChange_TopicChanged) Reset() {
 	*x = GroupChange_TopicChanged{}
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[33]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2161,7 +2561,7 @@ func (x *GroupChange_TopicChanged) String() string {
 func (*GroupChange_TopicChanged) ProtoMessage() {}
 
 func (x *GroupChange_TopicChanged) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[33]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2174,7 +2574,7 @@ func (x *GroupChange_TopicChanged) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupChange_TopicChanged.ProtoReflect.Descriptor instead.
 func (*GroupChange_TopicChanged) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{29, 1}
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{35, 1}
 }
 
 func (x *GroupChange_TopicChanged) GetTopic() string {
@@ -2195,7 +2595,7 @@ type GroupChange_AnnounceChanged struct {
 
 func (x *GroupChange_AnnounceChanged) Reset() {
 	*x = GroupChange_AnnounceChanged{}
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[34]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2207,7 +2607,7 @@ func (x *GroupChange_AnnounceChanged) String() string {
 func (*GroupChange_AnnounceChanged) ProtoMessage() {}
 
 func (x *GroupChange_AnnounceChanged) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[34]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2220,7 +2620,7 @@ func (x *GroupChange_AnnounceChanged) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupChange_AnnounceChanged.ProtoReflect.Descriptor instead.
 func (*GroupChange_AnnounceChanged) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{29, 2}
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{35, 2}
 }
 
 func (x *GroupChange_AnnounceChanged) GetAnnounce() bool {
@@ -2241,7 +2641,7 @@ type GroupChange_LockedChanged struct {
 
 func (x *GroupChange_LockedChanged) Reset() {
 	*x = GroupChange_LockedChanged{}
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[35]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2253,7 +2653,7 @@ func (x *GroupChange_LockedChanged) String() string {
 func (*GroupChange_LockedChanged) ProtoMessage() {}
 
 func (x *GroupChange_LockedChanged) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[35]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2266,7 +2666,7 @@ func (x *GroupChange_LockedChanged) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupChange_LockedChanged.ProtoReflect.Descriptor instead.
 func (*GroupChange_LockedChanged) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{29, 3}
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{35, 3}
 }
 
 func (x *GroupChange_LockedChanged) GetLocked() bool {
@@ -2274,6 +2674,98 @@ func (x *GroupChange_LockedChanged) GetLocked() bool {
 		return x.Locked
 	}
 	return false
+}
+
+// Who can add participants changed.
+type GroupChange_MemberAddModeChanged struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The new mode, never unspecified.
+	Mode          GroupMemberAddMode `protobuf:"varint,1,opt,name=mode,proto3,enum=whatsmeow.v1.GroupMemberAddMode" json:"mode,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GroupChange_MemberAddModeChanged) Reset() {
+	*x = GroupChange_MemberAddModeChanged{}
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GroupChange_MemberAddModeChanged) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GroupChange_MemberAddModeChanged) ProtoMessage() {}
+
+func (x *GroupChange_MemberAddModeChanged) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GroupChange_MemberAddModeChanged.ProtoReflect.Descriptor instead.
+func (*GroupChange_MemberAddModeChanged) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{35, 4}
+}
+
+func (x *GroupChange_MemberAddModeChanged) GetMode() GroupMemberAddMode {
+	if x != nil {
+		return x.Mode
+	}
+	return GroupMemberAddMode_GROUP_MEMBER_ADD_MODE_UNSPECIFIED
+}
+
+// The disappearing messages timer changed.
+type GroupChange_DisappearingTimerChanged struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// How long new messages last; zero when disappearing messages were turned off.
+	Timer         *durationpb.Duration `protobuf:"bytes,1,opt,name=timer,proto3" json:"timer,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GroupChange_DisappearingTimerChanged) Reset() {
+	*x = GroupChange_DisappearingTimerChanged{}
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GroupChange_DisappearingTimerChanged) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GroupChange_DisappearingTimerChanged) ProtoMessage() {}
+
+func (x *GroupChange_DisappearingTimerChanged) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GroupChange_DisappearingTimerChanged.ProtoReflect.Descriptor instead.
+func (*GroupChange_DisappearingTimerChanged) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{35, 5}
+}
+
+func (x *GroupChange_DisappearingTimerChanged) GetTimer() *durationpb.Duration {
+	if x != nil {
+		return x.Timer
+	}
+	return nil
 }
 
 // Users whose membership or role changed.
@@ -2287,7 +2779,7 @@ type GroupChange_Participants struct {
 
 func (x *GroupChange_Participants) Reset() {
 	*x = GroupChange_Participants{}
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[36]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2299,7 +2791,7 @@ func (x *GroupChange_Participants) String() string {
 func (*GroupChange_Participants) ProtoMessage() {}
 
 func (x *GroupChange_Participants) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_group_proto_msgTypes[36]
+	mi := &file_whatsmeow_v1_group_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2312,7 +2804,7 @@ func (x *GroupChange_Participants) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupChange_Participants.ProtoReflect.Descriptor instead.
 func (*GroupChange_Participants) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{29, 4}
+	return file_whatsmeow_v1_group_proto_rawDescGZIP(), []int{35, 6}
 }
 
 func (x *GroupChange_Participants) GetJids() []string {
@@ -2326,7 +2818,7 @@ var File_whatsmeow_v1_group_proto protoreflect.FileDescriptor
 
 const file_whatsmeow_v1_group_proto_rawDesc = "" +
 	"\n" +
-	"\x18whatsmeow/v1/group.proto\x12\fwhatsmeow.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xab\x02\n" +
+	"\x18whatsmeow/v1/group.proto\x12\fwhatsmeow.v1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf5\x02\n" +
 	"\x05Group\x12\x10\n" +
 	"\x03jid\x18\x01 \x01(\tR\x03jid\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
@@ -2337,7 +2829,9 @@ const file_whatsmeow_v1_group_proto_rawDesc = "" +
 	"createTime\x12\x1a\n" +
 	"\bannounce\x18\a \x01(\bR\bannounce\x12\x16\n" +
 	"\x06locked\x18\b \x01(\bR\x06locked\x12B\n" +
-	"\fparticipants\x18\t \x03(\v2\x1e.whatsmeow.v1.GroupParticipantR\fparticipants\"j\n" +
+	"\fparticipants\x18\t \x03(\v2\x1e.whatsmeow.v1.GroupParticipantR\fparticipants\x12H\n" +
+	"\x0fmember_add_mode\x18\n" +
+	" \x01(\x0e2 .whatsmeow.v1.GroupMemberAddModeR\rmemberAddMode\"j\n" +
 	"\x10GroupParticipant\x12\x10\n" +
 	"\x03jid\x18\x01 \x01(\tR\x03jid\x12\x17\n" +
 	"\ajid_alt\x18\x02 \x01(\tR\x06jidAlt\x12+\n" +
@@ -2402,7 +2896,19 @@ const file_whatsmeow_v1_group_proto_rawDesc = "" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
 	"\x05group\x18\x02 \x01(\tR\x05group\x12\x16\n" +
 	"\x06locked\x18\x03 \x01(\bR\x06locked\"\x18\n" +
-	"\x16SetGroupLockedResponse\"K\n" +
+	"\x16SetGroupLockedResponse\"\x89\x01\n" +
+	"\x1cSetGroupMemberAddModeRequest\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
+	"\x05group\x18\x02 \x01(\tR\x05group\x124\n" +
+	"\x04mode\x18\x03 \x01(\x0e2 .whatsmeow.v1.GroupMemberAddModeR\x04mode\"\x1f\n" +
+	"\x1dSetGroupMemberAddModeResponse\"\x88\x01\n" +
+	" SetGroupDisappearingTimerRequest\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
+	"\x05group\x18\x02 \x01(\tR\x05group\x12/\n" +
+	"\x05timer\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\x05timer\"#\n" +
+	"!SetGroupDisappearingTimerResponse\"K\n" +
 	"\x14GetInviteLinkRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
@@ -2420,7 +2926,13 @@ const file_whatsmeow_v1_group_proto_rawDesc = "" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x12\n" +
 	"\x04link\x18\x02 \x01(\tR\x04link\"1\n" +
 	"\x19JoinGroupWithLinkResponse\x12\x14\n" +
-	"\x05group\x18\x01 \x01(\tR\x05group\"H\n" +
+	"\x05group\x18\x01 \x01(\tR\x05group\"P\n" +
+	"\x1bGetGroupInfoFromLinkRequest\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x12\n" +
+	"\x04link\x18\x02 \x01(\tR\x04link\"I\n" +
+	"\x1cGetGroupInfoFromLinkResponse\x12)\n" +
+	"\x05group\x18\x01 \x01(\v2\x13.whatsmeow.v1.GroupR\x05group\"H\n" +
 	"\x11LeaveGroupRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
@@ -2439,7 +2951,7 @@ const file_whatsmeow_v1_group_proto_rawDesc = "" +
 	"\achanges\x18\x01 \x03(\v2\x19.whatsmeow.v1.GroupChangeR\achanges\x1a3\n" +
 	"\x06Joined\x12)\n" +
 	"\x05group\x18\x01 \x01(\v2\x13.whatsmeow.v1.GroupR\x05groupB\x06\n" +
-	"\x04kind\"\x9a\x06\n" +
+	"\x04kind\"\x92\t\n" +
 	"\vGroupChange\x12=\n" +
 	"\arenamed\x18\x01 \x01(\v2!.whatsmeow.v1.GroupChange.RenamedH\x00R\arenamed\x12M\n" +
 	"\rtopic_changed\x18\x02 \x01(\v2&.whatsmeow.v1.GroupChange.TopicChangedH\x00R\ftopicChanged\x12V\n" +
@@ -2448,7 +2960,10 @@ const file_whatsmeow_v1_group_proto_rawDesc = "" +
 	"\x06joined\x18\x05 \x01(\v2&.whatsmeow.v1.GroupChange.ParticipantsH\x00R\x06joined\x12<\n" +
 	"\x04left\x18\x06 \x01(\v2&.whatsmeow.v1.GroupChange.ParticipantsH\x00R\x04left\x12D\n" +
 	"\bpromoted\x18\a \x01(\v2&.whatsmeow.v1.GroupChange.ParticipantsH\x00R\bpromoted\x12B\n" +
-	"\ademoted\x18\b \x01(\v2&.whatsmeow.v1.GroupChange.ParticipantsH\x00R\ademoted\x1a\x1d\n" +
+	"\ademoted\x18\b \x01(\v2&.whatsmeow.v1.GroupChange.ParticipantsH\x00R\ademoted\x12g\n" +
+	"\x17member_add_mode_changed\x18\t \x01(\v2..whatsmeow.v1.GroupChange.MemberAddModeChangedH\x00R\x14memberAddModeChanged\x12r\n" +
+	"\x1adisappearing_timer_changed\x18\n" +
+	" \x01(\v22.whatsmeow.v1.GroupChange.DisappearingTimerChangedH\x00R\x18disappearingTimerChanged\x1a\x1d\n" +
 	"\aRenamed\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x1a$\n" +
 	"\fTopicChanged\x12\x14\n" +
@@ -2456,10 +2971,18 @@ const file_whatsmeow_v1_group_proto_rawDesc = "" +
 	"\x0fAnnounceChanged\x12\x1a\n" +
 	"\bannounce\x18\x01 \x01(\bR\bannounce\x1a'\n" +
 	"\rLockedChanged\x12\x16\n" +
-	"\x06locked\x18\x01 \x01(\bR\x06locked\x1a\"\n" +
+	"\x06locked\x18\x01 \x01(\bR\x06locked\x1aL\n" +
+	"\x14MemberAddModeChanged\x124\n" +
+	"\x04mode\x18\x01 \x01(\x0e2 .whatsmeow.v1.GroupMemberAddModeR\x04mode\x1aK\n" +
+	"\x18DisappearingTimerChanged\x12/\n" +
+	"\x05timer\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\x05timer\x1a\"\n" +
 	"\fParticipants\x12\x12\n" +
 	"\x04jids\x18\x01 \x03(\tR\x04jidsB\b\n" +
-	"\x06change*p\n" +
+	"\x06change*\x84\x01\n" +
+	"\x12GroupMemberAddMode\x12%\n" +
+	"!GROUP_MEMBER_ADD_MODE_UNSPECIFIED\x10\x00\x12 \n" +
+	"\x1cGROUP_MEMBER_ADD_MODE_ADMINS\x10\x01\x12%\n" +
+	"!GROUP_MEMBER_ADD_MODE_ALL_MEMBERS\x10\x02*p\n" +
 	"\tGroupRole\x12\x1a\n" +
 	"\x16GROUP_ROLE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11GROUP_ROLE_MEMBER\x10\x01\x12\x14\n" +
@@ -2470,7 +2993,7 @@ const file_whatsmeow_v1_group_proto_rawDesc = "" +
 	"\x16PARTICIPANT_ACTION_ADD\x10\x01\x12\x1d\n" +
 	"\x19PARTICIPANT_ACTION_REMOVE\x10\x02\x12\x1e\n" +
 	"\x1aPARTICIPANT_ACTION_PROMOTE\x10\x03\x12\x1d\n" +
-	"\x19PARTICIPANT_ACTION_DEMOTE\x10\x042\xc9\b\n" +
+	"\x19PARTICIPANT_ACTION_DEMOTE\x10\x042\xa8\v\n" +
 	"\fGroupService\x12O\n" +
 	"\n" +
 	"ListGroups\x12\x1f.whatsmeow.v1.ListGroupsRequest\x1a .whatsmeow.v1.ListGroupsResponse\x12I\n" +
@@ -2480,10 +3003,13 @@ const file_whatsmeow_v1_group_proto_rawDesc = "" +
 	"\fSetGroupName\x12!.whatsmeow.v1.SetGroupNameRequest\x1a\".whatsmeow.v1.SetGroupNameResponse\x12X\n" +
 	"\rSetGroupTopic\x12\".whatsmeow.v1.SetGroupTopicRequest\x1a#.whatsmeow.v1.SetGroupTopicResponse\x12a\n" +
 	"\x10SetGroupAnnounce\x12%.whatsmeow.v1.SetGroupAnnounceRequest\x1a&.whatsmeow.v1.SetGroupAnnounceResponse\x12[\n" +
-	"\x0eSetGroupLocked\x12#.whatsmeow.v1.SetGroupLockedRequest\x1a$.whatsmeow.v1.SetGroupLockedResponse\x12X\n" +
+	"\x0eSetGroupLocked\x12#.whatsmeow.v1.SetGroupLockedRequest\x1a$.whatsmeow.v1.SetGroupLockedResponse\x12p\n" +
+	"\x15SetGroupMemberAddMode\x12*.whatsmeow.v1.SetGroupMemberAddModeRequest\x1a+.whatsmeow.v1.SetGroupMemberAddModeResponse\x12|\n" +
+	"\x19SetGroupDisappearingTimer\x12..whatsmeow.v1.SetGroupDisappearingTimerRequest\x1a/.whatsmeow.v1.SetGroupDisappearingTimerResponse\x12X\n" +
 	"\rGetInviteLink\x12\".whatsmeow.v1.GetInviteLinkRequest\x1a#.whatsmeow.v1.GetInviteLinkResponse\x12^\n" +
 	"\x0fResetInviteLink\x12$.whatsmeow.v1.ResetInviteLinkRequest\x1a%.whatsmeow.v1.ResetInviteLinkResponse\x12d\n" +
-	"\x11JoinGroupWithLink\x12&.whatsmeow.v1.JoinGroupWithLinkRequest\x1a'.whatsmeow.v1.JoinGroupWithLinkResponse\x12O\n" +
+	"\x11JoinGroupWithLink\x12&.whatsmeow.v1.JoinGroupWithLinkRequest\x1a'.whatsmeow.v1.JoinGroupWithLinkResponse\x12m\n" +
+	"\x14GetGroupInfoFromLink\x12).whatsmeow.v1.GetGroupInfoFromLinkRequest\x1a*.whatsmeow.v1.GetGroupInfoFromLinkResponse\x12O\n" +
 	"\n" +
 	"LeaveGroup\x12\x1f.whatsmeow.v1.LeaveGroupRequest\x1a .whatsmeow.v1.LeaveGroupResponseB\xc0\x01\n" +
 	"\x10com.whatsmeow.v1B\n" +
@@ -2501,104 +3027,128 @@ func file_whatsmeow_v1_group_proto_rawDescGZIP() []byte {
 	return file_whatsmeow_v1_group_proto_rawDescData
 }
 
-var file_whatsmeow_v1_group_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_whatsmeow_v1_group_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
+var file_whatsmeow_v1_group_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_whatsmeow_v1_group_proto_msgTypes = make([]protoimpl.MessageInfo, 45)
 var file_whatsmeow_v1_group_proto_goTypes = []any{
-	(GroupRole)(0),                      // 0: whatsmeow.v1.GroupRole
-	(ParticipantAction)(0),              // 1: whatsmeow.v1.ParticipantAction
-	(*Group)(nil),                       // 2: whatsmeow.v1.Group
-	(*GroupParticipant)(nil),            // 3: whatsmeow.v1.GroupParticipant
-	(*ParticipantResult)(nil),           // 4: whatsmeow.v1.ParticipantResult
-	(*AddInvite)(nil),                   // 5: whatsmeow.v1.AddInvite
-	(*ListGroupsRequest)(nil),           // 6: whatsmeow.v1.ListGroupsRequest
-	(*ListGroupsResponse)(nil),          // 7: whatsmeow.v1.ListGroupsResponse
-	(*GetGroupRequest)(nil),             // 8: whatsmeow.v1.GetGroupRequest
-	(*GetGroupResponse)(nil),            // 9: whatsmeow.v1.GetGroupResponse
-	(*CreateGroupRequest)(nil),          // 10: whatsmeow.v1.CreateGroupRequest
-	(*CreateGroupResponse)(nil),         // 11: whatsmeow.v1.CreateGroupResponse
-	(*UpdateParticipantsRequest)(nil),   // 12: whatsmeow.v1.UpdateParticipantsRequest
-	(*UpdateParticipantsResponse)(nil),  // 13: whatsmeow.v1.UpdateParticipantsResponse
-	(*SetGroupNameRequest)(nil),         // 14: whatsmeow.v1.SetGroupNameRequest
-	(*SetGroupNameResponse)(nil),        // 15: whatsmeow.v1.SetGroupNameResponse
-	(*SetGroupTopicRequest)(nil),        // 16: whatsmeow.v1.SetGroupTopicRequest
-	(*SetGroupTopicResponse)(nil),       // 17: whatsmeow.v1.SetGroupTopicResponse
-	(*SetGroupAnnounceRequest)(nil),     // 18: whatsmeow.v1.SetGroupAnnounceRequest
-	(*SetGroupAnnounceResponse)(nil),    // 19: whatsmeow.v1.SetGroupAnnounceResponse
-	(*SetGroupLockedRequest)(nil),       // 20: whatsmeow.v1.SetGroupLockedRequest
-	(*SetGroupLockedResponse)(nil),      // 21: whatsmeow.v1.SetGroupLockedResponse
-	(*GetInviteLinkRequest)(nil),        // 22: whatsmeow.v1.GetInviteLinkRequest
-	(*GetInviteLinkResponse)(nil),       // 23: whatsmeow.v1.GetInviteLinkResponse
-	(*ResetInviteLinkRequest)(nil),      // 24: whatsmeow.v1.ResetInviteLinkRequest
-	(*ResetInviteLinkResponse)(nil),     // 25: whatsmeow.v1.ResetInviteLinkResponse
-	(*JoinGroupWithLinkRequest)(nil),    // 26: whatsmeow.v1.JoinGroupWithLinkRequest
-	(*JoinGroupWithLinkResponse)(nil),   // 27: whatsmeow.v1.JoinGroupWithLinkResponse
-	(*LeaveGroupRequest)(nil),           // 28: whatsmeow.v1.LeaveGroupRequest
-	(*LeaveGroupResponse)(nil),          // 29: whatsmeow.v1.LeaveGroupResponse
-	(*GroupEvent)(nil),                  // 30: whatsmeow.v1.GroupEvent
-	(*GroupChange)(nil),                 // 31: whatsmeow.v1.GroupChange
-	(*GroupEvent_Changed)(nil),          // 32: whatsmeow.v1.GroupEvent.Changed
-	(*GroupEvent_Joined)(nil),           // 33: whatsmeow.v1.GroupEvent.Joined
-	(*GroupChange_Renamed)(nil),         // 34: whatsmeow.v1.GroupChange.Renamed
-	(*GroupChange_TopicChanged)(nil),    // 35: whatsmeow.v1.GroupChange.TopicChanged
-	(*GroupChange_AnnounceChanged)(nil), // 36: whatsmeow.v1.GroupChange.AnnounceChanged
-	(*GroupChange_LockedChanged)(nil),   // 37: whatsmeow.v1.GroupChange.LockedChanged
-	(*GroupChange_Participants)(nil),    // 38: whatsmeow.v1.GroupChange.Participants
-	(*timestamppb.Timestamp)(nil),       // 39: google.protobuf.Timestamp
+	(GroupMemberAddMode)(0),                      // 0: whatsmeow.v1.GroupMemberAddMode
+	(GroupRole)(0),                               // 1: whatsmeow.v1.GroupRole
+	(ParticipantAction)(0),                       // 2: whatsmeow.v1.ParticipantAction
+	(*Group)(nil),                                // 3: whatsmeow.v1.Group
+	(*GroupParticipant)(nil),                     // 4: whatsmeow.v1.GroupParticipant
+	(*ParticipantResult)(nil),                    // 5: whatsmeow.v1.ParticipantResult
+	(*AddInvite)(nil),                            // 6: whatsmeow.v1.AddInvite
+	(*ListGroupsRequest)(nil),                    // 7: whatsmeow.v1.ListGroupsRequest
+	(*ListGroupsResponse)(nil),                   // 8: whatsmeow.v1.ListGroupsResponse
+	(*GetGroupRequest)(nil),                      // 9: whatsmeow.v1.GetGroupRequest
+	(*GetGroupResponse)(nil),                     // 10: whatsmeow.v1.GetGroupResponse
+	(*CreateGroupRequest)(nil),                   // 11: whatsmeow.v1.CreateGroupRequest
+	(*CreateGroupResponse)(nil),                  // 12: whatsmeow.v1.CreateGroupResponse
+	(*UpdateParticipantsRequest)(nil),            // 13: whatsmeow.v1.UpdateParticipantsRequest
+	(*UpdateParticipantsResponse)(nil),           // 14: whatsmeow.v1.UpdateParticipantsResponse
+	(*SetGroupNameRequest)(nil),                  // 15: whatsmeow.v1.SetGroupNameRequest
+	(*SetGroupNameResponse)(nil),                 // 16: whatsmeow.v1.SetGroupNameResponse
+	(*SetGroupTopicRequest)(nil),                 // 17: whatsmeow.v1.SetGroupTopicRequest
+	(*SetGroupTopicResponse)(nil),                // 18: whatsmeow.v1.SetGroupTopicResponse
+	(*SetGroupAnnounceRequest)(nil),              // 19: whatsmeow.v1.SetGroupAnnounceRequest
+	(*SetGroupAnnounceResponse)(nil),             // 20: whatsmeow.v1.SetGroupAnnounceResponse
+	(*SetGroupLockedRequest)(nil),                // 21: whatsmeow.v1.SetGroupLockedRequest
+	(*SetGroupLockedResponse)(nil),               // 22: whatsmeow.v1.SetGroupLockedResponse
+	(*SetGroupMemberAddModeRequest)(nil),         // 23: whatsmeow.v1.SetGroupMemberAddModeRequest
+	(*SetGroupMemberAddModeResponse)(nil),        // 24: whatsmeow.v1.SetGroupMemberAddModeResponse
+	(*SetGroupDisappearingTimerRequest)(nil),     // 25: whatsmeow.v1.SetGroupDisappearingTimerRequest
+	(*SetGroupDisappearingTimerResponse)(nil),    // 26: whatsmeow.v1.SetGroupDisappearingTimerResponse
+	(*GetInviteLinkRequest)(nil),                 // 27: whatsmeow.v1.GetInviteLinkRequest
+	(*GetInviteLinkResponse)(nil),                // 28: whatsmeow.v1.GetInviteLinkResponse
+	(*ResetInviteLinkRequest)(nil),               // 29: whatsmeow.v1.ResetInviteLinkRequest
+	(*ResetInviteLinkResponse)(nil),              // 30: whatsmeow.v1.ResetInviteLinkResponse
+	(*JoinGroupWithLinkRequest)(nil),             // 31: whatsmeow.v1.JoinGroupWithLinkRequest
+	(*JoinGroupWithLinkResponse)(nil),            // 32: whatsmeow.v1.JoinGroupWithLinkResponse
+	(*GetGroupInfoFromLinkRequest)(nil),          // 33: whatsmeow.v1.GetGroupInfoFromLinkRequest
+	(*GetGroupInfoFromLinkResponse)(nil),         // 34: whatsmeow.v1.GetGroupInfoFromLinkResponse
+	(*LeaveGroupRequest)(nil),                    // 35: whatsmeow.v1.LeaveGroupRequest
+	(*LeaveGroupResponse)(nil),                   // 36: whatsmeow.v1.LeaveGroupResponse
+	(*GroupEvent)(nil),                           // 37: whatsmeow.v1.GroupEvent
+	(*GroupChange)(nil),                          // 38: whatsmeow.v1.GroupChange
+	(*GroupEvent_Changed)(nil),                   // 39: whatsmeow.v1.GroupEvent.Changed
+	(*GroupEvent_Joined)(nil),                    // 40: whatsmeow.v1.GroupEvent.Joined
+	(*GroupChange_Renamed)(nil),                  // 41: whatsmeow.v1.GroupChange.Renamed
+	(*GroupChange_TopicChanged)(nil),             // 42: whatsmeow.v1.GroupChange.TopicChanged
+	(*GroupChange_AnnounceChanged)(nil),          // 43: whatsmeow.v1.GroupChange.AnnounceChanged
+	(*GroupChange_LockedChanged)(nil),            // 44: whatsmeow.v1.GroupChange.LockedChanged
+	(*GroupChange_MemberAddModeChanged)(nil),     // 45: whatsmeow.v1.GroupChange.MemberAddModeChanged
+	(*GroupChange_DisappearingTimerChanged)(nil), // 46: whatsmeow.v1.GroupChange.DisappearingTimerChanged
+	(*GroupChange_Participants)(nil),             // 47: whatsmeow.v1.GroupChange.Participants
+	(*timestamppb.Timestamp)(nil),                // 48: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),                  // 49: google.protobuf.Duration
 }
 var file_whatsmeow_v1_group_proto_depIdxs = []int32{
-	39, // 0: whatsmeow.v1.Group.create_time:type_name -> google.protobuf.Timestamp
-	3,  // 1: whatsmeow.v1.Group.participants:type_name -> whatsmeow.v1.GroupParticipant
-	0,  // 2: whatsmeow.v1.GroupParticipant.role:type_name -> whatsmeow.v1.GroupRole
-	5,  // 3: whatsmeow.v1.ParticipantResult.invite:type_name -> whatsmeow.v1.AddInvite
-	39, // 4: whatsmeow.v1.AddInvite.expire_time:type_name -> google.protobuf.Timestamp
-	2,  // 5: whatsmeow.v1.ListGroupsResponse.groups:type_name -> whatsmeow.v1.Group
-	2,  // 6: whatsmeow.v1.GetGroupResponse.group:type_name -> whatsmeow.v1.Group
-	2,  // 7: whatsmeow.v1.CreateGroupResponse.group:type_name -> whatsmeow.v1.Group
-	4,  // 8: whatsmeow.v1.CreateGroupResponse.participants:type_name -> whatsmeow.v1.ParticipantResult
-	1,  // 9: whatsmeow.v1.UpdateParticipantsRequest.action:type_name -> whatsmeow.v1.ParticipantAction
-	4,  // 10: whatsmeow.v1.UpdateParticipantsResponse.participants:type_name -> whatsmeow.v1.ParticipantResult
-	39, // 11: whatsmeow.v1.GroupEvent.time:type_name -> google.protobuf.Timestamp
-	32, // 12: whatsmeow.v1.GroupEvent.changed:type_name -> whatsmeow.v1.GroupEvent.Changed
-	33, // 13: whatsmeow.v1.GroupEvent.joined:type_name -> whatsmeow.v1.GroupEvent.Joined
-	34, // 14: whatsmeow.v1.GroupChange.renamed:type_name -> whatsmeow.v1.GroupChange.Renamed
-	35, // 15: whatsmeow.v1.GroupChange.topic_changed:type_name -> whatsmeow.v1.GroupChange.TopicChanged
-	36, // 16: whatsmeow.v1.GroupChange.announce_changed:type_name -> whatsmeow.v1.GroupChange.AnnounceChanged
-	37, // 17: whatsmeow.v1.GroupChange.locked_changed:type_name -> whatsmeow.v1.GroupChange.LockedChanged
-	38, // 18: whatsmeow.v1.GroupChange.joined:type_name -> whatsmeow.v1.GroupChange.Participants
-	38, // 19: whatsmeow.v1.GroupChange.left:type_name -> whatsmeow.v1.GroupChange.Participants
-	38, // 20: whatsmeow.v1.GroupChange.promoted:type_name -> whatsmeow.v1.GroupChange.Participants
-	38, // 21: whatsmeow.v1.GroupChange.demoted:type_name -> whatsmeow.v1.GroupChange.Participants
-	31, // 22: whatsmeow.v1.GroupEvent.Changed.changes:type_name -> whatsmeow.v1.GroupChange
-	2,  // 23: whatsmeow.v1.GroupEvent.Joined.group:type_name -> whatsmeow.v1.Group
-	6,  // 24: whatsmeow.v1.GroupService.ListGroups:input_type -> whatsmeow.v1.ListGroupsRequest
-	8,  // 25: whatsmeow.v1.GroupService.GetGroup:input_type -> whatsmeow.v1.GetGroupRequest
-	10, // 26: whatsmeow.v1.GroupService.CreateGroup:input_type -> whatsmeow.v1.CreateGroupRequest
-	12, // 27: whatsmeow.v1.GroupService.UpdateParticipants:input_type -> whatsmeow.v1.UpdateParticipantsRequest
-	14, // 28: whatsmeow.v1.GroupService.SetGroupName:input_type -> whatsmeow.v1.SetGroupNameRequest
-	16, // 29: whatsmeow.v1.GroupService.SetGroupTopic:input_type -> whatsmeow.v1.SetGroupTopicRequest
-	18, // 30: whatsmeow.v1.GroupService.SetGroupAnnounce:input_type -> whatsmeow.v1.SetGroupAnnounceRequest
-	20, // 31: whatsmeow.v1.GroupService.SetGroupLocked:input_type -> whatsmeow.v1.SetGroupLockedRequest
-	22, // 32: whatsmeow.v1.GroupService.GetInviteLink:input_type -> whatsmeow.v1.GetInviteLinkRequest
-	24, // 33: whatsmeow.v1.GroupService.ResetInviteLink:input_type -> whatsmeow.v1.ResetInviteLinkRequest
-	26, // 34: whatsmeow.v1.GroupService.JoinGroupWithLink:input_type -> whatsmeow.v1.JoinGroupWithLinkRequest
-	28, // 35: whatsmeow.v1.GroupService.LeaveGroup:input_type -> whatsmeow.v1.LeaveGroupRequest
-	7,  // 36: whatsmeow.v1.GroupService.ListGroups:output_type -> whatsmeow.v1.ListGroupsResponse
-	9,  // 37: whatsmeow.v1.GroupService.GetGroup:output_type -> whatsmeow.v1.GetGroupResponse
-	11, // 38: whatsmeow.v1.GroupService.CreateGroup:output_type -> whatsmeow.v1.CreateGroupResponse
-	13, // 39: whatsmeow.v1.GroupService.UpdateParticipants:output_type -> whatsmeow.v1.UpdateParticipantsResponse
-	15, // 40: whatsmeow.v1.GroupService.SetGroupName:output_type -> whatsmeow.v1.SetGroupNameResponse
-	17, // 41: whatsmeow.v1.GroupService.SetGroupTopic:output_type -> whatsmeow.v1.SetGroupTopicResponse
-	19, // 42: whatsmeow.v1.GroupService.SetGroupAnnounce:output_type -> whatsmeow.v1.SetGroupAnnounceResponse
-	21, // 43: whatsmeow.v1.GroupService.SetGroupLocked:output_type -> whatsmeow.v1.SetGroupLockedResponse
-	23, // 44: whatsmeow.v1.GroupService.GetInviteLink:output_type -> whatsmeow.v1.GetInviteLinkResponse
-	25, // 45: whatsmeow.v1.GroupService.ResetInviteLink:output_type -> whatsmeow.v1.ResetInviteLinkResponse
-	27, // 46: whatsmeow.v1.GroupService.JoinGroupWithLink:output_type -> whatsmeow.v1.JoinGroupWithLinkResponse
-	29, // 47: whatsmeow.v1.GroupService.LeaveGroup:output_type -> whatsmeow.v1.LeaveGroupResponse
-	36, // [36:48] is the sub-list for method output_type
-	24, // [24:36] is the sub-list for method input_type
-	24, // [24:24] is the sub-list for extension type_name
-	24, // [24:24] is the sub-list for extension extendee
-	0,  // [0:24] is the sub-list for field type_name
+	48, // 0: whatsmeow.v1.Group.create_time:type_name -> google.protobuf.Timestamp
+	4,  // 1: whatsmeow.v1.Group.participants:type_name -> whatsmeow.v1.GroupParticipant
+	0,  // 2: whatsmeow.v1.Group.member_add_mode:type_name -> whatsmeow.v1.GroupMemberAddMode
+	1,  // 3: whatsmeow.v1.GroupParticipant.role:type_name -> whatsmeow.v1.GroupRole
+	6,  // 4: whatsmeow.v1.ParticipantResult.invite:type_name -> whatsmeow.v1.AddInvite
+	48, // 5: whatsmeow.v1.AddInvite.expire_time:type_name -> google.protobuf.Timestamp
+	3,  // 6: whatsmeow.v1.ListGroupsResponse.groups:type_name -> whatsmeow.v1.Group
+	3,  // 7: whatsmeow.v1.GetGroupResponse.group:type_name -> whatsmeow.v1.Group
+	3,  // 8: whatsmeow.v1.CreateGroupResponse.group:type_name -> whatsmeow.v1.Group
+	5,  // 9: whatsmeow.v1.CreateGroupResponse.participants:type_name -> whatsmeow.v1.ParticipantResult
+	2,  // 10: whatsmeow.v1.UpdateParticipantsRequest.action:type_name -> whatsmeow.v1.ParticipantAction
+	5,  // 11: whatsmeow.v1.UpdateParticipantsResponse.participants:type_name -> whatsmeow.v1.ParticipantResult
+	0,  // 12: whatsmeow.v1.SetGroupMemberAddModeRequest.mode:type_name -> whatsmeow.v1.GroupMemberAddMode
+	49, // 13: whatsmeow.v1.SetGroupDisappearingTimerRequest.timer:type_name -> google.protobuf.Duration
+	3,  // 14: whatsmeow.v1.GetGroupInfoFromLinkResponse.group:type_name -> whatsmeow.v1.Group
+	48, // 15: whatsmeow.v1.GroupEvent.time:type_name -> google.protobuf.Timestamp
+	39, // 16: whatsmeow.v1.GroupEvent.changed:type_name -> whatsmeow.v1.GroupEvent.Changed
+	40, // 17: whatsmeow.v1.GroupEvent.joined:type_name -> whatsmeow.v1.GroupEvent.Joined
+	41, // 18: whatsmeow.v1.GroupChange.renamed:type_name -> whatsmeow.v1.GroupChange.Renamed
+	42, // 19: whatsmeow.v1.GroupChange.topic_changed:type_name -> whatsmeow.v1.GroupChange.TopicChanged
+	43, // 20: whatsmeow.v1.GroupChange.announce_changed:type_name -> whatsmeow.v1.GroupChange.AnnounceChanged
+	44, // 21: whatsmeow.v1.GroupChange.locked_changed:type_name -> whatsmeow.v1.GroupChange.LockedChanged
+	47, // 22: whatsmeow.v1.GroupChange.joined:type_name -> whatsmeow.v1.GroupChange.Participants
+	47, // 23: whatsmeow.v1.GroupChange.left:type_name -> whatsmeow.v1.GroupChange.Participants
+	47, // 24: whatsmeow.v1.GroupChange.promoted:type_name -> whatsmeow.v1.GroupChange.Participants
+	47, // 25: whatsmeow.v1.GroupChange.demoted:type_name -> whatsmeow.v1.GroupChange.Participants
+	45, // 26: whatsmeow.v1.GroupChange.member_add_mode_changed:type_name -> whatsmeow.v1.GroupChange.MemberAddModeChanged
+	46, // 27: whatsmeow.v1.GroupChange.disappearing_timer_changed:type_name -> whatsmeow.v1.GroupChange.DisappearingTimerChanged
+	38, // 28: whatsmeow.v1.GroupEvent.Changed.changes:type_name -> whatsmeow.v1.GroupChange
+	3,  // 29: whatsmeow.v1.GroupEvent.Joined.group:type_name -> whatsmeow.v1.Group
+	0,  // 30: whatsmeow.v1.GroupChange.MemberAddModeChanged.mode:type_name -> whatsmeow.v1.GroupMemberAddMode
+	49, // 31: whatsmeow.v1.GroupChange.DisappearingTimerChanged.timer:type_name -> google.protobuf.Duration
+	7,  // 32: whatsmeow.v1.GroupService.ListGroups:input_type -> whatsmeow.v1.ListGroupsRequest
+	9,  // 33: whatsmeow.v1.GroupService.GetGroup:input_type -> whatsmeow.v1.GetGroupRequest
+	11, // 34: whatsmeow.v1.GroupService.CreateGroup:input_type -> whatsmeow.v1.CreateGroupRequest
+	13, // 35: whatsmeow.v1.GroupService.UpdateParticipants:input_type -> whatsmeow.v1.UpdateParticipantsRequest
+	15, // 36: whatsmeow.v1.GroupService.SetGroupName:input_type -> whatsmeow.v1.SetGroupNameRequest
+	17, // 37: whatsmeow.v1.GroupService.SetGroupTopic:input_type -> whatsmeow.v1.SetGroupTopicRequest
+	19, // 38: whatsmeow.v1.GroupService.SetGroupAnnounce:input_type -> whatsmeow.v1.SetGroupAnnounceRequest
+	21, // 39: whatsmeow.v1.GroupService.SetGroupLocked:input_type -> whatsmeow.v1.SetGroupLockedRequest
+	23, // 40: whatsmeow.v1.GroupService.SetGroupMemberAddMode:input_type -> whatsmeow.v1.SetGroupMemberAddModeRequest
+	25, // 41: whatsmeow.v1.GroupService.SetGroupDisappearingTimer:input_type -> whatsmeow.v1.SetGroupDisappearingTimerRequest
+	27, // 42: whatsmeow.v1.GroupService.GetInviteLink:input_type -> whatsmeow.v1.GetInviteLinkRequest
+	29, // 43: whatsmeow.v1.GroupService.ResetInviteLink:input_type -> whatsmeow.v1.ResetInviteLinkRequest
+	31, // 44: whatsmeow.v1.GroupService.JoinGroupWithLink:input_type -> whatsmeow.v1.JoinGroupWithLinkRequest
+	33, // 45: whatsmeow.v1.GroupService.GetGroupInfoFromLink:input_type -> whatsmeow.v1.GetGroupInfoFromLinkRequest
+	35, // 46: whatsmeow.v1.GroupService.LeaveGroup:input_type -> whatsmeow.v1.LeaveGroupRequest
+	8,  // 47: whatsmeow.v1.GroupService.ListGroups:output_type -> whatsmeow.v1.ListGroupsResponse
+	10, // 48: whatsmeow.v1.GroupService.GetGroup:output_type -> whatsmeow.v1.GetGroupResponse
+	12, // 49: whatsmeow.v1.GroupService.CreateGroup:output_type -> whatsmeow.v1.CreateGroupResponse
+	14, // 50: whatsmeow.v1.GroupService.UpdateParticipants:output_type -> whatsmeow.v1.UpdateParticipantsResponse
+	16, // 51: whatsmeow.v1.GroupService.SetGroupName:output_type -> whatsmeow.v1.SetGroupNameResponse
+	18, // 52: whatsmeow.v1.GroupService.SetGroupTopic:output_type -> whatsmeow.v1.SetGroupTopicResponse
+	20, // 53: whatsmeow.v1.GroupService.SetGroupAnnounce:output_type -> whatsmeow.v1.SetGroupAnnounceResponse
+	22, // 54: whatsmeow.v1.GroupService.SetGroupLocked:output_type -> whatsmeow.v1.SetGroupLockedResponse
+	24, // 55: whatsmeow.v1.GroupService.SetGroupMemberAddMode:output_type -> whatsmeow.v1.SetGroupMemberAddModeResponse
+	26, // 56: whatsmeow.v1.GroupService.SetGroupDisappearingTimer:output_type -> whatsmeow.v1.SetGroupDisappearingTimerResponse
+	28, // 57: whatsmeow.v1.GroupService.GetInviteLink:output_type -> whatsmeow.v1.GetInviteLinkResponse
+	30, // 58: whatsmeow.v1.GroupService.ResetInviteLink:output_type -> whatsmeow.v1.ResetInviteLinkResponse
+	32, // 59: whatsmeow.v1.GroupService.JoinGroupWithLink:output_type -> whatsmeow.v1.JoinGroupWithLinkResponse
+	34, // 60: whatsmeow.v1.GroupService.GetGroupInfoFromLink:output_type -> whatsmeow.v1.GetGroupInfoFromLinkResponse
+	36, // 61: whatsmeow.v1.GroupService.LeaveGroup:output_type -> whatsmeow.v1.LeaveGroupResponse
+	47, // [47:62] is the sub-list for method output_type
+	32, // [32:47] is the sub-list for method input_type
+	32, // [32:32] is the sub-list for extension type_name
+	32, // [32:32] is the sub-list for extension extendee
+	0,  // [0:32] is the sub-list for field type_name
 }
 
 func init() { file_whatsmeow_v1_group_proto_init() }
@@ -2606,11 +3156,11 @@ func file_whatsmeow_v1_group_proto_init() {
 	if File_whatsmeow_v1_group_proto != nil {
 		return
 	}
-	file_whatsmeow_v1_group_proto_msgTypes[28].OneofWrappers = []any{
+	file_whatsmeow_v1_group_proto_msgTypes[34].OneofWrappers = []any{
 		(*GroupEvent_Changed_)(nil),
 		(*GroupEvent_Joined_)(nil),
 	}
-	file_whatsmeow_v1_group_proto_msgTypes[29].OneofWrappers = []any{
+	file_whatsmeow_v1_group_proto_msgTypes[35].OneofWrappers = []any{
 		(*GroupChange_Renamed_)(nil),
 		(*GroupChange_TopicChanged_)(nil),
 		(*GroupChange_AnnounceChanged_)(nil),
@@ -2619,14 +3169,16 @@ func file_whatsmeow_v1_group_proto_init() {
 		(*GroupChange_Left)(nil),
 		(*GroupChange_Promoted)(nil),
 		(*GroupChange_Demoted)(nil),
+		(*GroupChange_MemberAddModeChanged_)(nil),
+		(*GroupChange_DisappearingTimerChanged_)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_whatsmeow_v1_group_proto_rawDesc), len(file_whatsmeow_v1_group_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   37,
+			NumEnums:      3,
+			NumMessages:   45,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
