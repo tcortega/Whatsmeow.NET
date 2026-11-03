@@ -6,7 +6,8 @@ namespace Whatsmeow.LiveTests;
 /// A test against real WhatsApp. It is explicit, so not run, unless <see cref="LiveSettings.DatabaseVariable"/> names
 /// the live database, and each variable the test needs is set too: <see cref="LiveSettings.PhoneNumberVariable"/> with
 /// <see cref="NeedsPhoneNumber"/>, <see cref="LiveSettings.PeerDatabaseVariable"/> with <see cref="NeedsPeer"/>, and
-/// <see cref="LiveSettings.OwnerVariable"/> with <see cref="NeedsOwner"/>. Without them the run starts nothing and
+/// <see cref="LiveSettings.OwnerVariable"/> with <see cref="NeedsOwner"/>, and <see cref="LiveSettings.MediaSizesVariable"/>
+/// with <see cref="NeedsMediaSizes"/>. Without them the run starts nothing and
 /// passes with the test not run, so the live tests never run in CI. This file is the only one where
 /// <c>build/ci.sh</c> allows <c>Explicit</c> (docs/guidelines/tests.md).
 /// </summary>
@@ -61,9 +62,21 @@ public sealed class LiveFactAttribute : FactAttribute
 		}
 	}
 
+	/// <summary>Whether the test is the media size ladder, which runs only when asked for (<see cref="LiveSettings.MediaSizesVariable"/>).</summary>
+	public bool NeedsMediaSizes
+	{
+		get;
+		init
+		{
+			field = value;
+			Explicit = IsOff();
+		}
+	}
+
 	private bool IsOff() =>
 		!LiveSettings.Enabled
 		|| (NeedsPhoneNumber && LiveSettings.PhoneNumber.Length == 0)
 		|| (NeedsPeer && LiveSettings.PeerDatabase.Length == 0)
-		|| (NeedsOwner && !LiveSettings.Owner);
+		|| (NeedsOwner && !LiveSettings.Owner)
+		|| (NeedsMediaSizes && !LiveSettings.MediaSizes);
 }

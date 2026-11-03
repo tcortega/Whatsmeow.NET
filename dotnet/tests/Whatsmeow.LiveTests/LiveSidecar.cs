@@ -268,11 +268,12 @@ public sealed class LiveSidecar : IAsyncLifetime
 	public Task ShowPairingCodeAsync(string code, CancellationToken cancellationToken) =>
 		File.WriteAllTextAsync(Path.Combine(OutputDirectory, "pairing-code.txt"), code, cancellationToken);
 
-	/// <summary>Writes a measurement to <c>sidecar.log</c>, redacted, and to the running test's output.</summary>
+	/// <summary>Writes a measurement to <c>sidecar.log</c>, after the UTC time and redacted, and to the running test's output.</summary>
 	public void Write(string line)
 	{
-		_log?.Write(line);
-		TestContext.Current.TestOutputHelper?.WriteLine(LogRedaction.Redact(line, LiveSettings.PhoneNumber));
+		var stamped = LiveClock.Stamp(line);
+		_log?.Write(stamped);
+		TestContext.Current.TestOutputHelper?.WriteLine(LogRedaction.Redact(stamped, LiveSettings.PhoneNumber));
 	}
 
 	/// <summary>

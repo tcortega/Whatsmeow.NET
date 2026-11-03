@@ -31,7 +31,7 @@ public sealed class LiveChatStateTests(LiveSidecar live, LivePeer peer)
 			await client.MuteChatAsync(chat, until, ct);
 			var change = await LiveChecks.WithinAsync(echo, "the mute's echo");
 			live.Write($"live: the mute's echo came for a {LiveChecks.Form(change.Chat)} chat: {change.Change}");
-			ChatStateChecks.ValidateMuteEcho(change, chat, until);
+			LiveChecks.Redacting(() => ChatStateChecks.ValidateMuteEcho(change, chat, until));
 
 			_ = await live.AskOwnerAsync(
 				$"On the live account's phone, the chat with the peer: is it muted, and until when? It was muted until {until.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)} UTC.",

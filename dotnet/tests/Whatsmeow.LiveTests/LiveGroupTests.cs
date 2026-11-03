@@ -33,14 +33,14 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 		var peerAccount = await peer.AccountAsync(ct);
 		var info = creation.Created.Group;
 
-		var result = Assert.Single(creation.Created.Participants);
+		var result = LiveChecks.Redacting(() => Assert.Single(creation.Created.Participants));
 		Assert.True(LiveChecks.Names(peerAccount, result.Jid), $"the create answer lists a {LiveChecks.Form(result.Jid)} that is not the peer");
-		Assert.Equal(new ParticipantResult { Jid = result.Jid, JidAlt = result.JidAlt, Outcome = new ParticipantOutcome.Done() }, result);
+		LiveChecks.Equal(new ParticipantResult { Jid = result.Jid, JidAlt = result.JidAlt, Outcome = new ParticipantOutcome.Done() }, result);
 
 		Assert.True(info.Owner is { } owner && LiveChecks.Names(liveAccount, owner), $"the group's owner is a {LiveChecks.Form(info.Owner)} that is not the live account");
-		var self = Assert.Single(info.Participants, p => LiveChecks.Names(liveAccount, p.Jid));
-		var member = Assert.Single(info.Participants, p => LiveChecks.Names(peerAccount, p.Jid));
-		Assert.Equal(
+		var self = LiveChecks.Redacting(() => Assert.Single(info.Participants, p => LiveChecks.Names(liveAccount, p.Jid)));
+		var member = LiveChecks.Redacting(() => Assert.Single(info.Participants, p => LiveChecks.Names(peerAccount, p.Jid)));
+		LiveChecks.Equal(
 			info with
 			{
 				Name = creation.Name,
@@ -51,7 +51,7 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 			},
 			info
 		);
-		Assert.Equal(info, creation.InfoAfter);
+		LiveChecks.Equal(info, creation.InfoAfter);
 	}
 
 	/// <summary>
@@ -74,15 +74,15 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 			var seen = await changes.NextAsync(4, LiveChecks.Watch, ct);
 			live.Write($"live: the peer got {seen.Count} group changes for 4 settings, from a {LiveChecks.Form(seen.Count > 0 ? seen[0].Sender : null)}: {string.Join("; ", seen.Select(c => string.Join(", ", c.Changes.Select(x => x.GetType().Name))))}");
 
-			Assert.Equal(4, seen.Count);
+			LiveChecks.Equal(4, seen.Count);
 			var by = seen[0];
 			Assert.True(by.Sender is { } sender && LiveChecks.Names(liveAccount, sender), $"the change came from a {LiveChecks.Form(by.Sender)} that is not the live account");
-			Assert.Equal(
+			LiveChecks.Equal(
 				GroupChecks.Settings($"{name} crew", "wmn plans for Monday").Select((change, i) => GroupChecks.Changed(other.SessionId, jid, by.Sender, by.SenderAlt, seen[i].Timestamp, change)),
 				seen
 			);
 			var info = await other.GetGroupInfoAsync(jid, ct);
-			Assert.Equal(($"{name} crew", "wmn plans for Monday", true, true), (info.Name, info.Topic, info.IsAnnounce, info.IsLocked));
+			LiveChecks.Equal(($"{name} crew", "wmn plans for Monday", true, true), (info.Name, info.Topic, info.IsAnnounce, info.IsLocked));
 		}
 		finally
 		{
@@ -106,10 +106,11 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 		var client = await live.LiveAsync(ct);
 		var other = await peer.ConnectedAsync(live, ct);
 		var (to, _) = await peer.AccountAsync(ct);
+		var peerAccount = await peer.AccountAsync(ct);
+		var name = (await client.GetGroupInfoAsync(jid, ct)).Name;
 		await client.SetGroupLockedAsync(jid, locked: true, ct);
 		try
 		{
-			var name = (await other.GetGroupInfoAsync(jid, ct)).Name;
 			var renamed = await Record.ExceptionAsync(() => other.SetGroupNameAsync(jid, "wmn not mine", ct));
 			live.Write($"live: the non-admin peer's rename of a locked group: {Outcome(renamed)}");
 			IReadOnlyList<ParticipantResult> promoted = [];
@@ -119,11 +120,18 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 			);
 
 			var thrown = Assert.IsType<WhatsAppErrorException>(renamed);
-			Assert.Equal((WhatsmeowErrorCode.WhatsAppError, 403), (thrown.ErrorCode, thrown.Code));
-			Assert.Equal(name, (await other.GetGroupInfoAsync(jid, ct)).Name);
+			LiveChecks.Equal((WhatsmeowErrorCode.WhatsAppError, 403), (thrown.ErrorCode, thrown.Code));
+			LiveChecks.Equal(name, (await other.GetGroupInfoAsync(jid, ct)).Name);
 		}
 		finally
 		{
+			// What WhatsApp took, if it took either, is undone, so the later tests see a non-admin peer and the run's name.
+			var info = await client.GetGroupInfoAsync(jid, CancellationToken.None);
+			var admins = info.Participants.Where(p => LiveChecks.Names(peerAccount, p.Jid) && p.Role is not GroupRole.Member).Select(p => p.Jid).ToList();
+			if (admins.Count > 0)
+				_ = await client.DemoteParticipantsAsync(jid, admins, CancellationToken.None);
+			if (info.Name != name)
+				await client.SetGroupNameAsync(jid, name, CancellationToken.None);
 			await client.SetGroupLockedAsync(jid, locked: false, CancellationToken.None);
 		}
 	}
@@ -142,27 +150,28 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 		var peerAccount = await peer.AccountAsync(ct);
 		var member = (await client.GetGroupInfoAsync(jid, ct)).Participants.Single(p => LiveChecks.Names(peerAccount, p.Jid)).Jid;
 
-		var removed = Assert.Single(await client.RemoveParticipantsAsync(jid, [member], ct));
+		var removals = await client.RemoveParticipantsAsync(jid, [member], ct);
+		var removed = LiveChecks.Redacting(() => Assert.Single(removals));
 		try
 		{
-			Assert.Equal(new ParticipantResult { Jid = removed.Jid, JidAlt = removed.JidAlt, Outcome = new ParticipantOutcome.Done() }, removed);
+			LiveChecks.Equal(new ParticipantResult { Jid = removed.Jid, JidAlt = removed.JidAlt, Outcome = new ParticipantOutcome.Done() }, removed);
 			var link = await client.GetGroupInviteLinkAsync(jid, ct);
 			var reset = await client.ResetGroupInviteLinkAsync(jid, ct);
 			Assert.NotEqual(link, reset);
 			var old = await Assert.ThrowsAsync<WhatsmeowException>(() => other.JoinGroupWithLinkAsync(link, ct));
 			live.Write($"live: the peer joining by the link from before the reset: {Outcome(old)}");
-			Assert.Equal(WhatsmeowErrorCode.InviteLinkInvalid, old.ErrorCode);
+			LiveChecks.Equal(WhatsmeowErrorCode.InviteLinkInvalid, old.ErrorCode);
 
 			var joined = other.WaitForAsync<GroupJoined>(j => j.Group.Jid == jid, LiveChecks.Watch, ct);
 			var seen = client.WaitForAsync<GroupInfoChanged>(c => c.Group == jid && c.Changes.Any(x => x is GroupChange.ParticipantJoined p && LiveChecks.Names(peerAccount, p.Jid)), LiveChecks.Watch, ct);
-			Assert.Equal(jid, await other.JoinGroupWithLinkAsync(reset, ct));
+			LiveChecks.Equal(jid, await other.JoinGroupWithLinkAsync(reset, ct));
 
 			var join = await LiveChecks.WithinAsync(joined, "the peer's GroupJoined");
 			Assert.True(join.Sender is { } sender && LiveChecks.Names(peerAccount, sender), $"the peer's GroupJoined names a {LiveChecks.Form(join.Sender)} that is not the peer");
 			var change = await LiveChecks.WithinAsync(seen, "the peer's join, seen by the live session");
 			live.Write($"live: the live session saw the peer join, from a {LiveChecks.Form(change.Sender)}, the member a {LiveChecks.Form(change.Changes.OfType<GroupChange.ParticipantJoined>().First().Jid)}");
 			var joiner = change.Changes.OfType<GroupChange.ParticipantJoined>().First().Jid;
-			Assert.Equal(GroupChecks.Changed(client.SessionId, jid, change.Sender, change.SenderAlt, change.Timestamp, new GroupChange.ParticipantJoined { Jid = joiner }), change);
+			LiveChecks.Equal(GroupChecks.Changed(client.SessionId, jid, change.Sender, change.SenderAlt, change.Timestamp, new GroupChange.ParticipantJoined { Jid = joiner }), change);
 		}
 		finally
 		{
@@ -188,14 +197,14 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 		await other.LeaveGroupAsync(jid, ct);
 		try
 		{
-			Assert.DoesNotContain(await other.GetGroupsAsync(ct), g => g.Jid == jid);
+			Assert.True((await other.GetGroupsAsync(ct)).All(g => g.Jid != jid), "the peer still lists the group it left");
 			var thrown = await Assert.ThrowsAsync<WhatsAppErrorException>(() => other.GetGroupInfoAsync(jid, ct));
 			live.Write($"live: the peer reading the group it left: {Outcome(thrown)}");
-			Assert.Equal(403, thrown.Code);
+			LiveChecks.Equal(403, thrown.Code);
 			var change = await LiveChecks.WithinAsync(left, "the peer's leave, seen by the live session");
 			var leaver = change.Changes.OfType<GroupChange.ParticipantLeft>().First().Jid;
 			Assert.True(change.Sender is { } sender && LiveChecks.Names(peerAccount, sender), $"the leave came from a {LiveChecks.Form(change.Sender)} that is not the peer");
-			Assert.Equal(GroupChecks.Changed(client.SessionId, jid, change.Sender, change.SenderAlt, change.Timestamp, new GroupChange.ParticipantLeft { Jid = leaver }), change);
+			LiveChecks.Equal(GroupChecks.Changed(client.SessionId, jid, change.Sender, change.SenderAlt, change.Timestamp, new GroupChange.ParticipantLeft { Jid = leaver }), change);
 		}
 		finally
 		{
@@ -217,7 +226,7 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 		var thrown = await Assert.ThrowsAsync<WhatsmeowException>(() => other.JoinGroupWithLinkAsync(new Uri($"https://chat.whatsapp.com/{code}"), ct));
 
 		live.Write($"live: joining by a well formed unknown invite code: {Outcome(thrown)}");
-		Assert.Equal(WhatsmeowErrorCode.InviteLinkInvalid, thrown.ErrorCode);
+		LiveChecks.Equal(WhatsmeowErrorCode.InviteLinkInvalid, thrown.ErrorCode);
 	}
 
 	/// <summary>
@@ -288,6 +297,8 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 		var other = await peer.ConnectedAsync(live, ct);
 		var liveAccount = await live.AccountAsync(ct);
 		var peerAccount = await peer.AccountAsync(ct);
+		var role = (await client.GetGroupInfoAsync(jid, ct)).Participants.Single(p => LiveChecks.Names(peerAccount, p.Jid)).Role;
+		Assert.True(role is GroupRole.Member, $"the peer is {role} in the group, so its revoke would be an admin's");
 		var (target, got) = await ToGroupAsync(client, other, liveAccount, jid, "wmn revoke me, peer", options: null, ct);
 
 		var id = MessageId.New();
@@ -299,7 +310,7 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 		);
 		if (revoke is null)
 			return;
-		Assert.Equal(LiveChecks.Received(client, revoke, peerAccount, id, new RevokeContent { Target = new MessageKey { Id = target } }), revoke);
+		LiveChecks.Equal(LiveChecks.Received(client, revoke, peerAccount, id, new RevokeContent { Target = new MessageKey { Id = target } }, jid), revoke);
 	}
 
 	/// <summary>The two mentions, each checked on the peer's side; the forms go to the log.</summary>
@@ -317,7 +328,7 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 			var text = $"@{mentioned.User} wmn mention {label}";
 			var (id, got) = await ToGroupAsync(client, other, liveAccount, jid, text, new SendOptions { Mentions = [mentioned] }, ct).ConfigureAwait(false);
 			live.Write($"live: a mention by {LiveChecks.Form(mentioned)} came to the peer mentioning {string.Join(", ", got.Mentions.Select(m => LiveChecks.Form(m)))}");
-			Assert.Equal(LiveChecks.Received(other, got, liveAccount, id, new TextContent { Text = text }) with { Mentions = [mentioned] }, got);
+			LiveChecks.Equal(LiveChecks.Received(other, got, liveAccount, id, new TextContent { Text = text }, jid) with { Mentions = [mentioned] }, got);
 		}
 	}
 
@@ -335,8 +346,8 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 		live.Write($"live: the peer got the reply's quote naming a {LiveChecks.Form(got.ReplyTo?.Sender)}");
 
 		Assert.True(got.ReplyTo?.Sender is { } quoted && LiveChecks.Names(liveAccount, quoted), $"the quote names a {LiveChecks.Form(got.ReplyTo?.Sender)} that is not the live account");
-		Assert.Equal(
-			LiveChecks.Received(other, got, liveAccount, id, new TextContent { Text = "wmn reply to my own" }) with
+		LiveChecks.Equal(
+			LiveChecks.Received(other, got, liveAccount, id, new TextContent { Text = "wmn reply to my own" }, jid) with
 			{
 				ReplyTo = new QuotedMessage { Id = own, Sender = got.ReplyTo!.Sender, Content = new TextContent { Text = "wmn my own" } },
 			},
@@ -359,7 +370,7 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 		var arrived = LiveChecks.ArrivalAsync(other, id, ct);
 		_ = await client.SendTextAsync(jid, text, id, options, ct).ConfigureAwait(false);
 		var got = await LiveChecks.WithinAsync(arrived, $"the group message \"{text}\"").ConfigureAwait(false);
-		Assert.Equal(jid, got.Source.Chat);
+		Assert.True(got.Source.Chat == jid, $"the group message came in a {LiveChecks.Form(got.Source.Chat)} chat, not the group");
 		Assert.True(LiveChecks.Names(liveAccount, got.Source.Sender), $"the group message came from a {LiveChecks.Form(got.Source.Sender)} that is not the live account");
 		return (id, got);
 	}

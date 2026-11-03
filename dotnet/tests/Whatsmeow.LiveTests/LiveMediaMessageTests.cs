@@ -66,7 +66,7 @@ public sealed class LiveMediaMessageTests(LiveSidecar live, LivePeer peer)
 			var sent = await send(id);
 			var got = await LiveChecks.WithinAsync(arrived, $"the {content.GetType().Name}");
 			live.Write($"live: the peer got the {content.GetType().Name} in a {LiveChecks.Form(got.Source.Chat)} chat, stamped {(got.Timestamp - sent.Timestamp).TotalSeconds:F0} s after the send's result");
-			Assert.Equal(LiveChecks.Received(other, got, sender, id, content), got);
+			LiveChecks.Equal(LiveChecks.Received(other, got, sender, id, content), got);
 		}
 
 		foreach (var (media, content) in contents)
@@ -93,7 +93,7 @@ public sealed class LiveMediaMessageTests(LiveSidecar live, LivePeer peer)
 		var arrived = LiveChecks.ArrivalAsync(other, id, ct);
 		_ = await client.SendAudioAsync(to, voice, metadata, id, cancellationToken: ct);
 		var got = await LiveChecks.WithinAsync(arrived, "the voice note");
-		Assert.Equal(LiveChecks.Received(other, got, sender, id, new AudioContent { Media = voice, Metadata = metadata, IsViewOnce = false }), got);
+		LiveChecks.Equal(LiveChecks.Received(other, got, sender, id, new AudioContent { Media = voice, Metadata = metadata, IsViewOnce = false }), got);
 
 		_ = await live.AskOwnerAsync(
 			"On the peer's phone, in the chat with the live account: the last voice note, 0:05 long. Is its waveform drawn as one rise to the middle and one fall, and how many bars does it show?",

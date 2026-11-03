@@ -69,7 +69,7 @@ public sealed class LivePollTests(LiveSidecar live, LivePeer peer)
 		var polled = LiveChecks.ArrivalAsync(voter, pollId, ct);
 		_ = await author.SendPollAsync(voterAccount.Chat, s_lunch, pollId, cancellationToken: ct).ConfigureAwait(false);
 		var poll = await LiveChecks.WithinAsync(polled, "the poll").ConfigureAwait(false);
-		Assert.Equal(LiveChecks.Received(voter, poll, authorAccount, pollId, new PollContent { Poll = s_lunch }), poll);
+		LiveChecks.Equal(LiveChecks.Received(voter, poll, authorAccount, pollId, new PollContent { Poll = s_lunch }), poll);
 
 		var voteId = MessageId.New();
 		var voted = LiveChecks.ArrivalAsync(author, voteId, ct);
@@ -80,7 +80,7 @@ public sealed class LivePollTests(LiveSidecar live, LivePeer peer)
 		);
 
 		// The author's own poll: no sender.
-		Assert.Equal(LiveChecks.Received(author, vote, voterAccount, voteId, MessageChecks.Vote(new MessageKey { Id = pollId }, options)), vote);
+		LiveChecks.Equal(LiveChecks.Received(author, vote, voterAccount, voteId, MessageChecks.Vote(new MessageKey { Id = pollId }, options)), vote);
 		return vote;
 	}
 }

@@ -35,7 +35,7 @@ internal sealed class LiveLog : IDisposable
 		if (!line.Contains(ExitedUnexpectedly, StringComparison.Ordinal))
 			return;
 
-		var loud = $"live: UNEXPECTED SIDECAR EXIT ({_name}) at {LiveClock.Time.GetUtcNow():O}: {redacted}";
+		var loud = LiveClock.Stamp($"live: UNEXPECTED SIDECAR EXIT ({_name}): {redacted}");
 		lock (_lock)
 			_writer?.WriteLine(loud);
 		try

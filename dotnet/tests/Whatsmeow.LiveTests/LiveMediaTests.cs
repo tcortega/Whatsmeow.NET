@@ -44,9 +44,11 @@ public sealed class LiveMediaTests(LiveSidecar live, LivePeer peer)
 	/// <summary>
 	/// Documents of 1, 16, 64 and 100 MiB (RESEARCH item 14): each is uploaded, sent to the peer, and downloaded there by
 	/// the ref it got, until WhatsApp refuses one. Each size, its times and the first refusal go to the log; the cap is
-	/// ours, so a run that takes all of them records that 100 MiB went through, not the limit.
+	/// ours, so a run that takes all of them records that 100 MiB went through, not the limit. Only WhatsApp's own
+	/// refusal (<see cref="WhatsAppErrorException"/>) ends the ladder as a limit; any other failure fails the test. It
+	/// sends 181 MiB, so it runs only when asked for (<see cref="LiveSettings.MediaSizesVariable"/>).
 	/// </summary>
-	[LiveFact(NeedsPeer = true, Timeout = SizeTimeout)]
+	[LiveFact(NeedsPeer = true, NeedsMediaSizes = true, Timeout = SizeTimeout)]
 	public async Task Live_DocumentsOfIncreasingSize_ThePeerDownloadsEach_UntilWhatsAppRefusesOne()
 	{
 		var ct = TestContext.Current.CancellationToken;
@@ -67,9 +69,9 @@ public sealed class LiveMediaTests(LiveSidecar live, LivePeer peer)
 				{
 					media = await client.UploadMediaAsync(input, MediaType.Document, ct);
 				}
-				catch (WhatsmeowException e)
+				catch (WhatsAppErrorException e)
 				{
-					live.Write($"live: WhatsApp refused the {mib} MiB upload after {LiveClock.Time.GetElapsedTime(started).TotalSeconds:F0} s: {e.ErrorCode} {e.Message}");
+					live.Write($"live: WhatsApp refused the {mib} MiB upload after {LiveClock.Time.GetElapsedTime(started).TotalSeconds:F0} s with code {e.Code}");
 					return;
 				}
 
@@ -77,7 +79,7 @@ public sealed class LiveMediaTests(LiveSidecar live, LivePeer peer)
 			}
 
 			var uploaded = LiveClock.Time.GetElapsedTime(started);
-			Assert.Equal((hash, length), (media.FileSha256.ToArray(), media.FileLength));
+			LiveChecks.Equal((hash, length), (media.FileSha256.ToArray(), media.FileLength));
 
 			var id = MessageId.New();
 			var metadata = new DocumentMetadata { Mimetype = "application/octet-stream", FileName = $"wmn-{mib}MiB.bin" };
@@ -86,14 +88,14 @@ public sealed class LiveMediaTests(LiveSidecar live, LivePeer peer)
 			{
 				_ = await client.SendDocumentAsync(to, media, metadata, id, cancellationToken: ct);
 			}
-			catch (WhatsmeowException e)
+			catch (WhatsAppErrorException e)
 			{
-				live.Write($"live: the {mib} MiB upload took {uploaded.TotalSeconds:F0} s, and WhatsApp refused its send: {e.ErrorCode} {e.Message}");
+				live.Write($"live: the {mib} MiB upload took {uploaded.TotalSeconds:F0} s, and WhatsApp refused its send with code {e.Code}");
 				return;
 			}
 
 			var got = await LiveChecks.WithinAsync(arrived, $"the {mib} MiB document");
-			Assert.Equal(LiveChecks.Received(other, got, sender, id, new DocumentContent { Media = media, Metadata = metadata }), got);
+			LiveChecks.Equal(LiveChecks.Received(other, got, sender, id, new DocumentContent { Media = media, Metadata = metadata }), got);
 
 			var downloading = LiveClock.Time.GetTimestamp();
 			await using var downloaded = new HashingStream(memory: null);
@@ -101,7 +103,7 @@ public sealed class LiveMediaTests(LiveSidecar live, LivePeer peer)
 			live.Write(
 				$"live: a {mib} MiB document: uploaded in {uploaded.TotalSeconds:F0} s, sent, and downloaded by the peer in {LiveClock.Time.GetElapsedTime(downloading).TotalSeconds:F0} s"
 			);
-			Assert.Equal((hash, length), (downloaded.Hash(), downloaded.Length));
+			LiveChecks.Equal((hash, length), (downloaded.Hash(), downloaded.Length));
 		}
 
 		live.Write($"live: every size up to the {s_sizes[^1]} MiB cap went through");
@@ -122,9 +124,11 @@ public sealed class LiveMediaTests(LiveSidecar live, LivePeer peer)
 		var sender = await live.AccountAsync(ct);
 		var (to, _) = await peer.AccountAsync(ct);
 		var now = LiveClock.Time.GetUtcNow();
-		var kept = LiveMediaRefs.Read(LiveSettings.MediaRefs);
+		var kept = LiveMediaRefs.Read(LiveSettings.MediaRefs, out var skipped);
 		if (LiveSettings.MediaRefs.Length == 0)
 			live.Write($"live: no {LiveSettings.MediaRefsVariable}, so no ref of an earlier run is tried");
+		if (skipped > 0)
+			live.Write($"live: skipped {skipped} lines of the refs file that do not read as a ref");
 
 		(LiveMediaRefs.Kept Ref, TimeSpan Age)? oldest = null;
 		foreach (var earlier in kept.OrderBy(k => k.UploadedAt))
@@ -160,12 +164,12 @@ public sealed class LiveMediaTests(LiveSidecar live, LivePeer peer)
 		var arrived = LiveChecks.ArrivalAsync(other, id, ct);
 		_ = await client.SendDocumentAsync(to, again.Media, metadata, id, cancellationToken: ct);
 		var got = await LiveChecks.WithinAsync(arrived, $"the document sent again from a ref {Age(oldestAge)} old");
-		Assert.Equal(LiveChecks.Received(other, got, sender, id, new DocumentContent { Media = again.Media, Metadata = metadata }), got);
+		LiveChecks.Equal(LiveChecks.Received(other, got, sender, id, new DocumentContent { Media = again.Media, Metadata = metadata }), got);
 
 		await using var resent = new HashingStream(memory: null);
 		await other.DownloadMediaAsync(((DocumentContent)got.Content).Media, resent, ct);
 		live.Write($"live: a ref {Age(oldestAge)} old was sent again without an upload, and the peer downloaded it");
-		Assert.Equal(again.Media.FileSha256.ToArray(), resent.Hash());
+		LiveChecks.Equal(again.Media.FileSha256.ToArray(), resent.Hash());
 	}
 
 	private static string Age(TimeSpan age) => age.TotalDays >= 1 ? $"{age.TotalDays.ToString("F1", CultureInfo.InvariantCulture)} days" : $"{age.TotalHours.ToString("F1", CultureInfo.InvariantCulture)} hours";

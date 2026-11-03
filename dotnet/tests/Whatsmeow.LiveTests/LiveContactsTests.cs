@@ -50,10 +50,12 @@ public sealed class LiveContactsTests(LiveSidecar live, LivePeer peer)
 	}
 
 	/// <summary>
-	/// Blocks the peer, then unblocks it, and reads the blocklist after each: the peer alone, by its LID with its phone
-	/// number, then nobody. WhatsApp's <c>active</c> flag reaches no public record, and the sidecar lists inactive items
-	/// too, so an unblocked user WhatsApp still lists as inactive shows here as a listed one; each list goes to the log
-	/// before it is checked. The unblock runs whatever happened before it.
+	/// Blocks the peer, then unblocks it, and reads the blocklist after each: the peer's entries are the peer alone, by
+	/// its LID with its phone number, then none. Only the peer's entries are read: the account's other blocks are the
+	/// owner's, and are never compared or written. A peer an earlier run left blocked is unblocked first. WhatsApp's
+	/// <c>active</c> flag reaches no public record, and the sidecar lists inactive items too, so an unblocked peer that
+	/// WhatsApp still lists as inactive shows here as a listed one; each of the peer's lists goes to the log before it
+	/// is checked. The unblock runs whatever happened before it.
 	/// </summary>
 	[LiveFact(NeedsPeer = true)]
 	public async Task Live_BlockThenUnblockThePeer_TheBlocklistReflectsEach()
@@ -61,30 +63,38 @@ public sealed class LiveContactsTests(LiveSidecar live, LivePeer peer)
 		var ct = TestContext.Current.CancellationToken;
 		var client = await live.LiveAsync(ct);
 		_ = await peer.ConnectedAsync(live, ct);
-		var (pn, lid) = await peer.AccountAsync(ct);
+		var account = await peer.AccountAsync(ct);
+		var (pn, lid) = account;
 		Assert.True(lid is { IsLid: true }, "the peer session has no LID");
-		var before = await client.GetBlocklistAsync(ct);
-		ContactChecks.ValidateUnblocked(before);
+		if (!PeersOf(await client.GetBlocklistAsync(ct), account).IsEmpty)
+		{
+			live.Write("live: the peer was blocked before the test, as an aborted run leaves it; unblocking it first");
+			await client.UnblockAsync(pn, ct);
+		}
 
 		ImmutableArray<BlockedUser> blocked;
 		ImmutableArray<BlockedUser> unblocked;
 		try
 		{
 			await client.BlockAsync(pn, ct);
-			blocked = await client.GetBlocklistAsync(ct);
-			live.Write($"live: after the block the blocklist lists {Listed(blocked)}");
+			blocked = PeersOf(await client.GetBlocklistAsync(ct), account);
+			live.Write($"live: after the block the blocklist lists the peer {Listed(blocked)}");
 		}
 		finally
 		{
 			await client.UnblockAsync(pn, CancellationToken.None);
-			unblocked = await client.GetBlocklistAsync(CancellationToken.None);
-			live.Write($"live: after the unblock the blocklist lists {Listed(unblocked)}");
+			unblocked = PeersOf(await client.GetBlocklistAsync(CancellationToken.None), account);
+			live.Write($"live: after the unblock the blocklist lists the peer {Listed(unblocked)}");
 		}
 
-		ContactChecks.ValidateBlocked(blocked, lid.Value, pn);
-		ContactChecks.ValidateUnblocked(unblocked);
+		LiveChecks.Redacting(() => ContactChecks.ValidateBlocked(blocked, lid.Value, pn));
+		LiveChecks.Redacting(() => ContactChecks.ValidateUnblocked(unblocked));
 	}
 
-	private static string Listed(ImmutableArray<BlockedUser> list) =>
-		list.IsEmpty ? "nobody" : string.Join(", ", list.Select(u => $"a {LiveChecks.Form(u.Jid)} with {LiveChecks.Form(u.JidAlt)} beside it"));
+	/// <summary>The blocklist's entries that name the peer, by either form; the others are never looked at.</summary>
+	private static ImmutableArray<BlockedUser> PeersOf(ImmutableArray<BlockedUser> blocklist, (Jid Chat, Jid? Lid) account) =>
+		[.. blocklist.Where(u => LiveChecks.Names(account, u.Jid) || (u.JidAlt is { } alt && LiveChecks.Names(account, alt)))];
+
+	private static string Listed(ImmutableArray<BlockedUser> entries) =>
+		entries.IsEmpty ? "in no entry" : $"in {entries.Length} entries: {string.Join(", ", entries.Select(u => $"a {LiveChecks.Form(u.Jid)} with {LiveChecks.Form(u.JidAlt)} beside it"))}";
 }

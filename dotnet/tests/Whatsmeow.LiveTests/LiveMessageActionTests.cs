@@ -32,7 +32,7 @@ public sealed class LiveMessageActionTests(LiveSidecar live, LivePeer peer)
 		var got = await LiveChecks.WithinAsync(arrived, "the reaction");
 
 		var content = new ReactionContent { Target = new MessageKey { Id = target, Sender = got.Source.Sender with { Device = 0 } }, Emoji = "👍" };
-		Assert.Equal(LiveChecks.Received(other, got, sender, id, content), got);
+		LiveChecks.Equal(LiveChecks.Received(other, got, sender, id, content), got);
 	}
 
 	/// <summary>An edit of the live account's own message: the peer gets the new text as an edit of it.</summary>
@@ -49,7 +49,7 @@ public sealed class LiveMessageActionTests(LiveSidecar live, LivePeer peer)
 		var got = await LiveChecks.WithinAsync(arrived, "the edit");
 
 		var content = new EditContent { Target = new MessageKey { Id = target, Sender = got.Source.Sender with { Device = 0 } }, Content = new TextContent { Text = "wmn edited" } };
-		Assert.Equal(LiveChecks.Received(other, got, sender, id, content), got);
+		LiveChecks.Equal(LiveChecks.Received(other, got, sender, id, content), got);
 	}
 
 	/// <summary>A revoke of the live account's own message: the peer gets it naming the message.</summary>
@@ -65,7 +65,7 @@ public sealed class LiveMessageActionTests(LiveSidecar live, LivePeer peer)
 		_ = await client.RevokeMessageAsync(to, new MessageKey { Id = target }, id, ct);
 		var got = await LiveChecks.WithinAsync(arrived, "the revoke");
 
-		Assert.Equal(LiveChecks.Received(other, got, sender, id, new RevokeContent { Target = new MessageKey { Id = target, Sender = got.Source.Sender with { Device = 0 } } }), got);
+		LiveChecks.Equal(LiveChecks.Received(other, got, sender, id, new RevokeContent { Target = new MessageKey { Id = target, Sender = got.Source.Sender with { Device = 0 } } }), got);
 	}
 
 	/// <summary>
@@ -91,7 +91,7 @@ public sealed class LiveMessageActionTests(LiveSidecar live, LivePeer peer)
 		var got = await LiveChecks.WithinAsync(arrived, "the reply");
 		live.Write($"live: the reply quoted the peer's message as from a {LiveChecks.Form(question.Source.Sender)}, and mentioned it by its phone number");
 
-		Assert.Equal(
+		LiveChecks.Equal(
 			LiveChecks.Received(other, got, sender, id, new TextContent { Text = text }) with
 			{
 				ReplyTo = new QuotedMessage { Id = question.Id, Sender = null, Content = new TextContent { Text = "wmn the question" } },
@@ -121,7 +121,7 @@ public sealed class LiveMessageActionTests(LiveSidecar live, LivePeer peer)
 		_ = await client.SendReactionAsync(to, new MessageKey { Id = theirs.Id, Sender = to }, "👍", reactionId, ct);
 		var reaction = await LiveChecks.WithinAsync(reacted, "the reaction naming the phone-number chat");
 		live.Write($"live: the peer got the reaction keyed by phone number in a {LiveChecks.Form(reaction.Source.Chat)} chat");
-		Assert.Equal(LiveChecks.Received(other, reaction, sender, reactionId, new ReactionContent { Target = new MessageKey { Id = theirs.Id }, Emoji = "👍" }), reaction);
+		LiveChecks.Equal(LiveChecks.Received(other, reaction, sender, reactionId, new ReactionContent { Target = new MessageKey { Id = theirs.Id }, Emoji = "👍" }), reaction);
 
 		Assert.True(lid is { IsLid: true }, "the peer session has no LID, so there is no LID chat to send to");
 		var target = await TextToPeerAsync(client, other, lid.Value, "wmn revoke by phone number", ct);
@@ -130,7 +130,7 @@ public sealed class LiveMessageActionTests(LiveSidecar live, LivePeer peer)
 		_ = await client.RevokeMessageAsync(to, new MessageKey { Id = target }, revokeId, ct);
 		var revoke = await LiveChecks.WithinAsync(revoked, "the revoke naming the phone-number chat");
 		live.Write($"live: the peer got the revoke keyed by phone number, of a message sent to its LID chat, in a {LiveChecks.Form(revoke.Source.Chat)} chat");
-		Assert.Equal(
+		LiveChecks.Equal(
 			LiveChecks.Received(other, revoke, sender, revokeId, new RevokeContent { Target = new MessageKey { Id = target, Sender = revoke.Source.Sender with { Device = 0 } } }),
 			revoke
 		);
@@ -153,7 +153,7 @@ public sealed class LiveMessageActionTests(LiveSidecar live, LivePeer peer)
 		_ = await SendReplyWithoutParticipantAsync(client, to, question.Id, "wmn quoted without participant", "wmn reply without participant", id, ct);
 		var got = await LiveChecks.WithinAsync(arrived, "the reply with no participant");
 
-		Assert.Equal(LiveChecks.Received(other, got, sender, id, new TextContent { Text = "wmn reply without participant" }), got);
+		LiveChecks.Equal(LiveChecks.Received(other, got, sender, id, new TextContent { Text = "wmn reply without participant" }), got);
 	}
 
 	/// <summary>
@@ -211,7 +211,7 @@ public sealed class LiveMessageActionTests(LiveSidecar live, LivePeer peer)
 		if (got is null)
 			return;
 		var content = new EditContent { Target = new MessageKey { Id = target, Sender = got.Source.Sender with { Device = 0 } }, Content = new TextContent { Text = "wmn edited late" } };
-		Assert.Equal(LiveChecks.Received(other, got, sender, id, content), got);
+		LiveChecks.Equal(LiveChecks.Received(other, got, sender, id, content), got);
 	}
 
 	/// <summary>Both sessions connected, the live account, and the peer's chat by phone number.</summary>

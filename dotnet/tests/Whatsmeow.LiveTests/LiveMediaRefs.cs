@@ -11,22 +11,74 @@ namespace Whatsmeow.LiveTests;
 /// </summary>
 internal static partial class LiveMediaRefs
 {
-	/// <summary>Every ref in the file, none when there is no file or no path.</summary>
-	public static IReadOnlyList<Kept> Read(string path) =>
-		path.Length == 0 || !File.Exists(path)
-			? []
-			: [.. File.ReadLines(path).Where(line => line.Length > 0).Select(line => JsonSerializer.Deserialize(line, Json.Default.Line)!.ToKept())];
+	/// <summary>
+	/// Every ref in the file, none when there is no file or no path; a line that does not read as one is skipped and
+	/// counted in <paramref name="skipped"/>. A path inside the repository is refused, so the keys are never committed.
+	/// </summary>
+	public static IReadOnlyList<Kept> Read(string path, out int skipped)
+	{
+		skipped = 0;
+		if (path.Length == 0)
+			return [];
+		Refuse(path);
+		if (!File.Exists(path))
+			return [];
 
-	/// <summary>Adds <paramref name="kept"/> to the file, creating it 0600; nothing without a path.</summary>
+		var kept = new List<Kept>();
+		foreach (var line in File.ReadLines(path).Where(line => line.Length > 0))
+		{
+			try
+			{
+				if (JsonSerializer.Deserialize(line, Json.Default.Line) is { } read)
+				{
+					kept.Add(read.ToKept());
+					continue;
+				}
+			}
+			catch (Exception e) when (e is JsonException or FormatException)
+			{
+				// Counted below, as a line that reads as nothing is.
+			}
+
+			skipped++;
+		}
+
+		return kept;
+	}
+
+	/// <summary>
+	/// Adds <paramref name="kept"/> to the file; nothing without a path. Its directory is created owner-only, the file
+	/// 0600, and an existing file is tightened to 0600 first.
+	/// </summary>
 	public static void Append(string path, Kept kept)
 	{
 		if (path.Length == 0)
 			return;
+		Refuse(path);
+		var directory = Path.GetDirectoryName(Path.GetFullPath(path))!;
 		var options = new FileStreamOptions { Mode = FileMode.Append, Access = FileAccess.Write };
+		if (OperatingSystem.IsWindows())
+			_ = Directory.CreateDirectory(directory);
 		if (!OperatingSystem.IsWindows())
+		{
+			_ = Directory.CreateDirectory(directory, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+			if (File.Exists(path))
+				File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite);
 			options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+		}
+
 		using var writer = new StreamWriter(path, options);
 		writer.WriteLine(JsonSerializer.Serialize(Line.Of(kept), Json.Default.Line));
+	}
+
+	/// <summary>Refuses a path inside the repository: the file holds media keys.</summary>
+	private static void Refuse(string path)
+	{
+		var root = Path.GetFullPath(IntegrationTests.SidecarBinaries.FindRoot());
+		var full = Path.GetFullPath(path);
+		var comparison = OperatingSystem.IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+		if (full.StartsWith(Path.TrimEndingDirectorySeparator(root) + Path.DirectorySeparatorChar, comparison))
+			throw new InvalidOperationException($"{LiveSettings.MediaRefsVariable} names a file inside the repository; it holds media keys, so it must be outside it.");
 	}
 
 	/// <summary>A ref and when it was uploaded.</summary>

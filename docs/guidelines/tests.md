@@ -191,6 +191,8 @@ Same assertions as the fake-mode suite: a live test calls the fake-mode tests' o
 Each slice keeps them in `<Slice>Checks.cs` beside its fake-mode tests (`MediaChecks`, `MessageChecks`, `GroupChecks`, `PresenceChecks`, `ContactChecks`, `ChatStateChecks`), and both modes compare the whole record they build.
 What only WhatsApp sets (a message's source, push name and time, a group change's sender and time, an upload's URL) is passed in: the fake's are fixed, and a live test reads them off the event once it checked that they name the right account (`LiveChecks`).
 A question WhatsApp alone answers, [unknown] in ARCHITECTURE §14, is written to the log before any check, so a failing check still leaves the measurement.
+Each `live:` line starts with the UTC time, so §14 can date it, and names a JID only by its form (`LiveChecks.Form`); a live check's failure is redacted too (`LiveChecks.Equal`, `LiveChecks.Redacting`), since a record prints its JIDs.
+A live test reads only what is its own: the contacts test compares the peer's blocklist entries and never prints the account's other ones.
 The number and the database path are secrets: keep them in `~/secrets.env` and never print them; the live sidecar log redacts the number.
 Run, from the repository root, exporting only the variables the tests need (never source `~/secrets.env`; for the phone-code test, export `WHATSMEOW_LIVE_PHONE_NUMBER` the same way, and `WHATSMEOW_LIVE_OWNER=1` when the owner is at the phone):
 
@@ -210,9 +212,11 @@ The traffic is between two accounts: `peer`, a persistent session on the owner's
 A session's own JID comes from `SessionInfo.Jid` (this device's JID; the account's chat is it with device 0).
 Only the `NeedsOwner` tests need the owner: some wait for the owner's ping, `wmn ping` sent from the phone to "Message yourself", before the run or within five minutes of the first such test, a wait bounded apart from the test's own work.
 The others ask the owner what a phone shows, the live account's or the peer's: the question goes to `owner-question.txt`, `sidecar.log` and the test output, and the owner answers with a text to "Message yourself" on the live account's phone that starts `wmn yes` or `wmn no`, with what they saw, within five minutes; the answer is logged, not checked.
-Every live test leaves both accounts as it found them: it unblocks what it blocked, unmutes and marks read what it changed, sets a group's settings back, and has the peer join again a group it took the peer out of.
+Every live test leaves both accounts as it found them: it unblocks what it blocked, unmutes and marks read what it changed, sets a group's settings, name and roles back, and adds the peer back to a group it took the peer out of.
 The run's one group (`LiveGroup`) has the peer as its only other member; at the end the live session removes the peer and leaves, the closest WhatsApp has to deleting it. No other number is ever added to a group.
-The ref lifetime test keeps its refs, media keys included, in the file `WHATSMEOW_LIVE_MEDIA_REFS` names, outside the repository (created 0600); without it, it tries this run's ref only.
+The run's one group (`LiveGroup`) first closes the groups an aborted run left, the ones the live account owns with a run's name.
+The ref lifetime test keeps its refs, media keys included, in the file `WHATSMEOW_LIVE_MEDIA_REFS` names, outside the repository (it refuses a path inside; the file is kept 0600); without it, it tries this run's ref only.
+The media size ladder sends 181 MiB of documents to the peer, so it runs only with `WHATSMEOW_LIVE_MEDIA_SIZES` set (`NeedsMediaSizes`).
 The kill tests call the fake-mode kill tests' checks (`Whatsmeow.IntegrationTests/Events/DeliveryChecks.cs`); the .NET kill runs `SidecarHost events-live` on the live database, so the live sidecar stops first and starts again after it.
 Every measurement goes to `sidecar.log` and the test output, redacted, for ARCHITECTURE §14; the peer's log goes to `peer.log`, and the .NET kill's host log to `host.log`.
 A sidecar exit the client did not ask for adds a `live: UNEXPECTED SIDECAR EXIT` line with its exit code and UTC time, in the log and the test output; one outside a kill test's own kill means something else killed it, and the run's results around it are not evidence.

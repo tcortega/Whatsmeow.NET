@@ -1,5 +1,7 @@
 using Whatsmeow.Events;
 using Whatsmeow.IntegrationTests.Messaging;
+using Whatsmeow.IntegrationTests.Support;
+using Xunit.Sdk;
 
 namespace Whatsmeow.LiveTests;
 
@@ -61,12 +63,44 @@ internal static class LiveChecks
 	/// <summary>
 	/// The message <paramref name="receiver"/> must have got (<see cref="MessageChecks.Received"/>), from
 	/// <paramref name="sender"/>, with <paramref name="content"/>: it checks the source names the sender, not the
-	/// receiver, then takes the source, the push name and the time from <paramref name="got"/>, which WhatsApp set.
+	/// receiver, and the chat is <paramref name="group"/>, or in a direct message the sender's, then takes the source,
+	/// the push name and the time from <paramref name="got"/>, which WhatsApp set.
 	/// </summary>
-	public static MessageReceived Received(IWhatsAppClient receiver, MessageReceived got, (Jid Chat, Jid? Lid) sender, MessageId id, MessageContent content)
+	public static MessageReceived Received(IWhatsAppClient receiver, MessageReceived got, (Jid Chat, Jid? Lid) sender, MessageId id, MessageContent content, Jid? group = null)
 	{
 		Assert.False(got.Source.IsFromMe, $"message {id} came as the receiver's own");
 		Assert.True(Names(sender, got.Source.Sender), $"message {id} came from a {Form(got.Source.Sender)} that is not the sender's");
+		Assert.True(
+			group is { } g ? got.Source.Chat == g : Names(sender, got.Source.Chat),
+			$"message {id} came in a {Form(got.Source.Chat)} chat that is not {(group is null ? "the sender's" : "the group")}"
+		);
 		return MessageChecks.Received(receiver.SessionId, id, got.Source, got.PushName, got.Timestamp, content);
+	}
+
+	/// <summary>
+	/// <see cref="Assert.Equal{T}(T, T)"/>, its failure redacted (<see cref="LogRedaction"/>): a record prints its JIDs,
+	/// and a live test's are real phone numbers.
+	/// </summary>
+	public static void Equal<T>(T expected, T actual) => Redacting(() => Assert.Equal(expected, actual));
+
+	/// <summary><see cref="Assert.Equal{T}(IEnumerable{T}, IEnumerable{T})"/>, its failure redacted.</summary>
+	public static void Equal<T>(IEnumerable<T> expected, IEnumerable<T> actual) => Redacting(() => Assert.Equal(expected, actual));
+
+	/// <summary>Runs a check, a shared one included, and fails with its message redacted.</summary>
+	public static void Redacting(Action check) => _ = Redacting(() => { check(); return true; });
+
+	/// <inheritdoc cref="Redacting(Action)"/>
+	public static T Redacting<T>(Func<T> check)
+	{
+		try
+		{
+			return check();
+		}
+		catch (XunitException e)
+		{
+#pragma warning disable MA0054 // Justification: the cause's message is the unredacted one; only its redacted text may reach the output.
+			throw new XunitException(LogRedaction.Redact(e.Message, LiveSettings.PhoneNumber));
+#pragma warning restore MA0054
+		}
 	}
 }

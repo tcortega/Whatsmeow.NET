@@ -25,6 +25,12 @@ internal static class LiveSettings
 	public const string OwnerVariable = "WHATSMEOW_LIVE_OWNER";
 
 	/// <summary>
+	/// Set, to any value, to run the media size ladder, 181 MiB of documents to the peer (<c>LiveMediaTests</c>): too
+	/// much to send on every run with the peer.
+	/// </summary>
+	public const string MediaSizesVariable = "WHATSMEOW_LIVE_MEDIA_SIZES";
+
+	/// <summary>
 	/// The file of media refs an earlier run uploaded, kept outside the repository, which the ref lifetime test reads and
 	/// appends to (<c>LiveMediaTests</c>). Optional: without it that test tries this run's ref only. It holds media keys,
 	/// so it is created 0600.
@@ -42,6 +48,9 @@ internal static class LiveSettings
 
 	/// <summary>The media refs file; empty when it is not set.</summary>
 	public static string MediaRefs { get; } = Environment.GetEnvironmentVariable(MediaRefsVariable) ?? "";
+
+	/// <summary>Whether the media size ladder runs.</summary>
+	public static bool MediaSizes { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(MediaSizesVariable));
 
 	/// <summary>Whether the owner is at the phone.</summary>
 	public static bool Owner { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(OwnerVariable));
