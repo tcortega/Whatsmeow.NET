@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
+		<Description>WhatsApp multi-device for .NET through whatsmeow: sessions, pairing, messages, media, groups, contacts, presence and history, with at least once event delivery. Starts and supervises the whatsmeow-net sidecar, which comes with it.</Description>
 		<!-- C# root per ARCHITECTURE Naming: the entry point and shared public types sit at the root (ADR 0018). -->
 		<RootNamespace>Whatsmeow</RootNamespace>
 		<!-- [LibraryImport] generates unsafe code (SYSLIB1062); only Sidecar/KillOnCloseJob.cs uses it (ADR 0024). -->

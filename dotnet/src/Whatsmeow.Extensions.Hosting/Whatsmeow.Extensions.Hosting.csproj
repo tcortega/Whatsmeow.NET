@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
+		<Description>Dependency injection and a hosted sidecar for Whatsmeow.Client: AddWhatsmeow(), options from configuration, keyed sessions and DI event handlers.</Description>
 		<RootNamespace>Whatsmeow.Extensions.Hosting</RootNamespace>
 		<!--
 			BindConfiguration through the configuration binding generator: a library does not get it from IsAotCompatible,

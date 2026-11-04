@@ -5,6 +5,7 @@
 		its own version. The assembly it builds is empty, never packed and never referenced at run time.
 	-->
 	<PropertyGroup>
+		<Description>The whatsmeow-net sidecar binary for osx-x64 and osx-arm64. Whatsmeow.Client brings it; GPL-3.0-only object code, its source on each GitHub release.</Description>
 		<IncludeBuildOutput>false</IncludeBuildOutput>
 		<SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
 	</PropertyGroup>

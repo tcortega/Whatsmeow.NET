@@ -1,4 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<Description>Generated gRPC and protobuf code for the whatsmeow.v1 contract between Whatsmeow.Client and its sidecar. For the library's own use; no stability promise.</Description>
+	</PropertyGroup>
+
 	<!-- Generated/ is written by buf from /buf.gen.yaml (see AGENTS.md). Never edit it by hand. Every type is internal. -->
 	<ItemGroup>
 		<PackageReference Include="Google.Protobuf" />
