@@ -11,6 +11,7 @@ whatsmeow-net --database /data/whatsmeow-net.db --listen tcp:0.0.0.0:7777 --toke
 ```
 
 * `--listen` is `unix:<absolute path>` or `tcp:<host>:<port>`.
+  On Windows the path needs a drive or a UNC root, such as `unix:C:\run\whatsmeow-net.sock`; `unix:\run\s`, with no drive, is refused.
 * `--token-file` holds the shared secret: 32 bytes as 64 hex digits, on one line.
 * Optional: `--media-root`, `--send-burst`, `--send-interval`, and the history flags `--history-full-sync`, `--history-days-limit`, `--history-size-limit-mb` and `--history-storage-quota-mb`, the same settings as the embedded options.
 
