@@ -144,13 +144,15 @@ public sealed class LiveSidecar : IAsyncLifetime
 
 	/// <summary>
 	/// A paired session's account: its own chat, this device's JID without the device, and its LID the same way, null
-	/// when WhatsApp sent none. It never creates the session.
+	/// when WhatsApp sent none. It never creates the session. Both user parts are redacted from then on (<see cref="LiveRedaction"/>).
 	/// </summary>
 	internal static async Task<(Jid Chat, Jid? Lid)> AccountOfAsync(WhatsmeowSidecar sidecar, SessionId id, CancellationToken cancellationToken)
 	{
 		var sessions = await sidecar.Sessions.ListAsync(cancellationToken).ConfigureAwait(false);
 		if (sessions.SingleOrDefault(s => s.Id == id) is not { Jid: { } jid } info)
 			throw new InvalidOperationException($"The session {id} is not paired (docs/guidelines/tests.md Live WhatsApp).");
+		LiveRedaction.Add(jid);
+		LiveRedaction.Add(info.Lid);
 		return (jid with { Device = 0 }, info.Lid is { } lid ? lid with { Device = 0 } : null);
 	}
 
@@ -273,7 +275,7 @@ public sealed class LiveSidecar : IAsyncLifetime
 	{
 		var stamped = LiveClock.Stamp(line);
 		_log?.Write(stamped);
-		TestContext.Current.TestOutputHelper?.WriteLine(LogRedaction.Redact(stamped, LiveSettings.PhoneNumber));
+		TestContext.Current.TestOutputHelper?.WriteLine(LiveRedaction.Redact(stamped));
 	}
 
 	/// <summary>
@@ -290,7 +292,8 @@ public sealed class LiveSidecar : IAsyncLifetime
 		if (state is SessionState.Connected or SessionState.CaughtUp)
 			await client.LogoutAsync(cancellationToken).ConfigureAwait(false);
 		await sidecar.Sessions.DeleteAsync(client.SessionId, cancellationToken).ConfigureAwait(false);
-		Assert.DoesNotContain(await sidecar.Sessions.ListAsync(cancellationToken).ConfigureAwait(false), session => session.Id == client.SessionId);
+		var sessions = await sidecar.Sessions.ListAsync(cancellationToken).ConfigureAwait(false);
+		LiveChecks.Redacting(() => Assert.DoesNotContain(sessions, session => session.Id == client.SessionId));
 	}
 
 	private static bool IsPing(MessageReceived e) => IsToSelf(e) && string.Equals(DeliveryChecks.TextOf(e)?.Trim(), PingText, StringComparison.OrdinalIgnoreCase);

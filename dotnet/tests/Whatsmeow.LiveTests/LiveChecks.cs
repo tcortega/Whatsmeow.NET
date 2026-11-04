@@ -1,6 +1,5 @@
 using Whatsmeow.Events;
 using Whatsmeow.IntegrationTests.Messaging;
-using Whatsmeow.IntegrationTests.Support;
 using Xunit.Sdk;
 
 namespace Whatsmeow.LiveTests;
@@ -32,7 +31,10 @@ internal static class LiveChecks
 	public static Task<MessageReceived> ArrivalAsync(IWhatsAppClient receiver, MessageId id, CancellationToken cancellationToken) =>
 		receiver.WaitForAsync<MessageReceived>(m => m.Id == id, Watch, cancellationToken);
 
-	/// <summary>What <paramref name="wait"/> got, or a failure naming <paramref name="what"/> did not come within its bound.</summary>
+	/// <summary>
+	/// What <paramref name="wait"/> got, or a failure naming <paramref name="what"/> did not come within its bound. The
+	/// failure is redacted, but name what was awaited, never its text: a mention's text holds a number.
+	/// </summary>
 	public static async Task<T> WithinAsync<T>(Task<T> wait, string what)
 	{
 		try
@@ -41,7 +43,7 @@ internal static class LiveChecks
 		}
 		catch (TimeoutException)
 		{
-			Assert.Fail($"{what} did not come within {Watch.TotalSeconds:F0} s");
+			Assert.Fail(LiveRedaction.Redact($"{what} did not come within {Watch.TotalSeconds:F0} s"));
 			throw;
 		}
 	}
@@ -78,7 +80,7 @@ internal static class LiveChecks
 	}
 
 	/// <summary>
-	/// <see cref="Assert.Equal{T}(T, T)"/>, its failure redacted (<see cref="LogRedaction"/>): a record prints its JIDs,
+	/// <see cref="Assert.Equal{T}(T, T)"/>, its failure redacted (<see cref="LiveRedaction"/>): a record prints its JIDs,
 	/// and a live test's are real phone numbers.
 	/// </summary>
 	public static void Equal<T>(T expected, T actual) => Redacting(() => Assert.Equal(expected, actual));
@@ -99,7 +101,7 @@ internal static class LiveChecks
 		catch (XunitException e)
 		{
 #pragma warning disable MA0054 // Justification: the cause's message is the unredacted one; only its redacted text may reach the output.
-			throw new XunitException(LogRedaction.Redact(e.Message, LiveSettings.PhoneNumber));
+			throw new XunitException(LiveRedaction.Redact(e.Message));
 #pragma warning restore MA0054
 		}
 	}

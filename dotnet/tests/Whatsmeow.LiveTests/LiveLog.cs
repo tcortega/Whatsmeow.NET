@@ -3,8 +3,9 @@ using Whatsmeow.IntegrationTests.Support;
 namespace Whatsmeow.LiveTests;
 
 /// <summary>
-/// One live sidecar's log: every record goes to a file in <c>dotnet/artifacts/live/</c> with every JID's user part and
-/// the test number redacted (<see cref="LogRedaction"/>), and stays in <see cref="Capture"/> for the tests to wait on.
+/// One live sidecar's log: every record goes to a file in <c>dotnet/artifacts/live/</c> with every JID's user part, the
+/// test number and both accounts' user parts redacted (<see cref="LiveRedaction"/>), and stays in <see cref="Capture"/>
+/// for the tests to wait on.
 /// </summary>
 internal sealed class LiveLog : IDisposable
 {
@@ -29,7 +30,7 @@ internal sealed class LiveLog : IDisposable
 	/// </summary>
 	public void Write(string line)
 	{
-		var redacted = LogRedaction.Redact(line, LiveSettings.PhoneNumber);
+		var redacted = LiveRedaction.Redact(line);
 		lock (_lock)
 			_writer?.WriteLine(redacted);
 		if (!line.Contains(ExitedUnexpectedly, StringComparison.Ordinal))
