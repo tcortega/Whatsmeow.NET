@@ -12,6 +12,9 @@ namespace Whatsmeow.LiveTests;
 /// </summary>
 public sealed partial class LiveGroup(LiveSidecar live, LivePeer peer) : IAsyncLifetime
 {
+	/// <summary>How long the connect before the close at the end may take.</summary>
+	private static readonly TimeSpan s_connectBound = TimeSpan.FromMinutes(3);
+
 	private readonly SemaphoreSlim _creating = new(1, 1);
 	private Creation? _creation;
 
@@ -114,14 +117,20 @@ public sealed partial class LiveGroup(LiveSidecar live, LivePeer peer) : IAsyncL
 	/// <summary>Each member's address forms and role, for the log: the addressing mode WhatsApp chose shows there.</summary>
 	public static string Members(GroupInfo info) => string.Join(", ", info.Participants.Select(p => $"{LiveChecks.Form(p.Jid)} with {LiveChecks.Form(p.JidAlt)} ({p.Role})"));
 
-	/// <summary>Closes the run's group (<see cref="CloseAsync"/>); nothing it throws stops the fixture's own disposal.</summary>
+	/// <summary>
+	/// Closes the run's group (<see cref="CloseAsync"/>); nothing it throws stops the fixture's own disposal, and the
+	/// connect before it is bounded, so a WhatsApp that never answers cannot hold the run.
+	/// </summary>
 	public async ValueTask DisposeAsync()
 	{
 		try
 		{
 			if (_creation is { Created.Group.Jid: var group })
-				await CloseAsync(await live.LiveAsync(CancellationToken.None).ConfigureAwait(false), group, await peer.AccountAsync(CancellationToken.None).ConfigureAwait(false))
-					.ConfigureAwait(false);
+			{
+				using var bound = LiveClock.Bound(s_connectBound, CancellationToken.None);
+				var client = await live.LiveAsync(bound.Token).ConfigureAwait(false);
+				await CloseAsync(client, group, await peer.AccountAsync(bound.Token).ConfigureAwait(false)).ConfigureAwait(false);
+			}
 		}
 #pragma warning disable CA1031 // Justification: a fixture's disposal must not fail the run; what failed goes to the log.
 		catch (Exception e)
@@ -136,36 +145,24 @@ public sealed partial class LiveGroup(LiveSidecar live, LivePeer peer) : IAsyncL
 	}
 
 	/// <summary>
-	/// Removes the peer from <paramref name="group"/>, if it is a member, then leaves it; the leave runs whatever the
-	/// removal threw, and a failure of either goes to the log, not up.
+	/// Removes the peer from <paramref name="group"/>, if it is a member, then leaves it: each step bounded, the leave
+	/// whatever the removal threw, and a failure of either goes to the log, not up (<see cref="LiveRestore.RunAsync"/>).
 	/// </summary>
 	private async Task CloseAsync(IWhatsAppClient client, Jid group, (Jid Chat, Jid? Lid) peerAccount)
 	{
-		try
+		async Task RemovePeerAsync(CancellationToken token)
 		{
-			var info = await client.GetGroupInfoAsync(group, CancellationToken.None).ConfigureAwait(false);
+			var info = await client.GetGroupInfoAsync(group, token).ConfigureAwait(false);
 			var members = info.Participants.Where(p => LiveChecks.Names(peerAccount, p.Jid)).Select(p => p.Jid).ToList();
 			if (members.Count > 0)
-				_ = await client.RemoveParticipantsAsync(group, members, CancellationToken.None).ConfigureAwait(false);
-		}
-#pragma warning disable CA1031 // Justification: the leave below must run whatever the removal threw; what failed goes to the log.
-		catch (Exception e)
-#pragma warning restore CA1031
-		{
-			live.Write($"live: could not remove the peer from a group: {e.GetType().Name}{(e is WhatsmeowException w ? $" {w.ErrorCode}" : "")}");
+				_ = await client.RemoveParticipantsAsync(group, members, token).ConfigureAwait(false);
 		}
 
-		try
-		{
-			await client.LeaveGroupAsync(group, CancellationToken.None).ConfigureAwait(false);
+		var failed = await LiveRestore
+			.RunAsync(live, ("remove the peer from a group", RemovePeerAsync), ("leave a group", token => client.LeaveGroupAsync(group, token)))
+			.ConfigureAwait(false);
+		if (failed.Count == 0)
 			live.Write("live: removed the peer from a group and left it");
-		}
-#pragma warning disable CA1031 // Justification: one group that cannot be left must not keep the others open; what failed goes to the log.
-		catch (Exception e)
-#pragma warning restore CA1031
-		{
-			live.Write($"live: could not leave a group: {e.GetType().Name}{(e is WhatsmeowException w ? $" {w.ErrorCode}" : "")}");
-		}
 	}
 
 	/// <summary>

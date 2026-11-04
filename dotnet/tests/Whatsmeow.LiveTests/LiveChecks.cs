@@ -14,6 +14,24 @@ internal static class LiveChecks
 	/// <summary>How long a test waits for what WhatsApp delivers to the other account.</summary>
 	public static readonly TimeSpan Watch = TimeSpan.FromSeconds(60);
 
+	/// <summary>
+	/// How far before a test's start an event WhatsApp timed may be and still be the test's: its times are whole seconds,
+	/// and WhatsApp's clock and this one may differ by a little [inferred: no live run measured the skew].
+	/// </summary>
+	private static readonly TimeSpan s_skew = TimeSpan.FromSeconds(5);
+
+	/// <summary>
+	/// The earliest time an event WhatsApp timed can have and be this test's, not a late one from a test before it: now,
+	/// less <see cref="s_skew"/>. Take it before the test's first change.
+	/// </summary>
+	public static DateTimeOffset Since() => LiveClock.Time.GetUtcNow() - s_skew;
+
+	/// <summary>
+	/// Whether an event WhatsApp timed <paramref name="at"/> may be the test's that took <paramref name="since"/>
+	/// (<see cref="Since"/>): one with no time (the Unix epoch, as the client maps it) cannot be dated, so it is kept.
+	/// </summary>
+	public static bool IsSince(DateTimeOffset since, DateTimeOffset at) => at >= since || at == DateTimeOffset.UnixEpoch;
+
 	/// <summary>Whether <paramref name="jid"/> names <paramref name="account"/>'s user, by its phone number or its LID, on any device.</summary>
 	public static bool Names((Jid Chat, Jid? Lid) account, Jid jid) => (jid with { Device = 0 }) == account.Chat || (jid with { Device = 0 }) == account.Lid;
 

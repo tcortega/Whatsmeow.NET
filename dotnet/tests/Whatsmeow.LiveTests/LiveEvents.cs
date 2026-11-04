@@ -3,7 +3,11 @@ using Whatsmeow.Events;
 
 namespace Whatsmeow.LiveTests;
 
-/// <summary>The events a client's handler got that match a filter, in order, read with a bound: real WhatsApp may send fewer.</summary>
+/// <summary>
+/// The events a client's handler got that match a filter, in order, read with a bound: real WhatsApp may send fewer. It
+/// counts every match from its creation, a late one from an earlier test too, so a test's filter names the values it
+/// set and, where WhatsApp times the event, <see cref="LiveChecks.IsSince"/>.
+/// </summary>
 internal sealed class LiveEvents<TEvent> : IDisposable
 	where TEvent : WhatsAppEvent
 {

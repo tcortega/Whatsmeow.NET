@@ -6,7 +6,8 @@ namespace Whatsmeow.LiveTests;
 
 /// <summary>
 /// Chat state (#38) against real WhatsApp, the owner at the live account's phone: the questions #38 left [unknown], what
-/// the phone shows for a mute's end and for a chat marked read or unread with no message key. Each write is put back.
+/// the phone shows for a mute's end and for a chat marked read or unread with no message key. Each write is put back to
+/// the default, unmuted and read: the API reads neither (docs/guidelines/tests.md Live WhatsApp).
 /// </summary>
 [Collection(nameof(Live))]
 public sealed class LiveChatStateTests(LiveSidecar live, LivePeer peer)
@@ -26,22 +27,22 @@ public sealed class LiveChatStateTests(LiveSidecar live, LivePeer peer)
 		var now = LiveClock.Time.GetUtcNow();
 		var until = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, TimeSpan.Zero).AddDays(3).AddMilliseconds(678);
 		var echo = client.WaitForAsync<ChatStateChanged>(c => c.Change is ChatStateChange.Mute, LiveChecks.Watch, ct);
-		try
-		{
-			await client.MuteChatAsync(chat, until, ct);
-			var change = await LiveChecks.WithinAsync(echo, "the mute's echo");
-			live.Write($"live: the mute's echo came for a {LiveChecks.Form(change.Chat)} chat: {change.Change}");
-			LiveChecks.Redacting(() => ChatStateChecks.ValidateMuteEcho(change, chat, until));
+		await LiveRestore.AfterAsync(
+			live,
+			async () =>
+			{
+				await client.MuteChatAsync(chat, until, ct).ConfigureAwait(false);
+				var change = await LiveChecks.WithinAsync(echo, "the mute's echo").ConfigureAwait(false);
+				live.Write($"live: the mute's echo came for a {LiveChecks.Form(change.Chat)} chat: {change.Change}");
+				LiveChecks.Redacting(() => ChatStateChecks.ValidateMuteEcho(change, chat, until));
 
-			_ = await live.AskOwnerAsync(
-				$"On the live account's phone, the chat with the peer: is it muted, and until when? It was muted until {until.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)} UTC.",
-				ct
-			);
-		}
-		finally
-		{
-			await client.UnmuteChatAsync(chat, CancellationToken.None);
-		}
+				_ = await live.AskOwnerAsync(
+					$"On the live account's phone, the chat with the peer: is it muted, and until when? It was muted until {until.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)} UTC.",
+					ct
+				).ConfigureAwait(false);
+			},
+			("unmute the chat with the peer", t => client.UnmuteChatAsync(chat, t))
+		);
 	}
 
 	/// <summary>The chat with the peer marked unread with no message key: the owner says whether the phone shows it unread. It is marked read after.</summary>
@@ -52,16 +53,16 @@ public sealed class LiveChatStateTests(LiveSidecar live, LivePeer peer)
 		var client = await live.LiveAsync(ct);
 		_ = await peer.ConnectedAsync(live, ct);
 		var (chat, _) = await peer.AccountAsync(ct);
-		try
-		{
-			await client.MarkChatUnreadAsync(chat, ct);
+		await LiveRestore.AfterAsync(
+			live,
+			async () =>
+			{
+				await client.MarkChatUnreadAsync(chat, ct).ConfigureAwait(false);
 
-			_ = await live.AskOwnerAsync("On the live account's phone, the chat list: is the chat with the peer marked unread (the unread dot)?", ct);
-		}
-		finally
-		{
-			await client.MarkChatReadAsync(chat, CancellationToken.None);
-		}
+				_ = await live.AskOwnerAsync("On the live account's phone, the chat list: is the chat with the peer marked unread (the unread dot)?", ct).ConfigureAwait(false);
+			},
+			("mark the chat with the peer read", t => client.MarkChatReadAsync(chat, t))
+		);
 	}
 
 	/// <summary>

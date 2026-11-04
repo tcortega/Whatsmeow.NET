@@ -32,30 +32,30 @@ public sealed class LivePresenceTests(LiveSidecar live, LivePeer peer)
 		var (account, _) = await live.AccountAsync(ct);
 		var peerAccount = await peer.AccountAsync(ct);
 		using var typing = new LiveEvents<ChatPresenceChanged>(client, c => LiveChecks.Names(peerAccount, c.Source.Sender));
-		try
-		{
-			await client.SendPresenceAsync(PresenceState.Available, ct);
-			var online = client.WaitForAsync<PresenceChanged>(p => LiveChecks.Names(peerAccount, p.From) && p.State is PresenceState.Available, LiveChecks.Watch, ct);
-			await client.SubscribePresenceAsync(peerAccount.Chat, ct);
-			s_subscribedWhileAvailable = true;
-			await other.SendPresenceAsync(PresenceState.Available, ct);
-			var presence = await LiveChecks.WithinAsync(online, "the peer's presence");
-			live.Write($"live: the peer's presence came from a {LiveChecks.Form(presence.From)}, last seen {(presence.LastSeen is null ? "none" : "set")}");
+		await LiveRestore.AfterAsync(
+			live,
+			async () =>
+			{
+				await client.SendPresenceAsync(PresenceState.Available, ct).ConfigureAwait(false);
+				var online = client.WaitForAsync<PresenceChanged>(p => LiveChecks.Names(peerAccount, p.From) && p.State is PresenceState.Available, LiveChecks.Watch, ct);
+				await client.SubscribePresenceAsync(peerAccount.Chat, ct).ConfigureAwait(false);
+				s_subscribedWhileAvailable = true;
+				await other.SendPresenceAsync(PresenceState.Available, ct).ConfigureAwait(false);
+				var presence = await LiveChecks.WithinAsync(online, "the peer's presence").ConfigureAwait(false);
+				live.Write($"live: the peer's presence came from a {LiveChecks.Form(presence.From)}, last seen {(presence.LastSeen is null ? "none" : "set")}");
 
-			await other.SendChatPresenceAsync(account, ChatPresenceState.Typing, ct);
-			await other.SendChatPresenceAsync(account, ChatPresenceState.Paused, ct);
-			var seen = await typing.NextAsync(2, LiveChecks.Watch, ct);
-			live.Write($"live: the peer's typing came in a {LiveChecks.Form(seen.Count > 0 ? seen[0].Source.Chat : null)} chat: {string.Join(", ", seen.Select(c => c.State))}");
+				await other.SendChatPresenceAsync(account, ChatPresenceState.Typing, ct).ConfigureAwait(false);
+				await other.SendChatPresenceAsync(account, ChatPresenceState.Paused, ct).ConfigureAwait(false);
+				var seen = await typing.NextAsync(2, LiveChecks.Watch, ct).ConfigureAwait(false);
+				live.Write($"live: the peer's typing came in a {LiveChecks.Form(seen.Count > 0 ? seen[0].Source.Chat : null)} chat: {string.Join(", ", seen.Select(c => c.State))}");
 
-			Assert.NotEmpty(seen);
-			LiveChecks.Redacting(() => PresenceChecks.ValidateTypingThenPaused(seen, client.SessionId, seen[0].Source));
-		}
-		finally
-		{
+				Assert.NotEmpty(seen);
+				LiveChecks.Redacting(() => PresenceChecks.ValidateTypingThenPaused(seen, client.SessionId, seen[0].Source));
+			},
 			// The live session first: while it is available, the owner's phone holds back its notifications.
-			await client.SendPresenceAsync(PresenceState.Unavailable, CancellationToken.None);
-			await other.SendPresenceAsync(PresenceState.Unavailable, CancellationToken.None);
-		}
+			("make the live session unavailable", t => client.SendPresenceAsync(PresenceState.Unavailable, t)),
+			("make the peer unavailable", t => other.SendPresenceAsync(PresenceState.Unavailable, t))
+		);
 	}
 
 	/// <summary>
@@ -72,38 +72,38 @@ public sealed class LivePresenceTests(LiveSidecar live, LivePeer peer)
 		var peerAccount = await peer.AccountAsync(ct);
 		using var typing = new LiveEvents<ChatPresenceChanged>(client, c => LiveChecks.Names(peerAccount, c.Source.Sender));
 		live.Write($"live: this run {(s_subscribedWhileAvailable ? "already subscribed to the peer while available" : "had not subscribed to the peer before")}");
-		try
-		{
-			await client.SubscribePresenceAsync(peerAccount.Chat, ct);
-			await client.SendPresenceAsync(PresenceState.Unavailable, ct);
-			await other.SendPresenceAsync(PresenceState.Unavailable, ct);
+		await LiveRestore.AfterAsync(
+			live,
+			async () =>
+			{
+				await client.SubscribePresenceAsync(peerAccount.Chat, ct).ConfigureAwait(false);
+				await client.SendPresenceAsync(PresenceState.Unavailable, ct).ConfigureAwait(false);
+				await other.SendPresenceAsync(PresenceState.Unavailable, ct).ConfigureAwait(false);
 
-			var started = LiveClock.Time.GetTimestamp();
-			var online = LiveChecks.OrNullAsync(
-				client.WaitForAsync<PresenceChanged>(p => LiveChecks.Names(peerAccount, p.From) && p.State is PresenceState.Available, s_unavailableWatch, ct)
-			);
-			await other.SendPresenceAsync(PresenceState.Available, ct);
-			var presence = await online;
-			live.Write(
-				presence is null
-					? $"live: unavailable, the peer's presence did not come within {s_unavailableWatch.TotalSeconds:F0} s"
-					: $"live: unavailable, the peer's presence came {LiveClock.Time.GetElapsedTime(started).TotalSeconds:F1} s after it went online"
-			);
+				var started = LiveClock.Time.GetTimestamp();
+				var online = LiveChecks.OrNullAsync(
+					client.WaitForAsync<PresenceChanged>(p => LiveChecks.Names(peerAccount, p.From) && p.State is PresenceState.Available, s_unavailableWatch, ct)
+				);
+				await other.SendPresenceAsync(PresenceState.Available, ct).ConfigureAwait(false);
+				var presence = await online.ConfigureAwait(false);
+				live.Write(
+					presence is null
+						? $"live: unavailable, the peer's presence did not come within {s_unavailableWatch.TotalSeconds:F0} s"
+						: $"live: unavailable, the peer's presence came {LiveClock.Time.GetElapsedTime(started).TotalSeconds:F1} s after it went online"
+				);
 
-			started = LiveClock.Time.GetTimestamp();
-			await other.SendChatPresenceAsync(account, ChatPresenceState.Typing, ct);
-			var seen = await typing.NextAsync(1, s_unavailableWatch, ct);
-			live.Write(
-				seen.Count == 0
-					? $"live: unavailable, the peer's typing did not come within {s_unavailableWatch.TotalSeconds:F0} s"
-					: $"live: unavailable, the peer's typing came {LiveClock.Time.GetElapsedTime(started).TotalSeconds:F1} s after it began"
-			);
-		}
-		finally
-		{
-			await client.SendPresenceAsync(PresenceState.Unavailable, CancellationToken.None);
-			await other.SendChatPresenceAsync(account, ChatPresenceState.Paused, CancellationToken.None);
-			await other.SendPresenceAsync(PresenceState.Unavailable, CancellationToken.None);
-		}
+				started = LiveClock.Time.GetTimestamp();
+				await other.SendChatPresenceAsync(account, ChatPresenceState.Typing, ct).ConfigureAwait(false);
+				var seen = await typing.NextAsync(1, s_unavailableWatch, ct).ConfigureAwait(false);
+				live.Write(
+					seen.Count == 0
+						? $"live: unavailable, the peer's typing did not come within {s_unavailableWatch.TotalSeconds:F0} s"
+						: $"live: unavailable, the peer's typing came {LiveClock.Time.GetElapsedTime(started).TotalSeconds:F1} s after it began"
+				);
+			},
+			("make the live session unavailable", t => client.SendPresenceAsync(PresenceState.Unavailable, t)),
+			("pause the peer's typing", t => other.SendChatPresenceAsync(account, ChatPresenceState.Paused, t)),
+			("make the peer unavailable", t => other.SendPresenceAsync(PresenceState.Unavailable, t))
+		);
 	}
 }

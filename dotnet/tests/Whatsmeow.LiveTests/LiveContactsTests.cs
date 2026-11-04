@@ -55,7 +55,8 @@ public sealed class LiveContactsTests(LiveSidecar live, LivePeer peer)
 	/// owner's, and are never compared or written. A peer an earlier run left blocked is unblocked first. WhatsApp's
 	/// <c>active</c> flag reaches no public record, and the sidecar lists inactive items too, so an unblocked peer that
 	/// WhatsApp still lists as inactive shows here as a listed one; each of the peer's lists goes to the log before it
-	/// is checked. The unblock runs whatever happened before it.
+	/// is checked. The unblock runs whatever happened before it. The peer is never blocked on purpose, so unblocked is
+	/// how a test finds it (docs/guidelines/tests.md Live WhatsApp).
 	/// </summary>
 	[LiveFact(NeedsPeer = true)]
 	public async Task Live_BlockThenUnblockThePeer_TheBlocklistReflectsEach()
@@ -72,20 +73,19 @@ public sealed class LiveContactsTests(LiveSidecar live, LivePeer peer)
 			await client.UnblockAsync(pn, ct);
 		}
 
-		ImmutableArray<BlockedUser> blocked;
-		ImmutableArray<BlockedUser> unblocked;
-		try
-		{
-			await client.BlockAsync(pn, ct);
-			blocked = PeersOf(await client.GetBlocklistAsync(ct), account);
-			live.Write($"live: after the block the blocklist lists the peer {Listed(blocked)}");
-		}
-		finally
-		{
-			await client.UnblockAsync(pn, CancellationToken.None);
-			unblocked = PeersOf(await client.GetBlocklistAsync(CancellationToken.None), account);
-			live.Write($"live: after the unblock the blocklist lists the peer {Listed(unblocked)}");
-		}
+		var blocked = ImmutableArray<BlockedUser>.Empty;
+		await LiveRestore.AfterAsync(
+			live,
+			async () =>
+			{
+				await client.BlockAsync(pn, ct).ConfigureAwait(false);
+				blocked = PeersOf(await client.GetBlocklistAsync(ct).ConfigureAwait(false), account);
+				live.Write($"live: after the block the blocklist lists the peer {Listed(blocked)}");
+			},
+			("unblock the peer", t => client.UnblockAsync(pn, t))
+		);
+		var unblocked = PeersOf(await client.GetBlocklistAsync(ct), account);
+		live.Write($"live: after the unblock the blocklist lists the peer {Listed(unblocked)}");
 
 		LiveChecks.Redacting(() => ContactChecks.ValidateBlocked(blocked, lid.Value, pn));
 		LiveChecks.Redacting(() => ContactChecks.ValidateUnblocked(unblocked));

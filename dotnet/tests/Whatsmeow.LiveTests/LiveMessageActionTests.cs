@@ -217,7 +217,7 @@ public sealed class LiveMessageActionTests(LiveSidecar live, LivePeer peer)
 	/// <summary>
 	/// The chat with the peer's disappearing timer set to 7 days, then off: the peer gets each as the chat's new timer,
 	/// as in the fake-mode timer test. Each send and arrival goes to the log; the timer is turned off after, whatever
-	/// happened.
+	/// happened, even when a set was cancelled after WhatsApp took it.
 	/// </summary>
 	[LiveFact(NeedsPeer = true)]
 	public async Task Live_TheChatsTimerSetToSevenDaysThenOff_ThePeerGetsEachTimer()
@@ -225,27 +225,24 @@ public sealed class LiveMessageActionTests(LiveSidecar live, LivePeer peer)
 		var ct = TestContext.Current.CancellationToken;
 		var (client, other, sender, to) = await AccountsAsync(ct);
 		var seen = new List<(MessageId Id, TimeSpan Timer, MessageReceived? Got)>();
-		var on = false;
-		try
-		{
-			foreach (var timer in new[] { TimeSpan.FromDays(7), TimeSpan.Zero })
+		await LiveRestore.AfterAsync(
+			live,
+			async () =>
 			{
-				var id = MessageId.New();
-				var arrived = LiveChecks.OrNullAsync(LiveChecks.ArrivalAsync(other, id, ct));
-				await client.SetDisappearingTimerAsync(to, timer, id, ct);
-				on = timer != TimeSpan.Zero;
-				var got = await arrived;
-				live.Write(
-					$"live: the chat's timer set to {timer.TotalDays:F0} days; the peer {(got is null ? $"got nothing within {LiveChecks.Watch.TotalSeconds:F0} s" : $"got it as {got.Content.GetType().Name}")}"
-				);
-				seen.Add((id, timer, got));
-			}
-		}
-		finally
-		{
-			if (on)
-				await client.SetDisappearingTimerAsync(to, TimeSpan.Zero, cancellationToken: CancellationToken.None);
-		}
+				foreach (var timer in new[] { TimeSpan.FromDays(7), TimeSpan.Zero })
+				{
+					var id = MessageId.New();
+					var arrived = LiveChecks.OrNullAsync(LiveChecks.ArrivalAsync(other, id, ct));
+					await client.SetDisappearingTimerAsync(to, timer, id, ct).ConfigureAwait(false);
+					var got = await arrived.ConfigureAwait(false);
+					live.Write(
+						$"live: the chat's timer set to {timer.TotalDays:F0} days; the peer {(got is null ? $"got nothing within {LiveChecks.Watch.TotalSeconds:F0} s" : $"got it as {got.Content.GetType().Name}")}"
+					);
+					seen.Add((id, timer, got));
+				}
+			},
+			("turn the chat's timer off", t => client.SetDisappearingTimerAsync(to, TimeSpan.Zero, cancellationToken: t))
+		);
 
 		foreach (var (id, timer, got) in seen)
 		{
