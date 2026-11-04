@@ -16,6 +16,7 @@ const cleanCsproj = `<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
 		<IsPackable>false</IsPackable>
+		<Description>What the package is for, on nuget.org.</Description>
 		<PublishAot>true</PublishAot>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -445,4 +446,67 @@ func TestCheckLoggerEventIDsAreUniqueAcrossTheShippedAssemblies(t *testing.T) {
 		"dotnet/src/C/CLog.cs:3: [logger-event-id]",
 		"dotnet/src/C/CLog.cs:9: [logger-event-id]",
 	})
+}
+
+func TestCheckDocsShowSampleFilesAsTheyAre(t *testing.T) {
+	t.Parallel()
+
+	const sample = "namespace A;\n\npublic static class Echo\n{\n}\n"
+
+	repo := fstest.MapFS{
+		"dotnet/samples/A/Echo.cs": {Data: []byte(sample)},
+		"dotnet/src/B/Other.cs":    {Data: []byte("namespace B;\n")},
+		"README.md": {Data: []byte("# A\n\n" +
+			"<!-- snippet: dotnet/samples/A/Echo.cs -->\n```csharp\n" + sample + "```\n\n" +
+			"A command is no C#:\n\n```sh\ndotnet add package A\n```\n")},
+		"docs/guides/same.md": {Data: []byte("<!-- snippet: dotnet/samples/A/Echo.cs -->\r\n```csharp\r\n" +
+			strings.ReplaceAll(sample, "\n", "\r\n") + "```\r\n\r\nA guide may show a fragment:\n\n```csharp\nclient.On<MessageReceived>(handler);\n```\n")},
+		"docs/guides/stale.md":        {Data: []byte("intro\n<!-- snippet: dotnet/samples/A/Echo.cs -->\n```csharp\nnamespace A;\n```\n")},
+		"docs/guides/missing.md":      {Data: []byte("<!-- snippet: dotnet/samples/A/Gone.cs -->\n```csharp\n```\n")},
+		"docs/guides/not-a-sample.md": {Data: []byte("<!-- snippet: dotnet/src/B/Other.cs -->\n```csharp\nnamespace B;\n```\n")},
+		"docs/guides/no-fence.md":     {Data: []byte("<!-- snippet: dotnet/samples/A/Echo.cs -->\n\ntext\n")},
+		"docs/guides/unclosed.md":     {Data: []byte("<!-- snippet: dotnet/samples/A/Echo.cs -->\n```csharp\n" + sample)},
+		"dotnet/src/B/README.md":      {Data: []byte("# B\n\n```csharp\nvar b = 1;\n```\n")},
+		"docs/ARCHITECTURE.md":        {Data: []byte("```csharp\nnot a guide\n```\n")},
+		// A file that shows only samples allows no other language than these, and no block without one, however
+		// the fence is written.
+		"dotnet/src/C/README.md": {Data: []byte("```sh\na\n```\n```json\n{}\n```\n```xml\n<a/>\n```\n```text\na\n```\n" +
+			"~~~text\n```csharp\nnot a fence in a fence\n```\n~~~\n" +
+			"Inline: ```csharp``` is a code span, not a fence.\n")},
+		"dotnet/src/CSharpTag/README.md":     {Data: []byte("```c#\nvar c = 1;\n```\n")},
+		"dotnet/src/UpperTag/README.md":      {Data: []byte("```C#\nvar c = 1;\n```\n")},
+		"dotnet/src/Bare/README.md":          {Data: []byte("```\nvar c = 1;\n```\n")},
+		"dotnet/src/Tilde/README.md":         {Data: []byte("~~~csharp\nvar c = 1;\n~~~\n")},
+		"dotnet/src/FourBackticks/README.md": {Data: []byte("````csharp\n```\nvar c = 1;\n```\n````\n")},
+		"dotnet/src/Indented/README.md":      {Data: []byte("* a list\n\n  ```csharp\n  var c = 1;\n  ```\n")},
+		"dotnet/src/Native.md":               {Data: []byte("# Native\n\n```csharp\nvar n = 1;\n```\n")},
+		"dotnet/src/D/E/README.md":           {Data: []byte("```cs\nvar e = 1;\n```\n")},
+		"docs/guides/sub/stale.md":           {Data: []byte("<!-- snippet: dotnet/samples/A/Echo.cs -->\n```csharp\nnamespace A;\n```\n")},
+		"docs/guides/sub/tilde.md":           {Data: []byte("<!-- snippet: dotnet/samples/A/Echo.cs -->\n~~~~csharp\n" + sample + "~~~~\n")},
+		"docs/guides/sub/fragment.md":        {Data: []byte("```c#\nclient.On<MessageReceived>(handler);\n```\n")},
+	}
+
+	assertFindings(t, repo, []string{
+		"docs/guides/missing.md:1: [snippet]",
+		"docs/guides/no-fence.md:1: [snippet]",
+		"docs/guides/not-a-sample.md:1: [snippet]",
+		"docs/guides/stale.md:2: [snippet]",
+		"docs/guides/sub/stale.md:1: [snippet]",
+		"docs/guides/unclosed.md:1: [snippet]",
+		"dotnet/src/B/README.md:3: [snippet]",
+		"dotnet/src/Bare/README.md:1: [snippet]",
+		"dotnet/src/CSharpTag/README.md:1: [snippet]",
+		"dotnet/src/D/E/README.md:1: [snippet]",
+		"dotnet/src/FourBackticks/README.md:1: [snippet]",
+		"dotnet/src/Indented/README.md:3: [snippet]",
+		"dotnet/src/Native.md:3: [snippet]",
+		"dotnet/src/Tilde/README.md:1: [snippet]",
+		"dotnet/src/UpperTag/README.md:1: [snippet]",
+	})
+}
+
+func TestCheckTheReadmeShowsASample(t *testing.T) {
+	t.Parallel()
+
+	assertFindings(t, fstest.MapFS{"README.md": {Data: []byte("# A\n\nNo code.\n")}}, []string{"README.md:0: [snippet]"})
 }

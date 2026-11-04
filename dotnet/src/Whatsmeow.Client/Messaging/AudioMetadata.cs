@@ -9,8 +9,9 @@ namespace Whatsmeow.Messaging;
 public sealed record AudioMetadata
 {
 	/// <summary>
-	/// The file's MIME type; null when unknown. Phones play a voice note that is <c>audio/ogg; codecs=opus</c> (mono Opus);
-	/// one that is not plays on WhatsApp Web but is silent on phones. The library does not check it.
+	/// The file's MIME type; null when unknown. A voice note should be <c>audio/ogg; codecs=opus</c> (mono Opus): one that
+	/// is not is reported to play on WhatsApp Web and stay silent on phones, which this library has not measured. The
+	/// library does not check it.
 	/// </summary>
 	public string? Mimetype { get; init; }
 

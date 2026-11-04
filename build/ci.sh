@@ -696,6 +696,41 @@ packaged_licences() {
 	return "$rc"
 }
 
+# Every package's nuget.org page (ADR 0054): a description of its own, the tags, the project and repository URLs,
+# NOTICE's author, and an embedded README that is the repository's: the project's README.md, or for a native package
+# the one packaged_notices checks.
+repository_url=https://github.com/tcortega/Whatsmeow.NET
+packaged_metadata() {
+	local nupkg id name dir nuspec field readme rc=0
+	for nupkg in "$package_source"/*.nupkg; do
+		id="$(basename "$nupkg" ".$version.nupkg")" name="$(lowercase "$id")"
+		dir="$packages/$name/$version" nuspec="$packages/$name/$version/$name.nuspec"
+		if [ ! -f "$nuspec" ]; then
+			annotate error "package metadata" "$id from the feed was not restored, so its metadata is unchecked"
+			rc=1
+			continue
+		fi
+		for field in '<description>' '<tags>whatsapp whatsmeow ' "<projectUrl>$repository_url</projectUrl>" \
+			"<repository type=\"git\" url=\"$repository_url\"" '<readme>README.md</readme>' '<authors>Tarcisio Ortega</authors>'; do
+			if ! grep -qF -- "$field" "$nuspec"; then
+				annotate error "package metadata" "$id's nuspec has no $field"
+				rc=1
+			fi
+		done
+		if grep -qF '<description>Package Description</description>' "$nuspec"; then
+			annotate error "package metadata" "$id has the SDK's default description; set Description in its csproj"
+			rc=1
+		fi
+		case "$id" in Whatsmeow.Sidecar.Native.*) readme=dotnet/src/Whatsmeow.Sidecar.Native.md ;; *) readme="dotnet/src/$id/README.md" ;; esac
+		if ! cmp -s "$dir/README.md" "$readme"; then
+			annotate error "package metadata" "$id's README.md is not $readme"
+			rc=1
+		fi
+	done
+	[ "$rc" -eq 0 ] && echo "every package has its description, tags, URLs, author and README"
+	return "$rc"
+}
+
 # Each packaged binary is a release build of the target its RID folder names: CGO-free, -trimpath, and without the
 # fake (ADR 0019), as go version -m reads it from the binaries the consumer restored.
 packaged_binaries() {
@@ -992,6 +1027,7 @@ job_install() { # feed
 	check "install: each native package holds exactly its binaries, its buildTransitive targets, its README and the GPL files" packaged_files
 	check "install: each native package's README and GPL files are the repository's, and COPYING is the GPL-3.0 text (ADR 0016)" packaged_notices
 	check "install: GPL-3.0-only on the native packages, MPL-2.0 on the .NET packages (ADR 0016)" packaged_licences
+	check "install: every package's description, tags, URLs, author and README (ADR 0054)" packaged_metadata
 	check "install: every packaged binary is a CGO-free -trimpath release build of its target, none with -tags fakewhatsapp or livetest (ADR 0019, 0032)" packaged_binaries
 	check "install: the packaged binary refuses --fake-whatsapp" packaged_refuses_fake
 	check "consumer: portable build and dotnet run" install_portable

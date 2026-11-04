@@ -1,5 +1,9 @@
 using EchoBot;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using OpenTelemetry;
+using Whatsmeow;
 
 // Two WhatsApp sessions that echo every text they get. Run it with --Whatsmeow:SidecarPath=<path of whatsmeow-net>
 // (the Whatsmeow.Sidecar.Native package puts it next to the app), and scan each QR code with that session's phone.

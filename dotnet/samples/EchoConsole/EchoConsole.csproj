@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<!-- The sample without DI: one session that echoes texts, on the public API only (ADR 0049, ADR 0054). -->
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="QRCoder" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="../../src/Whatsmeow.Client/Whatsmeow.Client.csproj" />
+	</ItemGroup>
+</Project>

@@ -1,6 +1,7 @@
 <Solution>
 	<Folder Name="/samples/">
 		<Project Path="samples/EchoBot/EchoBot.csproj" />
+		<Project Path="samples/EchoConsole/EchoConsole.csproj" />
 	</Folder>
 	<Folder Name="/src/">
 		<Project Path="src/Whatsmeow.Client/Whatsmeow.Client.csproj" />

@@ -20,8 +20,8 @@ sidecar/               Go module `github.com/tcortega/Whatsmeow.NET/sidecar`: pr
 tools/                 Go module for repo tools (`check-repo`, `sync-protos`, `check-licenses`, `bump-report`, `parity-report`, the tests' `stub-sidecar`), kept out of the product module
 build/ci.sh            every CI check; the workflow only calls it
 build/release.sh       the release, tested by build/release-test.sh; release.yml only calls it (ADR 0050)
-dotnet/                `Whatsmeow.slnx` (never a .sln), src/, tests/, samples/ (`EchoBot`, the hosted sample, ADR 0049)
-docs/                  ARCHITECTURE, RESEARCH, guidelines/, adr/
+dotnet/                `Whatsmeow.slnx` (never a .sln), src/, tests/, samples/ (`EchoBot`, the hosted sample, ADR 0049; `EchoConsole`, without DI, ADR 0054)
+docs/                  ARCHITECTURE, RESEARCH, guidelines/, adr/, guides/ (the user guides)
 global.json mise.toml  .NET SDK pin; Go, buf, golangci-lint, protoc, protoc plugins and shellcheck pins
 nuget.config           nuget.org only
 AGENTS.md              this file (CLAUDE.md is a symlink to it; nothing may depend on it)
@@ -56,7 +56,7 @@ No runtime reflection. Source generators, `[LoggerMessage]`, `[LibraryImport]`, 
 `ConfigureAwait(false)` everywhere. `CancellationToken` last, `Async` suffix. No sync-over-async.
 No interface just to mock it. `IWhatsAppClient` is the only exception.
 Generated protobuf types never in the stable public API, except the `[Experimental]` `Raw` hatch.
-Global usings live in the csproj `ItemGroup Label="Usings"`.
+Global usings live in the csproj `ItemGroup Label="Usings"`; samples state theirs per file instead (ADR 0054).
 C# idioms: [docs/guidelines/csharp.md](docs/guidelines/csharp.md).
 Options and configuration: [docs/guidelines/options.md](docs/guidelines/options.md).
 
@@ -83,7 +83,7 @@ Sidecar (#4). Copy it for the next slice; do not invent a second pattern.
 * Go slice: `sidecar/internal/sidecar/` behind `sidecar/internal/server/` (lenient codec, token check, shutdown gate, the one ErrorInfo mapping); its tests run whatsmeow-free over `bufconn`. A slice that fails with a reason wraps `server.Err<Reason>` (`sidecar/internal/session/` is the first); one that talks to whatsmeow declares a small `Client` interface and tests it with a stub on a real store.
 * .NET: the entry point and shared public types at the project root in namespace `Whatsmeow` (`WhatsmeowSidecar.cs`, `WhatsmeowException.cs`, ...); internals in `Sidecar/` (process, supervisor, proto to record mapping) and `Core/<Area>/` (`Core/Errors/RpcErrors.cs` maps every `RpcException`). Namespaces: ADR 0018.
 * Tests: FullCycle `dotnet/tests/Whatsmeow.IntegrationTests/Sidecar/GetInfoTests.cs` on the shared `FakeSidecar` fixture (one fake-mode sidecar for the run, ADR 0019); every later slice's FullCycle uses it. `FakeTimeProvider` unit tests in `dotnet/tests/Whatsmeow.Client.Tests/Sidecar/`.
-* Only start and stop tests (`Sidecar/SidecarTests.cs`, on the `SidecarBinaries` fixture) start a sidecar per test, because that is the behaviour under test; so do the events tests that stop or kill the .NET side (`Events/EventProcessTests.cs`, with the fixture's fake build), the hosting tests, whose host starts and stops the sidecar (`Hosting/HostingTests.cs`), the send pacing test, whose options apply at start (`Messaging/SendPacingTests.cs`), and the External-mode tests, which run a standalone sidecar each (`Sidecar/ExternalTests.cs`, ADR 0046).
+* Only start and stop tests (`Sidecar/SidecarTests.cs`, on the `SidecarBinaries` fixture) start a sidecar per test, because that is the behaviour under test; so do the events tests that stop or kill the .NET side (`Events/EventProcessTests.cs`, with the fixture's fake build), the hosting tests, whose host starts and stops the sidecar (`Hosting/HostingTests.cs`), the send pacing test, whose options apply at start (`Messaging/SendPacingTests.cs`), the samples' tests that stop the program (`Samples/`), and the External-mode tests, which run a standalone sidecar each (`Sidecar/ExternalTests.cs`, ADR 0046).
 * Events: a slice that records whatsmeow events in the outbox maps them with its own `events.Mapper` (`contacts.Event`), passed to `events.New` in `cmd/whatsmeow-net` (ADR 0028).
 * Fake controls: an RPC in `proto/whatsmeow/fake/v1/fake.proto`, implemented in `sidecar/internal/fakewhatsapp/` and tested there over `bufconn` through the real `server.Server`.
 
@@ -102,6 +102,8 @@ Sidecar (#4). Copy it for the next slice; do not invent a second pattern.
 | New error reason | `ErrorReason` in `proto/whatsmeow/v1/error.proto` + exception subtype (§8.7) |
 | DI, options, hosted supervisor | `dotnet/src/Whatsmeow.Extensions.Hosting/` |
 | A sample | `dotnet/samples/<Name>/`, public API only, its setup in one method; its FullCycle in `dotnet/tests/Whatsmeow.IntegrationTests/Samples/` calls that method plus `UseFakeWhatsApp()` (ADR 0049) |
+| A user guide | `docs/guides/<area>.md`, each claim plain, `[observed: where]`, `[inferred]` or `[unknown]`, with its § (ADR 0054) |
+| Code in `README.md` or a package README | a sample's whole file under `<!-- snippet: dotnet/samples/<path> -->`, checked byte for byte by `tools/check-repo` (ADR 0054) |
 | Consumer fakes | `dotnet/src/Whatsmeow.Testing/`; their tests, public API only, in `dotnet/tests/Whatsmeow.Testing.Tests/` (ADR 0036) |
 | Integration test (default) | `dotnet/tests/Whatsmeow.IntegrationTests/<Slice>/`, on the `FakeSidecar` fixture |
 | Live test (real WhatsApp, opt-in) | `dotnet/tests/Whatsmeow.LiveTests/`, `[LiveFact]` in the `Live` collection, with the fake-mode checks (ADR 0021, 0032) |

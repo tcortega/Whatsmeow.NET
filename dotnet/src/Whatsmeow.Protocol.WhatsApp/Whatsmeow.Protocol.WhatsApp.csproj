@@ -1,4 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<Description>WhatsApp's protobuf messages, generated from whatsmeow's definitions, for Whatsmeow.Client's experimental Raw members. Unstable: it changes with whatsmeow.</Description>
+	</PropertyGroup>
+
 	<!-- Generated/ is written by buf from /buf.gen.whatsapp.yaml (see AGENTS.md). Never edit it by hand. -->
 	<ItemGroup>
 		<PackageReference Include="Google.Protobuf" />

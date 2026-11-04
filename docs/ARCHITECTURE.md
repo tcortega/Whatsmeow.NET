@@ -136,6 +136,7 @@ Vertical-slice thinking applies to this library. A **slice is a WhatsApp capabil
 ## 4. Repository layout
 
 ```
+/README.md                         # what it is, install, the quick start (the samples' files, checked by tools/check-repo), links (ADR 0054)
 /AGENTS.md                         # agent entry point, progressive disclosure
 /CLAUDE.md                         # symlink to AGENTS.md
 /LICENSE                           # MPL-2.0, the repository's licence (ADR 0016)
@@ -151,7 +152,7 @@ Vertical-slice thinking applies to this library. A **slice is a WhatsApp capabil
 /build/release-test.sh             # every guard and verify case of release.sh; build/ci.sh contract runs it
 /.golangci.yml                     # lint rules for both Go modules (docs/guidelines/go.md)
 /tools/                            # Go module github.com/tcortega/Whatsmeow.NET/tools: repo tools, not product code
-  check-repo/                      # allowlists for analyzer configs, MSBuild files, csproj elements, build tags; suppression rules
+  check-repo/                      # allowlists for analyzer configs, MSBuild files, csproj elements, build tags; suppression rules; docs' code is the samples' (ADR 0054)
   sync-protos/                     # checks (default) or rewrites (-write) third_party/whatsmeow against VERSION
   check-licenses/                  # sidecar/licenses.allow equals the licence files of every module whatsmeow-net links (ADR 0016)
   bump-report/                     # a bump PR's body: the Go floor, the facts to re-check, the Client methods it changed (ADR 0043)
@@ -161,6 +162,7 @@ Vertical-slice thinking applies to this library. A **slice is a WhatsApp capabil
 /docs/ARCHITECTURE.md              # this document
 /docs/RESEARCH.md                  # research report (reference only)
 /docs/guidelines/                  # how to write code: csharp, options, tests, go, proto
+/docs/guides/                      # the user guides: how to use the library and what it guarantees, each claim with its evidence (ADR 0054)
 /docs/adr/                         # decision records, NNNN-title.md
 /buf.yaml                          # buf v2 workspace; upstream protos excluded from lint/breaking
 /buf.gen.yaml                      # whatsmeow.v1 to Go (sidecar/gen) and C# (Whatsmeow.Protocol); managed mode
@@ -181,7 +183,7 @@ Vertical-slice thinking applies to this library. A **slice is a WhatsApp capabil
 /dotnet/
   Whatsmeow.slnx  Directory.Build.props  Directory.Build.targets  Directory.Packages.props
   BannedSymbols.txt  .globalconfig  # banned APIs; generated code exempt from the ban list
-  src/Directory.Build.props        # everything under src/ ships: IsAotCompatible, IsTrimmable
+  src/Directory.Build.props        # everything under src/ ships: IsAotCompatible, IsTrimmable; every package's nuget.org metadata, each project's README.md its package's (ADR 0054)
   src/Whatsmeow.Protocol.WhatsApp/    # committed generated upstream C# (Whatsmeow.Proto.*) in Generated/, unstable
   src/Whatsmeow.Protocol/             # committed generated whatsmeow.v1 C# (internal where possible)
   src/Whatsmeow.Client/               # public API: Core/ + one folder per slice
@@ -197,6 +199,7 @@ Vertical-slice thinking applies to this library. A **slice is a WhatsApp capabil
   tests/AotSmoke/                  # PublishAot console app, zero warnings required
   tests/SidecarHost/               # parent process for the kill-parent integration test; with "events", the process the events kill test kills
   samples/EchoBot/                # the hosted sample: two sessions that echo texts, public API only; its FullCycle is Samples/EchoBotTests (ADR 0049)
+  samples/EchoConsole/            # the sample without DI: one session that echoes texts; its FullCycle is Samples/EchoConsoleTests (ADR 0054)
 /build/package-smoke/Program.cs    # the new consumer build/ci.sh install builds from the local feed (ADR 0023)
 /.github/workflows/  ci.yml  packaging.yml  whatsmeow-bump.yml  release.yml
 ```
@@ -664,7 +667,7 @@ How to write each test, what is banned, and the can-it-fail check: [guidelines/t
 | .NET unit (vital only) | dispatcher per-chat ordering and watermark acking; the lane of every event type; supervisor restart/backoff state machine with `FakeTimeProvider`; the transport's request body fence (§8.6, the exception in [guidelines/tests.md](guidelines/tests.md)) | `tests/Whatsmeow.Client.Tests` |
 | Consumer fake | `FakeWhatsAppClient` and `UseFakeClient` through their public API only, without a sidecar ([ADR 0036](adr/0036-testing-package-and-fake-client.md)) | `tests/Whatsmeow.Testing.Tests` |
 | Live | real WhatsApp with a dedicated test number; manual pairing; `[LiveFact]` tests run only when `WHATSMEOW_LIVE_PHONE_NUMBER` is set, and `build/ci.sh` never sets it; the fake-mode tests' own checks ([ADR 0021](adr/0021-pairing.md)) | `tests/Whatsmeow.LiveTests` |
-| Packaging | `build/ci.sh package` builds the six binaries and packs every package on win-x64; `build/ci.sh install` restores that feed into a new console app and runs it portable, RID-specific framework-dependent and self-contained, single-file, and single-file with `IncludeNativeLibrariesForSelfExtract`, on win-x64 (plus win-x86, which ships no binary and must fail naming both paths), linux-x64 (glibc; Alpine in Docker, portable and a `linux-musl-x64` publish; a noexec mount) and osx-arm64; it checks the exact pins, the exact files of each native package, that every packaged binary is a CGO-free `-trimpath` build of its target without the fake tag, and that the host's packaged binary refuses `--fake-whatsapp` ([ADR 0023](adr/0023-native-packages-build-pin-and-find.md)); and the GPL obligations: each native package's README, `COPYING`, `NOTICE` and `THIRD-PARTY-NOTICES.txt`, every package's licence expression, and that the Corresponding Source archive holds the commit plus `go mod vendor`, builds every release target without a network (`docker --network none` on Linux), links the packaged module versions, and reports the release version through `GetInfo` ([ADR 0029](adr/0029-gpl-release-obligations.md)) | CI `package` and `install` jobs (`packaging.yml`: on demand from `ci.yml`, and in every release) |
+| Packaging | `build/ci.sh package` builds the six binaries and packs every package on win-x64; `build/ci.sh install` restores that feed into a new console app and runs it portable, RID-specific framework-dependent and self-contained, single-file, and single-file with `IncludeNativeLibrariesForSelfExtract`, on win-x64 (plus win-x86, which ships no binary and must fail naming both paths), linux-x64 (glibc; Alpine in Docker, portable and a `linux-musl-x64` publish; a noexec mount) and osx-arm64; it checks the exact pins, the exact files of each native package, that every packaged binary is a CGO-free `-trimpath` build of its target without the fake tag, and that the host's packaged binary refuses `--fake-whatsapp` ([ADR 0023](adr/0023-native-packages-build-pin-and-find.md)); and the GPL obligations: each native package's README, `COPYING`, `NOTICE` and `THIRD-PARTY-NOTICES.txt`, every package's licence expression, its description, tags, URLs, author and README (ADR 0054), and that the Corresponding Source archive holds the commit plus `go mod vendor`, builds every release target without a network (`docker --network none` on Linux), links the packaged module versions, and reports the release version through `GetInfo` ([ADR 0029](adr/0029-gpl-release-obligations.md)) | CI `package` and `install` jobs (`packaging.yml`: on demand from `ci.yml`, and in every release) |
 | AOT | `tests/AotSmoke`, zero warnings | CI |
 | Parity (report only) | every exported whatsmeow `Client` method as covered, naming the RPCs that reach it in the release build's call graph, and the function that calls it on a path no RPC is on (an event handler, a worker), excluded with its reason in `sidecar/parity.excluded`, or missing; a warning when one is missing, never a failure ([ADR 0048](adr/0048-parity-report-from-the-sidecars-call-graph.md)) | CI `go` job, log and job summary |
 
@@ -1073,6 +1076,7 @@ Phase 0 decisions:
 - [0050](adr/0050-release-workflow.md): A `v<semver>` tag on main publishes: a guard (strict SemVer, the tag at HEAD on main and on origin, a protected `release` environment), the packaging checks, approval, the GitHub release as a draft, a nuget.org login, the release published, then nuget.org through Trusted Publishing in two phases, the native packages first; re-runs skip what is there, a manual run rehearses without publishing (#46)
 - [0051](adr/0051-member-add-mode-link-info-and-disappearing-timers.md): Groups: who may add members, a group's info from its invite link, and disappearing timers, a group's as a group setting and a direct chat's as a paced send; member add mode changes read from whatsmeow's `UnknownChanges`; disappearing changes recorded (#104, #105, #106)
 - [0052](adr/0052-events-start-when-pairing-yields-paired.md): Events start when pairing yields Paired: a session paired in the process gets its events with no `ConnectAsync`, a pairing that ends without `Paired` starts none, and remembering for a restart stays at the first code (#112)
+- [0054](adr/0054-user-docs-checked-samples-and-package-metadata.md): User docs: guides in `docs/guides/` that tag each claim's evidence, the README's code the samples' files checked byte for byte by `tools/check-repo`, a sample without DI (`EchoConsole`), and every package's nuget.org metadata and README, checked by `build/ci.sh install` (#51)
 
 House-rule alignment (applied, or opted out of with a measured reason):
 

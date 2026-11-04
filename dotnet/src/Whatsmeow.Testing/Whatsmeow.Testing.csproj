@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
+		<Description>FakeWhatsAppClient, an in-memory IWhatsAppClient to test Whatsmeow.NET handlers without WhatsApp, and UseFakeClient for a host.</Description>
 		<RootNamespace>Whatsmeow.Testing</RootNamespace>
 	</PropertyGroup>
 

@@ -9,6 +9,8 @@
 // line of a shipped assembly has. In YAML under .github/ (workflows and
 // composite actions) and in shell scripts it rejects any step that deletes a GitHub release: a release holds the
 // Corresponding Source of the packages on nuget.org, which stay there, so it is never deleted (ADR 0016, ADR 0029).
+// In the README, the user guides and the packages' READMEs, a code block under a snippet marker must be the sample
+// file it names, byte for byte, so the code they show is code CI builds (ADR 0054).
 //
 // Findings print as path:line: [rule] message. The rules are in docs/guidelines/csharp.md Suppressions.
 // Run it from the tools module: go -C tools run ./check-repo [-root ..].
@@ -240,6 +242,15 @@ func checkFile(fsys fs.FS, name string) ([]finding, error) {
 		return []finding{f}, nil
 	}
 
+	if checked, onlySamples := shownDoc(name); checked {
+		content, err := fs.ReadFile(fsys, name)
+		if err != nil {
+			return nil, fmt.Errorf("read %s: %w", name, err)
+		}
+
+		return checkDoc(fsys, name, content, onlySamples)
+	}
+
 	ext := strings.ToLower(path.Ext(name))
 	if isGitHubYAML(name) || ext == ".sh" {
 		content, err := fs.ReadFile(fsys, name)
@@ -302,6 +313,167 @@ func checkReleaseDelete(name string, content []byte) []finding {
 	}
 
 	return findings
+}
+
+var snippetMarker = regexp.MustCompile(`^<!-- snippet: (\S+) -->$`)
+
+// shownLanguages are the only languages a file that shows only samples may have in a block without a marker: the
+// commands and configuration around the code, never code itself.
+func shownLanguages() []string {
+	return []string{"json", "sh", "text", "xml"}
+}
+
+// shownDoc says whether a Markdown file's code is checked, and whether it may show only sample files: the README and
+// every Markdown file under dotnet/src/, the packages' READMEs, show nothing else, and a user guide, anywhere under
+// docs/guides/, may also show a fragment. Other Markdown is not checked.
+func shownDoc(name string) (checked, onlySamples bool) {
+	if !strings.EqualFold(path.Ext(name), ".md") {
+		return false, false
+	}
+
+	if name == "README.md" || strings.HasPrefix(name, "dotnet/src/") {
+		return true, true
+	}
+
+	return strings.HasPrefix(name, "docs/guides/"), false
+}
+
+// fence is the line that opens a fenced code block: its character, how many of it, and the block's language,
+// lowercased, empty when it has none.
+type fence struct {
+	char     byte
+	length   int
+	language string
+}
+
+// openingFence reads a line as the opening of a fenced block, at any indentation: three or more backticks or tildes,
+// then the info string, whose first word is the language. A run of backticks with a backtick after it is a code span.
+func openingFence(line string) (fence, bool) {
+	trimmed := strings.TrimLeft(line, " \t")
+	if trimmed == "" || (trimmed[0] != '`' && trimmed[0] != '~') {
+		return fence{}, false
+	}
+
+	length := len(trimmed) - len(strings.TrimLeft(trimmed, trimmed[:1]))
+	info := trimmed[length:]
+	if length < 3 || (trimmed[0] == '`' && strings.Contains(info, "`")) {
+		return fence{}, false
+	}
+
+	language := ""
+	if words := strings.Fields(info); len(words) > 0 {
+		language = strings.ToLower(words[0])
+	}
+
+	return fence{trimmed[0], length, language}, true
+}
+
+// closedBy says whether a line closes the block: the same character, at least as many, and nothing else.
+func (f fence) closedBy(line string) bool {
+	trimmed := strings.TrimSpace(line)
+
+	return len(trimmed) >= f.length && strings.Trim(trimmed, string(f.char)) == ""
+}
+
+// checkDoc reports each code block under a snippet marker that is not the sample file it names, byte for byte (line
+// endings aside), and in a file that may show only samples, every block without a marker whose language is not one of
+// shownLanguages, or that has none. The README must show at least one sample, or this check could prove nothing
+// about it.
+func checkDoc(fsys fs.FS, name string, content []byte, onlySamples bool) ([]finding, error) {
+	var findings []finding
+
+	report := func(number int, message string) {
+		findings = append(findings, finding{name, number, "snippet", message})
+	}
+
+	text := strings.Split(strings.ReplaceAll(string(content), "\r\n", "\n"), "\n")
+	closing := func(open int, f fence) int {
+		for i := open + 1; i < len(text); i++ {
+			if f.closedBy(text[i]) {
+				return i
+			}
+		}
+
+		return -1
+	}
+
+	shown := 0
+
+	for i := 0; i < len(text); i++ {
+		match := snippetMarker.FindStringSubmatch(text[i])
+		if match == nil {
+			f, ok := openingFence(text[i])
+			if !ok {
+				continue
+			}
+
+			if onlySamples && !slices.Contains(shownLanguages(), f.language) {
+				report(i+1, "this file shows only sample files and "+strings.Join(shownLanguages(), ", ")+
+					" blocks: put the code in a sample under dotnet/samples/ and mark the block <!-- snippet: <path> -->")
+			}
+
+			if end := closing(i, f); end >= 0 {
+				i = end
+			}
+
+			continue
+		}
+
+		shown++
+		number, source := i+1, match[1]
+
+		f, ok := fence{}, false
+		if i+1 < len(text) {
+			f, ok = openingFence(text[i+1])
+		}
+
+		if !ok {
+			report(number, "a snippet marker must be followed by the fenced block it checks")
+
+			continue
+		}
+
+		end := closing(i+1, f)
+		if end < 0 {
+			report(number, "the snippet's block never closes")
+
+			break
+		}
+
+		block := ""
+		if end > i+2 {
+			block = strings.Join(text[i+2:end], "\n") + "\n"
+		}
+
+		i = end
+
+		if path.Clean(source) != source || !strings.HasPrefix(source, "dotnet/samples/") {
+			report(number, source+" is not a sample: a snippet shows a file under dotnet/samples/, which CI builds")
+
+			continue
+		}
+
+		data, err := fs.ReadFile(fsys, source)
+		if errors.Is(err, fs.ErrNotExist) {
+			report(number, source+" does not exist")
+
+			continue
+		}
+
+		if err != nil {
+			return nil, fmt.Errorf("read %s: %w", source, err)
+		}
+
+		if strings.ReplaceAll(string(data), "\r\n", "\n") != block {
+			report(number, "the block is not "+source+" as it is; copy the file into it")
+		}
+	}
+
+	if name == "README.md" && shown == 0 {
+		report(0, "the README shows no sample file, so nothing proves its code builds")
+	}
+
+	return findings, nil
 }
 
 // checkName reports a file whose name alone breaks a rule: a configuration file that is not the blessed one,
@@ -638,8 +810,10 @@ func csprojRules() projectRules {
 
 	return projectRules{
 		properties: map[string]func(string) bool{
-			"OutputType":            anyValue,
-			"IsPackable":            anyValue,
+			"OutputType": anyValue,
+			"IsPackable": anyValue,
+			// Each package's own line on nuget.org; the rest of its metadata is shared in dotnet/src/Directory.Build.props (ADR 0054).
+			"Description":           anyValue,
 			"RootNamespace":         anyValue,
 			"AssemblyName":          anyValue,
 			"PublishAot":            anyValue,
