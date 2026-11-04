@@ -4,13 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"sync"
 	"testing"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 )
 
 // TestConnectSessionsRecordsEveryConnectingStateInOneCommit is the client's reconnect after a restart: one sync of the
@@ -121,41 +124,38 @@ func TestConnectSessionsRefusesASessionGivenTwice(t *testing.T) {
 	}
 }
 
-func TestConnectSessionsOpensTheConnectionsConcurrently(t *testing.T) {
+func TestConnectSessionsConnectsOneAtATimeInIdOrder(t *testing.T) {
 	t.Parallel()
 
-	const sessions = 4
-
 	h := start(t)
-	ids := make([]string, sessions)
+	ids := []string{"s3", "s1", "s2", "s0"}
 
-	// Each connect call waits for all of them to have begun, at most until the test's bound: in order, the first would
-	// wait alone.
 	var (
-		mu    sync.Mutex
-		begun int
+		mu       sync.Mutex
+		inFlight int
+		most     int
+		order    []string
 	)
 
-	all := make(chan struct{})
+	for _, id := range ids {
+		h.connected(id)
+		h.disconnect(id)
 
-	for i := range ids {
-		ids[i] = fmt.Sprintf("s%d", i)
-		h.connected(ids[i])
-		h.disconnect(ids[i])
-
-		s := h.stub(ids[i])
+		s := h.stub(id)
 		s.mu.Lock()
 		s.connecting = func(context.Context) {
 			mu.Lock()
-			if begun++; begun == sessions {
-				close(all)
-			}
+			inFlight++
+			most = max(most, inFlight)
+			order = append(order, id)
 			mu.Unlock()
 
-			select {
-			case <-all:
-			case <-h.ctx.Done():
-			}
+			// Long enough for a concurrent call to begin meanwhile.
+			time.Sleep(20 * time.Millisecond)
+
+			mu.Lock()
+			inFlight--
+			mu.Unlock()
 		}
 		s.mu.Unlock()
 	}
@@ -166,16 +166,99 @@ func TestConnectSessionsOpensTheConnectionsConcurrently(t *testing.T) {
 	}
 
 	for i, result := range resp.GetResults() {
-		if result.GetReason() != whatsmeowv1.ErrorReason_ERROR_REASON_UNSPECIFIED {
-			t.Fatalf("result %d = %v, want connected", i, result)
+		if result.GetSessionId() != ids[i] || result.GetReason() != whatsmeowv1.ErrorReason_ERROR_REASON_UNSPECIFIED {
+			t.Fatalf("result %d = %v, want %s connected", i, result, ids[i])
 		}
 	}
 
-	select {
-	case <-all:
-	default:
-		t.Fatalf("the %d connect calls ran one after another, not at once", sessions)
+	if want := []string{"s0", "s1", "s2", "s3"}; most != 1 || !slices.Equal(order, want) {
+		t.Fatalf("connect calls ran %v with up to %d at once, want %v one at a time", order, most, want)
 	}
+}
+
+func TestConnectSessionsConnectsTheOthersWhenOneStateCannotBeRecorded(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	ids := []string{"a", "b-refused", "c"}
+
+	for _, id := range ids {
+		h.connected(id)
+		h.disconnect(id)
+	}
+
+	if _, err := h.db.DB.ExecContext(h.ctx, `CREATE TRIGGER refuse BEFORE UPDATE ON session WHEN NEW.id = 'b-refused'
+		BEGIN SELECT RAISE(ABORT, 'refused'); END`); err != nil {
+		t.Fatalf("create the trigger: %v", err)
+	}
+
+	resp, err := h.client.ConnectSessions(h.ctx, &whatsmeowv1.ConnectSessionsRequest{SessionIds: ids})
+	if err != nil {
+		t.Fatalf("ConnectSessions: %v", err)
+	}
+
+	want := []whatsmeowv1.ErrorReason{
+		whatsmeowv1.ErrorReason_ERROR_REASON_UNSPECIFIED,
+		whatsmeowv1.ErrorReason_ERROR_REASON_INTERNAL,
+		whatsmeowv1.ErrorReason_ERROR_REASON_UNSPECIFIED,
+	}
+
+	for i, result := range resp.GetResults() {
+		if result.GetSessionId() != ids[i] || result.GetReason() != want[i] {
+			t.Fatalf("result %d = %v, want %s with %v", i, result, ids[i], want[i])
+		}
+	}
+
+	for id, state := range map[string]*whatsmeowv1.SessionState{"a": connecting(), "b-refused": disconnected(), "c": connecting()} {
+		if got := h.state(id); !proto.Equal(got, state) {
+			t.Fatalf("session %s is %v, want %v", id, got, state)
+		}
+	}
+
+	h.wantRecorded("a", disconnected(), connecting(), connected(), disconnected(), connecting())
+	h.wantRecorded("c", disconnected(), connecting(), connected(), disconnected(), connecting())
+
+	if got := h.stub("b-refused").connects(); got != 1 {
+		t.Fatalf("the refused session connected %d times, want only its first", got)
+	}
+}
+
+// A session deleted after ConnectSessions found it and before it took its ops is not found, and the others connect.
+func TestConnectSessionsReportsASessionDeletedBeforeItsLockAsNotFound(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+
+	for _, id := range []string{"deleted", "kept"} {
+		h.connected(id)
+		h.disconnect(id)
+	}
+
+	deleted, err := h.svc.get("deleted")
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+
+	kept, err := h.svc.get("kept")
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+
+	if _, err := h.client.DeleteSession(h.ctx, &whatsmeowv1.DeleteSessionRequest{SessionId: "deleted"}); err != nil {
+		t.Fatalf("DeleteSession: %v", err)
+	}
+
+	errs := h.svc.connectAll(h.ctx, []*session{deleted, kept})
+
+	if reason := server.Reason(errs[0]); reason != whatsmeowv1.ErrorReason_ERROR_REASON_SESSION_NOT_FOUND {
+		t.Fatalf("the deleted session failed with %v (%v), want SESSION_NOT_FOUND", reason, errs[0])
+	}
+
+	if errs[1] != nil {
+		t.Fatalf("the kept session failed: %v", errs[1])
+	}
+
+	h.wantState("kept", connecting())
 }
 
 func TestConnectSessionsLetsGoOfASessionOnceItsOwnConnectEnded(t *testing.T) {

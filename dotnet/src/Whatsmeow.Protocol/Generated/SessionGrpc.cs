@@ -444,11 +444,13 @@ namespace Whatsmeow.Protocol.V1 {
       }
       /// <summary>
       /// ConnectSessions connects several sessions, each as Connect does, and answers with one result per session, in the
-      /// request's order, once every connect call ended. Their Connecting transitions are recorded in one commit, and their
-      /// connections open concurrently, so the time it takes does not grow with a sync of the database per session. The
-      /// client reconnects with it after a sidecar restart (ARCHITECTURE §8.5, ADR 0053).
-      /// Errors: INVALID_ARGUMENT for a session id given twice (field "session_ids"). A session's own failure is its result,
-      /// never the call's.
+      /// request's order, once every connect call ended. Their Connecting transitions are recorded in one commit, then their
+      /// connect calls run one after another, in id order, so the time it takes does not grow with a sync of the database
+      /// per session. The client reconnects with it after a sidecar restart (ARCHITECTURE §8.5, ADR 0053).
+      /// Errors: INVALID_ARGUMENT for a session id given twice (field "session_ids"), before any session is looked at. A
+      /// session's own failure is its result, never the call's: one of Connect's reasons (SESSION_NOT_FOUND, NOT_LOGGED_IN,
+      /// LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED), INVALID_ARGUMENT for a malformed session
+      /// id, or INTERNAL.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -462,11 +464,13 @@ namespace Whatsmeow.Protocol.V1 {
       }
       /// <summary>
       /// ConnectSessions connects several sessions, each as Connect does, and answers with one result per session, in the
-      /// request's order, once every connect call ended. Their Connecting transitions are recorded in one commit, and their
-      /// connections open concurrently, so the time it takes does not grow with a sync of the database per session. The
-      /// client reconnects with it after a sidecar restart (ARCHITECTURE §8.5, ADR 0053).
-      /// Errors: INVALID_ARGUMENT for a session id given twice (field "session_ids"). A session's own failure is its result,
-      /// never the call's.
+      /// request's order, once every connect call ended. Their Connecting transitions are recorded in one commit, then their
+      /// connect calls run one after another, in id order, so the time it takes does not grow with a sync of the database
+      /// per session. The client reconnects with it after a sidecar restart (ARCHITECTURE §8.5, ADR 0053).
+      /// Errors: INVALID_ARGUMENT for a session id given twice (field "session_ids"), before any session is looked at. A
+      /// session's own failure is its result, never the call's: one of Connect's reasons (SESSION_NOT_FOUND, NOT_LOGGED_IN,
+      /// LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED), INVALID_ARGUMENT for a malformed session
+      /// id, or INTERNAL.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -478,11 +482,13 @@ namespace Whatsmeow.Protocol.V1 {
       }
       /// <summary>
       /// ConnectSessions connects several sessions, each as Connect does, and answers with one result per session, in the
-      /// request's order, once every connect call ended. Their Connecting transitions are recorded in one commit, and their
-      /// connections open concurrently, so the time it takes does not grow with a sync of the database per session. The
-      /// client reconnects with it after a sidecar restart (ARCHITECTURE §8.5, ADR 0053).
-      /// Errors: INVALID_ARGUMENT for a session id given twice (field "session_ids"). A session's own failure is its result,
-      /// never the call's.
+      /// request's order, once every connect call ended. Their Connecting transitions are recorded in one commit, then their
+      /// connect calls run one after another, in id order, so the time it takes does not grow with a sync of the database
+      /// per session. The client reconnects with it after a sidecar restart (ARCHITECTURE §8.5, ADR 0053).
+      /// Errors: INVALID_ARGUMENT for a session id given twice (field "session_ids"), before any session is looked at. A
+      /// session's own failure is its result, never the call's: one of Connect's reasons (SESSION_NOT_FOUND, NOT_LOGGED_IN,
+      /// LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED), INVALID_ARGUMENT for a malformed session
+      /// id, or INTERNAL.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -496,11 +502,13 @@ namespace Whatsmeow.Protocol.V1 {
       }
       /// <summary>
       /// ConnectSessions connects several sessions, each as Connect does, and answers with one result per session, in the
-      /// request's order, once every connect call ended. Their Connecting transitions are recorded in one commit, and their
-      /// connections open concurrently, so the time it takes does not grow with a sync of the database per session. The
-      /// client reconnects with it after a sidecar restart (ARCHITECTURE §8.5, ADR 0053).
-      /// Errors: INVALID_ARGUMENT for a session id given twice (field "session_ids"). A session's own failure is its result,
-      /// never the call's.
+      /// request's order, once every connect call ended. Their Connecting transitions are recorded in one commit, then their
+      /// connect calls run one after another, in id order, so the time it takes does not grow with a sync of the database
+      /// per session. The client reconnects with it after a sidecar restart (ARCHITECTURE §8.5, ADR 0053).
+      /// Errors: INVALID_ARGUMENT for a session id given twice (field "session_ids"), before any session is looked at. A
+      /// session's own failure is its result, never the call's: one of Connect's reasons (SESSION_NOT_FOUND, NOT_LOGGED_IN,
+      /// LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED), INVALID_ARGUMENT for a malformed session
+      /// id, or INTERNAL.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>

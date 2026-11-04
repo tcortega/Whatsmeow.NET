@@ -701,22 +701,26 @@ func (svc *Service) connect(ctx context.Context, s *session) (*whatsmeowv1.Conne
 	return &whatsmeowv1.ConnectResponse{}, nil
 }
 
-// ConnectSessions connects each session as Connect does, in one commit for all their Connecting states, and with
-// their connect calls running at once (session.proto).
+// ConnectSessions connects each session as Connect does, in one commit for all their Connecting states, then one
+// connect call after another (session.proto, ADR 0053).
 func (svc *Service) ConnectSessions(ctx context.Context, req *whatsmeowv1.ConnectSessionsRequest) (*whatsmeowv1.ConnectSessionsResponse, error) {
 	ids := req.GetSessionIds()
-	results := make([]*whatsmeowv1.ConnectSessionResult, len(ids))
-	found := make([]*session, 0, len(ids))
-	at := make([]int, 0, len(ids))
 	seen := make(map[string]struct{}, len(ids))
 
-	for i, id := range ids {
+	for _, id := range ids {
 		// Twice would wait for itself on the session's ops.
 		if _, twice := seen[id]; twice {
 			return nil, fmt.Errorf("connect sessions: %w", server.InvalidArgument("session_ids", "session %q is given twice", id))
 		}
 
 		seen[id] = struct{}{}
+	}
+
+	results := make([]*whatsmeowv1.ConnectSessionResult, len(ids))
+	found := make([]*session, 0, len(ids))
+	at := make([]int, 0, len(ids))
+
+	for i, id := range ids {
 		results[i] = &whatsmeowv1.ConnectSessionResult{SessionId: id}
 
 		s, err := svc.get(id)
@@ -747,10 +751,10 @@ func (svc *Service) connectFailed(id string, err error) whatsmeowv1.ErrorReason 
 }
 
 // connectAll connects each session, distinct, and returns each one's error. It records every Connecting state in one
-// transitionAll, then runs the connect calls at once: whatsmeow's ConnectContext locks only its own client's socket
-// (client.go:541-604), and each client has its own HTTP transport (client.go:272-278). A session's ops are taken in id
-// order, so two calls that share sessions never wait for each other in a cycle, and held until its own connect call
-// ended.
+// transitionAll, then runs the connect calls one after another, in id order, as the client did before ConnectSessions
+// and as mautrix-whatsapp connects its logins (ADR 0053). A session's ops are taken in id order, so two calls that
+// share sessions never wait for each other in a cycle, and a busy session delays the ones after it; each is held until
+// its own connect call ended.
 func (svc *Service) connectAll(ctx context.Context, sessions []*session) []error {
 	errs := make([]error, len(sessions))
 	order := make([]int, len(sessions))
@@ -778,24 +782,17 @@ func (svc *Service) connectAll(ctx context.Context, sessions []*session) []error
 		}
 	}
 
-	var calls sync.WaitGroup
-
 	for _, i := range starting {
-		calls.Go(func() {
-			defer sessions[i].ops.Unlock()
-
-			errs[i] = svc.handshake(ctx, sessions[i], previous[i])
-		})
+		errs[i] = svc.handshake(ctx, sessions[i], previous[i])
+		sessions[i].ops.Unlock()
 	}
-
-	calls.Wait()
 
 	return errs
 }
 
 // startConnecting moves the held sessions Connect would connect to Connecting, all in one transitionAll, and returns
-// them. It sets errs for the others: the states Connect refuses, and every one if recording failed, back in its
-// previous state then; a session connecting or connected already gets nil, and nothing to do.
+// them, in held's order. It sets errs for the others: the states Connect refuses, and the ones whose state could not be
+// recorded, back in their previous state then; a session connecting or connected already gets nil, and nothing to do.
 func (svc *Service) startConnecting(ctx context.Context, sessions []*session, held []int, previous []*whatsmeowv1.SessionState, errs []error) []int {
 	for _, i := range held {
 		sessions[i].mu.Lock()
@@ -832,20 +829,31 @@ func (svc *Service) startConnecting(ctx context.Context, sessions []*session, he
 		return nil
 	}
 
-	if err := svc.transitionAll(ctx, moves...); err != nil {
+	if svc.transitionAll(ctx, moves...) == nil {
+		return starting
+	}
+
+	// The batch rolled back. One session's failed write must not fail the others, so each is recorded on its own, as
+	// Connect records it.
+	var recorded []int
+
+	for j, i := range starting {
+		err := svc.transitionAll(ctx, moves[j])
+		if err == nil {
+			recorded = append(recorded, i)
+
+			continue
+		}
+
 		// Not connecting after all: stuck in Connecting, every later Connect would do nothing.
-		if restoreErr := svc.transitionAll(ctx, back...); restoreErr != nil {
+		if restoreErr := svc.transitionAll(ctx, back[j]); restoreErr != nil {
 			err = errors.Join(err, restoreErr)
 		}
 
-		for _, i := range starting {
-			errs[i] = err
-		}
-
-		return nil
+		errs[i] = err
 	}
 
-	return starting
+	return recorded
 }
 
 // handshake runs whatsmeow's connect call for a session startConnecting moved to Connecting from previous, and on a
