@@ -466,7 +466,7 @@ source_archive() {
 	{
 		git archive --format=tar --prefix="$prefix/" HEAD >"$work/source.tar" &&
 			git archive --format=tar --prefix="$prefix/" HEAD sidecar | tar -x -C "$work" &&
-			(cd "$work/$prefix/sidecar" && go mod vendor) &&
+			go -C "$(native_path "$work/$prefix/sidecar")" mod vendor &&
 			(cd "$work" && tar -rf source.tar "$prefix/sidecar/vendor") &&
 			gzip -9n <"$work/source.tar" >"$archive"
 	} || rc=$?
@@ -876,10 +876,9 @@ source_build() {
 	mkdir -p "$work/source-gocache" "$work/source-gomod" || return
 	gocache="$(native_path "$work/source-gocache")" gomodcache="$(native_path "$work/source-gomod")"
 	(
-		cd "$src/$prefix/sidecar" || exit
 		export GOPROXY=off GOFLAGS=-mod=vendor GOSUMDB=off CGO_ENABLED=0 GOCACHE="$gocache" GOMODCACHE="$gomodcache"
 		echo "$builds" | while read -r target r suffix; do
-			GOOS="${target%/*}" GOARCH="${target#*/}" go build -trimpath -ldflags "-s -w -X main.version=$version" -o "$(native_path "$source_out/$r/whatsmeow-net$suffix")" ./cmd/whatsmeow-net || exit
+			GOOS="${target%/*}" GOARCH="${target#*/}" go -C "$(native_path "$src/$prefix/sidecar")" build -trimpath -ldflags "-s -w -X main.version=$version" -o "$(native_path "$source_out/$r/whatsmeow-net$suffix")" ./cmd/whatsmeow-net || exit
 			echo "built whatsmeow-net $version for $target from the source archive, with GOPROXY=off and -mod=vendor"
 		done
 	)
