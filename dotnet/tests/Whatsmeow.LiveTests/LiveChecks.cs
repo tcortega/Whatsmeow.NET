@@ -1,4 +1,5 @@
 using Whatsmeow.Events;
+using Whatsmeow.Groups;
 using Whatsmeow.IntegrationTests.Messaging;
 using Xunit.Sdk;
 
@@ -102,6 +103,40 @@ internal static class LiveChecks
 	/// and a live test's are real phone numbers.
 	/// </summary>
 	public static void Equal<T>(T expected, T actual) => Redacting(() => Assert.Equal(expected, actual));
+
+	/// <summary>
+	/// <see cref="Equal{T}(T, T)"/> for a group, whose record prints its participants as a type name: a failure lists
+	/// each member that differs, the participants one per line, redacted.
+	/// </summary>
+	public static void Equal(GroupInfo expected, GroupInfo actual)
+	{
+		if (expected.Equals(actual))
+			return;
+
+		var differences = new List<string>();
+		void Compare<TMember>(string name, TMember want, TMember got)
+		{
+			if (!EqualityComparer<TMember>.Default.Equals(want, got))
+				differences.Add($"{name}: expected {want?.ToString() ?? "null"}, actual {got?.ToString() ?? "null"}");
+		}
+
+		Compare(nameof(GroupInfo.Jid), expected.Jid, actual.Jid);
+		Compare(nameof(GroupInfo.Name), expected.Name, actual.Name);
+		Compare(nameof(GroupInfo.Topic), expected.Topic, actual.Topic);
+		Compare(nameof(GroupInfo.Owner), expected.Owner, actual.Owner);
+		Compare(nameof(GroupInfo.OwnerAlt), expected.OwnerAlt, actual.OwnerAlt);
+		Compare(nameof(GroupInfo.CreatedAt), expected.CreatedAt, actual.CreatedAt);
+		Compare(nameof(GroupInfo.IsAnnounce), expected.IsAnnounce, actual.IsAnnounce);
+		Compare(nameof(GroupInfo.IsLocked), expected.IsLocked, actual.IsLocked);
+		Compare(nameof(GroupInfo.MemberAddMode), expected.MemberAddMode, actual.MemberAddMode);
+		if (!expected.Participants.SequenceEqual(actual.Participants))
+			differences.Add($"{nameof(GroupInfo.Participants)}:\n  expected:\n{Participants(expected)}\n  actual:\n{Participants(actual)}");
+
+		Assert.Fail(LiveRedaction.Redact($"The groups differ:\n{string.Join("\n", differences)}"));
+	}
+
+	private static string Participants(GroupInfo group) =>
+		group.Participants.IsEmpty ? "    none" : string.Join("\n", group.Participants.Select(p => $"    {p.Jid} ({p.JidAlt?.ToString() ?? "no alt"}) {p.Role}"));
 
 	/// <summary><see cref="Assert.Equal{T}(IEnumerable{T}, IEnumerable{T})"/>, its failure redacted.</summary>
 	public static void Equal<T>(IEnumerable<T> expected, IEnumerable<T> actual) => Redacting(() => Assert.Equal(expected, actual));

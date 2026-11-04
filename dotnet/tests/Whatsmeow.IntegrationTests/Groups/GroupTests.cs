@@ -351,13 +351,13 @@ public sealed class GroupTests(FakeSidecar fixture)
 		_ = Assert.Single(groups);
 		Assert.Equal(expected, groups[0]);
 
-		// The joiner gets the group, from no sender, as WhatsApp sent it (ARCHITECTURE §14), and the members who joined.
+		// The joiner gets the group, and the members who joined, each from no sender, as WhatsApp sent them (ARCHITECTURE §14).
 		Assert.Equal(
 			new GroupJoined { SessionId = SessionId.From("groups-invite-b"), Group = expected, Sender = null, SenderAlt = null },
 			await joined.NextAsync(ct)
 		);
 		Assert.Equal(
-			Changed("groups-invite-a", group, Self("groups-invite-b"), new GroupChange.ParticipantJoined { Jid = Self("groups-invite-b") }),
+			Changed("groups-invite-a", group, sender: null, new GroupChange.ParticipantJoined { Jid = Self("groups-invite-b") }),
 			await adminChanges.NextAsync(ct)
 		);
 	}

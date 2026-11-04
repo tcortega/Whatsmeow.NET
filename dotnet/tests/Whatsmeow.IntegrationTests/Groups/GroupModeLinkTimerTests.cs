@@ -154,10 +154,11 @@ public sealed class GroupModeLinkTimerTests(FakeSidecar fixture)
 		var link = await admin.GetGroupInviteLinkAsync(group, ct);
 		var code = new Uri(link.ToString()["https://chat.whatsapp.com/".Length..], UriKind.Relative);
 
-		// Which participants WhatsApp lists for a non-member is [unknown]; the fake lists every member.
+		// Which participants WhatsApp lists for a non-member is [unknown]; the fake lists every member. The link's group
+		// has no member add mode, as WhatsApp sent it (ARCHITECTURE §14).
 		var expected = Created(group, "groups-preview-a", "Team", Member(Pn("5511922000002"))) with { Topic = "Plans" };
-		Assert.Equal(expected, await outsider.GetGroupInfoFromLinkAsync(link, ct));
-		Assert.Equal(expected, await outsider.GetGroupInfoFromLinkAsync(code, ct));
+		Assert.Equal(expected with { MemberAddMode = null }, await outsider.GetGroupInfoFromLinkAsync(link, ct));
+		Assert.Equal(expected with { MemberAddMode = null }, await outsider.GetGroupInfoFromLinkAsync(code, ct));
 
 		Assert.Empty(await outsider.GetGroupsAsync(ct));
 		Assert.Equal(expected, await admin.GetGroupInfoAsync(group, ct));

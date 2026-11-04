@@ -216,10 +216,12 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 				var change = await LiveChecks.WithinAsync(seen, "the peer's join, seen by the live session").ConfigureAwait(false);
 				live.Write($"live: the live session saw the peer join, from a {LiveChecks.Form(change.Sender)}, the member a {LiveChecks.Form(change.Changes.OfType<GroupChange.ParticipantJoined>().First().Jid)}");
 				var joiner = change.Changes.OfType<GroupChange.ParticipantJoined>().First().Jid;
-				LiveChecks.Equal(GroupChecks.Changed(client.SessionId, jid, change.Sender, change.SenderAlt, change.Timestamp, new GroupChange.ParticipantJoined { Jid = joiner }), change);
+				// As the fake-mode invite test: the join by link comes from no sender [observed: #36 live run of 2026-11-04 at 1519d67].
+				LiveChecks.Equal(GroupChecks.Changed(client.SessionId, jid, sender: null, senderAlt: null, change.Timestamp, new GroupChange.ParticipantJoined { Jid = joiner }), change);
 
-				// The fake-mode preview test's check, last, so a difference the log shows never hides the rest: a non-member reads the group as its admin does.
-				LiveChecks.Equal(adminView, preview);
+				// The fake-mode preview test's check, last, so a difference the log shows never hides the rest: a non-member reads
+				// the group as its admin does, with no member add mode [observed: #36 live runs of 2026-11-04 at dfa2e57 and 1519d67].
+				LiveChecks.Equal(adminView with { MemberAddMode = null }, preview);
 			},
 			// A failure above may leave the peer out; the reset link is the group's now.
 			AddPeerBack()

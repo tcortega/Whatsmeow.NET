@@ -135,7 +135,7 @@ func TestAddingAnswersForEachParticipant(t *testing.T) {
 func TestAResetLinkStopsWorkingAndTheNewOneJoins(t *testing.T) {
 	t.Parallel()
 
-	whatsApp, control, ctx, owner, _, db := linked(t)
+	whatsApp, control, ctx, owner, ownerGot, db := linked(t)
 	member, memberGot := second(ctx, t, whatsApp, control, db)
 
 	created, err := owner.CreateGroup(ctx, whatsmeow.ReqCreateGroup{Name: "Team"})
@@ -177,6 +177,10 @@ func TestAResetLinkStopsWorkingAndTheNewOneJoins(t *testing.T) {
 
 	if evt := next[*events.JoinedGroup](t, memberGot); evt.Reason != "invite" || evt.JID != created.JID || evt.Sender != nil || evt.SenderPN != nil {
 		t.Fatalf("the member got %+v", evt)
+	}
+
+	if evt := next[*events.GroupInfo](t, ownerGot); evt.Sender != nil || evt.SenderPN != nil || evt.JoinReason != "invite" || fmt.Sprint(evt.Join) != "[1666@s.whatsapp.net]" {
+		t.Fatalf("the owner got %+v", evt)
 	}
 
 	// A member, not an admin: the link is 401 (group.go:432).
@@ -430,6 +434,13 @@ func TestALinksGroupInfoJoinsNothing(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetGroupInfo: %v", err)
 	}
+
+	// A link's group has no member add mode.
+	if want.MemberAddMode == "" {
+		t.Fatal("the group has no member add mode")
+	}
+
+	want.MemberAddMode = ""
 
 	before := []int{len(ownerGot), len(outsiderGot)}
 

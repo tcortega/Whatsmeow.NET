@@ -610,8 +610,11 @@ func (c *Client) JoinGroupWithLink(_ context.Context, code string) (types.JID, e
 		g.members = append(g.members, member{id: self})
 		g.removed = slices.DeleteFunc(g.removed, func(r types.JID) bool { return r == self })
 
+		// The members' notification names the joiner and no sender, as live [observed: #36 live run of 2026-11-04 at
+		// 1519d67].
 		evt := w.change(g, self)
 		evt.Join, evt.JoinReason = []types.JID{*evt.Sender}, "invite"
+		evt.Sender, evt.SenderPN = nil, nil
 		notices = append(w.noticesTo(others, evt), w.noticesTo([]types.JID{self}, w.joined(g, self, "invite"))...)
 	}
 
@@ -623,7 +626,9 @@ func (c *Client) JoinGroupWithLink(_ context.Context, code string) (types.JID, e
 }
 
 // GetGroupInfoFromLink answers the group of a link's code, with every member [inferred], and joins nothing; its codes
-// are the join's (group.go:497-502), and one an admin removed is refused with 401 (group.removed).
+// are the join's (group.go:497-502), and one an admin removed is refused with 401 (group.removed). It has no member add
+// mode, as live, where whatsmeow parsed none from the answer (group.go:504-508, 785) [observed: #36 live runs of
+// 2026-11-04 at dfa2e57 and 1519d67].
 func (c *Client) GetGroupInfoFromLink(_ context.Context, code string) (*types.GroupInfo, error) {
 	if err := c.groupQuery(); err != nil {
 		return nil, err
@@ -642,7 +647,10 @@ func (c *Client) GetGroupInfoFromLink(_ context.Context, code string) (*types.Gr
 		return nil, whatsmeow.ErrIQNotAuthorized
 	}
 
-	return w.info(g), nil
+	info := w.info(g)
+	info.MemberAddMode = ""
+
+	return info, nil
 }
 
 // byCode is the group whose invite link has the code, taken from a link as whatsmeow strips it (group.go:494, 516): a
