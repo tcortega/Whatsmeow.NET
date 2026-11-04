@@ -27,7 +27,7 @@ ARCHITECTURE §7.4 left the single-owner mechanism open ("a lock file or lease r
 - **The database file** is created 0600 before SQLite opens it; the `-wal` file inherits that mode [observed: `TestOpenCreatesTheDatabaseOwnerOnly`].
   The connection string uses the plain path, not a `file:` URI, so a Windows path needs no escaping; a path with `?` is refused.
 - **`--database` is required**; the client always passes it. `WhatsmeowSidecarOptions.DatabasePath` defaults to `whatsmeow-net.db` in the current directory, made a full path in `WhatsmeowSidecarOptionsSetup.Apply`.
-- **One transition function.** Every state change, whatsmeow's events and the sidecar's own, goes through `session.(*Service).transition`; #8 records the outbox event inside it.
+- **One transition function.** Every state change, whatsmeow's events and the sidecar's own, goes through `session.(*Service).transitionAll` (`transition` is it for one session; [ADR 0053](0053-connect-sessions-in-one-call.md)); #8 records the outbox event inside it.
   Connect is `Connecting` while `ConnectContext` runs and returns after it with the session still `Connecting`; on `CONNECTION_FAILED` the session goes back to its previous state.
   If recording `Connecting` fails, the session goes back to its previous state at once, so a later Connect is not a no-op.
   Every transition is recorded even when the call that caused it was cancelled meanwhile (`context.WithoutCancel`), so a cancelled Connect never loses a stopping state across a restart.

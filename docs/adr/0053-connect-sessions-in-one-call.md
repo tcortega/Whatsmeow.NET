@@ -16,9 +16,15 @@ The reconnect has no deadline, so a slow one never fails the attempt [observed: 
 ## Decision
 
 - **`SessionService.ConnectSessions`** connects several sessions, each as `Connect` does, and answers with one `ConnectSessionResult` per session, in the request's order, once every connect call ended.
-  It records every `Connecting` state in one `transitionAll`, so in one commit, then runs whatsmeow's `ConnectContext` for each at once: it locks only its own client's socket (client.go:541-604), and each client has its own HTTP transport (client.go:272-278) [observed: source at the pin].
-  A session's ops are taken in id order and released when its own connect call ended.
-  A session id given twice fails the call `INVALID_ARGUMENT` (field `session_ids`), since it would wait for itself; any other failure is the session's result, never the call's.
+  It records every `Connecting` state in one `transitionAll`, so in one commit, then runs whatsmeow's `ConnectContext` for each, one after another, in id order.
+  If that commit fails, each session's `Connecting` is recorded on its own, as `Connect` records it, so one session whose write fails gets `INTERNAL` and goes back to its previous state while the others connect.
+  A session id given twice fails the call `INVALID_ARGUMENT` (field `session_ids`), before any session is looked at, since it would wait for itself; any other failure is the session's result, never the call's: one of `Connect`'s reasons, `INVALID_ARGUMENT` for a malformed id, or `INTERNAL`.
+- **One connect call at a time.** mautrix-whatsapp connects its logins one after another at startup (mautrix-go `bridgev2/bridge.go:422-430`, `0907c3c`; mautrix-whatsapp `pkg/connector/client.go:244`, `5dd621f`) [observed: source], and so did this client's reconnect before this ADR [observed].
+  Whether WhatsApp treats a burst of handshakes from one host differently is [unknown], and no live test measures it.
+  What the restart gains here comes from the single commit, not from concurrency: the fake WhatsApp's `ConnectContext` returns at once, with no I/O (`fakewhatsapp/client.go:81-110`) [observed], so concurrent connect calls could not have shortened the soak's reconnects [inferred].
+  Running them at once would be possible: `ConnectContext` locks only its own client's socket (client.go:541-604), and each client has its own HTTP transport (client.go:272-278) [observed: source at the pin]; it waits for a measurement against real WhatsApp.
+- **Locks.** The batch takes each session's ops in id order, so two calls that share sessions never wait for each other in a cycle; a session whose ops another call holds (a `Disconnect`, a `Logout`) delays the sessions after it, as it delayed the client's loop before. There is no `TryLock`: a busy session is waited for, not skipped.
+  Each session's ops are released when its own connect call ended, and those with nothing to connect at once.
 - **A result carries the reason as an `ErrorReason` field**, `ERROR_REASON_UNSPECIFIED` for a session that connected or was connecting or connected already.
   This is the one place the enum travels as a field instead of in `ErrorInfo`: a status answers for one call, and this call answers for many sessions.
 - **No message in a result.** A status message goes through `server.toStatus`, which redacts phone numbers, JID user parts and URL queries (ADR 0039); a free-text field would not.
@@ -30,9 +36,10 @@ The reconnect has no deadline, so a slow one never fails the attempt [observed: 
 ## Consequences
 
 - A reconnect commits once however many sessions it connects [observed: `TestConnectSessionsRecordsEveryConnectingStateInOneCommit`, 1 commit for 20 sessions, 20 with a commit each (mutation)].
-- The connect calls run at once [observed: `TestConnectSessionsOpensTheConnectionsConcurrently`, red when they run in order].
-  The client's reconnect used to open one session's connection after another, as mautrix-whatsapp's `StartLoginsForUsers` does (mautrix-go `bridgev2/bridge.go:422-430`, `0907c3c`); whether WhatsApp treats a burst of handshakes from one host differently is [unknown], and no live test measures it.
+- The connect calls run one at a time, in id order [observed: `TestConnectSessionsConnectsOneAtATimeInIdOrder`, red when they run at once].
+- One session whose state cannot be recorded fails alone [observed: `TestConnectSessionsConnectsTheOthersWhenOneStateCannotBeRecorded`, a trigger on one session's row; red with the batch's error given to every session].
+- A session deleted after the lookup and before its ops were taken is `SESSION_NOT_FOUND` in its result, and the others connect [observed: `TestConnectSessionsReportsASessionDeletedBeforeItsLockAsNotFound`, red without the check under the ops].
 - A session no longer waits for the others' connect calls to be disconnected or logged out [observed: `TestConnectSessionsLetsGoOfASessionOnceItsOwnConnectEnded`, red when every session's ops are held until the last call ends].
 - `SidecarRestart_ConnectsAgainEverySessionTheApplicationConnected` checks the client side end to end: three sessions connected again after a crash, none logged as failed.
-- On win-x64, 36 suite and crash collection runs, 936 restarts, had no failed run or restart attempt, and the ready line to `SidecarRestarted` took at most 548 ms, against up to 27.7 s before [observed: PR #78 runs 41850964765 and 41490492321]. That the 120 s case was this phase stays [inferred]: the soak before also had no failure.
-- Before the first published tag, `protocol` stays 1 (ADR 0015).
+- On win-x64, with the connect calls still at once, 36 suite and crash collection runs, 936 restarts, had no failed run or restart attempt, and the ready line to `SidecarRestarted` took at most 548 ms, against up to 27.7 s before [observed: PR #78 runs 41850964765 and 41490492321]. That the 120 s case was this phase stays [inferred]: the soak before also had no failure.
+- An External-mode client of a standalone sidecar older than this gets `UNIMPLEMENTED` for `ConnectSessions` and logs `ReconnectFailed` for each session: acceptable before the first published tag, when `protocol` stays 1 (ADR 0015); after it, such an RPC comes with a `protocol` bump.
