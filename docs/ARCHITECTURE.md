@@ -680,7 +680,7 @@ How to write each test, what is banned, and the can-it-fail check: [guidelines/t
 ## 12. Release and upstream tracking
 
 - One git tag (`vX.Y.Z`) drives MinVer, and `build/ci.sh package` builds the binaries at MinVer's version and packs every package at it. The versions are always equal; untagged, they are one pre-release ([ADR 0023](adr/0023-native-packages-build-pin-and-find.md)).
-- `build/ci.sh package` validates the stable packages against the highest stable release of the same major below the version it packs (`build/release.sh baseline`), restored from nuget.org, and refuses a stable version whose `PublicAPI.Unshipped.txt` files are not empty ([ADR 0055](adr/0055-public-api-baseline-and-package-validation.md)).
+- `build/ci.sh package` validates the stable packages against the highest stable release of the same major below the version it packs (`build/release.sh baseline`), restored from nuget.org, and refuses a stable version whose `PublicAPI.Unshipped.txt` files are not empty; a rehearsal is held to both as the next stable release. Pull requests do not pack, so the contract job's `build/release.sh shipped-api` fails one that drops a line the last stable release shipped ([ADR 0055](adr/0055-public-api-baseline-and-package-validation.md)).
 - No Developer ID signing, notarization, or Authenticode (§14 questions 2 and 6).
   A binary restored by `dotnet restore` from nuget.org carries no `com.apple.quarantine` attribute, and an ad-hoc signed one runs even though `spctl` rejects it (§14 question 6) [inferred: Gatekeeper assesses only quarantined launches, which matches what we saw].
   Apple Silicon needs arm64 code to be signed at all [inferred: Apple platform rule, not measured here], and the Go linker ad-hoc signs `darwin/arm64` itself.

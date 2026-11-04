@@ -20,8 +20,10 @@ Measured:
   A consumer who resolves a newer one runs the client against generated code it was not built with [inferred: a missing member then fails at run time].
 - A non-sealed record's copy constructor "must be public or protected" (CS8878), so code outside the library can derive from `WhatsAppEvent`, `MessageContent`, `SessionState` and the other abstract records through it, despite their `private protected` parameterless constructors [observed: probes against `Whatsmeow.Client`].
   C# `closed` "prevents derived classes from being declared outside the defining assembly", and it and unions are "active, but aren't yet committed to a release" [observed: devblogs.microsoft.com/dotnet/csharp-15-union-types].
-- PublicAPI files record no `required`, type kind or base type [observed], so making a shipped property `required` is a source break that neither gate reports [inferred].
-- The CI checkouts fetch every tag (`fetch-depth: 0`), and no `v*` tag exists yet [observed: the workflows, `git ls-remote --tags origin`].
+- PublicAPI files record no `required`, type kind, base type or interface list, generic constraint or variance [observed: `PublicAPI.Shipped.txt` lists `WhatsmeowException` without `: Exception`, `IWhatsAppEventHandler<TEvent>` without `in`, and `AddHandler<TEvent, THandler>()` without its `where` clauses], so making a shipped property `required`, or changing a shipped type's base, interfaces or constraints, is a source break that neither RS0016/RS0017 nor a check of those files reports [inferred].
+- RS0017 compares the code with the `PublicAPI.*.txt` files only, so a member dropped from the code and from `PublicAPI.Shipped.txt` together passes it [observed: a clone with `Jid.IsLid` dropped from `Jid.cs` and `PublicAPI.Shipped.txt` builds `Whatsmeow.Client` without RS0017, and `build/release.sh shipped-api` there, at a local `v1.0.0` tag, names the line].
+- The CI checkouts that read the tags fetch every tag (`fetch-depth: 0`), and no `v*` tag exists yet [observed: the workflows, `git ls-remote --tags origin`]; in a `--depth 1` clone `git tag --merged HEAD` sees only the tags of the commits it has, so a baseline would be silently empty there [observed: the review of #50's PR; `build/release-test.sh`].
+- `packaging` runs on a push to main, on `workflow_dispatch` and in the release workflow, never on a pull request [observed: `ci.yml`, `release.yml`, ADR 0056]; the rehearsal packs at `v0.0.0-rehearsal.<run>`, a tag in the runner only (ADR 0050).
 
 ## Decision
 
@@ -29,19 +31,27 @@ Measured:
 - **The baseline**: every public member of the three stable packages is in its `PublicAPI.Shipped.txt`, and each `PublicAPI.Unshipped.txt` holds only `#nullable enable`.
   A new member goes to `PublicAPI.Unshipped.txt`; before a stable tag, its lines move to `PublicAPI.Shipped.txt`.
   `build/ci.sh package` fails at a stable version whose `PublicAPI.Unshipped.txt` is not empty, so `PublicAPI.Shipped.txt` is always what the last stable release published.
-- **Removing or changing a shipped member is a break**, which takes a new major version and its ADR; `tools/check-repo` rejects a `*REMOVED*` line in a stable package's API file, and that ADR lifts the rule for its release.
+- **From v1.0.0, removing or changing a shipped member is a break**, which takes a new major version and its ADR.
+  `tools/check-repo` rejects a `*REMOVED*` line in a stable package's API file, and the contract job's `build/release.sh shipped-api` fails when a line, other than a `[WMN1001]` one, that `PublicAPI.Shipped.txt` held at the baseline tag of the next stable release is gone or changed, so dropping a member from the code and that file together fails a pull request, which does not pack.
+  A new major's first pre-release tag lifts `shipped-api` for that major, which has no baseline; its ADR lifts the `*REMOVED*` rule.
+  Before v1.0.0 there is no baseline, so a member is changed or removed by editing `PublicAPI.Shipped.txt` itself, as ADR 0015 lets the contract break before its first tag.
+  A shipped type's base, interfaces, generic constraints and `required` members are not in the files, so reviewers check them by hand.
 - **Outside the promise**: the `[Experimental("WMN1001")]` Raw hatch (`MessageReceived.Raw`, `SendRawAsync`), which changes with `Whatsmeow.Protocol.WhatsApp`, and types derived outside the library from its abstract records, whose cases may become `closed` later.
   A change to the Raw hatch after 1.0 needs an entry in the project's ApiCompat suppression file, since package validation does not exempt experimental members [inferred: no such option in the SDK's targets].
-- **No generated protobuf or gRPC type outside the Raw hatch** (§13 invariant 6): `tools/check-repo` rejects a stable API line naming `Whatsmeow.Proto.`, `Whatsmeow.Protocol.`, `Google.Protobuf.` or `Grpc.` unless it carries `[WMN1001]`.
+- **No generated protobuf or gRPC type outside the Raw hatch** (§13 invariant 6): `tools/check-repo` rejects a stable API line naming `Whatsmeow.Proto.`, `Whatsmeow.Protocol.`, `Google.Protobuf.` or `Grpc.` unless it carries `[WMN1001]`, and a `[WMN1001]` line naming any of them but `Whatsmeow.Proto.`, the upstream WhatsApp types.
 - **Package validation**: the three stable packages set `EnablePackageValidation` (`dotnet/src/Directory.Build.props`).
   `build/release.sh baseline <version>` names the release to compare with: the highest stable `v<major>.<minor>.<patch>` tag merged into HEAD, with the version's major and below it.
   There is none before 1.0, none for a major's first release or for the version of HEAD's own tag, never a pre-release (a pre-release is the place to change the API before its release), and never a tag only another branch holds.
-  `build/ci.sh package` restores the baseline packages and packs with that version, so every package job after a release (the release workflow, its rehearsal, and a manual `ci.yml` run, the only runs that pack until the platform pass [observed: `ci.yml` `packaging` is `workflow_dispatch` only]) is compared with what the release published; a baseline nuget.org does not serve fails the job, saying the release is not published yet or its tag must be deleted (ADR 0050).
+  It fails in a shallow clone, and when a version past its major's first release finds no release of that major, so missing tags never pass as no baseline.
+  A rehearsal's `0.0.0-rehearsal.<run>` stands for the next stable release: the version of the highest pre-release tag that no stable tag has yet, else the patch after the highest stable tag; its baseline is that version's.
+  `build/ci.sh package` restores the baseline packages and packs with that version, so every package job after a release (a push to main, a manual `ci.yml` run, the release workflow and its rehearsal) is compared with what the release published; a baseline nuget.org does not serve (NU1102) fails the job, saying the release is not published yet or its tag must be deleted (ADR 0050).
+  A rehearsal is also held to a stable release's empty `PublicAPI.Unshipped.txt`, so a break or an unshipped member shows there before the tag.
 - **Exact pins**: `Whatsmeow.Client` depends on `Whatsmeow.Protocol`, and `Whatsmeow.Protocol` on `Whatsmeow.Protocol.WhatsApp`, at exactly its own version (`PackExactVersion`, ADR 0023), which `build/ci.sh install` checks.
 
 ## Consequences
 
 - Each release before tagging: a commit that moves the Unshipped lines to Shipped; the package job refuses a stable tag without it.
-- After 1.0, every package job compares with the published release; pull requests do not pack yet, so between releases RS0017 and `tools/check-repo` are the gate a pull request sees; while a new release waits for its approval, that comparison fails until nuget.org serves it, or until a refused release's tag is deleted.
+- After 1.0, every package job compares with the published release; pull requests do not pack, so between releases RS0017, `tools/check-repo` and `shipped-api` are the gate a pull request sees; while a new release waits for its approval, that comparison fails until nuget.org serves it, or until a refused release's tag is deleted.
+- A rehearsal fails while any `PublicAPI.Unshipped.txt` holds a member, as the release itself would.
 - The renames change no contract; the sample and the tests follow them.
-- Tests: `build/release-test.sh` (the baseline cases), `tools/check-repo` (`TestCheckPublicAPIKeepsShippedMembersAndProtobufTypesOut`), and the mutations in the PR body.
+- Tests: `build/release-test.sh` (the baseline and shipped-api cases), `tools/check-repo` (`TestCheckPublicAPIKeepsShippedMembersAndProtobufTypesOut`), and the mutations in the PR body.
