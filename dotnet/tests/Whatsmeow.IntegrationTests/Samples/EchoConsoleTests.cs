@@ -16,6 +16,8 @@ namespace Whatsmeow.IntegrationTests.Samples;
 public sealed class EchoConsoleTests(FakeSidecar fixture)
 {
 	private const int Timeout = 120_000;
+	// The user who texts the sample, its own on the shared fake: another test registers Deliveries.Chat with another LID.
+	private const string Phone = "5511900000043@s.whatsapp.net";
 	private const string Lid = "900000043@lid";
 
 	[Fact(Timeout = Timeout)]
@@ -61,7 +63,7 @@ public sealed class EchoConsoleTests(FakeSidecar fixture)
 
 	private async Task<IWhatsAppClient> RegisteredAsync(string session, CancellationToken ct)
 	{
-		_ = await fixture.Fake.RegisterUserAsync(new RegisterUserRequest { PhoneJid = Deliveries.Chat, Lid = Lid }, cancellationToken: ct).ConfigureAwait(false);
+		_ = await fixture.Fake.RegisterUserAsync(new RegisterUserRequest { PhoneJid = Phone, Lid = Lid }, cancellationToken: ct).ConfigureAwait(false);
 		return await fixture.Sidecar.Sessions.GetOrCreateAsync(SessionId.From(session), ct).ConfigureAwait(false);
 	}
 
@@ -80,7 +82,7 @@ public sealed class EchoConsoleTests(FakeSidecar fixture)
 	private static DeliverMessageRequest Text(IWhatsAppClient client, string name, string text, bool isFromMe = false)
 	{
 		var session = client.SessionId.Value;
-		var message = Deliveries.Message(session, $"{session}-{name}");
+		var message = Deliveries.Message(session, $"{session}-{name}", Phone);
 		message.Text = text;
 		message.IsFromMe = isFromMe;
 		if (isFromMe)
