@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The checks CI runs, one subcommand per CI job; .github/workflows/ci.yml calls this and nothing else.
-# Run it before pushing: bash build/ci.sh all (or contract, go, dotnet, package; install <feed>). Works in Git Bash on
-# Windows.
+# Run it before pushing: bash build/ci.sh all (or contract, go, dotnet, package; install <feed>; aot <feed> <rid>).
+# Works in Git Bash on Windows.
 #
 # Every check runs and reports, even after an earlier one failed; the script fails at the end if any did.
 # A check that only makes sense once something exists (a Go module with no package yet) says so and passes.
@@ -268,7 +268,7 @@ aot_smoke_run() {
 	version="$(client_version)" || return
 	sidecar="dotnet/artifacts/aot-smoke/whatsmeow-net$exe"
 	CGO_ENABLED=0 go -C sidecar build -ldflags "-X main.version=$version" -o "../$sidecar" ./cmd/whatsmeow-net || return
-	"dotnet/artifacts/publish/AotSmoke/release_$rid/AotSmoke$exe" "$sidecar"
+	"dotnet/artifacts/publish/AotSmoke/release_$rid/AotSmoke$exe" "$version" "$rid" "$sidecar"
 }
 
 # The noexec copy fallback test (ARCHITECTURE §8.5) needs a noexec mount, and only root can make one, so CI makes it
@@ -1049,6 +1049,116 @@ job_install() { # feed
 	rm -rf "$work"
 }
 
+# Native AOT from the feed, on each target RID's own runner (ADR 0056): tests/AotSmoke, copied out of the repository
+# with AotSmokeFromFeed, references the feed's packages instead of the projects, publishes for the RID with zero trim
+# and AOT warnings, and runs there: the packaged sidecar beside the app, GetInfo at the feed's version, the hosting path,
+# and the RID it runs as, natively. A linux-musl-* RID publishes and runs in the Alpine SDK container of its
+# architecture, on a host of that architecture, never under emulation.
+alpine_image_arm64=mcr.microsoft.com/dotnet/sdk:10.0.403-alpine3.24-arm64v8@sha256:bf500481e8dac63987f2b1e617938f72a77bcfb9b310a234f39483abf35c9bff
+
+# The project and the versions that feed's packages and the repository pin, in a directory of its own outside the
+# repository, so none of our MSBuild files, central versions or nuget.config apply (consumer_setup).
+aot_setup() { # feed rid
+	local feed tfm hosting
+	feed="$(cd "$1" && pwd)" || return
+	aot_rid="$2"
+	version="$(tr -d '\r' <"$feed/version")" || return
+	tfm="$(sed -n 's|.*<TargetFramework>\(.*\)</TargetFramework>.*|\1|p' dotnet/Directory.Build.props)"
+	hosting="$(sed -n 's|.*<PackageVersion Include="Microsoft.Extensions.Hosting" Version="\([^"]*\)".*|\1|p' dotnet/Directory.Packages.props)"
+	if [ -z "$tfm" ] || [ -z "$hosting" ]; then
+		annotate error "aot" "no TargetFramework in dotnet/Directory.Build.props or no Microsoft.Extensions.Hosting in dotnet/Directory.Packages.props"
+		return 1
+	fi
+	work="$(mktemp -d)" || return
+	packages="$work/packages"
+	mkdir -p "$work/src/AotSmoke" || return
+	cp dotnet/tests/AotSmoke/AotSmoke.csproj dotnet/tests/AotSmoke/*.cs "$work/src/AotSmoke/" && cp global.json "$work/src/" || return
+	cat >"$work/src/Directory.Build.props" <<EOF || return
+<Project>
+	<PropertyGroup>
+		<TargetFramework>$tfm</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AotSmokeFromFeed>true</AotSmokeFromFeed>
+	</PropertyGroup>
+</Project>
+EOF
+	cat >"$work/src/Directory.Packages.props" <<EOF || return
+<Project>
+	<PropertyGroup>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageVersion Include="Microsoft.Extensions.Hosting" Version="$hosting" />
+		<PackageVersion Include="Whatsmeow.Client" Version="$version" />
+		<PackageVersion Include="Whatsmeow.Extensions.Hosting" Version="$version" />
+		<PackageVersion Include="Whatsmeow.Testing" Version="$version" />
+	</ItemGroup>
+</Project>
+EOF
+	case "$aot_rid" in
+		linux-musl-*) consumer_config /feed >"$work/src/nuget.config" ;;
+		*) consumer_config "$(native_path "$feed")" >"$work/src/nuget.config" ;;
+	esac || return
+	aot_feed="$feed"
+	echo "AotSmoke from the feed $feed at $version, for $aot_rid, in $work"
+}
+
+aot_publish_run() {
+	local exe="" out="$work/src/out"
+	case "$aot_rid" in linux-musl-*) aot_musl; return ;; win-*) exe=.exe ;; esac
+	if ! (unset WHATSMEOW_NET_SIDECAR_PATH && cd "$work/src" && NUGET_PACKAGES="$(native_path "$packages")" \
+		dotnet publish AotSmoke -c Release -warnaserror -r "$aot_rid" -o "$(native_path "$out")"); then
+		annotate error "aot $aot_rid" "the Native AOT publish from the feed failed, or had a trim or AOT warning"
+		return 1
+	fi
+	if [ ! -f "$out/whatsmeow-net$exe" ]; then
+		annotate error "aot $aot_rid" "the packaged whatsmeow-net$exe is not beside the app"
+		ls -l "$out"
+		return 1
+	fi
+	if ! (unset WHATSMEOW_NET_SIDECAR_PATH && "$out/AotSmoke$exe" "$version" "$aot_rid"); then
+		annotate error "aot $aot_rid" "the Native AOT app did not start the packaged sidecar, run the hosting path, or run natively as $aot_rid"
+		return 1
+	fi
+	aot_summary "$RUNNER_OS_ARCH"
+}
+
+# In the Alpine SDK container of the RID's architecture, which must be the host's: docker would otherwise run it
+# emulated, where the app cannot tell, or not at all.
+aot_musl() {
+	local arch="${aot_rid##*-}" host image
+	case "$(uname -m)" in x86_64 | amd64) host=x64 ;; aarch64 | arm64) host=arm64 ;; *) host="$(uname -m)" ;; esac
+	if [ "$(uname -s)" != Linux ] || [ "$host" != "$arch" ]; then
+		annotate error "aot $aot_rid" "$aot_rid runs on a Linux $arch host only, never emulated; this is $(uname -s) $host"
+		return 1
+	fi
+	case "$arch" in x64) image="$alpine_image" ;; arm64) image="$alpine_image_arm64" ;; esac
+	if ! docker run --rm -e VERSION="$version" -e RID="$aot_rid" -v "$aot_feed:/feed:ro" -v "$work/src:/src:ro" "$image" sh -euc '
+		apk add --no-cache clang build-base zlib-dev >/dev/null
+		cp -r /src /work && cd /work && export DOTNET_NOLOGO=true DOTNET_CLI_TELEMETRY_OPTOUT=true
+		dotnet publish AotSmoke -c Release -warnaserror -r "$RID" -o out
+		test -f out/whatsmeow-net || { echo "the packaged whatsmeow-net is not beside the app" >&2; ls -l out; exit 1; }
+		./out/AotSmoke "$VERSION" "$RID"'; then
+		annotate error "aot $aot_rid" "the Native AOT publish or run on Alpine failed"
+		return 1
+	fi
+	aot_summary "Linux $arch (native, Alpine container)"
+}
+
+aot_summary() { # where
+	local line="AotSmoke $aot_rid from the feed: Native AOT with 0 trim and AOT warnings, ran on $1"
+	echo "$line"
+	if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then echo "- $line" >>"$GITHUB_STEP_SUMMARY"; fi
+}
+
+job_aot() { # feed rid
+	RUNNER_OS_ARCH="${RUNNER_OS:-$(uname -s)} ${RUNNER_ARCH:-$(uname -m)}"
+	check "aot: AotSmoke from the feed $1 for $2" aot_setup "$1" "$2" || return
+	check "aot: Native AOT publish for $2 with zero trim and AOT warnings, and run (ADR 0056)" aot_publish_run
+	rm -rf "$work"
+}
+
 job_package() {
 	local before
 	before="$(tree_state)"
@@ -1057,16 +1167,23 @@ job_package() {
 		check "whatsmeow-net for every release target" build_sidecars &&
 		check "dotnet pack into the local feed $package_feed" pack_feed &&
 		check "the Corresponding Source archive into the feed (ADR 0016)" source_archive &&
-		job_install "$package_feed"
+		{
+			job_install "$package_feed"
+			job_aot "$package_feed" "$(rid "$(go env GOHOSTOS)/$(go env GOHOSTARCH)")"
+		}
 	check "the package job left the tree unchanged" tree_unchanged "$before" "the package job"
 }
 
 usage() {
-	echo "usage: bash build/ci.sh setup|contract|go|dotnet|external|package|all, or bash build/ci.sh install <feed>" >&2
+	echo "usage: bash build/ci.sh setup|contract|go|dotnet|external|package|all, bash build/ci.sh install <feed>, or bash build/ci.sh aot <feed> <rid>" >&2
 	exit 2
 }
 
-if [ "${1:-}" = install ]; then [ $# -eq 2 ] || usage; else [ $# -eq 1 ] || usage; fi
+case "${1:-}" in
+	install) [ $# -eq 2 ] || usage ;;
+	aot) [ $# -eq 3 ] || usage ;;
+	*) [ $# -eq 1 ] || usage ;;
+esac
 
 check "Go from mise equals the go.mod toolchain" go_toolchain || {
 	echo "fix the toolchain first" >&2
@@ -1081,6 +1198,7 @@ case "$1" in
 	external) job_external ;;
 	package) job_package ;;
 	install) job_install "$2" ;;
+	aot) job_aot "$2" "$3" ;;
 	all) job_contract; job_go; job_dotnet; job_external; job_package ;;
 	*) usage ;;
 esac
