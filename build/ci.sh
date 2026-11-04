@@ -143,6 +143,8 @@ job_contract() {
 	check "build/release.sh refuses every tag and feed it must not publish (build/release-test.sh, ADR 0050)" bash build/release-test.sh
 	check "third_party/whatsmeow matches the pinned module" go -C tools run ./sync-protos
 	check "buf lint" buf lint
+	# Our protos only: third_party/whatsmeow is upstream's, copied unmodified (ARCHITECTURE §6).
+	check "buf format" buf format proto -d --exit-code
 	check "buf breaking (gates from the first published v<semver> tag, ADR 0015)" buf_breaking
 	check "buf generate leaves the tree unchanged" generated_unchanged "$before"
 }

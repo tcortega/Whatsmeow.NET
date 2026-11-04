@@ -18,7 +18,7 @@ Moved from ARCHITECTURE §6; the contract's policy (independence from whatsmeow,
 
 ## Changing the contract
 
-- Run `buf lint` and `buf breaking` against `main` before pushing.
+- Run `buf format proto -w`, `buf lint` and `buf breaking` against `main` before pushing.
 - Regenerate (`buf generate`) and commit the generated Go and C#. CI fails on a diff.
 - Every plugin is local and pinned in `mise.toml`: remote buf.build plugins hit its rate limit even locally [observed: `resource_exhausted: too many requests`, 2026-10-31]; never fix that with retries.
 - From the first published `v<semver>` tag (pre-releases and build metadata included) on, `whatsmeow.v1` never breaks: a break means a new package `whatsmeow.v2` with its own ADR, every additive change increments `protocol`, and `buf breaking` gates `whatsmeow.v1` against `main`.

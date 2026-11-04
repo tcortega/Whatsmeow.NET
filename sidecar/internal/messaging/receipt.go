@@ -1,6 +1,7 @@
 package messaging
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 
@@ -16,14 +17,23 @@ import (
 // ReceiptEvent under its natural key. The Events slice records it before whatsmeow acks the receipt, which with
 // SynchronousAck it does only when no handler failed (receipt.go:115-128; ARCHITECTURE §13 invariant 2). A retry
 // receipt is recorded too, though whatsmeow acks it regardless (receipt.go:34-38). It is pure: no I/O.
+//
+// An empty message id is left out, and a receipt with no other is not recorded: it covers no message, and the client
+// cannot read one (#119). whatsmeow dispatches one for each member of a grouped receipt, whose id it reads from the
+// participants' key while WhatsApp sends it in message_id (receipt.go:45-62; tulir/whatsmeow#1270).
 func Receipt(_ string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) {
 	e, ok := evt.(*waevents.Receipt)
-	// whatsmeow dispatches none without an id (receipt.go:85-88): one would cover no message.
-	if !ok || len(e.MessageIDs) == 0 {
+	if !ok {
 		return "", nil, false
 	}
 
-	return receiptKey(e), &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_Receipt{
+	ids := slices.DeleteFunc(slices.Clone(e.MessageIDs), func(id string) bool { return id == "" })
+	// whatsmeow dispatches none without an id (receipt.go:85-88), but one of the empty id only.
+	if len(ids) == 0 {
+		return "", nil, false
+	}
+
+	return receiptKey(e, ids), &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_Receipt{
 		Receipt: &whatsmeowv1.ReceiptEvent{
 			Source: &whatsmeowv1.MessageSource{
 				Chat:         server.Text(e.Chat.String()),
@@ -32,7 +42,7 @@ func Receipt(_ string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool
 				RecipientAlt: server.Text(e.RecipientAlt.String()),
 				IsFromMe:     e.IsFromMe,
 			},
-			MessageIds:    server.Texts(e.MessageIDs),
+			MessageIds:    server.Texts(ids),
 			ReceiptTime:   timestamppb.New(e.Timestamp),
 			Type:          receiptType(e.Type),
 			MessageSender: server.Text(e.MessageSender.String()),
@@ -40,13 +50,13 @@ func Receipt(_ string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool
 	}}, true
 }
 
-// receiptKey is a receipt's natural key: its chat, sender, type, time and message ids, so WhatsApp's redelivery of a
-// receipt that was not acked keeps its seq, and a later receipt of the same kind for the same message is one of its
-// own. The ids come last, so their number never makes two keys alike.
-func receiptKey(e *waevents.Receipt) string {
-	parts := make([]string, 0, 5+len(e.MessageIDs))
+// receiptKey is a receipt's natural key: its chat, sender, type, time and the message ids it covers, so WhatsApp's
+// redelivery of a receipt that was not acked keeps its seq, and a later receipt of the same kind for the same message
+// is one of its own. The ids come last, so their number never makes two keys alike.
+func receiptKey(e *waevents.Receipt, ids []string) string {
+	parts := make([]string, 0, 5+len(ids))
 	parts = append(parts, "r", e.Chat.String(), e.Sender.String(), string(e.Type), strconv.FormatInt(e.Timestamp.Unix(), 10))
-	parts = append(parts, e.MessageIDs...)
+	parts = append(parts, ids...)
 
 	return strings.Join(parts, "\x00")
 }
