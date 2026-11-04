@@ -175,7 +175,7 @@ func TestAResetLinkStopsWorkingAndTheNewOneJoins(t *testing.T) {
 		t.Fatalf("JoinGroupWithLink = %v, %v", joined, err)
 	}
 
-	if evt := next[*events.JoinedGroup](t, memberGot); evt.Reason != "invite" || evt.JID != created.JID {
+	if evt := next[*events.JoinedGroup](t, memberGot); evt.Reason != "invite" || evt.JID != created.JID || evt.Sender != nil || evt.SenderPN != nil {
 		t.Fatalf("the member got %+v", evt)
 	}
 

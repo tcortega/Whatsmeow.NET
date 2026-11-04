@@ -188,11 +188,18 @@ func (w *WhatsApp) change(g *group, self types.JID) *events.GroupInfo {
 	return evt
 }
 
-// joined is the create notification of g that a member added by self, or joining, gets (group.go:860-884). w.mu is
-// held.
+// joined is the create notification of g that a member added by self, or joining, gets (group.go:860-884). One for
+// a join by link names no sender, as live: the peer's GroupJoined had none [observed: #36 live run of 2026-11-04 at
+// dfa2e57], and whatsmeow sets one only from the notification's participant (group.go:872), which the mapping passes
+// on (groups/event.go). w.mu is held.
 func (w *WhatsApp) joined(g *group, self types.JID, reason string) *events.JoinedGroup {
+	evt := &events.JoinedGroup{Reason: reason, GroupInfo: *w.info(g)}
+	if reason == "invite" {
+		return evt
+	}
+
 	sender := w.participant(g, member{id: self})
-	evt := &events.JoinedGroup{Reason: reason, Sender: &sender.JID, GroupInfo: *w.info(g)}
+	evt.Sender = &sender.JID
 
 	if sender.JID.Server == types.HiddenUserServer && !sender.PhoneNumber.IsEmpty() {
 		evt.SenderPN = &sender.PhoneNumber

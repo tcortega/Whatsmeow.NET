@@ -173,8 +173,8 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 	/// The peer leaves; no member, it reads the group from its link without joining, what it is shown going to the log
 	/// (the members a non-member sees, and their forms, are [unknown]). It leaves rather than being removed: WhatsApp
 	/// refuses a member an admin removed the link's group with 401 (ARCHITECTURE §14). The live session resets
-	/// the link: the old one no longer works, and the peer joins by the new one, gets <see cref="GroupJoined"/>, and the
-	/// live session sees it join, as in the fake-mode invite and preview tests.
+	/// the link: the old one no longer works, and the peer joins by the new one, gets <see cref="GroupJoined"/> from no
+	/// sender, and the live session sees it join, as in the fake-mode invite and preview tests.
 	/// </summary>
 	[LiveFact(NeedsPeer = true, Timeout = GroupTimeout)]
 	public async Task Live_InviteLinkResetThenJoined_TheOldLinkStopsWorking_AndThePeerJoinsByTheNewOne()
@@ -209,7 +209,10 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 				LiveChecks.Equal(jid, await other.JoinGroupWithLinkAsync(reset, ct).ConfigureAwait(false));
 
 				var join = await LiveChecks.WithinAsync(joined, "the peer's GroupJoined").ConfigureAwait(false);
-				Assert.True(join.Sender is { } sender && LiveChecks.Names(peerAccount, sender), $"the peer's GroupJoined names a {LiveChecks.Form(join.Sender)} that is not the peer");
+				// As the fake-mode invite test: a join by link names no sender [observed: #36 live run of 2026-11-04 at dfa2e57].
+				live.Write($"live: the peer's GroupJoined by the link came from a {LiveChecks.Form(join.Sender)}, its phone number {LiveChecks.Form(join.SenderAlt)}");
+				Assert.Null(join.Sender);
+				Assert.Null(join.SenderAlt);
 				var change = await LiveChecks.WithinAsync(seen, "the peer's join, seen by the live session").ConfigureAwait(false);
 				live.Write($"live: the live session saw the peer join, from a {LiveChecks.Form(change.Sender)}, the member a {LiveChecks.Form(change.Changes.OfType<GroupChange.ParticipantJoined>().First().Jid)}");
 				var joiner = change.Changes.OfType<GroupChange.ParticipantJoined>().First().Jid;
