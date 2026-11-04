@@ -320,3 +320,111 @@ func TestAPanicInAWriteLeavesNoOpenTransaction(t *testing.T) {
 		t.Fatalf("the panicked write's row: %d, %v; want 0, rolled back", n, err)
 	}
 }
+
+// A write whose context ends is rolled back by Tx itself before it returns, its connection back in the pool: database/sql
+// would roll back a transaction whose own context ended on a goroutine of its own (Tx.awaitDone), which nobody waits
+// for, still holding the database file while the store closes (#124). Whether that goroutine or Tx's deferred rollback
+// ends the transaction is a race, so 64 rounds take the goroutine's side all but surely.
+func TestACancelledWriteGivesItsConnectionBackBeforeItReturns(t *testing.T) {
+	t.Parallel()
+
+	w, ctx := openWriter(t)
+
+	for n := range 64 {
+		write, cancel := context.WithCancel(ctx)
+
+		err := w.Tx(write, func(ctx context.Context, tx *sql.Tx) error {
+			if _, err := tx.ExecContext(ctx, "INSERT INTO session (id) VALUES (?)", fmt.Sprintf("cancelled-%d", n)); err != nil {
+				return err //nolint:wrapcheck // the test's own write
+			}
+
+			cancel()
+
+			return ctx.Err()
+		})
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("round %d: the cancelled write got %v, want %v", n, err, context.Canceled)
+		}
+
+		if inUse := w.db.Stats().InUse; inUse != 0 {
+			t.Fatalf("round %d: %d connections are still in use after the cancelled write returned, want 0", n, inUse)
+		}
+	}
+
+	var rows int
+	if err := w.db.QueryRowContext(ctx, "SELECT count(*) FROM session").Scan(&rows); err != nil || rows != 0 {
+		t.Fatalf("the cancelled writes' rows: %d, %v; want 0, rolled back", rows, err)
+	}
+}
+
+// A statement inside a write still ends with the write's context, and Tx has rolled the write back when it returns.
+func TestACancelledStatementInAWriteEndsAndTheWriteIsRolledBack(t *testing.T) {
+	t.Parallel()
+
+	w, ctx := openWriter(t)
+	write, cancel := context.WithCancel(ctx)
+	running := make(chan struct{})
+	done := make(chan error, 1)
+
+	go func() {
+		done <- w.Tx(write, func(ctx context.Context, tx *sql.Tx) error {
+			if _, err := tx.ExecContext(ctx, "INSERT INTO session (id) VALUES ('interrupted')"); err != nil {
+				return err //nolint:wrapcheck // the test's own write
+			}
+
+			close(running)
+
+			// Counts forever: only the context's end stops it.
+			var rows int
+
+			return tx.QueryRowContext(ctx, "WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM c) SELECT count(*) FROM c").Scan(&rows)
+		})
+	}()
+
+	<-running
+	cancel()
+
+	select {
+	case err := <-done:
+		if err == nil {
+			t.Fatal("the interrupted write committed")
+		}
+	case <-ctx.Done():
+		t.Fatal("the statement went on after its write's context ended")
+	}
+
+	if inUse := w.db.Stats().InUse; inUse != 0 {
+		t.Fatalf("%d connections are still in use after the interrupted write returned, want 0", inUse)
+	}
+
+	var rows int
+	if err := w.db.QueryRowContext(ctx, "SELECT count(*) FROM session WHERE id = 'interrupted'").Scan(&rows); err != nil || rows != 0 {
+		t.Fatalf("the interrupted write's row: %d, %v; want 0, rolled back", rows, err)
+	}
+}
+
+// A write whose context ended as its function returned does not commit, as before it ended its own transaction.
+func TestAWriteWhoseContextEndedDoesNotCommit(t *testing.T) {
+	t.Parallel()
+
+	w, ctx := openWriter(t)
+	write, cancel := context.WithCancel(ctx)
+
+	err := w.Tx(write, func(ctx context.Context, tx *sql.Tx) error {
+		if _, err := tx.ExecContext(ctx, "INSERT INTO session (id) VALUES ('ended')"); err != nil {
+			return err //nolint:wrapcheck // the test's own write
+		}
+
+		cancel()
+
+		return nil
+	})
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("the write got %v, want %v", err, context.Canceled)
+	}
+
+	var rows int
+	if err := w.db.QueryRowContext(ctx, "SELECT count(*) FROM session WHERE id = 'ended'").Scan(&rows); err != nil || rows != 0 {
+		t.Fatalf("the write's row: %d, %v; want 0, rolled back", rows, err)
+	}
+}
