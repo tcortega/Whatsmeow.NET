@@ -205,11 +205,11 @@ jobs:
       - name: build/ci.sh external
         run: bash build/ci.sh external
 
-  # Native packages (ADR 0023), in packaging.yml, which the release workflow runs too.
+  # Native packages (ADR 0023) and Native AOT on every target RID (ADR 0056), in packaging.yml, which the release
+  # workflow runs too. On main and on demand, never on a pull request, which keeps linux-x64 only.
   packaging:
     name: packaging
-    # Manual only until the platform pass: the native packages build on Windows (ADR 0023).
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name != 'pull_request'
     uses: ./.github/workflows/packaging.yml
 
   ci:
@@ -225,7 +225,7 @@ jobs:
         run: |
           echo "results: $RESULTS"
           for result in $RESULTS; do
-            # packaging is skipped outside workflow_dispatch until the platform pass.
+            # packaging is skipped on a pull request.
             if [ "$result" != success ] && [ "$result" != skipped ]; then
               exit 1
             fi

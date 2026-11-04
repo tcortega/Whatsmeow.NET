@@ -168,7 +168,7 @@ Moved from ARCHITECTURE §8.9; the policy itself stays there.
 Enforcement:
 - `IsAotCompatible=true` and `IsTrimmable=true` on every shipped project, with all trim and AOT warnings as errors: locally through the `Trimming`, `AOT` and `SingleFile` diagnostic categories set to error for `dotnet/src` in `/.editorconfig` [observed: IL2057 and IL3050 became errors], and at publish through AotSmoke.
 - `Microsoft.CodeAnalysis.BannedApiAnalyzers` with `BannedSymbols.txt` (see below).
-- `tests/AotSmoke` publishes with `PublishAot=true` and must produce zero warnings.
+- `tests/AotSmoke` publishes with `PublishAot=true` and must produce zero warnings, against the projects and from the local feed on every target RID (ADR 0056).
 
 ## Suppressions
 

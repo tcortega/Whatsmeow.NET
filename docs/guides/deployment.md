@@ -4,7 +4,8 @@
 
 `Whatsmeow.Client` brings the sidecar for six targets: linux-x64, linux-arm64, osx-x64, osx-arm64, win-x64 and win-arm64.
 The Linux binary has no C dependencies, so it runs on glibc and on musl (Alpine) alike [observed: §8.5].
-CI installs the packages into a new app and runs it on linux-x64, Alpine x64, osx-arm64 and win-x64, built and published several ways; the other binaries are built and checked but not run [observed: `build/ci.sh install`].
+CI installs the packages into a new app and runs it on linux-x64, Alpine x64, osx-arm64 and win-x64, built and published several ways [observed: `build/ci.sh install`].
+It also publishes a Native AOT app from the packages on every target, Alpine x64 and arm64 included, each on a machine of that OS and architecture, and runs it with the packaged binary [observed: `build/ci.sh aot`, ADR 0056].
 Other targets, win-x86 included, have no binary, and the start fails naming the paths it tried.
 
 ## Where the binary comes from
@@ -20,7 +21,7 @@ Your app's version and the sidecar's must match exactly, which the packages ensu
 
 ## Native AOT and trimming
 
-Every package is AOT and trimming compatible, with zero warnings: CI publishes a Native AOT app that roots all of them (§8.9).
+Every package is AOT and trimming compatible, with zero warnings: CI publishes a Native AOT app that roots all of them, from the packages, on every target, and fails on any warning (§8.9, ADR 0056).
 With `Whatsmeow.Extensions.Hosting`, the options bind through the configuration binding source generator, not reflection.
 The experimental `Raw` members work under AOT too, but their types change with whatsmeow ([Messaging](messaging.md#raw-messages)).
 
