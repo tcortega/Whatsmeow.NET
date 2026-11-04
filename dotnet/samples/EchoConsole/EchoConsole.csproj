@@ -12,8 +12,4 @@
 	<ItemGroup>
 		<ProjectReference Include="../../src/Whatsmeow.Client/Whatsmeow.Client.csproj" />
 	</ItemGroup>
-
-	<ItemGroup Label="Usings">
-		<Using Include="Whatsmeow" />
-	</ItemGroup>
 </Project>

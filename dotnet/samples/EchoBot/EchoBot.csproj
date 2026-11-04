@@ -15,11 +15,4 @@
 	<ItemGroup>
 		<ProjectReference Include="../../src/Whatsmeow.Extensions.Hosting/Whatsmeow.Extensions.Hosting.csproj" />
 	</ItemGroup>
-
-	<ItemGroup Label="Usings">
-		<Using Include="Microsoft.Extensions.DependencyInjection" />
-		<Using Include="Microsoft.Extensions.Hosting" />
-		<Using Include="Microsoft.Extensions.Logging" />
-		<Using Include="Whatsmeow" />
-	</ItemGroup>
 </Project>

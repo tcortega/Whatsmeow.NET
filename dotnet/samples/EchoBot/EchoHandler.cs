@@ -1,5 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Extensions.Logging;
+using Whatsmeow;
 using Whatsmeow.Events;
 using Whatsmeow.Extensions.Hosting;
 

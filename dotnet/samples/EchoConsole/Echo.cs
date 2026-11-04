@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using QRCoder;
+using Whatsmeow;
 using Whatsmeow.Events;
 using Whatsmeow.Pairing;
 using Whatsmeow.Sessions;
@@ -21,15 +22,32 @@ public static class Echo
 		// The handler comes first: events start when the session connects or its pairing yields Paired.
 		var echo = client.On<MessageReceived>(async (e, ct) =>
 		{
-			// Never the account's own texts, nor an echo: two sessions that text each other would echo forever.
-			if (e.Source.IsFromMe || e.Content is not TextContent { Text: var text } || text.StartsWith(Prefix, StringComparison.Ordinal))
+			// Never a status (status@broadcast), which cannot be answered; never the account's own texts, nor an echo:
+			// two sessions that text each other would echo forever.
+			if (IsBroadcast(e.Source.Chat) || e.Source.IsFromMe || e.Content is not TextContent { Text: var text } || text.StartsWith(Prefix, StringComparison.Ordinal))
 				return;
 
-			// A message can come again, after a crash before its ack; the echo's id is the same each time, and a send
-			// of an id already sent is never sent again, so each text is echoed once.
+			// A message can come again, after a stop or a crash before its ack; the echo's id is the same each time, and a
+			// send of an id already sent is never sent again, so each text is echoed once.
 			_ = await client.SendTextAsync(e.Source.Chat, Prefix + text, EchoId(e), cancellationToken: ct).ConfigureAwait(false);
 		});
 
+		// A start that fails, a pairing nobody scanned in time included, stops echoing.
+		try
+		{
+			await PairOrConnectAsync(client, console, cancellationToken).ConfigureAwait(false);
+		}
+		catch
+		{
+			echo.Dispose();
+			throw;
+		}
+
+		return echo;
+	}
+
+	private static async Task PairOrConnectAsync(IWhatsAppClient client, TextWriter console, CancellationToken cancellationToken)
+	{
 		var state = await client.WatchStateAsync(cancellationToken).FirstAsync(cancellationToken).ConfigureAwait(false);
 		switch (state)
 		{
@@ -49,9 +67,9 @@ public static class Echo
 				await console.WriteLineAsync($"The session is {state}, so it neither pairs nor connects.").ConfigureAwait(false);
 				break;
 		}
-
-		return echo;
 	}
+
+	private static bool IsBroadcast(Jid chat) => string.Equals(chat.Server, "broadcast", StringComparison.Ordinal);
 
 	/// <summary>The echo's id, from the session, the chat and the message's id, in the only format a send takes: <c>3EB0</c> and 18 uppercase hex digits.</summary>
 	private static MessageId EchoId(MessageReceived e) =>

@@ -1,4 +1,8 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using QRCoder;
+using Whatsmeow;
 using Whatsmeow.Pairing;
 using Whatsmeow.Sessions;
 

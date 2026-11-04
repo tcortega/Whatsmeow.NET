@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using Whatsmeow;
 using Whatsmeow.Extensions.Hosting;
 using Whatsmeow.History;
 

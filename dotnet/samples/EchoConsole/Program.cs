@@ -1,4 +1,5 @@
 using EchoConsole;
+using Whatsmeow;
 
 // One WhatsApp session that echoes every text it gets, without DI. From NuGet the sidecar comes with the package; in
 // this repository, set WHATSMEOW_NET_SIDECAR_PATH to a whatsmeow-net you built. Scan the QR code with the phone:
