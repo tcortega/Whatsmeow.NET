@@ -570,6 +570,27 @@ packaged_testing_pins() {
 	return "$rc"
 }
 
+# Whatsmeow.Client is compiled against Whatsmeow.Protocol's generated code and internals, and that code against
+# Whatsmeow.Protocol.WhatsApp's types, which the Raw hatch exposes; each depends on the next at exactly its own version
+# (ADR 0055).
+packaged_protocol_pins() {
+	local pair nuspec dependency rc=0
+	for pair in whatsmeow.client:Whatsmeow.Protocol whatsmeow.protocol:Whatsmeow.Protocol.WhatsApp; do
+		nuspec="$packages/${pair%%:*}/$version/${pair%%:*}.nuspec" dependency="${pair#*:}"
+		if [ ! -f "$nuspec" ]; then
+			annotate error "exact pins" "the consumer restored no $nuspec"
+			rc=1
+			continue
+		fi
+		if ! grep -qF "<dependency id=\"$dependency\" version=\"[$version]\"" "$nuspec"; then
+			annotate error "exact pins" "${pair%%:*} does not depend on $dependency at exactly [$version] (ADR 0055); its ProjectReference needs PackExactVersion=\"true\" (_WhatsmeowExactProjectVersions, ADR 0023)"
+			rc=1
+		fi
+		grep -F "\"$dependency\"" "$nuspec"
+	done
+	return "$rc"
+}
+
 native_package() { # linux|osx|win
 	echo "$packages/$(lowercase "$(native_id "$1")")/$version"
 }
@@ -1026,6 +1047,7 @@ job_install() { # feed
 	check "install: Whatsmeow.Client pins each native package at exactly its version" packaged_pins
 	check "install: Whatsmeow.Extensions.Hosting pins Whatsmeow.Client at exactly its version" packaged_hosting_pin
 	check "install: Whatsmeow.Testing pins Whatsmeow.Client and Whatsmeow.Extensions.Hosting at exactly its version" packaged_testing_pins
+	check "install: Whatsmeow.Client pins Whatsmeow.Protocol, and Whatsmeow.Protocol pins Whatsmeow.Protocol.WhatsApp, at exactly its version" packaged_protocol_pins
 	check "install: each native package holds exactly its binaries, its buildTransitive targets, its README and the GPL files" packaged_files
 	check "install: each native package's README and GPL files are the repository's, and COPYING is the GPL-3.0 text (ADR 0016)" packaged_notices
 	check "install: GPL-3.0-only on the native packages, MPL-2.0 on the .NET packages (ADR 0016)" packaged_licences

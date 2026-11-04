@@ -7,7 +7,8 @@
 	<ItemGroup>
 		<PackageReference Include="Google.Protobuf" />
 		<PackageReference Include="Grpc.Core.Api" />
-		<ProjectReference Include="../Whatsmeow.Protocol.WhatsApp/Whatsmeow.Protocol.WhatsApp.csproj" />
+		<!-- Exactly this package's version: the generated whatsmeow.v1 code references the upstream types it was built with (ADR 0055). -->
+		<ProjectReference Include="../Whatsmeow.Protocol.WhatsApp/Whatsmeow.Protocol.WhatsApp.csproj" PackExactVersion="true" />
 	</ItemGroup>
 
 	<ItemGroup>
