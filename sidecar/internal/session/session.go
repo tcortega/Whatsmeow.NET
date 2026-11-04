@@ -748,8 +748,9 @@ func (svc *Service) connectFailed(id string, err error) whatsmeowv1.ErrorReason 
 
 // connectAll connects each session, distinct, and returns each one's error. It records every Connecting state in one
 // transitionAll, then runs the connect calls at once: whatsmeow's ConnectContext locks only its own client's socket
-// (client.go:541-604), and each client has its own HTTP transport (client.go:272-278). A session's ops are held
-// throughout, taken in id order, so two calls that share sessions never wait for each other in a cycle.
+// (client.go:541-604), and each client has its own HTTP transport (client.go:272-278). A session's ops are taken in id
+// order, so two calls that share sessions never wait for each other in a cycle, and held until its own connect call
+// ended.
 func (svc *Service) connectAll(ctx context.Context, sessions []*session) []error {
 	errs := make([]error, len(sessions))
 	order := make([]int, len(sessions))
@@ -768,19 +769,23 @@ func (svc *Service) connectAll(ctx context.Context, sessions []*session) []error
 		}
 	}
 
-	defer func() {
-		for _, i := range held {
-			sessions[i].ops.Unlock()
-		}
-	}()
-
 	previous := make([]*whatsmeowv1.SessionState, len(sessions))
 	starting := svc.startConnecting(ctx, sessions, held, previous, errs)
+
+	for _, i := range held {
+		if !slices.Contains(starting, i) {
+			sessions[i].ops.Unlock()
+		}
+	}
 
 	var calls sync.WaitGroup
 
 	for _, i := range starting {
-		calls.Go(func() { errs[i] = svc.handshake(ctx, sessions[i], previous[i]) })
+		calls.Go(func() {
+			defer sessions[i].ops.Unlock()
+
+			errs[i] = svc.handshake(ctx, sessions[i], previous[i])
+		})
 	}
 
 	calls.Wait()

@@ -178,6 +178,60 @@ func TestConnectSessionsOpensTheConnectionsConcurrently(t *testing.T) {
 	}
 }
 
+func TestConnectSessionsLetsGoOfASessionOnceItsOwnConnectEnded(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+
+	for _, id := range []string{"fast", "slow"} {
+		h.connected(id)
+		h.disconnect(id)
+	}
+
+	begun, release := make(chan struct{}), make(chan struct{})
+	// Also when the test fails before it releases slow: the server's stop waits for the call.
+	releaseOnce := sync.OnceFunc(func() { close(release) })
+	t.Cleanup(releaseOnce)
+
+	slow := h.stub("slow")
+	slow.mu.Lock()
+	slow.connecting = func(context.Context) {
+		close(begun)
+		<-release
+	}
+	slow.mu.Unlock()
+
+	answered := make(chan error, 1)
+
+	go func() {
+		_, err := h.client.ConnectSessions(h.ctx, &whatsmeowv1.ConnectSessionsRequest{SessionIds: []string{"fast", "slow"}})
+		answered <- err
+	}()
+
+	h.await(begun, "the slow session's connect call")
+
+	// Disconnect takes the session's ops, which ConnectSessions holds until fast's own connect call ended, not slow's.
+	disconnected, disconnectErr := make(chan struct{}), make(chan error, 1)
+
+	go func() {
+		defer close(disconnected)
+
+		_, err := h.client.Disconnect(h.ctx, &whatsmeowv1.DisconnectRequest{SessionId: "fast"})
+		disconnectErr <- err
+	}()
+
+	h.await(disconnected, "Disconnect of fast while slow still connects")
+	releaseOnce()
+
+	if err := <-disconnectErr; err != nil {
+		t.Fatalf("Disconnect: %v", err)
+	}
+
+	if err := <-answered; err != nil {
+		t.Fatalf("ConnectSessions: %v", err)
+	}
+}
+
 func (h *harness) disconnect(id string) {
 	h.t.Helper()
 
