@@ -13,6 +13,11 @@ import (
 	"testing"
 )
 
+// unixPaths returns paths `--listen unix:<path>` accepts and ones it refuses here.
+func unixPaths() (absolute, notAbsolute []string) {
+	return []string{"/abs/s"}, []string{"relative/s"}
+}
+
 // rounds of each race: one round's two listens may not overlap, so a test that wants them to runs many.
 const rounds = 50
 

@@ -233,15 +233,27 @@ func TestListenAddressLeavesNothingButTheSocket(t *testing.T) {
 func TestParseAddressChecksTheFormOnly(t *testing.T) {
 	t.Parallel()
 
-	for _, address := range []string{"unix:/abs/s", "tcp:127.0.0.1:0", "tcp:sidecar:7000", "tcp:[::1]:7000"} {
+	absolute, notAbsolute := unixPaths()
+
+	for _, address := range append([]string{"tcp:127.0.0.1:0", "tcp:sidecar:7000", "tcp:[::1]:7000"}, unixAddresses(absolute)...) {
 		if _, err := ParseAddress(address); err != nil {
 			t.Errorf("parse %q: %v", address, err)
 		}
 	}
 
-	for _, address := range []string{"", "unix:", "unix:relative/s", "tcp:", "tcp:no-port", "pipe:x", "/abs/s", "127.0.0.1:7000"} {
+	refused := []string{"", "unix:", "tcp:", "tcp:no-port", "pipe:x", "/abs/s", "127.0.0.1:7000"}
+	for _, address := range append(refused, unixAddresses(notAbsolute)...) {
 		if _, err := ParseAddress(address); err == nil {
 			t.Errorf("parse %q succeeded", address)
 		}
 	}
+}
+
+func unixAddresses(paths []string) []string {
+	addresses := make([]string, 0, len(paths))
+	for _, path := range paths {
+		addresses = append(addresses, "unix:"+path)
+	}
+
+	return addresses
 }
