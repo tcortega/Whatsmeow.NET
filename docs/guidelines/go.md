@@ -33,6 +33,7 @@ Moved from ARCHITECTURE §7.9 and §11; what the sidecar does is ARCHITECTURE §
 - Event-mapping tables cover every event type.
 - Outbox replay, ack and crash semantics are tested.
 - `-race` always.
+- The fake WhatsApp's own tests keep whatsmeow's device store in SQLite's memdb VFS (`openDeviceStore`), not in a file: they check the fake, `internal/store` checks the file, and on a loaded win-x64 runner a store file's creation and flushes took up to 25.6 s of a test's 30 s bound (#93, ARCHITECTURE §14). A slice's tests keep the sidecar's file store.
 - These live in `sidecar/internal/**`.
 
 The rest of [tests.md](tests.md) applies to Go too: the prime directive, write-it-so-it-can-fail, frozen tests, the banned list, and determinism.

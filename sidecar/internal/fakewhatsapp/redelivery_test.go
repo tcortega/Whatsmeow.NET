@@ -4,15 +4,12 @@ package fakewhatsapp
 
 import (
 	"context"
-	"path/filepath"
 	"sync"
 	"testing"
 
-	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow/types/events"
 
 	fakev1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/fake/v1"
-	sidecarstore "github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
 )
 
 // withholding is a linked, connected session s1 whose handler fails the first delivery of each message id, as a
@@ -22,15 +19,7 @@ func withholding(t *testing.T) (*WhatsApp, fakev1.FakeWhatsAppServiceClient, con
 
 	whatsApp, control, ctx := start(t)
 
-	db, err := sidecarstore.Open(context.Background(), filepath.Join(t.TempDir(), "whatsmeow-net.db"), zerolog.Nop())
-	if err != nil {
-		t.Fatalf("open the store: %v", err)
-	}
-
-	t.Cleanup(func() {
-		whatsApp.Wait()
-		_ = db.Close()
-	})
+	db := openDeviceStore(t, whatsApp)
 
 	var (
 		mu   sync.Mutex
