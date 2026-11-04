@@ -36,7 +36,7 @@ internal static class MessagingMapping
 		return texts;
 	}
 
-	public static MarkReadRequest ToMarkRead(SessionId sessionId, Jid chat, IReadOnlyCollection<MessageId> messageIds, Jid? sender)
+	public static MarkReadRequest ToMarkRead(SessionId sessionId, Jid chat, IReadOnlyList<MessageId> messageIds, Jid? sender)
 	{
 		var request = new MarkReadRequest
 		{

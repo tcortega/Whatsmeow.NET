@@ -1243,7 +1243,7 @@ Whatsmeow.Events.ReceiptType.Retry = 3 -> Whatsmeow.Events.ReceiptType
 Whatsmeow.Events.ReceiptType.Sender = 2 -> Whatsmeow.Events.ReceiptType
 Whatsmeow.Events.ReceiptType.ServerError = 8 -> Whatsmeow.Events.ReceiptType
 Whatsmeow.Events.ReceiptType.Unknown = 0 -> Whatsmeow.Events.ReceiptType
-Whatsmeow.IWhatsAppClient.MarkReadAsync(Whatsmeow.Jid chat, System.Collections.Generic.IReadOnlyCollection<Whatsmeow.MessageId>! messageIds, Whatsmeow.Jid? sender = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.MarkReadAsync(Whatsmeow.Jid chat, System.Collections.Generic.IReadOnlyList<Whatsmeow.MessageId>! messageIds, Whatsmeow.Jid? sender = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Whatsmeow.IWhatsAppClient.SendTextAsync(Whatsmeow.Jid chat, string! text, Whatsmeow.MessageId? id = null, Whatsmeow.Messaging.SendOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.Messaging.SendResult!>!
 Whatsmeow.Messaging.SendResult
 Whatsmeow.Messaging.SendResult.<Clone>$() -> Whatsmeow.Messaging.SendResult!

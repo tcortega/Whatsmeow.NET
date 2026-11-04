@@ -509,7 +509,7 @@ internal sealed class SessionClient(
 		}
 	}
 
-	public async Task MarkReadAsync(Jid chat, IReadOnlyCollection<MessageId> messageIds, Jid? sender = null, CancellationToken cancellationToken = default)
+	public async Task MarkReadAsync(Jid chat, IReadOnlyList<MessageId> messageIds, Jid? sender = null, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(messageIds);
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);

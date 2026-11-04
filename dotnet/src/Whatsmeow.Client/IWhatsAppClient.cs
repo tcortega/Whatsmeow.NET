@@ -797,7 +797,7 @@ public interface IWhatsAppClient
 	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
 	/// <exception cref="ArgumentNullException"><paramref name="messageIds"/> is null.</exception>
-	Task MarkReadAsync(Jid chat, IReadOnlyCollection<MessageId> messageIds, Jid? sender = null, CancellationToken cancellationToken = default);
+	Task MarkReadAsync(Jid chat, IReadOnlyList<MessageId> messageIds, Jid? sender = null, CancellationToken cancellationToken = default);
 
 	/// <summary>Lists the groups the session is in, ordered by JID, each with its participants and their roles.</summary>
 	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
