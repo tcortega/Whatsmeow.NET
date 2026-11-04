@@ -5,11 +5,9 @@ package fakewhatsapp
 import (
 	"context"
 	"errors"
-	"path/filepath"
 	"testing"
 	"time"
 
-	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/appstate"
 	"go.mau.fi/whatsmeow/types"
@@ -19,7 +17,6 @@ import (
 
 	fakev1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/fake/v1"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/chatstate"
-	sidecarstore "github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
 )
 
 // The fake's client fits the Chat state slice's interface, as *whatsmeow.Client does.
@@ -40,15 +37,7 @@ func chatting(t *testing.T, withoutKey bool) (*WhatsApp, fakev1.FakeWhatsAppServ
 
 	whatsApp, control, ctx := start(t)
 
-	db, err := sidecarstore.Open(context.Background(), filepath.Join(t.TempDir(), "whatsmeow-net.db"), zerolog.Nop())
-	if err != nil {
-		t.Fatalf("open the store: %v", err)
-	}
-
-	t.Cleanup(func() {
-		whatsApp.Wait()
-		_ = db.Close()
-	})
+	db := openDeviceStore(t, whatsApp)
 
 	got := make(chan dispatched, 64)
 	linking := true

@@ -5,11 +5,9 @@ package fakewhatsapp
 import (
 	"context"
 	"errors"
-	"path/filepath"
 	"testing"
 	"time"
 
-	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
@@ -18,7 +16,6 @@ import (
 
 	fakev1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/fake/v1"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/session"
-	sidecarstore "github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
 )
 
 // The fake's client fits the Sessions slice's interface, as *whatsmeow.Client does.
@@ -27,20 +24,12 @@ var _ session.Client = (*Client)(nil)
 const jid = "1555:1@s.whatsapp.net"
 
 // linked returns session s1's client on a real store, its events, and the store, after LinkDevice.
-func linked(t *testing.T) (*WhatsApp, fakev1.FakeWhatsAppServiceClient, context.Context, *Client, chan any, *sidecarstore.Store) {
+func linked(t *testing.T) (*WhatsApp, fakev1.FakeWhatsAppServiceClient, context.Context, *Client, chan any, *deviceStore) {
 	t.Helper()
 
 	whatsApp, control, ctx := start(t)
 
-	db, err := sidecarstore.Open(context.Background(), filepath.Join(t.TempDir(), "whatsmeow-net.db"), zerolog.Nop())
-	if err != nil {
-		t.Fatalf("open the store: %v", err)
-	}
-
-	t.Cleanup(func() {
-		whatsApp.Wait()
-		_ = db.Close()
-	})
+	db := openDeviceStore(t, whatsApp)
 
 	got := make(chan any, 8)
 	client := whatsApp.NewClient("s1")
@@ -78,15 +67,7 @@ func TestLinkDeviceWithALidSavesItThenDispatchesItInPairSuccess(t *testing.T) {
 	t.Parallel()
 
 	whatsApp, control, ctx := start(t)
-	db, err := sidecarstore.Open(context.Background(), filepath.Join(t.TempDir(), "whatsmeow-net.db"), zerolog.Nop())
-	if err != nil {
-		t.Fatalf("open the store: %v", err)
-	}
-
-	t.Cleanup(func() {
-		whatsApp.Wait()
-		_ = db.Close()
-	})
+	db := openDeviceStore(t, whatsApp)
 
 	got := make(chan any, 8)
 	client := whatsApp.NewClient("s1")

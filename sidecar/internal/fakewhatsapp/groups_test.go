@@ -20,14 +20,13 @@ import (
 
 	fakev1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/fake/v1"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/groups"
-	sidecarstore "github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
 )
 
 var _ groups.Client = (*Client)(nil)
 
 // second links session s2 as 1666:1@s.whatsapp.net on linked's WhatsApp and store, and returns its client and its
 // events.
-func second(ctx context.Context, t *testing.T, whatsApp *WhatsApp, control fakev1.FakeWhatsAppServiceClient, db *sidecarstore.Store) (*Client, chan any) {
+func second(ctx context.Context, t *testing.T, whatsApp *WhatsApp, control fakev1.FakeWhatsAppServiceClient, db *deviceStore) (*Client, chan any) {
 	t.Helper()
 
 	got := make(chan any, 16)
