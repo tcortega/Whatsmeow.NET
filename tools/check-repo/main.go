@@ -11,6 +11,8 @@
 // Corresponding Source of the packages on nuget.org, which stay there, so it is never deleted (ADR 0016, ADR 0029).
 // In the README, the user guides and the packages' READMEs, a code block under a snippet marker must be the sample
 // file it names, byte for byte, so the code they show is code CI builds (ADR 0054).
+// In the stable packages' PublicAPI files it rejects a *REMOVED* line, which would let a build drop a shipped member,
+// and a generated protobuf or gRPC type outside the [WMN1001] Raw hatch (ARCHITECTURE §13 invariant 6, ADR 0055).
 //
 // Findings print as path:line: [rule] message. The rules are in docs/guidelines/csharp.md Suppressions.
 // Run it from the tools module: go -C tools run ./check-repo [-root ..].
@@ -83,6 +85,8 @@ var (
 	positionalRecord  = regexp.MustCompile(`\brecord\s+(?:struct\s+|class\s+)?[A-Za-z_]\w*\s*(?:<[^>]*>)?\s*\(`)
 	// Every way a workflow or script deletes a release or its assets: the gh CLI, Octokit, an action named for it,
 	// and the REST DELETE through gh api, curl or a request route.
+	// A generated protobuf or gRPC type in a PublicAPI line: upstream WhatsApp, whatsmeow.v1, the runtimes.
+	protobufType  = regexp.MustCompile(`\b(?:Whatsmeow\.Proto|Whatsmeow\.Protocol|Google\.Protobuf|Grpc)\.`)
 	releaseDelete = regexp.MustCompile(`(?i)\bgh\s+release\s+delete|\bdeleteRelease|\buses:\s*\S*(?:delete\S*release|release\S*delete)|` +
 		`(?:-X\s*|--request[\s=]+|--method[\s=]+)DELETE\b.*/releases\b|/releases\b.*(?:-X\s*|--request[\s=]+|--method[\s=]+)DELETE\b|\bDELETE\s+/repos/\S*/releases\b`)
 )
@@ -249,6 +253,15 @@ func checkFile(fsys fs.FS, name string) ([]finding, error) {
 		}
 
 		return checkDoc(fsys, name, content, onlySamples)
+	}
+
+	if strings.HasPrefix(name, "dotnet/src/") && (path.Base(name) == "PublicAPI.Shipped.txt" || path.Base(name) == "PublicAPI.Unshipped.txt") {
+		content, err := fs.ReadFile(fsys, name)
+		if err != nil {
+			return nil, fmt.Errorf("read %s: %w", name, err)
+		}
+
+		return checkPublicAPI(name, content), nil
 	}
 
 	ext := strings.ToLower(path.Ext(name))
@@ -474,6 +487,23 @@ func checkDoc(fsys fs.FS, name string, content []byte, onlySamples bool) ([]find
 	}
 
 	return findings, nil
+}
+
+// checkPublicAPI keeps the stable packages' shipped surface: a *REMOVED* line drops a shipped member, a break once
+// it is published, and only the [WMN1001] Raw hatch may name a generated protobuf or gRPC type (ADR 0055).
+func checkPublicAPI(name string, content []byte) []finding {
+	var findings []finding
+
+	for i, line := range strings.Split(strings.ReplaceAll(string(content), "\r", ""), "\n") {
+		switch {
+		case strings.HasPrefix(line, "*REMOVED*"):
+			findings = append(findings, finding{name, i + 1, "public-api-removed", "a shipped member is part of the stability promise; removing or changing it is a break (ADR 0055)"})
+		case protobufType.MatchString(line) && !strings.HasPrefix(line, "[WMN1001]"):
+			findings = append(findings, finding{name, i + 1, "public-api-protobuf", "a generated protobuf or gRPC type is in the stable API outside the [WMN1001] Raw hatch (ARCHITECTURE §13 invariant 6)"})
+		}
+	}
+
+	return findings
 }
 
 // checkName reports a file whose name alone breaks a rule: a configuration file that is not the blessed one,

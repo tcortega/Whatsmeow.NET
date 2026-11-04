@@ -510,3 +510,28 @@ func TestCheckTheReadmeShowsASample(t *testing.T) {
 
 	assertFindings(t, fstest.MapFS{"README.md": {Data: []byte("# A\n\nNo code.\n")}}, []string{"README.md:0: [snippet]"})
 }
+
+func TestCheckPublicAPIKeepsShippedMembersAndProtobufTypesOut(t *testing.T) {
+	t.Parallel()
+
+	assertFindings(t, fstest.MapFS{
+		"dotnet/src/A/PublicAPI.Shipped.txt": {Data: []byte("#nullable enable\n" +
+			"A.Client.Send(A.Message! message) -> void\n" +
+			"[WMN1001]A.Client.SendRaw(Whatsmeow.Proto.WAWebProtobufsE2E.Message! message) -> void\n" +
+			"A.Client.Info.get -> Whatsmeow.Protocol.V1.SidecarInfo!\n" +
+			"A.Client.Codec.get -> Google.Protobuf.MessageParser!\n" +
+			"A.Client.Call.get -> Grpc.Core.CallInvoker!\n" +
+			"[WMN9999]A.Client.Other.get -> Whatsmeow.Proto.WAWebProtobufsE2E.Message!\n")},
+		"dotnet/src/A/PublicAPI.Unshipped.txt": {Data: []byte("#nullable enable\n" +
+			"*REMOVED*A.Client.Send(A.Message! message) -> void\n" +
+			"A.Client.Send(A.Message! message, int retries = 0) -> void\n")},
+		// Only the stable packages' API files are read.
+		"dotnet/tests/T/PublicAPI.Unshipped.txt": {Data: []byte("*REMOVED*T.X\nT.Y -> Google.Protobuf.ByteString\n")},
+	}, []string{
+		"dotnet/src/A/PublicAPI.Shipped.txt:4: [public-api-protobuf]",
+		"dotnet/src/A/PublicAPI.Shipped.txt:5: [public-api-protobuf]",
+		"dotnet/src/A/PublicAPI.Shipped.txt:6: [public-api-protobuf]",
+		"dotnet/src/A/PublicAPI.Shipped.txt:7: [public-api-protobuf]",
+		"dotnet/src/A/PublicAPI.Unshipped.txt:2: [public-api-removed]",
+	})
+}
