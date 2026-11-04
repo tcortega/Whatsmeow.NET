@@ -34,5 +34,5 @@ The reconnect has no deadline, so a slow one never fails the attempt [observed: 
   The client's reconnect used to open one session's connection after another, as mautrix-whatsapp's `StartLoginsForUsers` does (mautrix-go `bridgev2/bridge.go:422-430`, `0907c3c`); whether WhatsApp treats a burst of handshakes from one host differently is [unknown], and no live test measures it.
 - A session no longer waits for the others' connect calls to be disconnected or logged out [observed: `TestConnectSessionsLetsGoOfASessionOnceItsOwnConnectEnded`, red when every session's ops are held until the last call ends].
 - `SidecarRestart_ConnectsAgainEverySessionTheApplicationConnected` checks the client side end to end: three sessions connected again after a crash, none logged as failed.
-- Whether this ends the 120 s case on win-x64 is measured by PR #78's soak, not by these tests.
+- On win-x64, 36 suite and crash collection runs, 936 restarts, had no failed run or restart attempt, and the ready line to `SidecarRestarted` took at most 548 ms, against up to 27.7 s before [observed: PR #78 runs 41850964765 and 41490492321]. That the 120 s case was this phase stays [inferred]: the soak before also had no failure.
 - Before the first published tag, `protocol` stays 1 (ADR 0015).
