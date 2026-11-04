@@ -170,7 +170,7 @@ internal sealed class WhatsmeowHostedService(
 			SessionState.Disconnected => nameof(SessionState.Disconnected),
 			SessionState.LoggedOut => nameof(SessionState.LoggedOut),
 			SessionState.Replaced => nameof(SessionState.Replaced),
-			SessionState.TempBanned => nameof(SessionState.TempBanned),
+			SessionState.TemporarilyBanned => nameof(SessionState.TemporarilyBanned),
 			SessionState.Outdated => nameof(SessionState.Outdated),
 			SessionState.Error => nameof(SessionState.Error),
 			_ => nameof(SessionState.Unknown),

@@ -37,7 +37,7 @@ Each exception type owns a `[DoesNotReturn] static void Throw(...)` helper.
 BCL guards (`ArgumentNullException.ThrowIfNull`, `ArgumentOutOfRangeException.ThrowIfNegative`, `ObjectDisposedException.ThrowIf`) are already helpers; use them.
 
 Closed sets are enums: reason codes, session state kinds, media types, and the like.
-A state that carries data (`TempBanned{until}`, `Error{reason}`) is a sealed record case, not an enum plus a side field.
+A state that carries data (`TemporarilyBanned{until}`, `Error{reason}`) is a sealed record case, not an enum plus a side field.
 
 ## Types
 

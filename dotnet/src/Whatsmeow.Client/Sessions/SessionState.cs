@@ -50,7 +50,7 @@ public abstract record SessionState
 	public sealed record Replaced : SessionState;
 
 	/// <summary>The account is temporarily banned.</summary>
-	public sealed record TempBanned : SessionState
+	public sealed record TemporarilyBanned : SessionState
 	{
 		/// <summary>WhatsApp's ban code.</summary>
 		public required int Code { get; init; }

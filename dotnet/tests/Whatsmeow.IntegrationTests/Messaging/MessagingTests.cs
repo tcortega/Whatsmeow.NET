@@ -290,7 +290,7 @@ public sealed class MessagingTests(FakeSidecar fixture)
 			new Raise { SessionId = Session, TemporaryBan = new Raise.Types.TemporaryBan { Code = 101, Expire = Duration.FromTimeSpan(TimeSpan.FromHours(1)) } },
 			cancellationToken: ct
 		);
-		var state = Assert.IsType<SessionState.TempBanned>(await watch.NextAsync());
+		var state = Assert.IsType<SessionState.TemporarilyBanned>(await watch.NextAsync());
 
 		var error = await Assert.ThrowsAsync<TemporarilyBannedException>(() => client.SendTextAsync(Jid.Parse("900000110@lid"), "hi", cancellationToken: ct));
 

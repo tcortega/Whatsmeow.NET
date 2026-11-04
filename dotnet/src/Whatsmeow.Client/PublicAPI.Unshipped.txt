@@ -884,19 +884,19 @@ override Whatsmeow.Sessions.SessionState.Replaced.ToString() -> string!
 static Whatsmeow.Sessions.SessionState.Replaced.operator !=(Whatsmeow.Sessions.SessionState.Replaced? left, Whatsmeow.Sessions.SessionState.Replaced? right) -> bool
 static Whatsmeow.Sessions.SessionState.Replaced.operator ==(Whatsmeow.Sessions.SessionState.Replaced? left, Whatsmeow.Sessions.SessionState.Replaced? right) -> bool
 Whatsmeow.Sessions.SessionState.SessionState(Whatsmeow.Sessions.SessionState! original) -> void
-Whatsmeow.Sessions.SessionState.TempBanned
-override Whatsmeow.Sessions.SessionState.TempBanned.<Clone>$() -> Whatsmeow.Sessions.SessionState.TempBanned!
-Whatsmeow.Sessions.SessionState.TempBanned.Code.get -> int
-Whatsmeow.Sessions.SessionState.TempBanned.Code.init -> void
-Whatsmeow.Sessions.SessionState.TempBanned.Equals(Whatsmeow.Sessions.SessionState.TempBanned? other) -> bool
-override Whatsmeow.Sessions.SessionState.TempBanned.Equals(object? obj) -> bool
-override Whatsmeow.Sessions.SessionState.TempBanned.GetHashCode() -> int
-Whatsmeow.Sessions.SessionState.TempBanned.TempBanned() -> void
-override Whatsmeow.Sessions.SessionState.TempBanned.ToString() -> string!
-Whatsmeow.Sessions.SessionState.TempBanned.Until.get -> System.DateTimeOffset?
-Whatsmeow.Sessions.SessionState.TempBanned.Until.init -> void
-static Whatsmeow.Sessions.SessionState.TempBanned.operator !=(Whatsmeow.Sessions.SessionState.TempBanned? left, Whatsmeow.Sessions.SessionState.TempBanned? right) -> bool
-static Whatsmeow.Sessions.SessionState.TempBanned.operator ==(Whatsmeow.Sessions.SessionState.TempBanned? left, Whatsmeow.Sessions.SessionState.TempBanned? right) -> bool
+Whatsmeow.Sessions.SessionState.TemporarilyBanned
+override Whatsmeow.Sessions.SessionState.TemporarilyBanned.<Clone>$() -> Whatsmeow.Sessions.SessionState.TemporarilyBanned!
+Whatsmeow.Sessions.SessionState.TemporarilyBanned.Code.get -> int
+Whatsmeow.Sessions.SessionState.TemporarilyBanned.Code.init -> void
+Whatsmeow.Sessions.SessionState.TemporarilyBanned.Equals(Whatsmeow.Sessions.SessionState.TemporarilyBanned? other) -> bool
+override Whatsmeow.Sessions.SessionState.TemporarilyBanned.Equals(object? obj) -> bool
+override Whatsmeow.Sessions.SessionState.TemporarilyBanned.GetHashCode() -> int
+Whatsmeow.Sessions.SessionState.TemporarilyBanned.TemporarilyBanned() -> void
+override Whatsmeow.Sessions.SessionState.TemporarilyBanned.ToString() -> string!
+Whatsmeow.Sessions.SessionState.TemporarilyBanned.Until.get -> System.DateTimeOffset?
+Whatsmeow.Sessions.SessionState.TemporarilyBanned.Until.init -> void
+static Whatsmeow.Sessions.SessionState.TemporarilyBanned.operator !=(Whatsmeow.Sessions.SessionState.TemporarilyBanned? left, Whatsmeow.Sessions.SessionState.TemporarilyBanned? right) -> bool
+static Whatsmeow.Sessions.SessionState.TemporarilyBanned.operator ==(Whatsmeow.Sessions.SessionState.TemporarilyBanned? left, Whatsmeow.Sessions.SessionState.TemporarilyBanned? right) -> bool
 override Whatsmeow.Sessions.SessionState.ToString() -> string!
 Whatsmeow.Sessions.SessionState.Unknown
 override Whatsmeow.Sessions.SessionState.Unknown.<Clone>$() -> Whatsmeow.Sessions.SessionState.Unknown!
@@ -1033,7 +1033,7 @@ override sealed Whatsmeow.Sessions.SessionState.Outdated.Equals(Whatsmeow.Sessio
 override sealed Whatsmeow.Sessions.SessionState.Pairing.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
 override sealed Whatsmeow.Sessions.SessionState.Reconnecting.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
 override sealed Whatsmeow.Sessions.SessionState.Replaced.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
-override sealed Whatsmeow.Sessions.SessionState.TempBanned.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
+override sealed Whatsmeow.Sessions.SessionState.TemporarilyBanned.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
 override sealed Whatsmeow.Sessions.SessionState.Unknown.Equals(Whatsmeow.Sessions.SessionState? other) -> bool
 virtual Whatsmeow.Events.MessageContent.EqualityContract.get -> System.Type!
 virtual Whatsmeow.Events.MessageContent.Equals(Whatsmeow.Events.MessageContent? other) -> bool
