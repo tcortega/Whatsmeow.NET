@@ -654,9 +654,9 @@ func (c *Client) GetGroupInfoFromLink(_ context.Context, code string) (*types.Gr
 }
 
 // byCode is the group whose invite link has the code, taken from a link as whatsmeow strips it (group.go:494, 516): a
-// reset code is 410, and an unknown one 400 `bad-request`, which whatsmeow maps to nothing and passes on as it came
-// [observed: #36 live run 2026-11-04, a join with a well formed unknown code; the preview's is inferred from it]. What
-// WhatsApp answers a malformed code is [unknown]; the fake answers it as an unknown one. w.mu is held.
+// reset code is 410, and any other it does not know, well formed or malformed, 400 `bad-request`, on a join and a
+// preview alike, which whatsmeow maps to nothing and passes on as it came [observed: #36 and #120 live runs 2026-11-04,
+// live sidecar.log]. w.mu is held.
 func (w *WhatsApp) byCode(code string) (*group, error) {
 	code = strings.TrimPrefix(code, whatsmeow.InviteLinkPrefix)
 

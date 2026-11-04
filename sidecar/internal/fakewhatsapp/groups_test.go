@@ -471,9 +471,15 @@ func TestALinksGroupInfoJoinsNothing(t *testing.T) {
 		t.Fatalf("the reset link's info = %v", err)
 	}
 
-	// As the join's [inferred: the same invite node, as a get].
-	if _, err := outsider.GetGroupInfoFromLink(ctx, unknownCode); !errors.Is(err, whatsmeow.ErrIQBadRequest) || errors.Is(err, whatsmeow.ErrInviteLinkInvalid) {
-		t.Fatalf("an unknown link's info = %v", err)
+	// As the join's, for a malformed code too [observed: #120 live run 2026-11-04, live sidecar.log].
+	for _, code := range []string{unknownCode, "NOPE", strings.Repeat("!", 22)} {
+		if _, err := outsider.GetGroupInfoFromLink(ctx, code); !errors.Is(err, whatsmeow.ErrIQBadRequest) || errors.Is(err, whatsmeow.ErrInviteLinkInvalid) {
+			t.Fatalf("the info of link %q = %v", code, err)
+		}
+
+		if _, err := outsider.JoinGroupWithLink(ctx, code); !errors.Is(err, whatsmeow.ErrIQBadRequest) || errors.Is(err, whatsmeow.ErrInviteLinkInvalid) {
+			t.Fatalf("joining by link %q = %v", code, err)
+		}
 	}
 }
 

@@ -29,8 +29,9 @@ import (
 // (errors.go:229-238), so the code alone is matched.
 const rateOverLimit = 429
 
-// badRequest is the code WhatsApp refuses a well formed unknown invite code with [observed: #36 live run 2026-11-04],
-// which whatsmeow maps to nothing (group.go:497-502, 516-521). The code alone is matched, as for rateOverLimit.
+// badRequest is the code WhatsApp refuses an unknown or malformed invite code with, on a join and a preview alike
+// [observed: #36 and #120 live runs 2026-11-04], which whatsmeow maps to nothing (group.go:497-502, 516-521). The code
+// alone is matched, as for rateOverLimit.
 const badRequest = 400
 
 // Client is what the slice needs of a whatsmeow client. *whatsmeow.Client and the fake WhatsApp's client both

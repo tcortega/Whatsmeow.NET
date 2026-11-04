@@ -343,8 +343,8 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 
 	/// <summary>
 	/// A well formed invite code no group has: what WhatsApp answers a join and a preview with it goes to the log, and
-	/// both are refused as an invalid link. A join's answer is 400 [observed: #36 live run 2026-11-04], which the sidecar
-	/// maps (#120); a preview's is [unknown], and the sidecar maps a 400, 406 or 410 to an invalid link for it too.
+	/// both are refused as an invalid link. Each answer is 400 [observed: #36 and #120 live runs 2026-11-04], which the
+	/// sidecar maps (#120).
 	/// </summary>
 	[LiveFact(NeedsPeer = true)]
 	public async Task Live_AWellFormedUnknownInviteCode_IsRefusedAsAnInvalidLink_ByAJoinAndAPreview()
@@ -362,12 +362,13 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 	}
 
 	/// <summary>
-	/// #120: what WhatsApp answers a join and a preview with a malformed invite code, one too short and one of the right
-	/// length with characters a code never has [inferred: the links the live tests got], goes to the log. What it answers
-	/// is [unknown], so nothing is asserted but that each is refused.
+	/// #120: a malformed invite code, one too short and one of the right length with characters a code never has
+	/// [inferred: the links the live tests got]: what WhatsApp answers a join and a preview with it goes to the log, and
+	/// both are refused as an invalid link. Each answer is 400, as for an unknown code [observed: #120 live run
+	/// 2026-11-04, live sidecar.log].
 	/// </summary>
 	[LiveFact(NeedsPeer = true)]
-	public async Task Live_AMalformedInviteCode_WhatAJoinAndAPreviewAnswer_GoToTheLog()
+	public async Task Live_AMalformedInviteCode_IsRefusedAsAnInvalidLink_ByAJoinAndAPreview()
 	{
 		var ct = TestContext.Current.CancellationToken;
 		var other = await peer.ConnectedAsync(live, ct);
@@ -379,6 +380,7 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 			live.Write($"live: joining by an invite code {form}: {Answer(join)}");
 			var preview = await Assert.ThrowsAnyAsync<WhatsmeowException>(() => other.GetGroupInfoFromLinkAsync(link, ct));
 			live.Write($"live: reading the group of an invite code {form}: {Answer(preview)}");
+			LiveChecks.Equal((WhatsmeowErrorCode.InviteLinkInvalid, WhatsmeowErrorCode.InviteLinkInvalid), (join.ErrorCode, preview.ErrorCode));
 		}
 	}
 

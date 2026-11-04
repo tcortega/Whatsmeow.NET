@@ -1128,7 +1128,7 @@ func TestTheNewCallsErrorsBecomeTheirReasons(t *testing.T) {
 		// As whatsmeow wraps them, the same as for a join (group.go:497-502).
 		{"a link WhatsApp does not accept, as whatsmeow names a 406", link, fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkInvalid, whatsmeow.ErrIQNotAcceptable), codes.NotFound, "INVITE_LINK_INVALID", nil},
 		{"a reset link", link, fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkRevoked, whatsmeow.ErrIQGone), codes.NotFound, "INVITE_LINK_INVALID", nil},
-		// As the join answers it [inferred: the same invite node, as a get].
+		// As WhatsApp answers it, as the join [observed: #120 live run 2026-11-04, live sidecar.log].
 		{"an unknown link, as WhatsApp answers a join with it", link, &whatsmeow.IQError{Code: 400, Text: "bad-request"}, codes.NotFound, "INVITE_LINK_INVALID", nil},
 		{"a link read that timed out", link, whatsmeow.ErrIQTimedOut, codes.Unavailable, "WHATSAPP_TIMED_OUT", nil},
 		{"a link answer without its group", link, &whatsmeow.ElementMissingError{Tag: "group", In: "response to group link info query"}, codes.Internal, "INTERNAL", nil},
