@@ -12,7 +12,8 @@
 // In the README, the user guides and the packages' READMEs, a code block under a snippet marker must be the sample
 // file it names, byte for byte, so the code they show is code CI builds (ADR 0054).
 // In the stable packages' PublicAPI files it rejects a *REMOVED* line, which would let a build drop a shipped member,
-// and a generated protobuf or gRPC type outside the [WMN1001] Raw hatch (ARCHITECTURE §13 invariant 6, ADR 0055).
+// a generated protobuf or gRPC type outside the [WMN1001] Raw hatch, and in it any but an upstream WhatsApp one
+// (ARCHITECTURE §13 invariant 6, ADR 0055).
 //
 // Findings print as path:line: [rule] message. The rules are in docs/guidelines/csharp.md Suppressions.
 // Run it from the tools module: go -C tools run ./check-repo [-root ..].
@@ -86,7 +87,7 @@ var (
 	// Every way a workflow or script deletes a release or its assets: the gh CLI, Octokit, an action named for it,
 	// and the REST DELETE through gh api, curl or a request route.
 	// A generated protobuf or gRPC type in a PublicAPI line: upstream WhatsApp, whatsmeow.v1, the runtimes.
-	protobufType  = regexp.MustCompile(`\b(?:Whatsmeow\.Proto|Whatsmeow\.Protocol|Google\.Protobuf|Grpc)\.`)
+	protobufType  = regexp.MustCompile(`\b(Whatsmeow\.Proto|Whatsmeow\.Protocol|Google\.Protobuf|Grpc)\.`)
 	releaseDelete = regexp.MustCompile(`(?i)\bgh\s+release\s+delete|\bdeleteRelease|\buses:\s*\S*(?:delete\S*release|release\S*delete)|` +
 		`(?:-X\s*|--request[\s=]+|--method[\s=]+)DELETE\b.*/releases\b|/releases\b.*(?:-X\s*|--request[\s=]+|--method[\s=]+)DELETE\b|\bDELETE\s+/repos/\S*/releases\b`)
 )
@@ -490,7 +491,8 @@ func checkDoc(fsys fs.FS, name string, content []byte, onlySamples bool) ([]find
 }
 
 // checkPublicAPI keeps the stable packages' shipped surface: a *REMOVED* line drops a shipped member, a break once
-// it is published, and only the [WMN1001] Raw hatch may name a generated protobuf or gRPC type (ADR 0055).
+// it is published, and only the [WMN1001] Raw hatch may name a generated protobuf type, and only an upstream
+// WhatsApp one, never whatsmeow.v1's or a runtime's (ADR 0055).
 func checkPublicAPI(name string, content []byte) []finding {
 	var findings []finding
 
@@ -498,12 +500,25 @@ func checkPublicAPI(name string, content []byte) []finding {
 		switch {
 		case strings.HasPrefix(line, "*REMOVED*"):
 			findings = append(findings, finding{name, i + 1, "public-api-removed", "a shipped member is part of the stability promise; removing or changing it is a break (ADR 0055)"})
-		case protobufType.MatchString(line) && !strings.HasPrefix(line, "[WMN1001]"):
+		case !strings.HasPrefix(line, "[WMN1001]") && protobufType.MatchString(line):
 			findings = append(findings, finding{name, i + 1, "public-api-protobuf", "a generated protobuf or gRPC type is in the stable API outside the [WMN1001] Raw hatch (ARCHITECTURE §13 invariant 6)"})
+		case strings.HasPrefix(line, "[WMN1001]") && rawHatchOverreach(line):
+			findings = append(findings, finding{name, i + 1, "public-api-protobuf", "the [WMN1001] Raw hatch exposes upstream WhatsApp types (Whatsmeow.Proto.) only, never a whatsmeow.v1, Google.Protobuf or gRPC type (ARCHITECTURE §13 invariant 6, ADR 0055)"})
 		}
 	}
 
 	return findings
+}
+
+// rawHatchOverreach says whether a [WMN1001] line names a generated type outside the Whatsmeow.Proto namespace.
+func rawHatchOverreach(line string) bool {
+	for _, match := range protobufType.FindAllStringSubmatch(line, -1) {
+		if match[1] != "Whatsmeow.Proto" {
+			return true
+		}
+	}
+
+	return false
 }
 
 // checkName reports a file whose name alone breaks a rule: a configuration file that is not the blessed one,

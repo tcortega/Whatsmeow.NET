@@ -521,7 +521,11 @@ func TestCheckPublicAPIKeepsShippedMembersAndProtobufTypesOut(t *testing.T) {
 			"A.Client.Info.get -> Whatsmeow.Protocol.V1.SidecarInfo!\n" +
 			"A.Client.Codec.get -> Google.Protobuf.MessageParser!\n" +
 			"A.Client.Call.get -> Grpc.Core.CallInvoker!\n" +
-			"[WMN9999]A.Client.Other.get -> Whatsmeow.Proto.WAWebProtobufsE2E.Message!\n")},
+			"[WMN9999]A.Client.Other.get -> Whatsmeow.Proto.WAWebProtobufsE2E.Message!\n" +
+			// The Raw hatch exposes upstream WhatsApp types only, never the contract's or a runtime's.
+			"[WMN1001]A.Client.RawInfo.get -> Whatsmeow.Protocol.V1.SidecarInfo!\n" +
+			"[WMN1001]A.Client.RawSend(Whatsmeow.Proto.WAWebProtobufsE2E.Message! message) -> Google.Protobuf.ByteString!\n" +
+			"[WMN1001]A.Client.RawCall.get -> Grpc.Core.CallInvoker!\n")},
 		"dotnet/src/A/PublicAPI.Unshipped.txt": {Data: []byte("#nullable enable\n" +
 			"*REMOVED*A.Client.Send(A.Message! message) -> void\n" +
 			"A.Client.Send(A.Message! message, int retries = 0) -> void\n")},
@@ -532,6 +536,9 @@ func TestCheckPublicAPIKeepsShippedMembersAndProtobufTypesOut(t *testing.T) {
 		"dotnet/src/A/PublicAPI.Shipped.txt:5: [public-api-protobuf]",
 		"dotnet/src/A/PublicAPI.Shipped.txt:6: [public-api-protobuf]",
 		"dotnet/src/A/PublicAPI.Shipped.txt:7: [public-api-protobuf]",
+		"dotnet/src/A/PublicAPI.Shipped.txt:8: [public-api-protobuf]",
+		"dotnet/src/A/PublicAPI.Shipped.txt:9: [public-api-protobuf]",
+		"dotnet/src/A/PublicAPI.Shipped.txt:10: [public-api-protobuf]",
 		"dotnet/src/A/PublicAPI.Unshipped.txt:2: [public-api-removed]",
 	})
 }
