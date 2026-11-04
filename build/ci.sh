@@ -141,6 +141,7 @@ job_contract() {
 	before="$(tree_state)"
 	check "shellcheck build/*.sh" shellcheck build/*.sh
 	check "build/release.sh refuses every tag and feed it must not publish (build/release-test.sh, ADR 0050)" bash build/release-test.sh
+	check "every member the last stable release shipped is still shipped (ADR 0055)" bash build/release.sh shipped-api
 	check "third_party/whatsmeow matches the pinned module" go -C tools run ./sync-protos
 	check "buf lint" buf lint
 	# Our protos only: third_party/whatsmeow is upstream's, copied unmodified (ARCHITECTURE §6).
@@ -429,7 +430,8 @@ package_version() {
 	echo "every package and binary is $version"
 }
 
-# Package validation's baseline (ADR 0055), from the tags: build/release.sh baseline, tested by build/release-test.sh.
+# Package validation's baseline (ADR 0055), from the tags: build/release.sh baseline, tested by build/release-test.sh. A
+# rehearsal's comes from the next stable release's, so it compares with what that release will.
 package_baseline() {
 	baseline="$(bash build/release.sh baseline "$version")" || return
 	if [ -z "$baseline" ]; then
@@ -439,26 +441,35 @@ package_baseline() {
 	echo "package validation compares the stable packages with their published $baseline"
 }
 
-# The baseline packages come from nuget.org through restore (a PackageDownload, outside the lock file).
+# The baseline packages come from nuget.org through restore (a PackageDownload, outside the lock file). Only NU1102,
+# no such version on nuget.org, means the release is missing; any other failure is restore's own.
 restore_baseline() {
+	local out rc
 	[ -n "$baseline" ] || return 0
-	if ! dotnet restore dotnet/Whatsmeow.slnx --locked-mode -p:PackageValidationBaselineVersion="$baseline"; then
-		annotate error "package validation" "restore found no $baseline of a stable package on nuget.org: the v$baseline release is not published yet, or was refused and its tag must be deleted (ADR 0050, ADR 0055)"
+	out="$(dotnet restore dotnet/Whatsmeow.slnx --locked-mode -p:PackageValidationBaselineVersion="$baseline" 2>&1)"
+	rc=$?
+	printf '%s\n' "$out"
+	[ "$rc" -eq 0 ] && return 0
+	if grep -q 'NU1102' <<<"$out"; then
+		annotate error "package validation" "restore found no $baseline of a stable package on nuget.org (NU1102): the v$baseline release is not published yet, or was refused and its tag must be deleted (ADR 0050, ADR 0055)"
 		return 1
 	fi
+	annotate error "package validation" "restore of the $baseline baseline packages failed; see its output above (ADR 0055)"
+	return 1
 }
 
 # A stable release ships its public API (ADR 0055): at a stable tag every PublicAPI.Unshipped.txt holds only its
-# #nullable enable line, so PublicAPI.Shipped.txt is what the release publishes and RS0017 guards all of it.
+# #nullable enable line, so PublicAPI.Shipped.txt is what the release publishes and RS0017 guards all of it. A
+# rehearsal stands for the next stable release, so it is held to that too.
 release_api_shipped() {
 	local file rc=0
-	if [[ "$version" == *-* ]]; then
+	if [[ "$version" == *-* ]] && [[ "$version" != 0.0.0-rehearsal.* ]]; then
 		echo "$version is a pre-release, so its public API may stay unshipped"
 		return 0
 	fi
 	for file in dotnet/src/*/PublicAPI.Unshipped.txt; do
 		if grep -q -v -x -e '#nullable enable' -e '' "$file"; then
-			annotate error "public API" "$file is not empty at the stable release $version: move its lines to PublicAPI.Shipped.txt before tagging (ADR 0055)"
+			annotate error "public API" "$file is not empty at $version, a stable release or the rehearsal of one: move its lines to PublicAPI.Shipped.txt before tagging (ADR 0055)"
 			rc=1
 		fi
 	done
