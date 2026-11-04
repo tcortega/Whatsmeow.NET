@@ -40,6 +40,9 @@ type group struct {
 	addMode types.GroupMemberAddMode
 	// timer is the disappearing messages timer in seconds; zero is off.
 	timer uint32
+	// removed is who an admin removed and has not been added back: WhatsApp refuses them the group's info from its link
+	// with 401 [observed: #36 live run 2026-11-04, ARCHITECTURE §14]. Whether it refuses them a join too is [unknown].
+	removed []types.JID
 }
 
 // refusal is how WhatsApp refuses to add one user (RefuseGroupAdd).
@@ -163,7 +166,8 @@ func (w *WhatsApp) find(jid, self types.JID) (*group, int, error) {
 	return g, i, nil
 }
 
-// admin fails a member's call that only an admin may make with 403 [inferred].
+// admin fails a member's call to change the participants with 403 [observed: #36 live run 2026-11-04, a member
+// promoting itself], and is the check for every other call only an admin may make.
 func admin(g *group, i int) error {
 	if !g.members[i].admin && !g.members[i].super {
 		return whatsmeow.ErrIQForbidden
@@ -388,11 +392,13 @@ func (c *Client) UpdateGroupParticipants(_ context.Context, jid types.JID, chang
 			result = w.refused(g, id, refuse)
 		case action == whatsmeow.ParticipantChangeAdd:
 			g.members = append(g.members, member{id: id})
+			g.removed = slices.DeleteFunc(g.removed, func(r types.JID) bool { return r == id })
 			added = append(added, id)
 		case at < 0:
 			result.Error = 404
 		case action == whatsmeow.ParticipantChangeRemove:
 			g.members = slices.Delete(g.members, at, at+1)
+			g.removed = append(g.removed, id)
 		default:
 			g.members[at].admin = action == whatsmeow.ParticipantChangePromote
 		}
@@ -442,9 +448,11 @@ func (c *Client) changeInfo(jid types.JID, adminOnly bool, apply func(*group, *e
 
 	self := c.self()
 
+	// A member's change of the group's info is 401, not the participants' 403 [observed: #36 live run 2026-11-04, the
+	// name, the member add mode and the timer of a locked group; the topic, announce and locked [inferred] the same].
 	g, i, err := w.find(jid, self)
-	if err == nil && (adminOnly || g.locked) {
-		err = admin(g, i)
+	if err == nil && (adminOnly || g.locked) && admin(g, i) != nil {
+		err = whatsmeow.ErrIQNotAuthorized
 	}
 
 	if err != nil {
@@ -593,6 +601,7 @@ func (c *Client) JoinGroupWithLink(_ context.Context, code string) (types.JID, e
 	if !slices.ContainsFunc(g.members, func(m member) bool { return m.id == self }) {
 		others := ids(g)
 		g.members = append(g.members, member{id: self})
+		g.removed = slices.DeleteFunc(g.removed, func(r types.JID) bool { return r == self })
 
 		evt := w.change(g, self)
 		evt.Join, evt.JoinReason = []types.JID{*evt.Sender}, "invite"
@@ -607,7 +616,7 @@ func (c *Client) JoinGroupWithLink(_ context.Context, code string) (types.JID, e
 }
 
 // GetGroupInfoFromLink answers the group of a link's code, with every member [inferred], and joins nothing; its codes
-// are the join's (group.go:497-502).
+// are the join's (group.go:497-502), and one an admin removed is refused with 401 (group.removed).
 func (c *Client) GetGroupInfoFromLink(_ context.Context, code string) (*types.GroupInfo, error) {
 	if err := c.groupQuery(); err != nil {
 		return nil, err
@@ -620,6 +629,10 @@ func (c *Client) GetGroupInfoFromLink(_ context.Context, code string) (*types.Gr
 	g, err := w.byCode(code)
 	if err != nil {
 		return nil, err
+	}
+
+	if slices.Contains(g.removed, c.self()) {
+		return nil, whatsmeow.ErrIQNotAuthorized
 	}
 
 	return w.info(g), nil

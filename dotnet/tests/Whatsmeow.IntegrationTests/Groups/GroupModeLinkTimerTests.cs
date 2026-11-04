@@ -92,8 +92,8 @@ public sealed class GroupModeLinkTimerTests(FakeSidecar fixture)
 
 		var thrown = await Assert.ThrowsAsync<WhatsAppErrorException>(() => member.SetGroupMemberAddModeAsync(group, GroupMemberAddMode.AllMembers, ct));
 
-		// A refusal for lack of admin rights has no reason of its own [inferred: 403].
-		Assert.Equal((WhatsmeowErrorCode.WhatsAppError, 403), (thrown.ErrorCode, thrown.Code));
+		// A refusal for lack of admin rights has no reason of its own [observed: 401, #36 live run 2026-11-04, in a locked group].
+		Assert.Equal((WhatsmeowErrorCode.WhatsAppError, 401), (thrown.ErrorCode, thrown.Code));
 		Assert.Equal(GroupMemberAddMode.AdminsOnly, (await member.GetGroupInfoAsync(group, ct)).MemberAddMode);
 	}
 
@@ -161,6 +161,24 @@ public sealed class GroupModeLinkTimerTests(FakeSidecar fixture)
 
 		Assert.Empty(await outsider.GetGroupsAsync(ct));
 		Assert.Equal(expected, await admin.GetGroupInfoAsync(group, ct));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task GetGroupInfoFromLink_AMemberAnAdminRemoved_ThrowsWhatsAppErrorWithItsCode_UntilAddedBack()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var admin = await SessionSetup.ConnectedAsync(fixture, "groups-preview-removed-a", ct);
+		var removed = await SessionSetup.ConnectedAsync(fixture, "groups-preview-removed-b", ct);
+		var group = (await admin.CreateGroupAsync("Team", [Self("groups-preview-removed-b")], ct)).Group.Jid;
+		var link = await admin.GetGroupInviteLinkAsync(group, ct);
+		_ = await admin.RemoveParticipantsAsync(group, [Self("groups-preview-removed-b")], ct);
+
+		var thrown = await Assert.ThrowsAsync<WhatsAppErrorException>(() => removed.GetGroupInfoFromLinkAsync(link, ct));
+
+		// [observed: #36 live run 2026-11-04, the peer reading the group it was removed from]
+		Assert.Equal((WhatsmeowErrorCode.WhatsAppError, 401), (thrown.ErrorCode, thrown.Code));
+		_ = await admin.AddParticipantsAsync(group, [Self("groups-preview-removed-b")], ct);
+		Assert.Equal(group, (await removed.GetGroupInfoFromLinkAsync(link, ct)).Jid);
 	}
 
 	[Fact(Timeout = Timeout)]

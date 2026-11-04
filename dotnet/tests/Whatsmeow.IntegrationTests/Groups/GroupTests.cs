@@ -293,8 +293,8 @@ public sealed class GroupTests(FakeSidecar fixture)
 
 		var thrown = await Assert.ThrowsAsync<WhatsAppErrorException>(() => member.SetGroupNameAsync(group, "Mine", ct));
 
-		// A refusal for lack of admin rights has no reason of its own: WhatsApp's code says it [inferred: 403].
-		Assert.Equal((WhatsmeowErrorCode.WhatsAppError, 403), (thrown.ErrorCode, thrown.Code));
+		// A refusal for lack of admin rights has no reason of its own: WhatsApp's code says it [observed: 401, #36 live run 2026-11-04].
+		Assert.Equal((WhatsmeowErrorCode.WhatsAppError, 401), (thrown.ErrorCode, thrown.Code));
 		Assert.Equal("Team", (await member.GetGroupInfoAsync(group, ct)).Name);
 	}
 
