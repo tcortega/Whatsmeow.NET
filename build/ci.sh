@@ -429,6 +429,43 @@ package_version() {
 	echo "every package and binary is $version"
 }
 
+# Package validation's baseline (ADR 0055), from the tags: build/release.sh baseline, tested by build/release-test.sh.
+package_baseline() {
+	baseline="$(bash build/release.sh baseline "$version")" || return
+	if [ -z "$baseline" ]; then
+		echo "no package validation baseline: no stable release of this major version below $version"
+		return 0
+	fi
+	echo "package validation compares the stable packages with their published $baseline"
+}
+
+# The baseline packages come from nuget.org through restore (a PackageDownload, outside the lock file).
+restore_baseline() {
+	[ -n "$baseline" ] || return 0
+	if ! dotnet restore dotnet/Whatsmeow.slnx --locked-mode -p:PackageValidationBaselineVersion="$baseline"; then
+		annotate error "package validation" "restore found no $baseline of a stable package on nuget.org: the v$baseline release is not published yet, or was refused and its tag must be deleted (ADR 0050, ADR 0055)"
+		return 1
+	fi
+}
+
+# A stable release ships its public API (ADR 0055): at a stable tag every PublicAPI.Unshipped.txt holds only its
+# #nullable enable line, so PublicAPI.Shipped.txt is what the release publishes and RS0017 guards all of it.
+release_api_shipped() {
+	local file rc=0
+	if [[ "$version" == *-* ]]; then
+		echo "$version is a pre-release, so its public API may stay unshipped"
+		return 0
+	fi
+	for file in dotnet/src/*/PublicAPI.Unshipped.txt; do
+		if grep -q -v -x -e '#nullable enable' -e '' "$file"; then
+			annotate error "public API" "$file is not empty at the stable release $version: move its lines to PublicAPI.Shipped.txt before tagging (ADR 0055)"
+			rc=1
+		fi
+	done
+	[ "$rc" -eq 0 ] && echo "every stable package's public API is shipped at $version"
+	return "$rc"
+}
+
 # Release builds only: no fakewhatsapp tag (ADR 0019); -trimpath and -s -w, reproducible from the commit (ADR 0023).
 build_sidecars() {
 	local targets target
@@ -444,7 +481,7 @@ build_sidecars() {
 pack_feed() {
 	local nupkg line
 	rm -rf "$package_feed"
-	dotnet pack dotnet/Whatsmeow.slnx -c Release --no-restore -p:ContinuousIntegrationBuild=true -o "$package_feed" || return
+	dotnet pack dotnet/Whatsmeow.slnx -c Release --no-restore -p:ContinuousIntegrationBuild=true ${baseline:+-p:PackageValidationBaselineVersion="$baseline"} -o "$package_feed" || return
 	echo "$version" >"$package_feed/version"
 	for nupkg in "$package_feed"/Whatsmeow.Sidecar.Native.*.nupkg; do
 		line="$(basename "$nupkg"): $(wc -c <"$nupkg" | tr -d ' ') bytes"
@@ -1209,6 +1246,9 @@ job_package() {
 	before="$(tree_state)"
 	check "dotnet restore (locked)" dotnet restore dotnet/Whatsmeow.slnx --locked-mode &&
 		check "one version for every package and binary, a pre-release when HEAD has no tag (ADR 0023)" package_version &&
+		check "a stable release ships its public API (ADR 0055)" release_api_shipped &&
+		check "the package validation baseline, the last stable release below this version (ADR 0055)" package_baseline &&
+		check "restore the baseline packages from nuget.org (ADR 0055)" restore_baseline &&
 		check "whatsmeow-net for every release target" build_sidecars &&
 		check "dotnet pack into the local feed $package_feed" pack_feed &&
 		check "the Corresponding Source archive into the feed (ADR 0016)" source_archive &&

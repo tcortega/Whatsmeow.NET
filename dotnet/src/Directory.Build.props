@@ -47,4 +47,13 @@
 		<None Include="$(MSBuildThisFileDirectory)../../NOTICE" Pack="true" PackagePath="" />
 		<None Include="$(MSBuildThisFileDirectory)../../sidecar/THIRD-PARTY-NOTICES.txt" Pack="true" PackagePath="" />
 	</ItemGroup>
+
+	<!--
+		The stable packages (ADR 0055): pack validates each, and compares it with the published release that
+		PackageValidationBaselineVersion names. build/ci.sh package sets it from the tags, to the highest stable release of
+		the same major version below the one it packs; before 1.0, and for 1.0 itself, there is none.
+	-->
+	<PropertyGroup Condition="'$(MSBuildProjectName)' == 'Whatsmeow.Client' OR '$(MSBuildProjectName)' == 'Whatsmeow.Extensions.Hosting' OR '$(MSBuildProjectName)' == 'Whatsmeow.Testing'">
+		<EnablePackageValidation>true</EnablePackageValidation>
+	</PropertyGroup>
 </Project>

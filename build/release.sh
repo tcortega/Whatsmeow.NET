@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# The release (#46, ADR 0050); .github/workflows/release.yml calls this and nothing else.
+# The release (#46, ADR 0050); .github/workflows/release.yml calls this and nothing else, and build/ci.sh package
+# calls its baseline.
 #
 #   guard <tag>                      the tag is v<semver>, points at HEAD here and on origin, and HEAD is on main; in a
 #                                    tag push, also that the release environment makes the publish wait for a reviewer
@@ -11,6 +12,8 @@
 #   publish <tag> <assets>           publishes that draft, Latest only when the tag is the highest stable version
 #   push <tag> <feed> 1|2            pushes one phase to nuget.org, skipping what is there
 #   wait <tag> <feed> 1|2            waits until nuget.org serves the phase; for phase 2 a timeout only warns
+#   baseline <version>               prints the published release package validation compares a version with, or
+#                                    nothing (ADR 0055)
 #
 # draft, publish and push publish, so they refuse to run anywhere but in a push of that tag; with --dry-run they and
 # wait only print what they would do. Nothing here deletes or unlists anything (tools/check-repo, ADR 0029).
@@ -415,8 +418,24 @@ wait_served() { # tag feed 1|2 [--dry-run]
 	done
 }
 
+# The package validation baseline of a version (ADR 0055): the highest stable v<major>.<minor>.<patch> tag merged into
+# HEAD with the version's major and below it, so every build after a release is compared with what that release
+# published. None before 1.0, none for a major's first release or the version of HEAD's own tag, never a pre-release,
+# and never a tag of another branch.
+baseline() {
+	local version="$1" core major tags
+	core="${version%%-*}"
+	major="${core%%.*}"
+	[ "$major" = 0 ] && return 0
+	tags="$(git tag --merged HEAD --list "v$major.*")" || die "cannot list the tags merged into HEAD"
+	{
+		sed -n -E 's/^v((0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))$/\1/p' <<<"$tags"
+		echo "$core"
+	} | sort -V | awk -v core="$core" '$0 == core { exit } { print }' | tail -n 1
+}
+
 usage() {
-	sed -n '4,16p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
+	sed -n '5,19p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
 	exit 2
 }
 
@@ -431,5 +450,6 @@ case "$cmd" in
 	publish) [ $# -eq 2 ] || [ $# -eq 3 ] || usage; publish "$@" ;;
 	push) [ $# -eq 3 ] || [ $# -eq 4 ] || usage; push "$@" ;;
 	wait) [ $# -eq 3 ] || [ $# -eq 4 ] || usage; wait_served "$@" ;;
+	baseline) [ $# -eq 1 ] || usage; baseline "$@" ;;
 	*) usage ;;
 esac

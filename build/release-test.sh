@@ -672,6 +672,57 @@ done
 push_without_key() { as_push "v$version" env -u NUGET_API_KEY "$@"; }
 expect fail "no NUGET_API_KEY" "push: refused without an API key" refused push_without_key push "v$version" "$good" 1
 
+# --- baseline (ADR 0055) ----------------------------------------------------------------------------------------
+
+# A history of its own: a, b, ..., with the tags each case adds.
+history="$tmp/history"
+git_q init -b main "$history"
+commit() { git_q -C "$history" commit --allow-empty -m "$1"; }
+tag() { git_q -C "$history" tag "$@"; }
+# baseline_is version want: the baseline, exactly, which may be nothing.
+baseline_is() {
+	local got
+	got="$(cd "$history" && bash "$release" baseline "$1")" || return
+	[ "$got" = "$2" ] || { echo "the baseline of $1 is \"$got\", not \"$2\""; return 1; }
+}
+
+commit a
+expect pass "" "baseline: none before any tag" baseline_is 0.0.0-alpha.0.3 ""
+tag v0.0.0-rehearsal.7
+expect pass "" "baseline: none for a rehearsal" baseline_is 0.0.0-rehearsal.7 ""
+tag v0.9.0
+commit b
+expect pass "" "baseline: none before 1.0, though 0.9.0 is published" baseline_is 0.9.1-alpha.0.1 ""
+tag v1.0.0
+expect pass "" "baseline: none for 1.0.0 itself" baseline_is 1.0.0 ""
+commit c
+expect pass "" "baseline: 1.0.0 after it" baseline_is 1.0.1-alpha.0.1 1.0.0
+tag v1.1.0-rc.1
+commit d
+expect pass "" "baseline: a release candidate compares with the last stable release" baseline_is 1.1.0-rc.1.1 1.0.0
+tag v1.1.0
+tag v1.10.0-x
+tag v1.0.5
+commit e
+expect pass "" "baseline: the highest stable release below, by version, not by tag order" baseline_is 1.1.1-alpha.0.1 1.1.0
+expect pass "" "baseline: a release's own build compares with the release below it" baseline_is 1.1.0 1.0.5
+tag v1.3.0-rc.1
+expect pass "" "baseline: never a pre-release" baseline_is 1.4.0-alpha.0.1 1.1.0
+tag v1.2.0
+expect pass "" "baseline: never a release above the version" baseline_is 1.1.1-alpha.0.1 1.1.0
+tag v1.9.0
+tag v1.10.0
+expect pass "" "baseline: versions compare by number, so 1.9.0 is below 1.10.0" baseline_is 1.10.0 1.9.0
+tag v2.0.0
+expect pass "" "baseline: none for a new major's first release" baseline_is 2.0.0 ""
+commit f
+expect pass "" "baseline: the new major's release after it" baseline_is 2.0.1-alpha.0.1 2.0.0
+git_q -C "$history" checkout -b hotfix main~4
+commit hotfix
+tag v1.0.1
+git_q -C "$history" checkout --detach main~3
+expect pass "" "baseline: never a release of another branch, only the tags HEAD's history holds" baseline_is 1.0.2-alpha.0.2 1.0.0
+
 if [ "${#failed[@]}" -gt 0 ]; then
 	echo
 	echo "failed cases:"
