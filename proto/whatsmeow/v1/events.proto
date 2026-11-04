@@ -141,7 +141,7 @@ message MessageTarget {
 message ReceiptEvent {
   // Who sent the receipt, and in which chat.
   MessageSource source = 1;
-  // The messages it covers.
+  // The messages it covers: at least one, none empty.
   repeated string message_ids = 2;
   // The receipt's WhatsApp timestamp.
   google.protobuf.Timestamp receipt_time = 3;

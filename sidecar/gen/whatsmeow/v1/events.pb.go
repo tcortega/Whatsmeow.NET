@@ -704,7 +704,7 @@ type ReceiptEvent struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Who sent the receipt, and in which chat.
 	Source *MessageSource `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
-	// The messages it covers.
+	// The messages it covers: at least one, none empty.
 	MessageIds []string `protobuf:"bytes,2,rep,name=message_ids,json=messageIds,proto3" json:"message_ids,omitempty"`
 	// The receipt's WhatsApp timestamp.
 	ReceiptTime *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=receipt_time,json=receiptTime,proto3" json:"receipt_time,omitempty"`

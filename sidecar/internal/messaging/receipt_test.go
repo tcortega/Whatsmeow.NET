@@ -1,6 +1,7 @@
 package messaging
 
 import (
+	"slices"
 	"testing"
 	"time"
 
@@ -90,6 +91,23 @@ func TestOnlyAReceiptWithMessagesIsMapped(t *testing.T) {
 		if _, _, ok := Receipt("s1", evt); ok {
 			t.Errorf("%T %v was mapped", evt, evt)
 		}
+	}
+}
+
+// TestAnEmptyMessageIdIsLeftOut: whatsmeow reads a grouped receipt's message id from the participants' key, and WhatsApp
+// sends it in message_id (receipt.go:45-62 at the pin; tulir/whatsmeow#1270), so each member's receipt covers the empty
+// id. The client cannot read one (#119); a receipt with no other id covers no message.
+func TestAnEmptyMessageIdIsLeftOut(t *testing.T) {
+	t.Parallel()
+
+	if _, got, ok := Receipt("s1", receiptEvent(types.ReceiptTypeRead, "")); ok {
+		t.Errorf("a receipt of the empty id was mapped: %v", got)
+	}
+
+	key, got, ok := Receipt("s1", receiptEvent(types.ReceiptTypeRead, "M1", "", "M2"))
+	if wantKey := "r\x00111@s.whatsapp.net\x00111@s.whatsapp.net\x00read\x001700000100\x00M1\x00M2"; !ok || key != wantKey ||
+		!slices.Equal(got.GetReceipt().GetMessageIds(), []string{"M1", "M2"}) {
+		t.Errorf("Receipt = %q, %v, %v; want %q and the ids without the empty one", key, got, ok, wantKey)
 	}
 }
 

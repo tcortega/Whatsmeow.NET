@@ -317,6 +317,46 @@ public sealed class MessagingTests(FakeSidecar fixture)
 		Assert.Equal(WhatsmeowErrorCode.LoggedOut, error.ErrorCode);
 	}
 
+	/// <summary>
+	/// #119: a grouped receipt (one per member of a group's receipt) whose message id whatsmeow did not find, as it
+	/// dispatches one at the pin: <c>handleGroupedReceipt</c> reads the id from <c>key</c>, WhatsApp sends it in
+	/// <c>message_id</c> (receipt.go:45-62; tulir/whatsmeow#1270), so the receipt covers the empty id.
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task AGroupedReceiptWithoutItsMessageId_IsNeverUnreadable()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "messaging-receipt-no-id";
+		var client = await ConnectedAsync(Session, ct);
+		using var receipts = new Received<ReceiptReceived>(client);
+		var at = DateTimeOffset.FromUnixTimeSeconds(1_789_901_940);
+
+		foreach (var id in new[] { "", "M2" })
+		{
+			_ = await fixture.Fake.DeliverReceiptAsync(
+				new DeliverReceiptRequest
+				{
+					SessionId = Session,
+					Chat = "120363012345678901@g.us",
+					Sender = "12345678901234@lid",
+					MessageIds = { id },
+					Type = "read",
+					ReceiptTime = Timestamp.FromDateTimeOffset(at),
+				},
+				cancellationToken: ct
+			);
+		}
+
+		// It covers no message, so it is not recorded, and still answered: WhatsApp does not send it again.
+		var ack = await SentAsync(Session, ct);
+		Assert.Equal(new Ack { Class = "receipt", Id = "", Type = "read" }, ack.Ack);
+		Assert.Equal(new Ack { Class = "receipt", Id = "M2", Type = "read" }, (await SentAsync(Session, ct, ack.Index)).Ack);
+
+		var next = await receipts.NextAsync(ct);
+		Assert.Equal([MessageId.From("M2")], next.MessageIds);
+		Assert.DoesNotContain(fixture.Logs.Named("EventUnreadable"), r => r.Message.Contains(Session, StringComparison.Ordinal));
+	}
+
 	[Fact(Timeout = Timeout)]
 	public async Task MarkRead_SendsOneReadReceiptForTheMessages()
 	{

@@ -2160,7 +2160,7 @@ namespace Whatsmeow.Protocol.V1 {
         = pb::FieldCodec.ForString(18);
     private readonly pbc::RepeatedField<string> messageIds_ = new pbc::RepeatedField<string>();
     /// <summary>
-    /// The messages it covers.
+    /// The messages it covers: at least one, none empty.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
