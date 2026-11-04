@@ -8,7 +8,7 @@ namespace Whatsmeow.LiveTests;
 /// needs it, so a run creates one group however many tests use it. Each test leaves it as it found it, and one that took
 /// the peer out adds it back (<see cref="WithPeerAsync"/>). At the end the live session removes the peer and leaves, the
 /// closest WhatsApp has to deleting a group: no other number is ever added. Before it creates one, it does the same to
-/// every group an aborted run left: one the live account owns whose name is a run's.
+/// every group an aborted run left: one the live account owns, whose name is a run's, with no member but the two accounts.
 /// </summary>
 public sealed partial class LiveGroup(LiveSidecar live, LivePeer peer) : IAsyncLifetime
 {
@@ -50,9 +50,7 @@ public sealed partial class LiveGroup(LiveSidecar live, LivePeer peer) : IAsyncL
 			var (to, _) = await peer.AccountAsync(cancellationToken).ConfigureAwait(false);
 			var liveAccount = await live.AccountAsync(cancellationToken).ConfigureAwait(false);
 			var peerAccount = await peer.AccountAsync(cancellationToken).ConfigureAwait(false);
-			var leftovers = (await client.GetGroupsAsync(cancellationToken).ConfigureAwait(false))
-				.Where(g => RunName().IsMatch(g.Name) && g.Owner is { } owner && LiveChecks.Names(liveAccount, owner))
-				.ToList();
+			var leftovers = (await client.GetGroupsAsync(cancellationToken).ConfigureAwait(false)).Where(g => IsLeftover(g, liveAccount, peerAccount)).ToList();
 			foreach (var leftover in leftovers)
 				await CloseAsync(client, leftover.Jid, peerAccount).ConfigureAwait(false);
 			if (leftovers.Count > 0)
@@ -109,6 +107,9 @@ public sealed partial class LiveGroup(LiveSidecar live, LivePeer peer) : IAsyncL
 		Assert.True(added.Length == 1 && added[0].Outcome is ParticipantOutcome.Done, "the peer could not be added back to the group");
 		return group;
 	}
+
+	/// <summary>The name a test sets on the group named <paramref name="name"/>, with <paramref name="suffix"/>: <c>crew</c> or <c>not mine</c> (<see cref="RunName"/>).</summary>
+	public static string RenamedBy(string name, string suffix) => $"{name} {suffix}";
 
 	/// <summary>Each member's address forms and role, for the log: the addressing mode WhatsApp chose shows there.</summary>
 	public static string Members(GroupInfo info) => string.Join(", ", info.Participants.Select(p => $"{LiveChecks.Form(p.Jid)} with {LiveChecks.Form(p.JidAlt)} ({p.Role})"));
@@ -167,7 +168,22 @@ public sealed partial class LiveGroup(LiveSidecar live, LivePeer peer) : IAsyncL
 		}
 	}
 
-	/// <summary>A run's group name, as <see cref="CreatedAsync"/> makes it, and as the settings test renames it.</summary>
-	[GeneratedRegex("^wmn live [0-9]+( crew)?$", RegexOptions.ExplicitCapture, matchTimeoutMilliseconds: 1000)]
+	/// <summary>
+	/// Whether <paramref name="info"/> is a group an earlier run of this suite left: one the live account owns, with a
+	/// name a run gives it or a test sets (<see cref="RunName"/>), and no member but the live account and the peer, the
+	/// only number a run adds.
+	/// </summary>
+	private static bool IsLeftover(GroupInfo info, (Jid Chat, Jid? Lid) liveAccount, (Jid Chat, Jid? Lid) peerAccount) =>
+		RunName().IsMatch(info.Name)
+		&& info.Owner is { } owner
+		&& LiveChecks.Names(liveAccount, owner)
+		&& info.Participants.All(p => LiveChecks.Names(liveAccount, p.Jid) || LiveChecks.Names(peerAccount, p.Jid));
+
+	/// <summary>
+	/// A run's group name, as <see cref="CreatedAsync"/> makes it, and every name a test sets on it, however many a killed
+	/// run left on top of each other: the settings test adds <c> crew</c>, and the non-admin test's peer tries
+	/// <c> not mine</c> (<see cref="RenamedBy"/>).
+	/// </summary>
+	[GeneratedRegex("^wmn live [0-9]+( crew| not mine)*$", RegexOptions.ExplicitCapture, matchTimeoutMilliseconds: 1000)]
 	private static partial Regex RunName();
 }
