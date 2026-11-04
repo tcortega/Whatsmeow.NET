@@ -24,6 +24,9 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 	/// </summary>
 	private const int GroupTimeout = 600_000 + LiveFactAttribute.CatchUpTimeout;
 
+	// The letters of an invite code [inferred: the links the live tests got].
+	private const string CodeLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
 	/// <summary>
 	/// The create answer is the group's info, as GetGroupInfo reads it: the run's name, no topic or settings, the live
 	/// account its owner and super admin and the peer a member, each in the form WhatsApp chose (the addressing mode).
@@ -339,20 +342,44 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 	}
 
 	/// <summary>
-	/// A well formed invite code no group has: what WhatsApp answers goes to the log (whatsmeow maps only 406 and 410),
-	/// and the join is refused as the fake-mode test refuses an unknown code, as an invalid link.
+	/// A well formed invite code no group has: what WhatsApp answers a join and a preview with it goes to the log, and
+	/// both are refused as an invalid link. A join's answer is 400 [observed: #36 live run 2026-11-04], which the sidecar
+	/// maps (#120); a preview's is [unknown], and the sidecar maps a 400, 406 or 410 to an invalid link for it too.
 	/// </summary>
 	[LiveFact(NeedsPeer = true)]
-	public async Task Live_JoinWithAWellFormedUnknownInviteCode_IsRefusedAsAnInvalidLink()
+	public async Task Live_AWellFormedUnknownInviteCode_IsRefusedAsAnInvalidLink_ByAJoinAndAPreview()
 	{
 		var ct = TestContext.Current.CancellationToken;
 		var other = await peer.ConnectedAsync(live, ct);
-		var code = RandomNumberGenerator.GetString("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", 22);
+		var link = new Uri($"https://chat.whatsapp.com/{RandomNumberGenerator.GetString(CodeLetters, 22)}");
 
-		var thrown = await Assert.ThrowsAsync<WhatsmeowException>(() => other.JoinGroupWithLinkAsync(new Uri($"https://chat.whatsapp.com/{code}"), ct));
+		var join = await Assert.ThrowsAnyAsync<WhatsmeowException>(() => other.JoinGroupWithLinkAsync(link, ct));
+		live.Write($"live: joining by a well formed unknown invite code: {Answer(join)}");
+		var preview = await Assert.ThrowsAnyAsync<WhatsmeowException>(() => other.GetGroupInfoFromLinkAsync(link, ct));
+		live.Write($"live: reading the group of a well formed unknown invite code: {Answer(preview)}");
 
-		live.Write($"live: joining by a well formed unknown invite code: {Outcome(thrown)}");
-		LiveChecks.Equal(WhatsmeowErrorCode.InviteLinkInvalid, thrown.ErrorCode);
+		LiveChecks.Equal((WhatsmeowErrorCode.InviteLinkInvalid, WhatsmeowErrorCode.InviteLinkInvalid), (join.ErrorCode, preview.ErrorCode));
+	}
+
+	/// <summary>
+	/// #120: what WhatsApp answers a join and a preview with a malformed invite code, one too short and one of the right
+	/// length with characters a code never has [inferred: the links the live tests got], goes to the log. What it answers
+	/// is [unknown], so nothing is asserted but that each is refused.
+	/// </summary>
+	[LiveFact(NeedsPeer = true)]
+	public async Task Live_AMalformedInviteCode_WhatAJoinAndAPreviewAnswer_GoToTheLog()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var other = await peer.ConnectedAsync(live, ct);
+
+		foreach (var (form, code) in new[] { ("too short", RandomNumberGenerator.GetString(CodeLetters, 10)), ("of foreign characters", new string('!', 22)) })
+		{
+			var link = new Uri($"https://chat.whatsapp.com/{code}");
+			var join = await Assert.ThrowsAnyAsync<WhatsmeowException>(() => other.JoinGroupWithLinkAsync(link, ct));
+			live.Write($"live: joining by an invite code {form}: {Answer(join)}");
+			var preview = await Assert.ThrowsAnyAsync<WhatsmeowException>(() => other.GetGroupInfoFromLinkAsync(link, ct));
+			live.Write($"live: reading the group of an invite code {form}: {Answer(preview)}");
+		}
 	}
 
 	/// <summary>
@@ -547,6 +574,12 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 			);
 
 	/// <summary>A call's outcome, for the log: what it threw, with WhatsApp's code, or that it went through.</summary>
+	/// <summary>
+	/// The outcome and the status message, which keeps WhatsApp's 400 for an invite code, and names whatsmeow's 406 ("not
+	/// valid") and 410 ("revoked") apart (sidecar groups.classifyInvite).
+	/// </summary>
+	private static string Answer(WhatsmeowException thrown) => $"{Outcome(thrown)} ({thrown.Message})";
+
 	private static string Outcome(Exception? thrown) =>
 		thrown switch
 		{

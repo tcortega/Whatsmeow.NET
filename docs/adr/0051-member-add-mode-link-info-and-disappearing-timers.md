@@ -13,7 +13,7 @@ Reading whatsmeow at the pin showed facts the design had to follow [observed: AR
 - `SetGroupMemberAddMode` sends a `member_add_mode` child whose content is `admin_add` or `all_member_add`, and a group's info reads the mode from the same child (group.go:785-787, 1084-1097).
   But `parseGroupChange` has no case for it: a notification's `member_add_mode` child lands in `UnknownChanges` as it came (group.go:1006-1007), and `events.GroupInfo` has no field for it (types/events/events.go:493-528).
   That WhatsApp's notification names and fills the child as the IQ does is [inferred].
-- `GetGroupInfoFromLink` is an IQ get on the invite code, where the join is a set; it strips the link prefix and maps 410 and 406 as the join does (group.go:488-536).
+- `GetGroupInfoFromLink` is an IQ get on the invite code, where the join is a set; it strips the link prefix and maps 410 and 406 as the join does (group.go:488-536). What WhatsApp answers it for an unknown code is [unknown]; the join's is 400 [observed: #36 live run 2026-11-04].
 - `SetDisappearingTimer` is two methods in one (send.go:666-697): a group's timer is an IQ, a direct chat's is `SendMessage` of an `EPHEMERAL_SETTING` protocol message with no id, timestamped `time.Now()` when no time is given.
   A group's timer WhatsApp refuses with 400 is `ErrInvalidDisappearingTimer`, which unwraps to the `IQError` (errors.go:157-176, send.go:687-690).
 - whatsmeow sets no timer on a later send: send.go writes no `Expiration` (only the protocol message's field, send.go:675).
@@ -36,7 +36,7 @@ Reading whatsmeow at the pin showed facts the design had to follow [observed: AR
 - **Disappearing changes are recorded.** ADR 0030 left them out; `GroupChange.DisappearingTimerChanged` carries the new timer, zero for `not_ephemeral`.
   A join approval change is still not recorded, and replaces the disappearing one as the tests' example of a change the contract has no case for.
 - **A received direct chat timer is content.** `DisappearingTimerContent { Timer }` maps an `EPHEMERAL_SETTING` protocol message, in live events and history alike; no contract change, since the message is already in `MessageEvent`.
-- **Errors.** `SetGroupMemberAddMode` and `SetGroupDisappearingTimer` are writes (`OUTCOME_UNKNOWN` on a timeout), `GetGroupInfoFromLink` a read (`WHATSAPP_TIMED_OUT`; an answer without its group is `INTERNAL`, as `GetGroup`'s is), and a link WhatsApp does not accept is `INVITE_LINK_INVALID` as for the join.
+- **Errors.** `SetGroupMemberAddMode` and `SetGroupDisappearingTimer` are writes (`OUTCOME_UNKNOWN` on a timeout), `GetGroupInfoFromLink` a read (`WHATSAPP_TIMED_OUT`; an answer without its group is `INTERNAL`, as `GetGroup`'s is), and a link WhatsApp does not accept is `INVITE_LINK_INVALID` as for the join, a 400 included since #120 (ADR 0030 Reasons); the fake answers an unknown code with 400 as for the join [inferred].
   A non-admin's refusal is `WHATSAPP_ERROR` with WhatsApp's code, which is [unknown] and modelled as 403 [inferred].
 - **.NET.** `SetGroupMemberAddModeAsync(Jid group, GroupMemberAddMode mode)`, `GetGroupInfoFromLinkAsync(Uri link)` and `SetDisappearingTimerAsync`, in a `whatsmeow.send` span of type `disappearing_timer` for a direct chat (ADR 0037); `GroupMemberAddMode { AdminsOnly, AllMembers }`; `GroupInfo.MemberAddMode`, nullable and not `required`, so existing constructions still compile; `GroupChange.MemberAddModeChanged` and `GroupChange.DisappearingTimerChanged`.
   The Testing package's fake records the three members.

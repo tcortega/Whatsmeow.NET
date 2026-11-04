@@ -29,6 +29,10 @@ import (
 // (errors.go:229-238), so the code alone is matched.
 const rateOverLimit = 429
 
+// badRequest is the code WhatsApp refuses a well formed unknown invite code with [observed: #36 live run 2026-11-04],
+// which whatsmeow maps to nothing (group.go:497-502, 516-521). The code alone is matched, as for rateOverLimit.
+const badRequest = 400
+
 // Client is what the slice needs of a whatsmeow client. *whatsmeow.Client and the fake WhatsApp's client both
 // satisfy it (ADR 0019).
 type Client interface {
@@ -413,7 +417,7 @@ func (svc *Service) JoinGroupWithLink(ctx context.Context, req *whatsmeowv1.Join
 	// answers the same JID while the session only asked to join (group.go:526-529).
 	jid, err := client.JoinGroupWithLink(ctx, req.GetLink())
 	if err != nil {
-		return nil, classify("join a group", err, true)
+		return nil, classifyInvite("join a group", err, true)
 	}
 
 	// An answer whose node has no jid gives the empty JID (binary/attrs.go:66-69, group.go:526-533): the session may
@@ -444,7 +448,7 @@ func (svc *Service) GetGroupInfoFromLink(ctx context.Context, req *whatsmeowv1.G
 	// whatsmeow takes the link or its code, and names a link it does not accept as the join does (group.go:490-502).
 	info, err := client.GetGroupInfoFromLink(ctx, req.GetLink())
 	if err != nil {
-		return nil, classify("read a link's group", err, false)
+		return nil, classifyInvite("read a link's group", err, false)
 	}
 
 	return &whatsmeowv1.GetGroupInfoFromLinkResponse{Group: toGroup(info)}, nil
@@ -593,6 +597,18 @@ func text(jid types.JID) string {
 	}
 
 	return server.Text(jid.String())
+}
+
+// classifyInvite is classify for the two calls on an invite code, where a 400 is the code WhatsApp does not accept: the
+// code is all the call sends (group.go:490-495, 512-517), so a caller can do nothing else about it [inferred]. The
+// status message keeps the 400.
+func classifyInvite(op string, err error, write bool) error {
+	var iqErr *whatsmeow.IQError
+	if errors.As(err, &iqErr) && iqErr.Code == badRequest {
+		return fmt.Errorf("%s: %w: %w", op, server.ErrInviteLinkInvalid, &whatsmeow.IQError{Code: iqErr.Code, Text: iqErr.Text})
+	}
+
+	return classify(op, err, write)
 }
 
 // classify gives what a group call returned its reason (request.go:152-182, errors.go). A write that went out and got
