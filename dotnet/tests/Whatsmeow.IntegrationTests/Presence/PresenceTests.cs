@@ -83,13 +83,7 @@ public sealed class PresenceTests(FakeSidecar fixture)
 		}
 
 		var source = new MessageSource { Chat = Jid.Parse(Deliveries.Chat), Sender = Jid.Parse(Deliveries.Chat), SenderAlt = null, RecipientAlt = null, IsFromMe = false };
-		Assert.Equal(
-			[
-				new ChatPresenceChanged { SessionId = SessionId.From(Session), Source = source, State = ChatPresenceState.Typing },
-				new ChatPresenceChanged { SessionId = SessionId.From(Session), Source = source, State = ChatPresenceState.Paused },
-			],
-			await chatPresences.NextAsync(2, ct)
-		);
+		PresenceChecks.ValidateTypingThenPaused(await chatPresences.NextAsync(2, ct), SessionId.From(Session), source);
 	}
 
 	[Fact(Timeout = Timeout)]

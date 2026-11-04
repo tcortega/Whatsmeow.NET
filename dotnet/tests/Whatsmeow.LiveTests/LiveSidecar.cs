@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Threading.Channels;
 using QRCoder;
 using Whatsmeow.Events;
 using Whatsmeow.IntegrationTests;
@@ -30,12 +31,26 @@ public sealed class LiveSidecar : IAsyncLifetime
 	/// <summary>What the owner sends to "Message yourself" from the phone (docs/guidelines/tests.md Live WhatsApp).</summary>
 	public const string PingText = "wmn ping";
 
-	/// <summary>How long a test waits for the owner's ping.</summary>
+	/// <summary>How the owner answers a question (<see cref="AskOwnerAsync"/>): a text to "Message yourself" starting with one of these.</summary>
+	public const string AnswerHint = "answer with \"wmn yes\" or \"wmn no\", and what you saw, to Message yourself";
+
+	/// <summary>
+	/// How long a session may take to get its backlog after it connects (<see cref="StayUntilCaughtUpAsync(IWhatsAppClient, CancellationToken)"/>):
+	/// the peer, a busy account, got about 5,300 events in 4 min before CaughtUp after a day offline [observed: #36 live
+	/// run 2026-11-04, ARCHITECTURE §14]. Every live test's timeout allows it (<see cref="LiveFactAttribute.CatchUpTimeout"/>).
+	/// </summary>
+	internal static TimeSpan CatchUpBound { get; } = TimeSpan.FromMilliseconds(LiveFactAttribute.CatchUpTimeout);
+
+	/// <summary>How long a test waits for the owner's ping, or for an answer.</summary>
 	internal static TimeSpan PingBound { get; } = TimeSpan.FromMinutes(5);
+
+	/// <summary>How long discarding the throwaway sessions at the end may take: a connect (<see cref="ConnectAsync"/>), then the logout and the delete.</summary>
+	private static readonly TimeSpan s_discardBound = TimeSpan.FromMinutes(3);
 
 	private readonly SemaphoreSlim _starting = new(1, 1);
 	private readonly List<string> _throwaway = [];
 	private readonly TaskCompletionSource<MessageReceived> _ping = new(TaskCreationOptions.RunContinuationsAsynchronously);
+	private readonly Channel<MessageReceived> _answers = Channel.CreateUnbounded<MessageReceived>();
 	private string? _directory;
 	private string? _binary;
 	private LiveLog? _log;
@@ -60,8 +75,8 @@ public sealed class LiveSidecar : IAsyncLifetime
 
 	/// <summary>
 	/// The live session, connected and CaughtUp. It must be paired already: the QR test pairs it. The first call on a
-	/// sidecar also starts watching for the owner's ping (<see cref="PingAsync"/>), before it connects, so a ping the
-	/// phone sent while the session was offline is seen too.
+	/// sidecar also starts watching for the owner's ping (<see cref="PingAsync"/>) and answers (<see cref="AskOwnerAsync"/>),
+	/// before it connects, so a ping the phone sent while the session was offline is seen too.
 	/// </summary>
 	public async Task<IWhatsAppClient> LiveAsync(CancellationToken cancellationToken)
 	{
@@ -71,6 +86,8 @@ public sealed class LiveSidecar : IAsyncLifetime
 			{
 				if (IsPing(e))
 					_ = _ping.TrySetResult(e);
+				if (IsAnswer(e))
+					_ = _answers.Writer.TryWrite(e);
 				return ValueTask.CompletedTask;
 			}
 		);
@@ -98,19 +115,54 @@ public sealed class LiveSidecar : IAsyncLifetime
 		return await _ping.Task.WaitAsync(PingBound, LiveClock.Time, cancellationToken).ConfigureAwait(false);
 	}
 
+	/// <summary>
+	/// Asks the owner, who looks at a phone, what it shows: the question goes to <c>owner-question.txt</c>, the log and
+	/// the test output, and the answer is the owner's next text to "Message yourself" that starts <c>wmn yes</c> or
+	/// <c>wmn no</c> (<see cref="AnswerHint"/>), sent after the question, within five minutes. The answer is logged and
+	/// returned; what it means is recorded, not checked.
+	/// </summary>
+	public async Task<string> AskOwnerAsync(string question, CancellationToken cancellationToken)
+	{
+		_ = await LiveAsync(cancellationToken).ConfigureAwait(false);
+		// An answer sent before this question is not one to it.
+		while (_answers.Reader.TryRead(out _)) { }
+
+		var shown = Path.Combine(OutputDirectory, "owner-question.txt");
+		await File.WriteAllTextAsync(shown, $"{question}{Environment.NewLine}({AnswerHint}){Environment.NewLine}", cancellationToken).ConfigureAwait(false);
+		Write($"live: OWNER QUESTION: {question} ({AnswerHint}, within {PingBound.TotalMinutes:F0} min)");
+		try
+		{
+			using var bound = LiveClock.Bound(PingBound, cancellationToken);
+			var text = DeliveryChecks.TextOf(await _answers.Reader.ReadAsync(bound.Token).ConfigureAwait(false))!.Trim();
+			Write($"live: the owner answered: {text}");
+			return text;
+		}
+		catch (OperationCanceledException e) when (!cancellationToken.IsCancellationRequested)
+		{
+			Write($"live: the owner did not answer within {PingBound.TotalMinutes:F0} min");
+			throw new TimeoutException($"The owner did not answer within {PingBound.TotalMinutes:F0} min: {question}", e);
+		}
+		finally
+		{
+			File.Delete(shown);
+		}
+	}
+
 	/// <summary>The live session's account, from <see cref="SessionInfo"/> (<see cref="AccountOfAsync"/>).</summary>
 	public async Task<(Jid Chat, Jid? Lid)> AccountAsync(CancellationToken cancellationToken) =>
 		await AccountOfAsync(await StartAsync(cancellationToken).ConfigureAwait(false), SessionId.From(LiveSessionId), cancellationToken).ConfigureAwait(false);
 
 	/// <summary>
 	/// A paired session's account: its own chat, this device's JID without the device, and its LID the same way, null
-	/// when WhatsApp sent none. It never creates the session.
+	/// when WhatsApp sent none. It never creates the session. Both user parts are redacted from then on (<see cref="LiveRedaction"/>).
 	/// </summary>
 	internal static async Task<(Jid Chat, Jid? Lid)> AccountOfAsync(WhatsmeowSidecar sidecar, SessionId id, CancellationToken cancellationToken)
 	{
 		var sessions = await sidecar.Sessions.ListAsync(cancellationToken).ConfigureAwait(false);
 		if (sessions.SingleOrDefault(s => s.Id == id) is not { Jid: { } jid } info)
 			throw new InvalidOperationException($"The session {id} is not paired (docs/guidelines/tests.md Live WhatsApp).");
+		LiveRedaction.Add(jid);
+		LiveRedaction.Add(info.Lid);
 		return (jid with { Device = 0 }, info.Lid is { } lid ? lid with { Device = 0 } : null);
 	}
 
@@ -165,17 +217,31 @@ public sealed class LiveSidecar : IAsyncLifetime
 		_ = await Logs.WaitForAsync(_ => Logs.Named("SidecarRestarted").Count > restarts, cancellationToken).ConfigureAwait(false);
 	}
 
-	/// <summary>Connects a paired session and returns its state once WhatsApp accepted the login.</summary>
+	/// <summary>How long a connect may take until WhatsApp accepted or refused the login (<see cref="ConnectAsync"/>).</summary>
+	private static readonly TimeSpan s_connectBound = TimeSpan.FromMinutes(2);
+
+	/// <summary>
+	/// Connects a paired session and returns its state once WhatsApp accepted the login, or a failure when it was still
+	/// connecting after two minutes.
+	/// </summary>
 	public static async Task<SessionState> ConnectAsync(IWhatsAppClient client, CancellationToken cancellationToken)
 	{
-		await client.ConnectAsync(cancellationToken).ConfigureAwait(false);
-		var watch = StateWatch.Start(client, cancellationToken);
-		await using (watch.ConfigureAwait(false))
+		using var bound = LiveClock.Bound(s_connectBound, cancellationToken);
+		try
 		{
-			var state = await watch.NextAsync().ConfigureAwait(false);
-			while (state is SessionState.Disconnected or SessionState.Connecting or SessionState.Reconnecting)
-				state = await watch.NextAsync().ConfigureAwait(false);
-			return state;
+			await client.ConnectAsync(bound.Token).ConfigureAwait(false);
+			var watch = StateWatch.Start(client, bound.Token);
+			await using (watch.ConfigureAwait(false))
+			{
+				var state = await watch.NextAsync().ConfigureAwait(false);
+				while (state is SessionState.Disconnected or SessionState.Connecting or SessionState.Reconnecting)
+					state = await watch.NextAsync().ConfigureAwait(false);
+				return state;
+			}
+		}
+		catch (OperationCanceledException e) when (!cancellationToken.IsCancellationRequested)
+		{
+			throw new TimeoutException($"{client.SessionId} did not log in within {s_connectBound.TotalMinutes:F0} min", e);
 		}
 	}
 
@@ -195,15 +261,15 @@ public sealed class LiveSidecar : IAsyncLifetime
 	/// <summary>Deletes what a person was shown, once a pairing ended.</summary>
 	public void DeleteShown()
 	{
-		foreach (var shown in new[] { "qr.png", "pairing-code.txt" })
+		foreach (var shown in new[] { "qr.png", "pairing-code.txt", "owner-question.txt" })
 			File.Delete(Path.Combine(OutputDirectory, shown));
 	}
 
 	/// <summary>
-	/// Keeps the session connected until WhatsApp sent the backlog (CaughtUp), at most two minutes, and returns how long
-	/// that took. A device that went offline about a second after Paired stayed "connecting" on the phone, and one held
-	/// online got CaughtUp 5 s after Connected [observed: the owner's phone, 2026-11-01]; that a new device must stay
-	/// online through its first sync is [inferred].
+	/// Keeps the session connected until WhatsApp sent the backlog (CaughtUp), at most <see cref="CatchUpBound"/>, and
+	/// returns how long that took. A device that went offline about a second after Paired stayed "connecting" on the
+	/// phone, and one held online got CaughtUp 5 s after Connected [observed: the owner's phone, 2026-11-01]; that a new
+	/// device must stay online through its first sync is [inferred].
 	/// </summary>
 	public Task<TimeSpan> StayUntilCaughtUpAsync(IWhatsAppClient client, CancellationToken cancellationToken) =>
 		StayUntilCaughtUpAsync(client, Write, cancellationToken);
@@ -212,12 +278,19 @@ public sealed class LiveSidecar : IAsyncLifetime
 	internal static async Task<TimeSpan> StayUntilCaughtUpAsync(IWhatsAppClient client, Action<string> log, CancellationToken cancellationToken)
 	{
 		var started = LiveClock.Time.GetTimestamp();
-		using var bound = LiveClock.Bound(TimeSpan.FromMinutes(2), cancellationToken);
-		var watch = StateWatch.Start(client, bound.Token);
-		await using (watch.ConfigureAwait(false))
-			await watch
-				.ReachesAsync(new SessionState.CaughtUp(), new SessionState.Connected(), new SessionState.Connecting(), new SessionState.Reconnecting())
-				.ConfigureAwait(false);
+		using var bound = LiveClock.Bound(CatchUpBound, cancellationToken);
+		try
+		{
+			var watch = StateWatch.Start(client, bound.Token);
+			await using (watch.ConfigureAwait(false))
+				await watch
+					.ReachesAsync(new SessionState.CaughtUp(), new SessionState.Connected(), new SessionState.Connecting(), new SessionState.Reconnecting())
+					.ConfigureAwait(false);
+		}
+		catch (OperationCanceledException e) when (!cancellationToken.IsCancellationRequested)
+		{
+			throw new TimeoutException($"{client.SessionId} was not CaughtUp within {CatchUpBound.TotalMinutes:F0} min", e);
+		}
 
 		var elapsed = LiveClock.Time.GetElapsedTime(started);
 		log($"live: {client.SessionId} CaughtUp {elapsed.TotalSeconds:F1} s after the session was usable");
@@ -228,11 +301,12 @@ public sealed class LiveSidecar : IAsyncLifetime
 	public Task ShowPairingCodeAsync(string code, CancellationToken cancellationToken) =>
 		File.WriteAllTextAsync(Path.Combine(OutputDirectory, "pairing-code.txt"), code, cancellationToken);
 
-	/// <summary>Writes a measurement to <c>sidecar.log</c>, redacted, and to the running test's output.</summary>
+	/// <summary>Writes a measurement to <c>sidecar.log</c>, after the UTC time and redacted, and to the running test's output.</summary>
 	public void Write(string line)
 	{
-		_log?.Write(line);
-		TestContext.Current.TestOutputHelper?.WriteLine(LogRedaction.Redact(line, LiveSettings.PhoneNumber));
+		var stamped = LiveClock.Stamp(line);
+		_log?.Write(stamped);
+		TestContext.Current.TestOutputHelper?.WriteLine(LiveRedaction.Redact(stamped));
 	}
 
 	/// <summary>
@@ -249,13 +323,19 @@ public sealed class LiveSidecar : IAsyncLifetime
 		if (state is SessionState.Connected or SessionState.CaughtUp)
 			await client.LogoutAsync(cancellationToken).ConfigureAwait(false);
 		await sidecar.Sessions.DeleteAsync(client.SessionId, cancellationToken).ConfigureAwait(false);
-		Assert.DoesNotContain(await sidecar.Sessions.ListAsync(cancellationToken).ConfigureAwait(false), session => session.Id == client.SessionId);
+		var sessions = await sidecar.Sessions.ListAsync(cancellationToken).ConfigureAwait(false);
+		LiveChecks.Redacting(() => Assert.DoesNotContain(sessions, session => session.Id == client.SessionId));
 	}
 
-	private static bool IsPing(MessageReceived e) =>
-		e.Source.IsFromMe
-		&& string.Equals(e.Source.Chat.User, e.Source.Sender.User, StringComparison.Ordinal)
-		&& string.Equals(DeliveryChecks.TextOf(e)?.Trim(), PingText, StringComparison.OrdinalIgnoreCase);
+	private static bool IsPing(MessageReceived e) => IsToSelf(e) && string.Equals(DeliveryChecks.TextOf(e)?.Trim(), PingText, StringComparison.OrdinalIgnoreCase);
+
+	private static bool IsAnswer(MessageReceived e) =>
+		IsToSelf(e)
+		&& DeliveryChecks.TextOf(e)?.Trim() is { } text
+		&& (text.StartsWith("wmn yes", StringComparison.OrdinalIgnoreCase) || text.StartsWith("wmn no", StringComparison.OrdinalIgnoreCase));
+
+	/// <summary>A message the account's own phone sent to its own chat.</summary>
+	private static bool IsToSelf(MessageReceived e) => e.Source.IsFromMe && string.Equals(e.Source.Chat.User, e.Source.Sender.User, StringComparison.Ordinal);
 
 	private async Task<WhatsmeowSidecar> StartAsync(CancellationToken cancellationToken)
 	{
@@ -310,9 +390,10 @@ public sealed class LiveSidecar : IAsyncLifetime
 	{
 		try
 		{
-			// By id: a stop since then (StopAsync) replaced the clients.
+			// By id: a stop since then (StopAsync) replaced the clients. Bounded, so a WhatsApp that never answers cannot hold the run.
+			using var bound = LiveClock.Bound(s_discardBound, CancellationToken.None);
 			foreach (var id in _throwaway)
-				await DiscardAsync(await SessionAsync(id, CancellationToken.None).ConfigureAwait(false), _sidecar!, CancellationToken.None).ConfigureAwait(false);
+				await DiscardAsync(await SessionAsync(id, bound.Token).ConfigureAwait(false), _sidecar!, bound.Token).ConfigureAwait(false);
 		}
 		finally
 		{

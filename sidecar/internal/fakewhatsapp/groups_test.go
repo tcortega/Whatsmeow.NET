@@ -73,9 +73,9 @@ func TestAGroupCallChangesTheGroupAndNotifiesEveryMember(t *testing.T) {
 		t.Fatalf("the member reads %+v, %v", info, err)
 	}
 
-	// Only an admin changes the settings [inferred: 403].
-	if err := member.SetGroupLocked(ctx, created.JID, true); !errors.Is(err, whatsmeow.ErrIQForbidden) {
-		t.Fatalf("a member's SetGroupLocked = %v, want 403", err)
+	// Only an admin changes the settings [inferred: 401, as for a locked group's name, observed live].
+	if err := member.SetGroupLocked(ctx, created.JID, true); !errors.Is(err, whatsmeow.ErrIQNotAuthorized) {
+		t.Fatalf("a member's SetGroupLocked = %v, want 401", err)
 	}
 
 	if err := owner.SetGroupLocked(ctx, created.JID, true); err != nil {
@@ -83,8 +83,8 @@ func TestAGroupCallChangesTheGroupAndNotifiesEveryMember(t *testing.T) {
 	}
 
 	// And, once it is locked, the info.
-	if err := member.SetGroupName(ctx, created.JID, "Mine"); !errors.Is(err, whatsmeow.ErrIQForbidden) {
-		t.Fatalf("a member's SetGroupName in a locked group = %v, want 403", err)
+	if err := member.SetGroupName(ctx, created.JID, "Mine"); !errors.Is(err, whatsmeow.ErrIQNotAuthorized) {
+		t.Fatalf("a member's SetGroupName in a locked group = %v, want 401", err)
 	}
 
 	if err := member.LeaveGroup(ctx, created.JID); err != nil {
@@ -135,7 +135,7 @@ func TestAddingAnswersForEachParticipant(t *testing.T) {
 func TestAResetLinkStopsWorkingAndTheNewOneJoins(t *testing.T) {
 	t.Parallel()
 
-	whatsApp, control, ctx, owner, _, db := linked(t)
+	whatsApp, control, ctx, owner, ownerGot, db := linked(t)
 	member, memberGot := second(ctx, t, whatsApp, control, db)
 
 	created, err := owner.CreateGroup(ctx, whatsmeow.ReqCreateGroup{Name: "Team"})
@@ -175,8 +175,12 @@ func TestAResetLinkStopsWorkingAndTheNewOneJoins(t *testing.T) {
 		t.Fatalf("JoinGroupWithLink = %v, %v", joined, err)
 	}
 
-	if evt := next[*events.JoinedGroup](t, memberGot); evt.Reason != "invite" || evt.JID != created.JID {
+	if evt := next[*events.JoinedGroup](t, memberGot); evt.Reason != "invite" || evt.JID != created.JID || evt.Sender != nil || evt.SenderPN != nil {
 		t.Fatalf("the member got %+v", evt)
+	}
+
+	if evt := next[*events.GroupInfo](t, ownerGot); evt.Sender != nil || evt.SenderPN != nil || evt.JoinReason != "invite" || fmt.Sprint(evt.Join) != "[1666@s.whatsapp.net]" {
+		t.Fatalf("the owner got %+v", evt)
 	}
 
 	// A member, not an admin: the link is 401 (group.go:432).
@@ -302,9 +306,9 @@ func TestTheMemberAddModeDecidesWhoAddsAndEveryMemberIsNotified(t *testing.T) {
 		t.Fatalf("the member reads %+v, %v", info, err)
 	}
 
-	// Only an admin sets it [inferred: 403].
-	if err := member.SetGroupMemberAddMode(ctx, created.JID, types.GroupMemberAddModeAdmin); !errors.Is(err, whatsmeow.ErrIQForbidden) {
-		t.Fatalf("a member's SetGroupMemberAddMode = %v, want 403", err)
+	// Only an admin sets it [observed: 401, #36 live run 2026-11-04, in a locked group].
+	if err := member.SetGroupMemberAddMode(ctx, created.JID, types.GroupMemberAddModeAdmin); !errors.Is(err, whatsmeow.ErrIQNotAuthorized) {
+		t.Fatalf("a member's SetGroupMemberAddMode = %v, want 401", err)
 	}
 
 	for _, mode := range []types.GroupMemberAddMode{types.GroupMemberAddModeAdmin, types.GroupMemberAddModeAllMember} {
@@ -395,13 +399,13 @@ func TestADisappearingTimerIsChangedAsTheGroupsInfoAndEveryMemberIsNotified(t *t
 		t.Fatalf("a timer not offered = %v, want 400", err)
 	}
 
-	// The group's info: once it is locked, only an admin changes it [inferred: 403].
+	// The group's info: once it is locked, only an admin changes it [observed: 401, #36 live run 2026-11-04].
 	if err := owner.SetGroupLocked(ctx, created.JID, true); err != nil {
 		t.Fatalf("SetGroupLocked: %v", err)
 	}
 
-	if err := member.SetDisappearingTimer(ctx, created.JID, whatsmeow.DisappearingTimer24Hours, time.Time{}); !errors.Is(err, whatsmeow.ErrIQForbidden) {
-		t.Fatalf("a member's timer in a locked group = %v, want 403", err)
+	if err := member.SetDisappearingTimer(ctx, created.JID, whatsmeow.DisappearingTimer24Hours, time.Time{}); !errors.Is(err, whatsmeow.ErrIQNotAuthorized) {
+		t.Fatalf("a member's timer in a locked group = %v, want 401", err)
 	}
 
 	// A direct chat's timer is a message the sidecar sends itself.
@@ -430,6 +434,13 @@ func TestALinksGroupInfoJoinsNothing(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetGroupInfo: %v", err)
 	}
+
+	// A link's group has no member add mode.
+	if want.MemberAddMode == "" {
+		t.Fatal("the group has no member add mode")
+	}
+
+	want.MemberAddMode = ""
 
 	before := []int{len(ownerGot), len(outsiderGot)}
 
@@ -460,6 +471,42 @@ func TestALinksGroupInfoJoinsNothing(t *testing.T) {
 
 	if _, err := outsider.GetGroupInfoFromLink(ctx, "NOPE"); !errors.Is(err, whatsmeow.ErrInviteLinkInvalid) || !errors.Is(err, whatsmeow.ErrIQNotAcceptable) {
 		t.Fatalf("an unknown link's info = %v", err)
+	}
+}
+
+// A member an admin removed is refused the group's info from its link with 401 [observed: #36 live run 2026-11-04]; once
+// added back, it reads it again.
+func TestALinksGroupInfoIsRefusedToAMemberAnAdminRemoved(t *testing.T) {
+	t.Parallel()
+
+	whatsApp, control, ctx, owner, _, db := linked(t)
+	member, _ := second(ctx, t, whatsApp, control, db)
+	user := parse(t, "1666@s.whatsapp.net")
+
+	created, err := owner.CreateGroup(ctx, whatsmeow.ReqCreateGroup{Name: "Team", Participants: []types.JID{user}})
+	if err != nil {
+		t.Fatalf("CreateGroup: %v", err)
+	}
+
+	link, err := owner.GetGroupInviteLink(ctx, created.JID, false)
+	if err != nil {
+		t.Fatalf("GetGroupInviteLink: %v", err)
+	}
+
+	if _, err := owner.UpdateGroupParticipants(ctx, created.JID, []types.JID{user}, whatsmeow.ParticipantChangeRemove); err != nil {
+		t.Fatalf("remove: %v", err)
+	}
+
+	if _, err := member.GetGroupInfoFromLink(ctx, link); !errors.Is(err, whatsmeow.ErrIQNotAuthorized) {
+		t.Fatalf("the removed member's link info = %v, want 401", err)
+	}
+
+	if _, err := owner.UpdateGroupParticipants(ctx, created.JID, []types.JID{user}, whatsmeow.ParticipantChangeAdd); err != nil {
+		t.Fatalf("add back: %v", err)
+	}
+
+	if info, err := member.GetGroupInfoFromLink(ctx, link); err != nil || info.JID != created.JID {
+		t.Fatalf("the member added back reads %+v, %v", info, err)
 	}
 }
 

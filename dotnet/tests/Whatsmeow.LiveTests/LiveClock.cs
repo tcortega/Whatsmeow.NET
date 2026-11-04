@@ -7,6 +7,9 @@ internal static class LiveClock
 	public static TimeProvider Time { get; } = TimeProvider.System;
 #pragma warning restore RS0030
 
+	/// <summary><paramref name="line"/> after the UTC time now, so a measurement in the log can be dated.</summary>
+	public static string Stamp(string line) => $"{Time.GetUtcNow():O} {line}";
+
 	/// <summary>A token that ends after <paramref name="bound"/> or with <paramref name="cancellationToken"/>.</summary>
 	public static BoundToken Bound(TimeSpan bound, CancellationToken cancellationToken) => new(bound, cancellationToken);
 }

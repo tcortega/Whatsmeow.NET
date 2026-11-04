@@ -10,10 +10,13 @@ public sealed class LogCapture : IDisposable
 	private readonly StreamWriter? _file;
 	private readonly Lock _fileLock = new();
 
-	/// <param name="sink">Also gets each record as a line, as it comes; the live tests write their log file with it.</param>
+	/// <param name="sink">
+	/// Also gets each record as a line, as it comes, with its exception's type and message after it; the live tests write
+	/// their log file with it. The client's own exceptions name a field, never its value (ARCHITECTURE §8.7).
+	/// </param>
 	public LogCapture(Action<string>? sink = null)
 	{
-		Collector = new FakeLogCollector(Options.Create(new FakeLogCollectorOptions { OutputSink = sink }));
+		Collector = new FakeLogCollector(Options.Create(new FakeLogCollectorOptions { OutputSink = sink, OutputFormatter = Line }));
 		_provider = new FakeLoggerProvider(Collector);
 		Factory = LoggerFactory.Create(builder => builder.AddProvider(_provider).SetMinimumLevel(LogLevel.Trace));
 	}
@@ -33,6 +36,23 @@ public sealed class LogCapture : IDisposable
 	}
 
 	public FakeLogCollector Collector { get; }
+
+	/// <summary>A record as the collector writes it by default, then its exception, which the default leaves out.</summary>
+	private static string Line(FakeLogRecord record) =>
+		$"[{record.Timestamp:mm:ss.fff}, {Level(record.Level)}] {record.Message}{(record.Exception is { } e ? $" ({e.GetType().Name}: {e.Message})" : "")}";
+
+	private static string Level(LogLevel level) =>
+		level switch
+		{
+			LogLevel.Trace => "trace",
+			LogLevel.Debug => "debug",
+			LogLevel.Information => " info",
+			LogLevel.Warning => " warn",
+			LogLevel.Error => "error",
+			LogLevel.Critical => " crit",
+			LogLevel.None => " none",
+			_ => " none",
+		};
 
 	public ILoggerFactory Factory { get; }
 

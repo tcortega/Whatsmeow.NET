@@ -47,15 +47,7 @@ public sealed class GroupModeLinkTimerTests(FakeSidecar fixture)
 		};
 
 	private static GroupInfoChanged Changed(string session, Jid group, Jid? sender, params GroupChange[] changes) =>
-		new()
-		{
-			SessionId = SessionId.From(session),
-			Group = group,
-			Sender = sender,
-			SenderAlt = null,
-			Timestamp = s_at,
-			Changes = [.. changes],
-		};
+		GroupChecks.Changed(SessionId.From(session), group, sender, senderAlt: null, s_at, changes);
 
 	[Fact(Timeout = Timeout)]
 	public async Task FullCycle_MemberAddMode_AdminsOnlyThenAllMembers_MembersSeeEachChangeAndOnlyThoseAllowedAdd()
@@ -100,8 +92,8 @@ public sealed class GroupModeLinkTimerTests(FakeSidecar fixture)
 
 		var thrown = await Assert.ThrowsAsync<WhatsAppErrorException>(() => member.SetGroupMemberAddModeAsync(group, GroupMemberAddMode.AllMembers, ct));
 
-		// A refusal for lack of admin rights has no reason of its own [inferred: 403].
-		Assert.Equal((WhatsmeowErrorCode.WhatsAppError, 403), (thrown.ErrorCode, thrown.Code));
+		// A refusal for lack of admin rights has no reason of its own [observed: 401, #36 live run 2026-11-04, in a locked group].
+		Assert.Equal((WhatsmeowErrorCode.WhatsAppError, 401), (thrown.ErrorCode, thrown.Code));
 		Assert.Equal(GroupMemberAddMode.AdminsOnly, (await member.GetGroupInfoAsync(group, ct)).MemberAddMode);
 	}
 
@@ -162,13 +154,32 @@ public sealed class GroupModeLinkTimerTests(FakeSidecar fixture)
 		var link = await admin.GetGroupInviteLinkAsync(group, ct);
 		var code = new Uri(link.ToString()["https://chat.whatsapp.com/".Length..], UriKind.Relative);
 
-		// Which participants WhatsApp lists for a non-member is [unknown]; the fake lists every member.
+		// Which participants WhatsApp lists for a non-member is [unknown]; the fake lists every member. The link's group
+		// has no member add mode, as WhatsApp sent it (ARCHITECTURE §14).
 		var expected = Created(group, "groups-preview-a", "Team", Member(Pn("5511922000002"))) with { Topic = "Plans" };
-		Assert.Equal(expected, await outsider.GetGroupInfoFromLinkAsync(link, ct));
-		Assert.Equal(expected, await outsider.GetGroupInfoFromLinkAsync(code, ct));
+		Assert.Equal(expected with { MemberAddMode = null }, await outsider.GetGroupInfoFromLinkAsync(link, ct));
+		Assert.Equal(expected with { MemberAddMode = null }, await outsider.GetGroupInfoFromLinkAsync(code, ct));
 
 		Assert.Empty(await outsider.GetGroupsAsync(ct));
 		Assert.Equal(expected, await admin.GetGroupInfoAsync(group, ct));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task GetGroupInfoFromLink_AMemberAnAdminRemoved_ThrowsWhatsAppErrorWithItsCode_UntilAddedBack()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var admin = await SessionSetup.ConnectedAsync(fixture, "groups-preview-removed-a", ct);
+		var removed = await SessionSetup.ConnectedAsync(fixture, "groups-preview-removed-b", ct);
+		var group = (await admin.CreateGroupAsync("Team", [Self("groups-preview-removed-b")], ct)).Group.Jid;
+		var link = await admin.GetGroupInviteLinkAsync(group, ct);
+		_ = await admin.RemoveParticipantsAsync(group, [Self("groups-preview-removed-b")], ct);
+
+		var thrown = await Assert.ThrowsAsync<WhatsAppErrorException>(() => removed.GetGroupInfoFromLinkAsync(link, ct));
+
+		// [observed: #36 live run 2026-11-04, the peer reading the group it was removed from]
+		Assert.Equal((WhatsmeowErrorCode.WhatsAppError, 401), (thrown.ErrorCode, thrown.Code));
+		_ = await admin.AddParticipantsAsync(group, [Self("groups-preview-removed-b")], ct);
+		Assert.Equal(group, (await removed.GetGroupInfoFromLinkAsync(link, ct)).Jid);
 	}
 
 	[Fact(Timeout = Timeout)]

@@ -188,6 +188,12 @@ Its database (`~/.whatsmeow-net-live/live.db` in `~/secrets.env`, a 0700 directo
 If the phone logs the session out, that run fails with `LoggedOut`, and the next run pairs it again by QR code.
 The phone-code test pairs a throwaway session, `live-phone`, and logs it out and deletes it at the end, so the phone keeps only the live session's device.
 Same assertions as the fake-mode suite: a live test calls the fake-mode tests' own checks (`Whatsmeow.IntegrationTests/Pairing/PairingChecks.cs`, through a project reference), and only the person replaces the fake. No live-only skips and no weakened equals.
+Each slice keeps them in `<Slice>Checks.cs` beside its fake-mode tests (`MediaChecks`, `MessageChecks`, `GroupChecks`, `PresenceChecks`, `ContactChecks`, `ChatStateChecks`), and both modes compare the whole record they build.
+What only WhatsApp sets (a message's source, push name and time, a group change's sender and time, an upload's URL) is passed in: the fake's are fixed, and a live test reads them off the event once it checked that they name the right account (`LiveChecks`).
+A question WhatsApp alone answers, [unknown] in ARCHITECTURE §14, is written to the log before any check, so a failing check still leaves the measurement.
+Each `live:` line starts with the UTC time, so §14 can date it, and names a JID only by its form (`LiveChecks.Form`); a live check's failure is redacted too (`LiveChecks.Equal`, `LiveChecks.Redacting`), since a record prints its JIDs.
+Redaction (`LiveRedaction`) takes out every JID user part, the test number, and both accounts' phone numbers and LIDs wherever they appear, a mention's bare `@user` included; a wait's failure names what was awaited, never its text.
+A live test reads only what is its own: the contacts test compares the peer's blocklist entries and never prints the account's other ones.
 The number and the database path are secrets: keep them in `~/secrets.env` and never print them; the live sidecar log redacts the number.
 Run, from the repository root, exporting only the variables the tests need (never source `~/secrets.env`; for the phone-code test, export `WHATSMEOW_LIVE_PHONE_NUMBER` the same way, and `WHATSMEOW_LIVE_OWNER=1` when the owner is at the phone):
 
@@ -199,13 +205,22 @@ dotnet test --project dotnet/tests/Whatsmeow.LiveTests -c Release
 ```
 
 The person watches `dotnet/artifacts/live/`: `qr.png` is the QR code to scan (rewritten on each rotation), only when the live or the peer session is not paired yet (the peer's with the second account's phone), and `pairing-code.txt` the code to enter on the phone; both are deleted at the end, and a QR payload is never written as text (it carries the device's ADV secret). `sidecar.log` is the sidecar's log, with every JID's user part and the test number redacted.
-The QR test stays connected until the live session is `CaughtUp`, at most two minutes, and prints how long that took: a device that went offline right after pairing stayed "connecting" on the phone (ADR 0021).
+The QR test stays connected until the live session is `CaughtUp`, at most ten minutes, as every first connect of a run does (`LiveSidecar.CatchUpBound`: the peer, a busy account, took 4 min after a day offline), and prints how long that took: a device that went offline right after pairing stayed "connecting" on the phone (ADR 0021).
 
 Every live test is in the `Live` collection: one after the other, on one `LiveSidecar` and one `LivePeer`.
 The live sidecar is a release build with `-tags livetest`, the live tests' seams ([ADR 0032](../adr/0032-live-test-seams-and-the-peer-session.md)): a loose id rule, and a handler that withholds the first answer to a text starting `wmn-withhold `. CI proves no release binary links them.
 The traffic is between two accounts: `peer`, a persistent session on the owner's second number, paired once by its own QR test like `live` and never logged out, deleted or re-paired, runs in a sidecar and on a database of its own; it sends the bursts to the live account and receives what the live session sends.
 A session's own JID comes from `SessionInfo.Jid` (this device's JID; the account's chat is it with device 0).
-Only the `NeedsOwner` tests need the owner's ping: `wmn ping` sent from the phone to "Message yourself", before the run or within five minutes of the first such test, a wait bounded apart from the test's own work.
+Only the `NeedsOwner` tests need the owner: some wait for the owner's ping, `wmn ping` sent from the phone to "Message yourself", before the run or within five minutes of the first such test, a wait bounded apart from the test's own work.
+The others ask the owner what a phone shows, the live account's or the peer's: the question goes to `owner-question.txt`, `sidecar.log` and the test output, and the owner answers with a text to "Message yourself" on the live account's phone that starts `wmn yes` or `wmn no`, with what they saw, within five minutes; the answer is logged, not checked.
+Every live test puts back what it changed, after its body, whatever the body did (`LiveRestore`): each restore runs on its own 30 s bound, whatever another threw; a failed one goes to the log, and fails the test only when the body passed, so the body's failure stays the one reported.
+What the API reads is set back to what it was: a group's name, topic, announce, lock, member add mode and roles, and the peer's membership.
+What it cannot read is set to the default: a chat is unmuted and marked read, a disappearing timer (the chat's or the group's) turned off, the peer unblocked (before the block test too, as an aborted run leaves it), and both sessions' presence unavailable.
+So the live tests assume the owner's own two test accounts, where those defaults are the state: never point them at accounts whose chats with each other are muted, unread, disappearing or blocked on purpose.
+The run's one group (`LiveGroup`) has the peer as its only other member; at the end the live session removes the peer and leaves, the closest WhatsApp has to deleting it. No other number is ever added to a group.
+The run's one group (`LiveGroup`) first closes the groups an aborted run left: the ones the live account owns, whose name is one a run gives or a test sets (`wmn live <time>`, with any ` crew` or ` not mine`), and whose only members are the two accounts.
+The ref lifetime test keeps its refs, media keys included, in the file `WHATSMEOW_LIVE_MEDIA_REFS` names, outside the repository (it refuses a path inside; the file is kept 0600); without it, it tries this run's ref only.
+The media size ladder sends 181 MiB of documents to the peer, so it runs only with `WHATSMEOW_LIVE_MEDIA_SIZES` set (`NeedsMediaSizes`).
 The kill tests call the fake-mode kill tests' checks (`Whatsmeow.IntegrationTests/Events/DeliveryChecks.cs`); the .NET kill runs `SidecarHost events-live` on the live database, so the live sidecar stops first and starts again after it.
 Every measurement goes to `sidecar.log` and the test output, redacted, for ARCHITECTURE §14; the peer's log goes to `peer.log`, and the .NET kill's host log to `host.log`.
 A sidecar exit the client did not ask for adds a `live: UNEXPECTED SIDECAR EXIT` line with its exit code and UTC time, in the log and the test output; one outside a kill test's own kill means something else killed it, and the run's results around it are not evidence.

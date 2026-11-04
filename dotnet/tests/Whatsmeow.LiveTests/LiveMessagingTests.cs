@@ -24,7 +24,7 @@ public sealed class LiveMessagingTests(LiveSidecar live, LivePeer peer)
 		var ping = await live.PingAsync(ct);
 
 		Assert.True(ping.Source.IsFromMe);
-		Assert.Equal(ping.Source.Chat.User, ping.Source.Sender.User);
+		LiveChecks.Equal(ping.Source.Chat.User, ping.Source.Sender.User);
 		live.Write(
 			$"live: the phone's ping came as {ping.Source.Chat.Server} chat, from device {ping.Source.Sender.Device}, "
 				+ $"its id {ping.Id.Value.Length} characters starting {ping.Id.Value[..Math.Min(4, ping.Id.Value.Length)]}"
@@ -64,12 +64,12 @@ public sealed class LiveMessagingTests(LiveSidecar live, LivePeer peer)
 
 		var first = await client.SendTextAsync(account, $"wmn self {id} (one message expected)", id, cancellationToken: ct);
 		var repeat = await client.SendTextAsync(account, $"wmn self {id} (one message expected)", id, cancellationToken: ct);
-		Assert.Equal(first, repeat);
+		LiveChecks.Equal(first, repeat);
 		live.Write($"live: sent to self as {first.Chat} (the account's chat {account}), at {first.Timestamp:O}");
 
 		await Task.Delay(s_watch, LiveClock.Time, ct);
 		live.Write($"live: {receipts.Count} receipts in {s_watch.TotalSeconds:F0} s: {string.Join(", ", receipts.Select(r => $"{r.Type} from {r.Source.Sender}"))}");
-		Assert.Empty(echoes);
+		LiveChecks.Redacting(() => Assert.Empty(echoes));
 	}
 
 	/// <summary>

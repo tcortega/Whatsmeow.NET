@@ -49,15 +49,7 @@ public sealed class GroupTests(FakeSidecar fixture)
 		};
 
 	private static GroupInfoChanged Changed(string session, Jid group, Jid? sender, params GroupChange[] changes) =>
-		new()
-		{
-			SessionId = SessionId.From(session),
-			Group = group,
-			Sender = sender,
-			SenderAlt = null,
-			Timestamp = s_at,
-			Changes = [.. changes],
-		};
+		GroupChecks.Changed(SessionId.From(session), group, sender, senderAlt: null, s_at, changes);
 
 	[Fact(Timeout = Timeout)]
 	public async Task GetGroups_TheSessionsGroups_EachWithNameTopicParticipantsAndRoles()
@@ -301,8 +293,8 @@ public sealed class GroupTests(FakeSidecar fixture)
 
 		var thrown = await Assert.ThrowsAsync<WhatsAppErrorException>(() => member.SetGroupNameAsync(group, "Mine", ct));
 
-		// A refusal for lack of admin rights has no reason of its own: WhatsApp's code says it [inferred: 403].
-		Assert.Equal((WhatsmeowErrorCode.WhatsAppError, 403), (thrown.ErrorCode, thrown.Code));
+		// A refusal for lack of admin rights has no reason of its own: WhatsApp's code says it [observed: 401, #36 live run 2026-11-04].
+		Assert.Equal((WhatsmeowErrorCode.WhatsAppError, 401), (thrown.ErrorCode, thrown.Code));
 		Assert.Equal("Team", (await member.GetGroupInfoAsync(group, ct)).Name);
 	}
 
@@ -316,15 +308,9 @@ public sealed class GroupTests(FakeSidecar fixture)
 		var group = (await admin.CreateGroupAsync("Team", [Self("groups-settings-b")], ct)).Group.Jid;
 		var by = Self("groups-settings-a");
 
-		await admin.SetGroupNameAsync(group, "Crew", ct);
-		await admin.SetGroupTopicAsync(group, "Plans for Monday", ct);
-		await admin.SetGroupAnnounceAsync(group, announce: true, ct);
-		await admin.SetGroupLockedAsync(group, locked: true, ct);
+		await GroupChecks.SetSettingsAsync(admin, group, "Crew", "Plans for Monday", ct);
 
-		Assert.Equal(Changed("groups-settings-b", group, by, new GroupChange.Renamed { Name = "Crew" }), await changes.NextAsync(ct));
-		Assert.Equal(Changed("groups-settings-b", group, by, new GroupChange.TopicChanged { Topic = "Plans for Monday" }), await changes.NextAsync(ct));
-		Assert.Equal(Changed("groups-settings-b", group, by, new GroupChange.AnnounceChanged { IsAnnounce = true }), await changes.NextAsync(ct));
-		Assert.Equal(Changed("groups-settings-b", group, by, new GroupChange.LockedChanged { IsLocked = true }), await changes.NextAsync(ct));
+		Assert.Equal(GroupChecks.Settings("Crew", "Plans for Monday").Select(change => Changed("groups-settings-b", group, by, change)), await changes.NextAsync(4, ct));
 
 		var expected = Created(group, "groups-settings-a", "Crew", Member(Self("groups-settings-b"))) with { Topic = "Plans for Monday", IsAnnounce = true, IsLocked = true };
 		Assert.Equal(expected, await member.GetGroupInfoAsync(group, ct));
@@ -365,13 +351,13 @@ public sealed class GroupTests(FakeSidecar fixture)
 		_ = Assert.Single(groups);
 		Assert.Equal(expected, groups[0]);
 
-		// The joiner gets the group, and the members who joined.
+		// The joiner gets the group, and the members who joined, each from no sender, as WhatsApp sent them (ARCHITECTURE §14).
 		Assert.Equal(
-			new GroupJoined { SessionId = SessionId.From("groups-invite-b"), Group = expected, Sender = Self("groups-invite-b"), SenderAlt = null },
+			new GroupJoined { SessionId = SessionId.From("groups-invite-b"), Group = expected, Sender = null, SenderAlt = null },
 			await joined.NextAsync(ct)
 		);
 		Assert.Equal(
-			Changed("groups-invite-a", group, Self("groups-invite-b"), new GroupChange.ParticipantJoined { Jid = Self("groups-invite-b") }),
+			Changed("groups-invite-a", group, sender: null, new GroupChange.ParticipantJoined { Jid = Self("groups-invite-b") }),
 			await adminChanges.NextAsync(ct)
 		);
 	}
