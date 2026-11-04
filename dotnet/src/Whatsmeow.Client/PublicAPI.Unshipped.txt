@@ -912,7 +912,7 @@ static Whatsmeow.Sessions.SessionState.operator ==(Whatsmeow.Sessions.SessionSta
 Whatsmeow.Sessions.WhatsmeowSessions
 Whatsmeow.Sessions.WhatsmeowSessions.DeleteAsync(Whatsmeow.SessionId sessionId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 Whatsmeow.Sessions.WhatsmeowSessions.GetOrCreateAsync(Whatsmeow.SessionId sessionId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Whatsmeow.IWhatsAppClient!>!
-Whatsmeow.Sessions.WhatsmeowSessions.ListAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Whatsmeow.Sessions.SessionInfo!>!>!
+Whatsmeow.Sessions.WhatsmeowSessions.ListAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Whatsmeow.Sessions.SessionInfo!>>!
 Whatsmeow.SidecarInfo
 Whatsmeow.SidecarInfo.<Clone>$() -> Whatsmeow.SidecarInfo!
 Whatsmeow.SidecarInfo.Commit.get -> string!

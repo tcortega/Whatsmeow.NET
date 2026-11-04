@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using Grpc.Core;
 using Whatsmeow.Core.Errors;
 using Whatsmeow.Protocol.V1;
@@ -75,7 +76,7 @@ public sealed class WhatsmeowSessions
 
 	/// <summary>Every session and its state, ordered by id.</summary>
 	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
-	public async Task<IReadOnlyList<SessionInfo>> ListAsync(CancellationToken cancellationToken = default)
+	public async Task<ImmutableArray<SessionInfo>> ListAsync(CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(_sidecar.IsDisposed, _sidecar);
 		var response = await RpcErrors.CallAsync(_client.ListSessionsAsync(new ListSessionsRequest(), cancellationToken: cancellationToken)).ConfigureAwait(false);
@@ -162,7 +163,7 @@ public sealed class WhatsmeowSessions
 		if (connected.Length == 0)
 			return;
 
-		IReadOnlyList<SessionInfo> sessions;
+		ImmutableArray<SessionInfo> sessions;
 		try
 		{
 			sessions = await ListAsync(cancellationToken).ConfigureAwait(false);
