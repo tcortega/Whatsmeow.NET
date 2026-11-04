@@ -452,7 +452,11 @@ Moved to [guidelines/go.md](guidelines/go.md): `context.Context` first, `%w` err
 | `Whatsmeow.Testing` | `FakeWhatsAppClient` (`RaiseAsync(event)`, `Calls`, `FailNext`), `UseFakeClient` for a host ([ADR 0036](adr/0036-testing-package-and-fake-client.md)) | stable; pinned to the exact `Whatsmeow.Client` and `Whatsmeow.Extensions.Hosting` version |
 | `Whatsmeow.Sidecar.Native.{Linux,MacOS,Windows}` | `whatsmeow-net` binaries under `runtimes/{rid}/native/` | pinned to the exact `Whatsmeow.Client` version |
 
-`Whatsmeow.Client` depends on the native packages with exact versions (`[x.y.z]`). Do not use a `runtime.json` pointer package.
+`Whatsmeow.Client` depends on the native packages and on `Whatsmeow.Protocol`, and `Whatsmeow.Protocol` on `Whatsmeow.Protocol.WhatsApp`, with exact versions (`[x.y.z]`, [ADR 0055](adr/0055-public-api-baseline-and-package-validation.md)). Do not use a `runtime.json` pointer package.
+
+The stable packages' public API is frozen in their `PublicAPI.Shipped.txt` from 1.0: removing or changing a shipped member is a break, which takes a new major version; a new member goes to `PublicAPI.Unshipped.txt`, and moves to Shipped before a stable tag.
+The `[Experimental("WMN1001")]` Raw hatch, and types derived outside the library from its abstract records, are outside that promise.
+Package validation compares every pack with the last stable release of the same major ([ADR 0055](adr/0055-public-api-baseline-and-package-validation.md)).
 
 ### 8.2 Public API shape (indicative)
 
@@ -477,7 +481,7 @@ SendResult result = await client.SendTextAsync(chat, "hello", cancellationToken:
 
 ### 8.3 Modeling rules
 
-- Events: `public abstract record WhatsAppEvent` with `sealed record` cases (`MessageReceived`, `ReceiptReceived`, `SessionStateChanged`, …). Message content is a separate `abstract record MessageContent` hierarchy with sealed cases (`TextContent`, `ImageContent`, …, `UnknownContent`). These are shaped so they can become C# `closed`/`union` types later without breaking users' `switch` statements.
+- Events: `public abstract record WhatsAppEvent` with `sealed record` cases (`MessageReceived`, `ReceiptReceived`, `SessionStateChanged`, …). Message content is a separate `abstract record MessageContent` hierarchy with sealed cases (`TextContent`, `ImageContent`, …, `UnknownContent`). These are shaped so they can become C# `closed`/`union` types later without breaking users' `switch` statements [inferred: the C# rules are not final]; code outside the library can still derive from them through the record's protected copy constructor, which cannot be narrowed (CS8878), so deriving is unsupported ([ADR 0055](adr/0055-public-api-baseline-and-package-validation.md)).
 - Identifiers: `MessageId` and `SessionId` are Vogen value objects; `Jid` is a hand-written `readonly struct Jid : ISpanParsable<Jid>`. `Jid` carries both PN and LID forms where known. Events always include `Sender`/`SenderAlt` and `Chat`/`RecipientAlt`. Rules and rationale: [guidelines/csharp.md](guidelines/csharp.md) IDs.
 - **Generated protobuf types never appear in the stable public API.** The only exception is the opt-in `Raw` escape hatch: `MessageReceived.Raw` (`[Experimental("WMN1001")]`, the message before whatsmeow unwrapped it, and outside the record's equality, #30) and `client.SendRawAsync(Jid, WAWebProtobufsE2E.Message, …)` (`[Experimental("WMN1001")]`, #9).
   These live in `Whatsmeow.Protocol.WhatsApp` types and are documented as unstable.
@@ -676,6 +680,7 @@ How to write each test, what is banned, and the can-it-fail check: [guidelines/t
 ## 12. Release and upstream tracking
 
 - One git tag (`vX.Y.Z`) drives MinVer, and `build/ci.sh package` builds the binaries at MinVer's version and packs every package at it. The versions are always equal; untagged, they are one pre-release ([ADR 0023](adr/0023-native-packages-build-pin-and-find.md)).
+- `build/ci.sh package` validates the stable packages against the highest stable release of the same major below the version it packs (`build/release.sh baseline`), restored from nuget.org, and refuses a stable version whose `PublicAPI.Unshipped.txt` files are not empty ([ADR 0055](adr/0055-public-api-baseline-and-package-validation.md)).
 - No Developer ID signing, notarization, or Authenticode (§14 questions 2 and 6).
   A binary restored by `dotnet restore` from nuget.org carries no `com.apple.quarantine` attribute, and an ad-hoc signed one runs even though `spctl` rejects it (§14 question 6) [inferred: Gatekeeper assesses only quarantined launches, which matches what we saw].
   Apple Silicon needs arm64 code to be signed at all [inferred: Apple platform rule, not measured here], and the Go linker ad-hoc signs `darwin/arm64` itself.
@@ -1077,6 +1082,7 @@ Phase 0 decisions:
 - [0051](adr/0051-member-add-mode-link-info-and-disappearing-timers.md): Groups: who may add members, a group's info from its invite link, and disappearing timers, a group's as a group setting and a direct chat's as a paced send; member add mode changes read from whatsmeow's `UnknownChanges`; disappearing changes recorded (#104, #105, #106)
 - [0052](adr/0052-events-start-when-pairing-yields-paired.md): Events start when pairing yields Paired: a session paired in the process gets its events with no `ConnectAsync`, a pairing that ends without `Paired` starts none, and remembering for a restart stays at the first code (#112)
 - [0054](adr/0054-user-docs-checked-samples-and-package-metadata.md): User docs: guides in `docs/guides/` that tag each claim's evidence, the README's code the samples' files checked byte for byte by `tools/check-repo`, a sample without DI (`EchoConsole`), and every package's nuget.org metadata and README, checked by `build/ci.sh install` (#51)
+- [0055](adr/0055-public-api-baseline-and-package-validation.md): The 1.0 public API baseline, after the review's renames (`SessionStateChanged`, `SessionState.TemporarilyBanned`, `MimeType`, `ImmutableArray` lists); a shipped member never removed or changed, `*REMOVED*` and protobuf types outside `[WMN1001]` rejected by `tools/check-repo`; package validation against the last stable release the tags name; `Whatsmeow.Protocol*` pinned exactly (#50)
 - [0056](adr/0056-aot-smoke-on-every-target-rid.md): AotSmoke with Native AOT from the local feed on every target RID, each on a native runner (musl in an Alpine container of its architecture), with the hosting path; packaging runs on main too (#44)
 
 House-rule alignment (applied, or opted out of with a measured reason):

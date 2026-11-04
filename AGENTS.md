@@ -56,6 +56,7 @@ No runtime reflection. Source generators, `[LoggerMessage]`, `[LibraryImport]`, 
 `ConfigureAwait(false)` everywhere. `CancellationToken` last, `Async` suffix. No sync-over-async.
 No interface just to mock it. `IWhatsAppClient` is the only exception.
 Generated protobuf types never in the stable public API, except the `[Experimental]` `Raw` hatch.
+A new public member goes to `PublicAPI.Unshipped.txt`; a shipped one is never removed or changed (ADR 0055).
 Global usings live in the csproj `ItemGroup Label="Usings"`; samples state theirs per file instead (ADR 0054).
 C# idioms: [docs/guidelines/csharp.md](docs/guidelines/csharp.md).
 Options and configuration: [docs/guidelines/options.md](docs/guidelines/options.md).

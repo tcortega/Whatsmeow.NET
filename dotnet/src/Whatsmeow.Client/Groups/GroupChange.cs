@@ -5,6 +5,10 @@ namespace Whatsmeow.Groups;
 /// in <see cref="GroupInfo.Participants"/>; the session's store learned their other form with the change
 /// (<see cref="IWhatsAppClient.ResolveJidsAsync"/>).
 /// </summary>
+/// <remarks>
+/// The library defines every case; a type derived from it elsewhere is unsupported, and the cases may become a closed
+/// set (ADR 0055).
+/// </remarks>
 public abstract record GroupChange
 {
 	private protected GroupChange()
