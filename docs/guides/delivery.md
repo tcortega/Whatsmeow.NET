@@ -14,7 +14,7 @@ At least once, through a crash of either process:
 * `ReceiptReceived`: every receipt but a retry receipt.
 * `GroupInfoChanged` and `GroupJoined`: group notifications.
 * History sync: the notification is queued before it is answered, and its messages come as `HistoryReceived` ([History](history.md)).
-* `ConnectionStateChanged`: the sidecar writes it itself.
+* `SessionStateChanged`: the sidecar writes it itself.
 
 Measured against real WhatsApp: with the sidecar killed in the middle of a burst of 20 messages, each one reached the handlers exactly once, in order, with its id, and with the .NET process killed while holding a message, the next process got that message and the ones after it again, each once and with its id [observed: §14, Phase 1 exit, run 3].
 

@@ -98,7 +98,7 @@ public sealed class PairingTests(FakeSidecar fixture)
 	{
 		var ct = TestContext.Current.CancellationToken;
 		var client = await Sessions.GetOrCreateAsync(SessionId.From("pair-events-cancelled"), ct);
-		using var received = new Received<ConnectionStateChanged>(client);
+		using var received = new Received<SessionStateChanged>(client);
 		using var cancel = CancellationTokenSource.CreateLinkedTokenSource(ct);
 		_ = await Assert.ThrowsAnyAsync<OperationCanceledException>(
 			async () =>
@@ -116,7 +116,7 @@ public sealed class PairingTests(FakeSidecar fixture)
 	{
 		var ct = TestContext.Current.CancellationToken;
 		var client = await Sessions.GetOrCreateAsync(SessionId.From("pair-events-expired"), ct);
-		using var received = new Received<ConnectionStateChanged>(client);
+		using var received = new Received<SessionStateChanged>(client);
 		_ = await Assert.ThrowsAsync<PairingException>(
 			() =>
 				PairAsync(
@@ -318,7 +318,7 @@ public sealed class PairingTests(FakeSidecar fixture)
 	/// waiting, and a reader started at the end of the pairing still lost the race to a later handler 9 times in 10
 	/// (ADR 0052).
 	/// </summary>
-	private async Task ValidateNoEventsStartedAsync(IWhatsAppClient client, Received<ConnectionStateChanged> received, string id, CancellationToken cancellationToken)
+	private async Task ValidateNoEventsStartedAsync(IWhatsAppClient client, Received<SessionStateChanged> received, string id, CancellationToken cancellationToken)
 	{
 		Assert.False(((SessionClient)client).EventsStarted);
 		await ReachesUnpairedAsync(client, cancellationToken).ConfigureAwait(false);
@@ -328,7 +328,7 @@ public sealed class PairingTests(FakeSidecar fixture)
 
 		SessionState[] states = [new SessionState.Pairing(), new SessionState.Created()];
 		Assert.Equal(
-			states.Select(state => new ConnectionStateChanged { SessionId = SessionId.From(id), State = state }),
+			states.Select(state => new SessionStateChanged { SessionId = SessionId.From(id), State = state }),
 			await received.NextAsync(states.Length, cancellationToken).ConfigureAwait(false)
 		);
 	}

@@ -151,11 +151,11 @@ public sealed class EventTests(FakeSidecar fixture)
 	}
 
 	[Fact(Timeout = Timeout)]
-	public async Task ConnectionState_EveryTransitionArrivesInOrder()
+	public async Task SessionState_EveryTransitionArrivesInOrder()
 	{
 		var ct = TestContext.Current.CancellationToken;
 		var client = await SessionSetup.LinkedAsync(fixture, "events-states", ct);
-		using var received = new Received<ConnectionStateChanged>(client);
+		using var received = new Received<SessionStateChanged>(client);
 
 		await client.ConnectAsync(ct);
 		var linkedAndConnected = await received.NextAsync(3, ct);
@@ -163,7 +163,7 @@ public sealed class EventTests(FakeSidecar fixture)
 
 		SessionState[] states = [new SessionState.Disconnected(), new SessionState.Connecting(), new SessionState.Connected(), new SessionState.Disconnected()];
 		Assert.Equal(
-			states.Select(state => new ConnectionStateChanged { SessionId = SessionId.From("events-states"), State = state }),
+			states.Select(state => new SessionStateChanged { SessionId = SessionId.From("events-states"), State = state }),
 			[.. linkedAndConnected, await received.NextAsync(ct)]
 		);
 	}
@@ -243,7 +243,7 @@ public sealed class EventTests(FakeSidecar fixture)
 		var messages = new List<WhatsAppEvent>();
 		while (messages.Count < 2)
 		{
-			if (await received.NextAsync(ct) is not ConnectionStateChanged and var e)
+			if (await received.NextAsync(ct) is not SessionStateChanged and var e)
 				messages.Add(e);
 		}
 

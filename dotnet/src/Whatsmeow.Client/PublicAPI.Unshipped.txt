@@ -196,17 +196,17 @@ Whatsmeow.Contacts.UserInfo.VerifiedBusinessName.get -> string?
 Whatsmeow.Contacts.UserInfo.VerifiedBusinessName.init -> void
 static Whatsmeow.Contacts.UserInfo.operator !=(Whatsmeow.Contacts.UserInfo? left, Whatsmeow.Contacts.UserInfo? right) -> bool
 static Whatsmeow.Contacts.UserInfo.operator ==(Whatsmeow.Contacts.UserInfo? left, Whatsmeow.Contacts.UserInfo? right) -> bool
-Whatsmeow.Events.ConnectionStateChanged
-override Whatsmeow.Events.ConnectionStateChanged.<Clone>$() -> Whatsmeow.Events.ConnectionStateChanged!
-Whatsmeow.Events.ConnectionStateChanged.ConnectionStateChanged() -> void
-Whatsmeow.Events.ConnectionStateChanged.Equals(Whatsmeow.Events.ConnectionStateChanged? other) -> bool
-override Whatsmeow.Events.ConnectionStateChanged.Equals(object? obj) -> bool
-override Whatsmeow.Events.ConnectionStateChanged.GetHashCode() -> int
-Whatsmeow.Events.ConnectionStateChanged.State.get -> Whatsmeow.Sessions.SessionState!
-Whatsmeow.Events.ConnectionStateChanged.State.init -> void
-override Whatsmeow.Events.ConnectionStateChanged.ToString() -> string!
-static Whatsmeow.Events.ConnectionStateChanged.operator !=(Whatsmeow.Events.ConnectionStateChanged? left, Whatsmeow.Events.ConnectionStateChanged? right) -> bool
-static Whatsmeow.Events.ConnectionStateChanged.operator ==(Whatsmeow.Events.ConnectionStateChanged? left, Whatsmeow.Events.ConnectionStateChanged? right) -> bool
+Whatsmeow.Events.SessionStateChanged
+override Whatsmeow.Events.SessionStateChanged.<Clone>$() -> Whatsmeow.Events.SessionStateChanged!
+Whatsmeow.Events.SessionStateChanged.SessionStateChanged() -> void
+Whatsmeow.Events.SessionStateChanged.Equals(Whatsmeow.Events.SessionStateChanged? other) -> bool
+override Whatsmeow.Events.SessionStateChanged.Equals(object? obj) -> bool
+override Whatsmeow.Events.SessionStateChanged.GetHashCode() -> int
+Whatsmeow.Events.SessionStateChanged.State.get -> Whatsmeow.Sessions.SessionState!
+Whatsmeow.Events.SessionStateChanged.State.init -> void
+override Whatsmeow.Events.SessionStateChanged.ToString() -> string!
+static Whatsmeow.Events.SessionStateChanged.operator !=(Whatsmeow.Events.SessionStateChanged? left, Whatsmeow.Events.SessionStateChanged? right) -> bool
+static Whatsmeow.Events.SessionStateChanged.operator ==(Whatsmeow.Events.SessionStateChanged? left, Whatsmeow.Events.SessionStateChanged? right) -> bool
 Whatsmeow.Events.HandlerError
 Whatsmeow.Events.HandlerError.<Clone>$() -> Whatsmeow.Events.HandlerError!
 Whatsmeow.Events.HandlerError.Equals(Whatsmeow.Events.HandlerError? other) -> bool
@@ -1014,7 +1014,7 @@ abstract Whatsmeow.Events.MessageContent.<Clone>$() -> Whatsmeow.Events.MessageC
 abstract Whatsmeow.Events.WhatsAppEvent.<Clone>$() -> Whatsmeow.Events.WhatsAppEvent!
 abstract Whatsmeow.Pairing.PairingUpdate.<Clone>$() -> Whatsmeow.Pairing.PairingUpdate!
 abstract Whatsmeow.Sessions.SessionState.<Clone>$() -> Whatsmeow.Sessions.SessionState!
-override sealed Whatsmeow.Events.ConnectionStateChanged.Equals(Whatsmeow.Events.WhatsAppEvent? other) -> bool
+override sealed Whatsmeow.Events.SessionStateChanged.Equals(Whatsmeow.Events.WhatsAppEvent? other) -> bool
 override sealed Whatsmeow.Events.MessageReceived.Equals(Whatsmeow.Events.WhatsAppEvent? other) -> bool
 override sealed Whatsmeow.Events.TextContent.Equals(Whatsmeow.Events.MessageContent? other) -> bool
 override sealed Whatsmeow.Events.UndecryptableMessageReceived.Equals(Whatsmeow.Events.WhatsAppEvent? other) -> bool

@@ -50,7 +50,7 @@ internal static class EventsHost
 			var stuck = new TaskCompletionSource();
 			var connected = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 			var client = await sidecar.Sessions.GetOrCreateAsync(SessionId.From(session), CancellationToken.None).ConfigureAwait(false);
-			using var states = client.On<ConnectionStateChanged>(
+			using var states = client.On<SessionStateChanged>(
 				(e, token) =>
 				{
 					if (e.State is SessionState.Connected)

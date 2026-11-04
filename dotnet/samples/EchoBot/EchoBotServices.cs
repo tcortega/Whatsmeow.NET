@@ -21,7 +21,7 @@ public static class EchoBotServices
 			.AddSession(Alice)
 			.AddSession(Bob)
 			.AddHandler<MessageReceived, EchoHandler>()
-			.AddHandler<ConnectionStateChanged, StateLog>()
+			.AddHandler<SessionStateChanged, StateLog>()
 			.AddHandler<HistoryReceived, HistoryLog>();
 		_ = services.AddHostedService<QrPairing>();
 		return whatsmeow;

@@ -19,7 +19,7 @@ The id is your own name and is never redacted: it appears as given in log lines 
 
 ## States
 
-`client.WatchStateAsync()` yields the current state first, then every change; the same changes also arrive as `ConnectionStateChanged` events.
+`client.WatchStateAsync()` yields the current state first, then every change; the same changes also arrive as `SessionStateChanged` events.
 
 | State | Means |
 |---|---|
