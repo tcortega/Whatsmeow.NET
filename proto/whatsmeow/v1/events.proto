@@ -6,9 +6,9 @@ import "google/protobuf/timestamp.proto";
 import "waE2E/WAWebProtobufsE2E.proto";
 import "whatsmeow/v1/chatstate.proto";
 import "whatsmeow/v1/contact.proto";
+import "whatsmeow/v1/group.proto";
 import "whatsmeow/v1/media.proto";
 import "whatsmeow/v1/presence.proto";
-import "whatsmeow/v1/group.proto";
 import "whatsmeow/v1/session.proto";
 
 // EventService delivers each session's events at least once, from the sidecar's durable outbox.

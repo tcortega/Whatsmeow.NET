@@ -1777,7 +1777,7 @@ var File_whatsmeow_v1_events_proto protoreflect.FileDescriptor
 
 const file_whatsmeow_v1_events_proto_rawDesc = "" +
 	"\n" +
-	"\x19whatsmeow/v1/events.proto\x12\fwhatsmeow.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x1cwhatsmeow/v1/chatstate.proto\x1a\x1awhatsmeow/v1/contact.proto\x1a\x18whatsmeow/v1/media.proto\x1a\x1bwhatsmeow/v1/presence.proto\x1a\x18whatsmeow/v1/group.proto\x1a\x1awhatsmeow/v1/session.proto\"\x9d\x01\n" +
+	"\x19whatsmeow/v1/events.proto\x12\fwhatsmeow.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x1cwhatsmeow/v1/chatstate.proto\x1a\x1awhatsmeow/v1/contact.proto\x1a\x18whatsmeow/v1/group.proto\x1a\x18whatsmeow/v1/media.proto\x1a\x1bwhatsmeow/v1/presence.proto\x1a\x1awhatsmeow/v1/session.proto\"\x9d\x01\n" +
 	"\rMessageSource\x12\x12\n" +
 	"\x04chat\x18\x01 \x01(\tR\x04chat\x12\x16\n" +
 	"\x06sender\x18\x02 \x01(\tR\x06sender\x12\x1d\n" +
@@ -2021,9 +2021,9 @@ func file_whatsmeow_v1_events_proto_init() {
 	}
 	file_whatsmeow_v1_chatstate_proto_init()
 	file_whatsmeow_v1_contact_proto_init()
+	file_whatsmeow_v1_group_proto_init()
 	file_whatsmeow_v1_media_proto_init()
 	file_whatsmeow_v1_presence_proto_init()
-	file_whatsmeow_v1_group_proto_init()
 	file_whatsmeow_v1_session_proto_init()
 	file_whatsmeow_v1_events_proto_msgTypes[9].OneofWrappers = []any{
 		(*StreamEventsResponse_Message)(nil),

@@ -27,9 +27,9 @@ namespace Whatsmeow.Protocol.V1 {
             "Chl3aGF0c21lb3cvdjEvZXZlbnRzLnByb3RvEgx3aGF0c21lb3cudjEaH2dv",
             "b2dsZS9wcm90b2J1Zi90aW1lc3RhbXAucHJvdG8aHXdhRTJFL1dBV2ViUHJv",
             "dG9idWZzRTJFLnByb3RvGhx3aGF0c21lb3cvdjEvY2hhdHN0YXRlLnByb3Rv",
-            "Ghp3aGF0c21lb3cvdjEvY29udGFjdC5wcm90bxoYd2hhdHNtZW93L3YxL21l",
-            "ZGlhLnByb3RvGht3aGF0c21lb3cvdjEvcHJlc2VuY2UucHJvdG8aGHdoYXRz",
-            "bWVvdy92MS9ncm91cC5wcm90bxoad2hhdHNtZW93L3YxL3Nlc3Npb24ucHJv",
+            "Ghp3aGF0c21lb3cvdjEvY29udGFjdC5wcm90bxoYd2hhdHNtZW93L3YxL2dy",
+            "b3VwLnByb3RvGhh3aGF0c21lb3cvdjEvbWVkaWEucHJvdG8aG3doYXRzbWVv",
+            "dy92MS9wcmVzZW5jZS5wcm90bxoad2hhdHNtZW93L3YxL3Nlc3Npb24ucHJv",
             "dG8inQEKDU1lc3NhZ2VTb3VyY2USEgoEY2hhdBgBIAEoCVIEY2hhdBIWCgZz",
             "ZW5kZXIYAiABKAlSBnNlbmRlchIdCgpzZW5kZXJfYWx0GAMgASgJUglzZW5k",
             "ZXJBbHQSIwoNcmVjaXBpZW50X2FsdBgEIAEoCVIMcmVjaXBpZW50QWx0EhwK",
@@ -143,7 +143,7 @@ namespace Whatsmeow.Protocol.V1 {
             "V2hhdHNtZW93LlByb3RvY29sLlYxygIMV2hhdHNtZW93XFYx4gIYV2hhdHNt",
             "ZW93XFYxXEdQQk1ldGFkYXRh6gINV2hhdHNtZW93OjpWMWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, global::Whatsmeow.Proto.WAWebProtobufsE2E.WAWebProtobufsE2EReflection.Descriptor, global::Whatsmeow.Protocol.V1.ChatstateReflection.Descriptor, global::Whatsmeow.Protocol.V1.ContactReflection.Descriptor, global::Whatsmeow.Protocol.V1.MediaReflection.Descriptor, global::Whatsmeow.Protocol.V1.PresenceReflection.Descriptor, global::Whatsmeow.Protocol.V1.GroupReflection.Descriptor, global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, global::Whatsmeow.Proto.WAWebProtobufsE2E.WAWebProtobufsE2EReflection.Descriptor, global::Whatsmeow.Protocol.V1.ChatstateReflection.Descriptor, global::Whatsmeow.Protocol.V1.ContactReflection.Descriptor, global::Whatsmeow.Protocol.V1.GroupReflection.Descriptor, global::Whatsmeow.Protocol.V1.MediaReflection.Descriptor, global::Whatsmeow.Protocol.V1.PresenceReflection.Descriptor, global::Whatsmeow.Protocol.V1.SessionReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Whatsmeow.Protocol.V1.ReceiptType), typeof(global::Whatsmeow.Protocol.V1.UnavailableType), typeof(global::Whatsmeow.Protocol.V1.HistorySyncType), typeof(global::Whatsmeow.Protocol.V1.HistorySyncFailure), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.MessageSource), global::Whatsmeow.Protocol.V1.MessageSource.Parser, new[]{ "Chat", "Sender", "SenderAlt", "RecipientAlt", "IsFromMe" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Protocol.V1.MessageInfo), global::Whatsmeow.Protocol.V1.MessageInfo.Parser, new[]{ "Source", "Id", "PushName", "MessageTime" }, null, null, null, null),
