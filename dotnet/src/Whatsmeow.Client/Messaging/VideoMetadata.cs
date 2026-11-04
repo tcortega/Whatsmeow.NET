@@ -9,7 +9,7 @@ namespace Whatsmeow.Messaging;
 public sealed record VideoMetadata
 {
 	/// <summary>The file's MIME type, such as <c>video/mp4</c>; null when unknown.</summary>
-	public string? Mimetype { get; init; }
+	public string? MimeType { get; init; }
 
 	/// <summary>The caption; null for none.</summary>
 	public string? Caption { get; init; }
@@ -29,7 +29,7 @@ public sealed record VideoMetadata
 	/// <summary>Compares every field, the thumbnail by content.</summary>
 	public bool Equals(VideoMetadata? other) =>
 		other is not null
-		&& string.Equals(Mimetype, other.Mimetype, StringComparison.Ordinal)
+		&& string.Equals(MimeType, other.MimeType, StringComparison.Ordinal)
 		&& string.Equals(Caption, other.Caption, StringComparison.Ordinal)
 		&& Width == other.Width
 		&& Height == other.Height
@@ -37,5 +37,5 @@ public sealed record VideoMetadata
 		&& JpegThumbnail.AsSpan().SequenceEqual(other.JpegThumbnail.AsSpan());
 
 	/// <inheritdoc/>
-	public override int GetHashCode() => HashCode.Combine(Mimetype, Caption, Width, Height, Duration);
+	public override int GetHashCode() => HashCode.Combine(MimeType, Caption, Width, Height, Duration);
 }

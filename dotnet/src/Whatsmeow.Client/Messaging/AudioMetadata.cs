@@ -13,7 +13,7 @@ public sealed record AudioMetadata
 	/// is not is reported to play on WhatsApp Web and stay silent on phones, which this library has not measured. The
 	/// library does not check it.
 	/// </summary>
-	public string? Mimetype { get; init; }
+	public string? MimeType { get; init; }
 
 	/// <summary>The length; null when unknown. WhatsApp carries whole seconds, so a fraction is dropped.</summary>
 	public TimeSpan? Duration { get; init; }
@@ -30,11 +30,11 @@ public sealed record AudioMetadata
 	/// <summary>Compares every field, the waveform by content.</summary>
 	public bool Equals(AudioMetadata? other) =>
 		other is not null
-		&& string.Equals(Mimetype, other.Mimetype, StringComparison.Ordinal)
+		&& string.Equals(MimeType, other.MimeType, StringComparison.Ordinal)
 		&& Duration == other.Duration
 		&& IsVoiceNote == other.IsVoiceNote
 		&& Waveform.AsSpan().SequenceEqual(other.Waveform.AsSpan());
 
 	/// <inheritdoc/>
-	public override int GetHashCode() => HashCode.Combine(Mimetype, Duration, IsVoiceNote);
+	public override int GetHashCode() => HashCode.Combine(MimeType, Duration, IsVoiceNote);
 }

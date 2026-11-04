@@ -1481,8 +1481,8 @@ Whatsmeow.Messaging.AudioMetadata.Duration.init -> void
 Whatsmeow.Messaging.AudioMetadata.Equals(Whatsmeow.Messaging.AudioMetadata? other) -> bool
 Whatsmeow.Messaging.AudioMetadata.IsVoiceNote.get -> bool
 Whatsmeow.Messaging.AudioMetadata.IsVoiceNote.init -> void
-Whatsmeow.Messaging.AudioMetadata.Mimetype.get -> string?
-Whatsmeow.Messaging.AudioMetadata.Mimetype.init -> void
+Whatsmeow.Messaging.AudioMetadata.MimeType.get -> string?
+Whatsmeow.Messaging.AudioMetadata.MimeType.init -> void
 Whatsmeow.Messaging.AudioMetadata.Waveform.get -> System.Collections.Immutable.ImmutableArray<byte>
 Whatsmeow.Messaging.AudioMetadata.Waveform.init -> void
 Whatsmeow.Messaging.DocumentMetadata
@@ -1495,8 +1495,8 @@ Whatsmeow.Messaging.DocumentMetadata.FileName.get -> string?
 Whatsmeow.Messaging.DocumentMetadata.FileName.init -> void
 Whatsmeow.Messaging.DocumentMetadata.JpegThumbnail.get -> System.Collections.Immutable.ImmutableArray<byte>
 Whatsmeow.Messaging.DocumentMetadata.JpegThumbnail.init -> void
-Whatsmeow.Messaging.DocumentMetadata.Mimetype.get -> string?
-Whatsmeow.Messaging.DocumentMetadata.Mimetype.init -> void
+Whatsmeow.Messaging.DocumentMetadata.MimeType.get -> string?
+Whatsmeow.Messaging.DocumentMetadata.MimeType.init -> void
 Whatsmeow.Messaging.ImageMetadata
 Whatsmeow.Messaging.ImageMetadata.<Clone>$() -> Whatsmeow.Messaging.ImageMetadata!
 Whatsmeow.Messaging.ImageMetadata.Caption.get -> string?
@@ -1507,8 +1507,8 @@ Whatsmeow.Messaging.ImageMetadata.Height.init -> void
 Whatsmeow.Messaging.ImageMetadata.ImageMetadata() -> void
 Whatsmeow.Messaging.ImageMetadata.JpegThumbnail.get -> System.Collections.Immutable.ImmutableArray<byte>
 Whatsmeow.Messaging.ImageMetadata.JpegThumbnail.init -> void
-Whatsmeow.Messaging.ImageMetadata.Mimetype.get -> string?
-Whatsmeow.Messaging.ImageMetadata.Mimetype.init -> void
+Whatsmeow.Messaging.ImageMetadata.MimeType.get -> string?
+Whatsmeow.Messaging.ImageMetadata.MimeType.init -> void
 Whatsmeow.Messaging.ImageMetadata.Width.get -> int?
 Whatsmeow.Messaging.ImageMetadata.Width.init -> void
 Whatsmeow.Messaging.StickerMetadata
@@ -1516,8 +1516,8 @@ Whatsmeow.Messaging.StickerMetadata.<Clone>$() -> Whatsmeow.Messaging.StickerMet
 Whatsmeow.Messaging.StickerMetadata.Equals(Whatsmeow.Messaging.StickerMetadata? other) -> bool
 Whatsmeow.Messaging.StickerMetadata.Height.get -> int?
 Whatsmeow.Messaging.StickerMetadata.Height.init -> void
-Whatsmeow.Messaging.StickerMetadata.Mimetype.get -> string?
-Whatsmeow.Messaging.StickerMetadata.Mimetype.init -> void
+Whatsmeow.Messaging.StickerMetadata.MimeType.get -> string?
+Whatsmeow.Messaging.StickerMetadata.MimeType.init -> void
 Whatsmeow.Messaging.StickerMetadata.PngThumbnail.get -> System.Collections.Immutable.ImmutableArray<byte>
 Whatsmeow.Messaging.StickerMetadata.PngThumbnail.init -> void
 Whatsmeow.Messaging.StickerMetadata.StickerMetadata() -> void
@@ -1534,8 +1534,8 @@ Whatsmeow.Messaging.VideoMetadata.Height.get -> int?
 Whatsmeow.Messaging.VideoMetadata.Height.init -> void
 Whatsmeow.Messaging.VideoMetadata.JpegThumbnail.get -> System.Collections.Immutable.ImmutableArray<byte>
 Whatsmeow.Messaging.VideoMetadata.JpegThumbnail.init -> void
-Whatsmeow.Messaging.VideoMetadata.Mimetype.get -> string?
-Whatsmeow.Messaging.VideoMetadata.Mimetype.init -> void
+Whatsmeow.Messaging.VideoMetadata.MimeType.get -> string?
+Whatsmeow.Messaging.VideoMetadata.MimeType.init -> void
 Whatsmeow.Messaging.VideoMetadata.VideoMetadata() -> void
 Whatsmeow.Messaging.VideoMetadata.Width.get -> int?
 Whatsmeow.Messaging.VideoMetadata.Width.init -> void

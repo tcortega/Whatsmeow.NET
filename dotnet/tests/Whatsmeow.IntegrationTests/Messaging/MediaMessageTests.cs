@@ -56,7 +56,7 @@ public sealed class MediaMessageTests(FakeSidecar fixture)
 			await client.SendImageAsync(
 				s_peer,
 				image,
-				new ImageMetadata { Mimetype = "image/jpeg", Caption = "look", Width = 640, Height = 480, JpegThumbnail = s_jpeg },
+				new ImageMetadata { MimeType = "image/jpeg", Caption = "look", Width = 640, Height = 480, JpegThumbnail = s_jpeg },
 				cancellationToken: ct
 			),
 			await client.SendVideoAsync(
@@ -64,7 +64,7 @@ public sealed class MediaMessageTests(FakeSidecar fixture)
 				video,
 				new VideoMetadata
 				{
-					Mimetype = "video/mp4",
+					MimeType = "video/mp4",
 					Caption = "watch",
 					Width = 1280,
 					Height = 720,
@@ -73,13 +73,13 @@ public sealed class MediaMessageTests(FakeSidecar fixture)
 				},
 				cancellationToken: ct
 			),
-			await client.SendAudioAsync(s_peer, audio, new AudioMetadata { Mimetype = "audio/mpeg", Duration = TimeSpan.FromSeconds(200) }, cancellationToken: ct),
+			await client.SendAudioAsync(s_peer, audio, new AudioMetadata { MimeType = "audio/mpeg", Duration = TimeSpan.FromSeconds(200) }, cancellationToken: ct),
 			await client.SendAudioAsync(
 				s_peer,
 				voice,
 				new AudioMetadata
 				{
-					Mimetype = "audio/ogg; codecs=opus",
+					MimeType = "audio/ogg; codecs=opus",
 					Duration = TimeSpan.FromSeconds(3),
 					IsVoiceNote = true,
 					Waveform = s_waveform,
@@ -91,7 +91,7 @@ public sealed class MediaMessageTests(FakeSidecar fixture)
 				document,
 				new DocumentMetadata
 				{
-					Mimetype = "application/pdf",
+					MimeType = "application/pdf",
 					FileName = "report.pdf",
 					Caption = "the numbers",
 					JpegThumbnail = s_jpeg,
@@ -101,7 +101,7 @@ public sealed class MediaMessageTests(FakeSidecar fixture)
 			await client.SendStickerAsync(
 				s_peer,
 				sticker,
-				new StickerMetadata { Mimetype = "image/webp", Width = 512, Height = 512, PngThumbnail = s_png },
+				new StickerMetadata { MimeType = "image/webp", Width = 512, Height = 512, PngThumbnail = s_png },
 				cancellationToken: ct
 			),
 		];
@@ -220,7 +220,7 @@ public sealed class MediaMessageTests(FakeSidecar fixture)
 				new ImageContent
 				{
 					Media = image,
-					Metadata = new ImageMetadata { Mimetype = "image/jpeg", Caption = "look", Width = 640, Height = 480, JpegThumbnail = s_jpeg },
+					Metadata = new ImageMetadata { MimeType = "image/jpeg", Caption = "look", Width = 640, Height = 480, JpegThumbnail = s_jpeg },
 					IsViewOnce = false,
 				}
 			),
@@ -229,7 +229,7 @@ public sealed class MediaMessageTests(FakeSidecar fixture)
 				new VideoContent
 				{
 					Media = video,
-					Metadata = new VideoMetadata { Mimetype = "video/mp4", Duration = TimeSpan.FromSeconds(12), Width = 1280, Height = 720 },
+					Metadata = new VideoMetadata { MimeType = "video/mp4", Duration = TimeSpan.FromSeconds(12), Width = 1280, Height = 720 },
 					IsViewOnce = false,
 				}
 			),
@@ -241,7 +241,7 @@ public sealed class MediaMessageTests(FakeSidecar fixture)
 				new AudioContent
 				{
 					Media = voice,
-					Metadata = new AudioMetadata { Mimetype = "audio/ogg; codecs=opus", Duration = TimeSpan.FromSeconds(3), IsVoiceNote = true, Waveform = s_waveform },
+					Metadata = new AudioMetadata { MimeType = "audio/ogg; codecs=opus", Duration = TimeSpan.FromSeconds(3), IsVoiceNote = true, Waveform = s_waveform },
 					IsViewOnce = false,
 				}
 			),
@@ -251,7 +251,7 @@ public sealed class MediaMessageTests(FakeSidecar fixture)
 				new AudioContent
 				{
 					Media = voice with { StreamingSidecar = s_sidecar },
-					Metadata = new AudioMetadata { Mimetype = "audio/mpeg" },
+					Metadata = new AudioMetadata { MimeType = "audio/mpeg" },
 					IsViewOnce = false,
 				}
 			),
@@ -270,7 +270,7 @@ public sealed class MediaMessageTests(FakeSidecar fixture)
 				new DocumentContent
 				{
 					Media = document,
-					Metadata = new DocumentMetadata { Mimetype = "application/pdf", FileName = "report.pdf", Caption = "the numbers" },
+					Metadata = new DocumentMetadata { MimeType = "application/pdf", FileName = "report.pdf", Caption = "the numbers" },
 				}
 			),
 			(
@@ -278,7 +278,7 @@ public sealed class MediaMessageTests(FakeSidecar fixture)
 				new StickerContent
 				{
 					Media = image,
-					Metadata = new StickerMetadata { Mimetype = "image/webp", Width = 512, Height = 512, PngThumbnail = s_png },
+					Metadata = new StickerMetadata { MimeType = "image/webp", Width = 512, Height = 512, PngThumbnail = s_png },
 				}
 			),
 			// Nothing in the message but the file: every metadata field is unknown.
