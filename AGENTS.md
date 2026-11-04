@@ -20,8 +20,8 @@ sidecar/               Go module `github.com/tcortega/Whatsmeow.NET/sidecar`: pr
 tools/                 Go module for repo tools (`check-repo`, `sync-protos`, `check-licenses`, `bump-report`, `parity-report`, the tests' `stub-sidecar`), kept out of the product module
 build/ci.sh            every CI check; the workflow only calls it
 build/release.sh       the release, tested by build/release-test.sh; release.yml only calls it (ADR 0050)
-dotnet/                `Whatsmeow.slnx` (never a .sln), src/, tests/, samples/ (`EchoBot`, the hosted sample, ADR 0049)
-docs/                  ARCHITECTURE, RESEARCH, guidelines/, adr/
+dotnet/                `Whatsmeow.slnx` (never a .sln), src/, tests/, samples/ (`EchoBot`, the hosted sample, ADR 0049; `EchoConsole`, without DI, ADR 0054)
+docs/                  ARCHITECTURE, RESEARCH, guidelines/, adr/, guides/ (the user guides)
 global.json mise.toml  .NET SDK pin; Go, buf, golangci-lint, protoc, protoc plugins and shellcheck pins
 nuget.config           nuget.org only
 AGENTS.md              this file (CLAUDE.md is a symlink to it; nothing may depend on it)
@@ -102,6 +102,8 @@ Sidecar (#4). Copy it for the next slice; do not invent a second pattern.
 | New error reason | `ErrorReason` in `proto/whatsmeow/v1/error.proto` + exception subtype (§8.7) |
 | DI, options, hosted supervisor | `dotnet/src/Whatsmeow.Extensions.Hosting/` |
 | A sample | `dotnet/samples/<Name>/`, public API only, its setup in one method; its FullCycle in `dotnet/tests/Whatsmeow.IntegrationTests/Samples/` calls that method plus `UseFakeWhatsApp()` (ADR 0049) |
+| A user guide | `docs/guides/<area>.md`, each claim plain, `[observed: where]`, `[inferred]` or `[unknown]`, with its § (ADR 0054) |
+| Code in `README.md` or a package README | a sample's whole file under `<!-- snippet: dotnet/samples/<path> -->`, checked byte for byte by `tools/check-repo` (ADR 0054) |
 | Consumer fakes | `dotnet/src/Whatsmeow.Testing/`; their tests, public API only, in `dotnet/tests/Whatsmeow.Testing.Tests/` (ADR 0036) |
 | Integration test (default) | `dotnet/tests/Whatsmeow.IntegrationTests/<Slice>/`, on the `FakeSidecar` fixture |
 | Live test (real WhatsApp, opt-in) | `dotnet/tests/Whatsmeow.LiveTests/`, `[LiveFact]` in the `Live` collection, with the fake-mode checks (ADR 0021, 0032) |
