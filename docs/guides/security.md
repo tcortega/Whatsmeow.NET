@@ -4,7 +4,8 @@
 
 The sidecar's SQLite database, `whatsmeow-net.db` by default, holds each session's long-term private keys, and anyone with a copy can read and send that account's messages (§10).
 
-* The sidecar creates it `0600`, readable by its owner only, before SQLite opens it; its `-wal` file inherits that mode, and the lock file next to it is `0600` too (§10). On Windows, Go's file modes set no ACL, so the file has its directory's [inferred: Go's `os.Chmod` documentation].
+* The sidecar creates it `0600`, readable by its owner only, before SQLite opens it; its `-wal` file inherits that mode, and the lock file next to it is `0600` too (§10).
+  On Windows, Go's file modes set no ACL, so the file has its directory's [inferred: Go's `os.Chmod` documentation].
 * Keep it on an encrypted disk.
 * Its temporary files, media on the way to and from WhatsApp, are in `<database>.tmp/`, `0700` and emptied at each start (§7.6).
 
@@ -21,7 +22,8 @@ Two live copies of one device make WhatsApp replace one with the other (`Replace
 
 A backup holds the same keys, so encrypt it yourself (§10).
 
-* With the sidecar stopped, copy the database together with its `-wal` and `-shm` files as they are. That is how this project's live tests take theirs, holding `<database>.lock` meanwhile so no sidecar can start [observed: `StoreBackupTests`].
+* With the sidecar stopped, copy the database together with its `-wal` and `-shm` files as they are.
+  That is how this project's live tests take theirs, holding `<database>.lock` meanwhile so no sidecar can start [observed: `StoreBackupTests`].
 * With the sidecar running, SQLite's `VACUUM INTO 'backup.db'`, for example from the `sqlite3` shell, writes a consistent copy [inferred: SQLite's documentation; not tested here].
 
 Restore a backup only when the database it came from is gone for good, never next to it.

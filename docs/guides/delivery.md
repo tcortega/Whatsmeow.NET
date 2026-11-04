@@ -4,8 +4,8 @@ What reaches your handlers, how often, and in which order.
 
 ## At least once, or best effort
 
-WhatsApp waits for a device to answer each stanza it sends, and sends it again when no answer comes.
-The sidecar records each event in its SQLite outbox and only then lets whatsmeow answer, so a crash of either process loses nothing.
+WhatsApp waits for a device to answer each message, receipt or notification it sends, and sends it again when no answer comes.
+The sidecar records each event in its SQLite database and only then lets whatsmeow answer, so a crash of either process loses nothing.
 That only works for the kinds whose answer whatsmeow lets a handler hold back; it answers the rest itself, recorded or not (§1, §14 question 4, read in whatsmeow's source).
 
 At least once, through a crash of either process:
@@ -20,17 +20,20 @@ Measured against real WhatsApp: with the sidecar killed in the middle of a burst
 
 Best effort, because whatsmeow answers them before or whatever the handler does:
 
-* `UndecryptableMessageReceived`. The content is recovered by WhatsApp's retry protocol: the sender's resend comes later as a normal, at least once `MessageReceived`. It has the same id when the sender is whatsmeow [observed: source] and, for other senders, [inferred]. The copy the account's own phone sends back is not held back (§7.2).
+* `UndecryptableMessageReceived`.
+  The content is recovered by WhatsApp's retry protocol: the sender's resend comes later as a normal, at least once `MessageReceived`.
+  It has the same id when the sender is whatsmeow [observed: source] and, for other senders, [inferred].
+  The copy the account's own phone sends back is not held back, so it is best effort too (§7.2).
 * `ReceiptReceived` of type `Retry`.
 * `ContactUpdated`, `ChatStateChanged` and `MediaRetryReceived`.
 * `PresenceChanged`, `ChatPresenceChanged` (typing) and `EphemeralEventsDropped`, below.
 
-Best effort means that a crash at the wrong moment can lose one: once an event is in the outbox, it reaches your handlers at least once like any other.
+Best effort means that a crash at the wrong moment can lose one: once an event is recorded, it reaches your handlers at least once like any other.
 Calls and status updates are not delivered at all (§1).
 
 ## Handlers must be idempotent
 
-At least once means an event can come again: after your process stops before acking it, and, for a message, even after you acked it, when the sidecar crashes before whatsmeow cleared its buffer of decrypted messages ([ADR 0049](../adr/0049-the-hosted-sample-and-its-fake-mode-check.md)).
+At least once means an event can come again: after your process stops before it acknowledged the event to the sidecar (an ack), and, for a message, even after you acked it, when the sidecar crashes before whatsmeow cleared its buffer of decrypted messages ([ADR 0049](../adr/0049-the-hosted-sample-and-its-fake-mode-check.md)).
 For messages, `SessionId` plus `MessageId` is the key to dedupe on (§8.4).
 Events without a message id, such as a group change or a session state, need an effect that is safe to repeat: set a value rather than add to it.
 
@@ -40,7 +43,7 @@ A send is idempotent by the same id: the sample echoes with a `MessageId` derive
 
 * Events of one chat run in order, one at a time.
 * Different chats run at the same time, up to 16 at once.
-* A session's state changes have a lane of their own, and so does its history, so history never holds up a live message.
+* A session's state changes run in a queue of their own, and so does its history, so history never holds up a live message.
 * Presence and typing run on a pipeline of their own that never acks (below).
 
 Nothing is dropped when your handlers are slow: the sidecar keeps every event in its database and sends more as your handlers finish (§8.4).
@@ -61,12 +64,12 @@ A session that nobody consumes keeps all its events, and in [External mode](exte
 
 ## Presence and typing
 
-Presence and typing are ephemeral: they bypass the outbox, have no ack, and are never repeated.
+Presence and typing are ephemeral: the sidecar never writes them to its database, they are never acknowledged, and never repeated.
 The sidecar keeps each session's newest 256 in memory and loses them on restart; a stream that falls behind gets an `EphemeralEventsDropped` with how many it missed ([ADR 0027](../adr/0027-ephemeral-events-presence-and-typing.md)).
 
 ## When the sidecar cannot record an event
 
-If writing an event fails, whatsmeow holds back its answer, and WhatsApp sends the stanza again at the session's next login.
+If writing an event fails, whatsmeow holds back its answer, and WhatsApp sends it again at the session's next login.
 In live runs it came again within 1.4 s of each of four logins, and never on a connection that stayed up 9 to 10 minutes [observed: §7.3]; that only a new connection brings it back is [inferred], and whether a connection that stays up longer ever does is [unknown].
 So the sidecar resets the connection 5 s after an answer was held back, at most once a minute, backing off to 30 minutes ([ADR 0044](../adr/0044-a-reset-after-a-withheld-answer.md)).
 In one live run the session was offline for 1.5 s and the message came again 6.9 s after it was held back [observed: §7.3, one run].

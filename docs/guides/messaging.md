@@ -29,7 +29,8 @@ Each session's sends leave one at a time, in order, at a burst of 5 and then one
 Which rates WhatsApp tolerates before it rate limits or bans an account is [unknown]; the defaults are a conservative guess.
 
 A send never waits for a connection: on a session that is not connected it fails at once with `NotConnectedException`, and so do the sends still queued when a session drops.
-WhatsApp's rate limit is retried after 1 s, 2 s and 4 s while your token allows, then fails with `RateLimitedException`. It has no retry delay: whatsmeow reads none [observed: §8.7], and whether WhatsApp sends one is [unknown].
+WhatsApp's rate limit is retried after 1 s, 2 s and 4 s while your token allows, then fails with `RateLimitedException`.
+It has no retry delay: whatsmeow reads none [observed: §8.7], and whether WhatsApp sends one is [unknown].
 A send has no deadline of its own: bound it with your cancellation token.
 
 ## Replies, mentions, reactions, edits and revokes

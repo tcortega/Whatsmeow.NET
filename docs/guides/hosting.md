@@ -50,7 +50,8 @@ Every option is checked when the host starts, so a bad value fails the start, ne
 
 * Starting: the sidecar starts and the declared sessions are created before any hosted service's `StartAsync`, so your services can use them; once every service started, the declared sessions that are paired and `Disconnected` are connected.
 * A failure on the way, a failed connect included, fails the host's start and leaves no sidecar running.
-* Stopping: the sidecar stops after every hosted service stopped. Handlers get the cancel and have the host's shutdown timeout to finish; one that ignores its token is left behind and its event comes again next time (§8.5).
+* Stopping: the sidecar stops after every hosted service stopped.
+  Handlers get the cancel and have the host's shutdown timeout to finish; one that ignores its token is left behind and its event comes again next time (§8.5).
 * A crash of the sidecar in between is the library's: it starts a new one and reconnects the sessions ([Sessions](sessions-and-pairing.md)).
 
 The library pairs nothing by itself: a hosted service that pairs unpaired sessions, like the sample's [`QrPairing`](../../dotnet/samples/EchoBot/QrPairing.cs), is yours to write.

@@ -2,7 +2,7 @@
 
 Whatsmeow.NET lets a .NET application use WhatsApp's multi-device protocol through [whatsmeow](https://github.com/tulir/whatsmeow), the Go library behind mautrix-whatsapp.
 Your app talks to `whatsmeow-net`, a small Go sidecar that ships inside the NuGet packages, and the library starts it, supervises it and hides it behind a plain C# API.
-It covers messages, media, groups, contacts, presence, receipts, history and chat state, it is Native AOT and trimming safe, and messages reach your handlers at least once, through a crash of either process ([Delivery](docs/guides/delivery.md) has the limits).
+It covers messages, media, groups, contacts, presence, receipts, history and chat state, and it is Native AOT and trimming safe.
 
 This is not an official WhatsApp client and has nothing to do with WhatsApp or Meta.
 WhatsApp can ban accounts it sees as automated, and which sending rates are safe is [unknown].
@@ -22,10 +22,21 @@ The sidecar binary for your platform comes with the package; you never install G
 
 A console app with one session that answers every text with the same text.
 The first run shows a QR code to scan with the phone (WhatsApp, Linked devices, Link a device), and later runs connect the paired session.
+It draws the QR code with QRCoder:
+
+```sh
+dotnet new console -n EchoConsole
+cd EchoConsole
+dotnet add package Whatsmeow.Client
+dotnet add package QRCoder
+```
+
+Then replace `Program.cs` with the first file below, and add the second as `Echo.cs`.
 
 <!-- snippet: dotnet/samples/EchoConsole/Program.cs -->
 ```csharp
 using EchoConsole;
+using Whatsmeow;
 
 // One WhatsApp session that echoes every text it gets, without DI. From NuGet the sidecar comes with the package; in
 // this repository, set WHATSMEOW_NET_SIDECAR_PATH to a whatsmeow-net you built. Scan the QR code with the phone:
@@ -46,6 +57,7 @@ await using (sidecar.ConfigureAwait(false))
 using System.Security.Cryptography;
 using System.Text;
 using QRCoder;
+using Whatsmeow;
 using Whatsmeow.Events;
 using Whatsmeow.Pairing;
 using Whatsmeow.Sessions;
@@ -66,15 +78,32 @@ public static class Echo
 		// The handler comes first: events start when the session connects or its pairing yields Paired.
 		var echo = client.On<MessageReceived>(async (e, ct) =>
 		{
-			// Never the account's own texts, nor an echo: two sessions that text each other would echo forever.
-			if (e.Source.IsFromMe || e.Content is not TextContent { Text: var text } || text.StartsWith(Prefix, StringComparison.Ordinal))
+			// Never a status (status@broadcast), which cannot be answered; never the account's own texts, nor an echo:
+			// two sessions that text each other would echo forever.
+			if (IsBroadcast(e.Source.Chat) || e.Source.IsFromMe || e.Content is not TextContent { Text: var text } || text.StartsWith(Prefix, StringComparison.Ordinal))
 				return;
 
-			// A message can come again, after a crash before its ack; the echo's id is the same each time, and a send
-			// of an id already sent is never sent again, so each text is echoed once.
+			// A message can come again, after a stop or a crash before its ack; the echo's id is the same each time, and a
+			// send of an id already sent is never sent again, so each text is echoed once.
 			_ = await client.SendTextAsync(e.Source.Chat, Prefix + text, EchoId(e), cancellationToken: ct).ConfigureAwait(false);
 		});
 
+		// A start that fails, a pairing nobody scanned in time included, stops echoing.
+		try
+		{
+			await PairOrConnectAsync(client, console, cancellationToken).ConfigureAwait(false);
+		}
+		catch
+		{
+			echo.Dispose();
+			throw;
+		}
+
+		return echo;
+	}
+
+	private static async Task PairOrConnectAsync(IWhatsAppClient client, TextWriter console, CancellationToken cancellationToken)
+	{
 		var state = await client.WatchStateAsync(cancellationToken).FirstAsync(cancellationToken).ConfigureAwait(false);
 		switch (state)
 		{
@@ -94,9 +123,9 @@ public static class Echo
 				await console.WriteLineAsync($"The session is {state}, so it neither pairs nor connects.").ConfigureAwait(false);
 				break;
 		}
-
-		return echo;
 	}
+
+	private static bool IsBroadcast(Jid chat) => string.Equals(chat.Server, "broadcast", StringComparison.Ordinal);
 
 	/// <summary>The echo's id, from the session, the chat and the message's id, in the only format a send takes: <c>3EB0</c> and 18 uppercase hex digits.</summary>
 	private static MessageId EchoId(MessageReceived e) =>
@@ -104,9 +133,7 @@ public static class Echo
 }
 ```
 
-There is no `ConnectAsync` after pairing: once pairing yields `Paired` the session is connected and its events reach your handlers.
-Register handlers before you pair or connect, so they get every event.
-After the first pairing, keep the app running until the session is `CaughtUp`: a device taken offline right after pairing stayed "connecting" on the phone [observed: §9 of the architecture], and that a new device has to stay online through its first sync is [inferred].
+Pairing starts the events, so there is no `ConnectAsync` after it; [Sessions and pairing](docs/guides/sessions-and-pairing.md) says why handlers come first and why a new device stays online until `CaughtUp`.
 
 ### With a host
 
@@ -115,6 +142,7 @@ The host starts the sidecar, connects the paired sessions, and calls your handle
 
 <!-- snippet: dotnet/samples/EchoBot/EchoBotServices.cs -->
 ```csharp
+using Microsoft.Extensions.DependencyInjection;
 using Whatsmeow.Events;
 using Whatsmeow.Extensions.Hosting;
 using Whatsmeow.History;
@@ -149,6 +177,8 @@ public static class EchoBotServices
 ```csharp
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Extensions.Logging;
+using Whatsmeow;
 using Whatsmeow.Events;
 using Whatsmeow.Extensions.Hosting;
 
@@ -188,7 +218,8 @@ Both samples are built and run against a fake WhatsApp in CI, and the code above
 
 ## What it guarantees
 
-* Messages, receipts, group notifications and history reach your handlers at least once, through a crash of either process; presence, typing, contact and chat state changes are best effort. [Delivery](docs/guides/delivery.md) has the full list.
+* Decrypted messages, receipts except retry receipts, group notifications and history reach your handlers at least once, through a crash of either process; undecryptable messages, presence, typing, contact and chat state changes are best effort.
+  [Delivery](docs/guides/delivery.md) has the full list.
 * So handlers must be idempotent, with `SessionId` plus `MessageId` as the key.
 * A send whose outcome is unknown is never retried for you, and repeating a `MessageId` never sends a message twice.
 

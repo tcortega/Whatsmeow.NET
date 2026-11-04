@@ -34,7 +34,8 @@ Or in configuration, `Whatsmeow:External:Address` and `Whatsmeow:External:TokenP
 * Disposing the client stops reading events and acks them, but never stops the sidecar.
 * `SidecarPath`, `DatabasePath`, `Transport`, `History` and `SendPacing` fail validation here: they configure a sidecar the client starts, and this one has its flags.
 * `MediaRoot` is your process's path to the sidecar's `--media-root`, and must be the same absolute path on both sides, such as a volume mounted at the same place.
-* `Consumer` names the client's place in each session's event stream, `client` by default. Several apps sharing one sidecar each need their own; a name nobody uses any more keeps its events in the database ([Delivery](delivery.md#acks-and-stopping)).
+* `Consumer` names the client's place in each session's event stream, `client` by default.
+  Several apps sharing one sidecar each need their own; a name nobody uses any more keeps its events in the database ([Delivery](delivery.md#acks-and-stopping)).
 
 ## The token
 

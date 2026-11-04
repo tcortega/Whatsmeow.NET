@@ -11,6 +11,7 @@ Two sessions that answer every text with the same text:
 
 <!-- snippet: dotnet/samples/EchoBot/EchoBotServices.cs -->
 ```csharp
+using Microsoft.Extensions.DependencyInjection;
 using Whatsmeow.Events;
 using Whatsmeow.Extensions.Hosting;
 using Whatsmeow.History;
@@ -45,6 +46,8 @@ public static class EchoBotServices
 ```csharp
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Extensions.Logging;
+using Whatsmeow;
 using Whatsmeow.Events;
 using Whatsmeow.Extensions.Hosting;
 

@@ -23,8 +23,12 @@ Several facts a consumer relies on are guarantees with limits, security duties, 
 - **A second sample, `dotnet/samples/EchoConsole/`**, without DI: one session, QR pairing, `On<MessageReceived>`, and `ConnectAsync` only for a paired session, since pairing starts the events (ADR 0052).
   Its one setup method, `Echo.StartAsync(IWhatsAppClient, TextWriter, CancellationToken)`, is what its FullCycle, `Samples/EchoConsoleTests.cs`, runs on the shared `FakeSidecar`; `Program.cs` adds only the sidecar's start and the wait for Enter.
 - **Code in the README is a sample file.** A fenced block under `<!-- snippet: <path> -->` must be that file, byte for byte but for line endings, and the path must be under `dotnet/samples/`, which CI builds.
-  `tools/check-repo` checks it in `README.md`, `docs/guides/*.md` and `dotnet/src/*/README.md`; in `README.md` and the package READMEs every C# block needs a marker, and `README.md` must show at least one sample, so the check can prove something. A guide may also show an unchecked fragment.
+  `tools/check-repo` checks it in `README.md` and every Markdown file under `docs/guides/` and `dotnet/src/`.
+  In `README.md` and under `dotnet/src/`, the packages' READMEs, every block without a marker must be `sh`, `json`, `xml` or `text`, so a block in another language, or in none, needs a marker; a fence is backticks or tildes, three or more, at any indentation.
+  `README.md` must show at least one sample, so the check can prove something.
+  A guide may also show an unchecked fragment.
   Whole files only, no regions: the README shows `EchoConsole` whole and EchoBot's `EchoBotServices.cs` and `EchoHandler.cs`.
+  A sample states its usings in each file and its csproj has no `Usings` group, so a file copied into a new project compiles: the samples are the exception to AGENTS.md's global usings.
 - **Package metadata** in `dotnet/src/Directory.Build.props`: `Authors` and `Copyright` as `NOTICE` says, the project and repository URLs, the tags, and `README.md` next to each project as the package's README (the native packages keep `Whatsmeow.Sidecar.Native.md`); each csproj sets its own `Description`, which joins the check-repo csproj allowlist.
   `build/ci.sh install` checks every package's description (not the SDK's default), tags, URLs, author and README, and that the README is the repository's file.
 
@@ -33,4 +37,4 @@ Several facts a consumer relies on are guarantees with limits, security duties, 
 - A change to a sample that the README shows fails `check-repo` until the README is updated, and the other way round.
 - A guide's fragment can still drift; only the samples are compiled.
 - `AudioMetadata.Mimetype`'s doc stated an unmeasured claim as fact; it now says it is not measured.
-- Tests: check-repo `TestCheckDocsShowSampleFilesAsTheyAre`, `TestCheckTheReadmeShowsASample`; `Samples/EchoConsoleTests.cs`; `build/ci.sh install` `packaged_metadata`.
+- Tests: check-repo `TestCheckDocsShowSampleFilesAsTheyAre`, `TestCheckTheReadmeShowsASample`; `Samples/EchoConsoleTests.cs`, whose redelivery test starts sidecars of its own, as EchoBot's does; `build/ci.sh install` `packaged_metadata`.

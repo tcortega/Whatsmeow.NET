@@ -26,22 +26,25 @@ The experimental `Raw` members work under AOT too, but their types change with w
 
 ## Containers
 
-* NuGet gives the binary an execute bit for its owner only, so an image whose files belong to root and that runs as another user cannot run it in place: the client copies it to `LocalApplicationData/whatsmeow-net/<version>/` and runs the copy [observed: ADR 0023], and does so on every start [inferred]. Set the mode in the image instead, for example `RUN chmod 755 /app/whatsmeow-net`.
+* NuGet gives the binary an execute bit for its owner only, so an image whose files belong to root and that runs as another user cannot run it in place: the client copies it to `LocalApplicationData/whatsmeow-net/<version>/` and runs the copy [observed: ADR 0023], and does so on every start [inferred].
+  Set the mode in the image instead, for example `RUN chmod 755 /app/whatsmeow-net`.
 * On a `noexec` mount the client takes the same copy route.
-* The sidecar lives and dies with your process. To run it as its own container, use [External mode](external-mode.md).
+* The sidecar lives and dies with your process.
+  To run it as its own container, use [External mode](external-mode.md).
 * Keep the database on a persistent volume, local to the node ([Security](security.md)).
 
 ## macOS and Windows
 
 The binaries are not notarized or Authenticode signed (§12).
-A binary restored by `dotnet restore` carries no quarantine attribute on macOS and no Mark of the Web on Windows, and runs [observed: §14 questions 2 and 6]; that Gatekeeper and SmartScreen leave it alone because of that is [inferred].
-An app you ship as a notarized macOS `.app` signs its embedded binaries in its own release, the sidecar included [inferred: standard macOS app signing, not measured here]; #45 tracks measuring it.
+What was measured is another nuget.org binary: the `protoc` that `dotnet restore` pulled from Grpc.Tools had no quarantine attribute on macOS and no Mark of the Web on Windows, and it and a locally built, unsigned sidecar ran [observed: §14 questions 2 and 6].
+That `whatsmeow-net` restored from nuget.org is the same is [inferred], and so is that Gatekeeper and SmartScreen leave it alone because of that.
+An app you ship as a notarized macOS `.app` signs its embedded binaries in its own release, the sidecar included [inferred: standard macOS app signing, not measured yet].
 On Windows a Job Object kills the sidecar when your process dies (§8.5).
 
 ## Capacity
 
 One sidecar holds many sessions in one database.
-The only measured figure is two sessions per sidecar against the fake WhatsApp, in the EchoBot sample's CI test; the live run with two real phones (#42) is still pending.
+The only measured figure is two sessions per sidecar against the fake WhatsApp, in the EchoBot sample's CI test; a run with two real phones is not measured yet.
 How many sessions one process handles against real WhatsApp, and the memory each takes, are [unknown].
 History holds at most one blob in memory at a time while it reads it ([History](history.md)).
 
@@ -58,8 +61,12 @@ var options = new WhatsmeowSidecarOptions { Transport = SidecarTransport.NamedPi
 
 or `"Whatsmeow": { "Transport": "NamedPipe" }` in configuration.
 
-**The binary is not found.** The exception lists the paths it tried. Check that your RID is one of the six, or set `SidecarPath`.
+**The binary is not found.**
+The exception lists the paths it tried.
+Check that your RID is one of the six, or set `SidecarPath`.
 
-**The database is in use.** Another `whatsmeow-net` holds it: one database has one sidecar at a time, and a second one fails before it is ready.
+**The database is in use.**
+Another `whatsmeow-net` holds it: one database has one sidecar at a time, and a second one fails before it is ready.
 
-**The start times out.** Raise `StartupTimeout`; the exception carries the end of the sidecar's stderr.
+**The start times out.**
+Raise `StartupTimeout`; the exception carries the end of the sidecar's stderr.

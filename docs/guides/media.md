@@ -42,7 +42,7 @@ Whether phones show metadata that does not match the file is [unknown] (ADR 0033
 
 A voice note is an audio message with `AudioMetadata.IsVoiceNote` set, which sets the message's push to talk flag (`PTT`).
 Encode it as Ogg Opus and say so: `Mimetype = "audio/ogg; codecs=opus"`.
-That phones need that format is [inferred], not measured here: a voice note in another format is reported to play on WhatsApp Web and stay silent on phones (#29).
+That phones need that format is [inferred], not measured here: a voice note in another format is reported to play on WhatsApp Web and stay silent on phones.
 The library does not check the format.
 Which range phones expect for a `Waveform` is [unknown]; 64 values peaking near 100 is the common choice.
 

@@ -5,4 +5,5 @@ WhatsApp's own protobuf messages (`Whatsmeow.Proto.*`), generated from [whatsmeo
 
 It is unstable: these types change whenever whatsmeow does, which can be every week, and a patch release of Whatsmeow.NET may carry such a change.
 
-License: MPL-2.0, as whatsmeow's definitions are. Source: [https://github.com/tcortega/Whatsmeow.NET](https://github.com/tcortega/Whatsmeow.NET).
+License: MPL-2.0, as whatsmeow's definitions are.
+Source: [https://github.com/tcortega/Whatsmeow.NET](https://github.com/tcortega/Whatsmeow.NET).

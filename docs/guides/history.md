@@ -5,13 +5,15 @@ It arrives apart from live messages, so your bot never answers an old message as
 
 ## What you get
 
-* `HistoryReceived`: a batch of `HistoryMessage`s, at most 256 and 1 MiB per batch, with the batch's `SyncType`.
+* `HistoryReceived`: a batch of `HistoryMessage`s, at most 256 and 1 MiB per batch, a larger message alone, with the batch's `SyncType`.
 * `HistorySyncProgressed`: one per blob once its batches are delivered, with its counts, and `Failure` when the blob could not be downloaded or read.
 
 A history message is not a `MessageReceived`, so live handlers never see it.
 Poll votes in a blob follow their poll in the same batch; status updates are never delivered and are counted as skipped (§7.7).
 
 History is at least once like live messages: a blob half delivered when the sidecar stops is downloaded again and goes on from its next message.
+Two kinds of message never arrive: one over 15 MiB, and one that does not parse, a parse that panics included.
+Each counts in its blob's `HistorySyncProgressed.SkippedCount`, with the status updates (§7.7).
 Dedupe on `SessionId` plus `MessageId`, as for live messages.
 
 ## Live traffic first

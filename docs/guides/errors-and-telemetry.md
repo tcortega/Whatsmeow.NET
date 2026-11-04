@@ -23,7 +23,8 @@ Switch on `ErrorCode` or catch the subtype; never parse the message.
 | `WhatsmeowValidationException` | `InvalidArgument`: a value of yours the library or the sidecar refused |
 | `WhatsmeowException` | `Internal`, `ConsumerReplaced`, `WhatsAppTimedOut`, `NoPushName`, `InviteLinkInvalid`, `PollSecretNotFound`, `Unknown` |
 
-* `OutcomeUnknown` is only for writes: the request may have reached WhatsApp and no answer came. Never retried for you ([Messaging](messaging.md)).
+* `OutcomeUnknown` is only for writes: the request may have reached WhatsApp and no answer came.
+  It is never retried for you ([Messaging](messaging.md)).
 * `WhatsAppTimedOut` is a read WhatsApp did not answer in time: nothing changed, so it is safe to try again.
 * `Internal` is the library's own fault, such as a value from the sidecar it cannot read; please report it.
 * `RateLimitedException` has no retry delay: whatsmeow reads none [observed: §8.7], and whether WhatsApp sends one is [unknown].
@@ -61,7 +62,8 @@ Spans ([ADR 0037](../adr/0037-traces-and-metrics.md)):
 
 * `whatsmeow.send`: one message send.
 * `whatsmeow.media.upload` and `whatsmeow.media.download`: one transfer.
-* `whatsmeow.process`: the handlers of one event, each running inside it, so your handler's spans are its children. It is a root span: no context crosses the socket.
+* `whatsmeow.process`: the handlers of one event, each running inside it, so your handler's spans are its children.
+  It is a root span: no context crosses the socket.
 
 Instruments:
 
