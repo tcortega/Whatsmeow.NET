@@ -37,6 +37,9 @@ public sealed class LiveSidecar : IAsyncLifetime
 	/// <summary>How long a test waits for the owner's ping, or for an answer.</summary>
 	internal static TimeSpan PingBound { get; } = TimeSpan.FromMinutes(5);
 
+	/// <summary>How long discarding the throwaway sessions at the end may take: a connect (<see cref="ConnectAsync"/>), then the logout and the delete.</summary>
+	private static readonly TimeSpan s_discardBound = TimeSpan.FromMinutes(3);
+
 	private readonly SemaphoreSlim _starting = new(1, 1);
 	private readonly List<string> _throwaway = [];
 	private readonly TaskCompletionSource<MessageReceived> _ping = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -207,17 +210,31 @@ public sealed class LiveSidecar : IAsyncLifetime
 		_ = await Logs.WaitForAsync(_ => Logs.Named("SidecarRestarted").Count > restarts, cancellationToken).ConfigureAwait(false);
 	}
 
-	/// <summary>Connects a paired session and returns its state once WhatsApp accepted the login.</summary>
+	/// <summary>How long a connect may take until WhatsApp accepted or refused the login (<see cref="ConnectAsync"/>).</summary>
+	private static readonly TimeSpan s_connectBound = TimeSpan.FromMinutes(2);
+
+	/// <summary>
+	/// Connects a paired session and returns its state once WhatsApp accepted the login, or a failure when it was still
+	/// connecting after two minutes.
+	/// </summary>
 	public static async Task<SessionState> ConnectAsync(IWhatsAppClient client, CancellationToken cancellationToken)
 	{
-		await client.ConnectAsync(cancellationToken).ConfigureAwait(false);
-		var watch = StateWatch.Start(client, cancellationToken);
-		await using (watch.ConfigureAwait(false))
+		using var bound = LiveClock.Bound(s_connectBound, cancellationToken);
+		try
 		{
-			var state = await watch.NextAsync().ConfigureAwait(false);
-			while (state is SessionState.Disconnected or SessionState.Connecting or SessionState.Reconnecting)
-				state = await watch.NextAsync().ConfigureAwait(false);
-			return state;
+			await client.ConnectAsync(bound.Token).ConfigureAwait(false);
+			var watch = StateWatch.Start(client, bound.Token);
+			await using (watch.ConfigureAwait(false))
+			{
+				var state = await watch.NextAsync().ConfigureAwait(false);
+				while (state is SessionState.Disconnected or SessionState.Connecting or SessionState.Reconnecting)
+					state = await watch.NextAsync().ConfigureAwait(false);
+				return state;
+			}
+		}
+		catch (OperationCanceledException e) when (!cancellationToken.IsCancellationRequested)
+		{
+			throw new TimeoutException($"{client.SessionId} did not log in within {s_connectBound.TotalMinutes:F0} min", e);
 		}
 	}
 
@@ -359,9 +376,10 @@ public sealed class LiveSidecar : IAsyncLifetime
 	{
 		try
 		{
-			// By id: a stop since then (StopAsync) replaced the clients.
+			// By id: a stop since then (StopAsync) replaced the clients. Bounded, so a WhatsApp that never answers cannot hold the run.
+			using var bound = LiveClock.Bound(s_discardBound, CancellationToken.None);
 			foreach (var id in _throwaway)
-				await DiscardAsync(await SessionAsync(id, CancellationToken.None).ConfigureAwait(false), _sidecar!, CancellationToken.None).ConfigureAwait(false);
+				await DiscardAsync(await SessionAsync(id, bound.Token).ConfigureAwait(false), _sidecar!, bound.Token).ConfigureAwait(false);
 		}
 		finally
 		{
