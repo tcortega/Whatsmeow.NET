@@ -17,11 +17,12 @@ namespace Whatsmeow.LiveTests;
 public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup group) : IClassFixture<LiveGroup>
 {
 	/// <summary>
-	/// A group test's timeout: the group's creation on first use (closing what an earlier run left, then waits of 60 s),
-	/// its own work (at most two 60 s waits), and putting the group back (at most five restores of 30 s each,
-	/// <see cref="LiveRestore.Bound"/>), with room to spare.
+	/// A group test's timeout: a session's backlog on first use (<see cref="LiveFactAttribute.CatchUpTimeout"/>), the
+	/// group's creation on first use (closing what an earlier run left, then waits of 60 s), its own work (at most two
+	/// 60 s waits), and putting the group back (at most five restores of 30 s each, <see cref="LiveRestore.Bound"/>),
+	/// with room to spare.
 	/// </summary>
-	private const int GroupTimeout = 600_000;
+	private const int GroupTimeout = 600_000 + LiveFactAttribute.CatchUpTimeout;
 
 	/// <summary>
 	/// The create answer is the group's info, as GetGroupInfo reads it: the run's name, no topic or settings, the live
@@ -153,10 +154,10 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 				live.Write($"live: the non-admin peer setting the group's disappearing timer to 7 days: {Outcome(timer)}");
 
 				var thrown = Assert.IsType<WhatsAppErrorException>(renamed);
-				LiveChecks.Equal((WhatsmeowErrorCode.WhatsAppError, 403), (thrown.ErrorCode, thrown.Code));
+				LiveChecks.Equal((WhatsmeowErrorCode.WhatsAppError, 401), (thrown.ErrorCode, thrown.Code));
 				LiveChecks.Equal(before.Name, (await other.GetGroupInfoAsync(jid, ct).ConfigureAwait(false)).Name);
 				var refusedMode = Assert.IsType<WhatsAppErrorException>(addMode);
-				LiveChecks.Equal((WhatsmeowErrorCode.WhatsAppError, 403), (refusedMode.ErrorCode, refusedMode.Code));
+				LiveChecks.Equal((WhatsmeowErrorCode.WhatsAppError, 401), (refusedMode.ErrorCode, refusedMode.Code));
 				LiveChecks.Equal(mode, (await other.GetGroupInfoAsync(jid, ct).ConfigureAwait(false)).MemberAddMode);
 			},
 			// What WhatsApp took, if it took any, is undone, so the later tests see a non-admin peer and the run's name.
@@ -169,8 +170,9 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 	}
 
 	/// <summary>
-	/// The live session removes the peer; the peer, no member, reads the group from its link without joining, what it is
-	/// shown going to the log (the members a non-member sees, and their forms, are [unknown]). The live session resets
+	/// The peer leaves; no member, it reads the group from its link without joining, what it is shown going to the log
+	/// (the members a non-member sees, and their forms, are [unknown]). It leaves rather than being removed: WhatsApp
+	/// refuses a member an admin removed the link's group with 401 (ARCHITECTURE §14). The live session resets
 	/// the link: the old one no longer works, and the peer joins by the new one, gets <see cref="GroupJoined"/>, and the
 	/// live session sees it join, as in the fake-mode invite and preview tests.
 	/// </summary>
@@ -182,15 +184,12 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 		var client = await live.LiveAsync(ct);
 		var other = await peer.ConnectedAsync(live, ct);
 		var peerAccount = await peer.AccountAsync(ct);
-		var member = (await client.GetGroupInfoAsync(jid, ct)).Participants.Single(p => LiveChecks.Names(peerAccount, p.Jid)).Jid;
 
 		await LiveRestore.AfterAsync(
 			live,
 			async () =>
 			{
-				var removals = await client.RemoveParticipantsAsync(jid, [member], ct).ConfigureAwait(false);
-				var removed = LiveChecks.Redacting(() => Assert.Single(removals));
-				LiveChecks.Equal(new ParticipantResult { Jid = removed.Jid, JidAlt = removed.JidAlt, Outcome = new ParticipantOutcome.Done() }, removed);
+				await other.LeaveGroupAsync(jid, ct).ConfigureAwait(false);
 				var link = await client.GetGroupInviteLinkAsync(jid, ct).ConfigureAwait(false);
 				var adminView = await client.GetGroupInfoAsync(jid, ct).ConfigureAwait(false);
 				var preview = await other.GetGroupInfoFromLinkAsync(link, ct).ConfigureAwait(false);

@@ -17,12 +17,18 @@ public sealed class LiveFactAttribute : FactAttribute
 	/// <summary>A person scans the code or types it in: WhatsApp's QR codes ran out after 160 seconds when measured.</summary>
 	private const int WorkTimeout = 300_000;
 
+	/// <summary>
+	/// What every live test's timeout adds for the session's backlog, which the first test to connect a session waits
+	/// for (<see cref="LiveSidecar.CatchUpBound"/>); a test that sets its own timeout adds it too.
+	/// </summary>
+	public const int CatchUpTimeout = 600_000;
+
 	/// <summary>Creates the attribute; xUnit passes the caller's file and line.</summary>
 	public LiveFactAttribute([CallerFilePath] string? sourceFilePath = null, [CallerLineNumber] int sourceLineNumber = -1)
 		: base(sourceFilePath, sourceLineNumber)
 	{
 		Explicit = !LiveSettings.Enabled;
-		Timeout = WorkTimeout;
+		Timeout = WorkTimeout + CatchUpTimeout;
 	}
 
 	/// <summary>Whether the test needs the test number too.</summary>
@@ -58,7 +64,7 @@ public sealed class LiveFactAttribute : FactAttribute
 		{
 			field = value;
 			Explicit = IsOff();
-			Timeout = WorkTimeout + (value ? (int)LiveSidecar.PingBound.TotalMilliseconds : 0);
+			Timeout = WorkTimeout + CatchUpTimeout + (value ? (int)LiveSidecar.PingBound.TotalMilliseconds : 0);
 		}
 	}
 

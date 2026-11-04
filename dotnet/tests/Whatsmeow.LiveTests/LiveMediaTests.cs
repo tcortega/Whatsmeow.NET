@@ -15,7 +15,7 @@ namespace Whatsmeow.LiveTests;
 public sealed class LiveMediaTests(LiveSidecar live, LivePeer peer)
 {
 	/// <summary>The size test's timeout: four uploads, sends and downloads, the largest 100 MiB, on a home connection.</summary>
-	private const int SizeTimeout = 1_800_000;
+	private const int SizeTimeout = 1_800_000 + LiveFactAttribute.CatchUpTimeout;
 
 	/// <summary>The document sizes tried, in MiB, smallest first, up to the 100 MiB cap.</summary>
 	private static readonly int[] s_sizes = [1, 16, 64, 100];

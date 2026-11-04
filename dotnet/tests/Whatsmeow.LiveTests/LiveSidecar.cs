@@ -34,6 +34,13 @@ public sealed class LiveSidecar : IAsyncLifetime
 	/// <summary>How the owner answers a question (<see cref="AskOwnerAsync"/>): a text to "Message yourself" starting with one of these.</summary>
 	public const string AnswerHint = "answer with \"wmn yes\" or \"wmn no\", and what you saw, to Message yourself";
 
+	/// <summary>
+	/// How long a session may take to get its backlog after it connects (<see cref="StayUntilCaughtUpAsync(IWhatsAppClient, CancellationToken)"/>):
+	/// the peer, a busy account, got about 5,300 events in 4 min before CaughtUp after a day offline [observed: #36 live
+	/// run 2026-11-04, ARCHITECTURE §14]. Every live test's timeout allows it (<see cref="LiveFactAttribute.CatchUpTimeout"/>).
+	/// </summary>
+	internal static TimeSpan CatchUpBound { get; } = TimeSpan.FromMilliseconds(LiveFactAttribute.CatchUpTimeout);
+
 	/// <summary>How long a test waits for the owner's ping, or for an answer.</summary>
 	internal static TimeSpan PingBound { get; } = TimeSpan.FromMinutes(5);
 
@@ -259,10 +266,10 @@ public sealed class LiveSidecar : IAsyncLifetime
 	}
 
 	/// <summary>
-	/// Keeps the session connected until WhatsApp sent the backlog (CaughtUp), at most two minutes, and returns how long
-	/// that took. A device that went offline about a second after Paired stayed "connecting" on the phone, and one held
-	/// online got CaughtUp 5 s after Connected [observed: the owner's phone, 2026-11-01]; that a new device must stay
-	/// online through its first sync is [inferred].
+	/// Keeps the session connected until WhatsApp sent the backlog (CaughtUp), at most <see cref="CatchUpBound"/>, and
+	/// returns how long that took. A device that went offline about a second after Paired stayed "connecting" on the
+	/// phone, and one held online got CaughtUp 5 s after Connected [observed: the owner's phone, 2026-11-01]; that a new
+	/// device must stay online through its first sync is [inferred].
 	/// </summary>
 	public Task<TimeSpan> StayUntilCaughtUpAsync(IWhatsAppClient client, CancellationToken cancellationToken) =>
 		StayUntilCaughtUpAsync(client, Write, cancellationToken);
@@ -271,12 +278,19 @@ public sealed class LiveSidecar : IAsyncLifetime
 	internal static async Task<TimeSpan> StayUntilCaughtUpAsync(IWhatsAppClient client, Action<string> log, CancellationToken cancellationToken)
 	{
 		var started = LiveClock.Time.GetTimestamp();
-		using var bound = LiveClock.Bound(TimeSpan.FromMinutes(2), cancellationToken);
-		var watch = StateWatch.Start(client, bound.Token);
-		await using (watch.ConfigureAwait(false))
-			await watch
-				.ReachesAsync(new SessionState.CaughtUp(), new SessionState.Connected(), new SessionState.Connecting(), new SessionState.Reconnecting())
-				.ConfigureAwait(false);
+		using var bound = LiveClock.Bound(CatchUpBound, cancellationToken);
+		try
+		{
+			var watch = StateWatch.Start(client, bound.Token);
+			await using (watch.ConfigureAwait(false))
+				await watch
+					.ReachesAsync(new SessionState.CaughtUp(), new SessionState.Connected(), new SessionState.Connecting(), new SessionState.Reconnecting())
+					.ConfigureAwait(false);
+		}
+		catch (OperationCanceledException e) when (!cancellationToken.IsCancellationRequested)
+		{
+			throw new TimeoutException($"{client.SessionId} was not CaughtUp within {CatchUpBound.TotalMinutes:F0} min", e);
+		}
 
 		var elapsed = LiveClock.Time.GetElapsedTime(started);
 		log($"live: {client.SessionId} CaughtUp {elapsed.TotalSeconds:F1} s after the session was usable");

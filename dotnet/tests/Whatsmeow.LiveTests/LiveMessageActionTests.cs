@@ -16,7 +16,7 @@ public sealed class LiveMessageActionTests(LiveSidecar live, LivePeer peer)
 	private static readonly TimeSpan s_lateEdit = TimeSpan.FromMinutes(21);
 
 	/// <summary>The late edit's timeout: the wait, and the work around it.</summary>
-	private const int LateEditTimeout = 1_800_000;
+	private const int LateEditTimeout = 1_800_000 + LiveFactAttribute.CatchUpTimeout;
 
 	/// <summary>A reaction to the live account's own message: the peer gets it naming the message by its id and its sender.</summary>
 	[LiveFact(NeedsPeer = true)]

@@ -205,7 +205,7 @@ dotnet test --project dotnet/tests/Whatsmeow.LiveTests -c Release
 ```
 
 The person watches `dotnet/artifacts/live/`: `qr.png` is the QR code to scan (rewritten on each rotation), only when the live or the peer session is not paired yet (the peer's with the second account's phone), and `pairing-code.txt` the code to enter on the phone; both are deleted at the end, and a QR payload is never written as text (it carries the device's ADV secret). `sidecar.log` is the sidecar's log, with every JID's user part and the test number redacted.
-The QR test stays connected until the live session is `CaughtUp`, at most two minutes, and prints how long that took: a device that went offline right after pairing stayed "connecting" on the phone (ADR 0021).
+The QR test stays connected until the live session is `CaughtUp`, at most ten minutes, as every first connect of a run does (`LiveSidecar.CatchUpBound`: the peer, a busy account, took 4 min after a day offline), and prints how long that took: a device that went offline right after pairing stayed "connecting" on the phone (ADR 0021).
 
 Every live test is in the `Live` collection: one after the other, on one `LiveSidecar` and one `LivePeer`.
 The live sidecar is a release build with `-tags livetest`, the live tests' seams ([ADR 0032](../adr/0032-live-test-seams-and-the-peer-session.md)): a loose id rule, and a handler that withholds the first answer to a text starting `wmn-withhold `. CI proves no release binary links them.

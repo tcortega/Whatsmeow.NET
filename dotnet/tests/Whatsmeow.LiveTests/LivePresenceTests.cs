@@ -22,7 +22,10 @@ public sealed class LivePresenceTests(LiveSidecar live, LivePeer peer)
 	/// <summary>How long the unavailable test watches for what still comes.</summary>
 	private static readonly TimeSpan s_unavailableWatch = TimeSpan.FromSeconds(30);
 
-	/// <summary>The live session, available, subscribes to the peer: the peer's presence comes, then its typing and its pause.</summary>
+	/// <summary>
+	/// The peer available, the live session, available, subscribes to it: the peer's presence comes, then its typing and
+	/// its pause. Every presence of the peer that came goes to the log.
+	/// </summary>
 	[LiveFact(NeedsPeer = true)]
 	public async Task Live_SubscribedToThePeer_ItsPresenceArrives_ThenItsTypingAndItsPause()
 	{
@@ -32,17 +35,28 @@ public sealed class LivePresenceTests(LiveSidecar live, LivePeer peer)
 		var (account, _) = await live.AccountAsync(ct);
 		var peerAccount = await peer.AccountAsync(ct);
 		using var typing = new LiveEvents<ChatPresenceChanged>(client, c => LiveChecks.Names(peerAccount, c.Source.Sender));
+		using var everyPresence = new LiveEvents<PresenceChanged>(client, p => LiveChecks.Names(peerAccount, p.From));
 		await LiveRestore.AfterAsync(
 			live,
 			async () =>
 			{
+				// The peer is available before the subscribe, whose answer carries its presence then: one run had the peer
+				// go unavailable (the test before's restore) and available 18 ms apart, around the subscribe, and the live
+				// session got one presence, whose state was not logged, and no available within 60 s [observed: #36 live
+				// run 2026-11-04]. Every presence of the peer goes to the log.
+				await other.SendPresenceAsync(PresenceState.Available, ct).ConfigureAwait(false);
 				await client.SendPresenceAsync(PresenceState.Available, ct).ConfigureAwait(false);
-				var online = client.WaitForAsync<PresenceChanged>(p => LiveChecks.Names(peerAccount, p.From) && p.State is PresenceState.Available, LiveChecks.Watch, ct);
+				var online = LiveChecks.OrNullAsync(
+					client.WaitForAsync<PresenceChanged>(p => LiveChecks.Names(peerAccount, p.From) && p.State is PresenceState.Available, LiveChecks.Watch, ct)
+				);
 				await client.SubscribePresenceAsync(peerAccount.Chat, ct).ConfigureAwait(false);
 				s_subscribedWhileAvailable = true;
-				await other.SendPresenceAsync(PresenceState.Available, ct).ConfigureAwait(false);
-				var presence = await LiveChecks.WithinAsync(online, "the peer's presence").ConfigureAwait(false);
-				live.Write($"live: the peer's presence came from a {LiveChecks.Form(presence.From)}, last seen {(presence.LastSeen is null ? "none" : "set")}");
+				var presence = await online.ConfigureAwait(false);
+				var presences = await everyPresence.NextAsync(int.MaxValue, TimeSpan.FromSeconds(1), ct).ConfigureAwait(false);
+				live.Write(
+					$"live: the peer's presences after the subscribe: {(presences.Count == 0 ? "none" : string.Join(", ", presences.Select(p => $"{p.State} from a {LiveChecks.Form(p.From)}, last seen {(p.LastSeen is null ? "none" : "set")}")))}"
+				);
+				Assert.True(presence is not null, $"the peer's presence did not come within {LiveChecks.Watch.TotalSeconds:F0} s");
 
 				await other.SendChatPresenceAsync(account, ChatPresenceState.Typing, ct).ConfigureAwait(false);
 				await other.SendChatPresenceAsync(account, ChatPresenceState.Paused, ct).ConfigureAwait(false);
