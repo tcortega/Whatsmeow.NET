@@ -141,7 +141,7 @@ jobs:
   # Native AOT never crosses operating systems, and an emulated run proves nothing about the RID. musl runs in the
   # Alpine SDK container of its architecture on the Linux runner of that architecture.
   aot:
-    name: aot (${{ matrix.rid }})
+    name: aot (${{ matrix.rid }}${{ matrix.emulated && ' emulated' || '' }})
     needs: package
     timeout-minutes: 30
     strategy:
@@ -156,6 +156,10 @@ jobs:
           - { rid: osx-arm64, os: macos-26 }
           - { rid: win-x64, os: windows-2025 }
           - { rid: win-arm64, os: windows-11-arm }
+          # TEMPORARY measurement (ADR 0056): emulated runs must fail the smoke's native check.
+          - { rid: osx-x64, os: macos-26, emulated: true }
+          - { rid: win-x64, os: windows-11-arm, emulated: true }
+    continue-on-error: ${{ matrix.emulated == true }}
     runs-on: ${{ matrix.os }}
     defaults:
       run:
