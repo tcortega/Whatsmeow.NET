@@ -60,8 +60,11 @@ public sealed class FakeSidecar : IAsyncLifetime
 	/// </summary>
 	internal WhatsmeowSidecarOptions Options { get; private set; } = null!;
 
-	/// <summary>The client's log, Debug level included.</summary>
-	internal LogCapture Logs { get; } = new();
+	/// <summary>
+	/// The client's log, Debug level included, also written to <c>dotnet/artifacts/TestResults/fake-sidecar.log</c>,
+	/// which CI keeps when the job fails.
+	/// </summary>
+	internal LogCapture Logs { get; } = new(Path.Combine(SidecarBinaries.FindRoot(), "dotnet", "artifacts", "TestResults", "fake-sidecar.log"));
 
 	/// <summary>
 	/// The sidecar's meter's factory: a collector on it sees this sidecar's measurements only, not those of a test's
@@ -70,10 +73,31 @@ public sealed class FakeSidecar : IAsyncLifetime
 	internal IMeterFactory MeterFactory { get; private set; } = null!;
 
 	/// <summary>The public client.</summary>
-	public WhatsmeowSidecar Sidecar { get; private set; } = null!;
+	/// <exception cref="InvalidOperationException">Another test crashed the sidecar, and it is not back.</exception>
+	public WhatsmeowSidecar Sidecar
+	{
+		get
+		{
+			ThrowIfNotBack();
+			return field;
+		}
+		private set;
+	} = null!;
 
 	/// <summary>The fake WhatsApp's control, on the sidecar's own channel: the same socket and token, across restarts.</summary>
-	internal FakeWhatsAppService.FakeWhatsAppServiceClient Fake { get; private set; } = null!;
+	/// <exception cref="InvalidOperationException">Another test crashed the sidecar, and it is not back.</exception>
+	internal FakeWhatsAppService.FakeWhatsAppServiceClient Fake
+	{
+		get
+		{
+			ThrowIfNotBack();
+			return field;
+		}
+		private set;
+	} = null!;
+
+	/// <summary>The crash whose restart has not been seen yet; null once the sidecar is back.</summary>
+	private volatile Crash? _crash;
 
 	public async ValueTask InitializeAsync()
 	{
@@ -108,17 +132,26 @@ public sealed class FakeSidecar : IAsyncLifetime
 	/// <summary>
 	/// Kills the sidecar and returns once the supervisor restarted it, so the next test finds it running. Only a test
 	/// in the <see cref="SidecarCrashes"/> collection may call it: one that runs in parallel would break other tests.
+	/// Until the restart, another test that reaches for <see cref="Sidecar"/> or <see cref="Fake"/> fails with this
+	/// crash, not with a socket nobody listens on (#77).
 	/// </summary>
-	/// <exception cref="InvalidOperationException">The calling test is not in the <see cref="SidecarCrashes"/> collection.</exception>
+	/// <exception cref="InvalidOperationException">
+	/// The calling test is not in the <see cref="SidecarCrashes"/> collection, or a restart attempt failed.
+	/// </exception>
 	public async Task CrashAsync(CancellationToken cancellationToken)
 	{
 		if (TestContext.Current.TestCollection?.TestCollectionClassName != typeof(SidecarCrashes).FullName)
 			throw new InvalidOperationException($"CrashAsync runs only in the {nameof(SidecarCrashes)} collection, which never runs in parallel.");
 
+		ThrowIfNotBack();
 		var restarts = Logs.Named("SidecarRestarted").Count;
+		var failures = Logs.Named("SidecarRestartFailed").Count;
+		var crash = new Crash { TestId = TestContext.Current.Test?.UniqueID, Test = TestContext.Current.Test?.TestDisplayName ?? "a test", Restarts = restarts };
+		_crash = crash;
 		if (_standalone is { } standalone)
 		{
 			// The orchestrator's part: the same database, address and token.
+			Logs.Note($"{crash.Test} restarts the standalone sidecar");
 			await standalone.DisposeAsync().ConfigureAwait(false);
 			_standalone = await StandaloneSidecar.StartAsync(Binary, DatabasePath, _listen, _tokenPath, StandaloneArguments(), cancellationToken).ConfigureAwait(false);
 		}
@@ -126,11 +159,50 @@ public sealed class FakeSidecar : IAsyncLifetime
 		if (_standalone is null)
 		{
 			var (processId, _) = await Logs.StartedAsync(Logs.Named("SidecarStarted").Count, cancellationToken).ConfigureAwait(false);
+			Logs.Note($"{crash.Test} kills sidecar {processId}");
 			using var process = Process.GetProcessById(processId);
 			process.Kill();
 		}
 
-		_ = await Logs.WaitForAsync(_ => Logs.Named("SidecarRestarted").Count > restarts, cancellationToken).ConfigureAwait(false);
+		// A failed attempt fails the test now, with its reason: the next attempt is a backoff away (ADR 0017).
+		_ = await Logs
+			.WaitForAsync(_ => Logs.Named("SidecarRestarted").Count > restarts || Logs.Named("SidecarRestartFailed").Count > failures, cancellationToken)
+			.ConfigureAwait(false);
+		if (Logs.Named("SidecarRestarted").Count > restarts)
+		{
+			_crash = null;
+			return;
+		}
+
+		var failure = Logs.Named("SidecarRestartFailed")[failures];
+		throw new InvalidOperationException($"The shared sidecar did not come back after {crash.Test} crashed it: {failure.Exception?.Message}", failure.Exception);
+	}
+
+	/// <summary>Fails a test other than the one that crashed the sidecar, while the sidecar is not back.</summary>
+	private void ThrowIfNotBack()
+	{
+		if (_crash is not { } crash || crash.TestId == TestContext.Current.Test?.UniqueID)
+			return;
+
+		if (Logs.Named("SidecarRestarted").Count > crash.Restarts)
+		{
+			_crash = null;
+			return;
+		}
+
+		var failures = Logs.Named("SidecarRestartFailed");
+		var reason = failures.Count == 0 ? "no restart attempt failed yet, so it is still waiting or starting" : $"its last restart attempt failed: {failures[^1].Exception?.Message}";
+		throw new InvalidOperationException($"The shared sidecar is not back since {crash.Test} crashed it; {reason}");
+	}
+
+	/// <summary>One CrashAsync: the test that called it, and the restarts logged before its kill.</summary>
+	private sealed class Crash
+	{
+		public required string? TestId { get; init; }
+
+		public required string Test { get; init; }
+
+		public required int Restarts { get; init; }
 	}
 
 	/// <summary>
@@ -167,6 +239,7 @@ public sealed class FakeSidecar : IAsyncLifetime
 
 	public async ValueTask DisposeAsync()
 	{
+		_crash = null;
 		if (Sidecar is not null)
 			await Sidecar.DisposeAsync().ConfigureAwait(false);
 		if (_metrics is not null)

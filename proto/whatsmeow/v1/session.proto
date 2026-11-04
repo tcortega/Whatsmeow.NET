@@ -3,6 +3,7 @@ syntax = "proto3";
 package whatsmeow.v1;
 
 import "google/protobuf/timestamp.proto";
+import "whatsmeow/v1/error.proto";
 
 // SessionService manages sessions (one WhatsApp account each), their connection and their pairing.
 //
@@ -35,6 +36,16 @@ service SessionService {
   // The sidecar never connects a session on its own, also not after a restart.
   // Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED.
   rpc Connect(ConnectRequest) returns (ConnectResponse);
+
+  // ConnectSessions connects several sessions, each as Connect does, and answers with one result per session, in the
+  // request's order, once every connect call ended. Their Connecting transitions are recorded in one commit, then their
+  // connect calls run one after another, in id order, so the time it takes does not grow with a sync of the database
+  // per session. The client reconnects with it after a sidecar restart (ARCHITECTURE §8.5, ADR 0053).
+  // Errors: INVALID_ARGUMENT for a session id given twice (field "session_ids"), before any session is looked at. A
+  // session's own failure is its result, never the call's: one of Connect's reasons (SESSION_NOT_FOUND, NOT_LOGGED_IN,
+  // LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED), INVALID_ARGUMENT for a malformed session
+  // id, or INTERNAL.
+  rpc ConnectSessions(ConnectSessionsRequest) returns (ConnectSessionsResponse);
 
   // Disconnect closes the connection and stops reconnecting; the session stays paired (state Disconnected).
   // Disconnecting a session that is not connected succeeds and does nothing. While a Pair call is open and the phone
@@ -207,6 +218,27 @@ message ConnectRequest {
 
 // ConnectResponse has no fields.
 message ConnectResponse {}
+
+// ConnectSessionsRequest names the sessions.
+message ConnectSessionsRequest {
+  // The session ids, each at most once.
+  repeated string session_ids = 1;
+}
+
+// ConnectSessionsResponse is the result of each session, in the request's order.
+message ConnectSessionsResponse {
+  // One per requested session id.
+  repeated ConnectSessionResult results = 1;
+}
+
+// ConnectSessionResult is how one session's connect ended.
+message ConnectSessionResult {
+  // The session id.
+  string session_id = 1;
+  // ERROR_REASON_UNSPECIFIED when the session connected, or was connecting or connected already; otherwise the reason
+  // Connect would have failed with. The failure's message is in the sidecar's log, not here (ADR 0053).
+  ErrorReason reason = 2;
+}
 
 // DisconnectRequest names the session.
 message DisconnectRequest {

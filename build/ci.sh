@@ -358,7 +358,7 @@ job_dotnet() {
 		{
 			check "no shipped assembly contains the fake WhatsApp control (ADR 0019)" shipped_have_no_fake
 			# Never the live tests, even with their variables exported in the shell that runs this.
-			rm -f dotnet/artifacts/TestResults/media-transfers.txt
+			rm -f dotnet/artifacts/TestResults/media-transfers.txt dotnet/artifacts/TestResults/fake-sidecar.log
 			check "dotnet test" env -u WHATSMEOW_LIVE_DATABASE -u WHATSMEOW_LIVE_PHONE_NUMBER -u WHATSMEOW_LIVE_PEER_DATABASE -u WHATSMEOW_LIVE_OWNER dotnet test --solution dotnet/Whatsmeow.slnx -c Release --no-build
 			# The media transfer test's throughput and memory on each transport, for ARCHITECTURE §8.6 (ADR 0026).
 			if [ -f dotnet/artifacts/TestResults/media-transfers.txt ]; then
@@ -377,6 +377,7 @@ job_external() {
 	check "noexec mount for the copy fallback test" noexec_mount
 	check "dotnet restore (locked)" dotnet restore dotnet/Whatsmeow.slnx --locked-mode &&
 		check "dotnet build" dotnet build dotnet/tests/Whatsmeow.IntegrationTests -c Release --no-restore -p:ContinuousIntegrationBuild=true &&
+		rm -f dotnet/artifacts/TestResults/fake-sidecar.log &&
 		check "dotnet test, External mode" env -u WHATSMEOW_LIVE_DATABASE -u WHATSMEOW_LIVE_PHONE_NUMBER -u WHATSMEOW_LIVE_PEER_DATABASE -u WHATSMEOW_LIVE_OWNER \
 			WHATSMEOW_NET_TEST_SIDECAR=external dotnet test --project dotnet/tests/Whatsmeow.IntegrationTests -c Release --no-build
 }

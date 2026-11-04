@@ -35,6 +35,27 @@ public sealed class SessionRestartTests(FakeSidecar fixture)
 	}
 
 	[Fact(Timeout = Timeout)]
+	public async Task SidecarRestart_ConnectsAgainEverySessionTheApplicationConnected()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		string[] ids = ["restart-many-1", "restart-many-2", "restart-many-3"];
+		var clients = new List<IWhatsAppClient>();
+		foreach (var id in ids)
+			clients.Add(await SessionSetup.ConnectedAsync(fixture, id, ct));
+
+		await fixture.CrashAsync(ct);
+
+		// One ConnectSessions call for all of them (#77): each is connected again, and none failed.
+		foreach (var client in clients)
+		{
+			await using var watch = StateWatch.Start(client, ct);
+			await watch.ReachesAsync(new SessionState.Connected(), new SessionState.Connecting());
+		}
+
+		Assert.DoesNotContain(fixture.Logs.Named("ReconnectRefused").Concat(fixture.Logs.Named("ReconnectFailed")), r => ids.Contains(r.GetStructuredStateValue("SessionId")));
+	}
+
+	[Fact(Timeout = Timeout)]
 	public async Task SidecarRestart_AfterALogoutWithNoAnswer_ConnectsTheSessionAgain()
 	{
 		var ct = TestContext.Current.CancellationToken;

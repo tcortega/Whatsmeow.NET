@@ -7,11 +7,27 @@ namespace Whatsmeow.IntegrationTests.Support;
 public sealed class LogCapture : IDisposable
 {
 	private readonly FakeLoggerProvider _provider;
+	private readonly StreamWriter? _file;
+	private readonly Lock _fileLock = new();
 
 	/// <param name="sink">Also gets each record as a line, as it comes; the live tests write their log file with it.</param>
 	public LogCapture(Action<string>? sink = null)
 	{
 		Collector = new FakeLogCollector(Options.Create(new FakeLogCollectorOptions { OutputSink = sink }));
+		_provider = new FakeLoggerProvider(Collector);
+		Factory = LoggerFactory.Create(builder => builder.AddProvider(_provider).SetMinimumLevel(LogLevel.Trace));
+	}
+
+	/// <summary>
+	/// Captures in memory, and also writes the client's and the sidecar's records to <paramref name="path"/> as they come,
+	/// so a run that fails or hangs leaves them behind. Grpc's own records stay out, and an exception is written as its
+	/// message: the file stays small enough to upload.
+	/// </summary>
+	public LogCapture(string path)
+	{
+		_ = Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+		_file = new StreamWriter(path, append: false) { AutoFlush = true };
+		Collector = new FakeLogCollector(Options.Create(new FakeLogCollectorOptions { OutputFormatter = Format, OutputSink = Write }));
 		_provider = new FakeLoggerProvider(Collector);
 		Factory = LoggerFactory.Create(builder => builder.AddProvider(_provider).SetMinimumLevel(LogLevel.Trace));
 	}
@@ -24,6 +40,25 @@ public sealed class LogCapture : IDisposable
 	{
 		Factory.Dispose();
 		_provider.Dispose();
+		lock (_fileLock)
+			_file?.Dispose();
+	}
+
+	/// <summary>Writes a line of the test's own to the file, if there is one, between the records around it.</summary>
+	public void Note(string line) => Write($"---- {line}");
+
+	private static string Format(FakeLogRecord record) =>
+		record.Category?.StartsWith("Whatsmeow.", StringComparison.Ordinal) == true
+			? $"{record.Timestamp:HH:mm:ss.fff} {record.Level} {record.Id.Name} {record.Message} {record.Exception?.Message}"
+			: "";
+
+	private void Write(string line)
+	{
+		if (line.Length == 0)
+			return;
+
+		lock (_fileLock)
+			_file?.WriteLine(line);
 	}
 
 	/// <summary>Waits until a record matches; the test's timeout ends the wait.</summary>

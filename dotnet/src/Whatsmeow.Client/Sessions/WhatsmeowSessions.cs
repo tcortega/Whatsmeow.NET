@@ -151,7 +151,8 @@ public sealed class WhatsmeowSessions
 	/// <summary>
 	/// After a sidecar restart, connects again the sessions the application had connected that came back
 	/// <see cref="SessionState.Disconnected"/>; a session that stopped (logged out, replaced, banned, outdated, failed)
-	/// keeps its state, so two clients never fight over one device. A failure is logged, never thrown.
+	/// keeps its state, so two clients never fight over one device. A failure is logged, never thrown: of the call, for
+	/// each session, or of one session, for it.
 	/// </summary>
 	internal async Task ReconnectAsync(CancellationToken cancellationToken)
 	{
@@ -174,22 +175,30 @@ public sealed class WhatsmeowSessions
 			return;
 		}
 
-		foreach (var session in sessions)
-		{
-			// Checked again now, not only in the snapshot: the application may have disconnected it meanwhile.
-			if (session is not { State: SessionState.Disconnected } || !IsRemembered(session.Id))
-				continue;
+		// Checked again now, not only in the snapshot: the application may have disconnected one meanwhile.
+		string[] ids = [.. sessions.Where(session => session is { State: SessionState.Disconnected } && IsRemembered(session.Id)).Select(session => session.Id.Value)];
+		if (ids.Length == 0)
+			return;
 
-			try
-			{
-				_ = await RpcErrors
-					.CallAsync(_client.ConnectAsync(new ConnectRequest { SessionId = session.Id.Value }, cancellationToken: cancellationToken))
-					.ConfigureAwait(false);
-			}
-			catch (WhatsmeowException e)
-			{
-				SessionLog.ReconnectFailed(_log, e, session.Id.Value);
-			}
+		// One call for all of them: the sidecar records their Connecting states in one commit (#77).
+		ConnectSessionsResponse response;
+		try
+		{
+			response = await RpcErrors
+				.CallAsync(_client.ConnectSessionsAsync(new ConnectSessionsRequest { SessionIds = { ids } }, cancellationToken: cancellationToken))
+				.ConfigureAwait(false);
+		}
+		catch (WhatsmeowException e)
+		{
+			foreach (var id in ids)
+				SessionLog.ReconnectFailed(_log, e, id);
+			return;
+		}
+
+		foreach (var result in response.Results)
+		{
+			if (result.Reason is not ErrorReason.Unspecified)
+				SessionLog.ReconnectRefused(_log, result.SessionId, RpcErrors.Code(result.Reason));
 		}
 	}
 }
