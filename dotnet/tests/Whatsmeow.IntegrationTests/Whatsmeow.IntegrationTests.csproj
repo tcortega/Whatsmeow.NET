@@ -21,6 +21,7 @@
 		<ProjectReference Include="../../src/Whatsmeow.Extensions.Hosting/Whatsmeow.Extensions.Hosting.csproj" />
 		<!-- The hosted sample, whose own setup the sample's FullCycle runs against a fake-mode sidecar (ADR 0049). -->
 		<ProjectReference Include="../../samples/EchoBot/EchoBot.csproj" />
+		<ProjectReference Include="../../samples/EchoConsole/EchoConsole.csproj" />
 		<!-- Built first, for the kill-parent test and the kill-the-.NET-side events test. -->
 		<ProjectReference Include="../SidecarHost/SidecarHost.csproj" />
 	</ItemGroup>

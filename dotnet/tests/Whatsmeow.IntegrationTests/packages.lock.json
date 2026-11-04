@@ -497,6 +497,13 @@
           "Whatsmeow.Extensions.Hosting": "[1.0.0, )"
         }
       },
+      "echoconsole": {
+        "type": "Project",
+        "dependencies": {
+          "QRCoder": "[1.8.1, )",
+          "Whatsmeow.Client": "[1.0.0, )"
+        }
+      },
       "sidecarhost": {
         "type": "Project",
         "dependencies": {

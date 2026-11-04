@@ -459,6 +459,13 @@
           "Whatsmeow.Extensions.Hosting": "[1.0.0, )"
         }
       },
+      "echoconsole": {
+        "type": "Project",
+        "dependencies": {
+          "QRCoder": "[1.8.1, )",
+          "Whatsmeow.Client": "[1.0.0, )"
+        }
+      },
       "sidecarhost": {
         "type": "Project",
         "dependencies": {
@@ -494,6 +501,7 @@
         "type": "Project",
         "dependencies": {
           "EchoBot": "[1.0.0, )",
+          "EchoConsole": "[1.0.0, )",
           "Microsoft.Extensions.Diagnostics.Testing": "[10.11.0, )",
           "Microsoft.Extensions.Hosting": "[10.0.14, )",
           "Microsoft.Extensions.TimeProvider.Testing": "[10.11.0, )",
