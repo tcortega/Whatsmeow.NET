@@ -165,7 +165,9 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+      # musl publishes with the Alpine container's SDK, not the runner's.
+      - if: ${{ !startsWith(matrix.rid, 'linux-musl-') }}
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
 

@@ -1,13 +1,16 @@
 // Runs the product path under Native AOT; exit code 0 means it worked (ADR 0056).
 //   AotSmoke <version> <rid> [<whatsmeow-net>]
 // <version> is the version the sidecar must report, and <rid> the RID the app was published for, which it must run
-// as, natively: an app emulated on another architecture (Rosetta, Prism) fails. With <whatsmeow-net>, the repository's
+// as, natively and compiled ahead of time: an app emulated on another architecture (Rosetta, Prism), or one published
+// without Native AOT, fails. With <whatsmeow-net>, the repository's
 // build/ci.sh dotnet, it starts that binary; without it, build/ci.sh aot on a feed's packages, the client finds the
 // packaged one beside the app.
 // Two paths, each on a database of its own: without DI it starts the sidecar, calls GetInfo, creates a session and
-// lists it, and stops it; with the generic host it binds the options from configuration, declares a keyed session and
-// registers a handler, starts the host, checks the bound options and the keyed session, calls GetInfo, and stops it.
+// lists it, and stops it; with the generic host it binds the options from configuration (on Windows also the transport
+// enum, whose only other value, NamedPipe, is Windows only), declares a keyed session and registers a handler, starts
+// the host, checks the bound options and the keyed session, calls GetInfo, and stops it.
 // Then it round-trips one upstream WhatsApp message.
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using AotSmoke;
 using Google.Protobuf;
@@ -35,6 +38,8 @@ if (RuntimeInformation.RuntimeIdentifier != rid)
 	failures.Add($"published for {RuntimeInformation.RuntimeIdentifier}, expected {rid}");
 if (RuntimeInformation.ProcessArchitecture != RuntimeInformation.OSArchitecture)
 	failures.Add($"the {RuntimeInformation.ProcessArchitecture} process runs emulated on {RuntimeInformation.OSArchitecture}");
+if (RuntimeFeature.IsDynamicCodeSupported)
+	failures.Add("not Native AOT: dynamic code is supported");
 
 failures.AddRange(await WithoutDiAsync(version, sidecarPath).ConfigureAwait(false));
 failures.AddRange(await HostedAsync(version, sidecarPath).ConfigureAwait(false));
@@ -84,10 +89,13 @@ static async Task<List<string>> HostedAsync(string version, string? sidecarPath)
 			// Relative: the hosting package puts it in the content root (ADR 0034).
 			["Whatsmeow:DatabasePath"] = "hosted.db",
 			["Whatsmeow:StartupTimeout"] = "00:00:45",
-			["Whatsmeow:Transport"] = nameof(SidecarTransport.UnixDomainSocket),
 		};
 		if (sidecarPath is not null)
 			configuration["Whatsmeow:SidecarPath"] = sidecarPath;
+		// Not the default, so binding it shows; elsewhere the default is the only valid value.
+		var transport = OperatingSystem.IsWindows() ? SidecarTransport.NamedPipe : SidecarTransport.UnixDomainSocket;
+		if (OperatingSystem.IsWindows())
+			configuration["Whatsmeow:Transport"] = nameof(SidecarTransport.NamedPipe);
 		_ = builder.Configuration.AddInMemoryCollection(configuration);
 		_ = builder.Services.AddWhatsmeow().AddSession("aot-hosted").AddHandler<MessageReceived, SmokeHandler>();
 
@@ -96,8 +104,8 @@ static async Task<List<string>> HostedAsync(string version, string? sidecarPath)
 		try
 		{
 			var options = host.Services.GetRequiredService<IOptions<WhatsmeowSidecarOptions>>().Value;
-			if (options.StartupTimeout != TimeSpan.FromSeconds(45) || options.DatabasePath != Path.Combine(directory.FullName, "hosted.db"))
-				failures.Add($"hosted: the options bound StartupTimeout {options.StartupTimeout} and DatabasePath {options.DatabasePath}, expected 00:00:45 and hosted.db in the content root");
+			if (options.StartupTimeout != TimeSpan.FromSeconds(45) || options.DatabasePath != Path.Combine(directory.FullName, "hosted.db") || options.Transport != transport)
+				failures.Add($"hosted: the options bound StartupTimeout {options.StartupTimeout}, DatabasePath {options.DatabasePath} and Transport {options.Transport}, expected 00:00:45, hosted.db in the content root and {transport}");
 
 			var client = host.Services.GetRequiredKeyedService<IWhatsAppClient>("aot-hosted");
 			var sidecar = host.Services.GetRequiredService<WhatsmeowSidecar>();

@@ -1069,7 +1069,6 @@ aot_setup() { # feed rid
 		annotate error "aot" "no TargetFramework in dotnet/Directory.Build.props or no Microsoft.Extensions.Hosting in dotnet/Directory.Packages.props"
 		return 1
 	fi
-	work="$(mktemp -d)" || return
 	packages="$work/packages"
 	mkdir -p "$work/src/AotSmoke" || return
 	cp dotnet/tests/AotSmoke/AotSmoke.csproj dotnet/tests/AotSmoke/*.cs "$work/src/AotSmoke/" && cp global.json "$work/src/" || return
@@ -1104,12 +1103,32 @@ EOF
 	echo "AotSmoke from the feed $feed at $version, for $aot_rid, in $work"
 }
 
+# The RID must be the host's OS and architecture: Native AOT never crosses operating systems, and an app of another
+# architecture would run emulated (Rosetta, Prism, or docker's emulation, which the app cannot see). RUNNER_ARCH, when
+# set, is the runner's own; Git Bash's uname -m may not be on windows-11-arm [inferred].
+aot_native_host() {
+	local os arch want_os="${aot_rid%%-*}" want_arch="${aot_rid##*-}"
+	case "${RUNNER_OS:-$(uname -s)}" in Linux) os=linux ;; macOS | Darwin) os=osx ;; Windows | MINGW* | MSYS*) os=win ;; *) os="$(uname -s)" ;; esac
+	case "${RUNNER_ARCH:-$(uname -m)}" in X64 | x86_64 | amd64) arch=x64 ;; ARM64 | aarch64 | arm64) arch=arm64 ;; *) arch="${RUNNER_ARCH:-$(uname -m)}" ;; esac
+	host_os_arch="$os $arch"
+	if [ "$os" != "$want_os" ] || [ "$arch" != "$want_arch" ]; then
+		annotate error "aot $aot_rid" "$aot_rid runs on a native $want_os $want_arch host only, never emulated; this is $os $arch"
+		return 1
+	fi
+	echo "$aot_rid on a native $os $arch host"
+}
+
 aot_publish_run() {
 	local exe="" out="$work/src/out"
 	case "$aot_rid" in linux-musl-*) aot_musl; return ;; win-*) exe=.exe ;; esac
 	if ! (unset WHATSMEOW_NET_SIDECAR_PATH && cd "$work/src" && NUGET_PACKAGES="$(native_path "$packages")" \
 		dotnet publish AotSmoke -c Release -warnaserror -r "$aot_rid" -o "$(native_path "$out")"); then
 		annotate error "aot $aot_rid" "the Native AOT publish from the feed failed, or had a trim or AOT warning"
+		return 1
+	fi
+	# A publish without Native AOT leaves the IL assembly beside the app; the app checks it too.
+	if [ -f "$out/AotSmoke.dll" ]; then
+		annotate error "aot $aot_rid" "not a Native AOT publish: $out holds AotSmoke.dll"
 		return 1
 	fi
 	if [ ! -f "$out/whatsmeow-net$exe" ]; then
@@ -1121,29 +1140,24 @@ aot_publish_run() {
 		annotate error "aot $aot_rid" "the Native AOT app did not start the packaged sidecar, run the hosting path, or run natively as $aot_rid"
 		return 1
 	fi
-	aot_summary "$RUNNER_OS_ARCH"
+	aot_summary "$host_os_arch"
 }
 
-# In the Alpine SDK container of the RID's architecture, which must be the host's: docker would otherwise run it
-# emulated, where the app cannot tell, or not at all.
+# In the Alpine SDK container of the RID's architecture, which aot_native_host made sure is the host's.
 aot_musl() {
-	local arch="${aot_rid##*-}" host image
-	case "$(uname -m)" in x86_64 | amd64) host=x64 ;; aarch64 | arm64) host=arm64 ;; *) host="$(uname -m)" ;; esac
-	if [ "$(uname -s)" != Linux ] || [ "$host" != "$arch" ]; then
-		annotate error "aot $aot_rid" "$aot_rid runs on a Linux $arch host only, never emulated; this is $(uname -s) $host"
-		return 1
-	fi
+	local arch="${aot_rid##*-}" image
 	case "$arch" in x64) image="$alpine_image" ;; arm64) image="$alpine_image_arm64" ;; esac
 	if ! docker run --rm -e VERSION="$version" -e RID="$aot_rid" -v "$aot_feed:/feed:ro" -v "$work/src:/src:ro" "$image" sh -euc '
 		apk add --no-cache clang build-base zlib-dev >/dev/null
 		cp -r /src /work && cd /work && export DOTNET_NOLOGO=true DOTNET_CLI_TELEMETRY_OPTOUT=true
 		dotnet publish AotSmoke -c Release -warnaserror -r "$RID" -o out
+		test ! -f out/AotSmoke.dll || { echo "not a Native AOT publish: out holds AotSmoke.dll" >&2; exit 1; }
 		test -f out/whatsmeow-net || { echo "the packaged whatsmeow-net is not beside the app" >&2; ls -l out; exit 1; }
 		./out/AotSmoke "$VERSION" "$RID"'; then
 		annotate error "aot $aot_rid" "the Native AOT publish or run on Alpine failed"
 		return 1
 	fi
-	aot_summary "Linux $arch (native, Alpine container)"
+	aot_summary "$host_os_arch (native, Alpine container)"
 }
 
 aot_summary() { # where
@@ -1152,10 +1166,17 @@ aot_summary() { # where
 	if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then echo "- $line" >>"$GITHUB_STEP_SUMMARY"; fi
 }
 
+aot_work() {
+	work="$(mktemp -d)"
+}
+
+# One exit path, so the temporary directory goes whichever check fails.
 job_aot() { # feed rid
-	RUNNER_OS_ARCH="${RUNNER_OS:-$(uname -s)} ${RUNNER_ARCH:-$(uname -m)}"
-	check "aot: AotSmoke from the feed $1 for $2" aot_setup "$1" "$2" || return
-	check "aot: Native AOT publish for $2 with zero trim and AOT warnings, and run (ADR 0056)" aot_publish_run
+	aot_rid="$2"
+	check "aot: $2 on a native host" aot_native_host || return
+	check "aot: a temporary directory" aot_work || return
+	check "aot: AotSmoke from the feed $1 for $2" aot_setup "$1" "$2" &&
+		check "aot: Native AOT publish for $2 with zero trim and AOT warnings, and run (ADR 0056)" aot_publish_run
 	rm -rf "$work"
 }
 
@@ -1169,7 +1190,10 @@ job_package() {
 		check "the Corresponding Source archive into the feed (ADR 0016)" source_archive &&
 		{
 			job_install "$package_feed"
-			job_aot "$package_feed" "$(rid "$(go env GOHOSTOS)/$(go env GOHOSTARCH)")"
+			# CI runs it on every target RID in the aot jobs, win-x64 among them (ADR 0056).
+			if [ "${GITHUB_ACTIONS:-}" != true ]; then
+				job_aot "$package_feed" "$(rid "$(go env GOHOSTOS)/$(go env GOHOSTARCH)")"
+			fi
 		}
 	check "the package job left the tree unchanged" tree_unchanged "$before" "the package job"
 }

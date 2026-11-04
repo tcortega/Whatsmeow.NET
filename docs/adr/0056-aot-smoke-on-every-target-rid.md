@@ -30,15 +30,18 @@ Measured:
 
 - **One AotSmoke, two sources.** `tests/AotSmoke` takes `<version> <rid> [<whatsmeow-net>]` and exits 0 only if:
   - it runs as the RID it was published for, and `ProcessArchitecture` equals `OSArchitecture`, so a Rosetta or Prism run fails;
+  - `RuntimeFeature.IsDynamicCodeSupported` is false, so a publish without Native AOT fails; `build/ci.sh aot` also fails when `AotSmoke.dll` is in the output;
   - without DI, it starts the sidecar, `GetInfo` reports the version and protocol 1, and a created session lists as `Created`;
-  - with the generic host, the options bind from configuration (a relative `DatabasePath` into the content root, a `TimeSpan`, an enum, and the sidecar path when given), a declared session resolves as its keyed `IWhatsAppClient` and lists as `Created`, a handler is registered so `AddHandler`'s generic code is compiled, and `GetInfo` reports the version;
+  - with the generic host, the options bind from configuration (a relative `DatabasePath` into the content root, a `TimeSpan`, the sidecar path when given, and on Windows the `Transport` enum as `NamedPipe`, its only value besides the default, which is Windows only, so elsewhere no enum is bound), a declared session resolves as its keyed `IWhatsAppClient` and lists as `Created`, a handler is registered so `AddHandler`'s generic code is compiled, and `GetInfo` reports the version;
   - an upstream WhatsApp message round-trips.
   In the repository it references the projects and is given a sidecar built from source (`build/ci.sh dotnet`, every pull request).
   `build/ci.sh aot <feed> <rid>` copies it out of the repository with `AotSmokeFromFeed`, which swaps the project references for the feed's `Whatsmeow.Client`, `Whatsmeow.Extensions.Hosting` and `Whatsmeow.Testing`, versioned by a `Directory.Packages.props` it writes beside it, restores into an empty packages folder, publishes for the RID with `-warnaserror`, checks the packaged binary is beside the app, and runs it with no sidecar path.
   One project, so the rooted assemblies are listed once.
 - **Each RID on its own native runner**, in `packaging.yml`'s `aot` job, after the package job, on the feed it built: `linux-x64` `ubuntu-26.04`, `linux-arm64` `ubuntu-26.04-arm`, `osx-x64` `macos-26-intel`, `osx-arm64` `macos-26`, `win-x64` `windows-2025`, `win-arm64` `windows-11-arm`.
 - **musl in the Alpine SDK container of its architecture, on the Linux runner of that architecture**: `linux-musl-x64` on `ubuntu-26.04`, `linux-musl-arm64` on `ubuntu-26.04-arm`.
-  The container shares the host's CPU and kernel, so this counts as native; `build/ci.sh` refuses a musl RID on a host of another architecture or OS, because docker would emulate it where the app cannot tell.
+  The container shares the host's CPU and kernel, so this counts as native.
+- **`build/ci.sh aot` refuses a RID whose OS or architecture is not the host's**, read from `RUNNER_OS` and `RUNNER_ARCH` when set and from `uname` otherwise: docker would emulate a musl RID where the app cannot tell, and the app's own check is the second line for the rest.
+  `build/ci.sh package` runs it for the host's RID outside CI only, since CI has the `aot` jobs.
 - **Where it runs.** `ci.yml` calls `packaging.yml` on every event but a pull request: on main and on demand; `release.yml` calls it on every release and rehearsal, and the publish job needs it, so a warning on any RID stops a release.
   Pull requests keep linux-x64 only, where the `dotnet` job's AotSmoke still fails on a new warning; a branch proves the matrix with a manual run of `ci.yml` on it.
 - **The summary.** Each `aot` job writes one line to the job summary: the RID, zero trim and AOT warnings, and where it ran, `(native, Alpine container)` for musl.
