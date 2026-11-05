@@ -44,7 +44,7 @@ PR CI stays Linux only; main, manual CI and releases run the full matrix.
 ## Measurements and limits
 
 All 19 jobs passed at 835ac8d, with feed `0.0.0-alpha.0.69`: all four required JIT forms on each of eight RIDs, both additional single-file forms on each of six non-musl RIDs, and all eight Native AOT runs [observed: run 42092473537, each package/install/aot job's summary].
-All executions were native; both musl RIDs ran in the Alpine container on a Linux runner of the matching architecture [observed: the same summaries and runtime identity checks].
+The eight target RIDs ran natively; both musl RIDs ran in the Alpine container on a Linux runner of the matching architecture [observed: the same summaries and runtime identity checks].
 The Windows ARM64 full install also built all six source targets and passed the final GetInfo check with the normalized feed path [observed: job 127477535049].
 
 A portable JIT consumer on macOS ARM64 reports `osx-arm64`, process `Arm64`, OS `Arm64`; its RID-specific self-contained x64 publish under Rosetta reports `osx-x64`, process `X64`, OS `Arm64`, and fails the native check [observed: local consumer runs, 2026-11-05].
