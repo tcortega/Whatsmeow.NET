@@ -18,6 +18,7 @@ Every failure and matching handler record names session `alice` [observed: the s
 
 Every failure says `failed to decrypt group message: no sender key` [observed: lines 188, 194, 196 and 218].
 Messages A and D each have two later `Echoed` records with exactly the failed ID [observed: lines 189/190 and 227/228, compared against the raw ID before hashing].
+The `Echoed` records contain session and received ID but no chat, sender or body [observed: the same records]; those fields were not independently correlated.
 The first matching log follows the warning by 1.743 s for A and 4.289 s for D [observed: subtraction of the UTC log timestamps].
 These intervals include the handler's outgoing send; they do not measure decryption time [observed: `EchoHandler.HandleAsync`, below].
 Messages B and C have no matching `Echoed` record in this input; their recovery is [unknown].
