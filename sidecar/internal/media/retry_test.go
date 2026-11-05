@@ -311,6 +311,26 @@ func TestAFinalAnswerSettlesItsRequestAndAnyOtherKeepsIt(t *testing.T) {
 	}
 }
 
+// TestAnAnswerWhoseChatDoesNotReadTakesItsRequestsChat: whatsmeow requires the answer's chat (mediaretry.go:152-157),
+// but one the client cannot read would cost the answer at the Events handler's gate (ADR 0057). The request it matches
+// by message id names the chat as the client's own request did, so the answer carries that one (#122).
+func TestAnAnswerWhoseChatDoesNotReadTakesItsRequestsChat(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.requestRetry(expiredRef())
+	mapper := Mapper(h.db.DB, h.db.Writer, zerolog.Nop())
+
+	for _, chat := range []types.JID{types.EmptyJID, {User: "a.b.c", Server: types.GroupServer}} {
+		answer := plainError(7, time.Unix(1_700_000_000, 0))
+		answer.ChatID = chat
+
+		if _, event, ok := mapper("s1", answer); !ok || event.GetMediaRetry().GetChat() != group {
+			t.Errorf("an answer of chat %q mapped to %v, %v; want the request's chat %s", chat, event, ok, group)
+		}
+	}
+}
+
 func TestAnAnswerFindsItsRequestByMessageAndPrefersTheSameChat(t *testing.T) {
 	t.Parallel()
 

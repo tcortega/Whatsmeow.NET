@@ -13,6 +13,7 @@ import (
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/store"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/reflect/protoreflect"
 
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/outbox"
@@ -94,6 +95,12 @@ func (svc *Service) Handler(sessionID string, account *store.Device) whatsmeow.E
 
 		// Ephemeral: into the session's ring in memory, never the outbox, and never waiting for a stream.
 		if event, ok := toEphemeral(evt); ok {
+			if field := unreadableEphemeral(event); field != "" {
+				svc.log.Warn().Str("session_id", sessionID).Str("kind", kind(event)).Str("field", field).Msg("an event the client cannot read is not streamed")
+
+				return true
+			}
+
 			ephemeral.push(event)
 
 			return true
@@ -130,8 +137,26 @@ func (svc *Service) Handler(sessionID string, account *store.Device) whatsmeow.E
 	}
 }
 
-// toEvent maps evt with this slice's own mapping, then with each slice's mapper.
+// toEvent maps evt with this slice's own mapping, then with each slice's mapper, and keeps the event only when the
+// client can read it (Unreadable): one it cannot is not recorded, and is answered, so it is lost, as the client's skip
+// and ack of it would lose it, but visibly, by its kind and field and never a value (ARCHITECTURE §8.7, ADR 0057).
 func (svc *Service) toEvent(sessionID string, evt any, account *store.Device, votes voteDecrypter) (string, *whatsmeowv1.StreamEventsResponse, bool) {
+	key, event, ok := svc.mapped(sessionID, evt, account, votes)
+	if !ok {
+		return "", nil, false
+	}
+
+	if field := Unreadable(event); field != "" {
+		svc.log.Warn().Str("session_id", sessionID).Str("kind", kind(event)).Str("field", field).Msg("an event the client cannot read is not recorded")
+
+		return "", nil, false
+	}
+
+	return key, event, true
+}
+
+// mapped is evt mapped with this slice's own mapping, then with each slice's mapper.
+func (svc *Service) mapped(sessionID string, evt any, account *store.Device, votes voteDecrypter) (string, *whatsmeowv1.StreamEventsResponse, bool) {
 	if key, event, ok := toEvent(evt, account, votes); ok {
 		return key, event, true
 	}
@@ -143,6 +168,16 @@ func (svc *Service) toEvent(sessionID string, evt any, account *store.Device, vo
 	}
 
 	return "", nil, false
+}
+
+// kind is the event's payload case as events.proto names it.
+func kind(event protoreflect.ProtoMessage) string {
+	m := event.ProtoReflect()
+	if f := m.WhichOneof(m.Descriptor().Oneofs().ByName("payload")); f != nil {
+		return string(f.Name())
+	}
+
+	return "none"
 }
 
 // StreamEvents sends the session's events after max(after_seq, cursor), then live ones, until the client cancels,

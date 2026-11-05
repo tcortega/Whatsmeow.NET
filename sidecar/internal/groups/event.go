@@ -1,6 +1,8 @@
 package groups
 
 import (
+	"slices"
+
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -10,7 +12,8 @@ import (
 )
 
 // Event is the slice's events.Mapper: it maps a group notification whatsmeow dispatched to the GroupEvent the outbox
-// records, or false for any other event, and for a change none of whose parts the contract has. It is pure: no I/O.
+// records, or false for any other event, and for a change none of whose parts the contract has. A member the client
+// cannot read is left out of a list (#122). It is pure: no I/O.
 //
 // These are gated: whatsmeow acks a w:gp2 notification only when no handler failed (notification.go:493-506,
 // maybeDeferredAck receipt.go:115-128), so the handler's false after a failed write has WhatsApp send it again. The key
@@ -34,9 +37,13 @@ func Event(_ string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) 
 			event.Time = timestamppb.New(e.Timestamp)
 		}
 	case *events.JoinedGroup:
+		// whatsmeow keeps a participant without a jid, with only a warning (group.go:718, 767, 804-806): the client
+		// cannot read one, so it is left out of the event (#122). GetGroupInfo still sends it, and fails as INTERNAL.
+		group := toGroup(&e.GroupInfo)
+		group.Participants = slices.DeleteFunc(group.Participants, func(p *whatsmeowv1.GroupParticipant) bool { return !server.ReadableJID(p.GetJid()) })
 		event = &whatsmeowv1.GroupEvent{
 			Group: text(e.JID), Sender: optional(e.Sender), SenderAlt: optional(e.SenderPN),
-			Kind: &whatsmeowv1.GroupEvent_Joined_{Joined: &whatsmeowv1.GroupEvent_Joined{Group: toGroup(&e.GroupInfo)}},
+			Kind: &whatsmeowv1.GroupEvent_Joined_{Joined: &whatsmeowv1.GroupEvent_Joined{Group: group}},
 		}
 	default:
 		return "", nil, false
@@ -87,32 +94,40 @@ func changesOf(e *events.GroupInfo) []*whatsmeowv1.GroupChange {
 		add(&whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_DisappearingTimerChanged_{DisappearingTimerChanged: &whatsmeowv1.GroupChange_DisappearingTimerChanged{Timer: timer(e.Ephemeral.DisappearingTimer)}}})
 	}
 
-	if len(e.Join) > 0 {
-		add(&whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_Joined{Joined: participants(e.Join)}})
+	if list := participants(e.Join); list != nil {
+		add(&whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_Joined{Joined: list}})
 	}
 
-	if len(e.Leave) > 0 {
-		add(&whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_Left{Left: participants(e.Leave)}})
+	if list := participants(e.Leave); list != nil {
+		add(&whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_Left{Left: list}})
 	}
 
-	if len(e.Promote) > 0 {
-		add(&whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_Promoted{Promoted: participants(e.Promote)}})
+	if list := participants(e.Promote); list != nil {
+		add(&whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_Promoted{Promoted: list}})
 	}
 
-	if len(e.Demote) > 0 {
-		add(&whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_Demoted{Demoted: participants(e.Demote)}})
+	if list := participants(e.Demote); list != nil {
+		add(&whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_Demoted{Demoted: list}})
 	}
 
 	return changes
 }
 
+// participants is the list of jids the client can read, or nil for none: one it cannot read is left out (#122).
 func participants(jids []types.JID) *whatsmeowv1.GroupChange_Participants {
-	list := &whatsmeowv1.GroupChange_Participants{Jids: make([]string, len(jids))}
-	for i, jid := range jids {
-		list.Jids[i] = text(jid)
+	var list []string
+
+	for _, jid := range jids {
+		if s := text(jid); server.ReadableJID(s) {
+			list = append(list, s)
+		}
 	}
 
-	return list
+	if len(list) == 0 {
+		return nil
+	}
+
+	return &whatsmeowv1.GroupChange_Participants{Jids: list}
 }
 
 // optional is the string form of a JID whatsmeow may leave nil, empty for nil or the empty JID.

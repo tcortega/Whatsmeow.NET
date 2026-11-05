@@ -54,6 +54,8 @@ type WhatsApp struct {
 	// pairingProps is the store.DeviceProps each session's latest pairing sent (history.go).
 	pairingProps map[string]*waCompanionReg.DeviceProps
 	groupState
+	// record is the sidecar's outbox, which RecordEvent writes to (record.go); nil for none.
+	record Recorder
 }
 
 // marked is a message of a session that DeliverMessage marked.

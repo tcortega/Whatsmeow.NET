@@ -128,8 +128,15 @@ func Mapper(db *sql.DB, w *store.Writer, log zerolog.Logger) func(sessionID stri
 			return "", nil, false
 		}
 
+		// whatsmeow requires the answer's chat (mediaretry.go:152-157); one the client cannot read would cost the answer at
+		// the Events handler's gate (ADR 0057), so it takes the request's, which the client's own request named (#122).
+		answerChat := server.Text(chat)
+		if !server.ReadableJID(answerChat) {
+			answerChat = server.Text(requested)
+		}
+
 		event := &whatsmeowv1.MediaRetryEvent{
-			MessageId: server.Text(retry.MessageID), Chat: server.Text(chat), Sender: server.Text(retry.SenderID.String()), IsFromMe: retry.FromMe, RetryTime: timestamppb.New(retry.Timestamp),
+			MessageId: server.Text(retry.MessageID), Chat: answerChat, Sender: server.Text(retry.SenderID.String()), IsFromMe: retry.FromMe, RetryTime: timestamppb.New(retry.Timestamp),
 		}
 
 		if answered(log, sessionID, retry, media, event) {

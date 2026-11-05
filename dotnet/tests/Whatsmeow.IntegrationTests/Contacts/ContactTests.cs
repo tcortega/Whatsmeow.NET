@@ -337,4 +337,42 @@ public sealed class ContactTests(FakeSidecar fixture)
 		_ = await Assert.ThrowsAsync<NotLoggedInException>(() => unpaired.GetContactsAsync(ct));
 		_ = await Assert.ThrowsAsync<NotLoggedInException>(() => unpaired.ResolveJidsAsync([Lid("900000001")], ct));
 	}
+
+	/// <summary>
+	/// #122: whatsmeow reads a status notification's sender without checking it (notification.go:451-467), so one
+	/// without a <c>from</c> names the empty JID. The client cannot read it, so the sidecar does not record it, and the
+	/// next change still arrives.
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task AStatusOfNoUser_IsNeverUnreadable()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "contacts-unreadable";
+		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
+		using var received = new Received<ContactUpdated>(client);
+
+		foreach (var jid in new[] { "", "980000001@lid" })
+		{
+			_ = await fixture.Fake.DeliverContactNotificationAsync(
+				new DeliverContactNotificationRequest
+				{
+					SessionId = Session,
+					About = new DeliverContactNotificationRequest.Types.About { Jid = jid, Text = "busy" },
+				},
+				cancellationToken: ct
+			);
+		}
+
+		Assert.Equal(
+			new ContactUpdated
+			{
+				SessionId = SessionId.From(Session),
+				Jid = Lid("980000001"),
+				JidAlt = null,
+				Change = new ContactChange.About { Text = "busy" },
+			},
+			await received.NextAsync(ct)
+		);
+		Assert.DoesNotContain(fixture.Logs.Named("EventUnreadable"), r => r.Message.Contains(Session, StringComparison.Ordinal));
+	}
 }

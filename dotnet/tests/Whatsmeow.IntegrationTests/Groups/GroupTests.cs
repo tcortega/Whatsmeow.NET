@@ -612,4 +612,56 @@ public sealed class GroupTests(FakeSidecar fixture)
 		Assert.Contains("GroupParticipant.jid", error.Message, StringComparison.Ordinal);
 		Assert.DoesNotContain("5511911300001", error.ToString(), StringComparison.Ordinal);
 	}
+
+	/// <summary>
+	/// #122: a member the client cannot read, here one without a server, is left out of a group change, and a change
+	/// left with none is not recorded; whatsmeow keeps a created group's participant without a jid
+	/// (group.go:718, 767, 804-806).
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task GroupNotification_AMemberTheClientCannotRead_IsLeftOut()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "groups-member-unreadable";
+		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
+		using var changes = new Received<GroupInfoChanged>(client);
+		var at = new DateTimeOffset(2026, 10, 30, 8, 0, 0, TimeSpan.Zero);
+
+		_ = await fixture.Fake.DeliverGroupNotificationAsync(
+			new DeliverGroupNotificationRequest
+			{
+				SessionId = Session,
+				Id = "GN-UNREADABLE-1",
+				Group = "120363114000000001@g.us",
+				Time = Timestamp.FromDateTimeOffset(at),
+				Leave = { "5511911400001@" },
+			},
+			cancellationToken: ct
+		);
+		_ = await fixture.Fake.DeliverGroupNotificationAsync(
+			new DeliverGroupNotificationRequest
+			{
+				SessionId = Session,
+				Id = "GN-UNREADABLE-2",
+				Group = "120363114000000001@g.us",
+				Time = Timestamp.FromDateTimeOffset(at),
+				Join = { "5511911400002@", "911400003@lid" },
+			},
+			cancellationToken: ct
+		);
+
+		Assert.Equal(
+			new GroupInfoChanged
+			{
+				SessionId = SessionId.From(Session),
+				Group = Group("120363114000000001"),
+				Sender = null,
+				SenderAlt = null,
+				Timestamp = at,
+				Changes = [new GroupChange.ParticipantJoined { Jid = Lid("911400003") }],
+			},
+			await changes.NextAsync(ct)
+		);
+		Assert.DoesNotContain(fixture.Logs.Named("EventUnreadable"), r => r.Message.Contains(Session, StringComparison.Ordinal));
+	}
 }
