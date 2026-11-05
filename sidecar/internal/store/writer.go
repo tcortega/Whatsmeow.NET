@@ -39,10 +39,16 @@ func (w *Writer) Tx(ctx context.Context, fn func(context.Context, *sql.Tx) error
 	}
 	defer w.release()
 
+	// A free gate is taken without a wait, whatever ctx says, and BEGIN no longer stops when ctx ends (below).
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("begin: %w", err)
+	}
+
 	// Begun on a context that never ends: database/sql rolls back a transaction whose own context ended on a goroutine
 	// of its own (Tx.awaitDone), which nobody waits for, and which still had the database file open as the store
-	// closed (#124). fn's statements still end with ctx, and so does the commit, below; BEGIN and COMMIT wait for
-	// whatsmeow's writes up to the busy_timeout (ADR 0040).
+	// closed (#124). So BEGIN waits for whatsmeow's writes up to the busy_timeout, whatever ctx says (ADR 0040). fn's
+	// statements still end with ctx; of the transaction's own steps, only the checks after BEGIN and before COMMIT
+	// watch it.
 	tx, err := w.db.BeginTx(context.WithoutCancel(ctx), nil)
 	if err != nil {
 		return fmt.Errorf("begin: %w", err)
@@ -51,6 +57,10 @@ func (w *Writer) Tx(ctx context.Context, fn func(context.Context, *sql.Tx) error
 	// Also when fn fails or panics, before the gate is handed on: an open transaction would keep SQLite's lock. After
 	// the commit it does nothing.
 	defer func() { _ = tx.Rollback() }()
+
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("begin: %w", err)
+	}
 
 	if err := fn(context.WithValue(ctx, heldKey{}, w), tx); err != nil {
 		return err
