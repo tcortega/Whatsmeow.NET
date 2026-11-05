@@ -1,4 +1,5 @@
 using System.Threading.Channels;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Time.Testing;
 using Whatsmeow.Sidecar;
@@ -133,6 +134,36 @@ public sealed class SidecarSupervisorTests : IAsyncDisposable
 		_time.Advance(TimeSpan.FromHours(1));
 
 		Assert.False(_launches.Reader.TryRead(out _));
+	}
+
+	[Fact(Timeout = 10_000)]
+	public async Task Dispose_ALaunchFailsAfterTheDisposeBegan_DisposesWithoutItsError()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var launching = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+		await using var supervisor = new SidecarSupervisor(
+			async cancellationToken =>
+			{
+				// A reconnect whose refusal was on the wire when the dispose began (#132).
+				var cancelled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+				using var registration = cancellationToken.Register(cancelled.SetResult);
+				launching.SetResult();
+				await cancelled.Task.ConfigureAwait(false);
+				throw new SidecarUnavailableException("refused the token");
+			},
+			_time,
+			new FakeLogger(_logs, "Whatsmeow.Client")
+		);
+		var exit = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+		supervisor.Start(1, exit.Task);
+		exit.SetResult(1);
+		_time.Advance(await _time.Timers.Reader.ReadAsync(ct));
+		await launching.Task.WaitAsync(ct);
+
+		await supervisor.DisposeAsync();
+
+		Assert.DoesNotContain(_logs.GetSnapshot(), r => r.Id.Name == "SidecarRestartFailed");
+		_ = Assert.Single(_logs.GetSnapshot(), r => r.Id.Name == "SidecarLaunchFailedAfterStopBegan" && r.Level == LogLevel.Debug && r.Exception is SidecarUnavailableException);
 	}
 
 	private Running Started(int processId)

@@ -273,9 +273,10 @@ public sealed class ExternalTests(FakeSidecar fixture, SidecarBinaries binaries)
 			Assert.Equal(TimeSpan.FromSeconds(30), await time.Timers.Reader.ReadAsync(ct));
 		}
 
-		// Its file gets the new token: the next connect is accepted.
-		_ = StandaloneSidecar.CopyToken(token, firstToken);
+		// Its file gets the new token: the next connect is accepted. Only once the 4 s connect failed, so no connect reads
+		// the file while it is copied (#132).
 		Assert.Equal(TimeSpan.FromSeconds(8), await time.Timers.Reader.ReadAsync(ct));
+		_ = StandaloneSidecar.CopyToken(token, firstToken);
 		time.Advance(TimeSpan.FromSeconds(8));
 		await first.WaitForLaunchAsync(1, ct);
 
