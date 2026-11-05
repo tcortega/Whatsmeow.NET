@@ -49,9 +49,10 @@ func ReadableJID(s string) bool {
 	return true
 }
 
-// fits reports whether s is a number of ASCII digits that fits bits, as .NET parses one with NumberStyles.None.
+// fits reports whether s is a number of ASCII digits that fits bits, as .NET parses one with NumberStyles.None, which
+// also takes trailing NUL characters after the digits (testdata/jids.json).
 func fits(s string, bits int) bool {
-	_, err := strconv.ParseUint(s, 10, bits)
+	_, err := strconv.ParseUint(strings.TrimRight(s, "\x00"), 10, bits)
 
 	return err == nil
 }

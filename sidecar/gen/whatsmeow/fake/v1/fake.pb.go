@@ -6254,9 +6254,9 @@ type RecordEventRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The session whose outbox records it.
 	SessionId string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	// The event, a whatsmeow.v1.StreamEventsResponse in its wire form: whatsmeow.v1's C# types are Whatsmeow.Protocol's,
-	// and generating them again for the tests would make two of each. Its seq is the outbox's.
-	Event         []byte `protobuf:"bytes,2,opt,name=event,proto3" json:"event,omitempty"`
+	// The event, a whatsmeow.v1.StreamEventsResponse in its JSON form (protojson), so a test writes it without
+	// whatsmeow.v1's C# types, which are Whatsmeow.Protocol's internals. Its seq is the outbox's.
+	EventJson     string `protobuf:"bytes,2,opt,name=event_json,json=eventJson,proto3" json:"event_json,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -6298,11 +6298,11 @@ func (x *RecordEventRequest) GetSessionId() string {
 	return ""
 }
 
-func (x *RecordEventRequest) GetEvent() []byte {
+func (x *RecordEventRequest) GetEventJson() string {
 	if x != nil {
-		return x.Event
+		return x.EventJson
 	}
-	return nil
+	return ""
 }
 
 // RecordEventResponse has no fields.
@@ -7729,11 +7729,12 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"\x10storage_quota_mb\x18\x04 \x01(\rH\x02R\x0estorageQuotaMb\x88\x01\x01B\x17\n" +
 	"\x15_full_sync_days_limitB\x1a\n" +
 	"\x18_full_sync_size_mb_limitB\x13\n" +
-	"\x11_storage_quota_mb\"I\n" +
+	"\x11_storage_quota_mb\"R\n" +
 	"\x12RecordEventRequest\x12\x1d\n" +
 	"\n" +
-	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
-	"\x05event\x18\x02 \x01(\fR\x05event\"\x15\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x1d\n" +
+	"\n" +
+	"event_json\x18\x02 \x01(\tR\teventJson\"\x15\n" +
 	"\x13RecordEventResponse2\xeb%\n" +
 	"\x13FakeWhatsAppService\x12e\n" +
 	"\x0eDeliverMessage\x12(.whatsmeow.fake.v1.DeliverMessageRequest\x1a).whatsmeow.fake.v1.DeliverMessageResponse\x12h\n" +

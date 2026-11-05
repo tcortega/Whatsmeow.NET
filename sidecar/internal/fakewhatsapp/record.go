@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 
-	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	fakev1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/fake/v1"
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
@@ -26,12 +26,12 @@ func (c *Control) RecordEvent(ctx context.Context, req *fakev1.RecordEventReques
 	}
 
 	event := &whatsmeowv1.StreamEventsResponse{}
-	if err := proto.Unmarshal(req.GetEvent(), event); err != nil {
+	if err := protojson.Unmarshal([]byte(req.GetEventJson()), event); err != nil {
 		return nil, fmt.Errorf("record an event: not a StreamEventsResponse: %w", err)
 	}
 
 	if err := c.whatsApp.record(ctx, req.GetSessionId(), event); err != nil {
-		return nil, fmt.Errorf("record an event of session %q: %w", req.GetSessionId(), err)
+		return nil, fmt.Errorf("RecordEvent: %w", err)
 	}
 
 	return &fakev1.RecordEventResponse{}, nil

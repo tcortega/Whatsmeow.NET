@@ -100,12 +100,7 @@ func Mapper(db *sql.DB, w *store.Writer, log zerolog.Logger) func(sessionID stri
 			return "", nil, false
 		}
 
-		// whatsmeow requires the chat (mediaretry.go:152-157), and the request is found by its message id whatever the
-		// chat: one the client cannot read is not recorded (#122).
 		chat := retry.ChatID.String()
-		if !server.ReadableJID(server.Text(chat)) {
-			return "", nil, false
-		}
 
 		var (
 			stored    []byte

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Whatsmeow.Core.Errors;
 
 namespace Whatsmeow.IntegrationTests.Events;
@@ -27,5 +28,24 @@ public sealed class JidParseTests
 		Assert.Equal(WhatsmeowErrorCode.Internal, error.ErrorCode);
 		Assert.Contains("MessageSource.chat", error.Message, StringComparison.Ordinal);
 		Assert.DoesNotContain("5511900000001", error.ToString(), StringComparison.Ordinal);
+	}
+
+	/// <summary>
+	/// One table of what reads as a JID and what does not, for this parser and the sidecar's <c>server.ReadableJID</c>,
+	/// which keeps an event the client cannot read out of the outbox (#122): the two agree on every row, quirks
+	/// included (a number may end in NUL characters, as .NET's integer parse allows).
+	/// </summary>
+	[Fact]
+	public void TryParse_AgreesWithTheSidecarsTable()
+	{
+		using var table = JsonDocument.Parse(File.ReadAllText(Path.Combine(SidecarBinaries.FindRoot(), "sidecar", "internal", "server", "testdata", "jids.json")));
+		var disagreeing = table
+			.RootElement.EnumerateArray()
+			.Where(row => Jid.TryParse(row.GetProperty("jid").GetString(), out _) != row.GetProperty("readable").GetBoolean())
+			.Select(row => row.GetProperty("jid").GetString()!.Replace("\0", "\\0", StringComparison.Ordinal))
+			.ToList();
+
+		Assert.True(table.RootElement.GetArrayLength() > 0);
+		Assert.Empty(disagreeing);
 	}
 }

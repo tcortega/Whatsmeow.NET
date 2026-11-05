@@ -1,4 +1,3 @@
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Whatsmeow.Events;
 using Whatsmeow.IntegrationTests.Fake;
@@ -6,7 +5,6 @@ using Whatsmeow.IntegrationTests.Sessions;
 using Whatsmeow.IntegrationTests.Support;
 using Whatsmeow.Sessions;
 using MessageSource = Whatsmeow.Events.MessageSource;
-using V1 = Whatsmeow.Protocol.V1;
 
 namespace Whatsmeow.IntegrationTests.Events;
 
@@ -139,19 +137,8 @@ public sealed class EventTests(FakeSidecar fixture)
 
 		// Unusable: a message must say where it is. Skipped and acked, never the end of the stream. No slice records one
 		// (#122), so the fake records it as it is (RecordEvent).
-		var nowhere = new V1.StreamEventsResponse
-		{
-			Message = new V1.MessageEvent
-			{
-				Info = new V1.MessageInfo
-				{
-					Id = "M1",
-					Source = new V1.MessageSource { Sender = Deliveries.Chat },
-					MessageTime = Timestamp.FromDateTimeOffset(Deliveries.At),
-				},
-			},
-		};
-		_ = await fixture.Fake.RecordEventAsync(new RecordEventRequest { SessionId = "events-no-chat", Event = nowhere.ToByteString() }, cancellationToken: ct);
+		const string Nowhere = """{"message": {"info": {"id": "M1", "source": {"sender": "5511999999999@s.whatsapp.net"}, "messageTime": "2023-11-14T22:13:20Z"}}}""";
+		_ = await fixture.Fake.RecordEventAsync(new RecordEventRequest { SessionId = "events-no-chat", EventJson = Nowhere }, cancellationToken: ct);
 		await Deliveries.DeliverAsync(fixture.Fake, "events-no-chat", ct, "M2");
 
 		Assert.Equal(Deliveries.Received("events-no-chat", "M2"), await received.NextAsync(ct));

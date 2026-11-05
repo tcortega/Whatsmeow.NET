@@ -329,8 +329,8 @@ public sealed class ChatStateTests(FakeSidecar fixture)
 	public async Task APhoneChangeOfNoChatOrAStarOfNoMessage_IsNeverUnreadable()
 	{
 		var ct = TestContext.Current.CancellationToken;
-		var session = "chats-unreadable";
-		var client = await SessionSetup.ConnectedAsync(fixture, session, ct);
+		const string Session = "chats-unreadable";
+		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
 		using var changes = new Received<ChatStateChanged>(client);
 		var at = new DateTimeOffset(2026, 11, 2, 10, 0, 0, 123, TimeSpan.Zero);
 
@@ -342,7 +342,7 @@ public sealed class ChatStateTests(FakeSidecar fixture)
 		})
 		{
 			_ = await fixture.Fake.SyncChatStateAsync(
-				new SyncChatStateRequest { SessionId = session, Chat = chat, ChangeTime = Timestamp.FromDateTimeOffset(at), Change = change },
+				new SyncChatStateRequest { SessionId = Session, Chat = chat, ChangeTime = Timestamp.FromDateTimeOffset(at), Change = change },
 				cancellationToken: ct
 			);
 		}
@@ -350,7 +350,7 @@ public sealed class ChatStateTests(FakeSidecar fixture)
 		Assert.Equal(
 			new ChatStateChanged
 			{
-				SessionId = SessionId.From(session),
+				SessionId = SessionId.From(Session),
 				Chat = s_chat,
 				Timestamp = at,
 				FromFullSync = false,
@@ -358,7 +358,7 @@ public sealed class ChatStateTests(FakeSidecar fixture)
 			},
 			await changes.NextAsync(ct)
 		);
-		Assert.DoesNotContain(fixture.Logs.Named("EventUnreadable"), r => r.Message.Contains(session, StringComparison.Ordinal));
+		Assert.DoesNotContain(fixture.Logs.Named("EventUnreadable"), r => r.Message.Contains(Session, StringComparison.Ordinal));
 	}
 
 	/// <summary>The session's first <paramref name="count"/> entries of what it sent, without their log indexes.</summary>

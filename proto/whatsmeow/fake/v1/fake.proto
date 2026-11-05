@@ -1262,9 +1262,9 @@ message GetPairingDevicePropsResponse {
 message RecordEventRequest {
   // The session whose outbox records it.
   string session_id = 1;
-  // The event, a whatsmeow.v1.StreamEventsResponse in its wire form: whatsmeow.v1's C# types are Whatsmeow.Protocol's,
-  // and generating them again for the tests would make two of each. Its seq is the outbox's.
-  bytes event = 2;
+  // The event, a whatsmeow.v1.StreamEventsResponse in its JSON form (protojson), so a test writes it without
+  // whatsmeow.v1's C# types, which are Whatsmeow.Protocol's internals. Its seq is the outbox's.
+  string event_json = 2;
 }
 
 // RecordEventResponse has no fields.

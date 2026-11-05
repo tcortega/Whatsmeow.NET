@@ -12,8 +12,8 @@ import (
 )
 
 // Event is the slice's events.Mapper: it maps a group notification whatsmeow dispatched to the GroupEvent the outbox
-// records, or false for any other event, for a change none of whose parts the contract has, and for a group the client
-// cannot read (#122). It is pure: no I/O.
+// records, or false for any other event, and for a change none of whose parts the contract has. A member the client
+// cannot read is left out of a list (#122). It is pure: no I/O.
 //
 // These are gated: whatsmeow acks a w:gp2 notification only when no handler failed (notification.go:493-506,
 // maybeDeferredAck receipt.go:115-128), so the handler's false after a failed write has WhatsApp send it again. The key
@@ -25,7 +25,7 @@ func Event(_ string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) 
 	switch e := evt.(type) {
 	case *events.GroupInfo:
 		changes := changesOf(e)
-		if len(changes) == 0 || !server.ReadableJID(text(e.JID)) {
+		if len(changes) == 0 {
 			return "", nil, false
 		}
 
@@ -37,10 +37,6 @@ func Event(_ string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) 
 			event.Time = timestamppb.New(e.Timestamp)
 		}
 	case *events.JoinedGroup:
-		if !server.ReadableJID(text(e.JID)) {
-			return "", nil, false
-		}
-
 		// whatsmeow keeps a participant without a jid, with only a warning (group.go:718, 767, 804-806): the client
 		// cannot read one, so it is left out of the event (#122). GetGroupInfo still sends it, and fails as INTERNAL.
 		group := toGroup(&e.GroupInfo)

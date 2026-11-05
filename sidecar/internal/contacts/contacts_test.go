@@ -697,12 +697,6 @@ func TestEachContactChangeMapsToOneContactEventAndOthersToNone(t *testing.T) {
 			"about", &events.UserAbout{JID: jid("111@lid"), Status: "busy"},
 			contact("111@lid", "", &whatsmeowv1.ContactEvent_About_{About: &whatsmeowv1.ContactEvent_About{Text: "busy"}}),
 		},
-		// whatsmeow reads a status notification's sender without checking it (notification.go:451-467), and names the
-		// account by its own JID in an account sync (notification.go:274-278): the client reads neither empty (#122).
-		{"about without a sender", &events.UserAbout{Status: "busy"}, nil},
-		{"the account's picture without its JID", &events.Picture{PictureID: "P1"}, nil},
-		{"push name of a JID ParseJID failed on", &events.PushName{JID: types.JID{User: "a:b:c", Server: types.DefaultUserServer}, NewPushName: "Ana"}, nil},
-		{"business name without a JID", &events.BusinessName{NewBusinessName: "Ana's Shop"}, nil},
 		{"a saved name is not recorded", &events.Contact{JID: jid("111@lid")}, nil},
 		{"a blocklist change is not recorded", &events.Blocklist{}, nil},
 		{"a message is the Events slice's", &events.Message{}, nil},

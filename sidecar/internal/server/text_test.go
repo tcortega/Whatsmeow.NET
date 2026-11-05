@@ -1,6 +1,9 @@
 package server
 
 import (
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"slices"
 	"testing"
 
@@ -29,38 +32,28 @@ func TestTextMakesAStringAProto3FieldCanCarry(t *testing.T) {
 	}
 }
 
-// TestReadableJIDIsWhatTheClientParses: the client's Jid.TryParse (dotnet/src/Whatsmeow.Client/Jid.cs), on the forms
-// whatsmeow's JID.String gives, the ones its ParseJID keeps when it fails (#122), and the client's own refusals.
+// TestReadableJIDIsWhatTheClientParses: one table, testdata/jids.json, which the client's own test reads too
+// (JidParseTests.TryParse_AgreesWithTheSidecarsTable, over Jid.TryParse): the forms whatsmeow's JID.String gives, the
+// ones its ParseJID keeps when it fails (#122), and the client's own rules, quirks included.
 func TestReadableJIDIsWhatTheClientParses(t *testing.T) {
 	t.Parallel()
 
-	for s, want := range map[string]bool{
-		"5511900000001@s.whatsapp.net":     true,
-		"111:2@lid":                        true,
-		"5511900000001.1:2@s.whatsapp.net": true,
-		"5511900000001.1@s.whatsapp.net":   true,
-		"120363000000000000@g.us":          true,
-		"status@broadcast":                 true,
-		"s.whatsapp.net":                   true,
-		// The empty JID's form, and a JID without a server.
-		"":      false,
-		"@":     false,
-		"x@":    false,
-		"a@b@c": false,
-		// What ParseJID keeps when it fails, which JID.String writes back as is.
-		"a.b.c@s.whatsapp.net":   false,
-		"a:b:c@s.whatsapp.net":   false,
-		"a:1.2:0@s.whatsapp.net": false,
-		// The client's own refusals: an agent past a byte, a device past a ushort, a device that is not a number.
-		"5511900000001.256@s.whatsapp.net":   false,
-		"5511900000001:65536@s.whatsapp.net": false,
-		"5511900000001:x@s.whatsapp.net":     false,
-		"5511900000001.1:x@s.whatsapp.net":   false,
-		"5511900000001.@s.whatsapp.net":      false,
-		"5511900000001:-1@s.whatsapp.net":    false,
-	} {
-		if got := ReadableJID(s); got != want {
-			t.Errorf("ReadableJID(%q) = %v, want %v", s, got, want)
+	raw, err := os.ReadFile(filepath.Join("testdata", "jids.json"))
+	if err != nil {
+		t.Fatalf("read the table: %v", err)
+	}
+
+	var table []struct {
+		JID      string `json:"jid"`
+		Readable bool   `json:"readable"`
+	}
+	if err := json.Unmarshal(raw, &table); err != nil || len(table) == 0 {
+		t.Fatalf("parse the table: %d rows, %v", len(table), err)
+	}
+
+	for _, row := range table {
+		if got := ReadableJID(row.JID); got != row.Readable {
+			t.Errorf("ReadableJID(%q) = %v, want %v", row.JID, got, row.Readable)
 		}
 	}
 }

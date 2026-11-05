@@ -1,12 +1,15 @@
 package events
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow/types"
 	waevents "go.mau.fi/whatsmeow/types/events"
 	"google.golang.org/grpc"
@@ -316,4 +319,26 @@ func TestALateEventOfADeletedSessionsClientNeverReachesTheNextSessionOfItsID(t *
 	}
 
 	recvEphemeral(t, h.openEphemeral(h.client, "s1"), streamedPresence(2))
+}
+
+// TestAnEphemeralEventTheClientCannotReadIsNeverStreamed: the client reads a presence's user and a chat presence's
+// chat and sender as it reads a message's (EventMapping.ToEvent), and logs and skips one it cannot read. whatsmeow
+// requires them (presence.go:19, 40-56); the gate is the Events slice's for every event it hands on (#122).
+func TestAnEphemeralEventTheClientCannotReadIsNeverStreamed(t *testing.T) {
+	t.Parallel()
+
+	var log bytes.Buffer
+
+	h := start(t, "s1")
+	h.svc.log = zerolog.New(&log)
+	h.mustDeliver("s1", &waevents.Presence{LastSeen: time.Unix(1_700_000_000, 0)})
+	h.mustDeliver("s1", &waevents.ChatPresence{MessageSource: types.MessageSource{Chat: jid("111@lid")}, State: types.ChatPresenceComposing})
+	h.mustDeliver("s1", presence(1))
+
+	recvEphemeral(t, h.openEphemeral(h.client, "s1"), streamedPresence(1))
+
+	if got := strings.Count(log.String(), `"level":"warn"`); got != 2 || !strings.Contains(log.String(), `"field":"PresenceEvent.from"`) ||
+		!strings.Contains(log.String(), `"field":"MessageSource.sender"`) || strings.Contains(log.String(), "111") {
+		t.Fatalf("log = %s; want two warn lines naming the fields, and no value", log.String())
+	}
 }

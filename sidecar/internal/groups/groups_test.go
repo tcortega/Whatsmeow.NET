@@ -939,7 +939,7 @@ func TestEachGroupNotificationMapsToOneGroupEventAndOthersToNone(t *testing.T) {
 			nil,
 		},
 		// A member the client cannot read is left out, a list left empty dropped, and a change left with nothing not
-		// recorded; whatsmeow keeps a created group's participant without a jid (group.go:718, 767, 804-806) (#122).
+		// mapped; whatsmeow keeps a created group's participant without a jid (group.go:718, 767, 804-806) (#122).
 		{
 			"members the client cannot read",
 			eventInfo(at, func(e *events.GroupInfo) {
@@ -950,7 +950,6 @@ func TestEachGroupNotificationMapsToOneGroupEventAndOthersToNone(t *testing.T) {
 			changed(&whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_Joined{Joined: participants("777000002@lid")}}),
 		},
 		{"only members the client cannot read", eventInfo(at, func(e *events.GroupInfo) { e.Demote = []types.JID{{}} }), nil},
-		{"a change of a group that is the empty JID", &events.GroupInfo{Name: &types.GroupName{Name: "Crew"}}, nil},
 		{
 			"the session joined a group with a participant the client cannot read",
 			joinedGroup(func() *types.GroupInfo {
@@ -964,7 +963,6 @@ func TestEachGroupNotificationMapsToOneGroupEventAndOthersToNone(t *testing.T) {
 				Kind: &whatsmeowv1.GroupEvent_Joined_{Joined: &whatsmeowv1.GroupEvent_Joined{Group: lidGroupProto()}},
 			}}},
 		},
-		{"the session joined a group that is the empty JID", &events.JoinedGroup{}, nil},
 		{"a picture is the Contacts slice's", &events.Picture{JID: jid(group), PictureID: "P1"}, nil},
 	} {
 		key, got, ok := Event("s1", tc.evt)

@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"math"
 	"path/filepath"
+	"slices"
 	"testing"
 	"time"
 
@@ -16,138 +16,8 @@ import (
 	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
 	eventsslice "github.com/tcortega/Whatsmeow.NET/sidecar/internal/events"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/outbox"
-	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
 )
-
-// unreadable is the first field of event the client cannot read, as the contract names it, or "" for an event it
-// reads. It is the client's mapping restated: each field it reads with SidecarValues (dotnet/src/Whatsmeow.Client,
-// EventMapping.ToEvent and the slices' ToEvent), and it reads a JID as server.ReadableJID says and an id when it is
-// not empty. A change the client does not know makes it skip the event without reading it, so nothing is required.
-// A new SidecarValues read of an event field on the client adds its field here (docs/guidelines/go.md).
-func unreadable(event *whatsmeowv1.StreamEventsResponse) string {
-	switch p := event.GetPayload().(type) {
-	case *whatsmeowv1.StreamEventsResponse_Message:
-		if f := info(p.Message.GetInfo()); f != "" {
-			return f
-		}
-
-		if f := target(p.Message.GetTarget()); f != "" {
-			return f
-		}
-
-		return target(p.Message.GetReplyTo())
-	case *whatsmeowv1.StreamEventsResponse_UndecryptableMessage:
-		return info(p.UndecryptableMessage.GetInfo())
-	case *whatsmeowv1.StreamEventsResponse_Contact:
-		return jid(p.Contact.GetChange() != nil, p.Contact.GetJid(), "ContactEvent.jid")
-	case *whatsmeowv1.StreamEventsResponse_ChatState:
-		c := p.ChatState
-		if f := jid(c.GetChange() != nil, c.GetChat(), "ChatStateEvent.chat"); f != "" {
-			return f
-		}
-
-		return id(c.GetStar() != nil, c.GetStar().GetMessageId(), "MessageStar.message_id")
-	case *whatsmeowv1.StreamEventsResponse_Receipt:
-		if f := source(p.Receipt.GetSource()); f != "" {
-			return f
-		}
-
-		for _, m := range p.Receipt.GetMessageIds() {
-			if m == "" {
-				return "ReceiptEvent.message_ids"
-			}
-		}
-	case *whatsmeowv1.StreamEventsResponse_Group:
-		return group(p.Group)
-	case *whatsmeowv1.StreamEventsResponse_MediaRetry:
-		r := p.MediaRetry
-		if f := id(true, r.GetMessageId(), "MediaRetryEvent.message_id"); f != "" {
-			return f
-		}
-
-		if f := jid(true, r.GetChat(), "MediaRetryEvent.chat"); f != "" {
-			return f
-		}
-
-		if m := r.GetMedia(); m != nil && (m.GetMediaType() == whatsmeowv1.MediaType_MEDIA_TYPE_UNSPECIFIED || m.GetFileLength() > math.MaxInt64) {
-			return "MediaRef"
-		}
-	}
-
-	return ""
-}
-
-func info(i *whatsmeowv1.MessageInfo) string {
-	if f := id(true, i.GetId(), "MessageInfo.id"); f != "" {
-		return f
-	}
-
-	return source(i.GetSource())
-}
-
-func source(s *whatsmeowv1.MessageSource) string {
-	if f := jid(true, s.GetChat(), "MessageSource.chat"); f != "" {
-		return f
-	}
-
-	return jid(true, s.GetSender(), "MessageSource.sender")
-}
-
-// target is a reaction's, an edit's, a revoke's or a quote's message: the client reads its id unless the sender is
-// one it cannot read, when it drops the key (ContentMapping.ToKey).
-func target(t *whatsmeowv1.MessageTarget) string {
-	return id(t != nil && (t.GetSender() == "" || server.ReadableJID(t.GetSender())), t.GetId(), "MessageTarget.id")
-}
-
-func group(g *whatsmeowv1.GroupEvent) string {
-	if joined := g.GetJoined(); joined != nil {
-		if f := jid(true, joined.GetGroup().GetJid(), "Group.jid"); f != "" {
-			return f
-		}
-
-		for _, p := range joined.GetGroup().GetParticipants() {
-			if f := jid(true, p.GetJid(), "GroupParticipant.jid"); f != "" {
-				return f
-			}
-		}
-
-		return ""
-	}
-
-	changes := g.GetChanged().GetChanges()
-	if f := jid(len(changes) > 0, g.GetGroup(), "GroupEvent.group"); f != "" {
-		return f
-	}
-
-	for _, c := range changes {
-		for _, list := range []*whatsmeowv1.GroupChange_Participants{c.GetJoined(), c.GetLeft(), c.GetPromoted(), c.GetDemoted()} {
-			for _, j := range list.GetJids() {
-				if f := jid(true, j, "GroupChange.Participants.jids"); f != "" {
-					return f
-				}
-			}
-		}
-	}
-
-	return ""
-}
-
-func jid(required bool, value, field string) string {
-	if required && !server.ReadableJID(value) {
-		return field
-	}
-
-	return ""
-}
-
-func id(required bool, value, field string) string {
-	if required && value == "" {
-		return field
-	}
-
-	return ""
-}
 
 // badJIDs are the JIDs whatsmeow can hand a mapper that the client cannot read: the empty JID, one without a server
 // (types.ParseJID gives both for "", "@" and "x@"), and what ParseJID keeps when it fails or splits oddly, which
@@ -220,7 +90,7 @@ func corpus() []any {
 
 // Not parallel: pii_test.go sets libsignal's logger, which a device created at once would race with
 // (ARCHITECTURE §7.2).
-func TestNoMapperRecordsAnEventTheClientCannotRead(t *testing.T) {
+func TestNoEventTheClientCannotReadIsRecorded(t *testing.T) {
 	ctx := context.Background()
 
 	db, err := store.Open(ctx, filepath.Join(t.TempDir(), "whatsmeow-net.db"), zerolog.Nop())
@@ -234,7 +104,7 @@ func TestNoMapperRecordsAnEventTheClientCannotRead(t *testing.T) {
 		t.Fatalf("create the session: %v", err)
 	}
 
-	// A media retry request, so the media mapper records the answers to R1 whatever their chat.
+	// A media retry request, so the media mapper maps the answers to R1 whatever their chat.
 	requested, err := proto.Marshal(&whatsmeowv1.MediaRef{MediaType: whatsmeowv1.MediaType_MEDIA_TYPE_IMAGE, DirectPath: "/m/1", FileLength: 1})
 	if err != nil {
 		t.Fatalf("marshal the request: %v", err)
@@ -242,6 +112,18 @@ func TestNoMapperRecordsAnEventTheClientCannotRead(t *testing.T) {
 
 	if _, err := db.DB.ExecContext(ctx, "INSERT INTO media_retry (session_id, message_id, chat, media) VALUES ('s1', 'R1', '5511900000001@s.whatsapp.net', ?)", requested); err != nil {
 		t.Fatalf("store a media retry request: %v", err)
+	}
+
+	// Each mapper main wires maps some of the corpus, so the corpus reaches every one: a new event type joins it.
+	for i, mapper := range mappers(db, zerolog.Nop()) {
+		if !slices.ContainsFunc(corpus(), func(evt any) bool { _, _, ok := mapper("s1", evt); return ok }) {
+			t.Errorf("mapper %d maps nothing of the corpus", i)
+		}
+	}
+
+	// The gate refuses a payload case it does not know, so one a new mapper adds is never recorded unchecked.
+	if eventsslice.Unreadable(&whatsmeowv1.StreamEventsResponse{}) == "" {
+		t.Error("Unreadable passes an event without a payload case")
 	}
 
 	box := outbox.New(db.DB, db.Writer)
@@ -264,7 +146,7 @@ func TestNoMapperRecordsAnEventTheClientCannotRead(t *testing.T) {
 	}
 
 	for _, event := range recorded {
-		if f := unreadable(event); f != "" {
+		if f := eventsslice.Unreadable(event); f != "" {
 			t.Errorf("recorded an event whose %s the client cannot read: %v", f, event)
 		}
 	}

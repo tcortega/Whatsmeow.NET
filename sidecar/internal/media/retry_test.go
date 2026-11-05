@@ -222,15 +222,9 @@ func TestAnAnswerToNoRequestIsNotMapped(t *testing.T) {
 	other := plainError(2, time.Unix(1_700_000_000, 0))
 	other.MessageID = "M2"
 
-	// whatsmeow requires the chat (mediaretry.go:152-157), and the request is found by its message id whatever the
-	// chat, so the mapper checks it as every mapper checks what the client reads (#122).
-	noChat := plainError(2, time.Unix(1_700_000_000, 0))
-	noChat.ChatID = types.EmptyJID
-
 	for name, evt := range map[string]any{
-		"another message":                   other,
-		"not an answer":                     &events.Connected{},
-		"an answer of a chat that is empty": noChat,
+		"another message": other,
+		"not an answer":   &events.Connected{},
 	} {
 		if _, _, ok := mapper("s1", evt); ok {
 			t.Errorf("%s: mapped", name)

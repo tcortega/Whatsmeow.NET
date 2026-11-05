@@ -27,10 +27,6 @@ import (
 // The key ties a repeated event to its first recording, so it keeps its seq: whatsmeow dispatches a message again
 // from its decrypted-event buffer after a crash between our commit and its buffer clear (message.go:459-477).
 func toEvent(evt any, account *store.Device, votes voteDecrypter) (string, *whatsmeowv1.StreamEventsResponse, bool) {
-	if unreadable(evt) != "" {
-		return "", nil, false
-	}
-
 	switch e := evt.(type) {
 	case *waevents.Message:
 		// A history sync notification is the History slice's (internal/history): never a live message.
@@ -55,34 +51,6 @@ func toEvent(evt any, account *store.Device, votes voteDecrypter) (string, *what
 		}}, true
 	default:
 		return "", nil, false
-	}
-}
-
-// unreadable is the field of a message or an undecryptable message the client cannot read (MessageInfo.id, a
-// MessageSource's chat or sender, as SidecarValues reads them), or "" for one it reads and for any other event. Such a
-// message is not recorded (#122): whatsmeow's ParseWebMessage, for a placeholder resend, takes the id unchecked and
-// accepts an empty chat (client.go:1027-1039; message.go:874-880).
-func unreadable(evt any) string {
-	var info *types.MessageInfo
-
-	switch e := evt.(type) {
-	case *waevents.Message:
-		info = &e.Info
-	case *waevents.UndecryptableMessage:
-		info = &e.Info
-	default:
-		return ""
-	}
-
-	switch {
-	case info.ID == "":
-		return "MessageInfo.id"
-	case !server.ReadableJID(server.Text(info.Chat.String())):
-		return "MessageSource.chat"
-	case !server.ReadableJID(server.Text(info.Sender.String())):
-		return "MessageSource.sender"
-	default:
-		return ""
 	}
 }
 
