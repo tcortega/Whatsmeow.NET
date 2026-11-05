@@ -1,6 +1,6 @@
 # 0055. The public API baseline for 1.0, and package validation against the last stable release
 
-- Status: Accepted
+- Status: Proposed; pending Antonio's API review in draft PR #118
 - Date: 2026-11-04
 - Evidence: issue #50, its plan review, the API review in its PR, `build/release-test.sh`, `tools/check-repo` tests, and the probes and mutations in the PR body
 - Amends: ARCHITECTURE §8.1 (stability), §8.3 (closed hierarchies), §12 (the release); [ADR 0023](0023-native-packages-build-pin-and-find.md) (which dependencies are exact)
@@ -8,7 +8,8 @@
 ## Context
 
 PublicApiAnalyzers tracks `Whatsmeow.Client`, `Whatsmeow.Extensions.Hosting` and `Whatsmeow.Testing`, and RS0016/RS0017 are errors (`dotnet/.globalconfig`); before this record every member was in `PublicAPI.Unshipped.txt` and every `PublicAPI.Shipped.txt` was empty [observed].
-At 1.0 that surface becomes a promise, so the owner reviewed it once before freezing it (the API review in #50's PR).
+At 1.0 that surface becomes a promise, so Antonio must review it before freezing it.
+The API review in draft PR #118 and its R1 through R5 changes remain proposals pending his approval [observed: issue #50 acceptance criteria and PR #118 review hold].
 
 Measured:
 
@@ -27,7 +28,7 @@ Measured:
 
 ## Decision
 
-- **Before the baseline, the review's changes** (owner decisions in #50): `ConnectionStateChanged` is `SessionStateChanged`, `SessionState.TempBanned` is `SessionState.TemporarilyBanned` (the contract's `TempBanned` stays), the media metadata's `Mimetype` is `MimeType`, `WhatsmeowSessions.ListAsync` returns `ImmutableArray<SessionInfo>`, and `MarkReadAsync` takes an `IReadOnlyList<MessageId>`.
+- **Before the baseline, the review's proposed changes** (pending owner decisions in #50): `ConnectionStateChanged` is `SessionStateChanged`, `SessionState.TempBanned` is `SessionState.TemporarilyBanned` (the contract's `TempBanned` stays), the media metadata's `Mimetype` is `MimeType`, `WhatsmeowSessions.ListAsync` returns `ImmutableArray<SessionInfo>`, and `MarkReadAsync` takes an `IReadOnlyList<MessageId>`.
 - **The baseline**: every public member of the three stable packages is in its `PublicAPI.Shipped.txt`, and each `PublicAPI.Unshipped.txt` holds only `#nullable enable`.
   A new member goes to `PublicAPI.Unshipped.txt`; before a stable tag, its lines move to `PublicAPI.Shipped.txt`.
   `build/ci.sh package` fails at a stable version whose `PublicAPI.Unshipped.txt` is not empty, so `PublicAPI.Shipped.txt` is always what the last stable release published.
