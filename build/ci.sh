@@ -510,6 +510,8 @@ source_archive() {
 consumer_setup() { # feed
 	local feed
 	feed="$(cd "$1" && pwd)" || return
+	# GNU tar treats a Windows drive prefix as a remote host; keep the source archive path POSIX too.
+	package_source="$feed"
 	version="$(tr -d '\r' <"$feed/version")" || return
 	work="$(mktemp -d)" || return
 	packages="$work/packages"
@@ -1064,7 +1066,6 @@ install_check() { # rid where path command...
 }
 
 job_install() { # feed
-	package_source="$1"
 	check "install: a new consumer of the feed $1" consumer_setup "$1" || return
 	check "install: Whatsmeow.Client pins each native package at exactly its version" packaged_pins
 	check "install: Whatsmeow.Extensions.Hosting pins Whatsmeow.Client at exactly its version" packaged_hosting_pin
