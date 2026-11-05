@@ -48,8 +48,10 @@ Every option is checked when the host starts, so a bad value fails the start, ne
 
 ## Lifecycle
 
-* Starting: the sidecar starts and the declared sessions are created before any hosted service's `StartAsync`, so your services can use them; once every service started, the declared sessions that are paired and `Disconnected` are connected.
-* A failure on the way, a failed connect included, fails the host's start and leaves no sidecar running.
+* Starting: the sidecar starts and the declared sessions are created before any hosted service's `StartAsync`, so your services can use them; once every service started, the declared sessions that are paired and `Disconnected` are connected in one batch (§8.5, ADR 0053).
+  Their Connecting states share one commit [observed: `HostingBatchTests`, `TestConnectSessionsRecordsEveryConnectingStateInOneCommit`].
+* A failed connect still lets the other eligible declarations connect, then fails the host's start with the first failure's exception type and error code [observed: `HostingBatchTests`, §8.5].
+  A failure on the way disposes the library's sidecar client and stops an embedded sidecar; an external sidecar stays running.
 * Stopping: the sidecar stops after every hosted service stopped.
   Handlers get the cancel and have the host's shutdown timeout to finish; one that ignores its token is left behind and its event comes again next time (§8.5).
 * A crash of the sidecar in between is the library's: it starts a new one and reconnects the sessions ([Sessions](sessions-and-pairing.md)).

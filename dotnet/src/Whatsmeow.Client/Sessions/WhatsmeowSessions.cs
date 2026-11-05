@@ -56,7 +56,7 @@ public sealed class WhatsmeowSessions
 	/// The client of <paramref name="sessionId"/>, the one <see cref="GetOrCreateAsync"/> returns, without creating the
 	/// session in the sidecar: the hosting package hands it out before the sidecar starts (ADR 0034).
 	/// </summary>
-	internal IWhatsAppClient Client(SessionId sessionId)
+	internal SessionClient Client(SessionId sessionId)
 	{
 		if (_clients.TryGetValue(sessionId, out var existing))
 			return existing;
@@ -148,6 +148,28 @@ public sealed class WhatsmeowSessions
 			_ = _connected.Remove(sessionId);
 	}
 
+	/// <summary>Connects the host's eligible declarations together, then reports the first failure after starting every successful session's events.</summary>
+	internal async Task ConnectAsync(IReadOnlyCollection<SessionId> sessionIds, CancellationToken cancellationToken)
+	{
+		ObjectDisposedException.ThrowIf(_sidecar.IsDisposed, _sidecar);
+		if (sessionIds.Count == 0)
+			return;
+
+		var response = await ConnectSessionsAsync(sessionIds.Select(id => id.Value), cancellationToken).ConfigureAwait(false);
+		foreach (var result in response.Results)
+		{
+			if (result.Reason is ErrorReason.Unspecified)
+				// The sidecar's own client has the handlers, even if the application's keyed registration was replaced.
+				Client(SessionId.From(result.SessionId)).ConnectSucceeded();
+		}
+
+		if (response.Results.FirstOrDefault(result => result.Reason is not ErrorReason.Unspecified) is { } failed)
+			RpcErrors.Throw(failed.Reason);
+	}
+
+	private Task<ConnectSessionsResponse> ConnectSessionsAsync(IEnumerable<string> ids, CancellationToken cancellationToken) =>
+		RpcErrors.CallAsync(_client.ConnectSessionsAsync(new ConnectSessionsRequest { SessionIds = { ids } }, cancellationToken: cancellationToken));
+
 	/// <summary>
 	/// After a sidecar restart, connects again the sessions the application had connected that came back
 	/// <see cref="SessionState.Disconnected"/>; a session that stopped (logged out, replaced, banned, outdated, failed)
@@ -184,9 +206,7 @@ public sealed class WhatsmeowSessions
 		ConnectSessionsResponse response;
 		try
 		{
-			response = await RpcErrors
-				.CallAsync(_client.ConnectSessionsAsync(new ConnectSessionsRequest { SessionIds = { ids } }, cancellationToken: cancellationToken))
-				.ConfigureAwait(false);
+			response = await ConnectSessionsAsync(ids, cancellationToken).ConfigureAwait(false);
 		}
 		catch (WhatsmeowException e)
 		{
