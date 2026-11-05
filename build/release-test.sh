@@ -730,6 +730,8 @@ expect pass "" "baseline: a rehearsal after the new major's release compares wit
 git_q clone --depth 1 --branch main "file://$history" "$tmp/shallow"
 shallow_baseline() { (cd "$tmp/shallow" && bash "$release" baseline 2.0.1-alpha.0.1); }
 expect fail "shallow" "baseline: a shallow clone fails, since it may lack the baseline's tag" shallow_baseline
+shallow_fallback_baseline() { (cd "$tmp/shallow" && bash "$release" baseline 0.0.0-alpha.0); }
+expect fail "shallow" "baseline: MinVer's fallback version cannot hide a shallow clone's missing stable tags" shallow_fallback_baseline
 git_q -C "$history" checkout -b hotfix main~4
 commit hotfix
 tag v1.0.1

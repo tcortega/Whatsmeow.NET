@@ -441,8 +441,8 @@ baseline() {
 	fi
 	core="${version%%-*}"
 	major="${core%%.*}"
-	[ "$major" = 0 ] && return 0
 	tags="$(merged_tags "v$major.*")" || exit 1
+	[ "$major" = 0 ] && return 0
 	found="$({
 		sed -n -E 's/^v((0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))$/\1/p' <<<"$tags"
 		echo "$core"
