@@ -30,15 +30,26 @@ func newWriter(db *sql.DB) *Writer { return &Writer{db: db} }
 // heldKey marks the context of a function Tx runs, so a write inside it fails instead of waiting for itself.
 type heldKey struct{}
 
-// Tx runs fn in a write transaction, after every write that asked earlier, and commits unless fn fails. fn gets
-// the transaction's context; a Tx or Exec on it fails with ErrNestedWrite.
+// Tx runs fn in a write transaction, after every write that asked earlier, and commits unless fn fails or ctx ended.
+// fn gets the transaction's context; a Tx or Exec on it fails with ErrNestedWrite. Tx ends the transaction itself
+// before it returns, also when ctx ends.
 func (w *Writer) Tx(ctx context.Context, fn func(context.Context, *sql.Tx) error) error {
 	if err := w.acquire(ctx); err != nil {
 		return err
 	}
 	defer w.release()
 
-	tx, err := w.db.BeginTx(ctx, nil)
+	// A free gate is taken without a wait, whatever ctx says, and BEGIN no longer stops when ctx ends (below).
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("begin: %w", err)
+	}
+
+	// Begun on a context that never ends: database/sql rolls back a transaction whose own context ended on a goroutine
+	// of its own (Tx.awaitDone), which nobody waits for, and which still had the database file open as the store
+	// closed (#124). So BEGIN waits for whatsmeow's writes up to the busy_timeout, whatever ctx says (ADR 0040). fn's
+	// statements still end with ctx; of the transaction's own steps, only the checks after BEGIN and before COMMIT
+	// watch it.
+	tx, err := w.db.BeginTx(context.WithoutCancel(ctx), nil)
 	if err != nil {
 		return fmt.Errorf("begin: %w", err)
 	}
@@ -47,8 +58,16 @@ func (w *Writer) Tx(ctx context.Context, fn func(context.Context, *sql.Tx) error
 	// the commit it does nothing.
 	defer func() { _ = tx.Rollback() }()
 
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("begin: %w", err)
+	}
+
 	if err := fn(context.WithValue(ctx, heldKey{}, w), tx); err != nil {
 		return err
+	}
+
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("commit: %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {

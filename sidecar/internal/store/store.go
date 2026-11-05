@@ -20,7 +20,8 @@ import (
 )
 
 // BusyTimeout is how long SQLite waits for another connection's write lock (pragmas): the sidecar's own writes wait
-// only for whatsmeow's, behind the write gate (ADR 0040). The event handlers' writes give up after it too.
+// only for whatsmeow's, behind the write gate (ADR 0040). The event handlers' writes stop waiting at the gate after it
+// too; one that began just before then can still wait up to it once more, in its BEGIN (#124).
 const BusyTimeout = 30 * time.Second
 
 // pragmas apply to every connection (ARCHITECTURE §5, §14 question 3): whatsmeow's Upgrade refuses to run without
@@ -194,7 +195,9 @@ func open(ctx context.Context, path string, log zerolog.Logger) (*Store, error) 
 // migrate runs the steps after the database's version, and sets the version, in one transaction: a step that fails
 // leaves the database as it was.
 func migrate(ctx context.Context, db *sql.DB, all []string) (err error) {
-	tx, err := db.BeginTx(ctx, nil)
+	// Begun on a context that never ends, as Writer.Tx's: the deferred rollback, not database/sql's own goroutine, ends
+	// a migration whose context ended (#124). Its statements still end with ctx, and it does not commit once ctx ended.
+	tx, err := db.BeginTx(context.WithoutCancel(ctx), nil)
 	if err != nil {
 		return fmt.Errorf("begin: %w", err)
 	}
@@ -225,6 +228,10 @@ func migrate(ctx context.Context, db *sql.DB, all []string) (err error) {
 	// PRAGMA takes no parameter; the value is a number this code made.
 	if _, err = tx.ExecContext(ctx, fmt.Sprintf("PRAGMA user_version = %d", len(all))); err != nil {
 		return fmt.Errorf("set the version: %w", err)
+	}
+
+	if err = ctx.Err(); err != nil {
+		return fmt.Errorf("commit: %w", err)
 	}
 
 	if err = tx.Commit(); err != nil {
