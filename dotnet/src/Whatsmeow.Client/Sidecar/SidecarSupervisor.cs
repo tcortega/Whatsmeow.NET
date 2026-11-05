@@ -28,7 +28,10 @@ internal sealed class SidecarSupervisor(
 	/// <summary>Starts watching the sidecar that was launched first.</summary>
 	public void Start(int processId, Task<int> exited) => _loop = SuperviseAsync(processId, exited, _stopping.Token);
 
-	/// <summary>Stops supervising and waits for the loop; a launch in progress is cancelled. Calling it again does nothing.</summary>
+	/// <summary>
+	/// Stops supervising and waits for the loop; a launch in progress is cancelled, and its failure is not thrown here.
+	/// Calling it again does nothing.
+	/// </summary>
 	public async ValueTask DisposeAsync()
 	{
 		if (!_stopping.IsCancellationRequested)
@@ -76,6 +79,11 @@ internal sealed class SidecarSupervisor(
 					catch (Exception e) when (!cancellationToken.IsCancellationRequested)
 					{
 						SidecarLog.SidecarRestartFailed(logger, e, attempt, delay);
+					}
+					catch (Exception e) when (e is not OperationCanceledException && cancellationToken.IsCancellationRequested)
+					{
+						// The dispose began: a launch's late failure, a refusal already on the wire, is not the dispose's (#132).
+						return;
 					}
 				}
 			}
