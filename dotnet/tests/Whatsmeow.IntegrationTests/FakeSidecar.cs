@@ -165,17 +165,16 @@ public sealed class FakeSidecar : IAsyncLifetime
 		}
 
 		// A failed attempt fails the test now, with its reason: the next attempt is a backoff away (ADR 0017).
-		_ = await Logs
-			.WaitForAsync(_ => Logs.Named("SidecarRestarted").Count > restarts || Logs.Named("SidecarRestartFailed").Count > failures, cancellationToken)
+		var restart = await Logs
+			.WaitForAsync(r => r.Id.Name is "SidecarRestarted" or "SidecarRestartFailed", restarts + failures + 1, cancellationToken)
 			.ConfigureAwait(false);
-		if (Logs.Named("SidecarRestarted").Count > restarts)
+		if (restart.Id.Name == "SidecarRestarted")
 		{
 			_crash = null;
 			return;
 		}
 
-		var failure = Logs.Named("SidecarRestartFailed")[failures];
-		throw new InvalidOperationException($"The shared sidecar did not come back after {crash.Test} crashed it: {failure.Exception?.Message}", failure.Exception);
+		throw new InvalidOperationException($"The shared sidecar did not come back after {crash.Test} crashed it: {restart.Exception?.Message}", restart.Exception);
 	}
 
 	/// <summary>Fails a test other than the one that crashed the sidecar, while the sidecar is not back.</summary>

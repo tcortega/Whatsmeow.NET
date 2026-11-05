@@ -82,28 +82,29 @@ public sealed class LogCapture : IDisposable
 	}
 
 	/// <summary>Waits until a record matches; the test's timeout ends the wait.</summary>
-	public async Task<FakeLogRecord> WaitForAsync(Func<FakeLogRecord, bool> predicate, CancellationToken cancellationToken)
+	public Task<FakeLogRecord> WaitForAsync(Func<FakeLogRecord, bool> predicate, CancellationToken cancellationToken) => WaitForAsync(predicate, 1, cancellationToken);
+
+	/// <summary>Waits for the <paramref name="count"/>th matching record, including the ones already collected.</summary>
+	public async Task<FakeLogRecord> WaitForAsync(Func<FakeLogRecord, bool> predicate, int count, CancellationToken cancellationToken)
 	{
-		var records = Collector.GetLogsAsync(cancellationToken).GetAsyncEnumerator(cancellationToken);
-		await using var disposeRecords = records.ConfigureAwait(false);
-		while (true)
+		ArgumentOutOfRangeException.ThrowIfLessThan(count, 1);
+		await foreach (var record in Collector.GetLogsAsync(cancellationToken).ConfigureAwait(false))
 		{
-			if (Collector.GetSnapshot().FirstOrDefault(predicate) is { } match)
-				return match;
-			_ = await records.MoveNextAsync().ConfigureAwait(false);
+			cancellationToken.ThrowIfCancellationRequested();
+			if (predicate(record) && --count == 0)
+				return record;
 		}
+
+		throw new InvalidOperationException("The log collector ended before the expected record.");
 	}
 
 	/// <summary>Waits for the <paramref name="count"/>th SidecarStarted record, which carries the process id and the endpoint.</summary>
 	public async Task<(int ProcessId, string Endpoint)> StartedAsync(int count, CancellationToken cancellationToken)
 	{
-		_ = await WaitForAsync(_ => Started().Count >= count, cancellationToken).ConfigureAwait(false);
-		var record = Started()[count - 1];
+		var record = await WaitForAsync(r => r.Id.Name == "SidecarStarted", count, cancellationToken).ConfigureAwait(false);
 		return (int.Parse(record.GetStructuredStateValue("ProcessId")!, System.Globalization.CultureInfo.InvariantCulture), record.GetStructuredStateValue("Endpoint")!);
 	}
 
 	/// <summary>Every record with this event name.</summary>
 	public IReadOnlyList<FakeLogRecord> Named(string eventName) => [.. Collector.GetSnapshot().Where(r => r.Id.Name == eventName)];
-
-	private IReadOnlyList<FakeLogRecord> Started() => Named("SidecarStarted");
 }

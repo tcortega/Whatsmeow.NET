@@ -32,6 +32,7 @@ That is `tests/Whatsmeow.IntegrationTests`.
 Fixture-free methods live in `tests/Whatsmeow.IntegrationTests` because no sidecar path reaches what they check:
 
 * `Support/LogRedactionTests.cs`, the live log's redaction, which no live run can check for itself.
+* `Support/LogCaptureTests.cs`, the log wait's single visitation of each record, cancellation, and selection of the requested lifecycle record (#137).
 * `Events/JidParseTests.cs`, `Jid.Parse` throwing without the text it refused (ADR 0039), and a JID the sidecar sent failing as `Internal` without it (ARCHITECTURE §8.7): the sidecar records no event with a JID the client cannot parse (#122), and no response found at the pin sends one with a text.
   An empty JID does reach a response: `GetGroupInfo` sends a member without a server empty, which `Groups/GroupTests.cs` uses for the sidecar's side.
   For an event, `Events/EventTests.cs` has the fake record a message with no chat as it is (`RecordEvent`), so the client's skip and ack show.
