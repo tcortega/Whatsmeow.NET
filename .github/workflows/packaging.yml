@@ -1,7 +1,7 @@
 name: packaging
 
 # Native packages (ADR 0023): the package job on Windows builds every binary, packs every package and installs them
-# there; the install jobs install that same feed on Linux and macOS, so packages built on Windows must run there; the
+# there; the install jobs install that same feed on every other native host, including both Alpine architectures; the
 # aot jobs publish AotSmoke from it with Native AOT on every target RID (ADR 0056). ci.yml calls it on main and on
 # workflow_dispatch, and release.yml on every release and rehearsal (ADR 0050), so a release publishes the feed these
 # checks passed. Every check lives in build/ci.sh.
@@ -95,7 +95,10 @@ jobs:
       matrix:
         include:
           - { name: linux-x64, os: ubuntu-26.04 }
+          - { name: linux-arm64, os: ubuntu-26.04-arm }
+          - { name: osx-x64, os: macos-26-intel }
           - { name: osx-arm64, os: macos-26 }
+          - { name: win-arm64, os: windows-11-arm }
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -113,6 +116,8 @@ jobs:
       - uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5.2.5
         with:
           version: ${{ env.MISE_VERSION }}
+          install_args: go
+          cache_key_prefix: mise-install
           cache: ${{ inputs.cache }}
 
       - name: Go caches under the runner temp directory

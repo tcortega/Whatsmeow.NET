@@ -2,10 +2,10 @@
 
 ## Platforms
 
-`Whatsmeow.Client` brings the sidecar for six targets: linux-x64, linux-arm64, osx-x64, osx-arm64, win-x64 and win-arm64.
-The Linux binary has no C dependencies, so it runs on glibc and on musl (Alpine) alike [observed: §8.5].
-CI installs the packages into a new app and runs it on linux-x64, Alpine x64, osx-arm64 and win-x64, built and published several ways [observed: `build/ci.sh install`].
-It also publishes a Native AOT app from the packages on every target, Alpine x64 and arm64 included, each on a machine of that OS and architecture, and runs it with the packaged binary [observed: `build/ci.sh aot`, ADR 0056].
+`Whatsmeow.Client` brings six sidecar binaries: linux-x64, linux-arm64, osx-x64, osx-arm64, win-x64 and win-arm64.
+The Linux binaries have no C dependencies and also serve linux-musl-x64 and linux-musl-arm64 (Alpine), making eight supported runtime targets [observed: §8.5; `SidecarBinary.RuntimeIdentifier`].
+CI installs the packages into a new app on all eight target RIDs: portable build/run and publish, and RID-specific framework-dependent and self-contained JIT publishes [observed: `build/ci.sh job_install`, `packaging.yml`; ADR 0058].
+Both musl RIDs run in their architecture's Alpine container, and Native AOT is a separate RID-specific publish on every target RID [observed: `build/ci.sh job_aot`; ADR 0056, 0058].
 Other targets, win-x86 included, have no binary, and the start fails naming the paths it tried.
 
 ## Where the binary comes from
@@ -64,7 +64,8 @@ or `"Whatsmeow": { "Transport": "NamedPipe" }` in configuration.
 
 **The binary is not found.**
 The exception lists the paths it tried.
-Check that your RID is one of the six, or set `SidecarPath`.
+Check that your runtime target is one of the eight listed above, or set `SidecarPath`.
+The two musl targets use the corresponding `linux-<arch>` packaged asset [observed: `SidecarBinary.RuntimeIdentifier`; §8.5].
 
 **The database is in use.**
 Another `whatsmeow-net` holds it: one database has one sidecar at a time, and a second one fails before it is ready.
