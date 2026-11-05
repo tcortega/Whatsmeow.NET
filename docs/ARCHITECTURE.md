@@ -318,7 +318,8 @@ An event is deleted only once every consumer of its session acked it; a session 
 The handler **never** calls gRPC, never waits on .NET, never downloads media, and never returns `false` just because no consumer is connected.
 
 `UndecryptableMessage` is written to the outbox like any event (mautrix shows it as a placeholder), so .NET can show "waiting for this message".
-The recovered message arrives later as a `MessageEvent` in the same chat, and the dedupe key (§8.4) ties the two together if it carries the same `MessageId`.
+The recovered message arrives later as a `MessageEvent`; its return to the same chat is [inferred for the phone's copy: message.go:863-881, client.go:1025-1041] and was not measured in #72.
+The dedupe key (§8.4) ties the two together if it carries the same `MessageId`.
 The two natural recoveries in §14 kept it [observed: #72]; whether either was the phone's copy remains [unknown].
 
 Ephemeral high-volume events (presence, typing) bypass the outbox. whatsmeow dispatches them on the node queue and answers neither, so they are not gated (presence.go:18-58). The handler pushes them into the session's ring in memory, its newest 256, and returns true; `StreamEphemeralEvents` sends them without a seq to every open stream, best effort, and a `QueueOverflowEvent` with how many a stream did not get. A restart loses them ([ADR 0027](adr/0027-ephemeral-events-presence-and-typing.md)).
