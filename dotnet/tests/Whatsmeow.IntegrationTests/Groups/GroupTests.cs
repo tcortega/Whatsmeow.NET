@@ -340,7 +340,8 @@ public sealed class GroupTests(FakeSidecar fixture)
 
 		var old = await Assert.ThrowsAsync<WhatsmeowException>(() => joiner.JoinGroupWithLinkAsync(link, ct));
 		Assert.Equal(WhatsmeowErrorCode.InviteLinkInvalid, old.ErrorCode);
-		var bogus = await Assert.ThrowsAsync<WhatsmeowException>(() => joiner.JoinGroupWithLinkAsync(new Uri("https://chat.whatsapp.com/NOSUCHCODE"), ct));
+		// A well formed code no group has, which WhatsApp refuses with 400 [observed: #36 live run 2026-11-04].
+		var bogus = await Assert.ThrowsAsync<WhatsmeowException>(() => joiner.JoinGroupWithLinkAsync(new Uri("https://chat.whatsapp.com/NoSuchCode0000000000AB"), ct));
 		Assert.Equal(WhatsmeowErrorCode.InviteLinkInvalid, bogus.ErrorCode);
 		Assert.Empty(await joiner.GetGroupsAsync(ct));
 

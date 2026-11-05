@@ -162,7 +162,9 @@ func TestAResetLinkStopsWorkingAndTheNewOneJoins(t *testing.T) {
 		t.Fatalf("joining with the old link = %v", err)
 	}
 
-	if _, err := member.JoinGroupWithLink(ctx, "https://chat.whatsapp.com/NOPE"); !errors.Is(err, whatsmeow.ErrInviteLinkInvalid) {
+	// WhatsApp refuses a well formed unknown code with 400, which whatsmeow passes on as it came [observed: #36 live run
+	// 2026-11-04].
+	if _, err := member.JoinGroupWithLink(ctx, "https://chat.whatsapp.com/"+unknownCode); !errors.Is(err, whatsmeow.ErrIQBadRequest) || errors.Is(err, whatsmeow.ErrInviteLinkInvalid) {
 		t.Fatalf("joining with an unknown link = %v", err)
 	}
 
@@ -469,10 +471,21 @@ func TestALinksGroupInfoJoinsNothing(t *testing.T) {
 		t.Fatalf("the reset link's info = %v", err)
 	}
 
-	if _, err := outsider.GetGroupInfoFromLink(ctx, "NOPE"); !errors.Is(err, whatsmeow.ErrInviteLinkInvalid) || !errors.Is(err, whatsmeow.ErrIQNotAcceptable) {
-		t.Fatalf("an unknown link's info = %v", err)
+	// As the join's, for a malformed code too [observed: #120 live run 2026-11-04, live sidecar.log].
+	for _, code := range []string{unknownCode, "NOPE", strings.Repeat("!", 22)} {
+		if _, err := outsider.GetGroupInfoFromLink(ctx, code); !errors.Is(err, whatsmeow.ErrIQBadRequest) || errors.Is(err, whatsmeow.ErrInviteLinkInvalid) {
+			t.Fatalf("the info of link %q = %v", code, err)
+		}
+
+		if _, err := outsider.JoinGroupWithLink(ctx, code); !errors.Is(err, whatsmeow.ErrIQBadRequest) || errors.Is(err, whatsmeow.ErrInviteLinkInvalid) {
+			t.Fatalf("joining by link %q = %v", code, err)
+		}
 	}
 }
+
+// unknownCode is a well formed invite code no group has: 22 letters and digits, as the live test's [observed: #36 live
+// run 2026-11-04].
+const unknownCode = "NoSuchCode0000000000AB"
 
 // A member an admin removed is refused the group's info from its link with 401 [observed: #36 live run 2026-11-04]; once
 // added back, it reads it again.

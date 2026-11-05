@@ -755,12 +755,21 @@ func TestAnInviteLinkWhatsAppDoesNotAcceptIsInviteLinkInvalid(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
-		name string
-		err  error
+		name     string
+		err      error
+		code     codes.Code
+		reason   string
+		metadata map[string]string
+		message  string
 	}{
 		// As whatsmeow wraps them (group.go:516-519).
-		{"malformed or unknown", fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkInvalid, whatsmeow.ErrIQNotAcceptable)},
-		{"reset", fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkRevoked, whatsmeow.ErrIQGone)},
+		{"not acceptable, as whatsmeow names a 406", fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkInvalid, whatsmeow.ErrIQNotAcceptable), codes.NotFound, "INVITE_LINK_INVALID", nil, ""},
+		{"reset", fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkRevoked, whatsmeow.ErrIQGone), codes.NotFound, "INVITE_LINK_INVALID", nil, ""},
+		// An unknown or malformed code, which WhatsApp refuses with 400 and whatsmeow passes on as it came [observed: #36
+		// and #120 live runs 2026-11-04]; the status message keeps the 400.
+		{"unknown, as WhatsApp answers it", &whatsmeow.IQError{Code: 400, Text: "bad-request"}, codes.NotFound, "INVITE_LINK_INVALID", nil, "status 400: bad-request"},
+		// Only a 400 is the link's: any other code stays WhatsApp's own.
+		{"any other code WhatsApp answers", whatsmeow.ErrIQForbidden, codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "403"}, ""},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -769,7 +778,11 @@ func TestAnInviteLinkWhatsAppDoesNotAcceptIsInviteLinkInvalid(t *testing.T) {
 			h.stub.err = tc.err
 
 			_, err := h.client.JoinGroupWithLink(h.ctx, &whatsmeowv1.JoinGroupWithLinkRequest{SessionId: "s1", Link: "https://chat.whatsapp.com/OLD"})
-			wantReason(t, err, codes.NotFound, "INVITE_LINK_INVALID", nil)
+			wantReason(t, err, tc.code, tc.reason, tc.metadata)
+
+			if msg := status.Convert(err).Message(); !strings.Contains(msg, tc.message) {
+				t.Fatalf("status message = %q, want it to carry %q", msg, tc.message)
+			}
 		})
 	}
 }
@@ -1123,8 +1136,10 @@ func TestTheNewCallsErrorsBecomeTheirReasons(t *testing.T) {
 		{"a timer WhatsApp refuses", timer, &wrapped{whatsmeow.ErrInvalidDisappearingTimer, whatsmeow.ErrIQBadRequest}, codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "400"}},
 		{"a timer in a group the session is not in", timer, whatsmeow.ErrIQForbidden, codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "403"}},
 		// As whatsmeow wraps them, the same as for a join (group.go:497-502).
-		{"a malformed or unknown link", link, fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkInvalid, whatsmeow.ErrIQNotAcceptable), codes.NotFound, "INVITE_LINK_INVALID", nil},
+		{"a link WhatsApp does not accept, as whatsmeow names a 406", link, fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkInvalid, whatsmeow.ErrIQNotAcceptable), codes.NotFound, "INVITE_LINK_INVALID", nil},
 		{"a reset link", link, fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkRevoked, whatsmeow.ErrIQGone), codes.NotFound, "INVITE_LINK_INVALID", nil},
+		// As WhatsApp answers it, as the join [observed: #120 live run 2026-11-04, live sidecar.log].
+		{"an unknown link, as WhatsApp answers a join with it", link, &whatsmeow.IQError{Code: 400, Text: "bad-request"}, codes.NotFound, "INVITE_LINK_INVALID", nil},
 		{"a link read that timed out", link, whatsmeow.ErrIQTimedOut, codes.Unavailable, "WHATSAPP_TIMED_OUT", nil},
 		{"a link answer without its group", link, &whatsmeow.ElementMissingError{Tag: "group", In: "response to group link info query"}, codes.Internal, "INTERNAL", nil},
 	} {

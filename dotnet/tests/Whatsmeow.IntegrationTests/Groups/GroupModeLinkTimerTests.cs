@@ -192,7 +192,7 @@ public sealed class GroupModeLinkTimerTests(FakeSidecar fixture)
 		var old = await admin.GetGroupInviteLinkAsync(group, ct);
 		_ = await admin.ResetGroupInviteLinkAsync(group, ct);
 
-		foreach (var link in new[] { old, new Uri("https://chat.whatsapp.com/NOSUCHCODE") })
+		foreach (var link in new[] { old, new Uri("https://chat.whatsapp.com/NoSuchCode0000000000AB") })
 		{
 			var preview = await Assert.ThrowsAsync<WhatsmeowException>(() => outsider.GetGroupInfoFromLinkAsync(link, ct));
 			var join = await Assert.ThrowsAsync<WhatsmeowException>(() => outsider.JoinGroupWithLinkAsync(link, ct));

@@ -583,9 +583,9 @@ func (c *Client) GetGroupInviteLink(_ context.Context, jid types.JID, reset bool
 	return whatsmeow.InviteLinkPrefix + g.code, nil
 }
 
-// JoinGroupWithLink joins the group whose link has the code: a reset code is 410 and an unknown one 406, as whatsmeow
-// names them (group.go:516-519). The session gets a create notification with reason invite, every other member a
-// change; a member joins nothing again [inferred].
+// JoinGroupWithLink joins the group whose link has the code: a reset code is 410, as whatsmeow names it
+// (group.go:516-519), and an unknown one 400, as WhatsApp answers it (byCode). The session gets a create notification
+// with reason invite, every other member a change; a member joins nothing again [inferred].
 func (c *Client) JoinGroupWithLink(_ context.Context, code string) (types.JID, error) {
 	if err := c.groupQuery(); err != nil {
 		return types.EmptyJID, err
@@ -654,7 +654,9 @@ func (c *Client) GetGroupInfoFromLink(_ context.Context, code string) (*types.Gr
 }
 
 // byCode is the group whose invite link has the code, taken from a link as whatsmeow strips it (group.go:494, 516): a
-// reset code is 410 and an unknown one 406. w.mu is held.
+// reset code is 410, and any other it does not know, well formed or malformed, 400 `bad-request`, on a join and a
+// preview alike, which whatsmeow maps to nothing and passes on as it came [observed: #36 and #120 live runs 2026-11-04,
+// live sidecar.log]. w.mu is held.
 func (w *WhatsApp) byCode(code string) (*group, error) {
 	code = strings.TrimPrefix(code, whatsmeow.InviteLinkPrefix)
 
@@ -668,7 +670,7 @@ func (w *WhatsApp) byCode(code string) (*group, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkInvalid, whatsmeow.ErrIQNotAcceptable)
+	return nil, &whatsmeow.IQError{Code: 400, Text: "bad-request"}
 }
 
 // LeaveGroup leaves the group; every member, the session included, is notified [inferred].
