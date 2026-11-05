@@ -214,7 +214,7 @@ public sealed class LiveSidecar : IAsyncLifetime
 		using (var process = Process.GetProcessById(processId))
 			process.Kill();
 
-		_ = await Logs.WaitForAsync(_ => Logs.Named("SidecarRestarted").Count > restarts, cancellationToken).ConfigureAwait(false);
+		_ = await Logs.WaitForAsync(r => r.Id.Name == "SidecarRestarted", restarts + 1, cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <summary>How long a connect may take until WhatsApp accepted or refused the login (<see cref="ConnectAsync"/>).</summary>

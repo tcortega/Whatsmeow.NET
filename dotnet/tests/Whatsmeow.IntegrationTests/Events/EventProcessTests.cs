@@ -104,7 +104,7 @@ public sealed class EventProcessTests(FakeSidecar fixture, SidecarBinaries binar
 			var (processId, _) = await logs.StartedAsync(kill, ct);
 			using (var process = Process.GetProcessById(processId))
 				process.Kill();
-			_ = await logs.WaitForAsync(_ => logs.Named("SidecarRestarted").Count == kill, ct);
+			_ = await logs.WaitForAsync(r => r.Id.Name == "SidecarRestarted", kill, ct);
 		}
 
 		await Deliveries.DeliverAsync(new FakeWhatsAppService.FakeWhatsAppServiceClient(sidecar.CallInvoker), "events-reader-kill", ct, "M2");
