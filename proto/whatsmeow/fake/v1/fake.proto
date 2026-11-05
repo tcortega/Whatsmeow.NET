@@ -149,8 +149,8 @@ service FakeWhatsAppService {
 
   // AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
   // showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
-  // and returns once the client's event handlers ran. With reupload, the phone uploads the media at
-  // from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+  // or supplies encrypted bytes unchanged, and returns once the client's event handlers ran. With reupload, the
+  // phone uploads the media at from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
   // (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
   rpc AnswerMediaRetry(AnswerMediaRetryRequest) returns (AnswerMediaRetryResponse);
 
@@ -322,6 +322,8 @@ message AnswerMediaRetryRequest {
     int32 result = 4;
     // An unencrypted error code, as the phone sends one when it has nothing (2: not on the phone).
     int32 error_code = 5;
+    // The encrypted bytes as received, including malformed answers.
+    EncryptedMediaRetryAnswer encrypted = 7;
   }
 
   // When the phone answered; unset is the zero time.
@@ -1269,3 +1271,11 @@ message RecordEventRequest {
 
 // RecordEventResponse has no fields.
 message RecordEventResponse {}
+
+// EncryptedMediaRetryAnswer supplies the bytes without encrypting or validating them.
+message EncryptedMediaRetryAnswer {
+  // The encrypted notification; empty means no ciphertext.
+  bytes ciphertext = 1;
+  // The AES-GCM IV; a valid answer has 12 bytes.
+  bytes iv = 2;
+}
