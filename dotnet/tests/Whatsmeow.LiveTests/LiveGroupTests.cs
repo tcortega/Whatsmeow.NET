@@ -575,13 +575,13 @@ public sealed class LiveGroupTests(LiveSidecar live, LivePeer peer, LiveGroup gr
 				)
 			);
 
-	/// <summary>A call's outcome, for the log: what it threw, with WhatsApp's code, or that it went through.</summary>
 	/// <summary>
 	/// The outcome and the status message, which keeps WhatsApp's 400 for an invite code, and names whatsmeow's 406 ("not
 	/// valid") and 410 ("revoked") apart (sidecar groups.classifyInvite).
 	/// </summary>
 	private static string Answer(WhatsmeowException thrown) => $"{Outcome(thrown)} ({thrown.Message})";
 
+	/// <summary>A call's outcome, for the log: what it threw, with WhatsApp's code, or that it went through.</summary>
 	private static string Outcome(Exception? thrown) =>
 		thrown switch
 		{

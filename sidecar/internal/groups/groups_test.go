@@ -755,15 +755,21 @@ func TestAnInviteLinkWhatsAppDoesNotAcceptIsInviteLinkInvalid(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
-		name string
-		err  error
+		name     string
+		err      error
+		code     codes.Code
+		reason   string
+		metadata map[string]string
+		message  string
 	}{
 		// As whatsmeow wraps them (group.go:516-519).
-		{"not acceptable, as whatsmeow names a 406", fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkInvalid, whatsmeow.ErrIQNotAcceptable)},
-		{"reset", fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkRevoked, whatsmeow.ErrIQGone)},
-		// A well formed unknown code, which WhatsApp refuses with 400 and whatsmeow passes on as it came [observed: #36
-		// live run 2026-11-04].
-		{"unknown, as WhatsApp answers it", &whatsmeow.IQError{Code: 400, Text: "bad-request"}},
+		{"not acceptable, as whatsmeow names a 406", fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkInvalid, whatsmeow.ErrIQNotAcceptable), codes.NotFound, "INVITE_LINK_INVALID", nil, ""},
+		{"reset", fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkRevoked, whatsmeow.ErrIQGone), codes.NotFound, "INVITE_LINK_INVALID", nil, ""},
+		// An unknown or malformed code, which WhatsApp refuses with 400 and whatsmeow passes on as it came [observed: #36
+		// and #120 live runs 2026-11-04]; the status message keeps the 400.
+		{"unknown, as WhatsApp answers it", &whatsmeow.IQError{Code: 400, Text: "bad-request"}, codes.NotFound, "INVITE_LINK_INVALID", nil, "status 400: bad-request"},
+		// Only a 400 is the link's: any other code stays WhatsApp's own.
+		{"any other code WhatsApp answers", whatsmeow.ErrIQForbidden, codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "403"}, ""},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -772,7 +778,11 @@ func TestAnInviteLinkWhatsAppDoesNotAcceptIsInviteLinkInvalid(t *testing.T) {
 			h.stub.err = tc.err
 
 			_, err := h.client.JoinGroupWithLink(h.ctx, &whatsmeowv1.JoinGroupWithLinkRequest{SessionId: "s1", Link: "https://chat.whatsapp.com/OLD"})
-			wantReason(t, err, codes.NotFound, "INVITE_LINK_INVALID", nil)
+			wantReason(t, err, tc.code, tc.reason, tc.metadata)
+
+			if msg := status.Convert(err).Message(); !strings.Contains(msg, tc.message) {
+				t.Fatalf("status message = %q, want it to carry %q", msg, tc.message)
+			}
 		})
 	}
 }

@@ -2540,8 +2540,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// a non-admin's change to a locked group's info, to its settings or to its participants is 403, and to its invite
       /// link 401 (whatsmeow's ErrGroupInviteLinkUnauthorized, group.go:432); a group the session is not in is 403 and an
       /// unknown one 404 (group.go:674-678); adding a member is 409, and removing, promoting or demoting a non-member 404,
-      /// for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519), for a join and for the
-      /// group info of a link, which joins nothing and lists every member; a member who is not an admin may add
+      /// for that participant; a reset invite code is 410 (group.go:516-519), and any code the fake does not know, malformed
+      /// or not, 400 bad-request [observed: #120 live run 2026-11-04], for a join and for the group info of a link, which
+      /// joins nothing and lists every member; a member who is not an admin may add
       /// participants when the group's member add mode is all_member_add, and changes the mode only as an admin (403); a
       /// created group has the mode its create asked for, all_member_add unless told otherwise, as whatsmeow asks
       /// (group.go:59-63), though what WhatsApp answers after a create is [unknown], and a group AddGroup put there has none
@@ -2575,8 +2576,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// a non-admin's change to a locked group's info, to its settings or to its participants is 403, and to its invite
       /// link 401 (whatsmeow's ErrGroupInviteLinkUnauthorized, group.go:432); a group the session is not in is 403 and an
       /// unknown one 404 (group.go:674-678); adding a member is 409, and removing, promoting or demoting a non-member 404,
-      /// for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519), for a join and for the
-      /// group info of a link, which joins nothing and lists every member; a member who is not an admin may add
+      /// for that participant; a reset invite code is 410 (group.go:516-519), and any code the fake does not know, malformed
+      /// or not, 400 bad-request [observed: #120 live run 2026-11-04], for a join and for the group info of a link, which
+      /// joins nothing and lists every member; a member who is not an admin may add
       /// participants when the group's member add mode is all_member_add, and changes the mode only as an admin (403); a
       /// created group has the mode its create asked for, all_member_add unless told otherwise, as whatsmeow asks
       /// (group.go:59-63), though what WhatsApp answers after a create is [unknown], and a group AddGroup put there has none
@@ -2608,8 +2610,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// a non-admin's change to a locked group's info, to its settings or to its participants is 403, and to its invite
       /// link 401 (whatsmeow's ErrGroupInviteLinkUnauthorized, group.go:432); a group the session is not in is 403 and an
       /// unknown one 404 (group.go:674-678); adding a member is 409, and removing, promoting or demoting a non-member 404,
-      /// for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519), for a join and for the
-      /// group info of a link, which joins nothing and lists every member; a member who is not an admin may add
+      /// for that participant; a reset invite code is 410 (group.go:516-519), and any code the fake does not know, malformed
+      /// or not, 400 bad-request [observed: #120 live run 2026-11-04], for a join and for the group info of a link, which
+      /// joins nothing and lists every member; a member who is not an admin may add
       /// participants when the group's member add mode is all_member_add, and changes the mode only as an admin (403); a
       /// created group has the mode its create asked for, all_member_add unless told otherwise, as whatsmeow asks
       /// (group.go:59-63), though what WhatsApp answers after a create is [unknown], and a group AddGroup put there has none
@@ -2643,8 +2646,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// a non-admin's change to a locked group's info, to its settings or to its participants is 403, and to its invite
       /// link 401 (whatsmeow's ErrGroupInviteLinkUnauthorized, group.go:432); a group the session is not in is 403 and an
       /// unknown one 404 (group.go:674-678); adding a member is 409, and removing, promoting or demoting a non-member 404,
-      /// for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519), for a join and for the
-      /// group info of a link, which joins nothing and lists every member; a member who is not an admin may add
+      /// for that participant; a reset invite code is 410 (group.go:516-519), and any code the fake does not know, malformed
+      /// or not, 400 bad-request [observed: #120 live run 2026-11-04], for a join and for the group info of a link, which
+      /// joins nothing and lists every member; a member who is not an admin may add
       /// participants when the group's member add mode is all_member_add, and changes the mode only as an admin (403); a
       /// created group has the mode its create asked for, all_member_add unless told otherwise, as whatsmeow asks
       /// (group.go:59-63), though what WhatsApp answers after a create is [unknown], and a group AddGroup put there has none

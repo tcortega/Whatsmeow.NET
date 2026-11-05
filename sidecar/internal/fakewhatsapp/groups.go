@@ -584,8 +584,8 @@ func (c *Client) GetGroupInviteLink(_ context.Context, jid types.JID, reset bool
 }
 
 // JoinGroupWithLink joins the group whose link has the code: a reset code is 410, as whatsmeow names it
-// (group.go:516-519), and an unknown one 400, as WhatsApp answers it (byCode). The session gets a create notification with reason invite, every other member a
-// change; a member joins nothing again [inferred].
+// (group.go:516-519), and an unknown one 400, as WhatsApp answers it (byCode). The session gets a create notification
+// with reason invite, every other member a change; a member joins nothing again [inferred].
 func (c *Client) JoinGroupWithLink(_ context.Context, code string) (types.JID, error) {
 	if err := c.groupQuery(); err != nil {
 		return types.EmptyJID, err
