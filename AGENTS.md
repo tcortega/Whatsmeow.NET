@@ -30,7 +30,7 @@ AGENTS.md              this file (CLAUDE.md is a symlink to it; nothing may depe
 
 Setup once: the .NET SDK from `global.json` (10.0.403), then `mise trust && mise install` for Go, buf, golangci-lint, protoc, the protoc plugins and shellcheck.
 
-Everything CI runs is `build/ci.sh`, one subcommand per CI job, on linux-x64, osx-arm64 and win-x64 (Git Bash on Windows); `package` runs on win-x64 only, `external` (the integration suite against a standalone sidecar) on linux-x64 only, `install` installs its feed on linux-x64 and osx-arm64, and `aot` publishes AotSmoke from it with Native AOT on each of the eight target RIDs (ADR 0056).
+Everything CI runs is `build/ci.sh`, one subcommand per CI job, on linux-x64, osx-arm64 and win-x64 (Git Bash on Windows); `package` runs on win-x64 only, `external` (the integration suite against a standalone sidecar) on linux-x64 only, `install` runs fresh JIT consumers of its feed on every target RID (both musl RIDs in Alpine), and `aot` publishes AotSmoke from it with Native AOT on those eight RIDs (ADR 0056, 0058).
 Run it from anywhere before pushing; it runs every check, reports each failure, and fails at the end:
 
 ```sh

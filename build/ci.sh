@@ -385,11 +385,12 @@ job_external() {
 
 # Native packages (ADR 0023). The package job builds whatsmeow-net for every release target at the client's version,
 # packs every package into a local feed with the Corresponding Source archive beside them (ADR 0029), and installs from
-# it; CI packs on Windows, and the install job installs that feed on Linux and macOS, so packages built on Windows run
+# it; CI packs on Windows x64, and the install jobs run that feed on every other native host, so Windows-built packages run
 # there.
 package_feed=dotnet/artifacts/package
 sidecar_binaries=dotnet/artifacts/sidecar
 alpine_image=mcr.microsoft.com/dotnet/sdk:10.0.403-alpine3.24-amd64@sha256:60a079c9d3ffc98b2968c3153b995ede679f7d6504e3ae7d2b68225a7fd84f5a
+alpine_image_arm64=mcr.microsoft.com/dotnet/sdk:10.0.403-alpine3.24-arm64v8@sha256:bf500481e8dac63987f2b1e617938f72a77bcfb9b310a234f39483abf35c9bff
 
 # rid GOOS/GOARCH: the .NET RID of a Go target.
 rid() {
@@ -411,6 +412,28 @@ release_targets() {
 # A path for dotnet: Git Bash on Windows hands POSIX paths to native programs only in arguments it recognizes.
 native_path() {
 	if command -v cygpath >/dev/null 2>&1; then cygpath -m "$1"; else printf '%s\n' "$1"; fi
+}
+
+# The runner's architecture, not Go's or Git Bash's process architecture (ADR 0058).
+native_host() {
+	local os arch
+	case "${RUNNER_OS:-$(uname -s)}" in Linux) os=linux ;; macOS | Darwin) os=osx ;; Windows | MINGW* | MSYS*) os=win ;; *) os="$(uname -s)" ;; esac
+	case "${RUNNER_ARCH:-$(uname -m)}" in X64 | x86_64 | amd64) arch=x64 ;; ARM64 | aarch64 | arm64) arch=arm64 ;; *) arch="${RUNNER_ARCH:-$(uname -m)}" ;; esac
+	native_host_rid="$os-$arch"
+	host_os_arch="$os $arch"
+	case "$native_host_rid" in
+		linux-x64 | linux-arm64 | osx-x64 | osx-arm64 | win-x64 | win-arm64) ;;
+		*) annotate error "native host" "unsupported host $native_host_rid"; return 1 ;;
+	esac
+	echo "native host: $host_os_arch (RUNNER_OS/RUNNER_ARCH when set, uname otherwise)"
+}
+
+alpine_for_arch() { # x64|arm64
+	case "$1" in
+		x64) echo "$alpine_image" ;;
+		arm64) echo "$alpine_image_arm64" ;;
+		*) annotate error "Alpine" "unsupported architecture $1"; return 1 ;;
+	esac
 }
 
 linux_ci() {
@@ -535,12 +558,15 @@ source_archive() {
 consumer_setup() { # feed
 	local feed
 	feed="$(cd "$1" && pwd)" || return
+	# GNU tar treats a Windows drive prefix as a remote host; keep the source archive path POSIX too.
+	package_source="$feed"
 	version="$(tr -d '\r' <"$feed/version")" || return
 	work="$(mktemp -d)" || return
 	packages="$work/packages"
-	host="$(go env GOHOSTOS)/$(go env GOHOSTARCH)" || return
-	host_rid="$(rid "$host")"
-	exe="$(exe_of "$host")"
+	native_host || return
+	host_rid="$native_host_rid"
+	exe=""
+	case "$host_rid" in win-*) exe=.exe ;; esac
 	cp global.json "$work/" || return
 	consumer_config "$(native_path "$feed")" >"$work/nuget.config" || return
 	in_consumer dotnet new console -o app -n Consumer || return
@@ -845,11 +871,11 @@ packaged_refuses_fake() {
 	echo "the packaged $host_rid binary refuses --fake-whatsapp"
 }
 
-# consumer_start PATH COMMAND...: COMMAND, given start <version>, must start the packaged sidecar; a failure names PATH.
-consumer_start() {
-	local path="$1"
-	shift
-	if ! (unset WHATSMEOW_NET_SIDECAR_PATH && "$@" start "$version"); then
+# Each packaged consumer checks its native runtime and expected asset layout before start/GetInfo/stop.
+consumer_start() { # path layout command...
+	local path="$1" layout="$2"
+	shift 2
+	if ! (unset WHATSMEOW_NET_SIDECAR_PATH && "$@" start "$version" "$host_rid" "$layout"); then
 		annotate error "consumer: $path" "the consumer did not find or start the packaged sidecar on this path"
 		return 1
 	fi
@@ -870,13 +896,18 @@ install_portable() {
 		annotate error "consumer: $path" "dotnet build failed"
 		return 1
 	fi
-	consumer_start "$path" in_consumer dotnet run --project app -c Release --no-build --
+	consumer_start "$path" portable in_consumer dotnet run --project app -c Release --no-build --
+}
+
+install_portable_publish() {
+	local path="portable publish" output="$work/portable"
+	consumer_publish "$path" "$output" --self-contained false && consumer_start "$path" portable dotnet "$output/Consumer.dll"
 }
 
 install_rid() { # path output publish-arguments...
 	local path="$1" output="$work/$2"
 	shift 2
-	consumer_publish "$path" "$output" "$@" && consumer_start "$path" "$output/Consumer$exe"
+	consumer_publish "$path" "$output" "$@" && consumer_start "$path" flat "$output/Consumer$exe"
 }
 
 # Single-file: the sidecar is published beside the app, never bundled and extracted (ExcludeFromSingleFile, ADR 0023).
@@ -889,17 +920,13 @@ install_single_file() { # path output publish-arguments...
 		ls -l "$output"
 		return 1
 	fi
-	consumer_start "$path" "$output/Consumer$exe"
+	consumer_start "$path" flat "$output/Consumer$exe"
 }
 
 # 32-bit Windows ships no binary: start fails naming both bundled paths (#4). Runs under WOW64 on the x64 runner.
 install_win_x86() {
 	local path="win-x86 self-contained publish, no binary ships" output="$work/win-x86"
 	if [ "$host_rid" != win-x64 ]; then
-		if [ "${GITHUB_ACTIONS:-}" = true ] && [ "${host%/*}" = windows ]; then
-			annotate error "consumer: $path" "Windows CI must run on win-x64, where win-x86 runs under WOW64; this is $host_rid"
-			return 1
-		fi
 		echo "not win-x64: the win-x86 consumer is skipped"
 		return 0
 	fi
@@ -910,21 +937,22 @@ install_win_x86() {
 	fi
 }
 
-# On Alpine (musl), in the SDK container: the portable build finds the linux-x64 binary (ARCHITECTURE §8.5, RESEARCH
-# item 9), and a linux-musl-x64 publish gets it through the RID graph. CI runs it on linux-x64; elsewhere it is skipped.
+# On Alpine (musl), in the SDK container matching the Linux host architecture. Portable outputs use linux-<arch>;
+# RID-specific outputs get the same binary through the RID graph (ADR 0058).
 install_alpine() { # path script
-	local path="$1" src="$work/alpine"
+	local path="$1" src="$work/alpine" image musl_rid="linux-musl-${host_rid##*-}"
 	if ! linux_ci; then
 		echo "not Linux CI: the Alpine consumer is skipped"
 		return 0
 	fi
+	image="$(alpine_for_arch "${host_rid##*-}")" || return
 	rm -rf "$src" && mkdir -p "$src" || return
 	cp global.json build/package-smoke/Program.cs "$src/" || return
 	consumer_config /feed >"$src/nuget.config" || return
-	if ! docker run --rm -e VERSION="$version" -v "$(cd "$package_source" && pwd):/feed:ro" -v "$src:/src:ro" "$alpine_image" sh -euc "
+	if ! docker run --rm -e VERSION="$version" -e RID="$musl_rid" -v "$(cd "$package_source" && pwd):/feed:ro" -v "$src:/src:ro" "$image" sh -euc "
 		cp -r /src /work && cd /work && export DOTNET_NOLOGO=true DOTNET_CLI_TELEMETRY_OPTOUT=true
-		dotnet new console -o app -n Consumer >/dev/null && cp Program.cs app/
-		dotnet add app/Consumer.csproj package Whatsmeow.Client --version \"\$VERSION\" >/dev/null
+		dotnet new console -o app -n Consumer --no-restore && cp Program.cs app/
+		dotnet add app/Consumer.csproj package Whatsmeow.Client --version \"\$VERSION\"
 		$2"; then
 		annotate error "consumer: $path" "the consumer did not find or start the packaged sidecar on Alpine"
 		return 1
@@ -959,7 +987,7 @@ source_contents() {
 # (--network none, observed: the container has only lo); elsewhere GOPROXY=off, -mod=vendor and an empty module cache
 # leave the go command no way to download (inferred: from the go command's documentation, the host still has a network).
 source_build() {
-	local archive src="$work/source" prefix="whatsmeow-net_$version" targets target builds want gocache gomodcache
+	local archive src="$work/source" prefix="whatsmeow-net_$version" targets target builds want gocache gomodcache image
 	archive="$package_source/$(source_archive_name)"
 	source_out="$work/source-out"
 	targets="$(release_targets)" || return
@@ -968,9 +996,10 @@ source_build() {
 	tar -xzf "$archive" -C "$src" || return
 	builds="$(for target in $targets; do echo "$target $(rid "$target") $(exe_of "$target")"; done)"
 	if linux_ci; then
+		image="$(alpine_for_arch "${host_rid##*-}")" || return
 		# The pinned SDK image only provides a Linux without a network; the Go is mise's own, mounted read-only.
 		docker run --rm --network none --user "$(id -u):$(id -g)" -e BUILDS="$builds" -e VERSION="$version" -e WANT="$want" \
-			-v "$(go env GOROOT):/goroot:ro" -v "$src/$prefix:/src:ro" -v "$source_out:/out" "$alpine_image" sh -euc '
+			-v "$(go env GOROOT):/goroot:ro" -v "$src/$prefix:/src:ro" -v "$source_out:/out" "$image" sh -euc '
 			if [ "$(ls /sys/class/net)" != lo ]; then echo "the container has a network: $(ls /sys/class/net)"; exit 1; fi
 			export PATH="/goroot/bin:$PATH" GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=vendor GOSUMDB=off CGO_ENABLED=0 \
 				HOME=/tmp GOCACHE=/tmp/go-build GOMODCACHE=/tmp/go-mod
@@ -1043,7 +1072,7 @@ install_noexec() {
 		annotate error "consumer: $path" "dotnet build failed"
 		return 1
 	fi
-	XDG_DATA_HOME="$work/xdg" consumer_start "$path" dotnet "$output/Consumer.dll" || return
+	XDG_DATA_HOME="$work/xdg" consumer_start "$path" portable dotnet "$output/Consumer.dll" || return
 	if [ ! -f "$copy" ]; then
 		annotate error "consumer: $path" "the sidecar started, but not from the copy $copy"
 		return 1
@@ -1092,8 +1121,20 @@ install_external() {
 	return "$rc"
 }
 
+# Record a result for each consumer form only after its process has exited, which awaits sidecar disposal.
+install_check() { # rid where path command...
+	local consumer_rid="$1" where="$2" path="$3" result=PASS
+	shift 3
+	check "consumer: $consumer_rid $path" "$@"
+	local rc=$?
+	if [ "$rc" -ne 0 ]; then result=FAIL; where="execution unconfirmed ($where)"; fi
+	local line="$consumer_rid | JIT | $path | $result | $where | feed $version"
+	echo "$line"
+	if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then echo "* $line" >>"$GITHUB_STEP_SUMMARY"; fi
+	return "$rc"
+}
+
 job_install() { # feed
-	package_source="$1"
 	check "install: a new consumer of the feed $1" consumer_setup "$1" || return
 	check "install: Whatsmeow.Client pins each native package at exactly its version" packaged_pins
 	check "install: Whatsmeow.Extensions.Hosting pins Whatsmeow.Client at exactly its version" packaged_hosting_pin
@@ -1105,17 +1146,25 @@ job_install() { # feed
 	check "install: every package's description, tags, URLs, author and README (ADR 0054)" packaged_metadata
 	check "install: every packaged binary is a CGO-free -trimpath release build of its target, none with -tags fakewhatsapp or livetest (ADR 0019, 0032)" packaged_binaries
 	check "install: the packaged binary refuses --fake-whatsapp" packaged_refuses_fake
-	check "consumer: portable build and dotnet run" install_portable
-	check "consumer: RID-specific framework-dependent publish" install_rid "RID-specific framework-dependent publish" fd -r "$host_rid" --self-contained false
-	check "consumer: RID-specific self-contained publish" install_rid "RID-specific self-contained publish" sc -r "$host_rid" --self-contained true
-	check "consumer: single-file publish" install_single_file "single-file publish" single
-	check "consumer: single-file publish with IncludeNativeLibrariesForSelfExtract" install_single_file "single-file publish with IncludeNativeLibrariesForSelfExtract" single-native -p:IncludeNativeLibrariesForSelfExtract=true
+	install_check "$host_rid" "native $host_os_arch" "portable build and dotnet run" install_portable
+	install_check "$host_rid" "native $host_os_arch" "portable publish" install_portable_publish
+	install_check "$host_rid" "native $host_os_arch" "RID-specific framework-dependent publish" install_rid "RID-specific framework-dependent publish" fd -r "$host_rid" --self-contained false
+	install_check "$host_rid" "native $host_os_arch" "RID-specific self-contained publish" install_rid "RID-specific self-contained publish" sc -r "$host_rid" --self-contained true
+	install_check "$host_rid" "native $host_os_arch" "single-file publish" install_single_file "single-file publish" single
+	install_check "$host_rid" "native $host_os_arch" "single-file publish with IncludeNativeLibrariesForSelfExtract" install_single_file "single-file publish with IncludeNativeLibrariesForSelfExtract" single-native -p:IncludeNativeLibrariesForSelfExtract=true
 	check "consumer: win-x86, where no binary ships" install_win_x86
 	check "consumer: External mode, the native assets excluded (ADR 0046)" install_external
-	check "consumer: portable build on Alpine" install_alpine "portable build on Alpine" \
-		"dotnet build app -c Release -warnaserror && dotnet run --project app -c Release --no-build -- start \"\$VERSION\""
-	check "consumer: linux-musl-x64 self-contained publish on Alpine" install_alpine "linux-musl-x64 self-contained publish on Alpine" \
-		"dotnet publish app -c Release -warnaserror -r linux-musl-x64 --self-contained true -o musl && ./musl/Consumer start \"\$VERSION\""
+	if linux_ci; then
+		local musl_rid="linux-musl-${host_rid##*-}" where="native $host_os_arch, Alpine container"
+		install_check "$musl_rid" "$where" "portable build and dotnet run" install_alpine "portable build on Alpine" \
+			"dotnet build app -c Release -warnaserror && dotnet run --project app -c Release --no-build -- start \"\$VERSION\" \"\$RID\" portable"
+		install_check "$musl_rid" "$where" "portable publish" install_alpine "portable publish on Alpine" \
+			"dotnet publish app -c Release -warnaserror --self-contained false -o portable && dotnet portable/Consumer.dll start \"\$VERSION\" \"\$RID\" portable"
+		install_check "$musl_rid" "$where" "RID-specific framework-dependent publish" install_alpine "RID-specific framework-dependent publish on Alpine" \
+			"dotnet publish app -c Release -warnaserror -r \"\$RID\" --self-contained false -o fd && ./fd/Consumer start \"\$VERSION\" \"\$RID\" flat"
+		install_check "$musl_rid" "$where" "RID-specific self-contained publish" install_alpine "RID-specific self-contained publish on Alpine" \
+			"dotnet publish app -c Release -warnaserror -r \"\$RID\" --self-contained true -o sc && ./sc/Consumer start \"\$VERSION\" \"\$RID\" flat"
+	fi
 	check "noexec mount for the copy fallback consumer" noexec_mount
 	check "consumer: build output on a noexec mount" install_noexec
 	check "source: the archive holds the commit and the vendored modules (ADR 0016)" source_contents &&
@@ -1129,7 +1178,6 @@ job_install() { # feed
 # and AOT warnings, and runs there: the packaged sidecar beside the app, GetInfo at the feed's version, the hosting path,
 # and the RID it runs as, natively. A linux-musl-* RID publishes and runs in the Alpine SDK container of its
 # architecture, on a host of that architecture, never under emulation.
-alpine_image_arm64=mcr.microsoft.com/dotnet/sdk:10.0.403-alpine3.24-arm64v8@sha256:bf500481e8dac63987f2b1e617938f72a77bcfb9b310a234f39483abf35c9bff
 
 # The project and the versions that feed's packages and the repository pin, in a directory of its own outside the
 # repository, so none of our MSBuild files, central versions or nuget.config apply (consumer_setup).
@@ -1182,15 +1230,12 @@ EOF
 # architecture would run emulated (Rosetta, Prism, or docker's emulation, which the app cannot see). RUNNER_ARCH, when
 # set, is the runner's own; Git Bash's uname -m may not be on windows-11-arm [inferred].
 aot_native_host() {
-	local os arch want_os="${aot_rid%%-*}" want_arch="${aot_rid##*-}"
-	case "${RUNNER_OS:-$(uname -s)}" in Linux) os=linux ;; macOS | Darwin) os=osx ;; Windows | MINGW* | MSYS*) os=win ;; *) os="$(uname -s)" ;; esac
-	case "${RUNNER_ARCH:-$(uname -m)}" in X64 | x86_64 | amd64) arch=x64 ;; ARM64 | aarch64 | arm64) arch=arm64 ;; *) arch="${RUNNER_ARCH:-$(uname -m)}" ;; esac
-	host_os_arch="$os $arch"
-	if [ "$os" != "$want_os" ] || [ "$arch" != "$want_arch" ]; then
-		annotate error "aot $aot_rid" "$aot_rid runs on a native $want_os $want_arch host only, never emulated; this is $os $arch"
+	native_host || return
+	if [ "$native_host_rid" != "${aot_rid/linux-musl-/linux-}" ]; then
+		annotate error "aot $aot_rid" "$aot_rid runs on its native OS and architecture only, never emulated; this is $host_os_arch"
 		return 1
 	fi
-	echo "$aot_rid on a native $os $arch host"
+	echo "$aot_rid on a native $host_os_arch host"
 }
 
 aot_publish_run() {
@@ -1222,7 +1267,7 @@ aot_publish_run() {
 # In the Alpine SDK container of the RID's architecture, which aot_native_host made sure is the host's.
 aot_musl() {
 	local arch="${aot_rid##*-}" image
-	case "$arch" in x64) image="$alpine_image" ;; arm64) image="$alpine_image_arm64" ;; esac
+	image="$(alpine_for_arch "$arch")" || return
 	if ! docker run --rm -e VERSION="$version" -e RID="$aot_rid" -v "$aot_feed:/feed:ro" -v "$work/src:/src:ro" "$image" sh -euc '
 		apk add --no-cache clang build-base zlib-dev >/dev/null
 		cp -r /src /work && cd /work && export DOTNET_NOLOGO=true DOTNET_CLI_TELEMETRY_OPTOUT=true
@@ -1237,7 +1282,7 @@ aot_musl() {
 }
 
 aot_summary() { # where
-	local line="AotSmoke $aot_rid from the feed: Native AOT with 0 trim and AOT warnings, ran on $1"
+	local line="AotSmoke $aot_rid from feed $version: PASS, RID-specific Native AOT with 0 trim and AOT warnings, ran natively on $1; portable AOT is not applicable (Native AOT requires a concrete RID)"
 	echo "$line"
 	if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then echo "- $line" >>"$GITHUB_STEP_SUMMARY"; fi
 }
