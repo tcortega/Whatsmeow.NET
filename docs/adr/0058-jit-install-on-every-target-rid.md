@@ -2,7 +2,7 @@
 
 * Status: Accepted
 * Date: 2026-11-05
-* Evidence: #52's install criterion, the consumer mutations below, `build/ci.sh install`, and `.github/workflows/packaging.yml`
+* Evidence: #52's install criterion, the consumer mutations below, and [GitHub Actions run 42092473537](https://github.com/tcortega/Whatsmeow.NET/actions/runs/42092473537) at 835ac8d
 * Amends: ARCHITECTURE §11, ADR 0023 (install coverage), ADR 0056 (shared host detection and reporting)
 
 ## Context
@@ -20,6 +20,7 @@ Extend the existing install jobs with linux-arm64, osx-x64 and win-arm64, on the
 The package job keeps its win-x64 install.
 Both Linux install jobs run Alpine consumers in the SDK image of their architecture, using the existing pinned images.
 The offline source build selects that image too, since it executes the runner's mounted Go toolchain.
+Keep the downloaded feed's source-archive path in POSIX form too: GNU tar interpreted the Windows ARM64 runner's raw `C:` drive prefix as a remote hostname [observed: first matrix run 42088938950, job 127468327753].
 Every added native host runs the full install checks, including package metadata and source checks.
 The win-x86 missing-binary check remains on win-x64 only.
 
@@ -41,6 +42,10 @@ Successful native execution requires both host selection and the consumer's chec
 PR CI stays Linux only; main, manual CI and releases run the full matrix.
 
 ## Measurements and limits
+
+All 19 jobs passed at 835ac8d, with feed `0.0.0-alpha.0.69`: all four required JIT forms on each of eight RIDs, both additional single-file forms on each of six non-musl RIDs, and all eight Native AOT runs [observed: run 42092473537, each package/install/aot job's summary].
+All executions were native; both musl RIDs ran in the Alpine container on a Linux runner of the matching architecture [observed: the same summaries and runtime identity checks].
+The Windows ARM64 full install also built all six source targets and passed the final GetInfo check with the normalized feed path [observed: job 127477535049].
 
 A portable JIT consumer on macOS ARM64 reports `osx-arm64`, process `Arm64`, OS `Arm64`; its RID-specific self-contained x64 publish under Rosetta reports `osx-x64`, process `X64`, OS `Arm64`, and fails the native check [observed: local consumer runs, 2026-11-05].
 Removing either the portable runtime asset or the flat RID-specific binary fails the consumer; restoring it passes [observed: local macOS ARM64 mutation runs, 2026-11-05].
