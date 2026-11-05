@@ -1,4 +1,5 @@
 using System.Threading.Channels;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Time.Testing;
 using Whatsmeow.Sidecar;
@@ -140,7 +141,7 @@ public sealed class SidecarSupervisorTests : IAsyncDisposable
 	{
 		var ct = TestContext.Current.CancellationToken;
 		var launching = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-		var supervisor = new SidecarSupervisor(
+		await using var supervisor = new SidecarSupervisor(
 			async cancellationToken =>
 			{
 				// A reconnect whose refusal was on the wire when the dispose began (#132).
@@ -162,6 +163,7 @@ public sealed class SidecarSupervisorTests : IAsyncDisposable
 		await supervisor.DisposeAsync();
 
 		Assert.DoesNotContain(_logs.GetSnapshot(), r => r.Id.Name == "SidecarRestartFailed");
+		_ = Assert.Single(_logs.GetSnapshot(), r => r.Id.Name == "SidecarLaunchFailedAfterStopBegan" && r.Level == LogLevel.Debug && r.Exception is SidecarUnavailableException);
 	}
 
 	private Running Started(int processId)

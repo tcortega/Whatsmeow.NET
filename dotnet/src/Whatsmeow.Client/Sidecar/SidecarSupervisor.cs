@@ -80,17 +80,14 @@ internal sealed class SidecarSupervisor(
 					{
 						SidecarLog.SidecarRestartFailed(logger, e, attempt, delay);
 					}
-					catch (Exception e) when (e is not OperationCanceledException && cancellationToken.IsCancellationRequested)
-					{
-						// The dispose began: a launch's late failure, a refusal already on the wire, is not the dispose's (#132).
-						return;
-					}
 				}
 			}
 		}
-		catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+		catch (Exception e) when (cancellationToken.IsCancellationRequested)
 		{
-			// Disposed.
+			// Disposed: a launch's late failure, a refusal already on the wire, is not the dispose's (#132).
+			if (e is not OperationCanceledException)
+				SidecarLog.SidecarLaunchFailedAfterStopBegan(logger, e);
 		}
 	}
 
