@@ -30,6 +30,7 @@ How large a blob can be is [unknown]; the sidecar holds one in memory at a time 
 
 `WhatsmeowSidecarOptions.History` is a `HistorySyncOptions`: `RequestFullSync`, `FullSyncDaysLimit`, `FullSyncSizeLimitMegabytes` and `StorageQuotaMegabytes`.
 WhatsApp only reads them when a device pairs, so they apply to every session paired while the sidecar runs with them, and never to one paired before.
+The [2026-11-05 live run](../evidence/0042-hosted-sample-2026-11-05.md#default-history) records default history delivery [observed]; what each option limits remains [unknown] pending a fresh pairing comparison (§14, #42).
 
 ## More history on demand
 

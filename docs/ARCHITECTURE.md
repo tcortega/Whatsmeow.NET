@@ -1122,6 +1122,14 @@ Setup: Go 1.27.3 grpc-go 1.85.0 server, .NET 10.0.14 Native AOT client, on Windo
 - So NodaTime would have needed an interop file, two fakes, a hand-parsed options step, an extra protobuf package, and a forced dependency on every consumer, for a library with no zone or calendar math. Antonio chose BCL time (Decision log 0009).
 - BannedApiAnalyzers 5.6.0 flags each ambient-time and timer ID listed in [guidelines/csharp.md](guidelines/csharp.md) BannedSymbols.txt, and none of their `TimeProvider` overloads.
 
+### Hosted sample live evidence (#42, 2026-11-05)
+
+[observed: the linked record] The [partial evidence record](evidence/0042-hosted-sample-2026-11-05.md) separates the unmodified sample's pairing from the subsequent controlled driver, which used its actual echo handler through public hosting APIs.
+Twenty controlled probes each had one observed receive and echo; Bob remained usable during Alice's local disconnect [observed: that record, `driver-results.log`].
+Only the first Alice-to-Bob batch overlapped Alice's history delivery; the reverse batch followed its last history event [observed: that record, `driver.log` and `driver-results.log`].
+Send-to-handler and send-to-echo timings, default history counts, sampled sidecar RSS and visible telemetry are recorded with their limits.
+The seven-day full-sync comparison, receipt-to-handler latency and capacity beyond two sessions remain [unknown]; these observations do not complete the Phase 3 exit.
+
 ### Licence audit (2026-10-31)
 
 Question 9, run outside the repo with Go 1.27.3 on macOS arm64, because `sidecar/` has no package until #4.
@@ -1146,6 +1154,8 @@ Question 9, run outside the repo with Go 1.27.3 on macOS arm64, because `sidecar
 | 2 | Media, reactions, edits, revokes, polls, presence, contacts and LID, groups, send pacing | parity report covers messaging, groups and contacts |
 | 3 | History sync, chat state, hosting package, telemetry, `Whatsmeow.Testing` | hosted sample with two sessions; history doesn't delay live traffic |
 | 4 | Native packages, Trusted Publishing, weekly bump, AOT smoke, PublicAPI baseline, External mode, docs | `dotnet add package` works on all target RIDs from nuget.org |
+
+Phase 3 remains open in [#42](https://github.com/tcortega/Whatsmeow.NET/issues/42); its [2026-11-05 live evidence](evidence/0042-hosted-sample-2026-11-05.md) is partial.
 
 ---
 

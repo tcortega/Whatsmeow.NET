@@ -485,8 +485,8 @@ The notes contain unverified claims and outright disagreements. Each of these ca
 | 13 | Waveform range (0–100 vs 0–127 vs 0–255) and accepted lengths | voice-note rendering | test on iOS and Android |
 | 14 | Server-side upload limits for multi-device (16 MB media vs 2 GB documents; Business API figures differ) | send policy thresholds | upload probes |
 | 15 | Passkey pairing and `companion_reg_refresh` ("untested" in source) | pairing robustness | treat as experimental; feature-flag |
-| 16 | `HistorySyncConfig` limits semantics (mautrix: "presumably") | history volume control | pair with varied limits and measure |
-| 17 | Practical sessions per process and memory per client | capacity planning | load test |
+| 16 | `HistorySyncConfig` limits semantics (mautrix: "presumably") | history volume control | [Default history recorded, 2026-11-05](evidence/0042-hosted-sample-2026-11-05.md#default-history) [observed]; varied limits and the seven-day full-sync comparison remain [unknown] |
+| 17 | Practical sessions per process and memory per client | capacity planning | [Two-session sidecar RSS sampled, 2026-11-05](evidence/0042-hosted-sample-2026-11-05.md#sidecar-resident-memory) [observed]; incremental memory per client and capacity beyond two remain [unknown] |
 | 18 | Typical TemporaryBan `Expire`, and safe send rates (no public thresholds) | pacing defaults | conservative defaults; collect telemetry |
 | 19 | Current exact versions on nuget.org/proxy.golang.org (Grpc.Net.Client 2.84 vs 2.85, grpc-go 1.84 vs 1.85, Grpc.Tools, Polly, Testcontainers) | "latest versions" requirement | verify on scaffold day |
 | 20 | Trim and AOT warnings for the large generated WA types on .NET 10 | AOT claims | `tests/AotSmoke` with `TrimmerRootAssembly` |

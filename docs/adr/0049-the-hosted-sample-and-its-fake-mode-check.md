@@ -40,5 +40,7 @@ What the sample can reach decided the shape:
 
 - A sample setup change that breaks pairing or the echo fails CI; `Program.cs` itself, the exporter's three lines, is only built.
 - The sample's spans and metrics are seen only in a run against real WhatsApp, #42's live run; the library's own are covered by the Telemetry tests (ADR 0037).
-- The receipt-to-handler time the live run records is the handler's time minus the message's WhatsApp timestamp, to the second: no public member says when the sidecar received a message [observed: `MessageReceived`, `events.proto`]. A finer measure needs a contract field, an issue of its own.
+* The sample logs after awaiting the echo send, so its log time minus `MessageReceived.Timestamp` measures timestamp-to-echo-completion, not receipt-to-handler latency [observed: `EchoHandler.HandleAsync`].
+  No public member says when the sidecar received a message [observed: `MessageReceived`, `events.proto`].
+  The [2026-11-05 live driver](../evidence/0042-hosted-sample-2026-11-05.md) instead measures monotonic send-to-handler and send-to-echo intervals; the receipt-to-handler measurement remains open in #42.
 - A later sample copies this shape: its directory under `dotnet/samples/`, one setup method, its FullCycle under `Samples/`.
