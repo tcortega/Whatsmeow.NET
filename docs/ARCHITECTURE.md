@@ -985,7 +985,7 @@ Setup: Go 1.27.3 grpc-go 1.85.0 server, .NET 10.0.14 Native AOT client, on Windo
     That restore took 0.6-0.9 s per restart in most runs, spiked to 1.2-5.4 s, and in 4 of 70 suite runs, always the first on a fresh runner, went past the 30 s `StartupTimeout` twice in a row, which made the restart test time out [observed: PR #78 runs 41439651919 and 41447476908].
     Why one runner's flushes stall that long is [unknown].
   - Since #77 a start records them all in one transaction, so one commit, one sync of the database, however many sessions there are [observed: `TestARestartRecordsEveryMovedSessionInOneCommit`, 1 commit for 20 sessions, 20 with a commit each]; the same restore takes 0.07-0.19 s [observed: PR #78 run 41456333579, 36 suite runs, no late start].
-    Only that sync count is constant: startup still reads each paired session's device and creates each session's client before the ready line (`session.(*Service).restore`), and at how many sessions that reaches the 30 s `StartupTimeout` is [unknown].
+    Only that sync count is constant: startup still reads each paired session's device and creates each session's client before the ready line (`session.(*Service).restore`); #126 below measures through 1,000 paired synthetic sessions, and the count that reaches the 30 s `StartupTimeout` remains [unknown].
   - With that fixed, 2 of 36 suite runs failed a restart with GOAWAY `ENHANCE_YOUR_CALM` `too_many_pings` on its first `GetInfo` [observed: PR #78 run 41456333579]: calls with the last launch's token reached the new sidecar and were refused by its tap handle, about 1,300 in one suite run [observed: run 41447476908], and grpc-go's early abort for them does not excuse the client's next ping (grpc-go v1.85.0 controlbuf.go:912-925, http2_server.go:900-931), while SocketsHttpHandler sends an RTT ping on the answers it reads (dotnet/runtime v10.0.14 Http2StreamWindowManager.cs:143-150, 202-226).
     A channel per launch keeps those calls from the next launch ([ADR 0045](adr/0045-a-channel-per-launch.md)), so #77 changes neither the token check nor the ping policy.
   - A restart of the shared sidecar then timed out once at 120 s with no attempt failed [observed: PR #78 run 41486885606]. A soak of 36 runs and 804 restarts with the fixture's timeline had no failure, but the ready line to `SidecarRestarted` took a median 1.8 s and up to 27.7 s, always in the first run on a fresh runner, while exit to ready line, backoff aside, took at most 5.1 s [observed: run 41490492321].
@@ -993,6 +993,40 @@ Setup: Go 1.27.3 grpc-go 1.85.0 server, .NET 10.0.14 Native AOT client, on Windo
     Each `Connect` committed its `Connecting` state before it returned; that the time is the same cold-disk flush, and that the 120 s case was this phase, is [inferred].
     Since #77 the reconnect is one `ConnectSessions` call: one commit for every `Connecting` state [observed: `TestConnectSessionsRecordsEveryConnectingStateInOneCommit`, 1 commit for 20 sessions, 20 with a commit each], then the connect calls one after another ([ADR 0053](adr/0053-connect-sessions-in-one-call.md)).
     With it, and the connect calls run at once, 36 suite and crash collection runs on win-x64, 936 restarts, had no failed run and no failed restart attempt, and the ready line to `SidecarRestarted` took a median 8-40 ms per run and at most 548 ms [observed: PR #78 run 41850964765, fixture logs].
+* Measured for startup with paired sessions (#126), 2026-11-05 [observed: [run 42082030437](https://github.com/tcortega/Whatsmeow.NET/actions/runs/42082030437), [diagnostic source at 56e11ea](https://github.com/tcortega/Whatsmeow.NET/commit/56e11ea813c50808a843108f6b8b10c94d325621), based on product source `2fcbfa1`]:
+  * Each seed is a real SQLite file filled through `GetOrCreateAsync` and fake `LinkDevice`, with distinct JIDs, saved device keys, fake ADV identities and app-state keys.
+    The seeding process stops before copying the file for each fresh launch; every launch verifies exactly N paired sessions with their expected JIDs in `Disconnected` state.
+    Fake mode constructs fake clients; release mode constructs real whatsmeow clients on the same synthetic data, without calling `Connect` or contacting WhatsApp [observed: diagnostic source; `session/session.go`; `session/whatsmeow.go`; whatsmeow `client.go:267-333`].
+  * The ready measurement wraps `SidecarProcess.StartAsync`, including token/nonce and process setup before spawn, through receipt and validation of the ready line.
+    It is an upper envelope of process start to ready, with no claim of a timestamp inside Go.
+    A separate process measures public `StartAsync` through its first `GetInfo` and version check; the fresh client remembers no sessions to reconnect.
+    Both exclude seeding, copying, post-start session verification and shutdown, and use AF_UNIX on all three platforms [observed: diagnostic source; `WhatsmeowSidecar.LaunchAsync`].
+  * Five launches per count, mode and boundary, 100 samples per platform, all 300 successful with no omitted failure or timeout [observed: the run's `samples.tsv` and `test.log`].
+    Sample 1 is retained alongside 2 through 5; no OS cache flush or competing suite was requested.
+    Runners: Ubuntu 26.04 on AMD EPYC 9V45 (4 logical CPUs), macOS 15.8 on virtual Apple M1 (3 CPUs), Windows Server 2025 build 26100 on AMD EPYC 7763 (4 logical CPUs); .NET SDK 10.0.403, runtime 10.0.14 and Go 1.27.3 [observed: each artifact's `environment.txt`].
+    The [evidence comment](https://github.com/tcortega/Whatsmeow.NET/issues/126#issuecomment-6665964974) retains all raw rows, runner image versions and both boundary tables beyond artifact expiry.
+  * Launch through validated ready, median / maximum milliseconds [observed: those raw samples]:
+
+    | Sessions | Mode | linux-x64 | osx-arm64 | win-x64 |
+    | ---: | --- | ---: | ---: | ---: |
+    | 1 | fake | 10.517 / 12.248 | 52.337 / 70.419 | 92.108 / 102.572 |
+    | 1 | release | 11.105 / 12.999 | 46.897 / 54.253 | 96.706 / 109.241 |
+    | 2 | fake | 10.669 / 12.458 | 50.330 / 61.302 | 93.722 / 111.295 |
+    | 2 | release | 11.224 / 13.337 | 52.883 / 85.835 | 95.023 / 100.948 |
+    | 10 | fake | 13.666 / 16.894 | 73.242 / 203.407 | 97.629 / 110.939 |
+    | 10 | release | 14.166 / 14.691 | 51.811 / 73.331 | 104.029 / 110.043 |
+    | 100 | fake | 40.763 / 143.582 | 79.091 / 88.884 | 164.403 / 167.163 |
+    | 100 | release | 43.558 / 54.692 | 80.550 / 100.160 | 163.889 / 165.392 |
+    | 1000 | fake | 304.131 / 320.660 | 468.741 / 611.393 | 753.354 / 759.856 |
+    | 1000 | release | 318.974 / 326.696 | 446.369 / 495.079 | 781.233 / 921.189 |
+
+  * At 1,000 sessions, public `StartAsync` maxima in release mode were 334.183 ms on Linux, 511.964 ms on macOS and 829.145 ms on Windows [observed: those raw samples].
+    The ready and public measurements use independent launches, so subtracting their samples does not measure handshake overhead.
+    The default `StartupTimeout` is 30 s and covers ready plus the first `GetInfo`; the diagnostic bound was 120 s [observed: `WhatsmeowSidecarOptions.StartupTimeout`, `WhatsmeowSidecar.LaunchAsync`, diagnostic `s_bound`].
+    At the guide's previously measured two fake sessions, the worst public sample across both modes and all platforms was 110.225 ms, a 272.2× margin against 30 s; the worst ready sample was 111.295 ms, a 269.6× margin [observed: raw samples; 30,000 divided by the maxima].
+    At 1,000, the corresponding worst samples were 829.145 ms and 921.189 ms, margins of 36.2× and 32.6×.
+    These measurements clear #126's 3× criterion without changing startup or declaring a supported session limit.
+    Startup grew across the measured range; its behavior on larger stores, under other load, real connected-session capacity and memory per session remain [unknown].
 - Measured live for #36, the run of 2026-11-04 at 9fd886a on the owner's two test accounts (`live` and `peer`), from its `sidecar.log`, `peer.log` and test output [observed: #36 live run 2026-11-04, unless tagged]:
   - Catch-up: the peer, a busy account offline since the run before, logged in at 14:47:51 and was `CaughtUp` at 14:51:50, its events going from seq 2838 to about 8100, roughly 22 a second; the live account took 14.3 s. Whether the rate is WhatsApp's offline delivery or the sidecar's processing is [unknown]: the client acks as it reads, with no window. So the live tests wait up to ten minutes for a first `CaughtUp` (`LiveSidecar.CatchUpBound`).
   - At the end of the peer's backlog, 447 events (seq 7621 to 8099, 64 bytes each) were "cannot be read; it is skipped and acked" on the .NET side; the live log did not carry the exception, so the field is [unknown]. The live log now writes each record's exception.
