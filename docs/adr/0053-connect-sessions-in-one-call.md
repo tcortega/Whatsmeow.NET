@@ -1,8 +1,8 @@
-# 0053. Connect the sessions in one call after a restart
+# 0053. Connect the sessions in one call
 
 - Status: Accepted
 - Date: 2026-11-04
-- Evidence: issue #77, PR #78's win-x64 soaks and the tests named below
+- Evidence: issues #77 and #127, PR #78's win-x64 soaks and the tests named below
 - Amends: [ADR 0020](0020-sessions-and-the-store.md) (how the client reconnects after a restart); `error.proto` (an `ErrorReason` sent as a field)
 
 ## Context
@@ -31,9 +31,18 @@ The reconnect has no deadline, so a slow one never fails the attempt [observed: 
   The sidecar logs each failed session with its error instead, through its logger, whose writer redacts at info and above, and the client logs the session and its `ErrorCode` (`ReconnectRefused`).
 - **The client reconnects with one `ConnectSessions` call** for the sessions it would have connected one by one; it checks once, just before the call, that the application did not disconnect one meanwhile.
   A failed call is logged for each session (`ReconnectFailed`), as a failed `Connect` was.
+* **Hosted startup uses the same batch** for its eligible declarations (#127, ADR 0034).
+  Every successful result starts that session's events and remembers it for a restart, including a session an external sidecar already kept online.
+  After processing all successes, the first failed result in request order fails host startup with the same public exception subtype and error code as `Connect`.
+  The result has no status detail or metadata, so its exception uses fixed text and any unavailable metadata stays unknown.
 - `Connect` is `ConnectSessions` with one session (`connectAll`), so the two never differ.
 
 ## Consequences
+
+* Hosted startup emits one actual `ConnectSessions` RPC and no single `Connect` RPCs, connects the paired declarations, starts their events and remembers them across a crash [observed: `HostingBatchTests.HostStart_ConnectsPairedDeclarationsInOneCall_AndKeepsTheirEventsAcrossACrash`].
+  The commit measurement remains the Go endpoint test below: it measures the batch's Connecting transitions, not every transaction during host startup.
+  No hosted wall-clock speedup was measured.
+* A failed declared session does not prevent later declarations connecting, while host startup still throws `NotConnectedException` with `ConnectionFailed` [observed: `HostingBatchTests.HostStart_OneDeclaredConnectFails_TheOthersConnectBeforeTheStartReportsFailure`].
 
 - A reconnect commits once however many sessions it connects [observed: `TestConnectSessionsRecordsEveryConnectingStateInOneCommit`, 1 commit for 20 sessions, 20 with a commit each (mutation)].
 - The connect calls run one at a time, in id order [observed: `TestConnectSessionsConnectsOneAtATimeInIdOrder`, red when they run at once].
@@ -42,4 +51,4 @@ The reconnect has no deadline, so a slow one never fails the attempt [observed: 
 - A session no longer waits for the others' connect calls to be disconnected or logged out [observed: `TestConnectSessionsLetsGoOfASessionOnceItsOwnConnectEnded`, red when every session's ops are held until the last call ends].
 - `SidecarRestart_ConnectsAgainEverySessionTheApplicationConnected` checks the client side end to end: three sessions connected again after a crash, none logged as failed.
 - On win-x64, with the connect calls still at once, 36 suite and crash collection runs, 936 restarts, had no failed run or restart attempt, and the ready line to `SidecarRestarted` took at most 548 ms, against up to 27.7 s before [observed: PR #78 runs 41850964765 and 41490492321]. That the 120 s case was this phase stays [inferred]: the soak before also had no failure.
-- An External-mode client of a standalone sidecar older than this gets `UNIMPLEMENTED` for `ConnectSessions` and logs `ReconnectFailed` for each session: acceptable before the first published tag, when `protocol` stays 1 (ADR 0015); after it, such an RPC comes with a `protocol` bump.
+- An External-mode client of a standalone sidecar older than this gets `UNIMPLEMENTED` for `ConnectSessions` and logs `ReconnectFailed` for each session; a hosted first start fails instead: acceptable before the first published tag, when `protocol` stays 1 (ADR 0015); after it, such an RPC comes with a `protocol` bump.

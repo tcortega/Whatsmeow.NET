@@ -45,7 +45,7 @@ internal static class RpcErrors
 		Reason(exception, out _) is ErrorReason.Unauthenticated or ErrorReason.SidecarShuttingDown
 		|| (Reason(exception, out _) is null && exception.StatusCode is StatusCode.Unavailable);
 
-	/// <summary>The error code of a failed call, as <see cref="Throw"/> would report it.</summary>
+	/// <summary>The error code of a failed call, as <see cref="Throw(RpcException)"/> would report it.</summary>
 	public static WhatsmeowErrorCode Code(RpcException exception) => ToCode(Reason(exception, out _));
 
 	/// <summary>The error code of a reason sent as a field (ConnectSessionResult.reason).</summary>
@@ -55,9 +55,20 @@ internal static class RpcErrors
 	public static void Throw(RpcException exception)
 	{
 		var reason = Reason(exception, out var info);
+		Throw(exception, reason, info);
+	}
+
+	/// <summary>A batch result carries only its reason, with no status detail or metadata (ADR 0053).</summary>
+	[DoesNotReturn]
+	public static void Throw(ErrorReason reason) =>
+		Throw(new RpcException(new Grpc.Core.Status(StatusCode.Unknown, "Connecting a declared session failed.")), reason, info: null);
+
+	[DoesNotReturn]
+	private static void Throw(RpcException exception, ErrorReason? reason, ErrorInfo? info)
+	{
 		var code = ToCode(reason);
 
-		if (IsUnreachable(exception))
+		if (reason is ErrorReason.Unauthenticated or ErrorReason.SidecarShuttingDown || IsUnreachable(exception))
 			SidecarUnavailableException.ThrowUnreachable(exception, code);
 
 		switch (reason)
@@ -78,7 +89,7 @@ internal static class RpcErrors
 				NotConnectedException.Throw(exception, code);
 				break;
 			case ErrorReason.TemporarilyBanned:
-				TemporarilyBannedException.Throw(exception, Until(info!));
+				TemporarilyBannedException.Throw(exception, Until(info));
 				break;
 			case ErrorReason.OutcomeUnknown:
 				OutcomeUnknownException.Throw(exception);
@@ -96,7 +107,7 @@ internal static class RpcErrors
 				MediaExpiredException.Throw(exception);
 				break;
 			case ErrorReason.WhatsappError:
-				WhatsAppErrorException.Throw(exception, WhatsAppCode(info!));
+				WhatsAppErrorException.Throw(exception, WhatsAppCode(info));
 				break;
 			case null or ErrorReason.Unspecified or ErrorReason.Internal or ErrorReason.Unauthenticated or ErrorReason.SidecarShuttingDown
 				or ErrorReason.ConsumerReplaced or ErrorReason.WhatsappTimedOut or ErrorReason.NoPushName or ErrorReason.InviteLinkInvalid
@@ -116,15 +127,15 @@ internal static class RpcErrors
 	}
 
 	/// <summary>The ban's end from the <c>expireTime</c> metadata, RFC 3339 UTC (error.proto); null when it is unknown.</summary>
-	private static DateTimeOffset? Until(ErrorInfo info) =>
-		info.Metadata.TryGetValue("expireTime", out var value)
+	private static DateTimeOffset? Until(ErrorInfo? info) =>
+		info is not null && info.Metadata.TryGetValue("expireTime", out var value)
 		&& DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var until)
 			? until
 			: null;
 
 	/// <summary>WhatsApp's numeric error code from the <c>code</c> metadata (error.proto); 0 when it is missing or malformed.</summary>
-	private static int WhatsAppCode(ErrorInfo info) =>
-		info.Metadata.TryGetValue("code", out var value) && int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var code) ? code : 0;
+	private static int WhatsAppCode(ErrorInfo? info) =>
+		info is not null && info.Metadata.TryGetValue("code", out var value) && int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var code) ? code : 0;
 
 	private static WhatsmeowErrorCode ToCode(ErrorReason? reason) =>
 		reason switch
