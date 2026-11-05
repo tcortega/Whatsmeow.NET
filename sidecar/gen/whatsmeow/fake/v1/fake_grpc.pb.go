@@ -186,8 +186,8 @@ type FakeWhatsAppServiceClient interface {
 	HoldNextDownload(ctx context.Context, in *HoldNextDownloadRequest, opts ...grpc.CallOption) (*HoldNextDownloadResponse, error)
 	// AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
 	// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
-	// and returns once the client's event handlers ran. With reupload, the phone uploads the media at
-	// from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+	// or supplies encrypted bytes unchanged, and returns once the client's event handlers ran. With reupload, the
+	// phone uploads the media at from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
 	// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
 	AnswerMediaRetry(ctx context.Context, in *AnswerMediaRetryRequest, opts ...grpc.CallOption) (*AnswerMediaRetryResponse, error)
 	// DeliverReceipt makes WhatsApp deliver a receipt to a session's client, and returns once the client's event
@@ -866,8 +866,8 @@ type FakeWhatsAppServiceServer interface {
 	HoldNextDownload(context.Context, *HoldNextDownloadRequest) (*HoldNextDownloadResponse, error)
 	// AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
 	// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
-	// and returns once the client's event handlers ran. With reupload, the phone uploads the media at
-	// from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+	// or supplies encrypted bytes unchanged, and returns once the client's event handlers ran. With reupload, the
+	// phone uploads the media at from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
 	// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
 	AnswerMediaRetry(context.Context, *AnswerMediaRetryRequest) (*AnswerMediaRetryResponse, error)
 	// DeliverReceipt makes WhatsApp deliver a receipt to a session's client, and returns once the client's event

@@ -115,11 +115,13 @@ func (c *Control) AnswerMediaRetry(_ context.Context, req *fakev1.AnswerMediaRet
 		notif.Result = waMmsRetry.MediaRetryNotification_ResultType(answer.Result).Enum()
 	case *fakev1.AnswerMediaRetryRequest_ErrorCode:
 		evt.Error = &events.MediaRetryError{Code: int(answer.ErrorCode)}
+	case *fakev1.AnswerMediaRetryRequest_Encrypted:
+		evt.Ciphertext, evt.IV = answer.Encrypted.GetCiphertext(), answer.Encrypted.GetIv()
 	default:
 		return nil, fmt.Errorf("answer %q: no answer", req.GetMessageId())
 	}
 
-	if evt.Error == nil {
+	if evt.Error == nil && req.GetEncrypted() == nil {
 		if evt.Ciphertext, evt.IV, err = encryptAnswer(request.key, request.info.ID, notif); err != nil {
 			return nil, err
 		}

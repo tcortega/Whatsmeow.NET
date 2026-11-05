@@ -165,6 +165,14 @@ func answered(log zerolog.Logger, sessionID string, retry *events.MediaRetry, me
 		event.Result = &whatsmeowv1.MediaRetryEvent_Failure{Failure: f}
 	}
 
+	// Plain errors have no encrypted bytes (mediaretry.go:125-129); GCM panics on an IV of another length.
+	if (retry.Error == nil || retry.Ciphertext != nil) && (len(retry.IV) != 12 || len(retry.Ciphertext) == 0) {
+		log.Warn().Str("session_id", sessionID).Msg("a media retry answer has an invalid IV or no ciphertext")
+		failure(whatsmeowv1.MediaRetryFailure_MEDIA_RETRY_FAILURE_UNSPECIFIED)
+
+		return false
+	}
+
 	notif, err := whatsmeow.DecryptMediaRetryNotification(retry, media.GetMediaKey())
 
 	switch {

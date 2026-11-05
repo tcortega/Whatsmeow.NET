@@ -2141,8 +2141,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
       /// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
-      /// and returns once the client's event handlers ran. With reupload, the phone uploads the media at
-      /// from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+      /// or supplies encrypted bytes unchanged, and returns once the client's event handlers ran. With reupload, the
+      /// phone uploads the media at from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
       /// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -2158,8 +2158,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
       /// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
-      /// and returns once the client's event handlers ran. With reupload, the phone uploads the media at
-      /// from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+      /// or supplies encrypted bytes unchanged, and returns once the client's event handlers ran. With reupload, the
+      /// phone uploads the media at from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
       /// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -2173,8 +2173,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
       /// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
-      /// and returns once the client's event handlers ran. With reupload, the phone uploads the media at
-      /// from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+      /// or supplies encrypted bytes unchanged, and returns once the client's event handlers ran. With reupload, the
+      /// phone uploads the media at from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
       /// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -2190,8 +2190,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
       /// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
-      /// and returns once the client's event handlers ran. With reupload, the phone uploads the media at
-      /// from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+      /// or supplies encrypted bytes unchanged, and returns once the client's event handlers ran. With reupload, the
+      /// phone uploads the media at from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
       /// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
