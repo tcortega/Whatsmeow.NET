@@ -1,6 +1,7 @@
 # 0023. Native packages: one version, a plain Go build, exact pins, and how a consumer finds the binary
 
 - Status: Accepted
+- Amended by: [0058](0058-jit-install-on-every-target-rid.md) (JIT install coverage and native execution reporting on every target RID)
 - Date: 2026-11-01
 - Evidence: issue #43, its plan review, a prototype on SDK 10.0.403 and Go 1.27.3 (osx-arm64 and Docker Alpine 3.24), and `build/ci.sh package` and `install` in CI
 - Amends: [ADR 0007](0007-per-os-native-nuget-packages-exact-pins.md) (the sizes, the build), [ADR 0016](0016-sidecar-binary-gpl-3-corresponding-source-per-release.md) (`.goreleaser.yaml`)
