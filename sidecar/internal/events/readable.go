@@ -36,13 +36,18 @@ func Unreadable(event *whatsmeowv1.StreamEventsResponse) string {
 		return readGroup(p.Group)
 	case *whatsmeowv1.StreamEventsResponse_MediaRetry:
 		r := p.MediaRetry
-		media := ""
+		m := r.GetMedia()
+		mediaType, fileLength := "", ""
 
-		if m := r.GetMedia(); m != nil && (m.GetMediaType() == whatsmeowv1.MediaType_MEDIA_TYPE_UNSPECIFIED || m.GetFileLength() > math.MaxInt64) {
-			media = "MediaRef"
+		if m != nil && m.GetMediaType() == whatsmeowv1.MediaType_MEDIA_TYPE_UNSPECIFIED {
+			mediaType = "MediaRef.media_type"
 		}
 
-		return first(readID(true, r.GetMessageId(), "MediaRetryEvent.message_id"), readJID(true, r.GetChat(), "MediaRetryEvent.chat"), media)
+		if m.GetFileLength() > math.MaxInt64 {
+			fileLength = "MediaRef.file_length"
+		}
+
+		return first(readID(true, r.GetMessageId(), "MediaRetryEvent.message_id"), readJID(true, r.GetChat(), "MediaRetryEvent.chat"), mediaType, fileLength)
 	default:
 		return "payload"
 	}

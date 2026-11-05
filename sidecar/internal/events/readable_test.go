@@ -2,6 +2,7 @@ package events
 
 import (
 	"bytes"
+	"math"
 	"strings"
 	"testing"
 
@@ -127,7 +128,13 @@ func TestUnreadableNamesTheFirstFieldTheClientCannotRead(t *testing.T) {
 			Jid: "120363000000000000@g.us", Participants: []*whatsmeowv1.GroupParticipant{{}},
 		}}}}),
 		"MediaRetryEvent.chat": {Payload: &whatsmeowv1.StreamEventsResponse_MediaRetry{MediaRetry: &whatsmeowv1.MediaRetryEvent{MessageId: "M1"}}},
-		"payload":              {},
+		"MediaRef.media_type": {Payload: &whatsmeowv1.StreamEventsResponse_MediaRetry{MediaRetry: &whatsmeowv1.MediaRetryEvent{
+			MessageId: "M1", Chat: pn, Result: &whatsmeowv1.MediaRetryEvent_Media{Media: &whatsmeowv1.MediaRef{FileLength: 1}},
+		}}},
+		"MediaRef.file_length": {Payload: &whatsmeowv1.StreamEventsResponse_MediaRetry{MediaRetry: &whatsmeowv1.MediaRetryEvent{
+			MessageId: "M1", Chat: pn, Result: &whatsmeowv1.MediaRetryEvent_Media{Media: &whatsmeowv1.MediaRef{MediaType: whatsmeowv1.MediaType_MEDIA_TYPE_IMAGE, FileLength: math.MaxInt64 + 1}},
+		}}},
+		"payload": {},
 	} {
 		if got := Unreadable(event); got != want {
 			t.Errorf("Unreadable(%v) = %q, want %q", event, got, want)
