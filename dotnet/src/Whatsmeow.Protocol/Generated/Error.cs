@@ -59,7 +59,8 @@ namespace Whatsmeow.Protocol.V1 {
   #region Enums
   /// <summary>
   /// ErrorReason is the list of google.rpc.ErrorInfo reasons the sidecar returns.
-  /// It is never sent as a field; it exists so the list is part of the contract and buf breaking guards it.
+  /// It exists so the list is part of the contract and buf breaking guards it. It is sent as a field only where one call
+  /// answers for several sessions (ConnectSessionResult.reason, ADR 0053); everywhere else the reason travels in ErrorInfo.
   ///
   /// Every non-OK status a sidecar handler returns carries one google.rpc.ErrorInfo with domain "whatsmeow.net" and
   /// reason set to a value name below without its ERROR_REASON_ prefix: ERROR_REASON_SESSION_NOT_FOUND travels as
@@ -71,7 +72,7 @@ namespace Whatsmeow.Protocol.V1 {
   /// </summary>
   internal enum ErrorReason {
     /// <summary>
-    /// Never sent.
+    /// Never sent in ErrorInfo. As a field (ConnectSessionResult.reason) it is a success.
     /// </summary>
     [pbr::OriginalName("ERROR_REASON_UNSPECIFIED")] Unspecified = 0,
     /// <summary>

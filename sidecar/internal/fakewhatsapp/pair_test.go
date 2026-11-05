@@ -5,16 +5,13 @@ package fakewhatsapp
 import (
 	"context"
 	"errors"
-	"path/filepath"
 	"regexp"
 	"testing"
 
-	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/types/events"
 
 	fakev1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/fake/v1"
-	sidecarstore "github.com/tcortega/Whatsmeow.NET/sidecar/internal/store"
 )
 
 // qrCodeFormat is whatsmeow's QR payload: ref, then the noise key, the identity key and the ADV secret in base64,
@@ -27,15 +24,7 @@ func pairingClient(t *testing.T) (*WhatsApp, fakev1.FakeWhatsAppServiceClient, c
 
 	whatsApp, control, ctx := start(t)
 
-	db, err := sidecarstore.Open(context.Background(), filepath.Join(t.TempDir(), "whatsmeow-net.db"), zerolog.Nop())
-	if err != nil {
-		t.Fatalf("open the store: %v", err)
-	}
-
-	t.Cleanup(func() {
-		whatsApp.Wait()
-		_ = db.Close()
-	})
+	db := openDeviceStore(t, whatsApp)
 
 	got := make(chan any, 8)
 	client := whatsApp.NewClient("s1")

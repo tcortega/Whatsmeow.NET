@@ -49,15 +49,7 @@ public sealed class GroupTests(FakeSidecar fixture)
 		};
 
 	private static GroupInfoChanged Changed(string session, Jid group, Jid? sender, params GroupChange[] changes) =>
-		new()
-		{
-			SessionId = SessionId.From(session),
-			Group = group,
-			Sender = sender,
-			SenderAlt = null,
-			Timestamp = s_at,
-			Changes = [.. changes],
-		};
+		GroupChecks.Changed(SessionId.From(session), group, sender, senderAlt: null, s_at, changes);
 
 	[Fact(Timeout = Timeout)]
 	public async Task GetGroups_TheSessionsGroups_EachWithNameTopicParticipantsAndRoles()
@@ -301,8 +293,8 @@ public sealed class GroupTests(FakeSidecar fixture)
 
 		var thrown = await Assert.ThrowsAsync<WhatsAppErrorException>(() => member.SetGroupNameAsync(group, "Mine", ct));
 
-		// A refusal for lack of admin rights has no reason of its own: WhatsApp's code says it [inferred: 403].
-		Assert.Equal((WhatsmeowErrorCode.WhatsAppError, 403), (thrown.ErrorCode, thrown.Code));
+		// A refusal for lack of admin rights has no reason of its own: WhatsApp's code says it [observed: 401, #36 live run 2026-11-04].
+		Assert.Equal((WhatsmeowErrorCode.WhatsAppError, 401), (thrown.ErrorCode, thrown.Code));
 		Assert.Equal("Team", (await member.GetGroupInfoAsync(group, ct)).Name);
 	}
 
@@ -316,15 +308,9 @@ public sealed class GroupTests(FakeSidecar fixture)
 		var group = (await admin.CreateGroupAsync("Team", [Self("groups-settings-b")], ct)).Group.Jid;
 		var by = Self("groups-settings-a");
 
-		await admin.SetGroupNameAsync(group, "Crew", ct);
-		await admin.SetGroupTopicAsync(group, "Plans for Monday", ct);
-		await admin.SetGroupAnnounceAsync(group, announce: true, ct);
-		await admin.SetGroupLockedAsync(group, locked: true, ct);
+		await GroupChecks.SetSettingsAsync(admin, group, "Crew", "Plans for Monday", ct);
 
-		Assert.Equal(Changed("groups-settings-b", group, by, new GroupChange.Renamed { Name = "Crew" }), await changes.NextAsync(ct));
-		Assert.Equal(Changed("groups-settings-b", group, by, new GroupChange.TopicChanged { Topic = "Plans for Monday" }), await changes.NextAsync(ct));
-		Assert.Equal(Changed("groups-settings-b", group, by, new GroupChange.AnnounceChanged { IsAnnounce = true }), await changes.NextAsync(ct));
-		Assert.Equal(Changed("groups-settings-b", group, by, new GroupChange.LockedChanged { IsLocked = true }), await changes.NextAsync(ct));
+		Assert.Equal(GroupChecks.Settings("Crew", "Plans for Monday").Select(change => Changed("groups-settings-b", group, by, change)), await changes.NextAsync(4, ct));
 
 		var expected = Created(group, "groups-settings-a", "Crew", Member(Self("groups-settings-b"))) with { Topic = "Plans for Monday", IsAnnounce = true, IsLocked = true };
 		Assert.Equal(expected, await member.GetGroupInfoAsync(group, ct));
@@ -354,7 +340,8 @@ public sealed class GroupTests(FakeSidecar fixture)
 
 		var old = await Assert.ThrowsAsync<WhatsmeowException>(() => joiner.JoinGroupWithLinkAsync(link, ct));
 		Assert.Equal(WhatsmeowErrorCode.InviteLinkInvalid, old.ErrorCode);
-		var bogus = await Assert.ThrowsAsync<WhatsmeowException>(() => joiner.JoinGroupWithLinkAsync(new Uri("https://chat.whatsapp.com/NOSUCHCODE"), ct));
+		// A well formed code no group has, which WhatsApp refuses with 400 [observed: #36 live run 2026-11-04].
+		var bogus = await Assert.ThrowsAsync<WhatsmeowException>(() => joiner.JoinGroupWithLinkAsync(new Uri("https://chat.whatsapp.com/NoSuchCode0000000000AB"), ct));
 		Assert.Equal(WhatsmeowErrorCode.InviteLinkInvalid, bogus.ErrorCode);
 		Assert.Empty(await joiner.GetGroupsAsync(ct));
 
@@ -365,13 +352,13 @@ public sealed class GroupTests(FakeSidecar fixture)
 		_ = Assert.Single(groups);
 		Assert.Equal(expected, groups[0]);
 
-		// The joiner gets the group, and the members who joined.
+		// The joiner gets the group, and the members who joined, each from no sender, as WhatsApp sent them (ARCHITECTURE §14).
 		Assert.Equal(
-			new GroupJoined { SessionId = SessionId.From("groups-invite-b"), Group = expected, Sender = Self("groups-invite-b"), SenderAlt = null },
+			new GroupJoined { SessionId = SessionId.From("groups-invite-b"), Group = expected, Sender = null, SenderAlt = null },
 			await joined.NextAsync(ct)
 		);
 		Assert.Equal(
-			Changed("groups-invite-a", group, Self("groups-invite-b"), new GroupChange.ParticipantJoined { Jid = Self("groups-invite-b") }),
+			Changed("groups-invite-a", group, sender: null, new GroupChange.ParticipantJoined { Jid = Self("groups-invite-b") }),
 			await adminChanges.NextAsync(ct)
 		);
 	}
@@ -624,5 +611,57 @@ public sealed class GroupTests(FakeSidecar fixture)
 		Assert.Equal(WhatsmeowErrorCode.Internal, error.ErrorCode);
 		Assert.Contains("GroupParticipant.jid", error.Message, StringComparison.Ordinal);
 		Assert.DoesNotContain("5511911300001", error.ToString(), StringComparison.Ordinal);
+	}
+
+	/// <summary>
+	/// #122: a member the client cannot read, here one without a server, is left out of a group change, and a change
+	/// left with none is not recorded; whatsmeow keeps a created group's participant without a jid
+	/// (group.go:718, 767, 804-806).
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task GroupNotification_AMemberTheClientCannotRead_IsLeftOut()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "groups-member-unreadable";
+		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
+		using var changes = new Received<GroupInfoChanged>(client);
+		var at = new DateTimeOffset(2026, 10, 30, 8, 0, 0, TimeSpan.Zero);
+
+		_ = await fixture.Fake.DeliverGroupNotificationAsync(
+			new DeliverGroupNotificationRequest
+			{
+				SessionId = Session,
+				Id = "GN-UNREADABLE-1",
+				Group = "120363114000000001@g.us",
+				Time = Timestamp.FromDateTimeOffset(at),
+				Leave = { "5511911400001@" },
+			},
+			cancellationToken: ct
+		);
+		_ = await fixture.Fake.DeliverGroupNotificationAsync(
+			new DeliverGroupNotificationRequest
+			{
+				SessionId = Session,
+				Id = "GN-UNREADABLE-2",
+				Group = "120363114000000001@g.us",
+				Time = Timestamp.FromDateTimeOffset(at),
+				Join = { "5511911400002@", "911400003@lid" },
+			},
+			cancellationToken: ct
+		);
+
+		Assert.Equal(
+			new GroupInfoChanged
+			{
+				SessionId = SessionId.From(Session),
+				Group = Group("120363114000000001"),
+				Sender = null,
+				SenderAlt = null,
+				Timestamp = at,
+				Changes = [new GroupChange.ParticipantJoined { Jid = Lid("911400003") }],
+			},
+			await changes.NextAsync(ct)
+		);
+		Assert.DoesNotContain(fixture.Logs.Named("EventUnreadable"), r => r.Message.Contains(Session, StringComparison.Ordinal));
 	}
 }

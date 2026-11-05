@@ -149,8 +149,8 @@ service FakeWhatsAppService {
 
   // AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
   // showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
-  // and returns once the client's event handlers ran. With reupload, the phone uploads the media at
-  // from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+  // or supplies encrypted bytes unchanged, and returns once the client's event handlers ran. With reupload, the
+  // phone uploads the media at from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
   // (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
   rpc AnswerMediaRetry(AnswerMediaRetryRequest) returns (AnswerMediaRetryResponse);
 
@@ -197,8 +197,9 @@ service FakeWhatsAppService {
   // a non-admin's change to a locked group's info, to its settings or to its participants is 403, and to its invite
   // link 401 (whatsmeow's ErrGroupInviteLinkUnauthorized, group.go:432); a group the session is not in is 403 and an
   // unknown one 404 (group.go:674-678); adding a member is 409, and removing, promoting or demoting a non-member 404,
-  // for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519), for a join and for the
-  // group info of a link, which joins nothing and lists every member; a member who is not an admin may add
+  // for that participant; a reset invite code is 410 (group.go:516-519), and any code the fake does not know, malformed
+  // or not, 400 bad-request [observed: #120 live run 2026-11-04], for a join and for the group info of a link, which
+  // joins nothing and lists every member; a member who is not an admin may add
   // participants when the group's member add mode is all_member_add, and changes the mode only as an admin (403); a
   // created group has the mode its create asked for, all_member_add unless told otherwise, as whatsmeow asks
   // (group.go:59-63), though what WhatsApp answers after a create is [unknown], and a group AddGroup put there has none
@@ -258,6 +259,12 @@ service FakeWhatsAppService {
   // store.DeviceProps as they were when the phone linked the device (LinkDevice), which whatsmeow sends only in the
   // registration payload (store/clientpayload.go:174-183).
   rpc GetPairingDeviceProps(GetPairingDevicePropsRequest) returns (GetPairingDevicePropsResponse);
+
+  // RecordEvent records an event in the session's outbox as it is, under no key, past every slice's mapping, and
+  // returns once it is committed; the outbox gives it its seq. It is the one way to stream the client an event the
+  // sidecar never records, such as one the client cannot read, whose skip and ack are the client's own (ARCHITECTURE
+  // §8.7, #122). A session that does not exist is an error.
+  rpc RecordEvent(RecordEventRequest) returns (RecordEventResponse);
 }
 
 // FailNextUploadsRequest names the session and how many uploads fail.
@@ -315,6 +322,8 @@ message AnswerMediaRetryRequest {
     int32 result = 4;
     // An unencrypted error code, as the phone sends one when it has nothing (2: not on the phone).
     int32 error_code = 5;
+    // The encrypted bytes as received, including malformed answers.
+    EncryptedMediaRetryAnswer encrypted = 7;
   }
 
   // When the phone answered; unset is the zero time.
@@ -1249,4 +1258,24 @@ message GetPairingDevicePropsResponse {
   optional uint32 full_sync_size_mb_limit = 3;
   // HistorySyncConfig.StorageQuotaMb; unset when not set.
   optional uint32 storage_quota_mb = 4;
+}
+
+// RecordEventRequest is the event and its session.
+message RecordEventRequest {
+  // The session whose outbox records it.
+  string session_id = 1;
+  // The event, a whatsmeow.v1.StreamEventsResponse in its JSON form (protojson), so a test writes it without
+  // whatsmeow.v1's C# types, which are Whatsmeow.Protocol's internals. Its seq is the outbox's.
+  string event_json = 2;
+}
+
+// RecordEventResponse has no fields.
+message RecordEventResponse {}
+
+// EncryptedMediaRetryAnswer supplies the bytes without encrypting or validating them.
+message EncryptedMediaRetryAnswer {
+  // The encrypted notification; empty means no ciphertext.
+  bytes ciphertext = 1;
+  // The AES-GCM IV; a valid answer has 12 bytes.
+  bytes iv = 2;
 }

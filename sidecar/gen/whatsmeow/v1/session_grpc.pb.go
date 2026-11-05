@@ -23,6 +23,7 @@ const (
 	SessionService_ListSessions_FullMethodName      = "/whatsmeow.v1.SessionService/ListSessions"
 	SessionService_DeleteSession_FullMethodName     = "/whatsmeow.v1.SessionService/DeleteSession"
 	SessionService_Connect_FullMethodName           = "/whatsmeow.v1.SessionService/Connect"
+	SessionService_ConnectSessions_FullMethodName   = "/whatsmeow.v1.SessionService/ConnectSessions"
 	SessionService_Disconnect_FullMethodName        = "/whatsmeow.v1.SessionService/Disconnect"
 	SessionService_Logout_FullMethodName            = "/whatsmeow.v1.SessionService/Logout"
 	SessionService_Pair_FullMethodName              = "/whatsmeow.v1.SessionService/Pair"
@@ -61,6 +62,15 @@ type SessionServiceClient interface {
 	// The sidecar never connects a session on its own, also not after a restart.
 	// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED.
 	Connect(ctx context.Context, in *ConnectRequest, opts ...grpc.CallOption) (*ConnectResponse, error)
+	// ConnectSessions connects several sessions, each as Connect does, and answers with one result per session, in the
+	// request's order, once every connect call ended. Their Connecting transitions are recorded in one commit, then their
+	// connect calls run one after another, in id order, so the time it takes does not grow with a sync of the database
+	// per session. The client reconnects with it after a sidecar restart (ARCHITECTURE §8.5, ADR 0053).
+	// Errors: INVALID_ARGUMENT for a session id given twice (field "session_ids"), before any session is looked at. A
+	// session's own failure is its result, never the call's: one of Connect's reasons (SESSION_NOT_FOUND, NOT_LOGGED_IN,
+	// LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED), INVALID_ARGUMENT for a malformed session
+	// id, or INTERNAL.
+	ConnectSessions(ctx context.Context, in *ConnectSessionsRequest, opts ...grpc.CallOption) (*ConnectSessionsResponse, error)
 	// Disconnect closes the connection and stops reconnecting; the session stays paired (state Disconnected).
 	// Disconnecting a session that is not connected succeeds and does nothing. While a Pair call is open and the phone
 	// has not linked the device, it fails with PAIRING_IN_PROGRESS (cancel the Pair call instead); after the link it
@@ -135,6 +145,16 @@ func (c *sessionServiceClient) Connect(ctx context.Context, in *ConnectRequest, 
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ConnectResponse)
 	err := c.cc.Invoke(ctx, SessionService_Connect_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sessionServiceClient) ConnectSessions(ctx context.Context, in *ConnectSessionsRequest, opts ...grpc.CallOption) (*ConnectSessionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ConnectSessionsResponse)
+	err := c.cc.Invoke(ctx, SessionService_ConnectSessions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -231,6 +251,15 @@ type SessionServiceServer interface {
 	// The sidecar never connects a session on its own, also not after a restart.
 	// Errors: SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED.
 	Connect(context.Context, *ConnectRequest) (*ConnectResponse, error)
+	// ConnectSessions connects several sessions, each as Connect does, and answers with one result per session, in the
+	// request's order, once every connect call ended. Their Connecting transitions are recorded in one commit, then their
+	// connect calls run one after another, in id order, so the time it takes does not grow with a sync of the database
+	// per session. The client reconnects with it after a sidecar restart (ARCHITECTURE §8.5, ADR 0053).
+	// Errors: INVALID_ARGUMENT for a session id given twice (field "session_ids"), before any session is looked at. A
+	// session's own failure is its result, never the call's: one of Connect's reasons (SESSION_NOT_FOUND, NOT_LOGGED_IN,
+	// LOGGED_OUT, PAIRING_IN_PROGRESS, TEMPORARILY_BANNED, CONNECTION_FAILED), INVALID_ARGUMENT for a malformed session
+	// id, or INTERNAL.
+	ConnectSessions(context.Context, *ConnectSessionsRequest) (*ConnectSessionsResponse, error)
 	// Disconnect closes the connection and stops reconnecting; the session stays paired (state Disconnected).
 	// Disconnecting a session that is not connected succeeds and does nothing. While a Pair call is open and the phone
 	// has not linked the device, it fails with PAIRING_IN_PROGRESS (cancel the Pair call instead); after the link it
@@ -282,6 +311,9 @@ func (UnimplementedSessionServiceServer) DeleteSession(context.Context, *DeleteS
 }
 func (UnimplementedSessionServiceServer) Connect(context.Context, *ConnectRequest) (*ConnectResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Connect not implemented")
+}
+func (UnimplementedSessionServiceServer) ConnectSessions(context.Context, *ConnectSessionsRequest) (*ConnectSessionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ConnectSessions not implemented")
 }
 func (UnimplementedSessionServiceServer) Disconnect(context.Context, *DisconnectRequest) (*DisconnectResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Disconnect not implemented")
@@ -388,6 +420,24 @@ func _SessionService_Connect_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SessionService_ConnectSessions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConnectSessionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SessionServiceServer).ConnectSessions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SessionService_ConnectSessions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SessionServiceServer).ConnectSessions(ctx, req.(*ConnectSessionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SessionService_Disconnect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DisconnectRequest)
 	if err := dec(in); err != nil {
@@ -468,6 +518,10 @@ var SessionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Connect",
 			Handler:    _SessionService_Connect_Handler,
+		},
+		{
+			MethodName: "ConnectSessions",
+			Handler:    _SessionService_ConnectSessions_Handler,
 		},
 		{
 			MethodName: "Disconnect",

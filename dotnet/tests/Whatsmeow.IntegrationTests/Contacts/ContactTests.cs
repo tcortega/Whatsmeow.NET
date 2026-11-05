@@ -236,10 +236,10 @@ public sealed class ContactTests(FakeSidecar fixture)
 		Assert.Empty(await client.GetBlocklistAsync(ct));
 
 		await client.BlockAsync(Pn("5511960000001"), ct);
-		Assert.Equal([new BlockedUser { Jid = Lid("960000001"), JidAlt = Pn("5511960000001") }], await client.GetBlocklistAsync(ct));
+		ContactChecks.ValidateBlocked(await client.GetBlocklistAsync(ct), Lid("960000001"), Pn("5511960000001"));
 
 		await client.UnblockAsync(Lid("960000001"), ct);
-		Assert.Empty(await client.GetBlocklistAsync(ct));
+		ContactChecks.ValidateUnblocked(await client.GetBlocklistAsync(ct));
 	}
 
 	[Fact(Timeout = Timeout)]
@@ -279,10 +279,10 @@ public sealed class ContactTests(FakeSidecar fixture)
 		_ = await fixture.Fake.RegisterUserAsync(new RegisterUserRequest { PhoneJid = "5511960000002@s.whatsapp.net", Lid = "960000002@lid" }, cancellationToken: ct);
 
 		await client.BlockAsync(Pn("5511960000002") with { Device = 3 }, ct);
-		Assert.Equal([new BlockedUser { Jid = Lid("960000002"), JidAlt = Pn("5511960000002") }], await client.GetBlocklistAsync(ct));
+		ContactChecks.ValidateBlocked(await client.GetBlocklistAsync(ct), Lid("960000002"), Pn("5511960000002"));
 
 		await client.UnblockAsync(Lid("960000002") with { Device = 3 }, ct);
-		Assert.Empty(await client.GetBlocklistAsync(ct));
+		ContactChecks.ValidateUnblocked(await client.GetBlocklistAsync(ct));
 	}
 
 	[Fact(Timeout = Timeout)]
@@ -336,5 +336,43 @@ public sealed class ContactTests(FakeSidecar fixture)
 		_ = await Assert.ThrowsAsync<NotLoggedInException>(() => unpaired.IsOnWhatsAppAsync(["+5511900000001"], ct));
 		_ = await Assert.ThrowsAsync<NotLoggedInException>(() => unpaired.GetContactsAsync(ct));
 		_ = await Assert.ThrowsAsync<NotLoggedInException>(() => unpaired.ResolveJidsAsync([Lid("900000001")], ct));
+	}
+
+	/// <summary>
+	/// #122: whatsmeow reads a status notification's sender without checking it (notification.go:451-467), so one
+	/// without a <c>from</c> names the empty JID. The client cannot read it, so the sidecar does not record it, and the
+	/// next change still arrives.
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task AStatusOfNoUser_IsNeverUnreadable()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "contacts-unreadable";
+		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
+		using var received = new Received<ContactUpdated>(client);
+
+		foreach (var jid in new[] { "", "980000001@lid" })
+		{
+			_ = await fixture.Fake.DeliverContactNotificationAsync(
+				new DeliverContactNotificationRequest
+				{
+					SessionId = Session,
+					About = new DeliverContactNotificationRequest.Types.About { Jid = jid, Text = "busy" },
+				},
+				cancellationToken: ct
+			);
+		}
+
+		Assert.Equal(
+			new ContactUpdated
+			{
+				SessionId = SessionId.From(Session),
+				Jid = Lid("980000001"),
+				JidAlt = null,
+				Change = new ContactChange.About { Text = "busy" },
+			},
+			await received.NextAsync(ct)
+		);
+		Assert.DoesNotContain(fixture.Logs.Named("EventUnreadable"), r => r.Message.Contains(Session, StringComparison.Ordinal));
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"slices"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -112,6 +113,64 @@ func TestRecordAssignsIncreasingSeqsSharedAcrossSessions(t *testing.T) {
 	events, _ := o.Read(ctx, "s1", 1, 10)
 	if want := message("M1"); len(events) != 1 || !proto.Equal(events[0], func() *whatsmeowv1.StreamEventsResponse { want.Seq = 3; return want }()) {
 		t.Fatalf("Read after 1 = %v, want M1 at seq 3", events)
+	}
+}
+
+func TestRecordAllRecordsEachEntryAsRecordDoesInOrder(t *testing.T) {
+	t.Parallel()
+
+	o, _, ctx := open(t, "s1", "s2")
+	record(ctx, t, o, "s1", "M1", message("M1"))
+
+	changed, _, err := o.Watch(ctx, "s2")
+	if err != nil {
+		t.Fatalf("Watch: %v", err)
+	}
+
+	wake := changed.Changed()
+
+	differs, err := o.RecordAll(ctx,
+		Entry{SessionID: "s2", Event: state()},
+		Entry{SessionID: "s1", Key: "M1", Event: message("M1")},
+		Entry{SessionID: "s1", Key: "M1", Event: message("M2")},
+		Entry{SessionID: "s2", Event: state()},
+	)
+	if err != nil {
+		t.Fatalf("RecordAll: %v", err)
+	}
+
+	// What four Records give: the repeat keeps seq 1, the collision goes beside, and, as for a Record, an insert that
+	// hit the key still used up a seq.
+	if !slices.Equal(differs, []bool{false, false, true, false}) {
+		t.Fatalf("differs = %v, want [false false true false]", differs)
+	}
+
+	if got := seqs(ctx, t, o, "s1"); !slices.Equal(got, []uint64{1, 5}) {
+		t.Fatalf("s1 seqs = %v, want [1 5]", got)
+	}
+
+	if got := seqs(ctx, t, o, "s2"); !slices.Equal(got, []uint64{2, 6}) {
+		t.Fatalf("s2 seqs = %v, want [2 6]", got)
+	}
+
+	select {
+	case <-wake:
+	default:
+		t.Fatal("RecordAll did not wake the streams of s2")
+	}
+}
+
+func TestARecordThatCannotBeginNamesItsSession(t *testing.T) {
+	t.Parallel()
+
+	o, _, ctx := open(t, "s1")
+
+	cancelled, cancel := context.WithCancel(ctx)
+	cancel()
+
+	_, err := o.Record(cancelled, "s1", "M1", message("M1"))
+	if prefix := `record an event of session "s1": `; !errors.Is(err, context.Canceled) || !strings.HasPrefix(err.Error(), prefix) {
+		t.Fatalf("Record = %v, want context.Canceled after %s", err, prefix)
 	}
 }
 

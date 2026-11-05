@@ -1,6 +1,9 @@
 package server
 
 import (
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"slices"
 	"testing"
 
@@ -26,5 +29,31 @@ func TestTextMakesAStringAProto3FieldCanCarry(t *testing.T) {
 
 	if got := Texts([]string{"a\xff", "b"}); !slices.Equal(got, []string{"a�", "b"}) {
 		t.Fatalf("Texts = %q", got)
+	}
+}
+
+// TestReadableJIDIsWhatTheClientParses: one table, testdata/jids.json, which the client's own test reads too
+// (JidParseTests.TryParse_AgreesWithTheSidecarsTable, over Jid.TryParse): the forms whatsmeow's JID.String gives, the
+// ones its ParseJID keeps when it fails (#122), and the client's own rules, quirks included.
+func TestReadableJIDIsWhatTheClientParses(t *testing.T) {
+	t.Parallel()
+
+	raw, err := os.ReadFile(filepath.Join("testdata", "jids.json"))
+	if err != nil {
+		t.Fatalf("read the table: %v", err)
+	}
+
+	var table []struct {
+		JID      string `json:"jid"`
+		Readable bool   `json:"readable"`
+	}
+	if err := json.Unmarshal(raw, &table); err != nil || len(table) == 0 {
+		t.Fatalf("parse the table: %d rows, %v", len(table), err)
+	}
+
+	for _, row := range table {
+		if got := ReadableJID(row.JID); got != row.Readable {
+			t.Errorf("ReadableJID(%q) = %v, want %v", row.JID, got, row.Readable)
+		}
 	}
 }

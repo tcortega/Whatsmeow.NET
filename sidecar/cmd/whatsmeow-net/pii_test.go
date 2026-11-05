@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -48,7 +49,6 @@ func (b *lockedBuffer) String() string {
 // lines, so a bump that moves them is read again (#48). It does not run in parallel: whatsmeow must leave no goroutine.
 func TestWhatsmeowsOwnLinesAndErrorsCarryNoNumber(t *testing.T) {
 	ctx := t.Context()
-	goroutines := runtime.NumGoroutine()
 
 	var stderr lockedBuffer
 
@@ -60,6 +60,25 @@ func TestWhatsmeowsOwnLinesAndErrorsCarryNoNumber(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open the store: %v", err)
 	}
+
+	t.Cleanup(func() {
+		cleanupCtx, cancel := context.WithTimeout(context.Background(), store.BusyTimeout+time.Second)
+		defer cancel()
+
+		waitForWhatsmeow(cleanupCtx, t)
+
+		if stats := db.DB.Stats(); stats.InUse != 0 {
+			t.Errorf("connections in use before close: %d", stats.InUse)
+		}
+
+		if err := db.Close(); err != nil {
+			t.Errorf("close the store: %v", err)
+		}
+
+		if stats := db.DB.Stats(); stats.OpenConnections != 0 {
+			t.Errorf("connections still open after close: %d", stats.OpenConnections)
+		}
+	})
 
 	device := db.Devices.NewDevice()
 	device.ID = &types.JID{User: "5511900000099", Device: 7, Server: types.DefaultUserServer}
@@ -120,18 +139,35 @@ func TestWhatsmeowsOwnLinesAndErrorsCarryNoNumber(t *testing.T) {
 	if t.Failed() {
 		t.Logf("stderr:\n%s", got)
 	}
+}
 
-	if err := db.Close(); err != nil {
-		t.Fatalf("close the store: %v", err)
-	}
+// The token prune has no join API at the pin. This nonparallel test waits for whatsmeow's frames, not unrelated
+// goroutines that may end while its prune still owns a connection (tctoken.go:140-158, #129).
+func waitForWhatsmeow(ctx context.Context, t *testing.T) {
+	t.Helper()
 
-	// whatsmeow started nothing that outlives the test.
-	deadline := time.Now().Add(5 * time.Second)
-	for runtime.NumGoroutine() > goroutines && time.Now().Before(deadline) {
-		time.Sleep(10 * time.Millisecond)
-	}
+	ticker := time.NewTicker(time.Millisecond)
+	defer ticker.Stop()
 
-	if now := runtime.NumGoroutine(); now > goroutines {
-		t.Errorf("%d goroutines after the test, %d before", now, goroutines)
+	stacks := make([]byte, 16*1024)
+	for {
+		n := runtime.Stack(stacks, true)
+		if n == len(stacks) {
+			stacks = make([]byte, len(stacks)*2)
+
+			continue
+		}
+
+		if !bytes.Contains(stacks[:n], []byte("\ngo.mau.fi/whatsmeow.")) {
+			return
+		}
+
+		select {
+		case <-ctx.Done():
+			t.Errorf("whatsmeow did not finish before store cleanup: %v\n%s", ctx.Err(), stacks[:n])
+
+			return
+		case <-ticker.C:
+		}
 	}
 }

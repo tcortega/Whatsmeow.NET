@@ -40,6 +40,9 @@ type group struct {
 	addMode types.GroupMemberAddMode
 	// timer is the disappearing messages timer in seconds; zero is off.
 	timer uint32
+	// removed is who an admin removed and has not been added back: WhatsApp refuses them the group's info from its link
+	// with 401 [observed: #36 live run 2026-11-04, ARCHITECTURE §14]. Whether it refuses them a join too is [unknown].
+	removed []types.JID
 }
 
 // refusal is how WhatsApp refuses to add one user (RefuseGroupAdd).
@@ -163,7 +166,8 @@ func (w *WhatsApp) find(jid, self types.JID) (*group, int, error) {
 	return g, i, nil
 }
 
-// admin fails a member's call that only an admin may make with 403 [inferred].
+// admin fails a member's call to change the participants with 403 [observed: #36 live run 2026-11-04, a member
+// promoting itself], and is the check for every other call only an admin may make.
 func admin(g *group, i int) error {
 	if !g.members[i].admin && !g.members[i].super {
 		return whatsmeow.ErrIQForbidden
@@ -184,11 +188,18 @@ func (w *WhatsApp) change(g *group, self types.JID) *events.GroupInfo {
 	return evt
 }
 
-// joined is the create notification of g that a member added by self, or joining, gets (group.go:860-884). w.mu is
-// held.
+// joined is the create notification of g that a member added by self, or joining, gets (group.go:860-884). One for
+// a join by link names no sender, as live: the peer's GroupJoined had none [observed: #36 live run of 2026-11-04 at
+// dfa2e57], and whatsmeow sets one only from the notification's participant (group.go:872), which the mapping passes
+// on (groups/event.go). w.mu is held.
 func (w *WhatsApp) joined(g *group, self types.JID, reason string) *events.JoinedGroup {
+	evt := &events.JoinedGroup{Reason: reason, GroupInfo: *w.info(g)}
+	if reason == "invite" {
+		return evt
+	}
+
 	sender := w.participant(g, member{id: self})
-	evt := &events.JoinedGroup{Reason: reason, Sender: &sender.JID, GroupInfo: *w.info(g)}
+	evt.Sender = &sender.JID
 
 	if sender.JID.Server == types.HiddenUserServer && !sender.PhoneNumber.IsEmpty() {
 		evt.SenderPN = &sender.PhoneNumber
@@ -388,11 +399,13 @@ func (c *Client) UpdateGroupParticipants(_ context.Context, jid types.JID, chang
 			result = w.refused(g, id, refuse)
 		case action == whatsmeow.ParticipantChangeAdd:
 			g.members = append(g.members, member{id: id})
+			g.removed = slices.DeleteFunc(g.removed, func(r types.JID) bool { return r == id })
 			added = append(added, id)
 		case at < 0:
 			result.Error = 404
 		case action == whatsmeow.ParticipantChangeRemove:
 			g.members = slices.Delete(g.members, at, at+1)
+			g.removed = append(g.removed, id)
 		default:
 			g.members[at].admin = action == whatsmeow.ParticipantChangePromote
 		}
@@ -442,9 +455,11 @@ func (c *Client) changeInfo(jid types.JID, adminOnly bool, apply func(*group, *e
 
 	self := c.self()
 
+	// A member's change of the group's info is 401, not the participants' 403 [observed: #36 live run 2026-11-04, the
+	// name, the member add mode and the timer of a locked group; the topic, announce and locked [inferred] the same].
 	g, i, err := w.find(jid, self)
-	if err == nil && (adminOnly || g.locked) {
-		err = admin(g, i)
+	if err == nil && (adminOnly || g.locked) && admin(g, i) != nil {
+		err = whatsmeow.ErrIQNotAuthorized
 	}
 
 	if err != nil {
@@ -568,9 +583,9 @@ func (c *Client) GetGroupInviteLink(_ context.Context, jid types.JID, reset bool
 	return whatsmeow.InviteLinkPrefix + g.code, nil
 }
 
-// JoinGroupWithLink joins the group whose link has the code: a reset code is 410 and an unknown one 406, as whatsmeow
-// names them (group.go:516-519). The session gets a create notification with reason invite, every other member a
-// change; a member joins nothing again [inferred].
+// JoinGroupWithLink joins the group whose link has the code: a reset code is 410, as whatsmeow names it
+// (group.go:516-519), and an unknown one 400, as WhatsApp answers it (byCode). The session gets a create notification
+// with reason invite, every other member a change; a member joins nothing again [inferred].
 func (c *Client) JoinGroupWithLink(_ context.Context, code string) (types.JID, error) {
 	if err := c.groupQuery(); err != nil {
 		return types.EmptyJID, err
@@ -593,9 +608,13 @@ func (c *Client) JoinGroupWithLink(_ context.Context, code string) (types.JID, e
 	if !slices.ContainsFunc(g.members, func(m member) bool { return m.id == self }) {
 		others := ids(g)
 		g.members = append(g.members, member{id: self})
+		g.removed = slices.DeleteFunc(g.removed, func(r types.JID) bool { return r == self })
 
+		// The members' notification names the joiner and no sender, as live [observed: #36 live run of 2026-11-04 at
+		// 1519d67].
 		evt := w.change(g, self)
 		evt.Join, evt.JoinReason = []types.JID{*evt.Sender}, "invite"
+		evt.Sender, evt.SenderPN = nil, nil
 		notices = append(w.noticesTo(others, evt), w.noticesTo([]types.JID{self}, w.joined(g, self, "invite"))...)
 	}
 
@@ -607,7 +626,9 @@ func (c *Client) JoinGroupWithLink(_ context.Context, code string) (types.JID, e
 }
 
 // GetGroupInfoFromLink answers the group of a link's code, with every member [inferred], and joins nothing; its codes
-// are the join's (group.go:497-502).
+// are the join's (group.go:497-502), and one an admin removed is refused with 401 (group.removed). It has no member add
+// mode, as live, where whatsmeow parsed none from the answer (group.go:504-508, 785) [observed: #36 live runs of
+// 2026-11-04 at dfa2e57 and 1519d67].
 func (c *Client) GetGroupInfoFromLink(_ context.Context, code string) (*types.GroupInfo, error) {
 	if err := c.groupQuery(); err != nil {
 		return nil, err
@@ -622,11 +643,20 @@ func (c *Client) GetGroupInfoFromLink(_ context.Context, code string) (*types.Gr
 		return nil, err
 	}
 
-	return w.info(g), nil
+	if slices.Contains(g.removed, c.self()) {
+		return nil, whatsmeow.ErrIQNotAuthorized
+	}
+
+	info := w.info(g)
+	info.MemberAddMode = ""
+
+	return info, nil
 }
 
 // byCode is the group whose invite link has the code, taken from a link as whatsmeow strips it (group.go:494, 516): a
-// reset code is 410 and an unknown one 406. w.mu is held.
+// reset code is 410, and any other it does not know, well formed or malformed, 400 `bad-request`, on a join and a
+// preview alike, which whatsmeow maps to nothing and passes on as it came [observed: #36 and #120 live runs 2026-11-04,
+// live sidecar.log]. w.mu is held.
 func (w *WhatsApp) byCode(code string) (*group, error) {
 	code = strings.TrimPrefix(code, whatsmeow.InviteLinkPrefix)
 
@@ -640,7 +670,7 @@ func (w *WhatsApp) byCode(code string) (*group, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("%w: %w", whatsmeow.ErrInviteLinkInvalid, whatsmeow.ErrIQNotAcceptable)
+	return nil, &whatsmeow.IQError{Code: 400, Text: "bad-request"}
 }
 
 // LeaveGroup leaves the group; every member, the session included, is notified [inferred].

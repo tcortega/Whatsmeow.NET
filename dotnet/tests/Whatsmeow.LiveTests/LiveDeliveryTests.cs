@@ -178,7 +178,7 @@ public sealed class LiveDeliveryTests(LiveSidecar live, LivePeer peer)
 	/// #91). The test logs what the reset costs: when the sidecar reset, how long the session was not logged in, when it
 	/// was caught up again, and when the message came.
 	/// </summary>
-	[LiveFact(NeedsPeer = true, Timeout = 600_000)]
+	[LiveFact(NeedsPeer = true, Timeout = 600_000 + LiveFactAttribute.CatchUpTimeout)]
 	public async Task Live_AWithheldAnswer_TheSidecarResetsTheConnection_TheMessageComesAgainWithinAMinute()
 	{
 		var ct = TestContext.Current.CancellationToken;
@@ -229,7 +229,7 @@ public sealed class LiveDeliveryTests(LiveSidecar live, LivePeer peer)
 	/// A kill test's timeout, well above the sum of its bounds (a peer connect and the live one, the hold or the host, the
 	/// restart, the arrivals and the grace), so a lost message fails with its own message, not the test's timeout.
 	/// </summary>
-	private const int KillTimeout = 1_800_000;
+	private const int KillTimeout = 1_800_000 + LiveFactAttribute.CatchUpTimeout;
 
 	/// <summary>When the <paramref name="index"/>th arrival came, in seconds, or "none".</summary>
 	private static string At(IReadOnlyList<(TimeSpan At, MessageReceived Message)> arrivals, int index) =>

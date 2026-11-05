@@ -5,6 +5,7 @@ package main
 import (
 	"github.com/rs/zerolog"
 
+	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/outbox"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/server"
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/session"
 )
@@ -13,4 +14,6 @@ import (
 const fakeBuild = false
 
 // serveFake is never called in a release build: run refuses --fake-whatsapp first.
-func serveFake(*server.Server, zerolog.Logger, string) (session.NewClient, failing) { return nil, nil }
+func serveFake(*server.Server, zerolog.Logger, string, *outbox.Outbox) (session.NewClient, failing) {
+	return nil, nil
+}

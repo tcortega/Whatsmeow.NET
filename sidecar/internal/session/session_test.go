@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"net"
 	"path/filepath"
 	"strings"
@@ -616,6 +617,18 @@ func TestEverySignalMapsToExactlyOneState(t *testing.T) {
 		if !ok || !proto.Equal(got, c.want) {
 			t.Errorf("%s: = %v, %v; want %v", c.name, got, ok, c.want)
 		}
+	}
+}
+
+// TestATemporaryBansEndAlwaysFitsTheClientsTime: the client reads the end with Timestamp.ToDateTimeOffset, which throws
+// past year 9999 (SessionMapping.ToState). whatsmeow's Expire is a time.Duration of seconds (connectionevents.go:135-138),
+// so at most about 292 years: the end the session records always fits (#122).
+func TestATemporaryBansEndAlwaysFitsTheClientsTime(t *testing.T) {
+	t.Parallel()
+
+	got, ok := next(connecting(), &events.TemporaryBan{Code: events.TempBanBlockedByUsers, Expire: math.MaxInt64}, time.Now())
+	if end := got.GetTempBanned().GetExpireTime().AsTime(); !ok || end.Year() > 9999 {
+		t.Fatalf("next = %v, %v; want a ban whose end is before year 10000", got, ok)
 	}
 }
 

@@ -42,3 +42,4 @@ A Go file behind a build tag is invisible to build, test, lint and the cgo check
 - The fake's server-side state (its log, its clients) lives in the sidecar process and dies with it, so after a kill it cannot redeliver what was never answered, as WhatsApp would [inferred]. #8's kill tests must settle how the fake models that.
 - Importing whatsmeow's root package for the client's types adds modules to `sidecar/go.mod` that the release build does not link yet; `tools/check-licenses` audits only what the release build links.
 - Two internal seams in `Whatsmeow.Client` exist for the integration tests: `StartFakeWhatsAppAsync` and `CallInvoker`.
+- One control writes past the fake WhatsApp: `RecordEvent` records an event, given as protojson, in the sidecar's outbox as it is, so a test streams the client an event the sidecar never records, such as one it cannot read (#122, [ADR 0057](0057-an-event-the-sidecar-does-not-record-is-answered.md)).

@@ -39,11 +39,7 @@ public sealed class ChatStateTests(FakeSidecar fixture)
 		Assert.Equal(new GetPhoneChatStateResponse { Muted = true, MuteUntil = Timestamp.FromDateTimeOffset(s_until) }, await PhoneAsync(session, s_chat, ct));
 
 		// The write comes back as a change, as whatsmeow's sync after it brings it (appstate.go:627-635).
-		var echo = await changes.NextAsync(ct);
-		Assert.Equal(
-			(s_chat, false, new ChatStateChange.Mute { IsMuted = true, Until = s_until }),
-			(echo.Chat, echo.FromFullSync, echo.Change)
-		);
+		ChatStateChecks.ValidateMuteEcho(await changes.NextAsync(ct), s_chat, s_until);
 
 		await client.MuteChatAsync(s_chat, cancellationToken: ct);
 		Assert.Equal(new GetPhoneChatStateResponse { Muted = true }, await PhoneAsync(session, s_chat, ct));
@@ -322,6 +318,47 @@ public sealed class ChatStateTests(FakeSidecar fixture)
 
 		_ = await Assert.ThrowsAsync<NotConnectedException>(() => client.PinChatAsync(s_chat, ct));
 		Assert.Equal(new GetPhoneChatStateResponse(), await PhoneAsync(session, s_chat, ct));
+	}
+
+	/// <summary>
+	/// #122: whatsmeow ignores the error when it parses a mutation's chat, so an index without one gives the empty JID,
+	/// and takes a star's message id unchecked (appstate.go:257-261, 331). The client cannot read either, so the
+	/// sidecar does not record them, and the next change still arrives.
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task APhoneChangeOfNoChatOrAStarOfNoMessage_IsNeverUnreadable()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "chats-unreadable";
+		var client = await SessionSetup.ConnectedAsync(fixture, Session, ct);
+		using var changes = new Received<ChatStateChanged>(client);
+		var at = new DateTimeOffset(2026, 11, 2, 10, 0, 0, 123, TimeSpan.Zero);
+
+		foreach (var (chat, change) in new[]
+		{
+			("", new PhoneChatChange { Pinned = true }),
+			(s_chat.ToString(), new PhoneChatChange { Star = new PhoneChatChange.Types.Star { MessageId = "", Starred = true } }),
+			(s_chat.ToString(), new PhoneChatChange { Archived = true }),
+		})
+		{
+			_ = await fixture.Fake.SyncChatStateAsync(
+				new SyncChatStateRequest { SessionId = Session, Chat = chat, ChangeTime = Timestamp.FromDateTimeOffset(at), Change = change },
+				cancellationToken: ct
+			);
+		}
+
+		Assert.Equal(
+			new ChatStateChanged
+			{
+				SessionId = SessionId.From(Session),
+				Chat = s_chat,
+				Timestamp = at,
+				FromFullSync = false,
+				Change = new ChatStateChange.Archive { IsArchived = true },
+			},
+			await changes.NextAsync(ct)
+		);
+		Assert.DoesNotContain(fixture.Logs.Named("EventUnreadable"), r => r.Message.Contains(Session, StringComparison.Ordinal));
 	}
 
 	/// <summary>The session's first <paramref name="count"/> entries of what it sent, without their log indexes.</summary>

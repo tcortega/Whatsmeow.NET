@@ -7,6 +7,7 @@ using Grpc.Core;
 using Whatsmeow.Events;
 using Whatsmeow.IntegrationTests.Events;
 using Whatsmeow.IntegrationTests.Fake;
+using Whatsmeow.IntegrationTests.Media;
 using Whatsmeow.IntegrationTests.Sessions;
 using Whatsmeow.IntegrationTests.Support;
 using Whatsmeow.Messaging;
@@ -293,11 +294,7 @@ public sealed class MediaMessageTests(FakeSidecar fixture)
 
 		// Each MediaRef downloads what was uploaded, lazily, from the message alone.
 		foreach (var media in new[] { image, video, voice, document })
-		{
-			using var downloaded = new MemoryStream();
-			await client.DownloadMediaAsync(media, downloaded, ct);
-			Assert.Equal(contents[media.Type], downloaded.ToArray());
-		}
+			await MediaChecks.ValidateDownloadsAsync(client, media, contents[media.Type], ct);
 	}
 
 	[Fact(Timeout = Timeout)]
@@ -518,15 +515,7 @@ public sealed class MediaMessageTests(FakeSidecar fixture)
 	private static MessageSource Source => new() { Chat = s_peer, Sender = s_peer, SenderAlt = null, RecipientAlt = null, IsFromMe = false };
 
 	private static MessageReceived Received(string session, string id, MessageContent content) =>
-		new()
-		{
-			SessionId = SessionId.From(session),
-			Id = MessageId.From(id),
-			Source = Source,
-			PushName = null,
-			Timestamp = Deliveries.At,
-			Content = content,
-		};
+		MessageChecks.Received(SessionId.From(session), MessageId.From(id), Source, pushName: null, Deliveries.At, content);
 
 	/// <summary>Connects a linked session whose handlers are registered, so its events flow to them.</summary>
 	private static async Task ConnectAsync(IWhatsAppClient client, CancellationToken ct)

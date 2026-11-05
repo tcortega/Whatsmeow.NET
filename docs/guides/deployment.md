@@ -45,7 +45,11 @@ On Windows a Job Object kills the sidecar when your process dies (§8.5).
 ## Capacity
 
 One sidecar holds many sessions in one database.
-The only measured figure is two sessions per sidecar against the fake WhatsApp, in the EchoBot sample's CI test; a run with two real phones is not measured yet.
+The EchoBot sample exercises two sessions against the fake WhatsApp [observed: `Samples/EchoBotTests.cs`].
+Startup was measured separately with 1, 2, 10, 100 and 1,000 stored, paired synthetic sessions on linux-x64, osx-arm64 and win-x64 (§14, #126).
+The release sidecar's median launch through validated ready rose from 11 to 319 ms on Linux, 47 to 446 ms on macOS and 97 to 781 ms on Windows between 1 and 1,000 sessions [observed: [raw measurements](https://github.com/tcortega/Whatsmeow.NET/issues/126#issuecomment-6665964974), five launches per count].
+At 1,000, the separate public `StartAsync` measurement, including its first `GetInfo`, had maxima of 334, 512 and 829 ms respectively (rounded) [observed: the same raw measurements].
+This covers restoring paired synthetic stores and constructing real clients, with no WhatsApp connection, sync or message traffic; it does not establish a supported connected-session count (§14).
 How many sessions one process handles against real WhatsApp, and the memory each takes, are [unknown].
 History holds at most one blob in memory at a time while it reads it ([History](history.md)).
 
@@ -70,4 +74,7 @@ Check that your RID is one of the six, or set `SidecarPath`.
 Another `whatsmeow-net` holds it: one database has one sidecar at a time, and a second one fails before it is ready.
 
 **The start times out.**
-Raise `StartupTimeout`; the exception carries the end of the sidecar's stderr.
+`StartupTimeout` defaults to 30 seconds and covers the ready line and first `GetInfo` [observed: `WhatsmeowSidecarOptions.StartupTimeout`, `WhatsmeowSidecar.LaunchAsync`].
+That was over 36× the slowest public start with 1,000 paired synthetic sessions on the three measured runners (§14, #126); the same margin on your database and host is [unknown].
+Inspect the exception's stderr tail and measure startup on your deployment before raising the timeout.
+A crash restart's reconnect to WhatsApp is a separate phase after `GetInfo`, outside this timeout [observed: `WhatsmeowSidecar.LaunchAsync`; §14 restarts on Windows].

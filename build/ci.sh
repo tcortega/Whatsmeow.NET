@@ -359,8 +359,8 @@ job_dotnet() {
 		{
 			check "no shipped assembly contains the fake WhatsApp control (ADR 0019)" shipped_have_no_fake
 			# Never the live tests, even with their variables exported in the shell that runs this.
-			rm -f dotnet/artifacts/TestResults/media-transfers.txt
-			check "dotnet test" env -u WHATSMEOW_LIVE_DATABASE -u WHATSMEOW_LIVE_PHONE_NUMBER -u WHATSMEOW_LIVE_PEER_DATABASE -u WHATSMEOW_LIVE_OWNER dotnet test --solution dotnet/Whatsmeow.slnx -c Release --no-build
+			rm -f dotnet/artifacts/TestResults/media-transfers.txt dotnet/artifacts/TestResults/fake-sidecar.log
+			check "dotnet test" env -u WHATSMEOW_LIVE_DATABASE -u WHATSMEOW_LIVE_PHONE_NUMBER -u WHATSMEOW_LIVE_PEER_DATABASE -u WHATSMEOW_LIVE_OWNER -u WHATSMEOW_LIVE_MEDIA_REFS -u WHATSMEOW_LIVE_MEDIA_SIZES dotnet test --solution dotnet/Whatsmeow.slnx -c Release --no-build
 			# The media transfer test's throughput and memory on each transport, for ARCHITECTURE §8.6 (ADR 0026).
 			if [ -f dotnet/artifacts/TestResults/media-transfers.txt ]; then
 				cat dotnet/artifacts/TestResults/media-transfers.txt
@@ -378,6 +378,7 @@ job_external() {
 	check "noexec mount for the copy fallback test" noexec_mount
 	check "dotnet restore (locked)" dotnet restore dotnet/Whatsmeow.slnx --locked-mode &&
 		check "dotnet build" dotnet build dotnet/tests/Whatsmeow.IntegrationTests -c Release --no-restore -p:ContinuousIntegrationBuild=true &&
+		rm -f dotnet/artifacts/TestResults/fake-sidecar.log &&
 		check "dotnet test, External mode" env -u WHATSMEOW_LIVE_DATABASE -u WHATSMEOW_LIVE_PHONE_NUMBER -u WHATSMEOW_LIVE_PEER_DATABASE -u WHATSMEOW_LIVE_OWNER \
 			WHATSMEOW_NET_TEST_SIDECAR=external dotnet test --project dotnet/tests/Whatsmeow.IntegrationTests -c Release --no-build
 }
@@ -568,8 +569,10 @@ EOF
 }
 
 # Never with WHATSMEOW_NET_SIDECAR_PATH: an exported override would make every consumer path pass without the packages.
+# Never on the shared compiler server either: a long-lived one failed Vogen's generator with CS8785 (Vogen.SharedTypes not
+# found) on a later run's throwaway packages folder, 4 local runs on osx-arm64, none with it off [observed: #122 log].
 in_consumer() {
-	(unset WHATSMEOW_NET_SIDECAR_PATH && cd "$work" && NUGET_PACKAGES="$(native_path "$packages")" "$@")
+	(unset WHATSMEOW_NET_SIDECAR_PATH && cd "$work" && NUGET_PACKAGES="$(native_path "$packages")" UseSharedCompilation=false "$@")
 }
 
 # The native package of a RID's OS (ADR 0023). A packages folder names it in lowercase.
@@ -1193,7 +1196,8 @@ aot_native_host() {
 aot_publish_run() {
 	local exe="" out="$work/src/out"
 	case "$aot_rid" in linux-musl-*) aot_musl; return ;; win-*) exe=.exe ;; esac
-	if ! (unset WHATSMEOW_NET_SIDECAR_PATH && cd "$work/src" && NUGET_PACKAGES="$(native_path "$packages")" \
+	# Not on the shared compiler server, as in_consumer.
+	if ! (unset WHATSMEOW_NET_SIDECAR_PATH && cd "$work/src" && NUGET_PACKAGES="$(native_path "$packages")" UseSharedCompilation=false \
 		dotnet publish AotSmoke -c Release -warnaserror -r "$aot_rid" -o "$(native_path "$out")"); then
 		annotate error "aot $aot_rid" "the Native AOT publish from the feed failed, or had a trim or AOT warning"
 		return 1

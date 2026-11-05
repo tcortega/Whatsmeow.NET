@@ -135,10 +135,10 @@ public sealed class EventTests(FakeSidecar fixture)
 		using var received = new Received<MessageReceived>(client);
 		await client.ConnectAsync(ct);
 
-		// Unusable: a message must say where it is. Skipped and acked, never the end of the stream.
-		var nowhere = Deliveries.Message("events-no-chat", "M1");
-		nowhere.Chat = "";
-		_ = await fixture.Fake.DeliverMessageAsync(nowhere, cancellationToken: ct);
+		// Unusable: a message must say where it is. Skipped and acked, never the end of the stream. No slice records one
+		// (#122), so the fake records it as it is (RecordEvent).
+		const string Nowhere = """{"message": {"info": {"id": "M1", "source": {"sender": "5511999999999@s.whatsapp.net"}, "messageTime": "2023-11-14T22:13:20Z"}}}""";
+		_ = await fixture.Fake.RecordEventAsync(new RecordEventRequest { SessionId = "events-no-chat", EventJson = Nowhere }, cancellationToken: ct);
 		await Deliveries.DeliverAsync(fixture.Fake, "events-no-chat", ct, "M2");
 
 		Assert.Equal(Deliveries.Received("events-no-chat", "M2"), await received.NextAsync(ct));
@@ -148,6 +148,41 @@ public sealed class EventTests(FakeSidecar fixture)
 		var error = Assert.IsType<WhatsmeowException>(unreadable.Exception);
 		Assert.Equal(WhatsmeowErrorCode.Internal, error.ErrorCode);
 		Assert.Contains("MessageSource.chat", error.Message, StringComparison.Ordinal);
+	}
+
+	/// <summary>
+	/// #122: whatsmeow's ParseWebMessage, for a placeholder resend, accepts a message key without a chat or an id
+	/// (client.go:1027-1039; message.go:874-880). The client cannot read such a message, so the sidecar does not record
+	/// it, and still answers it.
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task AMessageDeliveredWithoutAChatOrAnId_IsNotRecordedAndIsStillAnswered()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "events-not-recorded";
+		var client = await SessionSetup.LinkedAsync(fixture, Session, ct);
+		using var received = new Received<MessageReceived>(client);
+		await client.ConnectAsync(ct);
+
+		var nowhere = Deliveries.Message(Session, "M1");
+		nowhere.Chat = "";
+		var noId = Deliveries.Message(Session, "");
+		_ = await fixture.Fake.DeliverMessageAsync(nowhere, cancellationToken: ct);
+		_ = await fixture.Fake.DeliverMessageAsync(noId, cancellationToken: ct);
+		await Deliveries.DeliverAsync(fixture.Fake, Session, ct, "M2");
+
+		Assert.Equal(Deliveries.Received(Session, "M2"), await received.NextAsync(ct));
+		var answered = new List<string>();
+		ulong after = 0;
+		for (var i = 0; i < 3; i++)
+		{
+			var sent = (await fixture.Fake.WaitForSentAsync(new WaitForSentRequest { SessionId = Session, After = after }, cancellationToken: ct)).Sent;
+			after = sent.Index;
+			answered.Add(sent.Receipt.Id);
+		}
+
+		Assert.Equal(["M1", "", "M2"], answered);
+		Assert.DoesNotContain(fixture.Logs.Named("EventUnreadable"), r => r.Message.Contains(Session, StringComparison.Ordinal));
 	}
 
 	[Fact(Timeout = Timeout)]

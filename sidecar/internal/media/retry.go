@@ -128,8 +128,15 @@ func Mapper(db *sql.DB, w *store.Writer, log zerolog.Logger) func(sessionID stri
 			return "", nil, false
 		}
 
+		// whatsmeow requires the answer's chat (mediaretry.go:152-157); one the client cannot read would cost the answer at
+		// the Events handler's gate (ADR 0057), so it takes the request's, which the client's own request named (#122).
+		answerChat := server.Text(chat)
+		if !server.ReadableJID(answerChat) {
+			answerChat = server.Text(requested)
+		}
+
 		event := &whatsmeowv1.MediaRetryEvent{
-			MessageId: server.Text(retry.MessageID), Chat: server.Text(chat), Sender: server.Text(retry.SenderID.String()), IsFromMe: retry.FromMe, RetryTime: timestamppb.New(retry.Timestamp),
+			MessageId: server.Text(retry.MessageID), Chat: answerChat, Sender: server.Text(retry.SenderID.String()), IsFromMe: retry.FromMe, RetryTime: timestamppb.New(retry.Timestamp),
 		}
 
 		if answered(log, sessionID, retry, media, event) {
@@ -156,6 +163,14 @@ func Mapper(db *sql.DB, w *store.Writer, log zerolog.Logger) func(sessionID stri
 func answered(log zerolog.Logger, sessionID string, retry *events.MediaRetry, media *whatsmeowv1.MediaRef, event *whatsmeowv1.MediaRetryEvent) (final bool) {
 	failure := func(f whatsmeowv1.MediaRetryFailure) {
 		event.Result = &whatsmeowv1.MediaRetryEvent_Failure{Failure: f}
+	}
+
+	// Plain errors have no encrypted bytes (mediaretry.go:125-129); GCM panics on an IV of another length.
+	if (retry.Error == nil || retry.Ciphertext != nil) && (len(retry.IV) != 12 || len(retry.Ciphertext) == 0) {
+		log.Warn().Str("session_id", sessionID).Msg("a media retry answer has an invalid IV or no ciphertext")
+		failure(whatsmeowv1.MediaRetryFailure_MEDIA_RETRY_FAILURE_UNSPECIFIED)
+
+		return false
 	}
 
 	notif, err := whatsmeow.DecryptMediaRetryNotification(retry, media.GetMediaKey())

@@ -11,7 +11,7 @@ public sealed record GroupJoined : WhatsAppEvent
 	/// <summary>The group as WhatsApp sent it.</summary>
 	public required GroupInfo Group { get; init; }
 
-	/// <summary>Who added the session; null when WhatsApp did not say.</summary>
+	/// <summary>Who added the session; null when WhatsApp did not say, as for a join by invite link.</summary>
 	public required Jid? Sender { get; init; }
 
 	/// <summary>The sender's phone number when <see cref="Sender"/> is a LID and WhatsApp sent it.</summary>

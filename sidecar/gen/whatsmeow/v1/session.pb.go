@@ -694,6 +694,154 @@ func (*ConnectResponse) Descriptor() ([]byte, []int) {
 	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{9}
 }
 
+// ConnectSessionsRequest names the sessions.
+type ConnectSessionsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The session ids, each at most once.
+	SessionIds    []string `protobuf:"bytes,1,rep,name=session_ids,json=sessionIds,proto3" json:"session_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConnectSessionsRequest) Reset() {
+	*x = ConnectSessionsRequest{}
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConnectSessionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConnectSessionsRequest) ProtoMessage() {}
+
+func (x *ConnectSessionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConnectSessionsRequest.ProtoReflect.Descriptor instead.
+func (*ConnectSessionsRequest) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ConnectSessionsRequest) GetSessionIds() []string {
+	if x != nil {
+		return x.SessionIds
+	}
+	return nil
+}
+
+// ConnectSessionsResponse is the result of each session, in the request's order.
+type ConnectSessionsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// One per requested session id.
+	Results       []*ConnectSessionResult `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConnectSessionsResponse) Reset() {
+	*x = ConnectSessionsResponse{}
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConnectSessionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConnectSessionsResponse) ProtoMessage() {}
+
+func (x *ConnectSessionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConnectSessionsResponse.ProtoReflect.Descriptor instead.
+func (*ConnectSessionsResponse) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ConnectSessionsResponse) GetResults() []*ConnectSessionResult {
+	if x != nil {
+		return x.Results
+	}
+	return nil
+}
+
+// ConnectSessionResult is how one session's connect ended.
+type ConnectSessionResult struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The session id.
+	SessionId string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// ERROR_REASON_UNSPECIFIED when the session connected, or was connecting or connected already; otherwise the reason
+	// Connect would have failed with. The failure's message is in the sidecar's log, not here (ADR 0053).
+	Reason        ErrorReason `protobuf:"varint,2,opt,name=reason,proto3,enum=whatsmeow.v1.ErrorReason" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConnectSessionResult) Reset() {
+	*x = ConnectSessionResult{}
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConnectSessionResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConnectSessionResult) ProtoMessage() {}
+
+func (x *ConnectSessionResult) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConnectSessionResult.ProtoReflect.Descriptor instead.
+func (*ConnectSessionResult) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ConnectSessionResult) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *ConnectSessionResult) GetReason() ErrorReason {
+	if x != nil {
+		return x.Reason
+	}
+	return ErrorReason_ERROR_REASON_UNSPECIFIED
+}
+
 // DisconnectRequest names the session.
 type DisconnectRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -705,7 +853,7 @@ type DisconnectRequest struct {
 
 func (x *DisconnectRequest) Reset() {
 	*x = DisconnectRequest{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[10]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -717,7 +865,7 @@ func (x *DisconnectRequest) String() string {
 func (*DisconnectRequest) ProtoMessage() {}
 
 func (x *DisconnectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[10]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -730,7 +878,7 @@ func (x *DisconnectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisconnectRequest.ProtoReflect.Descriptor instead.
 func (*DisconnectRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{10}
+	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *DisconnectRequest) GetSessionId() string {
@@ -749,7 +897,7 @@ type DisconnectResponse struct {
 
 func (x *DisconnectResponse) Reset() {
 	*x = DisconnectResponse{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[11]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -761,7 +909,7 @@ func (x *DisconnectResponse) String() string {
 func (*DisconnectResponse) ProtoMessage() {}
 
 func (x *DisconnectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[11]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -774,7 +922,7 @@ func (x *DisconnectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisconnectResponse.ProtoReflect.Descriptor instead.
 func (*DisconnectResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{11}
+	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{14}
 }
 
 // LogoutRequest names the session.
@@ -788,7 +936,7 @@ type LogoutRequest struct {
 
 func (x *LogoutRequest) Reset() {
 	*x = LogoutRequest{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[12]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -800,7 +948,7 @@ func (x *LogoutRequest) String() string {
 func (*LogoutRequest) ProtoMessage() {}
 
 func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[12]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -813,7 +961,7 @@ func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogoutRequest.ProtoReflect.Descriptor instead.
 func (*LogoutRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{12}
+	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *LogoutRequest) GetSessionId() string {
@@ -832,7 +980,7 @@ type LogoutResponse struct {
 
 func (x *LogoutResponse) Reset() {
 	*x = LogoutResponse{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[13]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -844,7 +992,7 @@ func (x *LogoutResponse) String() string {
 func (*LogoutResponse) ProtoMessage() {}
 
 func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[13]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -857,7 +1005,7 @@ func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogoutResponse.ProtoReflect.Descriptor instead.
 func (*LogoutResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{13}
+	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{16}
 }
 
 // PairRequest starts pairing.
@@ -873,7 +1021,7 @@ type PairRequest struct {
 
 func (x *PairRequest) Reset() {
 	*x = PairRequest{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[14]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -885,7 +1033,7 @@ func (x *PairRequest) String() string {
 func (*PairRequest) ProtoMessage() {}
 
 func (x *PairRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[14]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -898,7 +1046,7 @@ func (x *PairRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PairRequest.ProtoReflect.Descriptor instead.
 func (*PairRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{14}
+	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *PairRequest) GetSessionId() string {
@@ -932,7 +1080,7 @@ type PairResponse struct {
 
 func (x *PairResponse) Reset() {
 	*x = PairResponse{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[15]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -944,7 +1092,7 @@ func (x *PairResponse) String() string {
 func (*PairResponse) ProtoMessage() {}
 
 func (x *PairResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[15]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -957,7 +1105,7 @@ func (x *PairResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PairResponse.ProtoReflect.Descriptor instead.
 func (*PairResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{15}
+	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *PairResponse) GetStep() isPairResponse_Step {
@@ -1030,7 +1178,7 @@ type WatchSessionStateRequest struct {
 
 func (x *WatchSessionStateRequest) Reset() {
 	*x = WatchSessionStateRequest{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[16]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1042,7 +1190,7 @@ func (x *WatchSessionStateRequest) String() string {
 func (*WatchSessionStateRequest) ProtoMessage() {}
 
 func (x *WatchSessionStateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[16]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1055,7 +1203,7 @@ func (x *WatchSessionStateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSessionStateRequest.ProtoReflect.Descriptor instead.
 func (*WatchSessionStateRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{16}
+	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *WatchSessionStateRequest) GetSessionId() string {
@@ -1076,7 +1224,7 @@ type WatchSessionStateResponse struct {
 
 func (x *WatchSessionStateResponse) Reset() {
 	*x = WatchSessionStateResponse{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[17]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1088,7 +1236,7 @@ func (x *WatchSessionStateResponse) String() string {
 func (*WatchSessionStateResponse) ProtoMessage() {}
 
 func (x *WatchSessionStateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[17]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1101,7 +1249,7 @@ func (x *WatchSessionStateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSessionStateResponse.ProtoReflect.Descriptor instead.
 func (*WatchSessionStateResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{17}
+	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *WatchSessionStateResponse) GetState() *SessionState {
@@ -1120,7 +1268,7 @@ type SessionState_Created struct {
 
 func (x *SessionState_Created) Reset() {
 	*x = SessionState_Created{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[18]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1132,7 +1280,7 @@ func (x *SessionState_Created) String() string {
 func (*SessionState_Created) ProtoMessage() {}
 
 func (x *SessionState_Created) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[18]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1157,7 +1305,7 @@ type SessionState_Pairing struct {
 
 func (x *SessionState_Pairing) Reset() {
 	*x = SessionState_Pairing{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[19]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1169,7 +1317,7 @@ func (x *SessionState_Pairing) String() string {
 func (*SessionState_Pairing) ProtoMessage() {}
 
 func (x *SessionState_Pairing) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[19]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1194,7 +1342,7 @@ type SessionState_Connecting struct {
 
 func (x *SessionState_Connecting) Reset() {
 	*x = SessionState_Connecting{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[20]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1206,7 +1354,7 @@ func (x *SessionState_Connecting) String() string {
 func (*SessionState_Connecting) ProtoMessage() {}
 
 func (x *SessionState_Connecting) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[20]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1231,7 +1379,7 @@ type SessionState_Connected struct {
 
 func (x *SessionState_Connected) Reset() {
 	*x = SessionState_Connected{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[21]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1243,7 +1391,7 @@ func (x *SessionState_Connected) String() string {
 func (*SessionState_Connected) ProtoMessage() {}
 
 func (x *SessionState_Connected) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[21]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1268,7 +1416,7 @@ type SessionState_CaughtUp struct {
 
 func (x *SessionState_CaughtUp) Reset() {
 	*x = SessionState_CaughtUp{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[22]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1280,7 +1428,7 @@ func (x *SessionState_CaughtUp) String() string {
 func (*SessionState_CaughtUp) ProtoMessage() {}
 
 func (x *SessionState_CaughtUp) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[22]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1306,7 +1454,7 @@ type SessionState_Reconnecting struct {
 
 func (x *SessionState_Reconnecting) Reset() {
 	*x = SessionState_Reconnecting{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[23]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1318,7 +1466,7 @@ func (x *SessionState_Reconnecting) String() string {
 func (*SessionState_Reconnecting) ProtoMessage() {}
 
 func (x *SessionState_Reconnecting) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[23]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1346,7 +1494,7 @@ type SessionState_Disconnected struct {
 
 func (x *SessionState_Disconnected) Reset() {
 	*x = SessionState_Disconnected{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[24]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1358,7 +1506,7 @@ func (x *SessionState_Disconnected) String() string {
 func (*SessionState_Disconnected) ProtoMessage() {}
 
 func (x *SessionState_Disconnected) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[24]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1385,7 +1533,7 @@ type SessionState_LoggedOut struct {
 
 func (x *SessionState_LoggedOut) Reset() {
 	*x = SessionState_LoggedOut{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[25]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1397,7 +1545,7 @@ func (x *SessionState_LoggedOut) String() string {
 func (*SessionState_LoggedOut) ProtoMessage() {}
 
 func (x *SessionState_LoggedOut) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[25]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1429,7 +1577,7 @@ type SessionState_Replaced struct {
 
 func (x *SessionState_Replaced) Reset() {
 	*x = SessionState_Replaced{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[26]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1441,7 +1589,7 @@ func (x *SessionState_Replaced) String() string {
 func (*SessionState_Replaced) ProtoMessage() {}
 
 func (x *SessionState_Replaced) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[26]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1470,7 +1618,7 @@ type SessionState_TempBanned struct {
 
 func (x *SessionState_TempBanned) Reset() {
 	*x = SessionState_TempBanned{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[27]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1482,7 +1630,7 @@ func (x *SessionState_TempBanned) String() string {
 func (*SessionState_TempBanned) ProtoMessage() {}
 
 func (x *SessionState_TempBanned) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[27]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1521,7 +1669,7 @@ type SessionState_Outdated struct {
 
 func (x *SessionState_Outdated) Reset() {
 	*x = SessionState_Outdated{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[28]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1533,7 +1681,7 @@ func (x *SessionState_Outdated) String() string {
 func (*SessionState_Outdated) ProtoMessage() {}
 
 func (x *SessionState_Outdated) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[28]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1563,7 +1711,7 @@ type SessionState_Error struct {
 
 func (x *SessionState_Error) Reset() {
 	*x = SessionState_Error{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[29]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1575,7 +1723,7 @@ func (x *SessionState_Error) String() string {
 func (*SessionState_Error) ProtoMessage() {}
 
 func (x *SessionState_Error) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[29]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1616,7 +1764,7 @@ type PairRequest_Phone struct {
 
 func (x *PairRequest_Phone) Reset() {
 	*x = PairRequest_Phone{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[30]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1628,7 +1776,7 @@ func (x *PairRequest_Phone) String() string {
 func (*PairRequest_Phone) ProtoMessage() {}
 
 func (x *PairRequest_Phone) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[30]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1641,7 +1789,7 @@ func (x *PairRequest_Phone) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PairRequest_Phone.ProtoReflect.Descriptor instead.
 func (*PairRequest_Phone) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{14, 0}
+	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{17, 0}
 }
 
 func (x *PairRequest_Phone) GetPhoneNumber() string {
@@ -1662,7 +1810,7 @@ type PairResponse_QrCode struct {
 
 func (x *PairResponse_QrCode) Reset() {
 	*x = PairResponse_QrCode{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[31]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1674,7 +1822,7 @@ func (x *PairResponse_QrCode) String() string {
 func (*PairResponse_QrCode) ProtoMessage() {}
 
 func (x *PairResponse_QrCode) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[31]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1687,7 +1835,7 @@ func (x *PairResponse_QrCode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PairResponse_QrCode.ProtoReflect.Descriptor instead.
 func (*PairResponse_QrCode) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{15, 0}
+	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{18, 0}
 }
 
 func (x *PairResponse_QrCode) GetCode() string {
@@ -1708,7 +1856,7 @@ type PairResponse_PairingCode struct {
 
 func (x *PairResponse_PairingCode) Reset() {
 	*x = PairResponse_PairingCode{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[32]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1720,7 +1868,7 @@ func (x *PairResponse_PairingCode) String() string {
 func (*PairResponse_PairingCode) ProtoMessage() {}
 
 func (x *PairResponse_PairingCode) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[32]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1733,7 +1881,7 @@ func (x *PairResponse_PairingCode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PairResponse_PairingCode.ProtoReflect.Descriptor instead.
 func (*PairResponse_PairingCode) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{15, 1}
+	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{18, 1}
 }
 
 func (x *PairResponse_PairingCode) GetCode() string {
@@ -1756,7 +1904,7 @@ type PairResponse_Success struct {
 
 func (x *PairResponse_Success) Reset() {
 	*x = PairResponse_Success{}
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[33]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1768,7 +1916,7 @@ func (x *PairResponse_Success) String() string {
 func (*PairResponse_Success) ProtoMessage() {}
 
 func (x *PairResponse_Success) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_v1_session_proto_msgTypes[33]
+	mi := &file_whatsmeow_v1_session_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1781,7 +1929,7 @@ func (x *PairResponse_Success) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PairResponse_Success.ProtoReflect.Descriptor instead.
 func (*PairResponse_Success) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{15, 2}
+	return file_whatsmeow_v1_session_proto_rawDescGZIP(), []int{18, 2}
 }
 
 func (x *PairResponse_Success) GetJid() string {
@@ -1802,7 +1950,7 @@ var File_whatsmeow_v1_session_proto protoreflect.FileDescriptor
 
 const file_whatsmeow_v1_session_proto_rawDesc = "" +
 	"\n" +
-	"\x1awhatsmeow/v1/session.proto\x12\fwhatsmeow.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"o\n" +
+	"\x1awhatsmeow/v1/session.proto\x12\fwhatsmeow.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18whatsmeow/v1/error.proto\"o\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x120\n" +
 	"\x05state\x18\x02 \x01(\v2\x1a.whatsmeow.v1.SessionStateR\x05state\x12\x10\n" +
@@ -1865,7 +2013,16 @@ const file_whatsmeow_v1_session_proto_rawDesc = "" +
 	"\x0eConnectRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\"\x11\n" +
-	"\x0fConnectResponse\"2\n" +
+	"\x0fConnectResponse\"9\n" +
+	"\x16ConnectSessionsRequest\x12\x1f\n" +
+	"\vsession_ids\x18\x01 \x03(\tR\n" +
+	"sessionIds\"W\n" +
+	"\x17ConnectSessionsResponse\x12<\n" +
+	"\aresults\x18\x01 \x03(\v2\".whatsmeow.v1.ConnectSessionResultR\aresults\"h\n" +
+	"\x14ConnectSessionResult\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x121\n" +
+	"\x06reason\x18\x02 \x01(\x0e2\x19.whatsmeow.v1.ErrorReasonR\x06reason\"2\n" +
 	"\x11DisconnectRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\"\x14\n" +
@@ -1896,12 +2053,13 @@ const file_whatsmeow_v1_session_proto_rawDesc = "" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\"M\n" +
 	"\x19WatchSessionStateResponse\x120\n" +
-	"\x05state\x18\x01 \x01(\v2\x1a.whatsmeow.v1.SessionStateR\x05state2\xa2\x05\n" +
+	"\x05state\x18\x01 \x01(\v2\x1a.whatsmeow.v1.SessionStateR\x05state2\x82\x06\n" +
 	"\x0eSessionService\x12X\n" +
 	"\rCreateSession\x12\".whatsmeow.v1.CreateSessionRequest\x1a#.whatsmeow.v1.CreateSessionResponse\x12U\n" +
 	"\fListSessions\x12!.whatsmeow.v1.ListSessionsRequest\x1a\".whatsmeow.v1.ListSessionsResponse\x12X\n" +
 	"\rDeleteSession\x12\".whatsmeow.v1.DeleteSessionRequest\x1a#.whatsmeow.v1.DeleteSessionResponse\x12F\n" +
-	"\aConnect\x12\x1c.whatsmeow.v1.ConnectRequest\x1a\x1d.whatsmeow.v1.ConnectResponse\x12O\n" +
+	"\aConnect\x12\x1c.whatsmeow.v1.ConnectRequest\x1a\x1d.whatsmeow.v1.ConnectResponse\x12^\n" +
+	"\x0fConnectSessions\x12$.whatsmeow.v1.ConnectSessionsRequest\x1a%.whatsmeow.v1.ConnectSessionsResponse\x12O\n" +
 	"\n" +
 	"Disconnect\x12\x1f.whatsmeow.v1.DisconnectRequest\x1a .whatsmeow.v1.DisconnectResponse\x12C\n" +
 	"\x06Logout\x12\x1b.whatsmeow.v1.LogoutRequest\x1a\x1c.whatsmeow.v1.LogoutResponse\x12?\n" +
@@ -1921,7 +2079,7 @@ func file_whatsmeow_v1_session_proto_rawDescGZIP() []byte {
 	return file_whatsmeow_v1_session_proto_rawDescData
 }
 
-var file_whatsmeow_v1_session_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
+var file_whatsmeow_v1_session_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
 var file_whatsmeow_v1_session_proto_goTypes = []any{
 	(*Session)(nil),                   // 0: whatsmeow.v1.Session
 	(*SessionState)(nil),              // 1: whatsmeow.v1.SessionState
@@ -1933,75 +2091,83 @@ var file_whatsmeow_v1_session_proto_goTypes = []any{
 	(*DeleteSessionResponse)(nil),     // 7: whatsmeow.v1.DeleteSessionResponse
 	(*ConnectRequest)(nil),            // 8: whatsmeow.v1.ConnectRequest
 	(*ConnectResponse)(nil),           // 9: whatsmeow.v1.ConnectResponse
-	(*DisconnectRequest)(nil),         // 10: whatsmeow.v1.DisconnectRequest
-	(*DisconnectResponse)(nil),        // 11: whatsmeow.v1.DisconnectResponse
-	(*LogoutRequest)(nil),             // 12: whatsmeow.v1.LogoutRequest
-	(*LogoutResponse)(nil),            // 13: whatsmeow.v1.LogoutResponse
-	(*PairRequest)(nil),               // 14: whatsmeow.v1.PairRequest
-	(*PairResponse)(nil),              // 15: whatsmeow.v1.PairResponse
-	(*WatchSessionStateRequest)(nil),  // 16: whatsmeow.v1.WatchSessionStateRequest
-	(*WatchSessionStateResponse)(nil), // 17: whatsmeow.v1.WatchSessionStateResponse
-	(*SessionState_Created)(nil),      // 18: whatsmeow.v1.SessionState.Created
-	(*SessionState_Pairing)(nil),      // 19: whatsmeow.v1.SessionState.Pairing
-	(*SessionState_Connecting)(nil),   // 20: whatsmeow.v1.SessionState.Connecting
-	(*SessionState_Connected)(nil),    // 21: whatsmeow.v1.SessionState.Connected
-	(*SessionState_CaughtUp)(nil),     // 22: whatsmeow.v1.SessionState.CaughtUp
-	(*SessionState_Reconnecting)(nil), // 23: whatsmeow.v1.SessionState.Reconnecting
-	(*SessionState_Disconnected)(nil), // 24: whatsmeow.v1.SessionState.Disconnected
-	(*SessionState_LoggedOut)(nil),    // 25: whatsmeow.v1.SessionState.LoggedOut
-	(*SessionState_Replaced)(nil),     // 26: whatsmeow.v1.SessionState.Replaced
-	(*SessionState_TempBanned)(nil),   // 27: whatsmeow.v1.SessionState.TempBanned
-	(*SessionState_Outdated)(nil),     // 28: whatsmeow.v1.SessionState.Outdated
-	(*SessionState_Error)(nil),        // 29: whatsmeow.v1.SessionState.Error
-	(*PairRequest_Phone)(nil),         // 30: whatsmeow.v1.PairRequest.Phone
-	(*PairResponse_QrCode)(nil),       // 31: whatsmeow.v1.PairResponse.QrCode
-	(*PairResponse_PairingCode)(nil),  // 32: whatsmeow.v1.PairResponse.PairingCode
-	(*PairResponse_Success)(nil),      // 33: whatsmeow.v1.PairResponse.Success
-	(*timestamppb.Timestamp)(nil),     // 34: google.protobuf.Timestamp
+	(*ConnectSessionsRequest)(nil),    // 10: whatsmeow.v1.ConnectSessionsRequest
+	(*ConnectSessionsResponse)(nil),   // 11: whatsmeow.v1.ConnectSessionsResponse
+	(*ConnectSessionResult)(nil),      // 12: whatsmeow.v1.ConnectSessionResult
+	(*DisconnectRequest)(nil),         // 13: whatsmeow.v1.DisconnectRequest
+	(*DisconnectResponse)(nil),        // 14: whatsmeow.v1.DisconnectResponse
+	(*LogoutRequest)(nil),             // 15: whatsmeow.v1.LogoutRequest
+	(*LogoutResponse)(nil),            // 16: whatsmeow.v1.LogoutResponse
+	(*PairRequest)(nil),               // 17: whatsmeow.v1.PairRequest
+	(*PairResponse)(nil),              // 18: whatsmeow.v1.PairResponse
+	(*WatchSessionStateRequest)(nil),  // 19: whatsmeow.v1.WatchSessionStateRequest
+	(*WatchSessionStateResponse)(nil), // 20: whatsmeow.v1.WatchSessionStateResponse
+	(*SessionState_Created)(nil),      // 21: whatsmeow.v1.SessionState.Created
+	(*SessionState_Pairing)(nil),      // 22: whatsmeow.v1.SessionState.Pairing
+	(*SessionState_Connecting)(nil),   // 23: whatsmeow.v1.SessionState.Connecting
+	(*SessionState_Connected)(nil),    // 24: whatsmeow.v1.SessionState.Connected
+	(*SessionState_CaughtUp)(nil),     // 25: whatsmeow.v1.SessionState.CaughtUp
+	(*SessionState_Reconnecting)(nil), // 26: whatsmeow.v1.SessionState.Reconnecting
+	(*SessionState_Disconnected)(nil), // 27: whatsmeow.v1.SessionState.Disconnected
+	(*SessionState_LoggedOut)(nil),    // 28: whatsmeow.v1.SessionState.LoggedOut
+	(*SessionState_Replaced)(nil),     // 29: whatsmeow.v1.SessionState.Replaced
+	(*SessionState_TempBanned)(nil),   // 30: whatsmeow.v1.SessionState.TempBanned
+	(*SessionState_Outdated)(nil),     // 31: whatsmeow.v1.SessionState.Outdated
+	(*SessionState_Error)(nil),        // 32: whatsmeow.v1.SessionState.Error
+	(*PairRequest_Phone)(nil),         // 33: whatsmeow.v1.PairRequest.Phone
+	(*PairResponse_QrCode)(nil),       // 34: whatsmeow.v1.PairResponse.QrCode
+	(*PairResponse_PairingCode)(nil),  // 35: whatsmeow.v1.PairResponse.PairingCode
+	(*PairResponse_Success)(nil),      // 36: whatsmeow.v1.PairResponse.Success
+	(ErrorReason)(0),                  // 37: whatsmeow.v1.ErrorReason
+	(*timestamppb.Timestamp)(nil),     // 38: google.protobuf.Timestamp
 }
 var file_whatsmeow_v1_session_proto_depIdxs = []int32{
 	1,  // 0: whatsmeow.v1.Session.state:type_name -> whatsmeow.v1.SessionState
-	18, // 1: whatsmeow.v1.SessionState.created:type_name -> whatsmeow.v1.SessionState.Created
-	19, // 2: whatsmeow.v1.SessionState.pairing:type_name -> whatsmeow.v1.SessionState.Pairing
-	20, // 3: whatsmeow.v1.SessionState.connecting:type_name -> whatsmeow.v1.SessionState.Connecting
-	21, // 4: whatsmeow.v1.SessionState.connected:type_name -> whatsmeow.v1.SessionState.Connected
-	22, // 5: whatsmeow.v1.SessionState.caught_up:type_name -> whatsmeow.v1.SessionState.CaughtUp
-	23, // 6: whatsmeow.v1.SessionState.reconnecting:type_name -> whatsmeow.v1.SessionState.Reconnecting
-	24, // 7: whatsmeow.v1.SessionState.disconnected:type_name -> whatsmeow.v1.SessionState.Disconnected
-	25, // 8: whatsmeow.v1.SessionState.logged_out:type_name -> whatsmeow.v1.SessionState.LoggedOut
-	26, // 9: whatsmeow.v1.SessionState.replaced:type_name -> whatsmeow.v1.SessionState.Replaced
-	27, // 10: whatsmeow.v1.SessionState.temp_banned:type_name -> whatsmeow.v1.SessionState.TempBanned
-	28, // 11: whatsmeow.v1.SessionState.outdated:type_name -> whatsmeow.v1.SessionState.Outdated
-	29, // 12: whatsmeow.v1.SessionState.error:type_name -> whatsmeow.v1.SessionState.Error
+	21, // 1: whatsmeow.v1.SessionState.created:type_name -> whatsmeow.v1.SessionState.Created
+	22, // 2: whatsmeow.v1.SessionState.pairing:type_name -> whatsmeow.v1.SessionState.Pairing
+	23, // 3: whatsmeow.v1.SessionState.connecting:type_name -> whatsmeow.v1.SessionState.Connecting
+	24, // 4: whatsmeow.v1.SessionState.connected:type_name -> whatsmeow.v1.SessionState.Connected
+	25, // 5: whatsmeow.v1.SessionState.caught_up:type_name -> whatsmeow.v1.SessionState.CaughtUp
+	26, // 6: whatsmeow.v1.SessionState.reconnecting:type_name -> whatsmeow.v1.SessionState.Reconnecting
+	27, // 7: whatsmeow.v1.SessionState.disconnected:type_name -> whatsmeow.v1.SessionState.Disconnected
+	28, // 8: whatsmeow.v1.SessionState.logged_out:type_name -> whatsmeow.v1.SessionState.LoggedOut
+	29, // 9: whatsmeow.v1.SessionState.replaced:type_name -> whatsmeow.v1.SessionState.Replaced
+	30, // 10: whatsmeow.v1.SessionState.temp_banned:type_name -> whatsmeow.v1.SessionState.TempBanned
+	31, // 11: whatsmeow.v1.SessionState.outdated:type_name -> whatsmeow.v1.SessionState.Outdated
+	32, // 12: whatsmeow.v1.SessionState.error:type_name -> whatsmeow.v1.SessionState.Error
 	0,  // 13: whatsmeow.v1.CreateSessionResponse.session:type_name -> whatsmeow.v1.Session
 	0,  // 14: whatsmeow.v1.ListSessionsResponse.sessions:type_name -> whatsmeow.v1.Session
-	30, // 15: whatsmeow.v1.PairRequest.phone:type_name -> whatsmeow.v1.PairRequest.Phone
-	31, // 16: whatsmeow.v1.PairResponse.qr_code:type_name -> whatsmeow.v1.PairResponse.QrCode
-	32, // 17: whatsmeow.v1.PairResponse.pairing_code:type_name -> whatsmeow.v1.PairResponse.PairingCode
-	33, // 18: whatsmeow.v1.PairResponse.success:type_name -> whatsmeow.v1.PairResponse.Success
-	1,  // 19: whatsmeow.v1.WatchSessionStateResponse.state:type_name -> whatsmeow.v1.SessionState
-	34, // 20: whatsmeow.v1.SessionState.TempBanned.expire_time:type_name -> google.protobuf.Timestamp
-	2,  // 21: whatsmeow.v1.SessionService.CreateSession:input_type -> whatsmeow.v1.CreateSessionRequest
-	4,  // 22: whatsmeow.v1.SessionService.ListSessions:input_type -> whatsmeow.v1.ListSessionsRequest
-	6,  // 23: whatsmeow.v1.SessionService.DeleteSession:input_type -> whatsmeow.v1.DeleteSessionRequest
-	8,  // 24: whatsmeow.v1.SessionService.Connect:input_type -> whatsmeow.v1.ConnectRequest
-	10, // 25: whatsmeow.v1.SessionService.Disconnect:input_type -> whatsmeow.v1.DisconnectRequest
-	12, // 26: whatsmeow.v1.SessionService.Logout:input_type -> whatsmeow.v1.LogoutRequest
-	14, // 27: whatsmeow.v1.SessionService.Pair:input_type -> whatsmeow.v1.PairRequest
-	16, // 28: whatsmeow.v1.SessionService.WatchSessionState:input_type -> whatsmeow.v1.WatchSessionStateRequest
-	3,  // 29: whatsmeow.v1.SessionService.CreateSession:output_type -> whatsmeow.v1.CreateSessionResponse
-	5,  // 30: whatsmeow.v1.SessionService.ListSessions:output_type -> whatsmeow.v1.ListSessionsResponse
-	7,  // 31: whatsmeow.v1.SessionService.DeleteSession:output_type -> whatsmeow.v1.DeleteSessionResponse
-	9,  // 32: whatsmeow.v1.SessionService.Connect:output_type -> whatsmeow.v1.ConnectResponse
-	11, // 33: whatsmeow.v1.SessionService.Disconnect:output_type -> whatsmeow.v1.DisconnectResponse
-	13, // 34: whatsmeow.v1.SessionService.Logout:output_type -> whatsmeow.v1.LogoutResponse
-	15, // 35: whatsmeow.v1.SessionService.Pair:output_type -> whatsmeow.v1.PairResponse
-	17, // 36: whatsmeow.v1.SessionService.WatchSessionState:output_type -> whatsmeow.v1.WatchSessionStateResponse
-	29, // [29:37] is the sub-list for method output_type
-	21, // [21:29] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+	12, // 15: whatsmeow.v1.ConnectSessionsResponse.results:type_name -> whatsmeow.v1.ConnectSessionResult
+	37, // 16: whatsmeow.v1.ConnectSessionResult.reason:type_name -> whatsmeow.v1.ErrorReason
+	33, // 17: whatsmeow.v1.PairRequest.phone:type_name -> whatsmeow.v1.PairRequest.Phone
+	34, // 18: whatsmeow.v1.PairResponse.qr_code:type_name -> whatsmeow.v1.PairResponse.QrCode
+	35, // 19: whatsmeow.v1.PairResponse.pairing_code:type_name -> whatsmeow.v1.PairResponse.PairingCode
+	36, // 20: whatsmeow.v1.PairResponse.success:type_name -> whatsmeow.v1.PairResponse.Success
+	1,  // 21: whatsmeow.v1.WatchSessionStateResponse.state:type_name -> whatsmeow.v1.SessionState
+	38, // 22: whatsmeow.v1.SessionState.TempBanned.expire_time:type_name -> google.protobuf.Timestamp
+	2,  // 23: whatsmeow.v1.SessionService.CreateSession:input_type -> whatsmeow.v1.CreateSessionRequest
+	4,  // 24: whatsmeow.v1.SessionService.ListSessions:input_type -> whatsmeow.v1.ListSessionsRequest
+	6,  // 25: whatsmeow.v1.SessionService.DeleteSession:input_type -> whatsmeow.v1.DeleteSessionRequest
+	8,  // 26: whatsmeow.v1.SessionService.Connect:input_type -> whatsmeow.v1.ConnectRequest
+	10, // 27: whatsmeow.v1.SessionService.ConnectSessions:input_type -> whatsmeow.v1.ConnectSessionsRequest
+	13, // 28: whatsmeow.v1.SessionService.Disconnect:input_type -> whatsmeow.v1.DisconnectRequest
+	15, // 29: whatsmeow.v1.SessionService.Logout:input_type -> whatsmeow.v1.LogoutRequest
+	17, // 30: whatsmeow.v1.SessionService.Pair:input_type -> whatsmeow.v1.PairRequest
+	19, // 31: whatsmeow.v1.SessionService.WatchSessionState:input_type -> whatsmeow.v1.WatchSessionStateRequest
+	3,  // 32: whatsmeow.v1.SessionService.CreateSession:output_type -> whatsmeow.v1.CreateSessionResponse
+	5,  // 33: whatsmeow.v1.SessionService.ListSessions:output_type -> whatsmeow.v1.ListSessionsResponse
+	7,  // 34: whatsmeow.v1.SessionService.DeleteSession:output_type -> whatsmeow.v1.DeleteSessionResponse
+	9,  // 35: whatsmeow.v1.SessionService.Connect:output_type -> whatsmeow.v1.ConnectResponse
+	11, // 36: whatsmeow.v1.SessionService.ConnectSessions:output_type -> whatsmeow.v1.ConnectSessionsResponse
+	14, // 37: whatsmeow.v1.SessionService.Disconnect:output_type -> whatsmeow.v1.DisconnectResponse
+	16, // 38: whatsmeow.v1.SessionService.Logout:output_type -> whatsmeow.v1.LogoutResponse
+	18, // 39: whatsmeow.v1.SessionService.Pair:output_type -> whatsmeow.v1.PairResponse
+	20, // 40: whatsmeow.v1.SessionService.WatchSessionState:output_type -> whatsmeow.v1.WatchSessionStateResponse
+	32, // [32:41] is the sub-list for method output_type
+	23, // [23:32] is the sub-list for method input_type
+	23, // [23:23] is the sub-list for extension type_name
+	23, // [23:23] is the sub-list for extension extendee
+	0,  // [0:23] is the sub-list for field type_name
 }
 
 func init() { file_whatsmeow_v1_session_proto_init() }
@@ -2009,6 +2175,7 @@ func file_whatsmeow_v1_session_proto_init() {
 	if File_whatsmeow_v1_session_proto != nil {
 		return
 	}
+	file_whatsmeow_v1_error_proto_init()
 	file_whatsmeow_v1_session_proto_msgTypes[1].OneofWrappers = []any{
 		(*SessionState_Created_)(nil),
 		(*SessionState_Pairing_)(nil),
@@ -2023,7 +2190,7 @@ func file_whatsmeow_v1_session_proto_init() {
 		(*SessionState_Outdated_)(nil),
 		(*SessionState_Error_)(nil),
 	}
-	file_whatsmeow_v1_session_proto_msgTypes[15].OneofWrappers = []any{
+	file_whatsmeow_v1_session_proto_msgTypes[18].OneofWrappers = []any{
 		(*PairResponse_QrCode_)(nil),
 		(*PairResponse_PairingCode_)(nil),
 		(*PairResponse_Success_)(nil),
@@ -2034,7 +2201,7 @@ func file_whatsmeow_v1_session_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_whatsmeow_v1_session_proto_rawDesc), len(file_whatsmeow_v1_session_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   34,
+			NumMessages:   37,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

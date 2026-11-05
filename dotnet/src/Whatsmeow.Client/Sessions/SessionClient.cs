@@ -525,6 +525,12 @@ internal sealed class SessionClient(
 		_ = await RpcErrors
 			.CallAsync(client.ConnectAsync(new ConnectRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken))
 			.ConfigureAwait(false);
+		ConnectSucceeded();
+	}
+
+	/// <summary>A successful connect, single or batched, owns the session's events and reconnects in this process.</summary>
+	internal void ConnectSucceeded()
+	{
 		sessions.Remember(sessionId);
 
 		// Events flow from the first connect or pairing in this process (ADR 0022, ADR 0052).

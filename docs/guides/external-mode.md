@@ -11,6 +11,7 @@ whatsmeow-net --database /data/whatsmeow-net.db --listen tcp:0.0.0.0:7777 --toke
 ```
 
 * `--listen` is `unix:<absolute path>` or `tcp:<host>:<port>`.
+  On Windows the path needs a drive or a UNC root, such as `unix:C:\run\whatsmeow-net.sock`; `unix:\run\s`, with no drive, is refused.
 * `--token-file` holds the shared secret: 32 bytes as 64 hex digits, on one line.
 * Optional: `--media-root`, `--send-burst`, `--send-interval`, and the history flags `--history-full-sync`, `--history-days-limit`, `--history-size-limit-mb` and `--history-storage-quota-mb`, the same settings as the embedded options.
 
@@ -41,6 +42,10 @@ Or in configuration, `Whatsmeow:External:Address` and `Whatsmeow:External:TokenP
 
 The token never goes in an argument or an environment variable; both sides read it from a file, such as a mounted secret.
 To rotate it, rewrite the file on both sides: when a client presents the new token, the sidecar reads its file again and switches, and from then on refuses the old one.
+Rewrite each file in one step: write the new token to a file beside it, in the same directory, then rename that file over the old one, which replaces it at once on the same volume [inferred: rename(2) and MoveFileEx semantics].
+A file rewritten in place may be read half written [inferred: an in-place write is not atomic]; the client then treats it as unreadable and tries again with the restart backoff [observed: `ExternalTokenTests`, `SidecarSupervisorTests`].
+A .NET writer that copies over the file with `File.Copy` can throw `IOException` while the client reads it, because .NET locks files on Linux and macOS [observed: #132, on both].
+The client opens the file sharing write and delete, so a rename over it works while it reads: measured on Linux and macOS [observed: `ExternalTokenTests`], expected on Windows [inferred: not measured]; whether the sidecar's read allows it on Windows is [unknown].
 Until a client presents the new one, the old one is still accepted [inferred: ADR 0046].
 A client the sidecar refuses reads its own file again on its next connect.
 

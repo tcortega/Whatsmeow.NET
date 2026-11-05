@@ -108,15 +108,14 @@ public sealed class DisappearingTimerTests(FakeSidecar fixture)
 			);
 		}
 
-		var expected = new MessageReceived
-		{
-			SessionId = SessionId.From(Session),
-			Id = MessageId.From("DT1"),
-			Source = new MessageSource { Chat = s_peer, Sender = s_peer, SenderAlt = null, RecipientAlt = null, IsFromMe = false },
-			PushName = null,
-			Timestamp = Deliveries.At,
-			Content = new DisappearingTimerContent { Timer = TimeSpan.FromDays(1) },
-		};
+		var expected = MessageChecks.Received(
+			SessionId.From(Session),
+			MessageId.From("DT1"),
+			new MessageSource { Chat = s_peer, Sender = s_peer, SenderAlt = null, RecipientAlt = null, IsFromMe = false },
+			pushName: null,
+			Deliveries.At,
+			new DisappearingTimerContent { Timer = TimeSpan.FromDays(1) }
+		);
 		Assert.Equal(expected, await received.NextAsync(ct));
 		Assert.Equal(expected with { Id = MessageId.From("DT2"), Content = new DisappearingTimerContent { Timer = TimeSpan.Zero } }, await received.NextAsync(ct));
 	}

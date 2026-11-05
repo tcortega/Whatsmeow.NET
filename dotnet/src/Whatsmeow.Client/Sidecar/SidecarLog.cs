@@ -18,6 +18,10 @@ internal static partial class SidecarLog
 	[LoggerMessage(4, LogLevel.Error, "Sidecar restart attempt {Attempt} failed; the next one is in {Delay}")]
 	public static partial void SidecarRestartFailed(ILogger logger, Exception exception, int attempt, TimeSpan delay);
 
+	/// <summary>Not retried: the client is stopping (#132).</summary>
+	[LoggerMessage(44, LogLevel.Debug, "A sidecar launch failed after the stop began; it is not retried")]
+	public static partial void SidecarLaunchFailedAfterStopBegan(ILogger logger, Exception exception);
+
 	[LoggerMessage(5, LogLevel.Warning, "The sidecar at {Path} cannot run in place; running a copy at {Copy}")]
 	public static partial void SidecarCopied(ILogger logger, string path, string copy);
 

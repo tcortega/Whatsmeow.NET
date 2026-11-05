@@ -228,6 +228,10 @@ namespace Whatsmeow.IntegrationTests.Fake {
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsRequest> __Marshaller_whatsmeow_fake_v1_GetPairingDevicePropsRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsResponse> __Marshaller_whatsmeow_fake_v1_GetPairingDevicePropsResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.RecordEventRequest> __Marshaller_whatsmeow_fake_v1_RecordEventRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.RecordEventRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.RecordEventResponse> __Marshaller_whatsmeow_fake_v1_RecordEventResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.RecordEventResponse.Parser));
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse> __Method_DeliverMessage = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse>(
@@ -580,6 +584,14 @@ namespace Whatsmeow.IntegrationTests.Fake {
         "GetPairingDeviceProps",
         __Marshaller_whatsmeow_fake_v1_GetPairingDevicePropsRequest,
         __Marshaller_whatsmeow_fake_v1_GetPairingDevicePropsResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.RecordEventRequest, global::Whatsmeow.IntegrationTests.Fake.RecordEventResponse> __Method_RecordEvent = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.RecordEventRequest, global::Whatsmeow.IntegrationTests.Fake.RecordEventResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "RecordEvent",
+        __Marshaller_whatsmeow_fake_v1_RecordEventRequest,
+        __Marshaller_whatsmeow_fake_v1_RecordEventResponse);
 
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
@@ -2129,8 +2141,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
       /// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
-      /// and returns once the client's event handlers ran. With reupload, the phone uploads the media at
-      /// from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+      /// or supplies encrypted bytes unchanged, and returns once the client's event handlers ran. With reupload, the
+      /// phone uploads the media at from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
       /// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -2146,8 +2158,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
       /// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
-      /// and returns once the client's event handlers ran. With reupload, the phone uploads the media at
-      /// from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+      /// or supplies encrypted bytes unchanged, and returns once the client's event handlers ran. With reupload, the
+      /// phone uploads the media at from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
       /// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -2161,8 +2173,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
       /// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
-      /// and returns once the client's event handlers ran. With reupload, the phone uploads the media at
-      /// from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+      /// or supplies encrypted bytes unchanged, and returns once the client's event handlers ran. With reupload, the
+      /// phone uploads the media at from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
       /// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -2178,8 +2190,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
       /// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
-      /// and returns once the client's event handlers ran. With reupload, the phone uploads the media at
-      /// from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+      /// or supplies encrypted bytes unchanged, and returns once the client's event handlers ran. With reupload, the
+      /// phone uploads the media at from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
       /// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -2540,8 +2552,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// a non-admin's change to a locked group's info, to its settings or to its participants is 403, and to its invite
       /// link 401 (whatsmeow's ErrGroupInviteLinkUnauthorized, group.go:432); a group the session is not in is 403 and an
       /// unknown one 404 (group.go:674-678); adding a member is 409, and removing, promoting or demoting a non-member 404,
-      /// for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519), for a join and for the
-      /// group info of a link, which joins nothing and lists every member; a member who is not an admin may add
+      /// for that participant; a reset invite code is 410 (group.go:516-519), and any code the fake does not know, malformed
+      /// or not, 400 bad-request [observed: #120 live run 2026-11-04], for a join and for the group info of a link, which
+      /// joins nothing and lists every member; a member who is not an admin may add
       /// participants when the group's member add mode is all_member_add, and changes the mode only as an admin (403); a
       /// created group has the mode its create asked for, all_member_add unless told otherwise, as whatsmeow asks
       /// (group.go:59-63), though what WhatsApp answers after a create is [unknown], and a group AddGroup put there has none
@@ -2575,8 +2588,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// a non-admin's change to a locked group's info, to its settings or to its participants is 403, and to its invite
       /// link 401 (whatsmeow's ErrGroupInviteLinkUnauthorized, group.go:432); a group the session is not in is 403 and an
       /// unknown one 404 (group.go:674-678); adding a member is 409, and removing, promoting or demoting a non-member 404,
-      /// for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519), for a join and for the
-      /// group info of a link, which joins nothing and lists every member; a member who is not an admin may add
+      /// for that participant; a reset invite code is 410 (group.go:516-519), and any code the fake does not know, malformed
+      /// or not, 400 bad-request [observed: #120 live run 2026-11-04], for a join and for the group info of a link, which
+      /// joins nothing and lists every member; a member who is not an admin may add
       /// participants when the group's member add mode is all_member_add, and changes the mode only as an admin (403); a
       /// created group has the mode its create asked for, all_member_add unless told otherwise, as whatsmeow asks
       /// (group.go:59-63), though what WhatsApp answers after a create is [unknown], and a group AddGroup put there has none
@@ -2608,8 +2622,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// a non-admin's change to a locked group's info, to its settings or to its participants is 403, and to its invite
       /// link 401 (whatsmeow's ErrGroupInviteLinkUnauthorized, group.go:432); a group the session is not in is 403 and an
       /// unknown one 404 (group.go:674-678); adding a member is 409, and removing, promoting or demoting a non-member 404,
-      /// for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519), for a join and for the
-      /// group info of a link, which joins nothing and lists every member; a member who is not an admin may add
+      /// for that participant; a reset invite code is 410 (group.go:516-519), and any code the fake does not know, malformed
+      /// or not, 400 bad-request [observed: #120 live run 2026-11-04], for a join and for the group info of a link, which
+      /// joins nothing and lists every member; a member who is not an admin may add
       /// participants when the group's member add mode is all_member_add, and changes the mode only as an admin (403); a
       /// created group has the mode its create asked for, all_member_add unless told otherwise, as whatsmeow asks
       /// (group.go:59-63), though what WhatsApp answers after a create is [unknown], and a group AddGroup put there has none
@@ -2643,8 +2658,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// a non-admin's change to a locked group's info, to its settings or to its participants is 403, and to its invite
       /// link 401 (whatsmeow's ErrGroupInviteLinkUnauthorized, group.go:432); a group the session is not in is 403 and an
       /// unknown one 404 (group.go:674-678); adding a member is 409, and removing, promoting or demoting a non-member 404,
-      /// for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519), for a join and for the
-      /// group info of a link, which joins nothing and lists every member; a member who is not an admin may add
+      /// for that participant; a reset invite code is 410 (group.go:516-519), and any code the fake does not know, malformed
+      /// or not, 400 bad-request [observed: #120 live run 2026-11-04], for a join and for the group info of a link, which
+      /// joins nothing and lists every member; a member who is not an admin may add
       /// participants when the group's member add mode is all_member_add, and changes the mode only as an admin (403); a
       /// created group has the mode its create asked for, all_member_add unless told otherwise, as whatsmeow asks
       /// (group.go:59-63), though what WhatsApp answers after a create is [unknown], and a group AddGroup put there has none
@@ -3189,6 +3205,66 @@ namespace Whatsmeow.IntegrationTests.Fake {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsResponse> GetPairingDevicePropsAsync(global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_GetPairingDeviceProps, null, options, request);
+      }
+      /// <summary>
+      /// RecordEvent records an event in the session's outbox as it is, under no key, past every slice's mapping, and
+      /// returns once it is committed; the outbox gives it its seq. It is the one way to stream the client an event the
+      /// sidecar never records, such as one the client cannot read, whose skip and ack are the client's own (ARCHITECTURE
+      /// §8.7, #122). A session that does not exist is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.RecordEventResponse RecordEvent(global::Whatsmeow.IntegrationTests.Fake.RecordEventRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return RecordEvent(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// RecordEvent records an event in the session's outbox as it is, under no key, past every slice's mapping, and
+      /// returns once it is committed; the outbox gives it its seq. It is the one way to stream the client an event the
+      /// sidecar never records, such as one the client cannot read, whose skip and ack are the client's own (ARCHITECTURE
+      /// §8.7, #122). A session that does not exist is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.RecordEventResponse RecordEvent(global::Whatsmeow.IntegrationTests.Fake.RecordEventRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_RecordEvent, null, options, request);
+      }
+      /// <summary>
+      /// RecordEvent records an event in the session's outbox as it is, under no key, past every slice's mapping, and
+      /// returns once it is committed; the outbox gives it its seq. It is the one way to stream the client an event the
+      /// sidecar never records, such as one the client cannot read, whose skip and ack are the client's own (ARCHITECTURE
+      /// §8.7, #122). A session that does not exist is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.RecordEventResponse> RecordEventAsync(global::Whatsmeow.IntegrationTests.Fake.RecordEventRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return RecordEventAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// RecordEvent records an event in the session's outbox as it is, under no key, past every slice's mapping, and
+      /// returns once it is committed; the outbox gives it its seq. It is the one way to stream the client an event the
+      /// sidecar never records, such as one the client cannot read, whose skip and ack are the client's own (ARCHITECTURE
+      /// §8.7, #122). A session that does not exist is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.RecordEventResponse> RecordEventAsync(global::Whatsmeow.IntegrationTests.Fake.RecordEventRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_RecordEvent, null, options, request);
       }
       /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]

@@ -53,16 +53,24 @@ public sealed class StandaloneSidecar : IAsyncDisposable
 	/// <summary>A copy of the token file at <paramref name="path"/> in <paramref name="copy"/>: the same secret mounted for another side.</summary>
 	public static string CopyToken(string path, string copy)
 	{
-		File.Copy(path, copy, overwrite: true);
+		Replace(copy, File.ReadAllText(path));
 		return copy;
 	}
 
 	/// <summary>Writes a new random token to <paramref name="path"/>, as a rotated secret would be.</summary>
-	public static void WriteToken(string path)
+	public static void WriteToken(string path) => Replace(path, Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(32)) + "\n");
+
+	/// <summary>
+	/// Writes <paramref name="content"/> beside <paramref name="path"/>, then renames it over it, as the guide says to rotate
+	/// a token (docs/guides/external-mode.md): no reader sees it half written, and none holds a lock a copy would hit (#132).
+	/// </summary>
+	private static void Replace(string path, string content)
 	{
-		File.WriteAllText(path, Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(32)) + "\n");
+		var next = path + ".next";
+		File.WriteAllText(next, content);
 		if (!OperatingSystem.IsWindows())
-			File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+			File.SetUnixFileMode(next, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+		File.Move(next, path, overwrite: true);
 	}
 
 	/// <summary>A short socket path in a new directory: the 104-byte sun_path limit on macOS.</summary>

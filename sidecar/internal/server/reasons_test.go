@@ -13,6 +13,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	whatsmeowv1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/v1"
 	sidecarlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 )
 
@@ -192,5 +193,19 @@ func TestAPassedThroughStatusCarriesNoNumber(t *testing.T) {
 
 	if info, ok := st.Details()[0].(*errdetails.ErrorInfo); !ok || info.GetReason() != "TEST" {
 		t.Fatalf("details %v, want the ErrorInfo kept", st.Details())
+	}
+}
+
+func TestReasonIsTheReasonAnErrorWrapsElseInternal(t *testing.T) {
+	t.Parallel()
+
+	for err, want := range map[error]whatsmeowv1.ErrorReason{
+		fmt.Errorf("connect %q: %w", "s1", ErrSessionNotFound):        whatsmeowv1.ErrorReason_ERROR_REASON_SESSION_NOT_FOUND,
+		fmt.Errorf("%w: %w", ErrConnectionFailed, errors.New("dial")): whatsmeowv1.ErrorReason_ERROR_REASON_CONNECTION_FAILED,
+		errors.New("disk full"): whatsmeowv1.ErrorReason_ERROR_REASON_INTERNAL,
+	} {
+		if got := Reason(err); got != want {
+			t.Fatalf("Reason(%v) = %v, want %v", err, got, want)
+		}
 	}
 }

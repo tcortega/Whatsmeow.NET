@@ -6,7 +6,8 @@ namespace Whatsmeow.LiveTests;
 /// A test against real WhatsApp. It is explicit, so not run, unless <see cref="LiveSettings.DatabaseVariable"/> names
 /// the live database, and each variable the test needs is set too: <see cref="LiveSettings.PhoneNumberVariable"/> with
 /// <see cref="NeedsPhoneNumber"/>, <see cref="LiveSettings.PeerDatabaseVariable"/> with <see cref="NeedsPeer"/>, and
-/// <see cref="LiveSettings.OwnerVariable"/> with <see cref="NeedsOwner"/>. Without them the run starts nothing and
+/// <see cref="LiveSettings.OwnerVariable"/> with <see cref="NeedsOwner"/>, and <see cref="LiveSettings.MediaSizesVariable"/>
+/// with <see cref="NeedsMediaSizes"/>. Without them the run starts nothing and
 /// passes with the test not run, so the live tests never run in CI. This file is the only one where
 /// <c>build/ci.sh</c> allows <c>Explicit</c> (docs/guidelines/tests.md).
 /// </summary>
@@ -16,12 +17,18 @@ public sealed class LiveFactAttribute : FactAttribute
 	/// <summary>A person scans the code or types it in: WhatsApp's QR codes ran out after 160 seconds when measured.</summary>
 	private const int WorkTimeout = 300_000;
 
+	/// <summary>
+	/// What every live test's timeout adds for the session's backlog, which the first test to connect a session waits
+	/// for (<see cref="LiveSidecar.CatchUpBound"/>); a test that sets its own timeout adds it too.
+	/// </summary>
+	public const int CatchUpTimeout = 600_000;
+
 	/// <summary>Creates the attribute; xUnit passes the caller's file and line.</summary>
 	public LiveFactAttribute([CallerFilePath] string? sourceFilePath = null, [CallerLineNumber] int sourceLineNumber = -1)
 		: base(sourceFilePath, sourceLineNumber)
 	{
 		Explicit = !LiveSettings.Enabled;
-		Timeout = WorkTimeout;
+		Timeout = WorkTimeout + CatchUpTimeout;
 	}
 
 	/// <summary>Whether the test needs the test number too.</summary>
@@ -47,8 +54,8 @@ public sealed class LiveFactAttribute : FactAttribute
 	}
 
 	/// <summary>
-	/// Whether the test needs the owner at the phone: it waits for the owner's ping (<see cref="LiveSidecar.PingAsync"/>),
-	/// with a bound of its own on top of the test's work.
+	/// Whether the test needs the owner at a phone: it waits for the owner's ping (<see cref="LiveSidecar.PingAsync"/>) or
+	/// answer (<see cref="LiveSidecar.AskOwnerAsync"/>), with a bound of its own on top of the test's work.
 	/// </summary>
 	public bool NeedsOwner
 	{
@@ -57,7 +64,18 @@ public sealed class LiveFactAttribute : FactAttribute
 		{
 			field = value;
 			Explicit = IsOff();
-			Timeout = WorkTimeout + (value ? (int)LiveSidecar.PingBound.TotalMilliseconds : 0);
+			Timeout = WorkTimeout + CatchUpTimeout + (value ? (int)LiveSidecar.PingBound.TotalMilliseconds : 0);
+		}
+	}
+
+	/// <summary>Whether the test is the media size ladder, which runs only when asked for (<see cref="LiveSettings.MediaSizesVariable"/>).</summary>
+	public bool NeedsMediaSizes
+	{
+		get;
+		init
+		{
+			field = value;
+			Explicit = IsOff();
 		}
 	}
 
@@ -65,5 +83,6 @@ public sealed class LiveFactAttribute : FactAttribute
 		!LiveSettings.Enabled
 		|| (NeedsPhoneNumber && LiveSettings.PhoneNumber.Length == 0)
 		|| (NeedsPeer && LiveSettings.PeerDatabase.Length == 0)
-		|| (NeedsOwner && !LiveSettings.Owner);
+		|| (NeedsOwner && !LiveSettings.Owner)
+		|| (NeedsMediaSizes && !LiveSettings.MediaSizes);
 }

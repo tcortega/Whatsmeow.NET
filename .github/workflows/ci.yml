@@ -160,6 +160,15 @@ jobs:
       - name: build/ci.sh dotnet
         run: bash build/ci.sh dotnet
 
+      # The shared fake sidecar's log (FakeSidecar.cs), so a failed or hung run leaves its evidence (#77).
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: fake-sidecar-log-${{ matrix.name }}
+          path: dotnet/artifacts/TestResults/fake-sidecar.log
+          if-no-files-found: ignore
+          retention-days: 7
+
   # The integration suite against a standalone sidecar (External mode, ADR 0046), beside the dotnet jobs, not after them.
   external:
     name: external (linux-x64)
@@ -204,6 +213,15 @@ jobs:
 
       - name: build/ci.sh external
         run: bash build/ci.sh external
+
+      # The shared fake sidecar's log (FakeSidecar.cs), so a failed or hung run leaves its evidence (#77).
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: fake-sidecar-log-external
+          path: dotnet/artifacts/TestResults/fake-sidecar.log
+          if-no-files-found: ignore
+          retention-days: 7
 
   # Native packages (ADR 0023) and Native AOT on every target RID (ADR 0056), in packaging.yml, which the release
   # workflow runs too. On main and on demand, never on a pull request, which keeps linux-x64 only.

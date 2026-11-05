@@ -63,6 +63,7 @@ const (
 	FakeWhatsAppService_CompleteOfflineSync_FullMethodName         = "/whatsmeow.fake.v1.FakeWhatsAppService/CompleteOfflineSync"
 	FakeWhatsAppService_DeliverHistorySync_FullMethodName          = "/whatsmeow.fake.v1.FakeWhatsAppService/DeliverHistorySync"
 	FakeWhatsAppService_GetPairingDeviceProps_FullMethodName       = "/whatsmeow.fake.v1.FakeWhatsAppService/GetPairingDeviceProps"
+	FakeWhatsAppService_RecordEvent_FullMethodName                 = "/whatsmeow.fake.v1.FakeWhatsAppService/RecordEvent"
 )
 
 // FakeWhatsAppServiceClient is the client API for FakeWhatsAppService service.
@@ -185,8 +186,8 @@ type FakeWhatsAppServiceClient interface {
 	HoldNextDownload(ctx context.Context, in *HoldNextDownloadRequest, opts ...grpc.CallOption) (*HoldNextDownloadResponse, error)
 	// AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
 	// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
-	// and returns once the client's event handlers ran. With reupload, the phone uploads the media at
-	// from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+	// or supplies encrypted bytes unchanged, and returns once the client's event handlers ran. With reupload, the
+	// phone uploads the media at from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
 	// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
 	AnswerMediaRetry(ctx context.Context, in *AnswerMediaRetryRequest, opts ...grpc.CallOption) (*AnswerMediaRetryResponse, error)
 	// DeliverReceipt makes WhatsApp deliver a receipt to a session's client, and returns once the client's event
@@ -226,8 +227,9 @@ type FakeWhatsAppServiceClient interface {
 	// a non-admin's change to a locked group's info, to its settings or to its participants is 403, and to its invite
 	// link 401 (whatsmeow's ErrGroupInviteLinkUnauthorized, group.go:432); a group the session is not in is 403 and an
 	// unknown one 404 (group.go:674-678); adding a member is 409, and removing, promoting or demoting a non-member 404,
-	// for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519), for a join and for the
-	// group info of a link, which joins nothing and lists every member; a member who is not an admin may add
+	// for that participant; a reset invite code is 410 (group.go:516-519), and any code the fake does not know, malformed
+	// or not, 400 bad-request [observed: #120 live run 2026-11-04], for a join and for the group info of a link, which
+	// joins nothing and lists every member; a member who is not an admin may add
 	// participants when the group's member add mode is all_member_add, and changes the mode only as an admin (403); a
 	// created group has the mode its create asked for, all_member_add unless told otherwise, as whatsmeow asks
 	// (group.go:59-63), though what WhatsApp answers after a create is [unknown], and a group AddGroup put there has none
@@ -279,6 +281,11 @@ type FakeWhatsAppServiceClient interface {
 	// store.DeviceProps as they were when the phone linked the device (LinkDevice), which whatsmeow sends only in the
 	// registration payload (store/clientpayload.go:174-183).
 	GetPairingDeviceProps(ctx context.Context, in *GetPairingDevicePropsRequest, opts ...grpc.CallOption) (*GetPairingDevicePropsResponse, error)
+	// RecordEvent records an event in the session's outbox as it is, under no key, past every slice's mapping, and
+	// returns once it is committed; the outbox gives it its seq. It is the one way to stream the client an event the
+	// sidecar never records, such as one the client cannot read, whose skip and ack are the client's own (ARCHITECTURE
+	// §8.7, #122). A session that does not exist is an error.
+	RecordEvent(ctx context.Context, in *RecordEventRequest, opts ...grpc.CallOption) (*RecordEventResponse, error)
 }
 
 type fakeWhatsAppServiceClient struct {
@@ -729,6 +736,16 @@ func (c *fakeWhatsAppServiceClient) GetPairingDeviceProps(ctx context.Context, i
 	return out, nil
 }
 
+func (c *fakeWhatsAppServiceClient) RecordEvent(ctx context.Context, in *RecordEventRequest, opts ...grpc.CallOption) (*RecordEventResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RecordEventResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_RecordEvent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FakeWhatsAppServiceServer is the server API for FakeWhatsAppService service.
 // All implementations must embed UnimplementedFakeWhatsAppServiceServer
 // for forward compatibility.
@@ -849,8 +866,8 @@ type FakeWhatsAppServiceServer interface {
 	HoldNextDownload(context.Context, *HoldNextDownloadRequest) (*HoldNextDownloadResponse, error)
 	// AnswerMediaRetry makes the phone answer the session's media retry request for message_id, which WaitForSent
 	// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
-	// and returns once the client's event handlers ran. With reupload, the phone uploads the media at
-	// from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
+	// or supplies encrypted bytes unchanged, and returns once the client's event handlers ran. With reupload, the
+	// phone uploads the media at from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
 	// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
 	AnswerMediaRetry(context.Context, *AnswerMediaRetryRequest) (*AnswerMediaRetryResponse, error)
 	// DeliverReceipt makes WhatsApp deliver a receipt to a session's client, and returns once the client's event
@@ -890,8 +907,9 @@ type FakeWhatsAppServiceServer interface {
 	// a non-admin's change to a locked group's info, to its settings or to its participants is 403, and to its invite
 	// link 401 (whatsmeow's ErrGroupInviteLinkUnauthorized, group.go:432); a group the session is not in is 403 and an
 	// unknown one 404 (group.go:674-678); adding a member is 409, and removing, promoting or demoting a non-member 404,
-	// for that participant; a reset invite code is 410 and an unknown one 406 (group.go:516-519), for a join and for the
-	// group info of a link, which joins nothing and lists every member; a member who is not an admin may add
+	// for that participant; a reset invite code is 410 (group.go:516-519), and any code the fake does not know, malformed
+	// or not, 400 bad-request [observed: #120 live run 2026-11-04], for a join and for the group info of a link, which
+	// joins nothing and lists every member; a member who is not an admin may add
 	// participants when the group's member add mode is all_member_add, and changes the mode only as an admin (403); a
 	// created group has the mode its create asked for, all_member_add unless told otherwise, as whatsmeow asks
 	// (group.go:59-63), though what WhatsApp answers after a create is [unknown], and a group AddGroup put there has none
@@ -943,6 +961,11 @@ type FakeWhatsAppServiceServer interface {
 	// store.DeviceProps as they were when the phone linked the device (LinkDevice), which whatsmeow sends only in the
 	// registration payload (store/clientpayload.go:174-183).
 	GetPairingDeviceProps(context.Context, *GetPairingDevicePropsRequest) (*GetPairingDevicePropsResponse, error)
+	// RecordEvent records an event in the session's outbox as it is, under no key, past every slice's mapping, and
+	// returns once it is committed; the outbox gives it its seq. It is the one way to stream the client an event the
+	// sidecar never records, such as one the client cannot read, whose skip and ack are the client's own (ARCHITECTURE
+	// §8.7, #122). A session that does not exist is an error.
+	RecordEvent(context.Context, *RecordEventRequest) (*RecordEventResponse, error)
 	mustEmbedUnimplementedFakeWhatsAppServiceServer()
 }
 
@@ -1084,6 +1107,9 @@ func (UnimplementedFakeWhatsAppServiceServer) DeliverHistorySync(context.Context
 }
 func (UnimplementedFakeWhatsAppServiceServer) GetPairingDeviceProps(context.Context, *GetPairingDevicePropsRequest) (*GetPairingDevicePropsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPairingDeviceProps not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) RecordEvent(context.Context, *RecordEventRequest) (*RecordEventResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RecordEvent not implemented")
 }
 func (UnimplementedFakeWhatsAppServiceServer) mustEmbedUnimplementedFakeWhatsAppServiceServer() {}
 func (UnimplementedFakeWhatsAppServiceServer) testEmbeddedByValue()                             {}
@@ -1898,6 +1924,24 @@ func _FakeWhatsAppService_GetPairingDeviceProps_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FakeWhatsAppService_RecordEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecordEventRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).RecordEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_RecordEvent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).RecordEvent(ctx, req.(*RecordEventRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FakeWhatsAppService_ServiceDesc is the grpc.ServiceDesc for FakeWhatsAppService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2080,6 +2124,10 @@ var FakeWhatsAppService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPairingDeviceProps",
 			Handler:    _FakeWhatsAppService_GetPairingDeviceProps_Handler,
+		},
+		{
+			MethodName: "RecordEvent",
+			Handler:    _FakeWhatsAppService_RecordEvent_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -139,6 +139,7 @@ internal sealed class WhatsmeowHostedService(
 		if (_declared.Count == 0)
 			return;
 
+		var ids = new List<SessionId>();
 		foreach (var session in await sidecar.Sessions.ListAsync(cancellationToken).ConfigureAwait(false))
 		{
 			if (!_declared.Contains(session.Id) || session.State is SessionState.Created or SessionState.LoggedOut)
@@ -153,9 +154,10 @@ internal sealed class WhatsmeowHostedService(
 				continue;
 			}
 
-			// The sidecar's own client, the one the handlers are on, even when the application replaced the keyed registration.
-			await sidecar.Sessions.Client(session.Id).ConnectAsync(cancellationToken).ConfigureAwait(false);
+			ids.Add(session.Id);
 		}
+
+		await sidecar.Sessions.ConnectAsync(ids, cancellationToken).ConfigureAwait(false);
 	}
 
 	private static string Name(SessionState state) =>

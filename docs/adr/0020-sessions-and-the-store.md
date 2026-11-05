@@ -27,7 +27,7 @@ ARCHITECTURE §7.4 left the single-owner mechanism open ("a lock file or lease r
 - **The database file** is created 0600 before SQLite opens it; the `-wal` file inherits that mode [observed: `TestOpenCreatesTheDatabaseOwnerOnly`].
   The connection string uses the plain path, not a `file:` URI, so a Windows path needs no escaping; a path with `?` is refused.
 - **`--database` is required**; the client always passes it. `WhatsmeowSidecarOptions.DatabasePath` defaults to `whatsmeow-net.db` in the current directory, made a full path in `WhatsmeowSidecarOptionsSetup.Apply`.
-- **One transition function.** Every state change, whatsmeow's events and the sidecar's own, goes through `session.(*Service).transition`; #8 records the outbox event inside it.
+- **One transition function.** Every state change, whatsmeow's events and the sidecar's own, goes through `session.(*Service).transitionAll` (`transition` is it for one session; [ADR 0053](0053-connect-sessions-in-one-call.md)); #8 records the outbox event inside it.
   Connect is `Connecting` while `ConnectContext` runs and returns after it with the session still `Connecting`; on `CONNECTION_FAILED` the session goes back to its previous state.
   If recording `Connecting` fails, the session goes back to its previous state at once, so a later Connect is not a no-op.
   Every transition is recorded even when the call that caused it was cancelled meanwhile (`context.WithoutCancel`), so a cancelled Connect never loses a stopping state across a restart.
@@ -39,8 +39,8 @@ ARCHITECTURE §7.4 left the single-owner mechanism open ("a lock file or lease r
   This widens the window for a false `CaughtUp`: an old connection's offline sync still being handled when the connection ends would be kept for the next login, which is then `CaughtUp` before its own offline sync. It only has to lose the race for the session's lock with the `Disconnected` goroutine (client.go:621), or come after a `Disconnect` and the next `Connect` (client.go:735-744, 958-961) [inferred: from the source]. Nothing in the sidecar waits on `CaughtUp` alone.
 - **A restart keeps the stopping states.** `LoggedOut`, `Replaced`, `Outdated`, `TempBanned` and `Error` are stored with their fields and come back as they were; a session that was `Connecting`, `Connected`, `CaughtUp`, `Reconnecting` or `Disconnected` comes back `Disconnected`, and a never-paired one `Created`.
   A session whose device rows are gone at load (whatsmeow deletes them concurrently with a server-side logout) loads as `LoggedOut{0}` with a warning.
-- **The .NET client reconnects** only the sessions the application connected (and did not disconnect, log out or delete since) that come back `Disconnected`, reading `ListSessions` after each relaunch. A stopped session is never reconnected on its own.
-  Logout and Delete forget a session only once they succeeded; each reconnect checks again that the application did not disconnect the session meanwhile.
+- **The .NET client reconnects** only the sessions the application connected (and did not disconnect, log out or delete since) that come back `Disconnected`, reading `ListSessions` after each relaunch, with one `ConnectSessions` call ([ADR 0053](0053-connect-sessions-in-one-call.md)). A stopped session is never reconnected on its own.
+  Logout and Delete forget a session only once they succeeded; the reconnect checks again that the application did not disconnect a session meanwhile.
 - **Delete** disconnects, then deletes the device rows by the JID the session recorded, never by the device's own fields, which whatsmeow writes on its own goroutine on a server-side logout (store.go:286-297).
 - **Shutdown** ends the connections' context first, which ends a connect in flight, then disconnects each session.
 - **A watch survives a restart**: when the sidecar cannot be reached, `WatchStateAsync` waits for the next launch and reopens, so the restarted sidecar's current state comes first.

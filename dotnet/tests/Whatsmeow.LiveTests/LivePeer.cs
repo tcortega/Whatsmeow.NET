@@ -80,7 +80,7 @@ public sealed class LivePeer : IAsyncLifetime
 				? Directory.CreateDirectory(directory)
 				: Directory.CreateDirectory(directory, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
 			if (File.Exists(LiveSettings.PeerDatabase))
-				_log.Write($"live: backed up the peer database as {Path.GetFileName(StoreBackup.Take(LiveSettings.PeerDatabase, LiveSettings.BackupDirectory, "peer", LiveClock.Time.GetUtcNow()))}");
+				_log.Write(LiveClock.Stamp($"live: backed up the peer database as {Path.GetFileName(StoreBackup.Take(LiveSettings.PeerDatabase, LiveSettings.BackupDirectory, "peer", LiveClock.Time.GetUtcNow()))}"));
 
 			var options = new WhatsmeowSidecarOptions { SidecarPath = binary, DatabasePath = LiveSettings.PeerDatabase };
 			_sidecar = await WhatsmeowSidecar.StartAsync(options, _log.Capture.Factory, cancellationToken).ConfigureAwait(false);

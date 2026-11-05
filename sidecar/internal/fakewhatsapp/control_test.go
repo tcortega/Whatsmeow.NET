@@ -4,6 +4,8 @@ package fakewhatsapp
 
 import (
 	"context"
+	"crypto/rand"
+	"database/sql"
 	"net"
 	"runtime"
 	"strings"
@@ -13,13 +15,18 @@ import (
 	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/proto/waE2E"
+	"go.mau.fi/whatsmeow/store/sqlstore"
 	"go.mau.fi/whatsmeow/types/events"
+	waLog "go.mau.fi/whatsmeow/util/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/test/bufconn"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	// The SQLite driver the sidecar's store uses, registered as "sqlite".
+	_ "modernc.org/sqlite"
 
 	fakev1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/fake/v1"
 	sidecarlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
@@ -39,11 +46,12 @@ var (
 	_ eventSource = (*Client)(nil)
 )
 
-// start serves the control service on the real server (token check, error mapping) over an in-memory listener.
-func start(t *testing.T) (*WhatsApp, fakev1.FakeWhatsAppServiceClient, context.Context) {
+// start serves the control service of a fake with options on the real server (token check, error mapping) over an
+// in-memory listener.
+func start(t *testing.T, options ...Option) (*WhatsApp, fakev1.FakeWhatsAppServiceClient, context.Context) {
 	t.Helper()
 
-	whatsApp := New(zerolog.Nop())
+	whatsApp := New(zerolog.Nop(), options...)
 	srv := server.New(token, zerolog.Nop(), sidecarlog.NewRedactor())
 	fakev1.RegisterFakeWhatsAppServiceServer(srv, NewControl(whatsApp))
 
@@ -74,6 +82,39 @@ func start(t *testing.T) (*WhatsApp, fakev1.FakeWhatsAppServiceClient, context.C
 	t.Cleanup(cancel)
 
 	return whatsApp, fakev1.NewFakeWhatsAppServiceClient(conn), metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+}
+
+// deviceStore is whatsmeow's device store, the only store the fake writes, in SQLite's memdb VFS: real SQLite and
+// whatsmeow's own store code, in memory, private to the test, with no file to create or flush. On a loaded win-x64
+// runner a store file's creation and flushes took up to 25.6 s of a test's 30 s bound (#93); internal/store tests the
+// file.
+type deviceStore struct {
+	DB      *sql.DB
+	Devices *sqlstore.Container
+}
+
+// openDeviceStore opens a deviceStore with the sidecar's pragmas but WAL, which memdb has not, and closes it once the
+// fake's work in the background is done.
+func openDeviceStore(t *testing.T, whatsApp *WhatsApp) *deviceStore {
+	t.Helper()
+
+	// memdb shares a database by its name while one of its connections is open; the random name keeps it to the test.
+	db, err := sql.Open("sqlite", "file:/"+rand.Text()+"?vfs=memdb&_pragma=foreign_keys(1)&_pragma=busy_timeout(30000)&_txlock=immediate")
+	if err != nil {
+		t.Fatalf("open the store: %v", err)
+	}
+
+	t.Cleanup(func() {
+		whatsApp.Wait()
+		_ = db.Close()
+	})
+
+	devices := sqlstore.NewWithDB(db, "sqlite", waLog.Noop)
+	if err := devices.Upgrade(context.Background()); err != nil {
+		t.Fatalf("upgrade the store: %v", err)
+	}
+
+	return &deviceStore{DB: db, Devices: devices}
 }
 
 // receipt is what whatsmeow sends for a message from someone else once its handlers succeeded: a receipt of type

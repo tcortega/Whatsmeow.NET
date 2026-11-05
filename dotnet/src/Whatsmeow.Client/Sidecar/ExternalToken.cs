@@ -17,7 +17,8 @@ internal static class ExternalToken
 		string content;
 		try
 		{
-			content = File.ReadAllText(path);
+			using var reader = new StreamReader(Open(path));
+			content = reader.ReadToEnd();
 		}
 		catch (Exception e) when (e is IOException or UnauthorizedAccessException)
 		{
@@ -32,4 +33,10 @@ internal static class ExternalToken
 
 		return token;
 	}
+
+	/// <summary>
+	/// Opens the file sharing write and delete, so an orchestrator can rename a new token over it while it is read, on
+	/// Windows too (docs/guides/external-mode.md).
+	/// </summary>
+	internal static FileStream Open(string path) => new(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
 }

@@ -1084,7 +1084,8 @@ public interface IWhatsAppClient
 
 	/// <summary>
 	/// Reads the group of an invite link, as WhatsApp shows it to someone who is not a member, without joining it.
-	/// Which participants WhatsApp lists for a non-member, and in which address form, is unknown.
+	/// Which participants WhatsApp lists for a non-member, and in which address form, is unknown. WhatsApp sends no
+	/// <see cref="GroupInfo.MemberAddMode"/> with it, so that is null.
 	/// </summary>
 	/// <param name="link">The link or its code, as for <see cref="JoinGroupWithLinkAsync"/>.</param>
 	/// <param name="cancellationToken">Cancels the call.</param>

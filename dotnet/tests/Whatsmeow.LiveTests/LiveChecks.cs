@@ -1,0 +1,161 @@
+using Whatsmeow.Events;
+using Whatsmeow.Groups;
+using Whatsmeow.IntegrationTests.Messaging;
+using Xunit.Sdk;
+
+namespace Whatsmeow.LiveTests;
+
+/// <summary>
+/// What a live test does around the fake-mode checks: it waits, bounded, for what the other account gets, checks that
+/// WhatsApp named the sender as one of its forms, and passes the fields WhatsApp sets to the shared checks (for a
+/// message, <see cref="MessageChecks.Received"/>), so the rest is compared whole, as in fake mode.
+/// </summary>
+internal static class LiveChecks
+{
+	/// <summary>How long a test waits for what WhatsApp delivers to the other account.</summary>
+	public static readonly TimeSpan Watch = TimeSpan.FromSeconds(60);
+
+	/// <summary>
+	/// How far before a test's start an event WhatsApp timed may be and still be the test's: its times are whole seconds,
+	/// and WhatsApp's clock and this one may differ by a little [inferred: no live run measured the skew].
+	/// </summary>
+	private static readonly TimeSpan s_skew = TimeSpan.FromSeconds(5);
+
+	/// <summary>
+	/// The earliest time an event WhatsApp timed can have and be this test's, not a late one from a test before it: now,
+	/// less <see cref="s_skew"/>. Take it before the test's first change.
+	/// </summary>
+	public static DateTimeOffset Since() => LiveClock.Time.GetUtcNow() - s_skew;
+
+	/// <summary>
+	/// Whether an event WhatsApp timed <paramref name="at"/> may be the test's that took <paramref name="since"/>
+	/// (<see cref="Since"/>): one with no time (the Unix epoch, as the client maps it) cannot be dated, so it is kept.
+	/// </summary>
+	public static bool IsSince(DateTimeOffset since, DateTimeOffset at) => at >= since || at == DateTimeOffset.UnixEpoch;
+
+	/// <summary>Whether <paramref name="jid"/> names <paramref name="account"/>'s user, by its phone number or its LID, on any device.</summary>
+	public static bool Names((Jid Chat, Jid? Lid) account, Jid jid) => (jid with { Device = 0 }) == account.Chat || (jid with { Device = 0 }) == account.Lid;
+
+	/// <summary>The address form of <paramref name="jid"/>, for the log: the log redacts the user.</summary>
+	public static string Form(Jid? jid) =>
+		jid switch
+		{
+			null => "none",
+			{ IsLid: true } => "LID",
+			{ IsPhoneNumber: true } => "phone number",
+			{ } other => other.Server,
+		};
+
+	/// <summary>The message with <paramref name="id"/> that <paramref name="receiver"/> gets next; call it before the send.</summary>
+	public static Task<MessageReceived> ArrivalAsync(IWhatsAppClient receiver, MessageId id, CancellationToken cancellationToken) =>
+		receiver.WaitForAsync<MessageReceived>(m => m.Id == id, Watch, cancellationToken);
+
+	/// <summary>
+	/// What <paramref name="wait"/> got, or a failure naming <paramref name="what"/> did not come within its bound. The
+	/// failure is redacted, but name what was awaited, never its text: a mention's text holds a number.
+	/// </summary>
+	public static async Task<T> WithinAsync<T>(Task<T> wait, string what)
+	{
+		try
+		{
+			return await wait.ConfigureAwait(false);
+		}
+		catch (TimeoutException)
+		{
+			Assert.Fail(LiveRedaction.Redact($"{what} did not come within {Watch.TotalSeconds:F0} s"));
+			throw;
+		}
+	}
+
+	/// <summary>What <paramref name="wait"/> got, or null when it did not come within its bound: for what is recorded, not checked.</summary>
+	public static async Task<T?> OrNullAsync<T>(Task<T> wait)
+		where T : class
+	{
+		try
+		{
+			return await wait.ConfigureAwait(false);
+		}
+		catch (TimeoutException)
+		{
+			return null;
+		}
+	}
+
+	/// <summary>
+	/// The message <paramref name="receiver"/> must have got (<see cref="MessageChecks.Received"/>), from
+	/// <paramref name="sender"/>, with <paramref name="content"/>: it checks the source names the sender, not the
+	/// receiver, and the chat is <paramref name="group"/>, or in a direct message the sender's, then takes the source,
+	/// the push name and the time from <paramref name="got"/>, which WhatsApp set.
+	/// </summary>
+	public static MessageReceived Received(IWhatsAppClient receiver, MessageReceived got, (Jid Chat, Jid? Lid) sender, MessageId id, MessageContent content, Jid? group = null)
+	{
+		Assert.False(got.Source.IsFromMe, $"message {id} came as the receiver's own");
+		Assert.True(Names(sender, got.Source.Sender), $"message {id} came from a {Form(got.Source.Sender)} that is not the sender's");
+		Assert.True(
+			group is { } g ? got.Source.Chat == g : Names(sender, got.Source.Chat),
+			$"message {id} came in a {Form(got.Source.Chat)} chat that is not {(group is null ? "the sender's" : "the group")}"
+		);
+		return MessageChecks.Received(receiver.SessionId, id, got.Source, got.PushName, got.Timestamp, content);
+	}
+
+	/// <summary>
+	/// <see cref="Assert.Equal{T}(T, T)"/>, its failure redacted (<see cref="LiveRedaction"/>): a record prints its JIDs,
+	/// and a live test's are real phone numbers.
+	/// </summary>
+	public static void Equal<T>(T expected, T actual) => Redacting(() => Assert.Equal(expected, actual));
+
+	/// <summary>
+	/// <see cref="Equal{T}(T, T)"/> for a group, whose record prints its participants as a type name: a failure lists
+	/// each member that differs, the participants one per line, redacted.
+	/// </summary>
+	public static void Equal(GroupInfo expected, GroupInfo actual)
+	{
+		if (expected.Equals(actual))
+			return;
+
+		var differences = new List<string>();
+		void Compare<TMember>(string name, TMember want, TMember got)
+		{
+			if (!EqualityComparer<TMember>.Default.Equals(want, got))
+				differences.Add($"{name}: expected {want?.ToString() ?? "null"}, actual {got?.ToString() ?? "null"}");
+		}
+
+		Compare(nameof(GroupInfo.Jid), expected.Jid, actual.Jid);
+		Compare(nameof(GroupInfo.Name), expected.Name, actual.Name);
+		Compare(nameof(GroupInfo.Topic), expected.Topic, actual.Topic);
+		Compare(nameof(GroupInfo.Owner), expected.Owner, actual.Owner);
+		Compare(nameof(GroupInfo.OwnerAlt), expected.OwnerAlt, actual.OwnerAlt);
+		Compare(nameof(GroupInfo.CreatedAt), expected.CreatedAt, actual.CreatedAt);
+		Compare(nameof(GroupInfo.IsAnnounce), expected.IsAnnounce, actual.IsAnnounce);
+		Compare(nameof(GroupInfo.IsLocked), expected.IsLocked, actual.IsLocked);
+		Compare(nameof(GroupInfo.MemberAddMode), expected.MemberAddMode, actual.MemberAddMode);
+		if (!expected.Participants.SequenceEqual(actual.Participants))
+			differences.Add($"{nameof(GroupInfo.Participants)}:\n  expected:\n{Participants(expected)}\n  actual:\n{Participants(actual)}");
+
+		Assert.Fail(LiveRedaction.Redact($"The groups differ:\n{string.Join("\n", differences)}"));
+	}
+
+	private static string Participants(GroupInfo group) =>
+		group.Participants.IsEmpty ? "    none" : string.Join("\n", group.Participants.Select(p => $"    {p.Jid} ({p.JidAlt?.ToString() ?? "no alt"}) {p.Role}"));
+
+	/// <summary><see cref="Assert.Equal{T}(IEnumerable{T}, IEnumerable{T})"/>, its failure redacted.</summary>
+	public static void Equal<T>(IEnumerable<T> expected, IEnumerable<T> actual) => Redacting(() => Assert.Equal(expected, actual));
+
+	/// <summary>Runs a check, a shared one included, and fails with its message redacted.</summary>
+	public static void Redacting(Action check) => _ = Redacting(() => { check(); return true; });
+
+	/// <inheritdoc cref="Redacting(Action)"/>
+	public static T Redacting<T>(Func<T> check)
+	{
+		try
+		{
+			return check();
+		}
+		catch (XunitException e)
+		{
+#pragma warning disable MA0054 // Justification: the cause's message is the unredacted one; only its redacted text may reach the output.
+			throw new XunitException(LiveRedaction.Redact(e.Message));
+#pragma warning restore MA0054
+		}
+	}
+}
