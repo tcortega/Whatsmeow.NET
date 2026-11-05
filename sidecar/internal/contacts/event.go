@@ -43,6 +43,12 @@ func Event(_ string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) 
 		return "", nil, false
 	}
 
+	// whatsmeow reads a status notification's sender unchecked (notification.go:451-467), and names the account by its
+	// own JID in an account sync (notification.go:274-278): one the client cannot read is not recorded (#122).
+	if !server.ReadableJID(event.GetJid()) {
+		return "", nil, false
+	}
+
 	return "", &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_Contact{Contact: event}}, true
 }
 

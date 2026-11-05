@@ -257,14 +257,14 @@ func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, op
 	svc := sidecar.New(version, build, srv.Shutdown)
 	whatsmeowv1.RegisterSidecarServiceServer(srv, svc)
 
+	box := outbox.New(db.DB, db.Writer)
+
 	newClient, fail := session.NewWhatsmeowClient(log), failing(nil)
 	if opts.fake {
-		newClient, fail = serveFake(srv, log, opts.database)
+		newClient, fail = serveFake(srv, log, opts.database, box)
 	}
 
-	box := outbox.New(db.DB, db.Writer)
-	// Each slice that records whatsmeow events in the outbox passes its mapper (eventsslice.Mapper).
-	events := eventsslice.New(box, log, contacts.Event, chatstate.Event, groups.Event, media.Mapper(db.DB, db.Writer, log), messaging.Receipt) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
+	events := eventsslice.New(box, log, mappers(db, log)...) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)
 	whatsmeowv1.RegisterEventServiceServer(srv, events)
 
 	// Closed after the sessions: its recoveries end with their sessions' clients.
@@ -369,6 +369,12 @@ func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, op
 // failing wraps a session's Events handler so it fails as a failed outbox write would: the fake mode's
 // withhold_first_answer (fake_on.go). nil in a release build and outside fake mode.
 type failing func(sessionID string, h whatsmeow.EventHandlerWithSuccessStatus) whatsmeow.EventHandlerWithSuccessStatus
+
+// mappers is each slice's mapper that records whatsmeow events in the outbox (eventsslice.Mapper), in the order the
+// Events slice tries them. readable_test.go feeds each one what whatsmeow can dispatch (#122).
+func mappers(db *store.Store, log zerolog.Logger) []eventsslice.Mapper {
+	return []eventsslice.Mapper{contacts.Event, chatstate.Event, groups.Event, media.Mapper(db.DB, db.Writer, log), messaging.Receipt}
+}
 
 // recording gives every client the Events slice's handler, first, so each session's events go into the outbox
 // (ARCHITECTURE §7.3), then the Chat state slice's, which only signals its recovery, then the History slice's, which

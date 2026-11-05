@@ -136,6 +136,13 @@ func (svc *Service) toEvent(sessionID string, evt any, account *store.Device, vo
 		return key, event, true
 	}
 
+	// A message lost here is answered, so WhatsApp does not send it again: visible, as the client's skip of it was.
+	if field := unreadable(evt); field != "" {
+		svc.log.Warn().Str("session_id", sessionID).Str("field", field).Msgf("a %T the client cannot read is not recorded", evt)
+
+		return "", nil, false
+	}
+
 	for _, mapper := range svc.mappers {
 		if key, event, ok := mapper(sessionID, evt); ok {
 			return key, event, true

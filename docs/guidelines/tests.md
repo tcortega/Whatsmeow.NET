@@ -32,8 +32,9 @@ That is `tests/Whatsmeow.IntegrationTests`.
 Fixture-free methods live in `tests/Whatsmeow.IntegrationTests` because no sidecar path reaches what they check:
 
 * `Support/LogRedactionTests.cs`, the live log's redaction, which no live run can check for itself.
-* `Events/JidParseTests.cs`, `Jid.Parse` throwing without the text it refused (ADR 0039), and a JID the sidecar sent failing as `Internal` without it (ARCHITECTURE §8.7): the sidecar writes every JID with whatsmeow's `JID.String()`, and no form of it found at the pin fails the client's parse, so no known event or response reaches that failure with a text.
-  An empty JID does: the sidecar sends a group member without a server, and a message delivered with no chat, empty, which `Groups/GroupTests.cs` and `Events/EventTests.cs` use for the sidecar's side.
+* `Events/JidParseTests.cs`, `Jid.Parse` throwing without the text it refused (ADR 0039), and a JID the sidecar sent failing as `Internal` without it (ARCHITECTURE §8.7): the sidecar records no event with a JID the client cannot parse (#122), and no response found at the pin sends one with a text.
+  An empty JID does reach a response: `GetGroupInfo` sends a member without a server empty, which `Groups/GroupTests.cs` uses for the sidecar's side.
+  For an event, `Events/EventTests.cs` has the fake record a message with no chat as it is (`RecordEvent`), so the client's skip and ack show.
 
 Proto-to-record mapping and error mapping are covered through integration, not unit tests.
 Go keeps per-slice unit tests; see [go.md](go.md).

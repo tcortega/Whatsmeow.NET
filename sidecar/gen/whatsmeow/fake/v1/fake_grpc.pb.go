@@ -63,6 +63,7 @@ const (
 	FakeWhatsAppService_CompleteOfflineSync_FullMethodName         = "/whatsmeow.fake.v1.FakeWhatsAppService/CompleteOfflineSync"
 	FakeWhatsAppService_DeliverHistorySync_FullMethodName          = "/whatsmeow.fake.v1.FakeWhatsAppService/DeliverHistorySync"
 	FakeWhatsAppService_GetPairingDeviceProps_FullMethodName       = "/whatsmeow.fake.v1.FakeWhatsAppService/GetPairingDeviceProps"
+	FakeWhatsAppService_RecordEvent_FullMethodName                 = "/whatsmeow.fake.v1.FakeWhatsAppService/RecordEvent"
 )
 
 // FakeWhatsAppServiceClient is the client API for FakeWhatsAppService service.
@@ -280,6 +281,11 @@ type FakeWhatsAppServiceClient interface {
 	// store.DeviceProps as they were when the phone linked the device (LinkDevice), which whatsmeow sends only in the
 	// registration payload (store/clientpayload.go:174-183).
 	GetPairingDeviceProps(ctx context.Context, in *GetPairingDevicePropsRequest, opts ...grpc.CallOption) (*GetPairingDevicePropsResponse, error)
+	// RecordEvent records an event in the session's outbox as it is, under no key, past every slice's mapping, and
+	// returns once it is committed; the outbox gives it its seq. It is the one way to stream the client an event the
+	// sidecar never records, such as one the client cannot read, whose skip and ack are the client's own (ARCHITECTURE
+	// §8.7, #122). A session that does not exist is an error.
+	RecordEvent(ctx context.Context, in *RecordEventRequest, opts ...grpc.CallOption) (*RecordEventResponse, error)
 }
 
 type fakeWhatsAppServiceClient struct {
@@ -730,6 +736,16 @@ func (c *fakeWhatsAppServiceClient) GetPairingDeviceProps(ctx context.Context, i
 	return out, nil
 }
 
+func (c *fakeWhatsAppServiceClient) RecordEvent(ctx context.Context, in *RecordEventRequest, opts ...grpc.CallOption) (*RecordEventResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RecordEventResponse)
+	err := c.cc.Invoke(ctx, FakeWhatsAppService_RecordEvent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FakeWhatsAppServiceServer is the server API for FakeWhatsAppService service.
 // All implementations must embed UnimplementedFakeWhatsAppServiceServer
 // for forward compatibility.
@@ -945,6 +961,11 @@ type FakeWhatsAppServiceServer interface {
 	// store.DeviceProps as they were when the phone linked the device (LinkDevice), which whatsmeow sends only in the
 	// registration payload (store/clientpayload.go:174-183).
 	GetPairingDeviceProps(context.Context, *GetPairingDevicePropsRequest) (*GetPairingDevicePropsResponse, error)
+	// RecordEvent records an event in the session's outbox as it is, under no key, past every slice's mapping, and
+	// returns once it is committed; the outbox gives it its seq. It is the one way to stream the client an event the
+	// sidecar never records, such as one the client cannot read, whose skip and ack are the client's own (ARCHITECTURE
+	// §8.7, #122). A session that does not exist is an error.
+	RecordEvent(context.Context, *RecordEventRequest) (*RecordEventResponse, error)
 	mustEmbedUnimplementedFakeWhatsAppServiceServer()
 }
 
@@ -1086,6 +1107,9 @@ func (UnimplementedFakeWhatsAppServiceServer) DeliverHistorySync(context.Context
 }
 func (UnimplementedFakeWhatsAppServiceServer) GetPairingDeviceProps(context.Context, *GetPairingDevicePropsRequest) (*GetPairingDevicePropsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPairingDeviceProps not implemented")
+}
+func (UnimplementedFakeWhatsAppServiceServer) RecordEvent(context.Context, *RecordEventRequest) (*RecordEventResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RecordEvent not implemented")
 }
 func (UnimplementedFakeWhatsAppServiceServer) mustEmbedUnimplementedFakeWhatsAppServiceServer() {}
 func (UnimplementedFakeWhatsAppServiceServer) testEmbeddedByValue()                             {}
@@ -1900,6 +1924,24 @@ func _FakeWhatsAppService_GetPairingDeviceProps_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FakeWhatsAppService_RecordEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecordEventRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FakeWhatsAppServiceServer).RecordEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FakeWhatsAppService_RecordEvent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FakeWhatsAppServiceServer).RecordEvent(ctx, req.(*RecordEventRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FakeWhatsAppService_ServiceDesc is the grpc.ServiceDesc for FakeWhatsAppService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2082,6 +2124,10 @@ var FakeWhatsAppService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPairingDeviceProps",
 			Handler:    _FakeWhatsAppService_GetPairingDeviceProps_Handler,
+		},
+		{
+			MethodName: "RecordEvent",
+			Handler:    _FakeWhatsAppService_RecordEvent_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

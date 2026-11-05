@@ -89,6 +89,12 @@ func TestEachChatStateEventIsMappedUnkeyedAndOthersAreNot(t *testing.T) {
 				e.Change = &whatsmeowv1.ChatStateEvent_Star{Star: &whatsmeowv1.MessageStar{MessageId: "M2", IsFromMe: true}}
 			}),
 		},
+		// whatsmeow ignores the error when it parses a mutation's chat, and leaves it empty for an index without one
+		// (appstate.go:257-261), and takes a star's message id unchecked (appstate.go:331): the client reads neither (#122).
+		{"a chat that is the empty JID", &events.Pin{Timestamp: at, Action: &waSyncAction.PinAction{Pinned: proto.Bool(true)}}, nil},
+		{"a chat ParseJID failed on", &events.Archive{JID: types.JID{User: "1.2.3", Server: types.DefaultUserServer}, Timestamp: at}, nil},
+		{"a star of a chat that is the empty JID", &events.Star{MessageID: "M1", Timestamp: at}, nil},
+		{"a star without a message id", &events.Star{ChatJID: chat, Timestamp: at, Action: &waSyncAction.StarAction{Starred: proto.Bool(true)}}, nil},
 		{"another app state event", &events.Contact{JID: chat}, nil},
 		{"a sync error", &events.AppStateSyncError{Name: "regular_low"}, nil},
 	} {

@@ -288,6 +288,13 @@ func TestEveryWhatsmeowEventMapsToOneOutboxEventOrNone(t *testing.T) {
 		},
 		// Only a sender key: whatsmeow stored its effect, and the content comes as its own Message with the same info.
 		{senderKeyOnly("M1"), "", nil},
+		// A message the client cannot read: whatsmeow's ParseWebMessage, for a placeholder resend, takes the id
+		// unchecked and accepts an empty chat (client.go:1027-1039; message.go:874-880) (#122).
+		{&waevents.Message{Info: types.MessageInfo{MessageSource: source, Timestamp: at}, Message: content}, "", nil},
+		{&waevents.Message{Info: types.MessageInfo{MessageSource: types.MessageSource{Sender: source.Sender}, ID: "M1", Timestamp: at}, Message: content}, "", nil},
+		{&waevents.Message{Info: types.MessageInfo{MessageSource: types.MessageSource{Chat: source.Chat, Sender: types.JID{User: "a:b:c", Server: types.HiddenUserServer}}, ID: "M1"}, Message: content}, "", nil},
+		{&waevents.UndecryptableMessage{Info: types.MessageInfo{MessageSource: source, Timestamp: at}}, "", nil},
+		{&waevents.UndecryptableMessage{Info: types.MessageInfo{MessageSource: types.MessageSource{Chat: source.Chat}, ID: "M1"}}, "", nil},
 		// The session slice records connection events as transitions; receipts come with #9.
 		{&waevents.Connected{}, "", nil},
 		{&waevents.Disconnected{}, "", nil},

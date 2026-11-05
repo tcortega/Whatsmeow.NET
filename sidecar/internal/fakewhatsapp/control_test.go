@@ -46,11 +46,12 @@ var (
 	_ eventSource = (*Client)(nil)
 )
 
-// start serves the control service on the real server (token check, error mapping) over an in-memory listener.
-func start(t *testing.T) (*WhatsApp, fakev1.FakeWhatsAppServiceClient, context.Context) {
+// start serves the control service of a fake with options on the real server (token check, error mapping) over an
+// in-memory listener.
+func start(t *testing.T, options ...Option) (*WhatsApp, fakev1.FakeWhatsAppServiceClient, context.Context) {
 	t.Helper()
 
-	whatsApp := New(zerolog.Nop())
+	whatsApp := New(zerolog.Nop(), options...)
 	srv := server.New(token, zerolog.Nop(), sidecarlog.NewRedactor())
 	fakev1.RegisterFakeWhatsAppServiceServer(srv, NewControl(whatsApp))
 

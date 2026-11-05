@@ -259,6 +259,12 @@ service FakeWhatsAppService {
   // store.DeviceProps as they were when the phone linked the device (LinkDevice), which whatsmeow sends only in the
   // registration payload (store/clientpayload.go:174-183).
   rpc GetPairingDeviceProps(GetPairingDevicePropsRequest) returns (GetPairingDevicePropsResponse);
+
+  // RecordEvent records an event in the session's outbox as it is, under no key, past every slice's mapping, and
+  // returns once it is committed; the outbox gives it its seq. It is the one way to stream the client an event the
+  // sidecar never records, such as one the client cannot read, whose skip and ack are the client's own (ARCHITECTURE
+  // §8.7, #122). A session that does not exist is an error.
+  rpc RecordEvent(RecordEventRequest) returns (RecordEventResponse);
 }
 
 // FailNextUploadsRequest names the session and how many uploads fail.
@@ -1251,3 +1257,15 @@ message GetPairingDevicePropsResponse {
   // HistorySyncConfig.StorageQuotaMb; unset when not set.
   optional uint32 storage_quota_mb = 4;
 }
+
+// RecordEventRequest is the event and its session.
+message RecordEventRequest {
+  // The session whose outbox records it.
+  string session_id = 1;
+  // The event, a whatsmeow.v1.StreamEventsResponse in its wire form: whatsmeow.v1's C# types are Whatsmeow.Protocol's,
+  // and generating them again for the tests would make two of each. Its seq is the outbox's.
+  bytes event = 2;
+}
+
+// RecordEventResponse has no fields.
+message RecordEventResponse {}

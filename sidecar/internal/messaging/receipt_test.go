@@ -111,6 +111,23 @@ func TestAnEmptyMessageIdIsLeftOut(t *testing.T) {
 	}
 }
 
+// TestAReceiptFromAChatOrSenderTheClientCannotReadIsNotMapped: whatsmeow requires both (receipt.go:56-60, 67-90), but
+// the client reads neither empty or malformed, so the mapper checks them as every mapper does (#122).
+func TestAReceiptFromAChatOrSenderTheClientCannotReadIsNotMapped(t *testing.T) {
+	t.Parallel()
+
+	noChat := receiptEvent(types.ReceiptTypeRead, "M1")
+	noChat.Chat = types.EmptyJID
+	badSender := receiptEvent(types.ReceiptTypeRead, "M1")
+	badSender.Sender = types.JID{User: "a.b.c", Server: types.DefaultUserServer}
+
+	for _, evt := range []*waevents.Receipt{noChat, badSender} {
+		if _, got, ok := Receipt("s1", evt); ok {
+			t.Errorf("a receipt the client cannot read was mapped: %v", got)
+		}
+	}
+}
+
 func TestAReceiptCarriesTheSenderOfItsMessages(t *testing.T) {
 	t.Parallel()
 

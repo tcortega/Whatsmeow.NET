@@ -938,6 +938,33 @@ func TestEachGroupNotificationMapsToOneGroupEventAndOthersToNone(t *testing.T) {
 			}),
 			nil,
 		},
+		// A member the client cannot read is left out, a list left empty dropped, and a change left with nothing not
+		// recorded; whatsmeow keeps a created group's participant without a jid (group.go:718, 767, 804-806) (#122).
+		{
+			"members the client cannot read",
+			eventInfo(at, func(e *events.GroupInfo) {
+				e.Join = []types.JID{{User: "5511777000002"}, jid("777000002@lid")}
+				e.Leave = []types.JID{{}}
+				e.Promote = []types.JID{{User: "a.b.c", Server: types.HiddenUserServer}}
+			}),
+			changed(&whatsmeowv1.GroupChange{Change: &whatsmeowv1.GroupChange_Joined{Joined: participants("777000002@lid")}}),
+		},
+		{"only members the client cannot read", eventInfo(at, func(e *events.GroupInfo) { e.Demote = []types.JID{{}} }), nil},
+		{"a change of a group that is the empty JID", &events.GroupInfo{Name: &types.GroupName{Name: "Crew"}}, nil},
+		{
+			"the session joined a group with a participant the client cannot read",
+			joinedGroup(func() *types.GroupInfo {
+				info := lidGroup()
+				info.Participants = append([]types.GroupParticipant{{}}, info.Participants...)
+
+				return info
+			}()),
+			&whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_Group{Group: &whatsmeowv1.GroupEvent{
+				Group: group, Sender: "777000001@lid", SenderAlt: "5511777000001@s.whatsapp.net",
+				Kind: &whatsmeowv1.GroupEvent_Joined_{Joined: &whatsmeowv1.GroupEvent_Joined{Group: lidGroupProto()}},
+			}}},
+		},
+		{"the session joined a group that is the empty JID", &events.JoinedGroup{}, nil},
 		{"a picture is the Contacts slice's", &events.Picture{JID: jid(group), PictureID: "P1"}, nil},
 	} {
 		key, got, ok := Event("s1", tc.evt)

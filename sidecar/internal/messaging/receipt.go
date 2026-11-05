@@ -33,11 +33,17 @@ func Receipt(_ string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool
 		return "", nil, false
 	}
 
+	// whatsmeow requires both (receipt.go:56-60, 67-90); the client reads neither empty or malformed (#122).
+	chat, sender := server.Text(e.Chat.String()), server.Text(e.Sender.String())
+	if !server.ReadableJID(chat) || !server.ReadableJID(sender) {
+		return "", nil, false
+	}
+
 	return receiptKey(e, ids), &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_Receipt{
 		Receipt: &whatsmeowv1.ReceiptEvent{
 			Source: &whatsmeowv1.MessageSource{
-				Chat:         server.Text(e.Chat.String()),
-				Sender:       server.Text(e.Sender.String()),
+				Chat:         chat,
+				Sender:       sender,
 				SenderAlt:    server.Text(e.SenderAlt.String()),
 				RecipientAlt: server.Text(e.RecipientAlt.String()),
 				IsFromMe:     e.IsFromMe,

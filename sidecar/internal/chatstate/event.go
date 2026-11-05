@@ -43,6 +43,12 @@ func Event(_ string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) 
 		return "", nil, false
 	}
 
+	// whatsmeow ignores the error when it parses a mutation's chat, which is empty for an index without one
+	// (appstate.go:257-261), and takes a star's message id unchecked (appstate.go:331): the client reads neither (#122).
+	if !server.ReadableJID(event.GetChat()) || (event.GetStar() != nil && event.GetStar().GetMessageId() == "") {
+		return "", nil, false
+	}
+
 	return "", &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_ChatState{ChatState: event}}, true
 }
 

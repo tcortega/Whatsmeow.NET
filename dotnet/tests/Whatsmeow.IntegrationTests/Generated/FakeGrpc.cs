@@ -228,6 +228,10 @@ namespace Whatsmeow.IntegrationTests.Fake {
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsRequest> __Marshaller_whatsmeow_fake_v1_GetPairingDevicePropsRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsResponse> __Marshaller_whatsmeow_fake_v1_GetPairingDevicePropsResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.RecordEventRequest> __Marshaller_whatsmeow_fake_v1_RecordEventRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.RecordEventRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.IntegrationTests.Fake.RecordEventResponse> __Marshaller_whatsmeow_fake_v1_RecordEventResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.IntegrationTests.Fake.RecordEventResponse.Parser));
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse> __Method_DeliverMessage = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.DeliverMessageRequest, global::Whatsmeow.IntegrationTests.Fake.DeliverMessageResponse>(
@@ -580,6 +584,14 @@ namespace Whatsmeow.IntegrationTests.Fake {
         "GetPairingDeviceProps",
         __Marshaller_whatsmeow_fake_v1_GetPairingDevicePropsRequest,
         __Marshaller_whatsmeow_fake_v1_GetPairingDevicePropsResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.IntegrationTests.Fake.RecordEventRequest, global::Whatsmeow.IntegrationTests.Fake.RecordEventResponse> __Method_RecordEvent = new grpc::Method<global::Whatsmeow.IntegrationTests.Fake.RecordEventRequest, global::Whatsmeow.IntegrationTests.Fake.RecordEventResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "RecordEvent",
+        __Marshaller_whatsmeow_fake_v1_RecordEventRequest,
+        __Marshaller_whatsmeow_fake_v1_RecordEventResponse);
 
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
@@ -3193,6 +3205,66 @@ namespace Whatsmeow.IntegrationTests.Fake {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsResponse> GetPairingDevicePropsAsync(global::Whatsmeow.IntegrationTests.Fake.GetPairingDevicePropsRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_GetPairingDeviceProps, null, options, request);
+      }
+      /// <summary>
+      /// RecordEvent records an event in the session's outbox as it is, under no key, past every slice's mapping, and
+      /// returns once it is committed; the outbox gives it its seq. It is the one way to stream the client an event the
+      /// sidecar never records, such as one the client cannot read, whose skip and ack are the client's own (ARCHITECTURE
+      /// §8.7, #122). A session that does not exist is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.RecordEventResponse RecordEvent(global::Whatsmeow.IntegrationTests.Fake.RecordEventRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return RecordEvent(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// RecordEvent records an event in the session's outbox as it is, under no key, past every slice's mapping, and
+      /// returns once it is committed; the outbox gives it its seq. It is the one way to stream the client an event the
+      /// sidecar never records, such as one the client cannot read, whose skip and ack are the client's own (ARCHITECTURE
+      /// §8.7, #122). A session that does not exist is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.IntegrationTests.Fake.RecordEventResponse RecordEvent(global::Whatsmeow.IntegrationTests.Fake.RecordEventRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_RecordEvent, null, options, request);
+      }
+      /// <summary>
+      /// RecordEvent records an event in the session's outbox as it is, under no key, past every slice's mapping, and
+      /// returns once it is committed; the outbox gives it its seq. It is the one way to stream the client an event the
+      /// sidecar never records, such as one the client cannot read, whose skip and ack are the client's own (ARCHITECTURE
+      /// §8.7, #122). A session that does not exist is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.RecordEventResponse> RecordEventAsync(global::Whatsmeow.IntegrationTests.Fake.RecordEventRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return RecordEventAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// RecordEvent records an event in the session's outbox as it is, under no key, past every slice's mapping, and
+      /// returns once it is committed; the outbox gives it its seq. It is the one way to stream the client an event the
+      /// sidecar never records, such as one the client cannot read, whose skip and ack are the client's own (ARCHITECTURE
+      /// §8.7, #122). A session that does not exist is an error.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.IntegrationTests.Fake.RecordEventResponse> RecordEventAsync(global::Whatsmeow.IntegrationTests.Fake.RecordEventRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_RecordEvent, null, options, request);
       }
       /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]

@@ -14,5 +14,7 @@
 		<InternalsVisibleTo Include="Whatsmeow.Client" />
 		<!-- The lane test builds a sample of every event payload, to check its lane is the proto field's (ADR 0036). -->
 		<InternalsVisibleTo Include="Whatsmeow.Client.Tests" />
+		<!-- The fake's RecordEvent takes an event in its wire form, which a test builds: one the sidecar never records (#122). -->
+		<InternalsVisibleTo Include="Whatsmeow.IntegrationTests" />
 	</ItemGroup>
 </Project>

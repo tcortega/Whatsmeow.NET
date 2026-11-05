@@ -6249,6 +6249,99 @@ func (x *GetPairingDevicePropsResponse) GetStorageQuotaMb() uint32 {
 	return 0
 }
 
+// RecordEventRequest is the event and its session.
+type RecordEventRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The session whose outbox records it.
+	SessionId string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// The event, a whatsmeow.v1.StreamEventsResponse in its wire form: whatsmeow.v1's C# types are Whatsmeow.Protocol's,
+	// and generating them again for the tests would make two of each. Its seq is the outbox's.
+	Event         []byte `protobuf:"bytes,2,opt,name=event,proto3" json:"event,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RecordEventRequest) Reset() {
+	*x = RecordEventRequest{}
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[104]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RecordEventRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RecordEventRequest) ProtoMessage() {}
+
+func (x *RecordEventRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[104]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RecordEventRequest.ProtoReflect.Descriptor instead.
+func (*RecordEventRequest) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{104}
+}
+
+func (x *RecordEventRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *RecordEventRequest) GetEvent() []byte {
+	if x != nil {
+		return x.Event
+	}
+	return nil
+}
+
+// RecordEventResponse has no fields.
+type RecordEventResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RecordEventResponse) Reset() {
+	*x = RecordEventResponse{}
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[105]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RecordEventResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RecordEventResponse) ProtoMessage() {}
+
+func (x *RecordEventResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[105]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RecordEventResponse.ProtoReflect.Descriptor instead.
+func (*RecordEventResponse) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{105}
+}
+
 // events.LoggedOut.
 type RaisePermanentDisconnectRequest_LoggedOut struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -6260,7 +6353,7 @@ type RaisePermanentDisconnectRequest_LoggedOut struct {
 
 func (x *RaisePermanentDisconnectRequest_LoggedOut) Reset() {
 	*x = RaisePermanentDisconnectRequest_LoggedOut{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[104]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[106]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6272,7 +6365,7 @@ func (x *RaisePermanentDisconnectRequest_LoggedOut) String() string {
 func (*RaisePermanentDisconnectRequest_LoggedOut) ProtoMessage() {}
 
 func (x *RaisePermanentDisconnectRequest_LoggedOut) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[104]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[106]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6304,7 +6397,7 @@ type RaisePermanentDisconnectRequest_StreamReplaced struct {
 
 func (x *RaisePermanentDisconnectRequest_StreamReplaced) Reset() {
 	*x = RaisePermanentDisconnectRequest_StreamReplaced{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[105]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[107]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6316,7 +6409,7 @@ func (x *RaisePermanentDisconnectRequest_StreamReplaced) String() string {
 func (*RaisePermanentDisconnectRequest_StreamReplaced) ProtoMessage() {}
 
 func (x *RaisePermanentDisconnectRequest_StreamReplaced) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[105]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[107]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6341,7 +6434,7 @@ type RaisePermanentDisconnectRequest_ClientOutdated struct {
 
 func (x *RaisePermanentDisconnectRequest_ClientOutdated) Reset() {
 	*x = RaisePermanentDisconnectRequest_ClientOutdated{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[106]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[108]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6353,7 +6446,7 @@ func (x *RaisePermanentDisconnectRequest_ClientOutdated) String() string {
 func (*RaisePermanentDisconnectRequest_ClientOutdated) ProtoMessage() {}
 
 func (x *RaisePermanentDisconnectRequest_ClientOutdated) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[106]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[108]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6380,7 +6473,7 @@ type RaisePermanentDisconnectRequest_CatRefreshError struct {
 
 func (x *RaisePermanentDisconnectRequest_CatRefreshError) Reset() {
 	*x = RaisePermanentDisconnectRequest_CatRefreshError{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[107]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[109]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6392,7 +6485,7 @@ func (x *RaisePermanentDisconnectRequest_CatRefreshError) String() string {
 func (*RaisePermanentDisconnectRequest_CatRefreshError) ProtoMessage() {}
 
 func (x *RaisePermanentDisconnectRequest_CatRefreshError) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[107]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[109]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6428,7 +6521,7 @@ type RaisePermanentDisconnectRequest_TemporaryBan struct {
 
 func (x *RaisePermanentDisconnectRequest_TemporaryBan) Reset() {
 	*x = RaisePermanentDisconnectRequest_TemporaryBan{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[108]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[110]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6440,7 +6533,7 @@ func (x *RaisePermanentDisconnectRequest_TemporaryBan) String() string {
 func (*RaisePermanentDisconnectRequest_TemporaryBan) ProtoMessage() {}
 
 func (x *RaisePermanentDisconnectRequest_TemporaryBan) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[108]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[110]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6483,7 +6576,7 @@ type RaisePermanentDisconnectRequest_ConnectFailure struct {
 
 func (x *RaisePermanentDisconnectRequest_ConnectFailure) Reset() {
 	*x = RaisePermanentDisconnectRequest_ConnectFailure{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[109]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[111]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6495,7 +6588,7 @@ func (x *RaisePermanentDisconnectRequest_ConnectFailure) String() string {
 func (*RaisePermanentDisconnectRequest_ConnectFailure) ProtoMessage() {}
 
 func (x *RaisePermanentDisconnectRequest_ConnectFailure) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[109]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[111]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6538,7 +6631,7 @@ type SetProfilePictureRequest_Picture struct {
 
 func (x *SetProfilePictureRequest_Picture) Reset() {
 	*x = SetProfilePictureRequest_Picture{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[110]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[112]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6550,7 +6643,7 @@ func (x *SetProfilePictureRequest_Picture) String() string {
 func (*SetProfilePictureRequest_Picture) ProtoMessage() {}
 
 func (x *SetProfilePictureRequest_Picture) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[110]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[112]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6589,7 +6682,7 @@ type SetProfilePictureRequest_Hidden struct {
 
 func (x *SetProfilePictureRequest_Hidden) Reset() {
 	*x = SetProfilePictureRequest_Hidden{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[111]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[113]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6601,7 +6694,7 @@ func (x *SetProfilePictureRequest_Hidden) String() string {
 func (*SetProfilePictureRequest_Hidden) ProtoMessage() {}
 
 func (x *SetProfilePictureRequest_Hidden) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[111]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[113]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6632,7 +6725,7 @@ type DeliverContactNotificationRequest_Picture struct {
 
 func (x *DeliverContactNotificationRequest_Picture) Reset() {
 	*x = DeliverContactNotificationRequest_Picture{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[112]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[114]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6644,7 +6737,7 @@ func (x *DeliverContactNotificationRequest_Picture) String() string {
 func (*DeliverContactNotificationRequest_Picture) ProtoMessage() {}
 
 func (x *DeliverContactNotificationRequest_Picture) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[112]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[114]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6694,7 +6787,7 @@ type DeliverContactNotificationRequest_About struct {
 
 func (x *DeliverContactNotificationRequest_About) Reset() {
 	*x = DeliverContactNotificationRequest_About{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[113]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[115]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6706,7 +6799,7 @@ func (x *DeliverContactNotificationRequest_About) String() string {
 func (*DeliverContactNotificationRequest_About) ProtoMessage() {}
 
 func (x *DeliverContactNotificationRequest_About) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[113]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[115]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6749,7 +6842,7 @@ type AddGroupRequest_Member struct {
 
 func (x *AddGroupRequest_Member) Reset() {
 	*x = AddGroupRequest_Member{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[114]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[116]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6761,7 +6854,7 @@ func (x *AddGroupRequest_Member) String() string {
 func (*AddGroupRequest_Member) ProtoMessage() {}
 
 func (x *AddGroupRequest_Member) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[114]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[116]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6804,7 +6897,7 @@ type PhoneChatChange_Mute struct {
 
 func (x *PhoneChatChange_Mute) Reset() {
 	*x = PhoneChatChange_Mute{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[115]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[117]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6816,7 +6909,7 @@ func (x *PhoneChatChange_Mute) String() string {
 func (*PhoneChatChange_Mute) ProtoMessage() {}
 
 func (x *PhoneChatChange_Mute) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[115]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[117]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6863,7 +6956,7 @@ type PhoneChatChange_Star struct {
 
 func (x *PhoneChatChange_Star) Reset() {
 	*x = PhoneChatChange_Star{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[116]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[118]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6875,7 +6968,7 @@ func (x *PhoneChatChange_Star) String() string {
 func (*PhoneChatChange_Star) ProtoMessage() {}
 
 func (x *PhoneChatChange_Star) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[116]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[118]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6934,7 +7027,7 @@ type GetPhoneChatStateResponse_StarredMessage struct {
 
 func (x *GetPhoneChatStateResponse_StarredMessage) Reset() {
 	*x = GetPhoneChatStateResponse_StarredMessage{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[117]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[119]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6946,7 +7039,7 @@ func (x *GetPhoneChatStateResponse_StarredMessage) String() string {
 func (*GetPhoneChatStateResponse_StarredMessage) ProtoMessage() {}
 
 func (x *GetPhoneChatStateResponse_StarredMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[117]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[119]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6996,7 +7089,7 @@ type DeliverHistorySyncRequest_Conversation struct {
 
 func (x *DeliverHistorySyncRequest_Conversation) Reset() {
 	*x = DeliverHistorySyncRequest_Conversation{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[118]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[120]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7008,7 +7101,7 @@ func (x *DeliverHistorySyncRequest_Conversation) String() string {
 func (*DeliverHistorySyncRequest_Conversation) ProtoMessage() {}
 
 func (x *DeliverHistorySyncRequest_Conversation) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[118]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[120]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7066,7 +7159,7 @@ type DeliverHistorySyncRequest_Message struct {
 
 func (x *DeliverHistorySyncRequest_Message) Reset() {
 	*x = DeliverHistorySyncRequest_Message{}
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[119]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[121]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7078,7 +7171,7 @@ func (x *DeliverHistorySyncRequest_Message) String() string {
 func (*DeliverHistorySyncRequest_Message) ProtoMessage() {}
 
 func (x *DeliverHistorySyncRequest_Message) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[119]
+	mi := &file_whatsmeow_fake_v1_fake_proto_msgTypes[121]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7636,7 +7729,12 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"\x10storage_quota_mb\x18\x04 \x01(\rH\x02R\x0estorageQuotaMb\x88\x01\x01B\x17\n" +
 	"\x15_full_sync_days_limitB\x1a\n" +
 	"\x18_full_sync_size_mb_limitB\x13\n" +
-	"\x11_storage_quota_mb2\x8d%\n" +
+	"\x11_storage_quota_mb\"I\n" +
+	"\x12RecordEventRequest\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
+	"\x05event\x18\x02 \x01(\fR\x05event\"\x15\n" +
+	"\x13RecordEventResponse2\xeb%\n" +
 	"\x13FakeWhatsAppService\x12e\n" +
 	"\x0eDeliverMessage\x12(.whatsmeow.fake.v1.DeliverMessageRequest\x1a).whatsmeow.fake.v1.DeliverMessageResponse\x12h\n" +
 	"\x0fDeliverPollVote\x12).whatsmeow.fake.v1.DeliverPollVoteRequest\x1a*.whatsmeow.fake.v1.DeliverPollVoteResponse\x12\x8c\x01\n" +
@@ -7682,7 +7780,8 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"\fHoldFullSync\x12&.whatsmeow.fake.v1.HoldFullSyncRequest\x1a'.whatsmeow.fake.v1.HoldFullSyncResponse\x12t\n" +
 	"\x13CompleteOfflineSync\x12-.whatsmeow.fake.v1.CompleteOfflineSyncRequest\x1a..whatsmeow.fake.v1.CompleteOfflineSyncResponse\x12q\n" +
 	"\x12DeliverHistorySync\x12,.whatsmeow.fake.v1.DeliverHistorySyncRequest\x1a-.whatsmeow.fake.v1.DeliverHistorySyncResponse\x12z\n" +
-	"\x15GetPairingDeviceProps\x12/.whatsmeow.fake.v1.GetPairingDevicePropsRequest\x1a0.whatsmeow.fake.v1.GetPairingDevicePropsResponseB\xde\x01\n" +
+	"\x15GetPairingDeviceProps\x12/.whatsmeow.fake.v1.GetPairingDevicePropsRequest\x1a0.whatsmeow.fake.v1.GetPairingDevicePropsResponse\x12\\\n" +
+	"\vRecordEvent\x12%.whatsmeow.fake.v1.RecordEventRequest\x1a&.whatsmeow.fake.v1.RecordEventResponseB\xde\x01\n" +
 	"\x15com.whatsmeow.fake.v1B\tFakeProtoP\x01ZFgithub.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/fake/v1;fakev1\xa2\x02\x03WFX\xaa\x02\x1fWhatsmeow.IntegrationTests.Fake\xca\x02\x11Whatsmeow\\Fake\\V1\xe2\x02\x1dWhatsmeow\\Fake\\V1\\GPBMetadata\xea\x02\x13Whatsmeow::Fake::V1b\x06proto3"
 
 var (
@@ -7697,7 +7796,7 @@ func file_whatsmeow_fake_v1_fake_proto_rawDescGZIP() []byte {
 	return file_whatsmeow_fake_v1_fake_proto_rawDescData
 }
 
-var file_whatsmeow_fake_v1_fake_proto_msgTypes = make([]protoimpl.MessageInfo, 120)
+var file_whatsmeow_fake_v1_fake_proto_msgTypes = make([]protoimpl.MessageInfo, 122)
 var file_whatsmeow_fake_v1_fake_proto_goTypes = []any{
 	(*FailNextUploadsRequest)(nil),                          // 0: whatsmeow.fake.v1.FailNextUploadsRequest
 	(*FailNextUploadsResponse)(nil),                         // 1: whatsmeow.fake.v1.FailNextUploadsResponse
@@ -7803,39 +7902,41 @@ var file_whatsmeow_fake_v1_fake_proto_goTypes = []any{
 	(*DeliverHistorySyncResponse)(nil),                      // 101: whatsmeow.fake.v1.DeliverHistorySyncResponse
 	(*GetPairingDevicePropsRequest)(nil),                    // 102: whatsmeow.fake.v1.GetPairingDevicePropsRequest
 	(*GetPairingDevicePropsResponse)(nil),                   // 103: whatsmeow.fake.v1.GetPairingDevicePropsResponse
-	(*RaisePermanentDisconnectRequest_LoggedOut)(nil),       // 104: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.LoggedOut
-	(*RaisePermanentDisconnectRequest_StreamReplaced)(nil),  // 105: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.StreamReplaced
-	(*RaisePermanentDisconnectRequest_ClientOutdated)(nil),  // 106: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ClientOutdated
-	(*RaisePermanentDisconnectRequest_CatRefreshError)(nil), // 107: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.CatRefreshError
-	(*RaisePermanentDisconnectRequest_TemporaryBan)(nil),    // 108: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.TemporaryBan
-	(*RaisePermanentDisconnectRequest_ConnectFailure)(nil),  // 109: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ConnectFailure
-	(*SetProfilePictureRequest_Picture)(nil),                // 110: whatsmeow.fake.v1.SetProfilePictureRequest.Picture
-	(*SetProfilePictureRequest_Hidden)(nil),                 // 111: whatsmeow.fake.v1.SetProfilePictureRequest.Hidden
-	(*DeliverContactNotificationRequest_Picture)(nil),       // 112: whatsmeow.fake.v1.DeliverContactNotificationRequest.Picture
-	(*DeliverContactNotificationRequest_About)(nil),         // 113: whatsmeow.fake.v1.DeliverContactNotificationRequest.About
-	(*AddGroupRequest_Member)(nil),                          // 114: whatsmeow.fake.v1.AddGroupRequest.Member
-	(*PhoneChatChange_Mute)(nil),                            // 115: whatsmeow.fake.v1.PhoneChatChange.Mute
-	(*PhoneChatChange_Star)(nil),                            // 116: whatsmeow.fake.v1.PhoneChatChange.Star
-	(*GetPhoneChatStateResponse_StarredMessage)(nil),        // 117: whatsmeow.fake.v1.GetPhoneChatStateResponse.StarredMessage
-	(*DeliverHistorySyncRequest_Conversation)(nil),          // 118: whatsmeow.fake.v1.DeliverHistorySyncRequest.Conversation
-	(*DeliverHistorySyncRequest_Message)(nil),               // 119: whatsmeow.fake.v1.DeliverHistorySyncRequest.Message
-	(*timestamppb.Timestamp)(nil),                           // 120: google.protobuf.Timestamp
-	(*waE2E.Message)(nil),                                   // 121: WAWebProtobufsE2E.Message
-	(*durationpb.Duration)(nil),                             // 122: google.protobuf.Duration
-	(*waWeb.PollUpdate)(nil),                                // 123: WAWebProtobufsWeb.PollUpdate
+	(*RecordEventRequest)(nil),                              // 104: whatsmeow.fake.v1.RecordEventRequest
+	(*RecordEventResponse)(nil),                             // 105: whatsmeow.fake.v1.RecordEventResponse
+	(*RaisePermanentDisconnectRequest_LoggedOut)(nil),       // 106: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.LoggedOut
+	(*RaisePermanentDisconnectRequest_StreamReplaced)(nil),  // 107: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.StreamReplaced
+	(*RaisePermanentDisconnectRequest_ClientOutdated)(nil),  // 108: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ClientOutdated
+	(*RaisePermanentDisconnectRequest_CatRefreshError)(nil), // 109: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.CatRefreshError
+	(*RaisePermanentDisconnectRequest_TemporaryBan)(nil),    // 110: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.TemporaryBan
+	(*RaisePermanentDisconnectRequest_ConnectFailure)(nil),  // 111: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ConnectFailure
+	(*SetProfilePictureRequest_Picture)(nil),                // 112: whatsmeow.fake.v1.SetProfilePictureRequest.Picture
+	(*SetProfilePictureRequest_Hidden)(nil),                 // 113: whatsmeow.fake.v1.SetProfilePictureRequest.Hidden
+	(*DeliverContactNotificationRequest_Picture)(nil),       // 114: whatsmeow.fake.v1.DeliverContactNotificationRequest.Picture
+	(*DeliverContactNotificationRequest_About)(nil),         // 115: whatsmeow.fake.v1.DeliverContactNotificationRequest.About
+	(*AddGroupRequest_Member)(nil),                          // 116: whatsmeow.fake.v1.AddGroupRequest.Member
+	(*PhoneChatChange_Mute)(nil),                            // 117: whatsmeow.fake.v1.PhoneChatChange.Mute
+	(*PhoneChatChange_Star)(nil),                            // 118: whatsmeow.fake.v1.PhoneChatChange.Star
+	(*GetPhoneChatStateResponse_StarredMessage)(nil),        // 119: whatsmeow.fake.v1.GetPhoneChatStateResponse.StarredMessage
+	(*DeliverHistorySyncRequest_Conversation)(nil),          // 120: whatsmeow.fake.v1.DeliverHistorySyncRequest.Conversation
+	(*DeliverHistorySyncRequest_Message)(nil),               // 121: whatsmeow.fake.v1.DeliverHistorySyncRequest.Message
+	(*timestamppb.Timestamp)(nil),                           // 122: google.protobuf.Timestamp
+	(*waE2E.Message)(nil),                                   // 123: WAWebProtobufsE2E.Message
+	(*durationpb.Duration)(nil),                             // 124: google.protobuf.Duration
+	(*waWeb.PollUpdate)(nil),                                // 125: WAWebProtobufsWeb.PollUpdate
 }
 var file_whatsmeow_fake_v1_fake_proto_depIdxs = []int32{
-	120, // 0: whatsmeow.fake.v1.AnswerMediaRetryRequest.answer_time:type_name -> google.protobuf.Timestamp
-	104, // 1: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.logged_out:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.LoggedOut
-	105, // 2: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.stream_replaced:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.StreamReplaced
-	106, // 3: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.client_outdated:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ClientOutdated
-	107, // 4: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.cat_refresh_error:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.CatRefreshError
-	108, // 5: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.temporary_ban:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.TemporaryBan
-	109, // 6: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.connect_failure:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ConnectFailure
-	120, // 7: whatsmeow.fake.v1.DeliverMessageRequest.message_time:type_name -> google.protobuf.Timestamp
-	121, // 8: whatsmeow.fake.v1.DeliverMessageRequest.message:type_name -> WAWebProtobufsE2E.Message
-	120, // 9: whatsmeow.fake.v1.DeliverPollVoteRequest.message_time:type_name -> google.protobuf.Timestamp
-	120, // 10: whatsmeow.fake.v1.DeliverUndecryptableMessageRequest.message_time:type_name -> google.protobuf.Timestamp
+	122, // 0: whatsmeow.fake.v1.AnswerMediaRetryRequest.answer_time:type_name -> google.protobuf.Timestamp
+	106, // 1: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.logged_out:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.LoggedOut
+	107, // 2: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.stream_replaced:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.StreamReplaced
+	108, // 3: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.client_outdated:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ClientOutdated
+	109, // 4: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.cat_refresh_error:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.CatRefreshError
+	110, // 5: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.temporary_ban:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.TemporaryBan
+	111, // 6: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.connect_failure:type_name -> whatsmeow.fake.v1.RaisePermanentDisconnectRequest.ConnectFailure
+	122, // 7: whatsmeow.fake.v1.DeliverMessageRequest.message_time:type_name -> google.protobuf.Timestamp
+	123, // 8: whatsmeow.fake.v1.DeliverMessageRequest.message:type_name -> WAWebProtobufsE2E.Message
+	122, // 9: whatsmeow.fake.v1.DeliverPollVoteRequest.message_time:type_name -> google.protobuf.Timestamp
+	122, // 10: whatsmeow.fake.v1.DeliverUndecryptableMessageRequest.message_time:type_name -> google.protobuf.Timestamp
 	36,  // 11: whatsmeow.fake.v1.WaitForSentResponse.sent:type_name -> whatsmeow.fake.v1.Sent
 	70,  // 12: whatsmeow.fake.v1.Sent.receipt:type_name -> whatsmeow.fake.v1.Receipt
 	68,  // 13: whatsmeow.fake.v1.Sent.disconnect:type_name -> whatsmeow.fake.v1.Disconnect
@@ -7851,31 +7952,31 @@ var file_whatsmeow_fake_v1_fake_proto_depIdxs = []int32{
 	53,  // 23: whatsmeow.fake.v1.Sent.ack:type_name -> whatsmeow.fake.v1.Ack
 	38,  // 24: whatsmeow.fake.v1.Sent.app_state_full_sync:type_name -> whatsmeow.fake.v1.AppStateFullSync
 	37,  // 25: whatsmeow.fake.v1.Sent.media_delete:type_name -> whatsmeow.fake.v1.MediaDelete
-	120, // 26: whatsmeow.fake.v1.DeliverPresenceRequest.last_seen:type_name -> google.protobuf.Timestamp
-	121, // 27: whatsmeow.fake.v1.SentMessage.message:type_name -> WAWebProtobufsE2E.Message
-	120, // 28: whatsmeow.fake.v1.SentMessage.message_time:type_name -> google.protobuf.Timestamp
-	120, // 29: whatsmeow.fake.v1.DeliverReceiptRequest.receipt_time:type_name -> google.protobuf.Timestamp
-	110, // 30: whatsmeow.fake.v1.SetProfilePictureRequest.set:type_name -> whatsmeow.fake.v1.SetProfilePictureRequest.Picture
-	111, // 31: whatsmeow.fake.v1.SetProfilePictureRequest.hidden:type_name -> whatsmeow.fake.v1.SetProfilePictureRequest.Hidden
-	112, // 32: whatsmeow.fake.v1.DeliverContactNotificationRequest.picture:type_name -> whatsmeow.fake.v1.DeliverContactNotificationRequest.Picture
-	113, // 33: whatsmeow.fake.v1.DeliverContactNotificationRequest.about:type_name -> whatsmeow.fake.v1.DeliverContactNotificationRequest.About
-	120, // 34: whatsmeow.fake.v1.AddGroupRequest.create_time:type_name -> google.protobuf.Timestamp
-	114, // 35: whatsmeow.fake.v1.AddGroupRequest.members:type_name -> whatsmeow.fake.v1.AddGroupRequest.Member
-	120, // 36: whatsmeow.fake.v1.DeliverGroupNotificationRequest.time:type_name -> google.protobuf.Timestamp
-	122, // 37: whatsmeow.fake.v1.DeliverGroupNotificationRequest.disappearing_timer:type_name -> google.protobuf.Duration
-	115, // 38: whatsmeow.fake.v1.PhoneChatChange.mute:type_name -> whatsmeow.fake.v1.PhoneChatChange.Mute
-	116, // 39: whatsmeow.fake.v1.PhoneChatChange.star:type_name -> whatsmeow.fake.v1.PhoneChatChange.Star
+	122, // 26: whatsmeow.fake.v1.DeliverPresenceRequest.last_seen:type_name -> google.protobuf.Timestamp
+	123, // 27: whatsmeow.fake.v1.SentMessage.message:type_name -> WAWebProtobufsE2E.Message
+	122, // 28: whatsmeow.fake.v1.SentMessage.message_time:type_name -> google.protobuf.Timestamp
+	122, // 29: whatsmeow.fake.v1.DeliverReceiptRequest.receipt_time:type_name -> google.protobuf.Timestamp
+	112, // 30: whatsmeow.fake.v1.SetProfilePictureRequest.set:type_name -> whatsmeow.fake.v1.SetProfilePictureRequest.Picture
+	113, // 31: whatsmeow.fake.v1.SetProfilePictureRequest.hidden:type_name -> whatsmeow.fake.v1.SetProfilePictureRequest.Hidden
+	114, // 32: whatsmeow.fake.v1.DeliverContactNotificationRequest.picture:type_name -> whatsmeow.fake.v1.DeliverContactNotificationRequest.Picture
+	115, // 33: whatsmeow.fake.v1.DeliverContactNotificationRequest.about:type_name -> whatsmeow.fake.v1.DeliverContactNotificationRequest.About
+	122, // 34: whatsmeow.fake.v1.AddGroupRequest.create_time:type_name -> google.protobuf.Timestamp
+	116, // 35: whatsmeow.fake.v1.AddGroupRequest.members:type_name -> whatsmeow.fake.v1.AddGroupRequest.Member
+	122, // 36: whatsmeow.fake.v1.DeliverGroupNotificationRequest.time:type_name -> google.protobuf.Timestamp
+	124, // 37: whatsmeow.fake.v1.DeliverGroupNotificationRequest.disappearing_timer:type_name -> google.protobuf.Duration
+	117, // 38: whatsmeow.fake.v1.PhoneChatChange.mute:type_name -> whatsmeow.fake.v1.PhoneChatChange.Mute
+	118, // 39: whatsmeow.fake.v1.PhoneChatChange.star:type_name -> whatsmeow.fake.v1.PhoneChatChange.Star
 	89,  // 40: whatsmeow.fake.v1.SyncChatStateRequest.change:type_name -> whatsmeow.fake.v1.PhoneChatChange
-	120, // 41: whatsmeow.fake.v1.SyncChatStateRequest.change_time:type_name -> google.protobuf.Timestamp
-	120, // 42: whatsmeow.fake.v1.GetPhoneChatStateResponse.mute_until:type_name -> google.protobuf.Timestamp
-	117, // 43: whatsmeow.fake.v1.GetPhoneChatStateResponse.starred:type_name -> whatsmeow.fake.v1.GetPhoneChatStateResponse.StarredMessage
-	118, // 44: whatsmeow.fake.v1.DeliverHistorySyncRequest.conversations:type_name -> whatsmeow.fake.v1.DeliverHistorySyncRequest.Conversation
-	122, // 45: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.TemporaryBan.expire:type_name -> google.protobuf.Duration
-	120, // 46: whatsmeow.fake.v1.PhoneChatChange.Mute.until:type_name -> google.protobuf.Timestamp
-	119, // 47: whatsmeow.fake.v1.DeliverHistorySyncRequest.Conversation.messages:type_name -> whatsmeow.fake.v1.DeliverHistorySyncRequest.Message
-	120, // 48: whatsmeow.fake.v1.DeliverHistorySyncRequest.Message.message_time:type_name -> google.protobuf.Timestamp
-	121, // 49: whatsmeow.fake.v1.DeliverHistorySyncRequest.Message.message:type_name -> WAWebProtobufsE2E.Message
-	123, // 50: whatsmeow.fake.v1.DeliverHistorySyncRequest.Message.poll_updates:type_name -> WAWebProtobufsWeb.PollUpdate
+	122, // 41: whatsmeow.fake.v1.SyncChatStateRequest.change_time:type_name -> google.protobuf.Timestamp
+	122, // 42: whatsmeow.fake.v1.GetPhoneChatStateResponse.mute_until:type_name -> google.protobuf.Timestamp
+	119, // 43: whatsmeow.fake.v1.GetPhoneChatStateResponse.starred:type_name -> whatsmeow.fake.v1.GetPhoneChatStateResponse.StarredMessage
+	120, // 44: whatsmeow.fake.v1.DeliverHistorySyncRequest.conversations:type_name -> whatsmeow.fake.v1.DeliverHistorySyncRequest.Conversation
+	124, // 45: whatsmeow.fake.v1.RaisePermanentDisconnectRequest.TemporaryBan.expire:type_name -> google.protobuf.Duration
+	122, // 46: whatsmeow.fake.v1.PhoneChatChange.Mute.until:type_name -> google.protobuf.Timestamp
+	121, // 47: whatsmeow.fake.v1.DeliverHistorySyncRequest.Conversation.messages:type_name -> whatsmeow.fake.v1.DeliverHistorySyncRequest.Message
+	122, // 48: whatsmeow.fake.v1.DeliverHistorySyncRequest.Message.message_time:type_name -> google.protobuf.Timestamp
+	123, // 49: whatsmeow.fake.v1.DeliverHistorySyncRequest.Message.message:type_name -> WAWebProtobufsE2E.Message
+	125, // 50: whatsmeow.fake.v1.DeliverHistorySyncRequest.Message.poll_updates:type_name -> WAWebProtobufsWeb.PollUpdate
 	28,  // 51: whatsmeow.fake.v1.FakeWhatsAppService.DeliverMessage:input_type -> whatsmeow.fake.v1.DeliverMessageRequest
 	29,  // 52: whatsmeow.fake.v1.FakeWhatsAppService.DeliverPollVote:input_type -> whatsmeow.fake.v1.DeliverPollVoteRequest
 	31,  // 53: whatsmeow.fake.v1.FakeWhatsAppService.DeliverUndecryptableMessage:input_type -> whatsmeow.fake.v1.DeliverUndecryptableMessageRequest
@@ -7920,52 +8021,54 @@ var file_whatsmeow_fake_v1_fake_proto_depIdxs = []int32{
 	98,  // 92: whatsmeow.fake.v1.FakeWhatsAppService.CompleteOfflineSync:input_type -> whatsmeow.fake.v1.CompleteOfflineSyncRequest
 	100, // 93: whatsmeow.fake.v1.FakeWhatsAppService.DeliverHistorySync:input_type -> whatsmeow.fake.v1.DeliverHistorySyncRequest
 	102, // 94: whatsmeow.fake.v1.FakeWhatsAppService.GetPairingDeviceProps:input_type -> whatsmeow.fake.v1.GetPairingDevicePropsRequest
-	33,  // 95: whatsmeow.fake.v1.FakeWhatsAppService.DeliverMessage:output_type -> whatsmeow.fake.v1.DeliverMessageResponse
-	30,  // 96: whatsmeow.fake.v1.FakeWhatsAppService.DeliverPollVote:output_type -> whatsmeow.fake.v1.DeliverPollVoteResponse
-	32,  // 97: whatsmeow.fake.v1.FakeWhatsAppService.DeliverUndecryptableMessage:output_type -> whatsmeow.fake.v1.DeliverUndecryptableMessageResponse
-	35,  // 98: whatsmeow.fake.v1.FakeWhatsAppService.WaitForSent:output_type -> whatsmeow.fake.v1.WaitForSentResponse
-	11,  // 99: whatsmeow.fake.v1.FakeWhatsAppService.LinkDevice:output_type -> whatsmeow.fake.v1.LinkDeviceResponse
-	13,  // 100: whatsmeow.fake.v1.FakeWhatsAppService.RotateQrCode:output_type -> whatsmeow.fake.v1.RotateQrCodeResponse
-	15,  // 101: whatsmeow.fake.v1.FakeWhatsAppService.ExpireQrCodes:output_type -> whatsmeow.fake.v1.ExpireQrCodesResponse
-	17,  // 102: whatsmeow.fake.v1.FakeWhatsAppService.DropConnection:output_type -> whatsmeow.fake.v1.DropConnectionResponse
-	59,  // 103: whatsmeow.fake.v1.FakeWhatsAppService.HoldNextLogin:output_type -> whatsmeow.fake.v1.HoldNextLoginResponse
-	61,  // 104: whatsmeow.fake.v1.FakeWhatsAppService.ReleaseLogin:output_type -> whatsmeow.fake.v1.ReleaseLoginResponse
-	19,  // 105: whatsmeow.fake.v1.FakeWhatsAppService.FailNextPreKeyUpload:output_type -> whatsmeow.fake.v1.FailNextPreKeyUploadResponse
-	21,  // 106: whatsmeow.fake.v1.FakeWhatsAppService.FailNextPairPhone:output_type -> whatsmeow.fake.v1.FailNextPairPhoneResponse
-	23,  // 107: whatsmeow.fake.v1.FakeWhatsAppService.FailNextConnect:output_type -> whatsmeow.fake.v1.FailNextConnectResponse
-	25,  // 108: whatsmeow.fake.v1.FakeWhatsAppService.FailNextLogout:output_type -> whatsmeow.fake.v1.FailNextLogoutResponse
-	27,  // 109: whatsmeow.fake.v1.FakeWhatsAppService.RaisePermanentDisconnect:output_type -> whatsmeow.fake.v1.RaisePermanentDisconnectResponse
-	72,  // 110: whatsmeow.fake.v1.FakeWhatsAppService.RegisterUser:output_type -> whatsmeow.fake.v1.RegisterUserResponse
-	74,  // 111: whatsmeow.fake.v1.FakeWhatsAppService.SetProfilePicture:output_type -> whatsmeow.fake.v1.SetProfilePictureResponse
-	76,  // 112: whatsmeow.fake.v1.FakeWhatsAppService.DeliverContactNotification:output_type -> whatsmeow.fake.v1.DeliverContactNotificationResponse
-	78,  // 113: whatsmeow.fake.v1.FakeWhatsAppService.SyncContact:output_type -> whatsmeow.fake.v1.SyncContactResponse
-	80,  // 114: whatsmeow.fake.v1.FakeWhatsAppService.FailNextContactQuery:output_type -> whatsmeow.fake.v1.FailNextContactQueryResponse
-	43,  // 115: whatsmeow.fake.v1.FakeWhatsAppService.DeliverPresence:output_type -> whatsmeow.fake.v1.DeliverPresenceResponse
-	45,  // 116: whatsmeow.fake.v1.FakeWhatsAppService.DeliverChatPresence:output_type -> whatsmeow.fake.v1.DeliverChatPresenceResponse
-	47,  // 117: whatsmeow.fake.v1.FakeWhatsAppService.SetPushName:output_type -> whatsmeow.fake.v1.SetPushNameResponse
-	1,   // 118: whatsmeow.fake.v1.FakeWhatsAppService.FailNextUploads:output_type -> whatsmeow.fake.v1.FailNextUploadsResponse
-	3,   // 119: whatsmeow.fake.v1.FakeWhatsAppService.ExpireMedia:output_type -> whatsmeow.fake.v1.ExpireMediaResponse
-	5,   // 120: whatsmeow.fake.v1.FakeWhatsAppService.CorruptMedia:output_type -> whatsmeow.fake.v1.CorruptMediaResponse
-	7,   // 121: whatsmeow.fake.v1.FakeWhatsAppService.HoldNextDownload:output_type -> whatsmeow.fake.v1.HoldNextDownloadResponse
-	9,   // 122: whatsmeow.fake.v1.FakeWhatsAppService.AnswerMediaRetry:output_type -> whatsmeow.fake.v1.AnswerMediaRetryResponse
-	55,  // 123: whatsmeow.fake.v1.FakeWhatsAppService.DeliverReceipt:output_type -> whatsmeow.fake.v1.DeliverReceiptResponse
-	57,  // 124: whatsmeow.fake.v1.FakeWhatsAppService.RateLimitNextSends:output_type -> whatsmeow.fake.v1.RateLimitNextSendsResponse
-	63,  // 125: whatsmeow.fake.v1.FakeWhatsAppService.HoldNextSend:output_type -> whatsmeow.fake.v1.HoldNextSendResponse
-	65,  // 126: whatsmeow.fake.v1.FakeWhatsAppService.ReleaseSend:output_type -> whatsmeow.fake.v1.ReleaseSendResponse
-	67,  // 127: whatsmeow.fake.v1.FakeWhatsAppService.RefuseNextSend:output_type -> whatsmeow.fake.v1.RefuseNextSendResponse
-	82,  // 128: whatsmeow.fake.v1.FakeWhatsAppService.AddGroup:output_type -> whatsmeow.fake.v1.AddGroupResponse
-	84,  // 129: whatsmeow.fake.v1.FakeWhatsAppService.DeliverGroupNotification:output_type -> whatsmeow.fake.v1.DeliverGroupNotificationResponse
-	86,  // 130: whatsmeow.fake.v1.FakeWhatsAppService.RefuseGroupAdd:output_type -> whatsmeow.fake.v1.RefuseGroupAddResponse
-	88,  // 131: whatsmeow.fake.v1.FakeWhatsAppService.FailNextGroupQuery:output_type -> whatsmeow.fake.v1.FailNextGroupQueryResponse
-	91,  // 132: whatsmeow.fake.v1.FakeWhatsAppService.SyncChatState:output_type -> whatsmeow.fake.v1.SyncChatStateResponse
-	93,  // 133: whatsmeow.fake.v1.FakeWhatsAppService.GetPhoneChatState:output_type -> whatsmeow.fake.v1.GetPhoneChatStateResponse
-	95,  // 134: whatsmeow.fake.v1.FakeWhatsAppService.CorruptAppState:output_type -> whatsmeow.fake.v1.CorruptAppStateResponse
-	97,  // 135: whatsmeow.fake.v1.FakeWhatsAppService.HoldFullSync:output_type -> whatsmeow.fake.v1.HoldFullSyncResponse
-	99,  // 136: whatsmeow.fake.v1.FakeWhatsAppService.CompleteOfflineSync:output_type -> whatsmeow.fake.v1.CompleteOfflineSyncResponse
-	101, // 137: whatsmeow.fake.v1.FakeWhatsAppService.DeliverHistorySync:output_type -> whatsmeow.fake.v1.DeliverHistorySyncResponse
-	103, // 138: whatsmeow.fake.v1.FakeWhatsAppService.GetPairingDeviceProps:output_type -> whatsmeow.fake.v1.GetPairingDevicePropsResponse
-	95,  // [95:139] is the sub-list for method output_type
-	51,  // [51:95] is the sub-list for method input_type
+	104, // 95: whatsmeow.fake.v1.FakeWhatsAppService.RecordEvent:input_type -> whatsmeow.fake.v1.RecordEventRequest
+	33,  // 96: whatsmeow.fake.v1.FakeWhatsAppService.DeliverMessage:output_type -> whatsmeow.fake.v1.DeliverMessageResponse
+	30,  // 97: whatsmeow.fake.v1.FakeWhatsAppService.DeliverPollVote:output_type -> whatsmeow.fake.v1.DeliverPollVoteResponse
+	32,  // 98: whatsmeow.fake.v1.FakeWhatsAppService.DeliverUndecryptableMessage:output_type -> whatsmeow.fake.v1.DeliverUndecryptableMessageResponse
+	35,  // 99: whatsmeow.fake.v1.FakeWhatsAppService.WaitForSent:output_type -> whatsmeow.fake.v1.WaitForSentResponse
+	11,  // 100: whatsmeow.fake.v1.FakeWhatsAppService.LinkDevice:output_type -> whatsmeow.fake.v1.LinkDeviceResponse
+	13,  // 101: whatsmeow.fake.v1.FakeWhatsAppService.RotateQrCode:output_type -> whatsmeow.fake.v1.RotateQrCodeResponse
+	15,  // 102: whatsmeow.fake.v1.FakeWhatsAppService.ExpireQrCodes:output_type -> whatsmeow.fake.v1.ExpireQrCodesResponse
+	17,  // 103: whatsmeow.fake.v1.FakeWhatsAppService.DropConnection:output_type -> whatsmeow.fake.v1.DropConnectionResponse
+	59,  // 104: whatsmeow.fake.v1.FakeWhatsAppService.HoldNextLogin:output_type -> whatsmeow.fake.v1.HoldNextLoginResponse
+	61,  // 105: whatsmeow.fake.v1.FakeWhatsAppService.ReleaseLogin:output_type -> whatsmeow.fake.v1.ReleaseLoginResponse
+	19,  // 106: whatsmeow.fake.v1.FakeWhatsAppService.FailNextPreKeyUpload:output_type -> whatsmeow.fake.v1.FailNextPreKeyUploadResponse
+	21,  // 107: whatsmeow.fake.v1.FakeWhatsAppService.FailNextPairPhone:output_type -> whatsmeow.fake.v1.FailNextPairPhoneResponse
+	23,  // 108: whatsmeow.fake.v1.FakeWhatsAppService.FailNextConnect:output_type -> whatsmeow.fake.v1.FailNextConnectResponse
+	25,  // 109: whatsmeow.fake.v1.FakeWhatsAppService.FailNextLogout:output_type -> whatsmeow.fake.v1.FailNextLogoutResponse
+	27,  // 110: whatsmeow.fake.v1.FakeWhatsAppService.RaisePermanentDisconnect:output_type -> whatsmeow.fake.v1.RaisePermanentDisconnectResponse
+	72,  // 111: whatsmeow.fake.v1.FakeWhatsAppService.RegisterUser:output_type -> whatsmeow.fake.v1.RegisterUserResponse
+	74,  // 112: whatsmeow.fake.v1.FakeWhatsAppService.SetProfilePicture:output_type -> whatsmeow.fake.v1.SetProfilePictureResponse
+	76,  // 113: whatsmeow.fake.v1.FakeWhatsAppService.DeliverContactNotification:output_type -> whatsmeow.fake.v1.DeliverContactNotificationResponse
+	78,  // 114: whatsmeow.fake.v1.FakeWhatsAppService.SyncContact:output_type -> whatsmeow.fake.v1.SyncContactResponse
+	80,  // 115: whatsmeow.fake.v1.FakeWhatsAppService.FailNextContactQuery:output_type -> whatsmeow.fake.v1.FailNextContactQueryResponse
+	43,  // 116: whatsmeow.fake.v1.FakeWhatsAppService.DeliverPresence:output_type -> whatsmeow.fake.v1.DeliverPresenceResponse
+	45,  // 117: whatsmeow.fake.v1.FakeWhatsAppService.DeliverChatPresence:output_type -> whatsmeow.fake.v1.DeliverChatPresenceResponse
+	47,  // 118: whatsmeow.fake.v1.FakeWhatsAppService.SetPushName:output_type -> whatsmeow.fake.v1.SetPushNameResponse
+	1,   // 119: whatsmeow.fake.v1.FakeWhatsAppService.FailNextUploads:output_type -> whatsmeow.fake.v1.FailNextUploadsResponse
+	3,   // 120: whatsmeow.fake.v1.FakeWhatsAppService.ExpireMedia:output_type -> whatsmeow.fake.v1.ExpireMediaResponse
+	5,   // 121: whatsmeow.fake.v1.FakeWhatsAppService.CorruptMedia:output_type -> whatsmeow.fake.v1.CorruptMediaResponse
+	7,   // 122: whatsmeow.fake.v1.FakeWhatsAppService.HoldNextDownload:output_type -> whatsmeow.fake.v1.HoldNextDownloadResponse
+	9,   // 123: whatsmeow.fake.v1.FakeWhatsAppService.AnswerMediaRetry:output_type -> whatsmeow.fake.v1.AnswerMediaRetryResponse
+	55,  // 124: whatsmeow.fake.v1.FakeWhatsAppService.DeliverReceipt:output_type -> whatsmeow.fake.v1.DeliverReceiptResponse
+	57,  // 125: whatsmeow.fake.v1.FakeWhatsAppService.RateLimitNextSends:output_type -> whatsmeow.fake.v1.RateLimitNextSendsResponse
+	63,  // 126: whatsmeow.fake.v1.FakeWhatsAppService.HoldNextSend:output_type -> whatsmeow.fake.v1.HoldNextSendResponse
+	65,  // 127: whatsmeow.fake.v1.FakeWhatsAppService.ReleaseSend:output_type -> whatsmeow.fake.v1.ReleaseSendResponse
+	67,  // 128: whatsmeow.fake.v1.FakeWhatsAppService.RefuseNextSend:output_type -> whatsmeow.fake.v1.RefuseNextSendResponse
+	82,  // 129: whatsmeow.fake.v1.FakeWhatsAppService.AddGroup:output_type -> whatsmeow.fake.v1.AddGroupResponse
+	84,  // 130: whatsmeow.fake.v1.FakeWhatsAppService.DeliverGroupNotification:output_type -> whatsmeow.fake.v1.DeliverGroupNotificationResponse
+	86,  // 131: whatsmeow.fake.v1.FakeWhatsAppService.RefuseGroupAdd:output_type -> whatsmeow.fake.v1.RefuseGroupAddResponse
+	88,  // 132: whatsmeow.fake.v1.FakeWhatsAppService.FailNextGroupQuery:output_type -> whatsmeow.fake.v1.FailNextGroupQueryResponse
+	91,  // 133: whatsmeow.fake.v1.FakeWhatsAppService.SyncChatState:output_type -> whatsmeow.fake.v1.SyncChatStateResponse
+	93,  // 134: whatsmeow.fake.v1.FakeWhatsAppService.GetPhoneChatState:output_type -> whatsmeow.fake.v1.GetPhoneChatStateResponse
+	95,  // 135: whatsmeow.fake.v1.FakeWhatsAppService.CorruptAppState:output_type -> whatsmeow.fake.v1.CorruptAppStateResponse
+	97,  // 136: whatsmeow.fake.v1.FakeWhatsAppService.HoldFullSync:output_type -> whatsmeow.fake.v1.HoldFullSyncResponse
+	99,  // 137: whatsmeow.fake.v1.FakeWhatsAppService.CompleteOfflineSync:output_type -> whatsmeow.fake.v1.CompleteOfflineSyncResponse
+	101, // 138: whatsmeow.fake.v1.FakeWhatsAppService.DeliverHistorySync:output_type -> whatsmeow.fake.v1.DeliverHistorySyncResponse
+	103, // 139: whatsmeow.fake.v1.FakeWhatsAppService.GetPairingDeviceProps:output_type -> whatsmeow.fake.v1.GetPairingDevicePropsResponse
+	105, // 140: whatsmeow.fake.v1.FakeWhatsAppService.RecordEvent:output_type -> whatsmeow.fake.v1.RecordEventResponse
+	96,  // [96:141] is the sub-list for method output_type
+	51,  // [51:96] is the sub-list for method input_type
 	51,  // [51:51] is the sub-list for extension type_name
 	51,  // [51:51] is the sub-list for extension extendee
 	0,   // [0:51] is the sub-list for field type_name
@@ -8028,7 +8131,7 @@ func file_whatsmeow_fake_v1_fake_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_whatsmeow_fake_v1_fake_proto_rawDesc), len(file_whatsmeow_fake_v1_fake_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   120,
+			NumMessages:   122,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
