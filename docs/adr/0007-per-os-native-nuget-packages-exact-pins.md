@@ -1,8 +1,8 @@
 # 0007. Packaging as per-OS native NuGet packages with exact-version pins
 
-- Status: Accepted; amended by [0016](0016-sidecar-binary-gpl-3-corresponding-source-per-release.md), which settles the licences in the last two Consequences, and by [0023](0023-native-packages-build-pin-and-find.md), which builds the packages and measures them
+- Status: Accepted; amended by [0016](0016-sidecar-binary-gpl-3-corresponding-source-per-release.md), which settles the licences in the last two Consequences, and by [0023](0023-native-packages-build-pin-and-find.md), which builds the packages and measures them; its macOS evidence amended in place by [evidence 0045](../evidence/0045-macos-gatekeeper-2026-11-06.md) (#45), with the decision unchanged
 - Date: 2026-10-31
-- Evidence: [ARCHITECTURE §14](../ARCHITECTURE.md#spike-results-2026-10-31) question 6, and the Mark-of-the-Web result in question 2
+- Evidence: [ARCHITECTURE §14](../ARCHITECTURE.md#spike-results-2026-10-31) question 6, the Mark-of-the-Web result in question 2, and, for macOS, [evidence 0045](../evidence/0045-macos-gatekeeper-2026-11-06.md) (one daily-use Mac, 2026-11-06)
 
 ## Context
 
@@ -17,6 +17,15 @@ Question 6, Go 1.27.3, `CGO_ENABLED=0 -trimpath -ldflags "-s -w"` [observed: §1
 - The Linux binaries ran on `alpine:3` and `debian:stable-slim`, arm64 natively and amd64 under emulation.
 - The Go linker ad-hoc signs `darwin/arm64`; `darwin/amd64` is unsigned; `spctl` rejects both.
 - The macOS `protoc` that `dotnet restore` pulled from nuget.org has no `com.apple.quarantine`, is only ad-hoc signed, and runs.
+
+Evidence 0045, macOS 26.5.2 on one daily-use Apple Silicon Mac, not a clean one, with the CI-built packages of `e5cf3b1` restored from a loopback HTTP feed, not nuget.org [observed: [evidence 0045](../evidence/0045-macos-gatekeeper-2026-11-06.md)]:
+
+- Restore, portable build and `dotnet run`, portable and framework-dependent publishes (arm64), and self-contained and single-file publishes and their `cp -R` and `ditto` copies (arm64, and x64 under Rosetta [inferred]) set no `com.apple.quarantine`, and each started the sidecar (M, D1 to D9).
+- A Gatekeeper scan with the sidecar's signing identifier appears in every ad-hoc arm64 launch, quarantined or not (attribution [inferred]).
+  Of the ad-hoc sidecars, only one given a synthetic quarantine attribute raised a prompt; it was refused after the prompt was answered by an [unknown] actor and button, and it ran after an assessment of the same code (Q1a).
+- This arm64 sidecar with its ad-hoc signature removed was refused at exec, AMFI logging "Attempt to execute completely unsigned code", with no prompt and no quarantine (S1).
+- S1 and Q1a are synthetic controls, not delivery paths.
+  A quarantined x64 sidecar or app directory, a restore from nuget.org, a clean Mac, a native Intel desktop, and osx-x64 framework-dependent on that Mac were not measured; CI's native osx-x64 install and AOT runs passed ([ARCHITECTURE §11](../ARCHITECTURE.md#11-testing-strategy)), and their quarantine metadata and Gatekeeper state are [unknown].
 
 Question 2, Windows [observed: §14 Spike results, Question 2]: the `protoc.exe` that `dotnet restore` pulled from nuget.org has no `Zone.Identifier` stream, and the unsigned spike `sidecar.exe` (Authenticode `NotSigned`) starts.
 
@@ -37,8 +46,10 @@ Design:
 
 Why no signing, with the evidence level of each step:
 
-- A binary restored from nuget.org carries no quarantine attribute, and an ad-hoc signed one runs even though `spctl` rejects it [observed: Question 6] [inferred: Gatekeeper assesses only quarantined launches, which matches what we saw].
-- Apple Silicon needs arm64 code to be signed at all [inferred: Apple platform rule, not measured here], and the Go linker ad-hoc signs `darwin/arm64` itself [observed: Question 6].
+- The `protoc` that `dotnet restore` pulled from nuget.org carries no quarantine attribute, and runs although it is only ad-hoc signed and `spctl` rejects it [observed: Question 6].
+  This was first explained as Gatekeeper assessing only quarantined launches [inferred]; on one daily-use Mac a scan with the sidecar's signing identifier appeared in every ad-hoc arm64 launch, quarantined or not, and of those sidecars only the quarantined one raised a prompt, while the measured restore, build, publish and copy paths set no quarantine and started it [observed: evidence 0045; attribution inferred].
+  `whatsmeow-net` restored from nuget.org, a clean Mac and a native Intel desktop are [unknown].
+- This arm64 sidecar must be signed at all to run on the one Apple Silicon Mac measured [observed: evidence 0045 S1; first inferred as an Apple platform rule, and beyond that Mac still inferred], and the Go linker ad-hoc signs `darwin/arm64` itself [observed: Question 6], which was enough there without quarantine [observed: evidence 0045 D].
 - So no Authenticode signing is needed either [inferred: SmartScreen keys on Mark-of-the-Web, which matches what we saw].
 - An app that embeds us and ships as a notarized `.app` signs its embedded binaries as part of its own release [inferred: standard macOS app signing, not our concern].
 
