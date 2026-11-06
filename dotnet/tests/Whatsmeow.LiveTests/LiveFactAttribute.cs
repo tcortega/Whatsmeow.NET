@@ -107,7 +107,8 @@ public sealed class LiveFactAttribute : FactAttribute
 	/// <summary>
 	/// Whether the test pairs a fresh companion of the peer's account, which needs a QR scan every run: only with
 	/// <see cref="LiveSettings.FreshDatabaseVariable"/>, <see cref="LiveSettings.HistoryBoundsVariable"/> and
-	/// <see cref="LiveSettings.KnownDevicesVariable"/> set (ADR 0060). Its timeout is the scan, the live and the peer
+	/// <see cref="LiveSettings.KnownDevicesVariable"/> set (ADR 0060); it then fails before it starts anything without a
+	/// valid <see cref="LiveSettings.HistoryDaysLimitVariable"/>. Its timeout is the scan, the live and the peer
 	/// sessions' first catch-up before it, the capture's bound from Paired, which holds the fresh session's catch-up, its
 	/// steps and the window, and the cleanup's own bound.
 	/// </summary>

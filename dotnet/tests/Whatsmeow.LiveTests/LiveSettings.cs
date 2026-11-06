@@ -56,6 +56,12 @@ internal static class LiveSettings
 	public const string HistoryBoundsVariable = "WHATSMEOW_LIVE_HISTORY_BOUNDS";
 
 	/// <summary>
+	/// The fresh pairing's full sync days limit (<see cref="LiveFresh"/>, #42), which every fresh run states: a whole
+	/// number of days above zero, in digits only.
+	/// </summary>
+	public const string HistoryDaysLimitVariable = "WHATSMEOW_LIVE_HISTORY_DAYS_LIMIT";
+
+	/// <summary>
 	/// The peer account's devices known from other stores, device JIDs separated by commas, which the fresh companion must
 	/// not be: root's preflight reads them from a consistent snapshot of those stores, without opening them in a sidecar
 	/// (ADR 0060). A secret: never printed.
@@ -76,6 +82,12 @@ internal static class LiveSettings
 
 	/// <summary>The history bounds record's new file; empty when it is not set.</summary>
 	public static string HistoryBounds { get; } = Environment.GetEnvironmentVariable(HistoryBoundsVariable) ?? "";
+
+	/// <summary>
+	/// The days <see cref="HistoryDaysLimitVariable"/> names, parsed when asked for, so a missing or malformed value fails
+	/// only the fresh test, without its text, before it starts anything (<see cref="LiveHistoryBounds.ParseDaysLimit"/>).
+	/// </summary>
+	public static int HistoryDaysLimit => LiveHistoryBounds.ParseDaysLimit(HistoryDaysLimitVariable, Environment.GetEnvironmentVariable(HistoryDaysLimitVariable));
 
 	/// <summary>Whether <see cref="KnownDevicesVariable"/> is set.</summary>
 	public static bool HasKnownDevices { get; } = !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(KnownDevicesVariable));
