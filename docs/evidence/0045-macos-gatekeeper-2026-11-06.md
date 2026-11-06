@@ -59,14 +59,14 @@ Its osx-arm64 and osx-x64 binaries are `2bbbac27647129db9a09b2a078d50862c2c5b4eb
 
 ### Commands per case
 
-`V` is `0.0.0-alpha.0.77`, and paths are relative to the measurement directory.
-Commands are verbatim from `case.txt` [observed], with `dotnet` for the SDK's path.
+`V` is a placeholder: substitute the feed version, `0.0.0-alpha.0.77`.
+Commands are normalized from `case.txt` [observed]: paths are relative to the measurement directory, or to the stated directory, and `dotnet` stands for the SDK's path.
 Publish preparation is `setup.sh` [observed], shortened here: each publish also passes `app -c Release -warnaserror -o out/<name>`; copy, signature and quarantine preparation is reconstructed from `plan.md` [inferred], and its result is [observed] in the named log.
 
 | Case | Command | Preparation |
 | --- | --- | --- |
 | D1 | in `consumer`: `dotnet run --project app -c Release --no-build -- start V osx-arm64 portable` | `dotnet build app -c Release -warnaserror` |
-| D2 | in `out/portable`: `dotnet out/portable/Consumer.dll start V osx-arm64 portable` | `dotnet publish --self-contained false` |
+| D2 | in `out/portable`: `dotnet Consumer.dll start V osx-arm64 portable` | `dotnet publish --self-contained false` |
 | D3 | `out/fd-arm64/Consumer start V osx-arm64 flat` | `-r osx-arm64 --self-contained false` |
 | D4 | `out/sc-arm64/Consumer start V osx-arm64 flat` | `-r osx-arm64 --self-contained true` |
 | D5 | `out/single-arm64/Consumer start V osx-arm64 flat` | D4's, plus `-p:PublishSingleFile=true` |
@@ -115,7 +115,7 @@ Every completed launch printed `sidecar 0.0.0-alpha.0.77, protocol 1`.
 
 Every arm64 launch printed `process Arm64, OS Arm64`.
 The x64 launches ran under Rosetta [inferred: x86_64-only Mach-O files on Apple silicon, and kernel sandbox lines naming `/private/var/db/oah/` in each x64 window], so they say nothing about native Intel.
-[observed: `gh run view 42257604502`] The run that built these packages passed `install (osx-x64)` and `aot (osx-x64)` on `macos-26-intel` runners (§11), so osx-x64 consumers, framework-dependent included, start natively on a CI runner, without quarantine; that runner's Gatekeeper state, a native Intel desktop and quarantine on Intel are [unknown].
+[observed: `gh run view 42257604502`] The run that built these packages passed `install (osx-x64)` and `aot (osx-x64)` on `macos-26-intel` runners (§11), so osx-x64 consumers, framework-dependent included, started natively on a CI runner; that run recorded no quarantine metadata, so whether the runner's copies carried quarantine, and its Gatekeeper state, are [unknown], as are a native Intel desktop and quarantine on Intel.
 No launch used the client's copy fallback (its isolated directory stayed empty), no sidecar process was left after any case, and the watchdog never fired.
 
 ## What the OS logged
@@ -208,7 +208,7 @@ A dated private addendum, kept beside the archive below, lists the same correcti
 * Warm caches, and `com.apple.provenance` written by the terminal's process tree: [inferred] and [unknown].
 * The host record as observed command output: it is a transcription in `plan.md`.
 * M5 to M9 as "portable/fd/sc/single-file publishes (arm64, x64)": scoped as above.
-* Native Intel as pending: CI measured it without quarantine; the desktop and quarantine are open.
+* Native Intel as pending: CI's native osx-x64 install and AOT runs passed, with no quarantine metadata recorded; the desktop and quarantine are open.
 * Apple not documenting the scan numbers: not checked; their meaning is [unknown].
 
 ## Evidence provenance

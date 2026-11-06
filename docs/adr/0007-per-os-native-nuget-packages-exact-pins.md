@@ -25,7 +25,7 @@ Evidence 0045, macOS 26.5.2 on one daily-use Apple Silicon Mac, not a clean one,
   Of the ad-hoc sidecars, only one given a synthetic quarantine attribute raised a prompt; it was refused after the prompt was answered by an [unknown] actor and button, and it ran after an assessment of the same code (Q1a).
 - This arm64 sidecar with its ad-hoc signature removed was refused at exec, AMFI logging "Attempt to execute completely unsigned code", with no prompt and no quarantine (S1).
 - S1 and Q1a are synthetic controls, not delivery paths.
-  A quarantined x64 sidecar or app directory, a restore from nuget.org, a clean Mac, a native Intel desktop, and osx-x64 framework-dependent on that Mac were not measured; CI runs the osx-x64 consumers natively, without quarantine ([ARCHITECTURE §11](../ARCHITECTURE.md#11-testing-strategy)).
+  A quarantined x64 sidecar or app directory, a restore from nuget.org, a clean Mac, a native Intel desktop, and osx-x64 framework-dependent on that Mac were not measured; CI's native osx-x64 install and AOT runs passed ([ARCHITECTURE §11](../ARCHITECTURE.md#11-testing-strategy)), and their quarantine metadata and Gatekeeper state are [unknown].
 
 Question 2, Windows [observed: §14 Spike results, Question 2]: the `protoc.exe` that `dotnet restore` pulled from nuget.org has no `Zone.Identifier` stream, and the unsigned spike `sidecar.exe` (Authenticode `NotSigned`) starts.
 
