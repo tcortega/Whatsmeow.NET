@@ -1274,6 +1274,7 @@ Phase 0 decisions:
 - [0058](adr/0058-jit-install-on-every-target-rid.md): Fresh JIT consumers on every target RID, portable and RID-specific outputs, runtime and asset assertions, and native execution reports (#52)
 - [0059](adr/0059-install-the-release-from-nugetorg.md): After a publish, the same install and AOT checks against nuget.org alone, with the release's inputs and pins from its tag and a checker revision that may be later (`nuget-install.yml`), on exactly the eight served packages with their origin, each native one holding `.signature.p7s`, and the source archive byte for byte the tag's; the install and aot jobs in `install.yml`, shared by packaging and release (#52)
 - [0060](adr/0060-a-live-test-control-and-a-fresh-companion.md): The live tests' control service `whatsmeow.livetest.v1` (group photo set and remove, livetest builds only, the groups slice's `livetest_*` files), and one live test that pairs a fresh companion of the peer's account by QR code on opt-in, for first-sight contact changes and #42's history bounds (#36, #42)
+- [0061](adr/0061-a-push-name-first-sight-on-a-persistent-store.md): The push name branch of #36 AC6 may pass on the persistent peer store when the fresh companion's precondition read holds, through an opt-in stimulus ladder on the persistent sessions (no presence, then a named unavailable, then a named available presence before each text), with no claim about what a fresh device gets (#36)
 
 House-rule alignment (applied, or opted out of with a measured reason):
 

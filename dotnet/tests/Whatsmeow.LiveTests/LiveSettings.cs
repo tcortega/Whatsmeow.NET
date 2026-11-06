@@ -41,6 +41,12 @@ internal static class LiveSettings
 	public const string MediaRefsVariable = "WHATSMEOW_LIVE_MEDIA_REFS";
 
 	/// <summary>
+	/// Set, to any value, to run the push name stimulus on the persistent sessions (<c>LiveContactsTests</c>, ADR 0061): it
+	/// spends the peer store's one first sight of the business's push name, so an ordinary run never sends it.
+	/// </summary>
+	public const string PushNameFirstSightVariable = "WHATSMEOW_LIVE_PUSHNAME_FIRST_SIGHT";
+
+	/// <summary>
 	/// A new database file for the fresh companion of the peer's account (<see cref="LiveFresh"/>, ADR 0060): the opt-in
 	/// for the one test that asks for a QR scan every run. The test creates the file and refuses one that exists.
 	/// </summary>
@@ -86,6 +92,9 @@ internal static class LiveSettings
 
 	/// <summary>Whether the media size ladder runs.</summary>
 	public static bool MediaSizes { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(MediaSizesVariable));
+
+	/// <summary>Whether the push name stimulus runs.</summary>
+	public static bool PushNameFirstSight { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(PushNameFirstSightVariable));
 
 	/// <summary>Whether the owner is at the phone.</summary>
 	public static bool Owner { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(OwnerVariable));

@@ -1,13 +1,16 @@
 using System.Collections.Immutable;
 using Whatsmeow.Contacts;
+using Whatsmeow.Events;
 using Whatsmeow.IntegrationTests.Contacts;
+using Whatsmeow.IntegrationTests.Support;
+using Whatsmeow.Presence;
 
 namespace Whatsmeow.LiveTests;
 
 /// <summary>
 /// The contacts questions (#33, ADR 0028), recorded for ARCHITECTURE §14: the ones one account answers, and blocking the
-/// peer, checked with the fake-mode tests' own checks (<see cref="ContactChecks"/>). A LID with no phone number stays
-/// [unknown]: it needs a contact whose number is hidden.
+/// peer, checked with the fake-mode tests' own checks (<see cref="ContactChecks"/>), and, on opt-in, #36's push name
+/// stimulus. A LID with no phone number stays [unknown]: it needs a contact whose number is hidden.
 /// </summary>
 [Collection(nameof(Live))]
 public sealed class LiveContactsTests(LiveSidecar live, LivePeer peer)
@@ -89,6 +92,67 @@ public sealed class LiveContactsTests(LiveSidecar live, LivePeer peer)
 
 		LiveChecks.Redacting(() => ContactChecks.ValidateBlocked(blocked, lid.Value, pn));
 		LiveChecks.Redacting(() => ContactChecks.ValidateUnblocked(unblocked));
+	}
+
+	/// <summary>
+	/// #36's push name stimulus on the persistent sessions, on opt-in only (ADR 0061): the live session, the business
+	/// account, connects anew, so nothing sent a presence on its connection whatever ran before, then sends the peer up to
+	/// three texts, with no presence, after a named unavailable presence, and after a named available one, and stops at
+	/// the first that carries a push name (<see cref="PushNameStimulus"/>). Each text's line says what it carried, never
+	/// the name. It passes only on the peer store's first sight, read before the first text, with the change equal to the
+	/// fake-mode check whole; a store that had the push name already gives stimulus evidence, never a pass, and a first sight
+	/// here claims nothing about what a fresh device gets. It never reads the business's profile: <c>GetUserInfo</c> stores
+	/// a business name even when its answer drops it (#153), which would spend the peer store's first sight of that too.
+	/// It leaves the live session unavailable, a deliberate postcondition, not a restore: the presence it had before is
+	/// [unknown]. The peer's presence is never touched. The peer's rows of the business are logged again after the texts,
+	/// booleans only, to record whether a text stored the business name too (a message's verified name, whatsmeow
+	/// message.go 56-57).
+	/// </summary>
+	[LiveFact(NeedsPeer = true, NeedsPushNameFirstSight = true)]
+	public async Task Live_ThePeer_GetsTheBusinessPushNameAsTheFakeModeCheck_WhenItsFirstSightIsUnspent()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		// The sidecar sends a presence only for the SendPresence RPC (internal/presence/presence.go 64), so a new one has sent none.
+		await live.StopAsync();
+		var business = await live.LiveAsync(ct);
+		live.Write("live: push name stimulus: the live session connected anew, with no presence sent on this connection");
+		var businessAccount = await live.AccountAsync(ct);
+		var receiver = await peer.ConnectedAsync(live, ct);
+		var (peerChat, _) = await peer.AccountAsync(ct);
+		Assert.True(businessAccount is { Chat.IsPhoneNumber: true, Lid.IsLid: true }, "the live account has no phone number and LID pair");
+
+		await LiveRestore.AfterAsync(
+			live,
+			() =>
+				PushNameStimulus.RunAsync(
+					new PushNameLadder
+					{
+						Receiver = receiver,
+						Sender = businessAccount,
+						SendPresenceAsync = business.SendPresenceAsync,
+						SendTextAsync = (_, id, text, t) => business.SendTextAsync(peerChat, text, id, cancellationToken: t),
+						Id = k => MessageId.From($"WMNPUSH{k}{LiveClock.Time.GetUtcNow():yyyyMMddHHmmss}"),
+						CheckMessage = (got, id, text) =>
+						{
+							live.Write($"live: push name stimulus: the text came from a {LiveChecks.Form(got.Source.Sender)} with a {LiveChecks.Form(got.Source.SenderAlt)} beside it");
+							LiveChecks.Equal(LiveChecks.Received(receiver, got, businessAccount, id, new TextContent { Text = text }), got);
+						},
+						Redacting = LiveChecks.Redacting,
+						Log = line => live.Write($"live: {line}"),
+						Watch = LiveChecks.Watch,
+						Time = LiveClock.Time,
+					},
+					ct
+				),
+			("leave the live session unavailable", t => business.SendPresenceAsync(PresenceState.Unavailable, t)),
+			(
+				"read the peer's rows of the business after the texts",
+				async t =>
+					live.Write(
+						$"live: push name stimulus, after the texts, the sender's rows: {PushNameStimulus.Describe(await PushNameStimulus.RowsAsync(receiver, businessAccount, t).ConfigureAwait(false))}"
+					)
+			)
+		);
 	}
 
 	/// <summary>The blocklist's entries that name the peer, by either form; the others are never looked at.</summary>
