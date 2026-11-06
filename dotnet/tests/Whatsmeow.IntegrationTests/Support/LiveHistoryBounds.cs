@@ -404,9 +404,25 @@ internal sealed partial class LiveHistoryBounds : IDisposable
 			UpdateLocked(Now());
 	}
 
+	// A timer can fire a little before its due time [inferred: TimerQueue's millisecond ticks against Stopwatch]; then
+	// the bound has not come, so the timer is armed again for the rest, and nothing closes or cancels yet. At or after
+	// the bound, the close that came first is recorded and Deadline is cancelled, after a quiet close too.
 	private void OnDeadline()
 	{
-		Observe();
+		lock (_gate)
+		{
+			if (_disposed || _paired is not { } paired)
+				return;
+			var now = Now();
+			if (paired + Bound > now)
+			{
+				_ = _deadlineTimer!.Change(paired + Bound - now, Timeout.InfiniteTimeSpan);
+				return;
+			}
+
+			UpdateLocked(now);
+		}
+
 		try
 		{
 			_deadline.Cancel();

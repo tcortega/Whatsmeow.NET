@@ -40,14 +40,10 @@ public sealed class FreshCompanionTests(FakeSidecar fixture)
 	}
 
 	[Theory(Timeout = Timeout)]
-	[InlineData("the forbidden account", Business, 7, "")]
-	[InlineData("a device another store has", Peer, 3, "")]
-	[InlineData("a device the preflight knows", Peer, 5, "")]
-	[InlineData("no known devices", Peer, 7, "none")]
-	[InlineData("a known device of another account", Peer, 7, "other account")]
-	[InlineData("a known device twice", Peer, 7, "twice")]
-	[InlineData("a known account, not a device", Peer, 7, "device 0")]
-	public async Task Run_ASessionThatIsNotTheExpectedAccountsNewDevice_IsRefused_AndNothingIsLoggedOutOrDeleted(string what, string user, ushort device, string known)
+	[InlineData("the forbidden account", Business, 7)]
+	[InlineData("a device another store has", Peer, 3)]
+	[InlineData("a device the preflight knows", Peer, 5)]
+	public async Task Run_ASessionThatIsNotTheExpectedAccountsNewDevice_IsRefused_AndNothingIsLoggedOutOrDeleted(string what, string user, ushort device)
 	{
 		var ct = TestContext.Current.CancellationToken;
 		await using var h = await Harness.StartAsync(fixture, ct);
@@ -55,14 +51,7 @@ public sealed class FreshCompanionTests(FakeSidecar fixture)
 		var run = h.Run(Device(user, device)) with
 		{
 			OtherDevices = [Device(Peer, 3)],
-			KnownDevices = known switch
-			{
-				"none" => [],
-				"other account" => [Device(Business, 9)],
-				"twice" => [Device(Peer, 5), Device(Peer, 5)],
-				"device 0" => [Pn(Peer)],
-				_ => [Device(Peer, 5)],
-			},
+			KnownDevices = [Device(Peer, 5)],
 			FirstSight = [Step("first", ran)],
 			WindowAsync = _ => WindowAsync(ran),
 		};
@@ -72,6 +61,40 @@ public sealed class FreshCompanionTests(FakeSidecar fixture)
 		Assert.True(ran.Count == 0, $"{what}: a step or the window ran");
 		Assert.Equal([FreshEvent.IdentityRejected], h.Recorded);
 		await h.StillPairedAsync(ct);
+	}
+
+	[Theory(Timeout = Timeout)]
+	[InlineData("none")]
+	[InlineData("another account's device")]
+	[InlineData("a device twice")]
+	[InlineData("an account, not a device")]
+	public async Task Run_AnInvalidKnownDevicesList_IsRefusedBeforeThePairing_AndNoDeviceIsLinked(string known)
+	{
+		var ct = TestContext.Current.CancellationToken;
+		await using var h = await Harness.StartAsync(fixture, ct);
+		var pairings = 0;
+		var pair = h.Run(Device(Peer, 7)).PairAsync;
+		var run = h.Run(Device(Peer, 7)) with
+		{
+			PairAsync = (companion, token) =>
+			{
+				pairings++;
+				return pair(companion, token);
+			},
+			KnownDevices = known switch
+			{
+				"none" => [],
+				"another account's device" => [Device(Business, 9)],
+				"a device twice" => [Device(Peer, 5), Device(Peer, 5)],
+				_ => [Pn(Peer)],
+			},
+		};
+
+		_ = await Assert.ThrowsAnyAsync<Exception>(() => h.Companion.RunAsync(run, ct));
+
+		Assert.Equal(0, pairings);
+		Assert.Empty(h.Recorded);
+		Assert.Null(Assert.Single(await h.Sidecar.Sessions.ListAsync(ct)).Jid);
 	}
 
 	[Fact(Timeout = Timeout)]

@@ -225,6 +225,57 @@ public sealed class LiveHistoryBoundsTests(FakeSidecar fixture, SidecarBinaries 
 	}
 
 	[Fact(Timeout = Timeout)]
+	public async Task Bound_ATimerThatFiresEarly_IsArmedAgain_AndTheWindowClosesAtTheBound()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var clock = new ManualClock();
+		var path = NewPath();
+		using var bounds = new LiveHistoryBounds(clock, path);
+		bounds.Paired();
+		bounds.HoldStart();
+		var window = bounds.WindowAsync(ct);
+		var deadline = Assert.Single(clock.Timers, t => t.DueAt == LiveHistoryBounds.Bound);
+
+		clock.Set(LiveHistoryBounds.Bound - s_tick);
+		deadline.Fire();
+
+		Assert.False(bounds.Deadline.IsCancellationRequested);
+		Assert.False(window.IsCompleted);
+		Assert.Equal(LiveHistoryBounds.Bound, deadline.DueAt);
+		Assert.Equal(["paired", "hold_start"], Rows(path).Select(r => r.Kind), StringComparer.Ordinal);
+
+		clock.Set(LiveHistoryBounds.Bound);
+		deadline.Fire();
+
+		Assert.True(bounds.Deadline.IsCancellationRequested);
+		Assert.Equal("censored_bound", await window);
+		Assert.Contains(Finish(LiveHistoryBounds.Bound, "censored_bound", LiveHistoryBounds.Bound), Rows(path));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Bound_AfterAQuietClose_StillCancelsTheDeadline()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var clock = new ManualClock();
+		var path = NewPath();
+		using var bounds = new LiveHistoryBounds(clock, path);
+		bounds.Paired();
+		var deadline = Assert.Single(clock.Timers, t => t.DueAt == LiveHistoryBounds.Bound);
+		var quiet = Assert.Single(clock.Timers, t => t.DueAt == LiveHistoryBounds.Quiet);
+
+		clock.Set(LiveHistoryBounds.Quiet);
+		quiet.Fire();
+		Assert.Equal("quiet_no_history", await bounds.WindowAsync(ct));
+		Assert.False(bounds.Deadline.IsCancellationRequested);
+
+		clock.Set(LiveHistoryBounds.Bound);
+		deadline.Fire();
+
+		Assert.True(bounds.Deadline.IsCancellationRequested);
+		Assert.Equal(["paired", "finish"], Rows(path).Select(r => r.Kind), StringComparer.Ordinal);
+	}
+
+	[Fact(Timeout = Timeout)]
 	public async Task Quiet_ClosesAtExactlyTenMinutes_AndHistoryAtThatInstantIsOutside()
 	{
 		var ct = TestContext.Current.CancellationToken;
@@ -643,6 +694,78 @@ public sealed class LiveHistoryBoundsTests(FakeSidecar fixture, SidecarBinaries 
 
 	private static Row Captured(TimeSpan at, long batches, long entries, int invalidations, int excluded) =>
 		At("capture_summary", at) with { Batches = batches, Entries = entries, Detail = $"write_failures=0 invalidations={invalidations} excluded={excluded}" };
+
+	/// <summary>
+	/// A clock the test sets, whose timers fire only when the test fires them, at whatever time it set: early, as a
+	/// system timer may. Each timer knows the monotonic time it is due at.
+	/// </summary>
+	private sealed class ManualClock : TimeProvider
+	{
+		private readonly Lock _gate = new();
+		private readonly List<Manual> _timers = [];
+		private TimeSpan _mono;
+
+		public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+
+		public IReadOnlyList<Manual> Timers
+		{
+			get
+			{
+				lock (_gate)
+					return [.. _timers];
+			}
+		}
+
+		public override long GetTimestamp()
+		{
+			lock (_gate)
+				return _mono.Ticks;
+		}
+
+		public override DateTimeOffset GetUtcNow()
+		{
+			lock (_gate)
+				return s_t0 + _mono;
+		}
+
+		public void Set(TimeSpan mono)
+		{
+			lock (_gate)
+				_mono = mono;
+		}
+
+		public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+		{
+			var timer = new Manual(this, callback, state);
+			_ = timer.Change(dueTime, period);
+			lock (_gate)
+				_timers.Add(timer);
+			return timer;
+		}
+
+		public sealed class Manual(ManualClock clock, TimerCallback callback, object? state) : ITimer
+		{
+			/// <summary>When it is due, on the clock's monotonic time; null while it is off.</summary>
+			public TimeSpan? DueAt { get; private set; }
+
+			/// <summary>Runs the callback now, whatever the clock says.</summary>
+			public void Fire() => callback(state);
+
+			public bool Change(TimeSpan dueTime, TimeSpan period)
+			{
+				DueAt = dueTime == global::System.Threading.Timeout.InfiniteTimeSpan ? null : TimeSpan.FromTicks(clock.GetTimestamp()) + dueTime;
+				return true;
+			}
+
+			public void Dispose() => DueAt = null;
+
+			public ValueTask DisposeAsync()
+			{
+				Dispose();
+				return ValueTask.CompletedTask;
+			}
+		}
+	}
 
 	/// <summary>A clock whose monotonic and wall times the test sets apart, and whose timers never fire.</summary>
 	private sealed class StalledClock : TimeProvider
