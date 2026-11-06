@@ -22,6 +22,7 @@ A write can fail with `RateLimited` although WhatsApp took it, when the sync aft
 
 Changes from the account's other devices arrive as `ChatStateChanged` with a `ChatStateChange`: mute, pin, archive, read or star.
 `FromFullSync` is set for the whole state that arrives after pairing or after the sidecar recovered from a sync error, which it does by itself, waiting an hour after a recovery that failed, one WhatsApp held back after a 429 included.
+A write WhatsApp rejected because the session's copy was out of step fails with `RateLimited` when the full sync it needs is held back that way; it did not take effect (§14 Chat state).
 These events are best effort and have no message id: apply each as a value to set.
 That other clients write a mute's end in milliseconds, as whatsmeow does, is [inferred] (§14 Chat state).
 

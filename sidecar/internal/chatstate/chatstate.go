@@ -174,6 +174,11 @@ func (svc *Service) write(ctx context.Context, id string, client Client, online 
 				return fmt.Errorf("set the chat state: %w", context.Cause(ctx))
 			}
 
+			if errors.Is(recovered, whatsmeow.ErrAppStateRateLimited) {
+				// Rejected, and the full sync that would recover it met the backoff a 429 set (appstate.go:48-50).
+				return fmt.Errorf("set the chat state: %w: %w", server.ErrRateLimited, whatsmeow.ErrAppStateRateLimited)
+			}
+
 			return fmt.Errorf("set the chat state: %w: %w", server.WithMetadata(server.ErrWhatsAppError, "code", conflict), whatsmeow.ErrAppStateUpdate)
 		}
 	}

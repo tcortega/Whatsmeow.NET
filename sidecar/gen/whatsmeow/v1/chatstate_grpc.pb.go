@@ -41,7 +41,8 @@ type ChatStateServiceClient interface {
 	// SetChatState sets one chat state, or stars or unstars one message. Setting a state the chat already has succeeds.
 	// When WhatsApp rejects the write because the session's copy of the app state is out of step with WhatsApp's, the
 	// sidecar syncs that copy again in full and retries the write once: WhatsApp rejected it, so it did not take effect.
-	// When the write still fails, WhatsApp rejected it: WHATSAPP_ERROR, with metadata "code", 409 for a conflict.
+	// When the write still fails, WhatsApp rejected it: WHATSAPP_ERROR, with metadata "code", 409 for a conflict. When a
+	// backoff WhatsApp set after a 429 holds back that full sync, it is RATE_LIMITED, and the write is not sent again.
 	// A write that went out with no answer back is OUTCOME_UNKNOWN, and is never retried.
 	// A write WhatsApp took whose sync after it failed is OK when the sync found the session's copy out of step (the
 	// sidecar then syncs it in full) or a backoff WhatsApp set after an earlier 429 held the sync back (nothing is sent
@@ -90,7 +91,8 @@ type ChatStateServiceServer interface {
 	// SetChatState sets one chat state, or stars or unstars one message. Setting a state the chat already has succeeds.
 	// When WhatsApp rejects the write because the session's copy of the app state is out of step with WhatsApp's, the
 	// sidecar syncs that copy again in full and retries the write once: WhatsApp rejected it, so it did not take effect.
-	// When the write still fails, WhatsApp rejected it: WHATSAPP_ERROR, with metadata "code", 409 for a conflict.
+	// When the write still fails, WhatsApp rejected it: WHATSAPP_ERROR, with metadata "code", 409 for a conflict. When a
+	// backoff WhatsApp set after a 429 holds back that full sync, it is RATE_LIMITED, and the write is not sent again.
 	// A write that went out with no answer back is OUTCOME_UNKNOWN, and is never retried.
 	// A write WhatsApp took whose sync after it failed is OK when the sync found the session's copy out of step (the
 	// sidecar then syncs it in full) or a backoff WhatsApp set after an earlier 429 held the sync back (nothing is sent

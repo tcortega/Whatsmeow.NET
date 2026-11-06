@@ -604,6 +604,30 @@ func TestAWriteWhoseRecoveryFailsIsAConflict(t *testing.T) {
 	}
 }
 
+func TestARejectedWriteWhoseRecoveryWhatsAppHoldsBackIsRateLimited(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.stub.errs = []error{rejected(appstate.WAPatchRegularLow)}
+	h.stub.syncErr = fmt.Errorf("%w: not fetching %s until %s", whatsmeow.ErrAppStateRateLimited, appstate.WAPatchRegularLow, "2026-11-06T15:00:00Z")
+
+	err := h.set(&whatsmeowv1.SetChatStateRequest{Change: &whatsmeowv1.SetChatStateRequest_Pin{Pin: &whatsmeowv1.ChatPin{Pinned: true}}})
+	wantReason(t, err, codes.ResourceExhausted, "RATE_LIMITED", map[string]string{})
+
+	for _, wrapped := range []string{"not fetching", "2026-11-06T15:00:00Z", "5511987654321"} {
+		if strings.Contains(status.Convert(err).Message(), wrapped) {
+			t.Fatalf("the status carries %q: %v", wrapped, err)
+		}
+	}
+
+	h.wantSync(appstate.WAPatchRegularLow)
+	h.wantNoSync()
+
+	if sent := h.stub.sent(); len(sent) != 1 {
+		t.Fatalf("sent %d patches, want 1: the recovery did not run, so the write is not sent again", len(sent))
+	}
+}
+
 func TestAWriteTakenWhoseSyncFoundTheCopyOutOfStepIsDoneAfterAFullSync(t *testing.T) {
 	t.Parallel()
 
