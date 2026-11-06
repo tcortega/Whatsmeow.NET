@@ -149,7 +149,9 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 		var rows = await RowsAsync(client, businessAccount, ct).ConfigureAwait(false);
 		var pairs = await client.ResolveJidsAsync([businessAccount.Chat, businessAccount.Lid!.Value], ct).ConfigureAwait(false);
 		live.Write($"live: before branch 1, the business's rows: {Describe(rows)}; the store pairs: {string.Join(", ", pairs.Select(p => $"{LiveChecks.Form(p.Jid)} with {LiveChecks.Form(p.JidAlt)}"))}");
-		Assert.All(pairs, p => Assert.True(p.JidAlt is null || IsOtherForm(businessAccount, p.Jid, p.JidAlt.Value), "the store pairs the business with another account or the same form"));
+		LiveChecks.Redacting(() =>
+			Assert.All(pairs, p => Assert.True(p.JidAlt is null || IsOtherForm(businessAccount, p.Jid, p.JidAlt.Value), "the store pairs the business with another account or the same form"))
+		);
 
 		var id = MessageId.From($"WMNFRESH{LiveClock.Time.GetUtcNow():yyyyMMddHHmmss}");
 		const string Text = "wmn fresh companion";
@@ -172,7 +174,7 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 		Assert.True(rows.SingleOrDefault(r => r.Jid == sender)?.PushName is null, "pushname_precondition_spent: the sender's row had a push name before the text");
 		var senderAlt = got.Source.SenderAlt is { } a ? a with { Device = 0 } : (Jid?)null;
 		Assert.True(senderAlt is null || IsOtherForm(businessAccount, sender, senderAlt.Value), "the text's other form is not the business's other form");
-		var alt = senderAlt ?? Assert.Single(pairs, p => p.Jid == sender).JidAlt;
+		var alt = senderAlt ?? LiveChecks.Redacting(() => Assert.Single(pairs, p => p.Jid == sender).JidAlt);
 
 		LiveChecks.Equal(ContactChecks.PushName(client.SessionId, sender, alt, pushName), await LiveChecks.WithinAsync(change, "the push name change").ConfigureAwait(false));
 	}
