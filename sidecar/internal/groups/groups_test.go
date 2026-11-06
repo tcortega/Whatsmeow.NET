@@ -223,6 +223,7 @@ type harness struct {
 	stub     *stub
 	sessions *sessions
 	client   whatsmeowv1.GroupServiceClient
+	conn     *grpc.ClientConn
 	ctx      context.Context //nolint:containedctx // the test's call context
 }
 
@@ -240,7 +241,9 @@ func startLogging(t *testing.T, log zerolog.Logger) *harness {
 	h.sessions = &sessions{client: h.stub}
 
 	srv := server.New(token, log, sidecarlog.NewRedactor())
-	whatsmeowv1.RegisterGroupServiceServer(srv, New(h.sessions))
+	svc := New(h.sessions)
+	whatsmeowv1.RegisterGroupServiceServer(srv, svc)
+	RegisterLive(srv, svc)
 
 	lis := bufconn.Listen(1 << 20)
 	served := make(chan error, 1)
@@ -269,6 +272,7 @@ func startLogging(t *testing.T, log zerolog.Logger) *harness {
 
 	h.ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
 	h.client = whatsmeowv1.NewGroupServiceClient(conn)
+	h.conn = conn
 
 	return h
 }

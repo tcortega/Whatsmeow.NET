@@ -1,6 +1,6 @@
 # whatsmeow.v1 to Go (sidecar/gen) and C# (Whatsmeow.Protocol, internal types) (ARCHITECTURE §4, §8.1).
 # The test-only whatsmeow.fake.v1 to Go (sidecar/gen) and C# (the integration tests only, never a shipped assembly)
-# (ADR 0019).
+# (ADR 0019), and the live tests' whatsmeow.livetest.v1 the same way, to C# in the live tests only (ADR 0060).
 # Only proto/ is generated; upstream protos are imported, never generated here (ARCHITECTURE §13 invariant 11).
 # Every plugin is local and pinned in /mise.toml (protoc, protoc-gen-go, protoc-gen-go-grpc, Grpc.Tools).
 # Run: buf generate
@@ -16,6 +16,9 @@ managed:
     - file_option: go_package_prefix
       path: whatsmeow/fake/v1
       value: github.com/tcortega/Whatsmeow.NET/sidecar/gen
+    - file_option: go_package_prefix
+      path: whatsmeow/livetest/v1
+      value: github.com/tcortega/Whatsmeow.NET/sidecar/gen
     # The same prefix as buf.gen.whatsapp.yaml, so C# references to upstream types resolve to Whatsmeow.Protocol.WhatsApp.
     - file_option: csharp_namespace_prefix
       value: Whatsmeow.Proto
@@ -25,6 +28,9 @@ managed:
     - file_option: csharp_namespace
       path: whatsmeow/fake/v1
       value: Whatsmeow.IntegrationTests.Fake
+    - file_option: csharp_namespace
+      path: whatsmeow/livetest/v1
+      value: Whatsmeow.LiveTests.Control
 inputs:
   - directory: proto
 plugins:
@@ -37,13 +43,13 @@ plugins:
   - protoc_builtin: csharp
     out: dotnet/src/Whatsmeow.Protocol/Generated
     opt: internal_access
-    exclude_types: [whatsmeow.fake.v1]
+    exclude_types: [whatsmeow.fake.v1, whatsmeow.livetest.v1]
   - local: grpc_csharp_plugin
     out: dotnet/src/Whatsmeow.Protocol/Generated
     opt:
       - internal_access
       - no_server
-    exclude_types: [whatsmeow.fake.v1]
+    exclude_types: [whatsmeow.fake.v1, whatsmeow.livetest.v1]
   - protoc_builtin: csharp
     out: dotnet/tests/Whatsmeow.IntegrationTests/Generated
     opt: internal_access
@@ -54,3 +60,13 @@ plugins:
       - internal_access
       - no_server
     types: [whatsmeow.fake.v1]
+  - protoc_builtin: csharp
+    out: dotnet/tests/Whatsmeow.LiveTests/Generated
+    opt: internal_access
+    types: [whatsmeow.livetest.v1]
+  - local: grpc_csharp_plugin
+    out: dotnet/tests/Whatsmeow.LiveTests/Generated
+    opt:
+      - internal_access
+      - no_server
+    types: [whatsmeow.livetest.v1]
