@@ -212,6 +212,8 @@ livetest_seams() {
 	local -a fields
 	local file
 	while read -r -a fields; do
+		# The generated control package's files are named livetest*.go too; it is checked as a package.
+		case "${fields[0]:-}" in */gen/whatsmeow/livetest/*) continue ;; esac
 		for file in "${fields[@]:1}"; do
 			case "$file" in
 			livetest_off.go) ;;
@@ -221,22 +223,28 @@ livetest_seams() {
 	done
 }
 
+# The live tests' control (ADR 0060) is generated outside the tag, like the fake's, so its package is checked too: the
+# tagged build must link it, and the release build must not.
 release_links_no_livetest() {
-	local files='{{.ImportPath}} {{join .GoFiles " "}}' release live leaked
+	local files='{{.ImportPath}} {{join .GoFiles " "}}' control='/gen/whatsmeow/livetest/' release live seams leaked
 	release="$(CGO_ENABLED=0 go -C sidecar list -deps -f "$files" ./cmd/whatsmeow-net)" || return
 	live="$(CGO_ENABLED=0 go -C sidecar list -deps -tags livetest -f "$files" ./cmd/whatsmeow-net)" || return
 	# Captured first: grep -q ends the pipe at its first match, which pipefail would report as a failure.
-	live="$(livetest_seams <<<"$live")"
-	if ! grep -q '/livetest_on\.go$' <<<"$live"; then
+	seams="$(livetest_seams <<<"$live")"
+	if ! grep -q '/livetest_on\.go$' <<<"$seams"; then
 		annotate error "livetest in the release build" "whatsmeow-net with -tags livetest links no livetest_on.go, so this check cannot see the seams"
 		return 1
 	fi
-	leaked="$(livetest_seams <<<"$release")"
+	if ! cut -d' ' -f1 <<<"$live" | grep -q -F "$control"; then
+		annotate error "livetest in the release build" "whatsmeow-net with -tags livetest links no live test control package, so this check cannot see it"
+		return 1
+	fi
+	leaked="$( (livetest_seams <<<"$release"; cut -d' ' -f1 <<<"$release" | grep -F "$control" || true) | paste -sd ' ' -)"
 	if [ -n "$leaked" ]; then
 		annotate error "livetest in the release build" "whatsmeow-net without -tags livetest links $leaked"
 		return 1
 	fi
-	echo "whatsmeow-net without -tags livetest links no live test seam"
+	echo "whatsmeow-net without -tags livetest links no live test seam or control"
 }
 
 # The whatsmeow Client parity report (ADR 0048): shown in the log and the job summary, a warning for each run with a
@@ -279,7 +287,7 @@ job_go() {
 		done
 	done
 	check "sidecar: the release build links no fake WhatsApp (ADR 0019)" release_links_no_fake
-	check "sidecar: the release build links no live test seam (ADR 0032)" release_links_no_livetest
+	check "sidecar: the release build links no live test seam or control (ADR 0032, 0060)" release_links_no_livetest
 	check "sidecar: linked modules and licence files match sidecar/licenses.allow (ADR 0016)" go -C tools run ./check-licenses
 	check "whatsmeow Client parity (report only, ADR 0048)" parity_report
 	check "the go job left the tree unchanged" tree_unchanged "$before" "the go job"
@@ -316,29 +324,34 @@ noexec_mount() {
 	echo "noexec tmpfs at $dir"
 }
 
-# The fake WhatsApp control's C# is generated into the integration tests only (ADR 0019): no assembly under
-# dotnet/src, all of which ship, may contain a type in its namespace, which buf.gen.yaml gives every generated fake
-# type, messages and service alike. The test assembly must, or this grep proves nothing.
-shipped_have_no_fake() {
-	local project name dll rc=0 namespace=Whatsmeow.IntegrationTests.Fake
-	if ! grep -q -a -F "$namespace" dotnet/artifacts/bin/Whatsmeow.IntegrationTests/release/Whatsmeow.IntegrationTests.dll; then
-		annotate error "fake in a shipped assembly" "Whatsmeow.IntegrationTests.dll has no $namespace type either, so this check cannot see one"
+# The test-only controls' C# is generated into their test assembly only: the fake WhatsApp's into the integration tests
+# (ADR 0019), the live tests' into the live tests (ADR 0060). No assembly under dotnet/src, all of which ship, may
+# contain a type in either namespace, which buf.gen.yaml gives every generated type of the control, messages and
+# service alike. Each home assembly must, or this grep proves nothing.
+shipped_have_no_control() {
+	local namespace="$1" home="$2" what="$3" project name dll rc=0
+	if ! grep -q -a -F "$namespace" "dotnet/artifacts/bin/$home/release/$home.dll"; then
+		annotate error "$what in a shipped assembly" "$home.dll has no $namespace type either, so this check cannot see one"
 		return 1
 	fi
 	for project in dotnet/src/*/; do
 		name="$(basename "$project")"
 		dll="dotnet/artifacts/bin/$name/release/$name.dll"
 		if [ ! -f "$dll" ]; then
-			annotate error "fake in a shipped assembly" "$dll was not built"
+			annotate error "$what in a shipped assembly" "$dll was not built"
 			rc=1
 		elif grep -q -a -F "$namespace" "$dll"; then
-			annotate error "fake in a shipped assembly" "$dll contains the fake WhatsApp control"
+			annotate error "$what in a shipped assembly" "$dll contains the $what"
 			rc=1
 		fi
 	done
-	[ "$rc" -eq 0 ] && echo "no assembly under dotnet/src contains the fake WhatsApp control"
+	[ "$rc" -eq 0 ] && echo "no assembly under dotnet/src contains the $what"
 	return "$rc"
 }
+
+shipped_have_no_fake() { shipped_have_no_control Whatsmeow.IntegrationTests.Fake Whatsmeow.IntegrationTests "fake WhatsApp control"; }
+
+shipped_have_no_livetest() { shipped_have_no_control Whatsmeow.LiveTests.Control Whatsmeow.LiveTests "live tests' control"; }
 
 # The live tests (docs/guidelines/tests.md Live WhatsApp) are contained: [LiveFact] appears only in
 # Whatsmeow.LiveTests, Explicit, a declared exception to the banned list, only in its LiveFactAttribute.cs, every
@@ -386,9 +399,10 @@ job_dotnet() {
 		check "dotnet build" dotnet build dotnet/Whatsmeow.slnx -c Release --no-restore -p:ContinuousIntegrationBuild=true &&
 		{
 			check "no shipped assembly contains the fake WhatsApp control (ADR 0019)" shipped_have_no_fake
+			check "no shipped assembly contains the live tests' control (ADR 0060)" shipped_have_no_livetest
 			# Never the live tests, even with their variables exported in the shell that runs this.
 			rm -f dotnet/artifacts/TestResults/media-transfers.txt dotnet/artifacts/TestResults/fake-sidecar.log
-			check "dotnet test" env -u WHATSMEOW_LIVE_DATABASE -u WHATSMEOW_LIVE_PHONE_NUMBER -u WHATSMEOW_LIVE_PEER_DATABASE -u WHATSMEOW_LIVE_OWNER -u WHATSMEOW_LIVE_MEDIA_REFS -u WHATSMEOW_LIVE_MEDIA_SIZES dotnet test --solution dotnet/Whatsmeow.slnx -c Release --no-build
+			check "dotnet test" env -u WHATSMEOW_LIVE_DATABASE -u WHATSMEOW_LIVE_PHONE_NUMBER -u WHATSMEOW_LIVE_PEER_DATABASE -u WHATSMEOW_LIVE_OWNER -u WHATSMEOW_LIVE_MEDIA_REFS -u WHATSMEOW_LIVE_MEDIA_SIZES -u WHATSMEOW_LIVE_FRESH_DATABASE -u WHATSMEOW_LIVE_HISTORY_BOUNDS -u WHATSMEOW_LIVE_KNOWN_DEVICES dotnet test --solution dotnet/Whatsmeow.slnx -c Release --no-build
 			# The media transfer test's throughput and memory on each transport, for ARCHITECTURE §8.6 (ADR 0026).
 			if [ -f dotnet/artifacts/TestResults/media-transfers.txt ]; then
 				cat dotnet/artifacts/TestResults/media-transfers.txt

@@ -1,3 +1,6 @@
+using System.Collections.Immutable;
+using Whatsmeow.IntegrationTests.Support;
+
 namespace Whatsmeow.LiveTests;
 
 /// <summary>
@@ -37,6 +40,22 @@ internal static class LiveSettings
 	/// </summary>
 	public const string MediaRefsVariable = "WHATSMEOW_LIVE_MEDIA_REFS";
 
+	/// <summary>
+	/// A new database file for the fresh companion of the peer's account (<see cref="LiveFresh"/>, ADR 0060): the opt-in
+	/// for the one test that asks for a QR scan every run. The test creates the file and refuses one that exists.
+	/// </summary>
+	public const string FreshDatabaseVariable = "WHATSMEOW_LIVE_FRESH_DATABASE";
+
+	/// <summary>A new file for the fresh pairing's history bounds record (<see cref="LiveHistoryBounds"/>, #42); refused if it exists.</summary>
+	public const string HistoryBoundsVariable = "WHATSMEOW_LIVE_HISTORY_BOUNDS";
+
+	/// <summary>
+	/// The peer account's devices known from other stores, device JIDs separated by commas, which the fresh companion must
+	/// not be: root's preflight reads them from a consistent snapshot of those stores, without opening them in a sidecar
+	/// (ADR 0060). A secret: never printed.
+	/// </summary>
+	public const string KnownDevicesVariable = "WHATSMEOW_LIVE_KNOWN_DEVICES";
+
 	/// <summary>The live database; empty when the live tests are off.</summary>
 	public static string Database { get; } = Environment.GetEnvironmentVariable(DatabaseVariable) ?? "";
 
@@ -45,6 +64,22 @@ internal static class LiveSettings
 
 	/// <summary>The peer database; empty when it is not set.</summary>
 	public static string PeerDatabase { get; } = Environment.GetEnvironmentVariable(PeerDatabaseVariable) ?? "";
+
+	/// <summary>The fresh companion's new database; empty when it is not set.</summary>
+	public static string FreshDatabase { get; } = Environment.GetEnvironmentVariable(FreshDatabaseVariable) ?? "";
+
+	/// <summary>The history bounds record's new file; empty when it is not set.</summary>
+	public static string HistoryBounds { get; } = Environment.GetEnvironmentVariable(HistoryBoundsVariable) ?? "";
+
+	/// <summary>Whether <see cref="KnownDevicesVariable"/> is set.</summary>
+	public static bool HasKnownDevices { get; } = !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(KnownDevicesVariable));
+
+	/// <summary>
+	/// The devices <see cref="KnownDevicesVariable"/> names, parsed when asked for, so a malformed value fails only the
+	/// test that needs it, without its text (<see cref="Jid.Parse(string)"/>, ADR 0039). The fresh companion checks the rest.
+	/// </summary>
+	public static ImmutableArray<Jid> KnownDevices =>
+		[.. (Environment.GetEnvironmentVariable(KnownDevicesVariable) ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(Jid.Parse)];
 
 	/// <summary>The media refs file; empty when it is not set.</summary>
 	public static string MediaRefs { get; } = Environment.GetEnvironmentVariable(MediaRefsVariable) ?? "";

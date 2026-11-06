@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading.Channels;
 using QRCoder;
@@ -7,6 +8,7 @@ using Whatsmeow.IntegrationTests.Events;
 using Whatsmeow.IntegrationTests.Pairing;
 using Whatsmeow.IntegrationTests.Sessions;
 using Whatsmeow.IntegrationTests.Support;
+using Whatsmeow.LiveTests.Control;
 using Whatsmeow.Sessions;
 
 namespace Whatsmeow.LiveTests;
@@ -178,6 +180,14 @@ public sealed class LiveSidecar : IAsyncLifetime
 		_throwaway.Add(id);
 		return client;
 	}
+
+	/// <summary>The live tests' control on the live sidecar, which a livetest build serves (ADR 0060).</summary>
+	internal async Task<LiveTestService.LiveTestServiceClient> ControlAsync(CancellationToken cancellationToken) =>
+		new((await StartAsync(cancellationToken).ConfigureAwait(false)).CallInvoker);
+
+	/// <summary>Every session on the live database, with this device's JIDs, never creating one.</summary>
+	public async Task<ImmutableArray<SessionInfo>> SessionsAsync(CancellationToken cancellationToken) =>
+		await (await StartAsync(cancellationToken).ConfigureAwait(false)).Sessions.ListAsync(cancellationToken).ConfigureAwait(false);
 
 	/// <summary>The release build with the live seams, built once: <c>-tags livetest</c> (ADR 0032).</summary>
 	public async Task<string> BinaryAsync(CancellationToken cancellationToken)

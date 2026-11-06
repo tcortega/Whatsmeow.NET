@@ -3,6 +3,7 @@
 - Status: Accepted
 - Date: 2026-11-01
 - Evidence: issue #5, its plan review, and the tests named below
+- Amended by: [ADR 0060](0060-a-live-test-control-and-a-fresh-companion.md) (the groups slice differs in the live build too, in its `livetest_*` files; a second test-only control, `whatsmeow.livetest.v1`, generated into the live tests only)
 
 ## Context
 

@@ -286,7 +286,9 @@ func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, op
 	whatsmeowv1.RegisterSessionServiceServer(srv, sessions)
 	whatsmeowv1.RegisterContactServiceServer(srv, contacts.New(sessions))
 	whatsmeowv1.RegisterPresenceServiceServer(srv, presence.New(sessions))
-	whatsmeowv1.RegisterGroupServiceServer(srv, groups.New(sessions))
+	groupService := groups.New(sessions)
+	whatsmeowv1.RegisterGroupServiceServer(srv, groupService)
+	groups.RegisterLive(srv, groupService)
 
 	// The sidecar's own temporary media files go next to the database it owns, not to a tmpfs /tmp (ARCHITECTURE §7.6).
 	mediaSlice, err := media.New(sessions, db.DB, db.Writer, opts.mediaRoot, opts.database+".tmp", log)

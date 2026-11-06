@@ -44,13 +44,16 @@ const extendAllowlist = "extend the allowlist in tools/check-repo in a reviewed 
 // generatedDirs are the folders a buf template with clean: true writes and CI regenerates and diffs.
 // A folder is blessed only once CI regenerates it. Only our own packages are blessed under sidecar/gen/, so
 // generated Go for upstream protos anywhere else is a finding (ARCHITECTURE §13 invariant 11). The fake WhatsApp
-// control's C# goes to the integration tests only, never to a shipped assembly (ADR 0019).
+// control's C# goes to the integration tests only, and the live tests' control's to the live tests only, never to a
+// shipped assembly (ADR 0019, 0060).
 func generatedDirs() []string {
 	return []string{
 		"dotnet/src/Whatsmeow.Protocol.WhatsApp/Generated/",
 		"dotnet/src/Whatsmeow.Protocol/Generated/",
 		"dotnet/tests/Whatsmeow.IntegrationTests/Generated/",
+		"dotnet/tests/Whatsmeow.LiveTests/Generated/",
 		"sidecar/gen/whatsmeow/fake/v1/",
+		"sidecar/gen/whatsmeow/livetest/v1/",
 		"sidecar/gen/whatsmeow/v1/",
 	}
 }
@@ -932,7 +935,7 @@ func tags(expr constraint.Expr) []string {
 
 // allowedTag accepts GOOS and GOARCH values, fakewhatsapp only in the fake WhatsApp mode and its wiring (so a
 // slice is the same code in the test build and the release build, ADR 0019), livetest only in the live tests' seams,
-// files named livetest_* in the events and messaging slices (ADR 0032; build/ci.sh checks a release build links none),
+// files named livetest_* in the events, messaging and groups slices (ADR 0032, 0060; build/ci.sh checks a release build links none),
 // and ignore for helper programs under tools/.
 func allowedTag(name, tag string) bool {
 	platforms := []string{
@@ -950,7 +953,8 @@ func allowedTag(name, tag string) bool {
 	case tag == "livetest":
 		dir, file := path.Split(name)
 
-		return (dir == "sidecar/internal/events/" || dir == "sidecar/internal/messaging/") && strings.HasPrefix(file, "livetest_")
+		return (dir == "sidecar/internal/events/" || dir == "sidecar/internal/messaging/" || dir == "sidecar/internal/groups/") &&
+			strings.HasPrefix(file, "livetest_")
 	case tag == "ignore":
 		return strings.HasPrefix(name, "tools/")
 	default:

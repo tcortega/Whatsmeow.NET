@@ -42,6 +42,8 @@
 		<!-- Only for two seams the public API cannot reach: the protocol range (the real sidecar cannot be made to report
 		another protocol), and fake WhatsApp mode with its control channel (ADR 0019). -->
 		<InternalsVisibleTo Include="Whatsmeow.IntegrationTests" />
+		<!-- The live tests' control channel, served by a livetest build only (ADR 0060). -->
+		<InternalsVisibleTo Include="Whatsmeow.LiveTests" />
 		<!-- The events host of the kill-the-.NET-side test starts a fake-mode sidecar, the second seam above. -->
 		<InternalsVisibleTo Include="SidecarHost" />
 		<!-- The hosting package creates the sidecar unstarted and shares the options' setup step and rules (ADR 0034); it

@@ -4,6 +4,7 @@
 - Date: 2026-11-02
 - Evidence: issue #10, its plan and the coordinator's rulings, whatsmeow at the pin, and the tests named below
 - Amends: [ADR 0019](0019-fake-whatsapp-mode.md) (a slice is the same code in every build: the events and messaging slices differ in the live build, only in their `livetest_*` files), [ADR 0021](0021-pairing.md) (the phone keeps only the live session's device), [ADR 0025](0025-messaging-and-receipts.md) (the strict id rule, in the live build only), docs/guidelines/tests.md ("fake-only seams stay on fake-mode fixtures")
+- Amended by: [ADR 0060](0060-a-live-test-control-and-a-fresh-companion.md) (the `livetest` tag in the groups slice, a control service, and a throwaway companion again, on opt-in only)
 
 ## Context
 

@@ -16,3 +16,5 @@ breaking:
     - third_party/whatsmeow
     # The fake WhatsApp control is test-only and never ships, so it may change freely; lint still applies (ADR 0019).
     - proto/whatsmeow/fake
+    # The live tests' control is test-only and never ships either (ADR 0060).
+    - proto/whatsmeow/livetest
