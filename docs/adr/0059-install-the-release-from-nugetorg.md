@@ -24,7 +24,8 @@ Ours carry no author signature (ADR 0007), so nuget.org signing them the same wa
 * `nuget.config` has nuget.org alone; restore uses an empty packages folder and, in both modes, an empty HTTP cache.
 * After the restore, exactly the eight packages `build/release.sh ids` prints must be there, each at exactly the version with its own id and version in its nuspec, and no other Whatsmeow package; they are copied into the consumer's own feed directory, so every `packaged_*` check reads the bytes nuget.org served.
 * The Corresponding Source comes from the release's GitHub asset, which the publish job uploads before any push (ADR 0050).
-* Each native package must also hold `.signature.p7s`. That is a presence check of the served file, not a cryptographic verification: `dotnet nuget verify` would add online chain and revocation checks on fourteen runners for little over the source mapping, which already restricts every package to nuget.org [inferred].
+* Each native package must also hold `.signature.p7s`.
+That is a presence check of the served file, not a cryptographic verification: `dotnet nuget verify` would add online chain and revocation checks on fourteen runners for little over the source mapping, which already restricts every package to nuget.org [inferred].
 
 The install and aot jobs move from packaging.yml into `install.yml`, one matrix for both uses.
 packaging.yml calls it for its artifact; release.yml's new `nuget-install` job calls it with the tag after `publish`, on a tag push only.
@@ -35,6 +36,10 @@ A rehearsal prints that it would run, since nothing is published.
 ## Measurements and limits
 
 * The feed path is unchanged: a local `build/ci.sh package` on osx-arm64 at `0.0.0-alpha.0.76` passed every check, the six JIT forms and AotSmoke [observed: 2026-11-06].
-* `install nuget.org:9.9.9-probe.1` and `aot nuget.org:9.9.9-probe.1 osx-arm64`, in a clone with that tag made locally, stop at restore with `NU1101 ... in source(s): nuget.org` [observed]: the path reaches nuget.org alone and fails closed. An untagged version, an empty one and a tag on another commit fail the tag check [observed].
-* Against a stand-in, a clone whose nuget.org-mode config maps `Whatsmeow.*` to a folder of that feed's packages, each given a `.signature.p7s`, and the rest to nuget.org, with the source asset at a `file://` URL: every check passed, on exactly the eight served packages [observed]. Without the signature file, without the source asset, with the tag on another commit, and with `release.sh ids` missing a package, it fails on the matching check [observed]. Mutants dropping the signature expectation, the copy into the consumer's feed, the source download, the tag check, the exact package set, or mapping `Whatsmeow.*` to the local feed in this mode were each caught [observed].
-* Before a publish nothing can show the nuget.org path passing. #52 closes on the first real `nuget-install` run with every row passing.
+* `install nuget.org:9.9.9-probe.1` and `aot nuget.org:9.9.9-probe.1 osx-arm64`, in a clone with that tag made locally, stop at restore with `NU1101 ... in source(s): nuget.org` [observed]: the path reaches nuget.org alone and fails closed.
+An untagged version, an empty one and a tag on another commit fail the tag check [observed].
+* Against a stand-in, a clone whose nuget.org-mode config maps `Whatsmeow.*` to a folder of that feed's packages, each given a `.signature.p7s`, and the rest to nuget.org, with the source asset at a `file://` URL: every check passed, on exactly the eight served packages [observed].
+Without the signature file, without the source asset, with the tag on another commit, and with `release.sh ids` missing a package, it fails on the matching check [observed].
+Mutants dropping the signature expectation, the copy into the consumer's feed, the source download, the tag check, the exact package set, or mapping `Whatsmeow.*` to the local feed in this mode were each caught [observed].
+* Before a publish nothing can show the nuget.org path passing.
+#52 closes on the first real `nuget-install` run with every row passing.
