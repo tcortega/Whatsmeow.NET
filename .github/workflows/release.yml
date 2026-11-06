@@ -6,7 +6,10 @@ name: release
 # package id is someone else's on nuget.org, drafts the GitHub release with
 # the binaries, their checksums and the Corresponding Source, gets a nuget.org key through Trusted Publishing (no
 # stored API key), publishes the release, then pushes the packages, the native packages first. A re-run pushes and
-# uploads only what is missing; nothing is ever deleted or unlisted.
+# uploads only what is missing; nothing is ever deleted or unlisted. Then nuget-install runs install.yml against
+# nuget.org on every target host and RID (#52, ADR 0059): a version nuget.org does not serve yet fails it, and re-running
+# its failed jobs retries; a fault in the checker itself is fixed in a later commit, which nuget-install.yml runs
+# against the same tag.
 #
 # A mistaken tag: refuse the approval, so nothing is published, then delete the tag (owner action 4 gives Antonio the
 # bypass), because build/ci.sh's buf breaking gate counts every v<semver> tag main can reach (ADR 0015).
@@ -149,6 +152,16 @@ jobs:
       - name: build/release.sh wait 2 (only warns)
         run: bash build/release.sh wait "$TAG" "$RUNNER_TEMP/feed" 2
 
+  # The same consumers as before the approval, now restoring the release from nuget.org only (#52).
+  nuget-install:
+    name: nuget.org install
+    needs: publish
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/install.yml
+    with:
+      tag: ${{ github.ref_name }}
+      cache: false
+
   rehearsal:
     name: rehearsal
     needs: packaging
@@ -196,6 +209,7 @@ jobs:
           bash build/release.sh wait "$TAG" "$RUNNER_TEMP/feed" 1 --dry-run
           bash build/release.sh push "$TAG" "$RUNNER_TEMP/feed" 2 --dry-run
           bash build/release.sh wait "$TAG" "$RUNNER_TEMP/feed" 2 --dry-run
+          echo "would then run install.yml at $TAG: build/ci.sh install and aot from nuget.org:${TAG#v} on every target host and RID"
 
       - name: publishing refuses a rehearsal
         run: |

@@ -4,7 +4,7 @@
 
 `Whatsmeow.Client` brings six sidecar binaries: linux-x64, linux-arm64, osx-x64, osx-arm64, win-x64 and win-arm64.
 The Linux binaries have no C dependencies and also serve linux-musl-x64 and linux-musl-arm64 (Alpine), making eight supported runtime targets [observed: §8.5; `SidecarBinary.RuntimeIdentifier`].
-CI installs the packages into a new app on all eight target RIDs: portable build/run and publish, and RID-specific framework-dependent and self-contained JIT publishes [observed: `build/ci.sh job_install`, `packaging.yml`; ADR 0058].
+CI installs the packages into a new app on all eight target RIDs: portable build/run and publish, and RID-specific framework-dependent and self-contained JIT publishes [observed: `build/ci.sh job_install`, `install.yml`; ADR 0058].
 Both musl RIDs run in their architecture's Alpine container, and Native AOT is a separate RID-specific publish on every target RID [observed: `build/ci.sh job_aot`; ADR 0056, 0058].
 Other targets, win-x86 included, have no binary, and the start fails naming the paths it tried.
 

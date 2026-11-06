@@ -1,7 +1,7 @@
 # 0056. AotSmoke with Native AOT from the local feed on every target RID, each on a native runner
 
 - Status: Accepted
-- Amended by: [0058](0058-jit-install-on-every-target-rid.md) (JIT install coverage and native execution reporting on every target RID)
+- Amended by: [0058](0058-jit-install-on-every-target-rid.md) (JIT install coverage and native execution reporting on every target RID), [0059](0059-install-the-release-from-nugetorg.md) (the aot jobs live in `install.yml`, and run against nuget.org after a publish)
 - Date: 2026-11-04
 - Evidence: issue #44, its plan review, the mutations in its PR body, GitHub Actions run 41848735418, a manual run of `ci.yml` on the branch with two deliberately emulated `aot` jobs added for the measurement, and the docs cited below, read on 2026-11-04
 - Amends: ARCHITECTURE §11 (the AOT row; packaging runs on main too), [ADR 0050](0050-release-workflow.md) (what `packaging.yml` runs, and when `ci.yml` calls it)

@@ -779,6 +779,13 @@ git_q clone --depth 1 --branch main "file://$api" "$tmp/api-shallow"
 shallow_shipped() { (cd "$tmp/api-shallow" && bash "$release" shipped-api); }
 expect fail "shallow" "shipped-api: a shallow clone fails" shallow_shipped
 
+# --- ids -------------------------------------------------------------------------------------------------------
+
+ids_line() { bash "$release" ids | paste -sd' ' -; }
+expect pass "Whatsmeow.Sidecar.Native.Linux Whatsmeow.Sidecar.Native.MacOS Whatsmeow.Sidecar.Native.Windows Whatsmeow.Protocol.WhatsApp Whatsmeow.Protocol Whatsmeow.Client Whatsmeow.Extensions.Hosting Whatsmeow.Testing" \
+	"ids: the eight packages, phase 1 then phase 2" ids_line
+expect fail "every package id a release publishes" "ids: takes no argument, and prints the usage" bash "$release" ids extra
+
 if [ "${#failed[@]}" -gt 0 ]; then
 	echo
 	echo "failed cases:"

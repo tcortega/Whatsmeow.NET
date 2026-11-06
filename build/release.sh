@@ -16,6 +16,7 @@
 #                                    nothing; a rehearsal's v0.0.0-rehearsal.<n> stands for the next stable release
 #   shipped-api                      every line the release the next stable one compares with shipped in a
 #                                    PublicAPI.Shipped.txt, but the [WMN1001] Raw hatch's, is still there (ADR 0055)
+#   ids                              every package id a release publishes, in push order (build/ci.sh install reads it)
 #
 # draft, publish and push publish, so they refuse to run anywhere but in a push of that tag; with --dry-run they and
 # wait only print what they would do. Nothing here deletes or unlists anything (tools/check-repo, ADR 0029).
@@ -496,7 +497,7 @@ shipped_api() {
 }
 
 usage() {
-	sed -n '5,21p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
+	sed -n '5,22p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
 	exit 2
 }
 
@@ -513,5 +514,6 @@ case "$cmd" in
 	wait) [ $# -eq 3 ] || [ $# -eq 4 ] || usage; wait_served "$@" ;;
 	baseline) [ $# -eq 1 ] || usage; baseline "$@" ;;
 	shipped-api) [ $# -eq 0 ] || usage; shipped_api ;;
+	ids) [ $# -eq 0 ] || usage; printf '%s\n' "${phase1[@]}" "${phase2[@]}" ;;
 	*) usage ;;
 esac
