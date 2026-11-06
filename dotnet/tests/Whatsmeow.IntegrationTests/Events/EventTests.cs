@@ -128,6 +128,22 @@ public sealed class EventTests(FakeSidecar fixture)
 	}
 
 	[Fact(Timeout = Timeout)]
+	public async Task AMessageWithADashPushName_ArrivesWithTheDash()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var client = await SessionSetup.LinkedAsync(fixture, "events-dash-push-name", ct);
+		using var received = new Received<MessageReceived>(client);
+		await client.ConnectAsync(ct);
+
+		// whatsmeow stores no push name for "-" (message.go:59); the message still carries what WhatsApp sent.
+		var dash = Deliveries.Message("events-dash-push-name", "M1");
+		dash.PushName = "-";
+		_ = await fixture.Fake.DeliverMessageAsync(dash, cancellationToken: ct);
+
+		Assert.Equal(Deliveries.Received("events-dash-push-name", "M1") with { PushName = "-" }, await received.NextAsync(ct));
+	}
+
+	[Fact(Timeout = Timeout)]
 	public async Task AMessageWithoutAChat_IsSkippedAndTheStreamGoesOn()
 	{
 		var ct = TestContext.Current.CancellationToken;
