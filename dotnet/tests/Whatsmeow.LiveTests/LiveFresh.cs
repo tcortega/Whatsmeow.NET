@@ -25,17 +25,16 @@ internal sealed class LiveFresh : IAsyncDisposable
 		Companion = companion;
 	}
 
-	/// <summary>#42's options for this pairing, as both pairings of 2026-11-06: a full sync limited to seven days.</summary>
-	public static HistorySyncOptions History => new() { RequestFullSync = true, FullSyncDaysLimit = 7 };
-
 	/// <summary>The fresh session, unpaired until the scan.</summary>
 	public FreshCompanion Companion { get; }
 
 	/// <summary>
-	/// Creates the database, which must not exist, starts its sidecar with the record's logger provider, records the
-	/// binary and the options, and opens the session on a database that has none.
+	/// Creates the database, which must not exist, starts its sidecar with the record's logger provider and #42's options
+	/// (a full sync limited to <paramref name="daysLimit"/> days, the run's <see cref="LiveSettings.HistoryDaysLimit"/>;
+	/// the size limit and the quota stay whatsmeow's), records the binary and the options, and opens the session on a
+	/// database that has none.
 	/// </summary>
-	public static async Task<LiveFresh> StartAsync(LiveSidecar live, LiveHistoryBounds bounds, CancellationToken cancellationToken)
+	public static async Task<LiveFresh> StartAsync(LiveSidecar live, LiveHistoryBounds bounds, int daysLimit, CancellationToken cancellationToken)
 	{
 		var database = Path.GetFullPath(LiveSettings.FreshDatabase);
 		FreshCompanion.CreateExclusive(database);
@@ -43,7 +42,12 @@ internal sealed class LiveFresh : IAsyncDisposable
 		var log = new LiveLog(Path.Combine(live.OutputDirectory, "fresh.log"));
 		// The record's own provider, which the factory does not own: the record is closed after the sidecar stops.
 		log.Capture.Factory.AddProvider(bounds.LoggerProvider);
-		var options = new WhatsmeowSidecarOptions { SidecarPath = binary, DatabasePath = database, History = History };
+		var options = new WhatsmeowSidecarOptions
+		{
+			SidecarPath = binary,
+			DatabasePath = database,
+			History = new HistorySyncOptions { RequestFullSync = true, FullSyncDaysLimit = daysLimit },
+		};
 		WhatsmeowSidecar sidecar;
 		try
 		{

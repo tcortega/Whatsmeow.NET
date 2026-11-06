@@ -543,6 +543,106 @@ public sealed class LiveHistoryBoundsTests(FakeSidecar fixture, SidecarBinaries 
 		);
 	}
 
+	[Fact(Timeout = Timeout)]
+	public async Task Batch_CountsItsMessagesByAgeAtThePairingsUtc_EachUpperBoundInclusive_TheFutureApart_AndNoneBeforeAPairing()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "bounds-ages";
+		var clock = new StalledClock();
+		var path = NewPath();
+		using var bounds = new LiveHistoryBounds(clock, path);
+		var client = await Histories.CaughtUpAsync(fixture, Session, ct);
+		bounds.Register(client);
+		using var progress = new Received<HistorySyncProgressed>(client);
+		var day = TimeSpan.FromDays(1);
+		var second = TimeSpan.FromSeconds(1);
+
+		// Before the pairing there is no time to age a message from.
+		var early = s_t0.AddDays(-2);
+		await DeliverAsync(Session, progress, Blob(Session, "A0", 3, early), ct);
+		var pairedAt = TimeSpan.FromMinutes(1);
+		var paired = s_t0 + pairedAt;
+		clock.Set(pairedAt, paired);
+		bounds.Paired();
+		// The batch is seen two wall days after the pairing, two monotonic minutes: its ages count from the pairing.
+		var seenAt = TimeSpan.FromMinutes(3);
+		var seen = paired + (2 * day);
+		clock.Set(seenAt, seen);
+		await DeliverAsync(
+			Session,
+			progress,
+			Blob(
+				Session,
+				"A1",
+				2,
+				paired + second,
+				paired,
+				paired - day,
+				paired - day - second,
+				paired - (3 * day),
+				paired - (3 * day) - second,
+				paired - (7 * day),
+				paired - (7 * day) - second
+			),
+			ct
+		);
+
+		Assert.Equal(
+			[
+				At("history_batch", TimeSpan.Zero) with { SyncType = "Recent", Entries = 1, MinMessage = early, MaxMessage = early },
+				At("history_batch", seenAt) with
+				{
+					Utc = seen,
+					SyncType = "Full",
+					Entries = 8,
+					MinMessage = paired - (7 * day) - second,
+					MaxMessage = paired + second,
+					AgeFuture = 1,
+					AgeUpTo1Day = 2,
+					AgeOver1To3Days = 2,
+					AgeOver3To7Days = 2,
+					AgeOver7Days = 1,
+				},
+			],
+			Rows(path).Where(r => r.Kind == "history_batch")
+		);
+	}
+
+	[Theory]
+	[InlineData("1", 1)]
+	[InlineData("7", 7)]
+	[InlineData("07", 7)]
+	[InlineData("2147483647", int.MaxValue)]
+	public void DaysLimit_DigitsAboveZero_AreTheLimit(string value, int expected) =>
+		Assert.Equal(expected, LiveHistoryBounds.ParseDaysLimit("WHATSMEOW_TEST_DAYS", value));
+
+	[Theory]
+	[InlineData(null)]
+	[InlineData("")]
+	[InlineData(" ")]
+	public void DaysLimit_MissingOrBlank_FailsNamingTheVariable(string? value) =>
+		Assert.Contains("WHATSMEOW_TEST_DAYS", Assert.Throws<InvalidOperationException>(() => LiveHistoryBounds.ParseDaysLimit("WHATSMEOW_TEST_DAYS", value)).Message, StringComparison.Ordinal);
+
+	[Theory]
+	[InlineData("0")]
+	[InlineData("-1")]
+	[InlineData("+7")]
+	[InlineData(" 7")]
+	[InlineData("7 ")]
+	[InlineData("7.0")]
+	[InlineData("1,000")]
+	[InlineData("1e1")]
+	[InlineData("0x7")]
+	[InlineData("2147483648")]
+	[InlineData("seven")]
+	public void DaysLimit_NotDigitsAboveZero_FailsNamingTheVariable_WithoutTheValue(string value)
+	{
+		var failure = Assert.Throws<InvalidOperationException>(() => LiveHistoryBounds.ParseDaysLimit("WHATSMEOW_TEST_DAYS", value));
+
+		Assert.Contains("WHATSMEOW_TEST_DAYS", failure.Message, StringComparison.Ordinal);
+		Assert.DoesNotContain(value, failure.Message, StringComparison.Ordinal);
+	}
+
 	[Fact]
 	public void Receipt_WhosePathExists_IsNotWritten_AndTheFileThereIsKept()
 	{
@@ -653,10 +753,14 @@ public sealed class LiveHistoryBoundsTests(FakeSidecar fixture, SidecarBinaries 
 	private string NewPath() => Path.Combine(binaries.NewDirectory(), "bounds.jsonl");
 
 	// One conversation whose messages are the given days from s_day.
-	private static DeliverHistorySyncRequest Blob(string session, string id, int syncType, params int[] days)
+	private static DeliverHistorySyncRequest Blob(string session, string id, int syncType, params int[] days) =>
+		Blob(session, id, syncType, [.. days.Select(day => s_day.AddDays(day))]);
+
+	// One conversation whose messages are at the given times, whole seconds: WhatsApp's message times have no fraction.
+	private static DeliverHistorySyncRequest Blob(string session, string id, int syncType, params DateTimeOffset[] times)
 	{
 		var conversation = new Conversation { Chat = Chat };
-		conversation.Messages.Add(days.Select((day, i) => new WebMessage { Id = $"{id}-{i}", Text = "history text", MessageTime = Timestamp.FromDateTimeOffset(s_day.AddDays(day)) }));
+		conversation.Messages.Add(times.Select((time, i) => new WebMessage { Id = $"{id}-{i}", Text = "history text", MessageTime = Timestamp.FromDateTimeOffset(time) }));
 		var blob = new DeliverHistorySyncRequest { SessionId = session, MessageId = id, SyncType = syncType, ChunkOrder = 2, Progress = 40 };
 		blob.Conversations.Add(conversation);
 		return blob;
@@ -672,8 +776,21 @@ public sealed class LiveHistoryBoundsTests(FakeSidecar fixture, SidecarBinaries 
 
 	private static Row At(string kind, TimeSpan at) => new() { Kind = kind, Utc = s_t0 + at, MonoNs = at.Ticks * 100 };
 
+	// The tests that expect rows from this helper send messages at least 37 days before the pairing (s_day itself at the
+	// newest, paired at s_t0), so every one counts in the oldest age.
 	private static Row Batch(TimeSpan at, string type, long entries, int minDay, int maxDay) =>
-		At("history_batch", at) with { SyncType = type, Entries = entries, MinMessage = s_day.AddDays(minDay), MaxMessage = s_day.AddDays(maxDay) };
+		At("history_batch", at) with
+		{
+			SyncType = type,
+			Entries = entries,
+			MinMessage = s_day.AddDays(minDay),
+			MaxMessage = s_day.AddDays(maxDay),
+			AgeFuture = 0,
+			AgeUpTo1Day = 0,
+			AgeOver1To3Days = 0,
+			AgeOver3To7Days = 0,
+			AgeOver7Days = entries,
+		};
 
 	private static Row Progress(TimeSpan at, string type, long messages) =>
 		At("history_progress", at) with { SyncType = type, ChunkOrder = 2, Progress = 40, MessageCount = messages, Skipped = 0 };
