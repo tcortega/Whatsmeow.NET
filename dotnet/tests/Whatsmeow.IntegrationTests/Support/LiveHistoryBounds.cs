@@ -15,10 +15,10 @@ namespace Whatsmeow.IntegrationTests.Support;
 /// fact uses it; its rules are checked offline in <c>LiveHistoryBoundsTests</c>.
 /// <para>
 /// Times: every deadline and duration is on the provider's monotonic clock (<c>MonoNs</c>, since the record began);
-/// UTC only dates the lines. A row's time is when the record's handler ran, not when WhatsApp sent it: the
-/// <c>@history</c> lane runs one event at a time, so an event queued behind a held one is seen at the hold's release.
-/// Register it before the hold's handler: an event's handlers run in registration order (Events/EventPipeline.cs,
-/// <c>On</c> appends, <c>RunAsync</c> runs them one after the other).
+/// UTC dates the lines and is what the ages count from (below), never a deadline. A row's time is when the record's
+/// handler ran, not when WhatsApp sent it: the <c>@history</c> lane runs one event at a time, so an event queued behind
+/// a held one is seen at the hold's release. Register it before the hold's handler: an event's handlers run in
+/// registration order (Events/EventPipeline.cs, <c>On</c> appends, <c>RunAsync</c> runs them one after the other).
 /// </para>
 /// <para>
 /// The window is the half-open span from <see cref="Paired"/> to its close, which is the first of: <c>quiet_window</c>

@@ -776,8 +776,8 @@ public sealed class LiveHistoryBoundsTests(FakeSidecar fixture, SidecarBinaries 
 
 	private static Row At(string kind, TimeSpan at) => new() { Kind = kind, Utc = s_t0 + at, MonoNs = at.Ticks * 100 };
 
-	// Every message these tests send is at least 34 days before the pairing (s_day plus 3 days at the newest, paired at
-	// s_t0), so every one counts in the oldest age.
+	// The tests that expect rows from this helper send messages at least 37 days before the pairing (s_day itself at the
+	// newest, paired at s_t0), so every one counts in the oldest age.
 	private static Row Batch(TimeSpan at, string type, long entries, int minDay, int maxDay) =>
 		At("history_batch", at) with
 		{
