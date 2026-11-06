@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # The checks CI runs, one subcommand per CI job; .github/workflows/ci.yml calls this and nothing else.
 # Run it before pushing: bash build/ci.sh all (or contract, go, dotnet, package; install <feed>; aot <feed> <rid>).
+# After a release, install nuget.org:<version> and aot nuget.org:<version> <rid> run the same checks against nuget.org.
 # Works in Git Bash on Windows.
 #
 # Every check runs and reports, even after an earlier one failed; the script fails at the end if any did.
@@ -383,10 +384,10 @@ job_external() {
 			WHATSMEOW_NET_TEST_SIDECAR=external dotnet test --project dotnet/tests/Whatsmeow.IntegrationTests -c Release --no-build
 }
 
-# Native packages (ADR 0023). The package job builds whatsmeow-net for every release target at the client's version,
-# packs every package into a local feed with the Corresponding Source archive beside them (ADR 0029), and installs from
-# it; CI packs on Windows x64, and the install jobs run that feed on every other native host, so Windows-built packages run
-# there.
+# Native packages (ADR 0023). The package job builds whatsmeow-net for every release target at the client's version and
+# packs every package into a local feed with the Corresponding Source archive beside them (ADR 0029); locally it installs
+# from it too. CI packs on Windows x64, and install.yml's jobs install that feed on every native host, so Windows-built
+# packages run on all of them; after a release, the same jobs install it from nuget.org (#52).
 package_feed=dotnet/artifacts/package
 sidecar_binaries=dotnet/artifacts/sidecar
 alpine_image=mcr.microsoft.com/dotnet/sdk:10.0.403-alpine3.24-amd64@sha256:60a079c9d3ffc98b2968c3153b995ede679f7d6504e3ae7d2b68225a7fd84f5a
@@ -553,38 +554,108 @@ source_archive() {
 }
 
 # A new console app in a directory of its own, outside the repository, so none of our MSBuild files, central versions
-# or nuget.config apply. It restores Whatsmeow.* from the feed only (source mapping) into an empty packages folder, so it
-# gets exactly what the feed holds, never a cached package of the same version.
-consumer_setup() { # feed
-	local feed
-	feed="$(cd "$1" && pwd)" || return
-	# GNU tar treats a Windows drive prefix as a remote host; keep the source archive path POSIX too.
-	package_source="$feed"
-	version="$(tr -d '\r' <"$feed/version")" || return
+# or nuget.config apply. It restores Whatsmeow.* from one place only (source mapping) into an empty packages folder and an
+# empty HTTP cache, so it gets exactly what that place holds, never a cached package of the same version: a feed
+# directory, or nuget.org for a published release (nuget.org:<version>, #52).
+consumer_setup() { # feed | nuget.org:<version>
 	work="$(mktemp -d)" || return
 	packages="$work/packages"
+	package_origin "$1" || return
 	native_host || return
 	host_rid="$native_host_rid"
 	exe=""
 	case "$host_rid" in win-*) exe=.exe ;; esac
 	cp global.json "$work/" || return
-	consumer_config "$(native_path "$feed")" >"$work/nuget.config" || return
+	consumer_config "$origin" >"$work/nuget.config" || return
 	in_consumer dotnet new console -o app -n Consumer || return
 	cp build/package-smoke/Program.cs "$work/app/" || return
 	in_consumer dotnet add app/Consumer.csproj package Whatsmeow.Client --version "$version" || return
 	in_consumer dotnet add app/Consumer.csproj package Whatsmeow.Extensions.Hosting --version "$version" || return
 	in_consumer dotnet add app/Consumer.csproj package Whatsmeow.Testing --version "$version" || return
-	echo "a consumer of Whatsmeow.Client, Whatsmeow.Extensions.Hosting and Whatsmeow.Testing $version from $feed in $work"
+	if [ -n "$published" ]; then served_feed || return; fi
+	echo "a consumer of Whatsmeow.Client, Whatsmeow.Extensions.Hosting and Whatsmeow.Testing $version from $origin in $work"
 }
 
-consumer_config() { # feed
+# Where the packages come from. A feed directory gives its version file and its packages. nuget.org:<version> needs the
+# checkout at that release's tag, since the source checks compare the published archive with HEAD; its packages are
+# what nuget.org serves, which served_feed copies into $work/feed after the restore.
+nuget_org=https://api.nuget.org/v3/index.json
+package_origin() { # feed | nuget.org:<version>
+	local feed tagged
+	case "$1" in
+		nuget.org:*)
+			published=nuget.org version="${1#nuget.org:}" origin="$nuget_org" package_source="$work/feed"
+			tagged="$(git rev-parse -q --verify "refs/tags/v$version^{commit}")"
+			if [ -z "$version" ] || [ "$tagged" != "$(git rev-parse HEAD)" ]; then
+				annotate error "nuget.org" "HEAD is not the release tag v$version: check out the tag of the version to install"
+				return 1
+			fi
+			mkdir -p "$package_source" || return
+			;;
+		*)
+			published="" feed="$(cd "$1" && pwd)" || return
+			# GNU tar treats a Windows drive prefix as a remote host; keep the source archive path POSIX too.
+			package_source="$feed"
+			version="$(tr -d '\r' <"$feed/version")" || return
+			origin="$(native_path "$feed")"
+			;;
+	esac
+}
+
+# Exactly the release's packages (build/release.sh ids), each restored from nuget.org at exactly the version, and no
+# other Whatsmeow package, copied into $work/feed under its id, so the packaged_* checks read the bytes nuget.org served;
+# and the release's Corresponding Source from its GitHub release, which publishes before any push (ADR 0050).
+served_feed() {
+	local ids want got id lower dir nupkg asset
+	ids="$(bash build/release.sh ids)" || return
+	want="$(lowercase "$ids" | LC_ALL=C sort)"
+	got="$(cd "$packages" && find . -maxdepth 1 -name 'whatsmeow.*' | sed 's#^\./##' | LC_ALL=C sort)"
+	if [ -z "$ids" ] || [ "$want" != "$got" ]; then
+		annotate error "nuget.org" "the restore did not get exactly the release's packages (build/release.sh ids)"
+		diff <(echo "$want") <(echo "$got")
+		return 1
+	fi
+	for id in $ids; do
+		lower="$(lowercase "$id")" && dir="$packages/$lower/$version" && nupkg="$dir/$lower.$version.nupkg"
+		if [ ! -f "$nupkg" ] || ! grep -qF "<id>$id</id>" "$dir/$lower.nuspec" || ! grep -qF "<version>$version</version>" "$dir/$lower.nuspec"; then
+			annotate error "nuget.org" "nuget.org served no $id $version"
+			return 1
+		fi
+		cp "$nupkg" "$package_source/$id.$version.nupkg" || return
+	done
+	echo "$version" >"$package_source/version" || return
+	asset="$repository_url/releases/download/v$version/$(source_archive_name)"
+	if ! curl -fsSL --retry 3 -o "$package_source/$(source_archive_name)" "$asset"; then
+		annotate error "nuget.org" "cannot download the Corresponding Source $asset (ADR 0016)"
+		return 1
+	fi
+	echo "nuget.org served exactly the $(wc -w <<<"$ids" | tr -d ' ') packages of $version; the source archive is the release's"
+}
+
+# Whatsmeow.* from the feed only, everything else from nuget.org; for a published release, nuget.org alone.
+consumer_config() { # feed path | nuget.org's index
+	if [ "$1" = "$nuget_org" ]; then
+		cat <<EOF
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+	<packageSources>
+		<clear />
+		<add key="nuget.org" value="$nuget_org" protocolVersion="3" />
+	</packageSources>
+	<packageSourceMapping>
+		<packageSource key="nuget.org"><package pattern="*" /></packageSource>
+	</packageSourceMapping>
+</configuration>
+EOF
+		return
+	fi
 	cat <<EOF
 <?xml version="1.0" encoding="utf-8"?>
 <configuration>
 	<packageSources>
 		<clear />
 		<add key="local" value="$1" />
-		<add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />
+		<add key="nuget.org" value="$nuget_org" protocolVersion="3" />
 	</packageSources>
 	<packageSourceMapping>
 		<packageSource key="local"><package pattern="Whatsmeow.*" /></packageSource>
@@ -598,7 +669,7 @@ EOF
 # Never on the shared compiler server either: a long-lived one failed Vogen's generator with CS8785 (Vogen.SharedTypes not
 # found) on a later run's throwaway packages folder, 4 local runs on osx-arm64, none with it off [observed: #122 log].
 in_consumer() {
-	(unset WHATSMEOW_NET_SIDECAR_PATH && cd "$work" && NUGET_PACKAGES="$(native_path "$packages")" UseSharedCompilation=false "$@")
+	(unset WHATSMEOW_NET_SIDECAR_PATH && cd "$work" && NUGET_PACKAGES="$(native_path "$packages")" NUGET_HTTP_CACHE_PATH="$(native_path "$work/http-cache")" UseSharedCompilation=false "$@")
 }
 
 # The native package of a RID's OS (ADR 0023). A packages folder names it in lowercase.
@@ -704,6 +775,10 @@ packaged_files() {
 			done
 			printf '%s\n' "buildTransitive/$id.targets" README.md "${native_notices[@]}" \
 				.nupkg.metadata "$name.$version.nupkg" "$name.$version.nupkg.sha512" "$name.nuspec"
+			# nuget.org adds a repository signature, extracted at the package root [observed: every package restored from
+			# nuget.org in a local packages folder, 2026-11-06; inferred for ours, whose first publish decides]. A presence
+			# check of the served file, not a cryptographic verification.
+			if [ -n "$published" ]; then echo .signature.p7s; fi
 		} | LC_ALL=C sort)"
 		actual="$(cd "$(native_package "$os")" && find . -type f | sed 's#^\./##' | LC_ALL=C sort)" || return
 		if [ "$expected" != "$actual" ]; then
@@ -948,7 +1023,7 @@ install_alpine() { # path script
 	image="$(alpine_for_arch "${host_rid##*-}")" || return
 	rm -rf "$src" && mkdir -p "$src" || return
 	cp global.json build/package-smoke/Program.cs "$src/" || return
-	consumer_config /feed >"$src/nuget.config" || return
+	if [ -n "$published" ]; then consumer_config "$nuget_org"; else consumer_config /feed; fi >"$src/nuget.config" || return
 	if ! docker run --rm -e VERSION="$version" -e RID="$musl_rid" -v "$(cd "$package_source" && pwd):/feed:ro" -v "$src:/src:ro" "$image" sh -euc "
 		cp -r /src /work && cd /work && export DOTNET_NOLOGO=true DOTNET_CLI_TELEMETRY_OPTOUT=true
 		dotnet new console -o app -n Consumer --no-restore && cp Program.cs app/
@@ -1128,7 +1203,7 @@ install_check() { # rid where path command...
 	check "consumer: $consumer_rid $path" "$@"
 	local rc=$?
 	if [ "$rc" -ne 0 ]; then result=FAIL; where="execution unconfirmed ($where)"; fi
-	local line="$consumer_rid | JIT | $path | $result | $where | feed $version"
+	local line="$consumer_rid | JIT | $path | $result | $where | ${published:-feed} $version"
 	echo "$line"
 	if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then echo "* $line" >>"$GITHUB_STEP_SUMMARY"; fi
 	return "$rc"
@@ -1181,11 +1256,10 @@ job_install() { # feed
 
 # The project and the versions that feed's packages and the repository pin, in a directory of its own outside the
 # repository, so none of our MSBuild files, central versions or nuget.config apply (consumer_setup).
-aot_setup() { # feed rid
-	local feed tfm hosting
-	feed="$(cd "$1" && pwd)" || return
+aot_setup() { # feed | nuget.org:<version>, rid
+	local tfm hosting
 	aot_rid="$2"
-	version="$(tr -d '\r' <"$feed/version")" || return
+	package_origin "$1" || return
 	tfm="$(sed -n 's|.*<TargetFramework>\(.*\)</TargetFramework>.*|\1|p' dotnet/Directory.Build.props)"
 	hosting="$(sed -n 's|.*<PackageVersion Include="Microsoft.Extensions.Hosting" Version="\([^"]*\)".*|\1|p' dotnet/Directory.Packages.props)"
 	if [ -z "$tfm" ] || [ -z "$hosting" ]; then
@@ -1218,12 +1292,13 @@ EOF
 	</ItemGroup>
 </Project>
 EOF
-	case "$aot_rid" in
-		linux-musl-*) consumer_config /feed >"$work/src/nuget.config" ;;
-		*) consumer_config "$(native_path "$feed")" >"$work/src/nuget.config" ;;
+	case "$published:$aot_rid" in
+		nuget.org:*) consumer_config "$nuget_org" >"$work/src/nuget.config" ;;
+		:linux-musl-*) consumer_config /feed >"$work/src/nuget.config" ;;
+		*) consumer_config "$origin" >"$work/src/nuget.config" ;;
 	esac || return
-	aot_feed="$feed"
-	echo "AotSmoke from the feed $feed at $version, for $aot_rid, in $work"
+	aot_feed="$package_source"
+	echo "AotSmoke from $origin at $version, for $aot_rid, in $work"
 }
 
 # The RID must be the host's OS and architecture: Native AOT never crosses operating systems, and an app of another
@@ -1242,7 +1317,7 @@ aot_publish_run() {
 	local exe="" out="$work/src/out"
 	case "$aot_rid" in linux-musl-*) aot_musl; return ;; win-*) exe=.exe ;; esac
 	# Not on the shared compiler server, as in_consumer.
-	if ! (unset WHATSMEOW_NET_SIDECAR_PATH && cd "$work/src" && NUGET_PACKAGES="$(native_path "$packages")" UseSharedCompilation=false \
+	if ! (unset WHATSMEOW_NET_SIDECAR_PATH && cd "$work/src" && NUGET_PACKAGES="$(native_path "$packages")" NUGET_HTTP_CACHE_PATH="$(native_path "$work/http-cache")" UseSharedCompilation=false \
 		dotnet publish AotSmoke -c Release -warnaserror -r "$aot_rid" -o "$(native_path "$out")"); then
 		annotate error "aot $aot_rid" "the Native AOT publish from the feed failed, or had a trim or AOT warning"
 		return 1
@@ -1282,7 +1357,7 @@ aot_musl() {
 }
 
 aot_summary() { # where
-	local line="AotSmoke $aot_rid from feed $version: PASS, RID-specific Native AOT with 0 trim and AOT warnings, ran natively on $1; portable AOT is not applicable (Native AOT requires a concrete RID)"
+	local line="AotSmoke $aot_rid from ${published:-feed} $version: PASS, RID-specific Native AOT with 0 trim and AOT warnings, ran natively on $1; portable AOT is not applicable (Native AOT requires a concrete RID)"
 	echo "$line"
 	if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then echo "- $line" >>"$GITHUB_STEP_SUMMARY"; fi
 }
@@ -1313,9 +1388,9 @@ job_package() {
 		check "dotnet pack into the local feed $package_feed" pack_feed &&
 		check "the Corresponding Source archive into the feed (ADR 0016)" source_archive &&
 		{
-			job_install "$package_feed"
-			# CI runs it on every target RID in the aot jobs, win-x64 among them (ADR 0056).
+			# CI runs both on every target host in install.yml, win-x64 among them (ADR 0056, 0058).
 			if [ "${GITHUB_ACTIONS:-}" != true ]; then
+				job_install "$package_feed"
 				job_aot "$package_feed" "$(rid "$(go env GOHOSTOS)/$(go env GOHOSTARCH)")"
 			fi
 		}
@@ -1323,7 +1398,7 @@ job_package() {
 }
 
 usage() {
-	echo "usage: bash build/ci.sh setup|contract|go|dotnet|external|package|all, bash build/ci.sh install <feed>, or bash build/ci.sh aot <feed> <rid>" >&2
+	echo "usage: bash build/ci.sh setup|contract|go|dotnet|external|package|all, bash build/ci.sh install <feed>|nuget.org:<version>, or bash build/ci.sh aot <feed>|nuget.org:<version> <rid>" >&2
 	exit 2
 }
 
