@@ -182,13 +182,17 @@ The default suite and CI use `--fake-whatsapp`.
 
 `tests/Whatsmeow.LiveTests` runs against real WhatsApp with a dedicated test number and manual pairing ([ADR 0021](../adr/0021-pairing.md)).
 Its tests are `[LiveFact]`: they run only when `WHATSMEOW_LIVE_DATABASE` names the live database, and otherwise start nothing and are reported as not run.
-A test that needs more says so, and is not run without it: `NeedsPhoneNumber` (the phone-code test) needs `WHATSMEOW_LIVE_PHONE_NUMBER`, the dedicated number; `NeedsPeer` needs `WHATSMEOW_LIVE_PEER_DATABASE`, the peer session's database; `NeedsOwner` needs `WHATSMEOW_LIVE_OWNER` set, the owner at the phone.
+A test that needs more says so, and is not run without it: `NeedsPhoneNumber` (the phone-code test) needs `WHATSMEOW_LIVE_PHONE_NUMBER`, the dedicated number; `NeedsPeer` needs `WHATSMEOW_LIVE_PEER_DATABASE`, the peer session's database; `NeedsOwner` needs `WHATSMEOW_LIVE_OWNER` set, the owner at the phone; `NeedsFreshPairing` needs `WHATSMEOW_LIVE_FRESH_DATABASE` and `WHATSMEOW_LIVE_HISTORY_BOUNDS`, two new files, and a QR scan by the peer account's phone every run (ADR 0060).
 A test not run still leaves the run green, so check the run's summary: the `NeedsPeer` tests, the kill tests among them, must show as run, not skipped.
 `build/ci.sh` runs `dotnet test` without any of them, so CI never runs them, and the live sidecar refuses to start without the database.
 The live session `live` is persistent: it is paired by QR code once and reused by every later run, #10's included, with no scan; it is never logged out or deleted.
 Its database (`~/.whatsmeow-net-live/live.db` in `~/secrets.env`, a 0700 directory outside the repository, the file 0600) holds the account's keys: a secret, never committed or used by CI, and copied only into the run's backup (below).
 If the phone logs the session out, that run fails with `LoggedOut`, and the next run pairs it again by QR code.
 The phone-code test pairs a throwaway session, `live-phone`, and logs it out and deletes it at the end, so the phone keeps only the live session's device.
+The fresh companion test (`LiveFreshCompanionTests`, ADR 0060) pairs a new companion of the peer's account, `peer-fresh-<UTC time>`, on the new database it creates in a sidecar of its own, to check a push name and a business name the new store has not cached (checked at run time before each stimulus; a value cached already fails its branch) and the run's group photo, with `ContactChecks`, and #42's history bounds (`LiveHistoryBounds`).
+It holds that session's history until the push name came, logs the session out and deletes it only once it proved the account is the peer's, the device new and the database its own, and keeps both files.
+The group photo is set and removed through the live tests' control, `whatsmeow.livetest.v1`, which only a `-tags livetest` sidecar serves.
+About and the saved name are not run there, so it is not the Contacts FullCycle passing live.
 Same assertions as the fake-mode suite: a live test calls the fake-mode tests' own checks (`Whatsmeow.IntegrationTests/Pairing/PairingChecks.cs`, through a project reference), and only the person replaces the fake. No live-only skips and no weakened equals.
 Each slice keeps them in `<Slice>Checks.cs` beside its fake-mode tests (`MediaChecks`, `MessageChecks`, `GroupChecks`, `PresenceChecks`, `ContactChecks`, `ChatStateChecks`), and both modes compare the whole record they build.
 What only WhatsApp sets (a message's source, push name and time, a group change's sender and time, an upload's URL) is passed in: the fake's are fixed, and a live test reads them off the event once it checked that they name the right account (`LiveChecks`).

@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Whatsmeow.IntegrationTests.Pairing;
 using Whatsmeow.IntegrationTests.Sessions;
 using Whatsmeow.IntegrationTests.Support;
@@ -91,6 +92,10 @@ public sealed class LivePeer : IAsyncLifetime
 			_ = _starting.Release();
 		}
 	}
+
+	/// <summary>Every session on the peer database, with this device's JIDs, never creating one.</summary>
+	public async Task<ImmutableArray<SessionInfo>> SessionsAsync(LiveSidecar live, CancellationToken cancellationToken) =>
+		await (await StartAsync(live, cancellationToken).ConfigureAwait(false)).Sessions.ListAsync(cancellationToken).ConfigureAwait(false);
 
 	/// <summary>The peer's account (<see cref="LiveSidecar.AccountOfAsync"/>), once <see cref="ConnectedAsync"/> started it.</summary>
 	public Task<(Jid Chat, Jid? Lid)> AccountAsync(CancellationToken cancellationToken) =>

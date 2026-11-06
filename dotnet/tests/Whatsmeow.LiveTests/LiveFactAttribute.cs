@@ -79,10 +79,27 @@ public sealed class LiveFactAttribute : FactAttribute
 		}
 	}
 
+	/// <summary>
+	/// Whether the test pairs a fresh companion of the peer's account, which needs a QR scan every run: only with
+	/// <see cref="LiveSettings.FreshDatabaseVariable"/> and <see cref="LiveSettings.HistoryBoundsVariable"/> set (ADR 0060).
+	/// Its timeout is the scan, the history bound from Paired, which holds the catch-up and the checks, and the cleanup.
+	/// </summary>
+	public bool NeedsFreshPairing
+	{
+		get;
+		init
+		{
+			field = value;
+			Explicit = IsOff();
+			Timeout = WorkTimeout + (int)LiveHistoryBounds.Bound.TotalMilliseconds + (int)LiveFresh.CleanupBound.TotalMilliseconds;
+		}
+	}
+
 	private bool IsOff() =>
 		!LiveSettings.Enabled
 		|| (NeedsPhoneNumber && LiveSettings.PhoneNumber.Length == 0)
 		|| (NeedsPeer && LiveSettings.PeerDatabase.Length == 0)
 		|| (NeedsOwner && !LiveSettings.Owner)
-		|| (NeedsMediaSizes && !LiveSettings.MediaSizes);
+		|| (NeedsMediaSizes && !LiveSettings.MediaSizes)
+		|| (NeedsFreshPairing && (LiveSettings.FreshDatabase.Length == 0 || LiveSettings.HistoryBounds.Length == 0));
 }

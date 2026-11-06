@@ -15,6 +15,11 @@
 		<ProjectReference Include="../Whatsmeow.IntegrationTests/Whatsmeow.IntegrationTests.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<!-- The run's group photo, set and removed by the fresh companion test (ADR 0060): 640x640, no metadata. -->
+		<None Include="group-photo.jpg" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
 	<ItemGroup Label="Usings">
 		<Using Include="Xunit" />
 		<Using Include="Microsoft.Extensions.Logging" />
