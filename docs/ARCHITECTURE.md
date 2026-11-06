@@ -976,7 +976,7 @@ Setup: Go 1.27.3 grpc-go 1.85.0 server, .NET 10.0.14 Native AOT client, on Windo
   - `DeleteMedia(ctx, MediaHistory, directPath, fileEncSHA256, encHandle)` is a DELETE to the first media host whose query carries the media connection's `auth`, with a `Companion_User_Secret` header when there is an `encHandle`; an empty path returns nil; its errors are untyped, and a request error prints the URL (upload.go:305-359).
   - `BuildHistorySyncRequest(info, count)` builds a `PEER_DATA_OPERATION_REQUEST_MESSAGE` of type `HISTORY_SYNC_ON_DEMAND` with the chat, the oldest id, whether it is the account's and its time in seconds (send.go:581-605), sent with `Peer` at `push_priority="high_force"` (send.go:1099-1104); whatsmeow recommends 50 messages; mautrix sends it to the account's own JID with an id of its own (pkg/connector/backfill.go:762-790). That the answer's `peerDataRequestSessionID` is the request's id is [inferred].
   - `ParseWebMessage` builds the info from the message key, the account's own JID or LID for its own messages, the chat for a direct one's other user, the participant in a group, and fails without a sender; an edit becomes the edited message under the original id (client.go:1027-1085). Its error texts carry the JID they could not parse.
-  - At `307a2edf117d` whatsmeow's `.proto` sources add `RECENT_CONVERSATIONS_ON_DEMAND` (9) to both `HistorySyncType` enums (WAWebProtobufsE2E.proto:63, WAWebProtobufsHistorySync.proto:37), but its generated Go is unchanged, so no Go code at the pin names it; the contract does not list it, and `syncType` maps it, like any value it does not list, to `HISTORY_SYNC_TYPE_UNSPECIFIED` (history/history.go:987-1009) [observed: source]. Whether a phone sends it is [unknown]: nothing has been run at this pin.
+  - At `307a2edf117d` whatsmeow's `.proto` sources add `RECENT_CONVERSATIONS_ON_DEMAND` (9) to both `HistorySyncType` enums (WAWebProtobufsE2E.proto:63, WAWebProtobufsHistorySync.proto:37), but its generated Go is unchanged, so no Go code at the pin names it; the contract does not list it, and `syncType` maps it, like any value it does not list, to `HISTORY_SYNC_TYPE_UNSPECIFIED` (history/history.go:987-1009) [observed: source]. Whether a phone sends it is [unknown]: one fresh pairing at this pin had no event of type `HISTORY_SYNC_TYPE_UNSPECIFIED` [observed: [the 2026-11-06 bounds record](evidence/0042-history-bounds-2026-11-06.md#history-delivered)], which shows no more than that run.
   - The blob: `HistorySync` with its sync type (required), conversations of `HistorySyncMsg` (a `WebMessageInfo` and an order id), status messages, chunk order, progress, push names and more; a `Conversation` has its id (required) and messages. Blob sizes are [unknown]; whatsmeow's pairing defaults ask for a 10,240 MB storage quota, the initial payload inline and 60 days of thumbnails (store/clientpayload.go:124-156).
   - `OfflineSyncCompleted` is dispatched from the `ib` node's `offline` child on the node queue, after the offline messages (connectionevents.go:72-90, client.go:331), once for each such child.
     `Connected` is dispatched on a goroutine of its own after the pre-key count IQ, a pre-key upload when needed, and the passive IQ (connectionevents.go:183-205), so an offline sync can come before it [inferred: from the source; not seen live].
@@ -1168,6 +1168,13 @@ The seven runs that did not complete it are kept in it: two that recorded nothin
 [inferred] Handlers for live messages ran while history was delivered instead of after it; no cause, threshold or behaviour at other volumes is claimed.
 Two pairings with a full sync limited to seven days delivered messages back to 2024-07-01; what the limit changed is [unknown].
 
+### History bounds per sync type (#42, 2026-11-06)
+
+[observed: the linked record] The [bounds record](evidence/0042-history-bounds-2026-11-06.md) keeps message timestamp bounds per sync type for one fresh pairing of Alice's account, with `RequestFullSync` and a `FullSyncDaysLimit` of 7, in a `livetest` build at `377cac2` and whatsmeow `307a2edf117d`.
+Its 258 batches and 64,463 entries closed on a quiet window 1,172 s after pairing: `Full` 119 entries, the oldest 3.187 days before pairing; `InitialBootstrap` 998 and `Recent` 63,346, each back to 858.008 days.
+The client logged no skipped history; the sidecar's progress events counted 45 skipped, and 82 more entries than their message counts, both for reasons not measured.
+[inferred] The limit fits the `Full` type's bound and did not bound the other two types here; one configuration shows what was delivered, not what an option caused, so that and the size and quota options stay [unknown].
+
 ### Licence audit (2026-10-31)
 
 Question 9, run outside the repo with Go 1.27.3 on macOS arm64, because `sidecar/` has no package until #4.
@@ -1193,7 +1200,7 @@ Question 9, run outside the repo with Go 1.27.3 on macOS arm64, because `sidecar
 | 3 | History sync, chat state, hosting package, telemetry, `Whatsmeow.Testing` | hosted sample with two sessions; history doesn't delay live traffic |
 | 4 | Native packages, Trusted Publishing, weekly bump, AOT smoke, PublicAPI baseline, External mode, docs | `dotnet add package` works on all target RIDs from nuget.org |
 
-Phase 3 remains open in [#42](https://github.com/tcortega/Whatsmeow.NET/issues/42); its live evidence is the [2026-11-05](evidence/0042-hosted-sample-2026-11-05.md) and [2026-11-06](evidence/0042-history-timing-2026-11-06.md) records, and the second's audit against its acceptance criteria lists what is left.
+Phase 3 remains open in [#42](https://github.com/tcortega/Whatsmeow.NET/issues/42); its live evidence is the [2026-11-05](evidence/0042-hosted-sample-2026-11-05.md), [2026-11-06 timing](evidence/0042-history-timing-2026-11-06.md) and [2026-11-06 bounds](evidence/0042-history-bounds-2026-11-06.md) records, and the last one's audit against its acceptance criteria lists what is left.
 
 ---
 
