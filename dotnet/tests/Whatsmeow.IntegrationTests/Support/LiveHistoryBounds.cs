@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -8,10 +9,10 @@ namespace Whatsmeow.IntegrationTests.Support;
 
 /// <summary>
 /// #42's record of one fresh pairing's history per sync type (batches, entries, message timestamp bounds, the times
-/// its handler saw them), with the pairing, the hold #36's test puts on the history, the options and the sidecar. One
-/// JSON line per record, flushed as written, to a new private file that is kept; aggregates and timestamps only, never
-/// a JID, id, name or text. It asserts nothing a test depends on. The live fact uses it; its rules are checked offline
-/// in <c>LiveHistoryBoundsTests</c>.
+/// its handler saw them, each batch's messages counted by age), with the pairing, the hold #36's test puts on the
+/// history, the options and the sidecar. One JSON line per record, flushed as written, to a new private file that is
+/// kept; aggregates and timestamps only, never a JID, id, name or text. It asserts nothing a test depends on. The live
+/// fact uses it; its rules are checked offline in <c>LiveHistoryBoundsTests</c>.
 /// <para>
 /// Times: every deadline and duration is on the provider's monotonic clock (<c>MonoNs</c>, since the record began);
 /// UTC only dates the lines. A row's time is when the record's handler ran, not when WhatsApp sent it: the
@@ -30,6 +31,14 @@ namespace Whatsmeow.IntegrationTests.Support;
 /// after the bound also <c>Late</c>. Without a rule's close, a cancelled <see cref="WindowAsync"/> closes it as
 /// <c>cancelled</c>, and <see cref="Summarize"/> as <c>not_closed</c>; a rule whose time came first still wins.
 /// </para>
+/// <para>
+/// Ages: each <c>history_batch</c> row after <see cref="Paired"/> counts its messages by their age at the pairing's UTC
+/// time, the <c>paired</c> row's <c>Utc</c>, not at the batch's: <c>AgeUpTo1Day</c> from 0 to 1 day,
+/// <c>AgeOver1To3Days</c> over 1 to 3, <c>AgeOver3To7Days</c> over 3 to 7, <c>AgeOver7Days</c> over 7, each upper bound
+/// included, and <c>AgeFuture</c> for a message dated after the pairing, which no age holds. A message's time is
+/// WhatsApp's, the pairing's this machine's clock, so a skew between them moves a message across a bound [inferred]. A
+/// batch before a pairing has no ages. The five add up to its <c>Entries</c>; they are counts, never a message.
+/// </para>
 /// </summary>
 internal sealed partial class LiveHistoryBounds : IDisposable
 {
@@ -41,6 +50,8 @@ internal sealed partial class LiveHistoryBounds : IDisposable
 	private const uint DefaultStorageQuotaMb = 10240;
 	private const string ResolvedBasis =
 		"whatsmeow 307a2edf117d store/clientpayload.go:131-134,156; sidecar cmd/whatsmeow-net/history.go:30-51; client Sidecar/SidecarProcess.cs:229-233; not measured";
+
+	private static readonly TimeSpan s_day = TimeSpan.FromDays(1);
 
 	private readonly Lock _gate = new();
 	private readonly TimeProvider _time;
@@ -61,6 +72,7 @@ internal sealed partial class LiveHistoryBounds : IDisposable
 	private bool _summarized;
 	private bool _disposed;
 	private TimeSpan? _paired;
+	private DateTimeOffset? _pairedUtc;
 	private TimeSpan? _lastHistory;
 	private TimeSpan? _holdStart;
 	private TimeSpan? _holdEnd;
@@ -142,7 +154,9 @@ internal sealed partial class LiveHistoryBounds : IDisposable
 				return;
 			var now = Now();
 			_paired = now;
-			AddLocked(RowLocked("paired", now));
+			var row = RowLocked("paired", now);
+			_pairedUtc = row.Utc;
+			AddLocked(row);
 			_deadlineTimer = _time.CreateTimer(_ => OnDeadline(), state: null, Bound, Timeout.InfiniteTimeSpan);
 			UpdateLocked(now);
 		}
@@ -309,6 +323,16 @@ internal sealed partial class LiveHistoryBounds : IDisposable
 		_deadline.Dispose();
 	}
 
+	/// <summary>
+	/// #42's full sync days limit for a fresh pairing from <paramref name="variable"/>'s <paramref name="value"/>: a whole
+	/// number of days above zero, in ASCII digits only (no sign, space or separator), at most <see cref="int.MaxValue"/>.
+	/// No value, or any other, throws naming the variable and never the value.
+	/// </summary>
+	public static int ParseDaysLimit(string variable, string? value) =>
+		int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var days) && days > 0
+			? days
+			: throw new InvalidOperationException($"{variable} must be set to the fresh pairing's full sync days limit, a whole number above zero in digits only.");
+
 	private bool StoppedLocked => _summarized || _disposed;
 
 	private TimeSpan Now() => _time.GetElapsedTime(_origin);
@@ -332,7 +356,7 @@ internal sealed partial class LiveHistoryBounds : IDisposable
 			if (StoppedLocked)
 				return ValueTask.CompletedTask;
 			var now = Now();
-			var row = RowLocked("history_batch", now) with { SyncType = e.SyncType.ToString(), Entries = e.Messages.Length, MinMessage = min, MaxMessage = max };
+			var row = Aged(RowLocked("history_batch", now) with { SyncType = e.SyncType.ToString(), Entries = e.Messages.Length, MinMessage = min, MaxMessage = max }, e, _pairedUtc);
 			if (EnterLocked(now, ref row))
 				CountLocked(row);
 			AddLocked(row);
@@ -363,6 +387,26 @@ internal sealed partial class LiveHistoryBounds : IDisposable
 
 		return ValueTask.CompletedTask;
 	}
+
+	// The batch's messages counted by age at the pairing's UTC time (the class's Ages); none before a pairing.
+	private static Row Aged(Row batch, HistoryReceived e, DateTimeOffset? paired)
+	{
+		if (paired is not { } at)
+			return batch;
+		var counts = new long[5];
+		foreach (var message in e.Messages)
+			counts[Age(at - message.Timestamp)]++;
+		return batch with { AgeFuture = counts[0], AgeUpTo1Day = counts[1], AgeOver1To3Days = counts[2], AgeOver3To7Days = counts[3], AgeOver7Days = counts[4] };
+	}
+
+	private static int Age(TimeSpan age) => age switch
+	{
+		_ when age < TimeSpan.Zero => 0,
+		_ when age <= s_day => 1,
+		_ when age <= 3 * s_day => 2,
+		_ when age <= 7 * s_day => 3,
+		_ => 4,
+	};
 
 	// A history event seen now: any close due by now is recorded first, so the event is in the window only if it came
 	// before the close; one in the window moves the quiet start. Returns whether it is in the window.
@@ -670,6 +714,11 @@ internal sealed partial class LiveHistoryBounds : IDisposable
 		public bool? AfterFinish { get; init; }
 		public bool? Late { get; init; }
 		public long? CloseNs { get; init; }
+		public long? AgeFuture { get; init; }
+		public long? AgeUpTo1Day { get; init; }
+		public long? AgeOver1To3Days { get; init; }
+		public long? AgeOver3To7Days { get; init; }
+		public long? AgeOver7Days { get; init; }
 	}
 
 	internal sealed record OptionsRow

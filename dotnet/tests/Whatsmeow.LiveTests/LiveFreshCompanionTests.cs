@@ -39,6 +39,8 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 	public async Task Live_AFreshCompanion_SeesTheContactChangesAsTheFakeModeChecks_AndRecordsItsHistoryBounds()
 	{
 		var ct = TestContext.Current.CancellationToken;
+		// First: a missing or malformed days limit fails here, before the test starts a sidecar or creates a file.
+		var daysLimit = LiveSettings.HistoryDaysLimit;
 		var business = await live.LiveAsync(ct);
 		var businessAccount = await live.AccountAsync(ct);
 		_ = await peer.ConnectedAsync(live, ct);
@@ -53,7 +55,7 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 		using var bounds = new LiveHistoryBounds(LiveClock.Time, LiveSettings.HistoryBounds);
 		try
 		{
-			await using var fresh = await LiveFresh.StartAsync(live, bounds, ct);
+			await using var fresh = await LiveFresh.StartAsync(live, bounds, daysLimit, ct);
 			var client = fresh.Companion.Client;
 			// #42's handlers first, so they stamp each history event as the handlers see it, before the hold.
 			bounds.Register(client);
