@@ -37,8 +37,11 @@ The experimental `Raw` members work under AOT too, but their types change with w
 ## macOS and Windows
 
 The binaries are not notarized or Authenticode signed (§12).
-What was measured is another nuget.org binary: the `protoc` that `dotnet restore` pulled from Grpc.Tools had no quarantine attribute on macOS and no Mark of the Web on Windows, and it and a locally built, unsigned sidecar ran [observed: §14 questions 2 and 6].
-That `whatsmeow-net` restored from nuget.org is the same is [inferred], and so is that Gatekeeper and SmartScreen leave it alone because of that.
+What was measured on nuget.org is another binary: the `protoc` that `dotnet restore` pulled from Grpc.Tools had no quarantine attribute on macOS and no Mark of the Web on Windows, and it and a locally built, unsigned sidecar ran [observed: §14 questions 2 and 6].
+On one daily-use Apple Silicon Mac, the packaged sidecar restored from a local HTTP feed got no quarantine through restore, build, publish, or a `cp -R` or `ditto` copy of the publish output, and it started each time [observed: §12, [evidence 0045](../evidence/0045-macos-gatekeeper-2026-11-06.md)].
+There the same sidecar, given a quarantine attribute by hand, raised a Gatekeeper prompt and was refused after the prompt was answered; that is one synthetic case, run after an assessment of the same code, and it does not say what every download or copy channel does [observed: evidence 0045, Q1a].
+That `whatsmeow-net` restored from nuget.org also gets no quarantine or Mark of the Web, and that Gatekeeper and SmartScreen then leave it alone, is [inferred].
+A way of shipping your app that sets quarantine on the sidecar is not covered: if one becomes a supported delivery path, signing is reconsidered by a new ADR (ADR 0007).
 An app you ship as a notarized macOS `.app` signs its embedded binaries in its own release, the sidecar included [inferred: standard macOS app signing, not measured yet].
 On Windows a Job Object kills the sidecar when your process dies (§8.5).
 

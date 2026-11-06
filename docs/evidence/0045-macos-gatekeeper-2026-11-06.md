@@ -1,16 +1,17 @@
 # macOS Gatekeeper on the packaged sidecar, 2026-11-06
 
 Evidence for [#45](https://github.com/tcortega/Whatsmeow.NET/issues/45), its macOS half, measured on one daily-use Mac.
-It does not complete #45: Windows, a clean Mac, native Intel and a restore of `whatsmeow-net` from nuget.org are unmeasured.
+It does not complete #45: Windows, a clean Mac, a native Intel desktop and a restore of `whatsmeow-net` from nuget.org are unmeasured.
 Every claim is scoped to this host and these packages; an [inferred] or [unknown] claim is an open question, not a result.
+This record is authoritative over the raw results it draws on; the raw claims it corrects are listed under [Superseded raw claims](#superseded-raw-claims).
 Times are the host's local clock, as `log show` printed them.
 
 ## Host
 
-[observed: `sw_vers`, `uname`, `sysctl`, `csrutil`, `spctl --status`, `fdesetup`, `id`, `profiles` and `system_profiler`, in the lane's `plan.md`] macOS 26.5.2 (25F84) on a Mac16,8 with an Apple M4 Pro, arm64.
-SIP enabled, Gatekeeper `assessments enabled`, FileVault on, an administrator account, no DEP or MDM enrollment, Rosetta installed, XProtect payload 5368 and configuration 5371.
-It is a real desktop, not a CI runner.
-It is the owner's daily-use Mac, not a clean one: syspolicyd's and Rosetta's caches were warm from earlier use and these runs added to them, so nothing here says what a fresh install does.
+[observed: the measurer's pre-run host record in `plan.md`, transcribed from `sw_vers`, `sysctl`, `csrutil` and `spctl --status`; the raw command output was not kept] macOS 26.5.2 (25F84) on a Mac16,8 with an Apple M4 Pro, arm64, with SIP enabled, Gatekeeper `assessments enabled` and Rosetta installed.
+It is a real desktop in daily use, not a CI runner and not a clean install, and it was in use during the runs.
+[inferred] syspolicyd and Rosetta held state from earlier use, and these runs may have added to it, so nothing here says what a fresh install does.
+Whether the launching terminal had the Developer Tools privacy exemption is [unknown].
 .NET SDK 10.0.403 arm64 with arm64 runtimes only; no x64 .NET runtime was present, and none was installed.
 
 ## Packages under test
@@ -37,29 +38,54 @@ Its osx-arm64 and osx-x64 binaries are `2bbbac27647129db9a09b2a078d50862c2c5b4eb
 
 ## Method
 
-[observed: the lane's `scripts/`, hashed below]
+[observed: the measurement directory's `scripts/`, hashed below]
 
 * The consumer is `build/package-smoke/Program.cs` from `e5cf3b1`, byte for byte, in a `dotnet new console` app that references `Whatsmeow.Client`, `Whatsmeow.Extensions.Hosting` and `Whatsmeow.Testing` at the feed version.
   It uses the public API only: start, `GetInfoAsync`, dispose, with no `SidecarPath`, `WHATSMEOW_NET_SIDECAR_PATH` unset, and no pairing.
-  An arm64 launch passes `osx-arm64` and the expected layout, so the program also checks the process architecture and where the sidecar was found; an x64 launch passes the version only.
+  It sets only a database path, so `StartupTimeout` is its 30 s default [observed: `WhatsmeowSidecarOptions.cs:21` at `e5cf3b1`].
+  An arm64 launch passes `osx-arm64` and a layout, and the program first checks that the process is native and that the binary exists at that layout's path; an x64 launch passes the version only, so it prints no architecture line.
 * The feed is a static NuGet v3 tree of the eight nupkgs, served over plain HTTP on a loopback port by Python's `http.server` and mapped to `Whatsmeow.*` with `allowInsecureConnections`.
   It is a local HTTP feed, not nuget.org; every other package came from nuget.org [observed: the loopback server's request log and NuGet's `GET` lines in `logs/setup.log`].
-* `HOME`, `DOTNET_CLI_HOME`, `NUGET_PACKAGES`, `NUGET_HTTP_CACHE_PATH` and `TMPDIR` pointed into the lane directory, with empty caches, and each launch had its own `HOME` and `TMPDIR`.
+* `HOME`, `DOTNET_CLI_HOME`, `NUGET_PACKAGES`, `NUGET_HTTP_CACHE_PATH` and `TMPDIR` pointed into the measurement directory, with empty caches, and each launch had its own `HOME` and `TMPDIR`.
   That isolates the CLI and the app only: the OS wrote its logs, its caches and its Gatekeeper records outside it.
-* Each launch had a 90 s cap, never reached; the process table was sampled every 0.3 s, then `log show` collected syspolicyd, XprotectService, amfid, the kernel's code signing lines and CoreServicesUIAgent over the launch window.
-* `spctl -a -t exec` and `syspolicy_check distribution` ran only after the D4, D7 and S1 launches, so no assessment preceded a launch; `spctl` rejected all three sidecars and the D4 apphost [observed: `logs/assess-D-S.txt`].
+* Each launch had a 90 s cap, never reached, and the process table was sampled every 0.3 s into `ps.log`, which names the path each sidecar ran from.
+  Then `log show` captured the launch window twice: lines naming `whatsmeow` or the measurement directory plus every CoreServicesUIAgent line, and every syspolicyd, XprotectService and amfid line plus the kernel's code signing lines.
+* The captures are time windows, not filtered to the case's processes, and the desktop was in concurrent use, so they hold unrelated activity, which this record does not publish.
+  Only lines that name the case's path, its PID or the sidecar's signing identifier are attributed to a case.
+* `spctl -a -t exec` and `syspolicy_check distribution` ran at 15:06:54 to 15:06:56, after D1 to D9 and S1 and before Q1a, on D4's sidecar and apphost, D7's sidecar and S1's sidecar; `spctl` rejected all four [observed: `logs/assess-D-S.txt`; the command lines are from `plan.md`, inferred].
+  D4's sidecar and apphost are byte-identical to Q1a's (`2a7f380a…`, `8692339a…`) [observed: `logs/setup.log`, `logs/Q-pre.txt`], so Q1a ran after an assessment of the same code; whether that changed Q1a is [unknown].
 * The harness has no UI step.
   No Gatekeeper, SIP or trust setting was changed.
 
+### Commands per case
+
+`V` is `0.0.0-alpha.0.77`, and paths are relative to the measurement directory.
+Commands are verbatim from `case.txt` [observed], with `dotnet` for the SDK's path.
+Publish preparation is `setup.sh` [observed], shortened here: each publish also passes `app -c Release -warnaserror -o out/<name>`; copy, signature and quarantine preparation is reconstructed from `plan.md` [inferred], and its result is [observed] in the named log.
+
+| Case | Command | Preparation |
+| --- | --- | --- |
+| D1 | in `consumer`: `dotnet run --project app -c Release --no-build -- start V osx-arm64 portable` | `dotnet build app -c Release -warnaserror` |
+| D2 | in `out/portable`: `dotnet out/portable/Consumer.dll start V osx-arm64 portable` | `dotnet publish --self-contained false` |
+| D3 | `out/fd-arm64/Consumer start V osx-arm64 flat` | `-r osx-arm64 --self-contained false` |
+| D4 | `out/sc-arm64/Consumer start V osx-arm64 flat` | `-r osx-arm64 --self-contained true` |
+| D5 | `out/single-arm64/Consumer start V osx-arm64 flat` | D4's, plus `-p:PublishSingleFile=true` |
+| D6 | `out/single-native-arm64/Consumer start V osx-arm64 flat` | D5's, plus `-p:IncludeNativeLibrariesForSelfExtract=true` |
+| D7 | `out/sc-x64/Consumer start V` | `-r osx-x64 --self-contained true` |
+| D8 | `out/single-x64/Consumer start V` | D7's, plus `-p:PublishSingleFile=true` |
+| D9 | `copies/{cp,ditto}-arm64/Consumer start V osx-arm64 flat`, `copies/{cp,ditto}-x64/Consumer start V` | `cp -R` and `ditto` of `out/sc-arm64` and `out/sc-x64` [inferred]; `logs/M10-copies.txt` |
+| S1 | `copies/S1/Consumer start V osx-arm64 flat` | a copy of `out/sc-arm64`, then `codesign --remove-signature` on its `whatsmeow-net` [inferred]; `logs/S1-pre.txt` |
+| Q1a | `copies/Q1a/Consumer start V osx-arm64 flat` | a copy of `out/sc-arm64`, then `xattr -w com.apple.quarantine` on its `whatsmeow-net` [inferred]; `logs/Q-pre.txt` |
+
 ## Metadata, M1 to M10
 
-[observed: `logs/setup.log`, `logs/M10-copies.txt`, `plan.md`] No file at any stage carried `com.apple.quarantine`:
+[observed: `logs/setup.log` and `logs/M10-copies.txt`; M1 from the measurer's record in `plan.md`] No file at any stage carried `com.apple.quarantine`:
 
 * M1, the zip and nupkgs downloaded with `gh api`, not a browser;
 * M2, the nupkg NuGet fetched over the loopback feed into the empty packages folder;
 * M3, the binaries NuGet extracted;
 * M4, the portable build output;
-* M5 to M9, the portable, framework-dependent, self-contained and single-file publishes for osx-arm64 and osx-x64;
+* M5 to M9, the portable publish (its osx-arm64 binary only), the framework-dependent osx-arm64 publish, and the self-contained and single-file publishes for osx-arm64 and osx-x64;
 * M10, `cp -R` and `ditto` copies of the two self-contained publishes.
 
 Every file carried `com.apple.provenance` with the same 11-byte value; what the OS records in it is [unknown].
@@ -68,52 +94,61 @@ NuGet extracted each binary as 0744 (`-rwxr--r--`); the M10 copies, made after D
 
 ## Launches
 
-[observed: `cases/<id>/case.txt`, `stdout`, `stderr`] Each launch goes through the public client: start, `GetInfoAsync`, dispose.
+[observed: `cases/<id>/case.txt`, `stdout`, `stderr`; the Sidecar column from `ps.log`] Each launch goes through the public client: start, `GetInfoAsync`, dispose.
 Every completed launch printed `sidecar 0.0.0-alpha.0.77, protocol 1`.
 
 | Case | Delivery path | Sidecar | Result |
 | --- | --- | --- | --- |
-| D1 | portable build, `dotnet run` | `runtimes/osx-arm64/native/`, arm64 | exit 0, 2.24 s, sidecar PID 13258 |
+| D1 | portable build, `dotnet run` | `bin/Release/net10.0/runtimes/osx-arm64/native/`, arm64 | exit 0, 2.24 s, sidecar PID 13258 |
 | D2 | portable publish, `dotnet Consumer.dll` | `runtimes/osx-arm64/native/`, arm64 | exit 0, 1.11 s, PID 13916 |
 | D3 | framework-dependent `-r osx-arm64` | next to the app, arm64 | exit 0, 1.10 s, PID 14013 |
 | D4 | self-contained `-r osx-arm64` | next to the app, arm64 | exit 0, 2.20 s, PID 14163 |
 | D5 | single-file osx-arm64 | next to the app, arm64 | exit 0, 2.63 s, PID 14434 |
 | D6 | single-file osx-arm64 with `IncludeNativeLibrariesForSelfExtract` | next to the app, arm64 | exit 0, 2.25 s, PID 14672 |
-| D7 | self-contained `-r osx-x64` | next to the app, x64 under Rosetta | exit 0, 10.29 s, PID 15168 |
-| D8 | single-file osx-x64 | next to the app, x64 under Rosetta | exit 0, 5.63 s, PID 15518 |
+| D7 | self-contained `-r osx-x64` | next to the app, x64 under Rosetta [inferred] | exit 0, 10.29 s, PID 15168 |
+| D8 | single-file osx-x64 | next to the app, x64 under Rosetta [inferred] | exit 0, 5.63 s, PID 15518 |
 | D9 | `cp -R` and `ditto` copies of D4 and D7, each run from the copy | as its source | exit 0 for all four: PIDs 16306 (`cp`, arm64), 16422 (`ditto`, arm64), 16836 (`cp`, x64), 17370 (`ditto`, x64) |
-| S1 | copy of D4, the sidecar's ad-hoc signature removed (`fb0f565fade6509df60d59e813f10f438d503aade147b7d0772255c72782e191`, `not signed at all`), no quarantine | arm64 | refused at once, no prompt: [S1](#s1-unsigned-arm64-sidecar) |
-| Q1a | copy of D4, `com.apple.quarantine` on `whatsmeow-net` only | arm64 | refused after a prompt: [Q1a](#q1a-quarantined-arm64-sidecar) |
-| Q1b, Q2a, Q2b, Q2c | quarantined x64 sidecar (Q1b); quarantined whole directory, portable arm64 (Q2a), self-contained arm64 (Q2b), self-contained x64 (Q2c) | | not run: prepared, then the coordinator stopped the synthetic quarantine variants after Q1a, and no further launch was made |
-| | osx-x64 framework-dependent | | not run: no x64 .NET runtime |
+| S1 | synthetic control: copy of D4, the sidecar's ad-hoc signature removed (`fb0f565fade6509df60d59e813f10f438d503aade147b7d0772255c72782e191`, `not signed at all`), no quarantine | arm64; never in `ps.log` | refused at exec, no prompt: [S1](#s1-unsigned-arm64-sidecar) |
+| Q1a | synthetic control: copy of D4, `com.apple.quarantine` on `whatsmeow-net` only | arm64 | prompt, then refused: [Q1a](#q1a-quarantined-arm64-sidecar) |
+| Q1b, Q2a, Q2b, Q2c | quarantined x64 sidecar (Q1b); quarantined whole directory, portable arm64 (Q2a), self-contained arm64 (Q2b), self-contained x64 (Q2c) | | not run: prepared, then the measurer stopped the synthetic quarantine variants after Q1a, and no further prompt was launched |
+| | osx-x64 framework-dependent | | not run on this Mac: no x64 .NET runtime |
 
 Every arm64 launch printed `process Arm64, OS Arm64`.
-The x64 launches ran under Rosetta [inferred: an x86_64-only Mach-O on Apple silicon; D7's and D8's logs name `/private/var/db/oah/` in kernel sandbox lines], so they say nothing about native Intel.
-No launch used the client's copy fallback (its isolated directory stayed empty), and no sidecar process was left after any case.
+The x64 launches ran under Rosetta [inferred: x86_64-only Mach-O files on Apple silicon, and kernel sandbox lines naming `/private/var/db/oah/` in each x64 window], so they say nothing about native Intel.
+[observed: `gh run view 42257604502`] The run that built these packages passed `install (osx-x64)` and `aot (osx-x64)` on `macos-26-intel` runners (§11), so osx-x64 consumers, framework-dependent included, start natively on a CI runner, without quarantine; that runner's Gatekeeper state, a native Intel desktop and quarantine on Intel are [unknown].
+No launch used the client's copy fallback (its isolated directory stayed empty), no sidecar process was left after any case, and the watchdog never fired.
 
 ## What the OS logged
 
-[observed: `cases/<id>/oslog-policy.txt`, `oslog.txt`] syspolicyd logged `GK performScan` and `GK evaluateScanResult` lines in every launch, quarantined or not.
-Each launch of the ad-hoc arm64 sidecar has one `evaluateScanResult` with `id: a.out`, its signing identifier: `GK evaluateScanResult: 2` in D1 to D6 and D9, which ran, and `GK evaluateScanResult: 1` in Q1a.
-Q1a's is the only result other than 2 in any case; every scan in S1, which was refused, reads 2.
-The x64 launches' and S1's scans include lines with `id: (null)`; the log hashes paths, so which file each one covers is [unknown].
-The numbers are quoted as logged; their meaning is [unknown].
-In every arm64 launch with the ad-hoc sidecar, Q1a included, the kernel logged `AMFI: '.../whatsmeow-net' has no CMS blob?` and `Unrecoverable CT signature issue, bailing out.`; the D launches still started it.
+[observed: `cases/<id>/oslog-policy.txt`, `oslog.txt`]
+
+* syspolicyd `GK performScan` and `GK evaluateScanResult` lines appear in every launch window, quarantined or not.
+* Each launch of the ad-hoc arm64 sidecar (D1 to D6, D9's arm64 copies, Q1a) has exactly one `evaluateScanResult` with `id: a.out`, logged 0.3 to 0.8 s after the sidecar's AMFI lines.
+  That it is the sidecar's scan is [inferred]: `a.out` is the sidecar's signing identifier, and the timing fits, but `go build` gives other darwin/arm64 binaries the same identifier.
+  It reads `GK evaluateScanResult: 2` where the sidecar ran, and `GK evaluateScanResult: 1` in Q1a.
+* The x64 launches' and S1's candidate lines have `id: (null)`, and the log hashes paths, so which one, if any, covers the sidecar is [unknown]; the two D9 x64 windows also hold scans of unrelated third-party code.
+* Q1a's is the only `evaluateScanResult` other than 2 in any case.
+  The numbers are quoted as logged; their meaning is [unknown].
+* Every case was the first launch of its file from its own path; whether a repeat launch from the same path is scanned is [unknown].
+* In every launch of the ad-hoc arm64 sidecar, Q1a included, the kernel logged `AMFI: '.../whatsmeow-net' has no CMS blob?` and `Unrecoverable CT signature issue, bailing out.`; the D launches still started it.
 
 ### S1, unsigned arm64 sidecar
 
 | Time | Process | Logged |
 | --- | --- | --- |
 | 15:06:34.115 | harness | launch |
+| 15:06:34.792 | kernel | `(AppleMobileFileIntegrity) AMFI: hook..execve() killing Consumer (pid 17957): Attempt to execute completely unsigned code (must be at least ad-hoc signed).` |
 | 15:06:34.792 | kernel | `(AppleSystemPolicy) ASP: Security policy would not allow process: 17957, .../copies/S1/whatsmeow-net` |
 
 The client threw `SidecarUnavailableException: The sidecar did not start: it exited or wrote garbage before its ready line (exit code 137). It wrote nothing to stderr.`, over an inner `IOException: Broken pipe`, and the program ended after 0.749 s.
 There is no syspolicyd `Prompt shown` line, and no CoreServicesUIAgent line, in the launch window.
-On this Mac an arm64 sidecar with no signature is refused without a prompt, and the same build with the linker's ad-hoc signature runs (D4).
+The window's only scan that is neither the apphost nor a Microsoft library is an `id: (null)` line at 15:06:35.227, 0.4 s after the kill, which is not attributed to S1; the refusal is the kernel's, in the AMFI and ASP lines.
+On this Mac this sidecar, with no signature and no quarantine, was refused at exec with no prompt, and the same build with the linker's ad-hoc signature ran (D4).
+The AMFI line states the rule the kernel applied to this binary here; that it holds on other Macs is [inferred].
 
 ### Q1a, quarantined arm64 sidecar
 
-[observed: `logs/Q-pre.txt`] The harness wrote `0081;6aee1751;Safari;926521E3-14D2-4DFA-AD6D-97B6B74B16D1` to the sidecar's `com.apple.quarantine`; the value is synthetic, and no browser downloaded anything.
+[observed: `logs/Q-pre.txt`] The sidecar's `com.apple.quarantine` was `0081;6aee1751;Safari;926521E3-14D2-4DFA-AD6D-97B6B74B16D1`; the value is synthetic, written by the measurer, and no browser downloaded anything.
 The apphost `Consumer` had no quarantine.
 
 | Time | Process | Logged |
@@ -128,41 +163,75 @@ The apphost `Consumer` had no quarantine.
 | 15:08:10.170 | kernel | `(AppleSystemPolicy) ASP: Security policy would not allow process: 20384, .../copies/Q1a/whatsmeow-net` |
 
 The client threw `SidecarUnavailableException: The sidecar did not start: it exited before its ready line (exit code 137). It wrote nothing to stderr.`, and the program ended after 29.363 s.
-A mouse action in CoreServicesUIAgent answered the prompt 27 s after it appeared.
+CoreServicesUIAgent logged AppKit `sendAction` lines from 15:08:10.042 and the mouse-up at .111, 6 ms before `Code evaluation completed`; that this mouse action answered the prompt is [inferred: timing], not an observation of the dialog.
 Who acted and which button was pressed are [unknown]: the harness has no UI step, nobody recorded the dialog, and nothing is inferred from the outcome.
-The copy's sidecar still has the same SHA-256 and the same quarantine value [observed: `shasum` and `xattr -l` on it while writing this record].
-On this Mac a quarantined, ad-hoc signed arm64 sidecar, started by an unquarantined app, raised a Gatekeeper prompt, the start waited until it was answered, and the sidecar was then refused.
+The refusal came 29.13 s after launch, inside the client's 30 s `StartupTimeout`; what the client does when a prompt is answered later, or never, is [unknown].
+The copy's sidecar still has the same SHA-256 and the same quarantine value [observed: `shasum` and `xattr -l` on it after the run].
+In this one synthetic case, a quarantined, ad-hoc signed arm64 sidecar, started by an unquarantined app about 45 s after an assessment of the same code, raised a Gatekeeper prompt, and was refused after the prompt was answered.
+Whether quarantine alone explains the difference from D4 is [unknown].
 
 ## What this settles, and what it does not
 
-* "Apple Silicon needs arm64 code to be signed at all" is observed on this Mac (S1), and the linker's ad-hoc signature is enough without quarantine (D1 to D6, D9).
-* "Gatekeeper assesses only quarantined launches" does not hold as worded: syspolicyd scanned every launch.
-  What differed was the outcome: only the quarantined sidecar raised a prompt and was refused (Q1a against D).
-* Restore from a loopback HTTP feed, portable build and `dotnet run`, the framework-dependent, self-contained and single-file publishes, and `cp -R` and `ditto` copies put no quarantine on the sidecar, and each started it, arm64 natively and x64 under Rosetta.
-* No measured delivery path was blocked, so ADR 0007's decision stands and no signing ADR is triggered.
+* "Apple Silicon needs arm64 code to be signed at all" is observed for this sidecar on this Mac (S1, its AMFI line), and the linker's ad-hoc signature is enough there without quarantine (D1 to D6, D9's arm64 copies).
+* "Gatekeeper assesses only quarantined launches" does not hold as worded: a scan with the sidecar's signing identifier appears in every ad-hoc arm64 launch, quarantined or not (attribution [inferred], above).
+  Of the ad-hoc sidecars, only the quarantined one raised a prompt, and it was refused after the prompt was answered; the unsigned S1 sidecar was refused without a prompt.
+* These supported delivery paths put no quarantine on the sidecar, and each started it: restore from a loopback HTTP feed; portable build and `dotnet run`, portable publish and framework-dependent publish, arm64; self-contained and single-file publishes and their `cp -R` and `ditto` copies, arm64 natively and x64 under Rosetta [inferred].
+* S1 and Q1a are synthetic controls, not delivery paths.
+  No measured supported delivery path was blocked, so ADR 0007's decision stands and no signing ADR is triggered.
+  Per ADR 0007's Consequences, a supported delivery path that sets quarantine or Mark-of-the-Web reopens signing by a new ADR; that an app which embeds us and ships signed covers the sidecar stays [inferred] (#51).
 
 Unmeasured, so no claim covers them:
 
 * a restore from nuget.org, since nothing is published yet;
-* a clean Mac, native Intel, and other macOS versions;
-* osx-x64 framework-dependent;
+* a clean Mac, a native Intel desktop, and other macOS versions;
+* osx-x64 framework-dependent on this Mac;
+* Q1a without a prior assessment of the same code, and a repeat launch of one file from one path;
 * Q1b and Q2a to Q2c: a quarantined x64 sidecar, a quarantined app directory, and whether the apphost is refused first;
+* a prompt answered after `StartupTimeout`, or never;
 * which tools, transfers or user actions set quarantine on a consumer's machine, beyond the paths measured here;
 * what the prompt offers, and what each answer does;
+* the launching terminal's Developer Tools exemption;
 * Windows: SmartScreen, Mark-of-the-Web, Smart App Control, and §10's Temp ACL for a non-administrator;
 * the notarized `.app` claim, which stays [inferred] (#51).
+
+## Superseded raw claims
+
+The measurer's `RESULTS.md` stays as recorded (hash below), and this record wins where they differ.
+A dated private addendum, kept beside the archive below, lists the same corrections.
+
+* "Ordering: every launch first": the assessments preceded Q1a, on byte-identical code (Method).
+* Every launch "got a syspolicyd `GK performScan` of the apphost, the .NET native libraries and the sidecar": scans appear in each window, the .NET libraries' only in some; only the arm64 `a.out` scan is tied to the sidecar, and that is [inferred].
+* The unsigned x64 sidecar "scans with result 2": which line covers it is [unknown].
+* "Only the quarantined sidecar raised a prompt and was then refused": S1 was refused too, without a prompt.
+* S1's cause: the AMFI line above, not quoted there.
+* Rosetta "observed" from syspolicyd reading `/private/var/db/oah/`: the lines are kernel sandbox denials, and Rosetta is [inferred].
+* Warm caches, and `com.apple.provenance` written by the terminal's process tree: [inferred] and [unknown].
+* The host record as observed command output: it is a transcription in `plan.md`.
+* M5 to M9 as "portable/fd/sc/single-file publishes (arm64, x64)": scoped as above.
+* Native Intel as pending: CI measured it without quarantine; the desktop and quarantine are open.
+* Apple not documenting the scan numbers: not checked; their meaning is [unknown].
 
 ## Evidence provenance
 
 The raw records stay private: their OS logs include unrelated activity of a daily-use machine, and their scripts and paths name the host.
-They are in `/tmp/whatsmeow-issues/45-mac-current/` on the measuring Mac, left as recorded; these SHA-256 hashes identify them.
+They were recorded in `/tmp/whatsmeow-issues/45-mac-current/` on the measuring Mac, which still holds them unchanged.
+Since `/tmp` may not last, a private archive of that whole directory, every file with its extended attributes, is kept outside git in `~/Library/Application Support/Whatsmeow.NET/evidence/` (directory 0700, files 0600).
+
+| Private artifact | SHA-256 |
+| --- | --- |
+| `45-mac-current-2026-11-06.tar.gz`, the archive, 1,890,222,583 bytes | `8ea3ba3d682d2770c32dcdd5ec172af3e33197f5caf7d92674d4895c18da482b` |
+| Its 4,901 files, checked against the originals | `0d5ed358712017bbafe67d83bb363a008d75c6d213035788fb7d5f9328736ab1` |
+| `45-mac-current-addendum-2026-11-06.md`, the dated addendum | `94a2b98a3af0f8fcf313bef9f7ab8f47c701e91bf3e8b97d65977b2cd78c0daa` |
+
+The file digest is `find 45-mac-current -type f | LC_ALL=C sort | while read -r f; do printf '%s  %s\n' "$(shasum -a 256 "$f" | cut -d' ' -f1)" "$f"; done | shasum -a 256`, run in `/tmp/whatsmeow-issues`; the archive's members, hashed while streamed, give the same list.
 
 | Artifact | SHA-256 |
 | --- | --- |
-| `RESULTS.md`, the lane's results | `9e39db6a5fcca1baf5d7af52874a4917e3d7a70b3e7e276ef47959d7eca6c4d5` |
+| `RESULTS.md`, the measurer's results | `9e39db6a5fcca1baf5d7af52874a4917e3d7a70b3e7e276ef47959d7eca6c4d5` |
 | `plan.md`, host record and matrix | `13dd21708ad41debd0b207db8cedff948f0bb1d25868f4c2ce490ed520f73660` |
 | `artifacts/checksums.sha256`, both feeds' files | `5dc56e33c888b98c8d6da77fff3c12e49bee9f89b2411c9d40b2785a5a84be42` |
 | `scripts/env.sh` | `796f3f7edf9ff327e4a53c71894128761671e342d5f9ba258dd9fa22e37afb8b` |
+| `scripts/global.json`, the consumer's SDK pin | `974a1476882b8cf92fd9e2226347dc467b70c24d1016a9122fa6dd04c983fde5` |
 | `scripts/make-feed.sh` | `e9407b85b7fb29f4558bd2d8343b288167de6da09bc08385af4455c85c1647f6` |
 | `scripts/setup.sh` | `1a2627b463e96c3d00d4e38229f941fbd5f853539e8acd98537b79380100ff20` |
 | `scripts/case.sh` | `eea22e2323781e870f7e7c7deabac85f9c6a427860d9e159b90bb5a0a89b096e` |
@@ -179,5 +248,7 @@ They are in `/tmp/whatsmeow-issues/45-mac-current/` on the measuring Mac, left a
 | `cases/Q1a-sidecar-quarantined-arm64/oslog.txt` | `ea524f7f2f1e86844190ee461f39ffa28f438755b037061a0bae4b341d2224cb` |
 | `cases/`, all 126 files of the 14 cases | `d4a7dd12889f8b4e6811183ac94c257693936d3b02b8c11b487f0ec9a687bc93` |
 
-The `cases/` digest is `find cases -type f | LC_ALL=C sort | xargs shasum -a 256 | shasum -a 256`, run in the lane directory.
-To repeat the measurement: download the run's `native-packages` artifact, then run `setup.sh` and `case.sh <id> <dir> <command>` per case; the scripts hard-code the lane directory and the host's `DOTNET_ROOT`.
+The `cases/` digest is `find cases -type f | LC_ALL=C sort | xargs shasum -a 256 | shasum -a 256`, run in the measurement directory.
+To repeat the measurement: download the run's `native-packages` artifact, then run `setup.sh`, the preparation above, and `case.sh <id> <dir> <command>` per case; the scripts hard-code the measurement directory and the host's `DOTNET_ROOT`.
+Do not reuse `case.sh`'s cleanup as it is: it kills leftover processes it selects by path pattern, and a rerun should kill only the exact PIDs it started.
+It killed nothing in these runs.
