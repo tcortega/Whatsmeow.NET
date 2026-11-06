@@ -34,6 +34,7 @@ A rehearsal prints that it would run, since nothing is published.
 
 ## Measurements and limits
 
-Recorded in the PR: the local package run, the stand-in source runs and their mutations, the real nuget.org probes, and the branch's full packaging run.
-Before a publish, nothing can prove the nuget.org path passes; the probes prove only that it reaches nuget.org alone and fails closed.
-#52 closes on the first real `nuget-install` run with every row passing.
+* The feed path is unchanged: a local `build/ci.sh package` on osx-arm64 at `0.0.0-alpha.0.76` passed every check, the six JIT forms and AotSmoke [observed: 2026-11-06].
+* `install nuget.org:9.9.9-probe.1` and `aot nuget.org:9.9.9-probe.1 osx-arm64`, in a clone with that tag made locally, stop at restore with `NU1101 ... in source(s): nuget.org` [observed]: the path reaches nuget.org alone and fails closed. An untagged version, an empty one and a tag on another commit fail the tag check [observed].
+* Against a stand-in, a clone whose nuget.org-mode config maps `Whatsmeow.*` to a folder of that feed's packages, each given a `.signature.p7s`, and the rest to nuget.org, with the source asset at a `file://` URL: every check passed, on exactly the eight served packages [observed]. Without the signature file, without the source asset, with the tag on another commit, and with `release.sh ids` missing a package, it fails on the matching check [observed]. Mutants dropping the signature expectation, the copy into the consumer's feed, the source download, the tag check, the exact package set, or mapping `Whatsmeow.*` to the local feed in this mode were each caught [observed].
+* Before a publish nothing can show the nuget.org path passing. #52 closes on the first real `nuget-install` run with every row passing.
