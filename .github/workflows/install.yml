@@ -3,8 +3,9 @@ name: install
 # The consumers of a release's packages on every target host (ADR 0023, 0056, 0058): install runs build/ci.sh install on
 # each native runner, both Alpine architectures inside the Linux ones, and aot publishes AotSmoke with Native AOT for
 # every target RID. packaging.yml calls it with no tag, for the feed its package job built (the native-packages
-# artifact); release.yml calls it with the tag once the publish job pushed it, for the packages nuget.org serves, at
-# the tag's checkout (#52). Every check lives in build/ci.sh.
+# artifact); release.yml calls it with the tag once the publish job pushed it, and nuget-install.yml on demand with an
+# already published tag, for the packages nuget.org serves (#52, ADR 0059). The scripts are the caller's revision; the
+# release's inputs come from its tag. Every check lives in build/ci.sh.
 
 on:
   workflow_call:
@@ -45,8 +46,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.tag }}
-          # The nuget.org install checks HEAD is the tag, so it needs the tag itself.
+          # The nuget.org install reads the release's inputs from its tag, which must be on this revision's line.
           fetch-depth: ${{ inputs.tag == '' && 1 || 0 }}
           persist-credentials: false
 
@@ -114,7 +114,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.tag }}
           fetch-depth: ${{ inputs.tag == '' && 1 || 0 }}
           persist-credentials: false
 

@@ -407,7 +407,7 @@ exe_of() { # GOOS/GOARCH
 
 # The release targets: the one list tools/check-licenses audits (ADR 0016).
 release_targets() {
-	go -C tools run ./check-licenses -targets | tr -d '\r'
+	go -C "${release_tree:-.}/tools" run ./check-licenses -targets | tr -d '\r'
 }
 
 # A path for dotnet: Git Bash on Windows hands POSIX paths to native programs only in arguments it recognizes.
@@ -565,49 +565,59 @@ consumer_setup() { # feed | nuget.org:<version>
 	host_rid="$native_host_rid"
 	exe=""
 	case "$host_rid" in win-*) exe=.exe ;; esac
-	cp global.json "$work/" || return
+	cp "$release_tree/global.json" "$work/" || return
 	consumer_config "$origin" >"$work/nuget.config" || return
 	in_consumer dotnet new console -o app -n Consumer || return
-	cp build/package-smoke/Program.cs "$work/app/" || return
-	in_consumer dotnet add app/Consumer.csproj package Whatsmeow.Client --version "$version" || return
-	in_consumer dotnet add app/Consumer.csproj package Whatsmeow.Extensions.Hosting --version "$version" || return
-	in_consumer dotnet add app/Consumer.csproj package Whatsmeow.Testing --version "$version" || return
+	cp "$release_tree/build/package-smoke/Program.cs" "$work/app/" || return
+	for id in Whatsmeow.Client Whatsmeow.Extensions.Hosting Whatsmeow.Testing; do
+		in_consumer dotnet add app/Consumer.csproj package "$id" --version "$version" 2>&1 | tee -a "$work/restore.log" || return
+	done
 	if [ -n "$published" ]; then served_feed || return; fi
 	echo "a consumer of Whatsmeow.Client, Whatsmeow.Extensions.Hosting and Whatsmeow.Testing $version from $origin in $work"
 }
 
-# Where the packages come from. A feed directory gives its version file and its packages. nuget.org:<version> needs the
-# checkout at that release's tag, since the source checks compare the published archive with HEAD; its packages are
-# what nuget.org serves, which served_feed copies into $work/feed after the restore.
+# Where the packages come from, and the release whose inputs the checks compare with. A feed directory gives its version
+# file and its packages, and the release is this checkout (HEAD). nuget.org:<version> gives what nuget.org serves, which
+# served_feed copies into $work/feed after the restore, and the release is the tag v<version>: its tree, extracted into
+# $work/release, gives every input (the consumer's global.json and Program.cs, AotSmoke, the notices and READMEs, the
+# package ids, the release targets, the Go toolchain), so a later checker revision can check a published release (ADR
+# 0059). The tag must be on HEAD's line: the checker is the release itself, or a later commit after it.
 nuget_org=https://api.nuget.org/v3/index.json
 package_origin() { # feed | nuget.org:<version>
-	local feed tagged
+	local feed
 	case "$1" in
 		nuget.org:*)
-			published=nuget.org version="${1#nuget.org:}" origin="$nuget_org" package_source="$work/feed"
-			tagged="$(git rev-parse -q --verify "refs/tags/v$version^{commit}")"
-			if [ -z "$version" ] || [ "$tagged" != "$(git rev-parse HEAD)" ]; then
-				annotate error "nuget.org" "HEAD is not the release tag v$version: check out the tag of the version to install"
+			published=nuget.org version="${1#nuget.org:}" origin="$nuget_org" package_source="$work/feed" release_tree="$work/release"
+			release_commit="$(git rev-parse -q --verify "refs/tags/v$version^{commit}")"
+			if [ -z "$version" ] || [ -z "$release_commit" ] || ! git merge-base --is-ancestor "$release_commit" HEAD; then
+				annotate error "nuget.org" "no tag v$version on HEAD's line: fetch the tags, and run the checker at the release or a later commit after it"
 				return 1
 			fi
-			mkdir -p "$package_source" || return
+			mkdir -p "$package_source" "$release_tree" && git archive "$release_commit" | tar -x -C "$release_tree" || return
+			# The checker's SDK (and its pinned Alpine SDK images) and Go are the release's, or it cannot check it as released.
+			if ! cmp -s "$release_tree/global.json" global.json || ! cmp -s "$release_tree/mise.toml" mise.toml; then
+				annotate error "nuget.org" "this revision pins another SDK or tool versions than v$version (global.json, mise.toml): run the checker from a revision with the release's, such as a branch cut from the tag"
+				return 1
+			fi
+			echo "the release's inputs from v$version ($release_commit); the checker is $(git rev-parse HEAD)"
 			;;
 		*)
 			published="" feed="$(cd "$1" && pwd)" || return
 			# GNU tar treats a Windows drive prefix as a remote host; keep the source archive path POSIX too.
-			package_source="$feed"
+			package_source="$feed" release_tree="$root" release_commit="$(git rev-parse HEAD)"
 			version="$(tr -d '\r' <"$feed/version")" || return
 			origin="$(native_path "$feed")"
 			;;
 	esac
 }
 
-# Exactly the release's packages (build/release.sh ids), each restored from nuget.org at exactly the version, and no
-# other Whatsmeow package, copied into $work/feed under its id, so the packaged_* checks read the bytes nuget.org served;
-# and the release's Corresponding Source from its GitHub release, which publishes before any push (ADR 0050).
+# Exactly the release's packages (its build/release.sh ids), each restored from nuget.org at exactly the version, as the
+# source restore records for it says, and no other Whatsmeow package, copied into $work/feed under its id, so the
+# packaged_* checks read the bytes nuget.org served; and the release's Corresponding Source from its GitHub release,
+# which publishes before any push (ADR 0050).
 served_feed() {
 	local ids want got id lower dir nupkg asset
-	ids="$(bash build/release.sh ids)" || return
+	ids="$(bash "$release_tree/build/release.sh" ids)" || return
 	want="$(lowercase "$ids" | LC_ALL=C sort)"
 	got="$(cd "$packages" && find . -maxdepth 1 -name 'whatsmeow.*' | sed 's#^\./##' | LC_ALL=C sort)"
 	if [ -z "$ids" ] || [ "$want" != "$got" ]; then
@@ -621,6 +631,10 @@ served_feed() {
 			annotate error "nuget.org" "nuget.org served no $id $version"
 			return 1
 		fi
+		if ! tr -d ' \r\n' <"$dir/.nupkg.metadata" | grep -qF "\"source\":\"$nuget_org\""; then
+			annotate error "nuget.org" "$id $version was not restored from $nuget_org (its .nupkg.metadata source)"
+			return 1
+		fi
 		cp "$nupkg" "$package_source/$id.$version.nupkg" || return
 	done
 	echo "$version" >"$package_source/version" || return
@@ -629,7 +643,7 @@ served_feed() {
 		annotate error "nuget.org" "cannot download the Corresponding Source $asset (ADR 0016)"
 		return 1
 	fi
-	echo "nuget.org served exactly the $(wc -w <<<"$ids" | tr -d ' ') packages of $version; the source archive is the release's"
+	echo "nuget.org served exactly the $(wc -w <<<"$ids" | tr -d ' ') packages of $version; the source archive is the release asset"
 }
 
 # Whatsmeow.* from the feed only, everything else from nuget.org; for a published release, nuget.org alone.
@@ -794,6 +808,7 @@ packaged_files() {
 # The GPL files at the root of each native package (ADR 0016, ADR 0029), and the repository file each must equal.
 native_notices=(COPYING NOTICE THIRD-PARTY-NOTICES.txt)
 notice_source() { # packaged file
+	printf '%s/' "${release_tree:-.}"
 	case "$1" in
 		COPYING) echo sidecar/COPYING ;;
 		NOTICE) echo NOTICE ;;
@@ -858,7 +873,7 @@ packaged_licences() {
 		nuspec="$packages/$name/$version/$name.nuspec"
 		case "$id" in Whatsmeow.Sidecar.Native.*) want=GPL-3.0-only ;; *) want=MPL-2.0 ;; esac
 		if [ ! -f "$nuspec" ]; then
-			annotate error "packaged licences" "$id from the feed was not restored, so its licence is unchecked"
+			annotate error "packaged licences" "$id from ${published:-the feed} was not restored, so its licence is unchecked"
 			rc=1
 		elif ! grep -qF "<license type=\"expression\">$want</license>" "$nuspec"; then
 			annotate error "packaged licences" "$id does not declare the licence expression $want"
@@ -881,7 +896,7 @@ packaged_metadata() {
 		id="$(basename "$nupkg" ".$version.nupkg")" name="$(lowercase "$id")"
 		dir="$packages/$name/$version" nuspec="$packages/$name/$version/$name.nuspec"
 		if [ ! -f "$nuspec" ]; then
-			annotate error "package metadata" "$id from the feed was not restored, so its metadata is unchecked"
+			annotate error "package metadata" "$id from ${published:-the feed} was not restored, so its metadata is unchecked"
 			rc=1
 			continue
 		fi
@@ -897,6 +912,7 @@ packaged_metadata() {
 			rc=1
 		fi
 		case "$id" in Whatsmeow.Sidecar.Native.*) readme=dotnet/src/Whatsmeow.Sidecar.Native.md ;; *) readme="dotnet/src/$id/README.md" ;; esac
+		readme="$release_tree/$readme"
 		if ! cmp -s "$dir/README.md" "$readme"; then
 			annotate error "package metadata" "$id's README.md is not $readme"
 			rc=1
@@ -1022,7 +1038,7 @@ install_alpine() { # path script
 	fi
 	image="$(alpine_for_arch "${host_rid##*-}")" || return
 	rm -rf "$src" && mkdir -p "$src" || return
-	cp global.json build/package-smoke/Program.cs "$src/" || return
+	cp "$release_tree/global.json" "$release_tree/build/package-smoke/Program.cs" "$src/" || return
 	if [ -n "$published" ]; then consumer_config "$nuget_org"; else consumer_config /feed; fi >"$src/nuget.config" || return
 	if ! docker run --rm -e VERSION="$version" -e RID="$musl_rid" -v "$(cd "$package_source" && pwd):/feed:ro" -v "$src:/src:ro" "$image" sh -euc "
 		cp -r /src /work && cd /work && export DOTNET_NOLOGO=true DOTNET_CLI_TELEMETRY_OPTOUT=true
@@ -1034,19 +1050,21 @@ install_alpine() { # path script
 	fi
 }
 
-# The source archive holds exactly the commit's files, plus the vendored modules of sidecar/.
+# The source archive holds exactly the release commit's files, byte for byte, plus the vendored modules of sidecar/:
+# compared with that commit's own git archive (HEAD for a feed, the tag for a published release). The vendored modules
+# are checked by source_build (built from them alone) and source_corresponds (the packaged binary's module versions).
 source_contents() {
-	local archive prefix="whatsmeow-net_$version" entries expected actual
+	local archive prefix="whatsmeow-net_$version" entries expected actual got="$work/source-check" ref="$work/source-ref" rc=0
 	archive="$package_source/$(source_archive_name)"
 	if [ ! -f "$archive" ]; then
-		annotate error "source archive" "the feed has no $(source_archive_name), the Corresponding Source (ADR 0016)"
+		annotate error "source archive" "${published:-the feed} has no $(source_archive_name), the Corresponding Source (ADR 0016)"
 		return 1
 	fi
 	entries="$(tar -tzf "$archive" | tr -d '\r' | grep -v '/$')" || return
-	expected="$(git -c core.quotePath=false ls-tree -r --name-only HEAD | sed "s#^#$prefix/#" | LC_ALL=C sort)" || return
+	expected="$(git -c core.quotePath=false ls-tree -r --name-only "$release_commit" | sed "s#^#$prefix/#" | LC_ALL=C sort)" || return
 	actual="$(grep -v "^$prefix/sidecar/vendor/" <<<"$entries" | LC_ALL=C sort)"
 	if [ "$expected" != "$actual" ]; then
-		annotate error "source archive" "$(source_archive_name) does not hold exactly the files of HEAD"
+		annotate error "source archive" "$(source_archive_name) does not hold exactly the files of $release_commit"
 		diff <(echo "$expected") <(echo "$actual") | head -20
 		return 1
 	fi
@@ -1054,7 +1072,15 @@ source_contents() {
 		annotate error "source archive" "$(source_archive_name) has no go mod vendor output for sidecar/"
 		return 1
 	fi
-	echo "$(source_archive_name) holds the $(wc -l <<<"$expected" | tr -d ' ') files of HEAD and $(grep -c "^$prefix/sidecar/vendor/" <<<"$entries") vendored files"
+	rm -rf "$got" "$ref" && mkdir -p "$got" "$ref" || return
+	{ tar -xzf "$archive" -C "$got" && rm -rf "${got:?}/$prefix/sidecar/vendor" && git archive "$release_commit" | tar -x -C "$ref"; } || rc=$?
+	if [ "$rc" -eq 0 ] && ! diff -r -q "$ref" "$got/$prefix"; then
+		annotate error "source archive" "$(source_archive_name) holds the files of $release_commit, but not their bytes"
+		rc=1
+	fi
+	rm -rf "$got" "$ref"
+	[ "$rc" -eq 0 ] || return "$rc"
+	echo "$(source_archive_name) holds the $(wc -l <<<"$expected" | tr -d ' ') files of $release_commit, byte for byte, and $(grep -c "^$prefix/sidecar/vendor/" <<<"$entries") vendored files"
 }
 
 # Build whatsmeow-net for every release target from the source archive with no network, the release flags and the
@@ -1066,7 +1092,12 @@ source_build() {
 	archive="$package_source/$(source_archive_name)"
 	source_out="$work/source-out"
 	targets="$(release_targets)" || return
-	want="$(sed -n 's/^toolchain //p' sidecar/go.mod)"
+	want="$(sed -n 's/^toolchain //p' "$release_tree/sidecar/go.mod")"
+	# The release's Go: a later checker revision with another toolchain cannot rebuild it as released (ADR 0059).
+	if [ "$(go env GOVERSION)" != "$want" ]; then
+		annotate error "source archive" "go is $(go env GOVERSION), the release's sidecar/go.mod pins $want: run the checker from a revision with that toolchain"
+		return 1
+	fi
 	rm -rf "$src" "$source_out" && mkdir -p "$src" "$source_out" || return
 	tar -xzf "$archive" -C "$src" || return
 	builds="$(for target in $targets; do echo "$target $(rid "$target") $(exe_of "$target")"; done)"
@@ -1196,6 +1227,25 @@ install_external() {
 	return "$rc"
 }
 
+# A setup or AOT publish that failed leaves no per-form row, so it gets one; for nuget.org, with restore's NU1101/NU1102 lines
+# naming a Whatsmeow package, which say nuget.org did not serve it when restore ran (not why).
+setup_failed() { # JIT|AOT step log
+	local rid="${aot_rid:-${native_host_rid:-host}}" line lines
+	[ "$1" = JIT ] && rid="${native_host_rid:-host}"
+	line="$rid | $1 | $2 | FAIL | ${published:-feed} ${version:-?}"
+	[ "$1" = JIT ] && line="$line | no consumer form ran"
+	if [ -n "$published" ] && [ -f "$3" ]; then
+		lines="$(grep -E 'NU110[12]' "$3" | grep -F 'Whatsmeow.' | sed 's/^.*\(NU110[12]\)/\1/' | sort -u)"
+		if [ -n "$lines" ]; then
+			line="$line; nuget.org did not serve, when restore ran: $(paste -sd';' - <<<"$lines")"
+			annotate error "nuget.org" "nuget.org did not serve a Whatsmeow package at $version when restore ran: $(paste -sd';' - <<<"$lines")"
+		fi
+	fi
+	echo "$line"
+	if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then echo "* $line" >>"$GITHUB_STEP_SUMMARY"; fi
+	return 0
+}
+
 # Record a result for each consumer form only after its process has exited, which awaits sidecar disposal.
 install_check() { # rid where path command...
 	local consumer_rid="$1" where="$2" path="$3" result=PASS
@@ -1210,7 +1260,7 @@ install_check() { # rid where path command...
 }
 
 job_install() { # feed
-	check "install: a new consumer of the feed $1" consumer_setup "$1" || return
+	check "install: a new consumer of $1" consumer_setup "$1" || { setup_failed JIT "consumer setup" "$work/restore.log"; return; }
 	check "install: Whatsmeow.Client pins each native package at exactly its version" packaged_pins
 	check "install: Whatsmeow.Extensions.Hosting pins Whatsmeow.Client at exactly its version" packaged_hosting_pin
 	check "install: Whatsmeow.Testing pins Whatsmeow.Client and Whatsmeow.Extensions.Hosting at exactly its version" packaged_testing_pins
@@ -1260,15 +1310,15 @@ aot_setup() { # feed | nuget.org:<version>, rid
 	local tfm hosting
 	aot_rid="$2"
 	package_origin "$1" || return
-	tfm="$(sed -n 's|.*<TargetFramework>\(.*\)</TargetFramework>.*|\1|p' dotnet/Directory.Build.props)"
-	hosting="$(sed -n 's|.*<PackageVersion Include="Microsoft.Extensions.Hosting" Version="\([^"]*\)".*|\1|p' dotnet/Directory.Packages.props)"
+	tfm="$(sed -n 's|.*<TargetFramework>\(.*\)</TargetFramework>.*|\1|p' "$release_tree/dotnet/Directory.Build.props")"
+	hosting="$(sed -n 's|.*<PackageVersion Include="Microsoft.Extensions.Hosting" Version="\([^"]*\)".*|\1|p' "$release_tree/dotnet/Directory.Packages.props")"
 	if [ -z "$tfm" ] || [ -z "$hosting" ]; then
 		annotate error "aot" "no TargetFramework in dotnet/Directory.Build.props or no Microsoft.Extensions.Hosting in dotnet/Directory.Packages.props"
 		return 1
 	fi
 	packages="$work/packages"
 	mkdir -p "$work/src/AotSmoke" || return
-	cp dotnet/tests/AotSmoke/AotSmoke.csproj dotnet/tests/AotSmoke/*.cs "$work/src/AotSmoke/" && cp global.json "$work/src/" || return
+	cp "$release_tree/dotnet/tests/AotSmoke/AotSmoke.csproj" "$release_tree"/dotnet/tests/AotSmoke/*.cs "$work/src/AotSmoke/" && cp "$release_tree/global.json" "$work/src/" || return
 	cat >"$work/src/Directory.Build.props" <<EOF || return
 <Project>
 	<PropertyGroup>
@@ -1318,8 +1368,9 @@ aot_publish_run() {
 	case "$aot_rid" in linux-musl-*) aot_musl; return ;; win-*) exe=.exe ;; esac
 	# Not on the shared compiler server, as in_consumer.
 	if ! (unset WHATSMEOW_NET_SIDECAR_PATH && cd "$work/src" && NUGET_PACKAGES="$(native_path "$packages")" NUGET_HTTP_CACHE_PATH="$(native_path "$work/http-cache")" UseSharedCompilation=false \
-		dotnet publish AotSmoke -c Release -warnaserror -r "$aot_rid" -o "$(native_path "$out")"); then
-		annotate error "aot $aot_rid" "the Native AOT publish from the feed failed, or had a trim or AOT warning"
+		dotnet publish AotSmoke -c Release -warnaserror -r "$aot_rid" -o "$(native_path "$out")" 2>&1 | tee "$work/publish.log"); then
+		annotate error "aot $aot_rid" "the Native AOT publish from ${published:-the feed} failed, or had a trim or AOT warning"
+		setup_failed AOT "Native AOT publish" "$work/publish.log"
 		return 1
 	fi
 	# A publish without Native AOT leaves the IL assembly beside the app; the app checks it too.
@@ -1349,8 +1400,9 @@ aot_musl() {
 		dotnet publish AotSmoke -c Release -warnaserror -r "$RID" -o out
 		test ! -f out/AotSmoke.dll || { echo "not a Native AOT publish: out holds AotSmoke.dll" >&2; exit 1; }
 		test -f out/whatsmeow-net || { echo "the packaged whatsmeow-net is not beside the app" >&2; ls -l out; exit 1; }
-		./out/AotSmoke "$VERSION" "$RID"'; then
+		./out/AotSmoke "$VERSION" "$RID"' 2>&1 | tee "$work/publish.log"; then
 		annotate error "aot $aot_rid" "the Native AOT publish or run on Alpine failed"
+		setup_failed AOT "Native AOT publish and run on Alpine" "$work/publish.log"
 		return 1
 	fi
 	aot_summary "$host_os_arch (native, Alpine container)"
@@ -1371,7 +1423,7 @@ job_aot() { # feed rid
 	aot_rid="$2"
 	check "aot: $2 on a native host" aot_native_host || return
 	check "aot: a temporary directory" aot_work || return
-	check "aot: AotSmoke from the feed $1 for $2" aot_setup "$1" "$2" &&
+	check "aot: AotSmoke from $1 for $2" aot_setup "$1" "$2" &&
 		check "aot: Native AOT publish for $2 with zero trim and AOT warnings, and run (ADR 0056)" aot_publish_run
 	rm -rf "$work"
 }
