@@ -542,3 +542,68 @@ func TestCheckPublicAPIKeepsShippedMembersAndProtobufTypesOut(t *testing.T) {
 		"dotnet/src/A/PublicAPI.Unshipped.txt:2: [public-api-removed]",
 	})
 }
+
+func TestCheckCompatibilitySuppressionsOnlyLetIWhatsAppClientGrowAndRawChange(t *testing.T) {
+	t.Parallel()
+
+	suppressions := func(entries ...[2]string) *fstest.MapFile {
+		var b strings.Builder
+
+		b.WriteString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<Suppressions>\n")
+
+		for _, e := range entries {
+			fmt.Fprintf(&b, "  <Suppression>\n    <DiagnosticId>%s</DiagnosticId>\n    <Target>%s</Target>\n  </Suppression>\n", e[0], e[1])
+		}
+
+		b.WriteString("</Suppressions>\n")
+
+		return &fstest.MapFile{Data: []byte(b.String())}
+	}
+
+	assertFindings(t, fstest.MapFS{
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml": suppressions(
+			// A member added to IWhatsAppClient in a minor version.
+			[2]string{"CP0006", "M:Whatsmeow.IWhatsAppClient.NewAsync(System.Threading.CancellationToken)"},
+			[2]string{"CP0006", "P:Whatsmeow.IWhatsAppClient.Other"},
+			// The Raw hatch follows Whatsmeow.Protocol.WhatsApp.
+			[2]string{"CP0002", "M:Whatsmeow.IWhatsAppClient.SendRawAsync(Whatsmeow.Jid,Whatsmeow.Proto.WAWebProtobufsE2E.Message,System.Nullable{Whatsmeow.MessageId},System.Threading.CancellationToken)"},
+			[2]string{"CP0002", "M:Whatsmeow.Events.MessageReceived.get_Raw"},
+			// Line 19: a shipped member removed.
+			[2]string{"CP0002", "M:Whatsmeow.Jid.get_IsLid"},
+			// Line 23: an IWhatsAppClient member removed, not added.
+			[2]string{"CP0002", "M:Whatsmeow.IWhatsAppClient.ConnectAsync(System.Threading.CancellationToken)"},
+			// Line 27: a member added to another interface, through a look-alike name.
+			[2]string{"CP0006", "M:Whatsmeow.IWhatsAppClientExtras.NewAsync"},
+			// Line 31: the interface itself changed.
+			[2]string{"CP0008", "T:Whatsmeow.IWhatsAppClient"},
+			// Line 35: a member beside Raw whose name starts like it.
+			[2]string{"CP0002", "P:Whatsmeow.Events.MessageReceived.RawText"},
+		),
+		"dotnet/src/Whatsmeow.Testing/CompatibilitySuppressions.xml": suppressions(
+			[2]string{"CP0002", "M:Whatsmeow.Testing.FakeWhatsAppClient.SendRawAsync(Whatsmeow.Jid,Whatsmeow.Proto.WAWebProtobufsE2E.Message,System.Nullable{Whatsmeow.MessageId},System.Threading.CancellationToken)"},
+			// Line 7: the fake only grows, so nothing else of it is suppressed.
+			[2]string{"CP0002", "M:Whatsmeow.Testing.FakeWhatsAppClient.FailNext(System.String,System.Exception)"},
+		),
+		// Hosting's interface is the consumers' to implement, so it never grows, and nothing else of it changes.
+		"dotnet/src/Whatsmeow.Extensions.Hosting/CompatibilitySuppressions.xml": suppressions(
+			[2]string{"CP0006", "M:Whatsmeow.Extensions.Hosting.IWhatsAppEventHandler`1.Other"},
+		),
+		"dotnet/src/Whatsmeow.Client/compatibilitysuppressions.xml.bak":  {Data: []byte("not read")},
+		"dotnet/src/Whatsmeow.Testing/sub/CompatibilitySuppressions.xml": {Data: []byte("<Suppressions>")},
+	}, []string{
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:19: [compat-suppression]",
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:23: [compat-suppression]",
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:27: [compat-suppression]",
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:31: [compat-suppression]",
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:35: [compat-suppression]",
+		"dotnet/src/Whatsmeow.Extensions.Hosting/CompatibilitySuppressions.xml:0: [compat-suppression]",
+		"dotnet/src/Whatsmeow.Testing/CompatibilitySuppressions.xml:7: [compat-suppression]",
+		"dotnet/src/Whatsmeow.Testing/sub/CompatibilitySuppressions.xml:0: [compat-suppression]",
+	})
+
+	// A file package validation might read differently than this check is reported, not skipped.
+	assertFindings(t, fstest.MapFS{
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml": {Data: []byte("<Suppressions>\n" +
+			"  <Suppression><DiagnosticId>CP0006</DiagnosticId><Target>M:Whatsmeow.IWhatsAppClient.NewAsync</Target>\n")},
+	}, []string{"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:2: [compat-suppression]"})
+}

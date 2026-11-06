@@ -15,6 +15,11 @@ namespace Whatsmeow;
 /// <see cref="WhatsmeowSessions.GetOrCreateAsync"/>. It is a lightweight view over the sidecar: the session lives in
 /// the sidecar, and this interface exists so applications can substitute it in their own tests (ADR 0012).
 /// </summary>
+/// <remarks>
+/// A minor version can add members to this interface (ADR 0055). Substitute it with <c>FakeWhatsAppClient</c> from
+/// Whatsmeow.Testing, which gains every new member in the same version, or with a mocking library; a class of your own
+/// that implements it stops compiling, and may fail to load, after such an update.
+/// </remarks>
 public interface IWhatsAppClient
 {
 	/// <summary>The session's id.</summary>

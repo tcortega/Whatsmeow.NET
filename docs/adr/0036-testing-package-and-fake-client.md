@@ -3,6 +3,7 @@
 - Status: Accepted
 - Date: 2026-11-02
 - Evidence: issue #41, its plan review and the review of PR #79; `Whatsmeow.Testing.Tests` (`EventTests`, `CallTests`, `HostingTests`, `ExceptionTests`); `Whatsmeow.Client.Tests/Events/EventLaneTests.cs`; whatsmeow's `types.JID.String` at the pin (types/jid.go:218-230) and the sidecar's event mappings, which write every lane JID with it
+- Amended by: [ADR 0055](0055-public-api-baseline-and-package-validation.md) (a member added to `IWhatsAppClient` after 1.0 takes a CP0006 suppression, still without a default implementation)
 - Amends: [ADR 0012](0012-iwhatsappclient-interface-exception.md) (`Raise(event)` is `RaiseAsync`); [ADR 0034](0034-hosting-package.md) (what the host does for a replaced key); ARCHITECTURE §8.1 and §8.4
 
 ## Context
