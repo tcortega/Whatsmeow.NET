@@ -30,11 +30,11 @@ AGENTS.md              this file (CLAUDE.md is a symlink to it; nothing may depe
 
 Setup once: the .NET SDK from `global.json` (10.0.403), then `mise trust && mise install` for Go, buf, golangci-lint, protoc, the protoc plugins and shellcheck.
 
-Everything CI runs is `build/ci.sh`, one subcommand per CI job, on linux-x64, osx-arm64 and win-x64 (Git Bash on Windows); `package` runs on win-x64 only, `external` (the integration suite against a standalone sidecar) on linux-x64 only, `install` runs fresh JIT consumers of its feed on every target RID (both musl RIDs in Alpine), and `aot` publishes AotSmoke from it with Native AOT on those eight RIDs (ADR 0056, 0058).
+Everything CI runs is `build/ci.sh`, one subcommand per CI job, on linux-x64, osx-arm64 and win-x64 (Git Bash on Windows); `package` runs on win-x64 only, `external` (the integration suite against a standalone sidecar) on linux-x64 only, `install` runs fresh JIT consumers of its feed on every target RID (both musl RIDs in Alpine), and `aot` publishes AotSmoke from it with Native AOT on those eight RIDs (ADR 0056, 0058); after a publish, both run again against nuget.org (`nuget.org:<version>`, ADR 0059).
 Run it from anywhere before pushing; it runs every check, reports each failure, and fails at the end:
 
 ```sh
-bash build/ci.sh all        # or: setup, contract, go, dotnet, external, package; install <feed> installs a feed built elsewhere; aot <feed> <rid> publishes AotSmoke from it
+bash build/ci.sh all        # or: setup, contract, go, dotnet, external, package; install <feed>|nuget.org:<version> installs a feed built elsewhere or a published release; aot <feed>|nuget.org:<version> <rid> publishes AotSmoke from it
 ```
 
 A package change regenerates `packages.lock.json` with a plain `dotnet restore dotnet/Whatsmeow.slnx`; commit it.
