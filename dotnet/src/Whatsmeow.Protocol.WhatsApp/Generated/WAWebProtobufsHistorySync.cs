@@ -29,7 +29,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
             "QVdlYlByb3RvYnVmU3luY0FjdGlvbi5wcm90bxo3d2FDaGF0TG9ja1NldHRp",
             "bmdzL1dBV2ViUHJvdG9idWZzQ2hhdExvY2tTZXR0aW5ncy5wcm90bxodd2FF",
             "MkUvV0FXZWJQcm90b2J1ZnNFMkUucHJvdG8aF3dhQ29tbW9uL1dBQ29tbW9u",
-            "LnByb3RvGh13YVdlYi9XQVdlYlByb3RvYnVmc1dlYi5wcm90byLGDgoLSGlz",
+            "LnByb3RvGh13YVdlYi9XQVdlYlByb3RvYnVmc1dlYi5wcm90byKHDwoLSGlz",
             "dG9yeVN5bmMSUgoIc3luY1R5cGUYASACKA4yNi5XQVdlYlByb3RvYnVmc0hp",
             "c3RvcnlTeW5jLkhpc3RvcnlTeW5jLkhpc3RvcnlTeW5jVHlwZVIIc3luY1R5",
             "cGUSTQoNY29udmVyc2F0aW9ucxgCIAMoCzInLldBV2ViUHJvdG9idWZzSGlz",
@@ -62,196 +62,202 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
             "Yy5JbmxpbmVDb250YWN0Ug5pbmxpbmVDb250YWN0cxI2ChZpbmxpbmVDb250",
             "YWN0c1Byb3ZpZGVkGBUgASgIUhZpbmxpbmVDb250YWN0c1Byb3ZpZGVkElYK",
             "EGZhdm9yaXRlU3RpY2tlcnMYFiADKAsyKi5XQVdlYlByb3RvYnVmc0hpc3Rv",
-            "cnlTeW5jLlN0aWNrZXJNZXRhZGF0YVIQZmF2b3JpdGVTdGlja2VycxJtChRv",
-            "bWl0dGVkQ29udmVyc2F0aW9ucxgXIAMoCzI5LldBV2ViUHJvdG9idWZzSGlz",
-            "dG9yeVN5bmMuUmVjb3ZlcmFibGVIaXN0b3J5Q29udmVyc2F0aW9uUhRvbWl0",
-            "dGVkQ29udmVyc2F0aW9ucxJCChxvbWl0dGVkQ29udmVyc2F0aW9uc1Byb3Zp",
-            "ZGVkGBggASgIUhxvbWl0dGVkQ29udmVyc2F0aW9uc1Byb3ZpZGVkIjcKEkJv",
-            "dEFJV2FpdExpc3RTdGF0ZRIPCgtJTl9XQUlUTElTVBAAEhAKDEFJX0FWQUlM",
-            "QUJMRRABIooBCg9IaXN0b3J5U3luY1R5cGUSFQoRSU5JVElBTF9CT09UU1RS",
-            "QVAQABIVChFJTklUSUFMX1NUQVRVU19WMxABEggKBEZVTEwQAhIKCgZSRUNF",
-            "TlQQAxINCglQVVNIX05BTUUQBBIVChFOT05fQkxPQ0tJTkdfREFUQRAFEg0K",
-            "CU9OX0RFTUFORBAGIocbCgxDb252ZXJzYXRpb24SDgoCSUQYASACKAlSAklE",
-            "EkUKCG1lc3NhZ2VzGAIgAygLMikuV0FXZWJQcm90b2J1ZnNIaXN0b3J5U3lu",
-            "Yy5IaXN0b3J5U3luY01zZ1IIbWVzc2FnZXMSFgoGbmV3SklEGAMgASgJUgZu",
-            "ZXdKSUQSFgoGb2xkSklEGAQgASgJUgZvbGRKSUQSKgoQbGFzdE1zZ1RpbWVz",
-            "dGFtcBgFIAEoBFIQbGFzdE1zZ1RpbWVzdGFtcBIgCgt1bnJlYWRDb3VudBgG",
-            "IAEoDVILdW5yZWFkQ291bnQSGgoIcmVhZE9ubHkYByABKAhSCHJlYWRPbmx5",
-            "EjIKFGVuZE9mSGlzdG9yeVRyYW5zZmVyGAggASgIUhRlbmRPZkhpc3RvcnlU",
-            "cmFuc2ZlchIwChNlcGhlbWVyYWxFeHBpcmF0aW9uGAkgASgNUhNlcGhlbWVy",
-            "YWxFeHBpcmF0aW9uEjwKGWVwaGVtZXJhbFNldHRpbmdUaW1lc3RhbXAYCiAB",
-            "KANSGWVwaGVtZXJhbFNldHRpbmdUaW1lc3RhbXASfAoYZW5kT2ZIaXN0b3J5",
-            "VHJhbnNmZXJUeXBlGAsgASgOMkAuV0FXZWJQcm90b2J1ZnNIaXN0b3J5U3lu",
-            "Yy5Db252ZXJzYXRpb24uRW5kT2ZIaXN0b3J5VHJhbnNmZXJUeXBlUhhlbmRP",
-            "Zkhpc3RvcnlUcmFuc2ZlclR5cGUSNAoVY29udmVyc2F0aW9uVGltZXN0YW1w",
-            "GAwgASgEUhVjb252ZXJzYXRpb25UaW1lc3RhbXASEgoEbmFtZRgNIAEoCVIE",
-            "bmFtZRIUCgVwSGFzaBgOIAEoCVIFcEhhc2gSGAoHbm90U3BhbRgPIAEoCFIH",
-            "bm90U3BhbRIaCghhcmNoaXZlZBgQIAEoCFIIYXJjaGl2ZWQSTwoQZGlzYXBw",
-            "ZWFyaW5nTW9kZRgRIAEoCzIjLldBV2ViUHJvdG9idWZzRTJFLkRpc2FwcGVh",
-            "cmluZ01vZGVSEGRpc2FwcGVhcmluZ01vZGUSLgoSdW5yZWFkTWVudGlvbkNv",
-            "dW50GBIgASgNUhJ1bnJlYWRNZW50aW9uQ291bnQSJgoObWFya2VkQXNVbnJl",
-            "YWQYEyABKAhSDm1hcmtlZEFzVW5yZWFkEk0KC3BhcnRpY2lwYW50GBQgAygL",
-            "MisuV0FXZWJQcm90b2J1ZnNIaXN0b3J5U3luYy5Hcm91cFBhcnRpY2lwYW50",
-            "UgtwYXJ0aWNpcGFudBIYCgd0Y1Rva2VuGBUgASgMUgd0Y1Rva2VuEioKEHRj",
-            "VG9rZW5UaW1lc3RhbXAYFiABKARSEHRjVG9rZW5UaW1lc3RhbXASPAoZY29u",
-            "dGFjdFByaW1hcnlJZGVudGl0eUtleRgXIAEoDFIZY29udGFjdFByaW1hcnlJ",
-            "ZGVudGl0eUtleRIWCgZwaW5uZWQYGCABKA1SBnBpbm5lZBIgCgttdXRlRW5k",
-            "VGltZRgZIAEoBFILbXV0ZUVuZFRpbWUSSgoJd2FsbHBhcGVyGBogASgLMiwu",
-            "V0FXZWJQcm90b2J1ZnNIaXN0b3J5U3luYy5XYWxscGFwZXJTZXR0aW5nc1IJ",
-            "d2FsbHBhcGVyElQKD21lZGlhVmlzaWJpbGl0eRgbIAEoDjIqLldBV2ViUHJv",
-            "dG9idWZzSGlzdG9yeVN5bmMuTWVkaWFWaXNpYmlsaXR5Ug9tZWRpYVZpc2li",
-            "aWxpdHkSNgoWdGNUb2tlblNlbmRlclRpbWVzdGFtcBgcIAEoBFIWdGNUb2tl",
-            "blNlbmRlclRpbWVzdGFtcBIcCglzdXNwZW5kZWQYHSABKAhSCXN1c3BlbmRl",
-            "ZBIeCgp0ZXJtaW5hdGVkGB4gASgIUgp0ZXJtaW5hdGVkEhwKCWNyZWF0ZWRB",
-            "dBgfIAEoBFIJY3JlYXRlZEF0EhwKCWNyZWF0ZWRCeRggIAEoCVIJY3JlYXRl",
-            "ZEJ5EiAKC2Rlc2NyaXB0aW9uGCEgASgJUgtkZXNjcmlwdGlvbhIYCgdzdXBw",
-            "b3J0GCIgASgIUgdzdXBwb3J0EiQKDWlzUGFyZW50R3JvdXAYIyABKAhSDWlz",
-            "UGFyZW50R3JvdXASJAoNcGFyZW50R3JvdXBJRBglIAEoCVINcGFyZW50R3Jv",
-            "dXBJRBIsChFpc0RlZmF1bHRTdWJncm91cBgkIAEoCFIRaXNEZWZhdWx0U3Vi",
-            "Z3JvdXASIAoLZGlzcGxheU5hbWUYJiABKAlSC2Rpc3BsYXlOYW1lEhQKBXBu",
-            "SklEGCcgASgJUgVwbkpJRBIeCgpzaGFyZU93blBuGCggASgIUgpzaGFyZU93",
-            "blBuEjQKFXBuaER1cGxpY2F0ZUxpZFRocmVhZBgpIAEoCFIVcG5oRHVwbGlj",
-            "YXRlTGlkVGhyZWFkEhYKBmxpZEpJRBgqIAEoCVIGbGlkSklEEhoKCHVzZXJu",
-            "YW1lGCsgASgJUgh1c2VybmFtZRIkCg1saWRPcmlnaW5UeXBlGCwgASgJUg1s",
-            "aWRPcmlnaW5UeXBlEiQKDWNvbW1lbnRzQ291bnQYLSABKA1SDWNvbW1lbnRz",
-            "Q291bnQSFgoGbG9ja2VkGC4gASgIUgZsb2NrZWQSZQoVc3lzdGVtTWVzc2Fn",
-            "ZVRvSW5zZXJ0GC8gASgOMi8uV0FXZWJQcm90b2J1ZnNIaXN0b3J5U3luYy5Q",
-            "cml2YWN5U3lzdGVtTWVzc2FnZVIVc3lzdGVtTWVzc2FnZVRvSW5zZXJ0EioK",
-            "EGNhcGlDcmVhdGVkR3JvdXAYMCABKAhSEGNhcGlDcmVhdGVkR3JvdXASHgoK",
-            "YWNjb3VudExpZBgxIAEoCVIKYWNjb3VudExpZBIiCgxsaW1pdFNoYXJpbmcY",
-            "MiABKAhSDGxpbWl0U2hhcmluZxJCChxsaW1pdFNoYXJpbmdTZXR0aW5nVGlt",
-            "ZXN0YW1wGDMgASgDUhxsaW1pdFNoYXJpbmdTZXR0aW5nVGltZXN0YW1wElAK",
-            "E2xpbWl0U2hhcmluZ1RyaWdnZXIYNCABKA4yHi5XQUNvbW1vbi5MaW1pdFNo",
-            "YXJpbmcuVHJpZ2dlclITbGltaXRTaGFyaW5nVHJpZ2dlchI8ChlsaW1pdFNo",
-            "YXJpbmdJbml0aWF0ZWRCeU1lGDUgASgIUhlsaW1pdFNoYXJpbmdJbml0aWF0",
-            "ZWRCeU1lEjIKFG1haWJhQWlUaHJlYWRFbmFibGVkGDYgASgIUhRtYWliYUFp",
-            "VGhyZWFkRW5hYmxlZBI6Chhpc01hcmtldGluZ01lc3NhZ2VUaHJlYWQYNyAB",
-            "KAhSGGlzTWFya2V0aW5nTWVzc2FnZVRocmVhZBIuChJpc1NlbmRlck5ld0Fj",
-            "Y291bnQYOCABKAhSEmlzU2VuZGVyTmV3QWNjb3VudBIsChFhZnRlclJlYWRE",
-            "dXJhdGlvbhg5IAEoDVIRYWZ0ZXJSZWFkRHVyYXRpb24SLgoSaXNTZW5kZXJT",
-            "dXNwaWNpb3VzGDogASgIUhJpc1NlbmRlclN1c3BpY2lvdXMSXQoMYXBwZWFs",
-            "U3RhdHVzGDsgASgOMjkuV0FXZWJQcm90b2J1ZnNIaXN0b3J5U3luYy5Db252",
-            "ZXJzYXRpb24uR3JvdXBBcHBlYWxTdGF0dXNSDGFwcGVhbFN0YXR1cxIqChBh",
-            "cHBlYWxVcGRhdGVUaW1lGDwgASgEUhBhcHBlYWxVcGRhdGVUaW1lEj4KGmF1",
-            "dGhBZ2VudFBhcmVudENvbXBhbnlOYW1lGD0gASgJUhphdXRoQWdlbnRQYXJl",
-            "bnRDb21wYW55TmFtZRI4ChdhdXRoQWdlbnRPYmFQaG9uZU51bWJlchg+IAEo",
-            "CVIXYXV0aEFnZW50T2JhUGhvbmVOdW1iZXISaAoUaWRlbnRpdHlWZXJpZmlj",
-            "YXRpb24YPyABKAsyNC5XQVdlYlByb3RvYnVmc0hpc3RvcnlTeW5jLklkZW50",
-            "aXR5VmVyaWZpY2F0aW9uU3RhdGVSFGlkZW50aXR5VmVyaWZpY2F0aW9uEjcK",
-            "C2FjcDJTZXR0aW5nGEAgASgLMhUuV0FDb21tb24uQUNQMlNldHRpbmdSC2Fj",
-            "cDJTZXR0aW5nEjAKE2FjcDJIaXN0b3J5V2l0aGhlbGQYQSABKAhSE2FjcDJI",
-            "aXN0b3J5V2l0aGhlbGQiYgoRR3JvdXBBcHBlYWxTdGF0dXMSDQoJTk9fQVBQ",
-            "RUFMEAASFAoQQVBQRUFMX0lOX1JFVklFVxABEhMKD0FQUEVBTF9BUFBST1ZF",
-            "RBACEhMKD0FQUEVBTF9SRUpFQ1RFRBADIoACChhFbmRPZkhpc3RvcnlUcmFu",
-            "c2ZlclR5cGUSMAosQ09NUExFVEVfQlVUX01PUkVfTUVTU0FHRVNfUkVNQUlO",
-            "X09OX1BSSU1BUlkQABIyCi5DT01QTEVURV9BTkRfTk9fTU9SRV9NRVNTQUdF",
-            "X1JFTUFJTl9PTl9QUklNQVJZEAESOgo2Q09NUExFVEVfT05fREVNQU5EX1NZ",
-            "TkNfQlVUX01PUkVfTVNHX1JFTUFJTl9PTl9QUklNQVJZEAISQgo+Q09NUExF",
-            "VEVfT05fREVNQU5EX1NZTkNfV0lUSF9NT1JFX01TR19PTl9QUklNQVJZX0JV",
-            "VF9OT19BQ0NFU1MQAyLkAQoQR3JvdXBQYXJ0aWNpcGFudBIYCgd1c2VySklE",
-            "GAEgAigJUgd1c2VySklEEkQKBHJhbmsYAiABKA4yMC5XQVdlYlByb3RvYnVm",
-            "c0hpc3RvcnlTeW5jLkdyb3VwUGFydGljaXBhbnQuUmFua1IEcmFuaxJACgtt",
-            "ZW1iZXJMYWJlbBgDIAEoCzIeLldBV2ViUHJvdG9idWZzRTJFLk1lbWJlckxh",
-            "YmVsUgttZW1iZXJMYWJlbCIuCgRSYW5rEgsKB1JFR1VMQVIQABIJCgVBRE1J",
-            "ThABEg4KClNVUEVSQURNSU4QAiLFAQoPUGFzdFBhcnRpY2lwYW50EhgKB3Vz",
-            "ZXJKSUQYASABKAlSB3VzZXJKSUQSWAoLbGVhdmVSZWFzb24YAiABKA4yNi5X",
-            "QVdlYlByb3RvYnVmc0hpc3RvcnlTeW5jLlBhc3RQYXJ0aWNpcGFudC5MZWF2",
-            "ZVJlYXNvblILbGVhdmVSZWFzb24SGAoHbGVhdmVUUxgDIAEoBFIHbGVhdmVU",
-            "UyIkCgtMZWF2ZVJlYXNvbhIICgRMRUZUEAASCwoHUkVNT1ZFRBABImYKHlJl",
-            "Y292ZXJhYmxlSGlzdG9yeUNvbnZlcnNhdGlvbhIkCg1oaXN0b3J5Q2hhdElE",
-            "GAEgASgJUg1oaXN0b3J5Q2hhdElEEh4KCmFjY291bnRMaWQYAiABKAlSCmFj",
-            "Y291bnRMaWQiVQoZSWRlbnRpdHlWZXJpZmljYXRpb25TdGF0ZRIaCgh2ZXJp",
-            "ZmllZBgBIAEoCFIIdmVyaWZpZWQSHAoJYWN0aW9uU2VxGAIgASgEUglhY3Rp",
-            "b25TZXEiRwoXUGhvbmVOdW1iZXJUb0xJRE1hcHBpbmcSFAoFcG5KSUQYASAB",
-            "KAlSBXBuSklEEhYKBmxpZEpJRBgCIAEoCVIGbGlkSklEIpMBCg1JbmxpbmVD",
-            "b250YWN0EhQKBXBuSklEGAEgASgJUgVwbkpJRBIWCgZsaWRKSUQYAiABKAlS",
-            "BmxpZEpJRBIaCghmdWxsTmFtZRgDIAEoCVIIZnVsbE5hbWUSHAoJZmlyc3RO",
-            "YW1lGAQgASgJUglmaXJzdE5hbWUSGgoIdXNlcm5hbWUYBSABKAlSCHVzZXJu",
-            "YW1lIocBCgdBY2NvdW50EhAKA2xpZBgBIAEoCVIDbGlkEhoKCHVzZXJuYW1l",
-            "GAIgASgJUgh1c2VybmFtZRIgCgtjb3VudHJ5Q29kZRgDIAEoCVILY291bnRy",
-            "eUNvZGUSLAoRaXNVc2VybmFtZURlbGV0ZWQYBCABKAhSEWlzVXNlcm5hbWVE",
-            "ZWxldGVkIm0KDkhpc3RvcnlTeW5jTXNnEjsKB21lc3NhZ2UYASABKAsyIS5X",
-            "QVdlYlByb3RvYnVmc1dlYi5XZWJNZXNzYWdlSW5mb1IHbWVzc2FnZRIeCgpt",
-            "c2dPcmRlcklEGAIgASgEUgptc2dPcmRlcklEIjYKCFB1c2huYW1lEg4KAklE",
-            "GAEgASgJUgJJRBIaCghwdXNobmFtZRgCIAEoCVIIcHVzaG5hbWUiYwoRV2Fs",
-            "bHBhcGVyU2V0dGluZ3MSGgoIZmlsZW5hbWUYASABKAlSCGZpbGVuYW1lEhgK",
-            "B29wYWNpdHkYAiABKA1SB29wYWNpdHkSGAoHaXNHZW5BaRgDIAEoCFIHaXNH",
-            "ZW5BaSKaDAoOR2xvYmFsU2V0dGluZ3MSXgoTbGlnaHRUaGVtZVdhbGxwYXBl",
-            "chgBIAEoCzIsLldBV2ViUHJvdG9idWZzSGlzdG9yeVN5bmMuV2FsbHBhcGVy",
-            "U2V0dGluZ3NSE2xpZ2h0VGhlbWVXYWxscGFwZXISVAoPbWVkaWFWaXNpYmls",
-            "aXR5GAIgASgOMiouV0FXZWJQcm90b2J1ZnNIaXN0b3J5U3luYy5NZWRpYVZp",
-            "c2liaWxpdHlSD21lZGlhVmlzaWJpbGl0eRJcChJkYXJrVGhlbWVXYWxscGFw",
-            "ZXIYAyABKAsyLC5XQVdlYlByb3RvYnVmc0hpc3RvcnlTeW5jLldhbGxwYXBl",
-            "clNldHRpbmdzUhJkYXJrVGhlbWVXYWxscGFwZXISWwoQYXV0b0Rvd25sb2Fk",
-            "V2lGaRgEIAEoCzIvLldBV2ViUHJvdG9idWZzSGlzdG9yeVN5bmMuQXV0b0Rv",
-            "d25sb2FkU2V0dGluZ3NSEGF1dG9Eb3dubG9hZFdpRmkSYwoUYXV0b0Rvd25s",
-            "b2FkQ2VsbHVsYXIYBSABKAsyLy5XQVdlYlByb3RvYnVmc0hpc3RvcnlTeW5j",
-            "LkF1dG9Eb3dubG9hZFNldHRpbmdzUhRhdXRvRG93bmxvYWRDZWxsdWxhchJh",
-            "ChNhdXRvRG93bmxvYWRSb2FtaW5nGAYgASgLMi8uV0FXZWJQcm90b2J1ZnNI",
-            "aXN0b3J5U3luYy5BdXRvRG93bmxvYWRTZXR0aW5nc1ITYXV0b0Rvd25sb2Fk",
-            "Um9hbWluZxJOCiJzaG93SW5kaXZpZHVhbE5vdGlmaWNhdGlvbnNQcmV2aWV3",
-            "GAcgASgIUiJzaG93SW5kaXZpZHVhbE5vdGlmaWNhdGlvbnNQcmV2aWV3EkQK",
-            "HXNob3dHcm91cE5vdGlmaWNhdGlvbnNQcmV2aWV3GAggASgIUh1zaG93R3Jv",
-            "dXBOb3RpZmljYXRpb25zUHJldmlldxI6ChhkaXNhcHBlYXJpbmdNb2RlRHVy",
-            "YXRpb24YCSABKAVSGGRpc2FwcGVhcmluZ01vZGVEdXJhdGlvbhI8ChlkaXNh",
-            "cHBlYXJpbmdNb2RlVGltZXN0YW1wGAogASgDUhlkaXNhcHBlYXJpbmdNb2Rl",
-            "VGltZXN0YW1wEl0KEmF2YXRhclVzZXJTZXR0aW5ncxgLIAEoCzItLldBV2Vi",
-            "UHJvdG9idWZzSGlzdG9yeVN5bmMuQXZhdGFyVXNlclNldHRpbmdzUhJhdmF0",
-            "YXJVc2VyU2V0dGluZ3MSGgoIZm9udFNpemUYDCABKAVSCGZvbnRTaXplEjQK",
-            "FXNlY3VyaXR5Tm90aWZpY2F0aW9ucxgNIAEoCFIVc2VjdXJpdHlOb3RpZmlj",
-            "YXRpb25zEi4KEmF1dG9VbmFyY2hpdmVDaGF0cxgOIAEoCFISYXV0b1VuYXJj",
-            "aGl2ZUNoYXRzEioKEHZpZGVvUXVhbGl0eU1vZGUYDyABKAVSEHZpZGVvUXVh",
-            "bGl0eU1vZGUSKgoQcGhvdG9RdWFsaXR5TW9kZRgQIAEoBVIQcGhvdG9RdWFs",
-            "aXR5TW9kZRJ3Ch5pbmRpdmlkdWFsTm90aWZpY2F0aW9uU2V0dGluZ3MYESAB",
-            "KAsyLy5XQVdlYlByb3RvYnVmc0hpc3RvcnlTeW5jLk5vdGlmaWNhdGlvblNl",
-            "dHRpbmdzUh5pbmRpdmlkdWFsTm90aWZpY2F0aW9uU2V0dGluZ3MSbQoZZ3Jv",
-            "dXBOb3RpZmljYXRpb25TZXR0aW5ncxgSIAEoCzIvLldBV2ViUHJvdG9idWZz",
-            "SGlzdG9yeVN5bmMuTm90aWZpY2F0aW9uU2V0dGluZ3NSGWdyb3VwTm90aWZp",
-            "Y2F0aW9uU2V0dGluZ3MSXAoQY2hhdExvY2tTZXR0aW5ncxgTIAEoCzIwLldB",
-            "V2ViUHJvdG9idWZzQ2hhdExvY2tTZXR0aW5ncy5DaGF0TG9ja1NldHRpbmdz",
-            "UhBjaGF0TG9ja1NldHRpbmdzEkAKG2NoYXREYkxpZE1pZ3JhdGlvblRpbWVz",
-            "dGFtcBgUIAEoA1IbY2hhdERiTGlkTWlncmF0aW9uVGltZXN0YW1wIrgBChRB",
-            "dXRvRG93bmxvYWRTZXR0aW5ncxImCg5kb3dubG9hZEltYWdlcxgBIAEoCFIO",
-            "ZG93bmxvYWRJbWFnZXMSJAoNZG93bmxvYWRBdWRpbxgCIAEoCFINZG93bmxv",
-            "YWRBdWRpbxIkCg1kb3dubG9hZFZpZGVvGAMgASgIUg1kb3dubG9hZFZpZGVv",
-            "EiwKEWRvd25sb2FkRG9jdW1lbnRzGAQgASgIUhFkb3dubG9hZERvY3VtZW50",
-            "cyK5AwoPU3RpY2tlck1ldGFkYXRhEhAKA1VSTBgBIAEoCVIDVVJMEh4KCmZp",
-            "bGVTSEEyNTYYAiABKAxSCmZpbGVTSEEyNTYSJAoNZmlsZUVuY1NIQTI1NhgD",
-            "IAEoDFINZmlsZUVuY1NIQTI1NhIaCghtZWRpYUtleRgEIAEoDFIIbWVkaWFL",
-            "ZXkSGgoIbWltZXR5cGUYBSABKAlSCG1pbWV0eXBlEhYKBmhlaWdodBgGIAEo",
-            "DVIGaGVpZ2h0EhQKBXdpZHRoGAcgASgNUgV3aWR0aBIeCgpkaXJlY3RQYXRo",
-            "GAggASgJUgpkaXJlY3RQYXRoEh4KCmZpbGVMZW5ndGgYCSABKARSCmZpbGVM",
-            "ZW5ndGgSFgoGd2VpZ2h0GAogASgCUgZ3ZWlnaHQSLAoRbGFzdFN0aWNrZXJT",
-            "ZW50VFMYCyABKANSEWxhc3RTdGlja2VyU2VudFRTEhoKCGlzTG90dGllGAwg",
-            "ASgIUghpc0xvdHRpZRIcCglpbWFnZUhhc2gYDSABKAlSCWltYWdlSGFzaBIo",
-            "Cg9pc0F2YXRhclN0aWNrZXIYDiABKAhSD2lzQXZhdGFyU3RpY2tlciKGAQoQ",
-            "UGFzdFBhcnRpY2lwYW50cxIaCghncm91cEpJRBgBIAEoCVIIZ3JvdXBKSUQS",
-            "VgoQcGFzdFBhcnRpY2lwYW50cxgCIAMoCzIqLldBV2ViUHJvdG9idWZzSGlz",
-            "dG9yeVN5bmMuUGFzdFBhcnRpY2lwYW50UhBwYXN0UGFydGljaXBhbnRzIkQK",
-            "EkF2YXRhclVzZXJTZXR0aW5ncxISCgRGQklEGAEgASgJUgRGQklEEhoKCHBh",
-            "c3N3b3JkGAIgASgJUghwYXNzd29yZCKMAgoUTm90aWZpY2F0aW9uU2V0dGlu",
-            "Z3MSJgoObWVzc2FnZVZpYnJhdGUYASABKAlSDm1lc3NhZ2VWaWJyYXRlEiIK",
-            "DG1lc3NhZ2VQb3B1cBgCIAEoCVIMbWVzc2FnZVBvcHVwEiIKDG1lc3NhZ2VM",
-            "aWdodBgDIAEoCVIMbWVzc2FnZUxpZ2h0EjoKGGxvd1ByaW9yaXR5Tm90aWZp",
-            "Y2F0aW9ucxgEIAEoCFIYbG93UHJpb3JpdHlOb3RpZmljYXRpb25zEiYKDnJl",
-            "YWN0aW9uc011dGVkGAUgASgIUg5yZWFjdGlvbnNNdXRlZBIgCgtjYWxsVmli",
-            "cmF0ZRgGIAEoCVILY2FsbFZpYnJhdGUqLwoPTWVkaWFWaXNpYmlsaXR5EgsK",
-            "B0RFRkFVTFQQABIHCgNPRkYQARIGCgJPThACKkUKFFByaXZhY3lTeXN0ZW1N",
-            "ZXNzYWdlEgwKCEUyRUVfTVNHEAESDgoKTkUyRUVfU0VMRhACEg8KC05FMkVF",
-            "X09USEVSEANC/AEKHWNvbS5XQVdlYlByb3RvYnVmc0hpc3RvcnlTeW5jQh5X",
-            "QVdlYlByb3RvYnVmc0hpc3RvcnlTeW5jUHJvdG9QAVonZ28ubWF1LmZpL3do",
-            "YXRzbWVvdy9wcm90by93YUhpc3RvcnlTeW5jogIDV1hYqgIpV2hhdHNtZW93",
-            "LlByb3RvLldBV2ViUHJvdG9idWZzSGlzdG9yeVN5bmPKAhlXQVdlYlByb3Rv",
-            "YnVmc0hpc3RvcnlTeW5j4gIlV0FXZWJQcm90b2J1ZnNIaXN0b3J5U3luY1xH",
-            "UEJNZXRhZGF0YeoCGVdBV2ViUHJvdG9idWZzSGlzdG9yeVN5bmM="));
+            "cnlTeW5jLlN0aWNrZXJNZXRhZGF0YVIQZmF2b3JpdGVTdGlja2VycxJ4Chtv",
+            "bWl0dGVkQ29udmVyc2F0aW9uTWV0YWRhdGEYGSABKAsyNi5XQVdlYlByb3Rv",
+            "YnVmc0hpc3RvcnlTeW5jLk9taXR0ZWRDb252ZXJzYXRpb25NZXRhZGF0YVIb",
+            "b21pdHRlZENvbnZlcnNhdGlvbk1ldGFkYXRhElQKJW9taXR0ZWRDb252ZXJz",
+            "YXRpb25NZXRhZGF0YVNuYXBzaG90SUQYGiABKAlSJW9taXR0ZWRDb252ZXJz",
+            "YXRpb25NZXRhZGF0YVNuYXBzaG90SUQiNwoSQm90QUlXYWl0TGlzdFN0YXRl",
+            "Eg8KC0lOX1dBSVRMSVNUEAASEAoMQUlfQVZBSUxBQkxFEAEirgEKD0hpc3Rv",
+            "cnlTeW5jVHlwZRIVChFJTklUSUFMX0JPT1RTVFJBUBAAEhUKEUlOSVRJQUxf",
+            "U1RBVFVTX1YzEAESCAoERlVMTBACEgoKBlJFQ0VOVBADEg0KCVBVU0hfTkFN",
+            "RRAEEhUKEU5PTl9CTE9DS0lOR19EQVRBEAUSDQoJT05fREVNQU5EEAYSIgoe",
+            "UkVDRU5UX0NPTlZFUlNBVElPTlNfT05fREVNQU5EEAkihxsKDENvbnZlcnNh",
+            "dGlvbhIOCgJJRBgBIAIoCVICSUQSRQoIbWVzc2FnZXMYAiADKAsyKS5XQVdl",
+            "YlByb3RvYnVmc0hpc3RvcnlTeW5jLkhpc3RvcnlTeW5jTXNnUghtZXNzYWdl",
+            "cxIWCgZuZXdKSUQYAyABKAlSBm5ld0pJRBIWCgZvbGRKSUQYBCABKAlSBm9s",
+            "ZEpJRBIqChBsYXN0TXNnVGltZXN0YW1wGAUgASgEUhBsYXN0TXNnVGltZXN0",
+            "YW1wEiAKC3VucmVhZENvdW50GAYgASgNUgt1bnJlYWRDb3VudBIaCghyZWFk",
+            "T25seRgHIAEoCFIIcmVhZE9ubHkSMgoUZW5kT2ZIaXN0b3J5VHJhbnNmZXIY",
+            "CCABKAhSFGVuZE9mSGlzdG9yeVRyYW5zZmVyEjAKE2VwaGVtZXJhbEV4cGly",
+            "YXRpb24YCSABKA1SE2VwaGVtZXJhbEV4cGlyYXRpb24SPAoZZXBoZW1lcmFs",
+            "U2V0dGluZ1RpbWVzdGFtcBgKIAEoA1IZZXBoZW1lcmFsU2V0dGluZ1RpbWVz",
+            "dGFtcBJ8ChhlbmRPZkhpc3RvcnlUcmFuc2ZlclR5cGUYCyABKA4yQC5XQVdl",
+            "YlByb3RvYnVmc0hpc3RvcnlTeW5jLkNvbnZlcnNhdGlvbi5FbmRPZkhpc3Rv",
+            "cnlUcmFuc2ZlclR5cGVSGGVuZE9mSGlzdG9yeVRyYW5zZmVyVHlwZRI0ChVj",
+            "b252ZXJzYXRpb25UaW1lc3RhbXAYDCABKARSFWNvbnZlcnNhdGlvblRpbWVz",
+            "dGFtcBISCgRuYW1lGA0gASgJUgRuYW1lEhQKBXBIYXNoGA4gASgJUgVwSGFz",
+            "aBIYCgdub3RTcGFtGA8gASgIUgdub3RTcGFtEhoKCGFyY2hpdmVkGBAgASgI",
+            "UghhcmNoaXZlZBJPChBkaXNhcHBlYXJpbmdNb2RlGBEgASgLMiMuV0FXZWJQ",
+            "cm90b2J1ZnNFMkUuRGlzYXBwZWFyaW5nTW9kZVIQZGlzYXBwZWFyaW5nTW9k",
+            "ZRIuChJ1bnJlYWRNZW50aW9uQ291bnQYEiABKA1SEnVucmVhZE1lbnRpb25D",
+            "b3VudBImCg5tYXJrZWRBc1VucmVhZBgTIAEoCFIObWFya2VkQXNVbnJlYWQS",
+            "TQoLcGFydGljaXBhbnQYFCADKAsyKy5XQVdlYlByb3RvYnVmc0hpc3RvcnlT",
+            "eW5jLkdyb3VwUGFydGljaXBhbnRSC3BhcnRpY2lwYW50EhgKB3RjVG9rZW4Y",
+            "FSABKAxSB3RjVG9rZW4SKgoQdGNUb2tlblRpbWVzdGFtcBgWIAEoBFIQdGNU",
+            "b2tlblRpbWVzdGFtcBI8Chljb250YWN0UHJpbWFyeUlkZW50aXR5S2V5GBcg",
+            "ASgMUhljb250YWN0UHJpbWFyeUlkZW50aXR5S2V5EhYKBnBpbm5lZBgYIAEo",
+            "DVIGcGlubmVkEiAKC211dGVFbmRUaW1lGBkgASgEUgttdXRlRW5kVGltZRJK",
+            "Cgl3YWxscGFwZXIYGiABKAsyLC5XQVdlYlByb3RvYnVmc0hpc3RvcnlTeW5j",
+            "LldhbGxwYXBlclNldHRpbmdzUgl3YWxscGFwZXISVAoPbWVkaWFWaXNpYmls",
+            "aXR5GBsgASgOMiouV0FXZWJQcm90b2J1ZnNIaXN0b3J5U3luYy5NZWRpYVZp",
+            "c2liaWxpdHlSD21lZGlhVmlzaWJpbGl0eRI2ChZ0Y1Rva2VuU2VuZGVyVGlt",
+            "ZXN0YW1wGBwgASgEUhZ0Y1Rva2VuU2VuZGVyVGltZXN0YW1wEhwKCXN1c3Bl",
+            "bmRlZBgdIAEoCFIJc3VzcGVuZGVkEh4KCnRlcm1pbmF0ZWQYHiABKAhSCnRl",
+            "cm1pbmF0ZWQSHAoJY3JlYXRlZEF0GB8gASgEUgljcmVhdGVkQXQSHAoJY3Jl",
+            "YXRlZEJ5GCAgASgJUgljcmVhdGVkQnkSIAoLZGVzY3JpcHRpb24YISABKAlS",
+            "C2Rlc2NyaXB0aW9uEhgKB3N1cHBvcnQYIiABKAhSB3N1cHBvcnQSJAoNaXNQ",
+            "YXJlbnRHcm91cBgjIAEoCFINaXNQYXJlbnRHcm91cBIkCg1wYXJlbnRHcm91",
+            "cElEGCUgASgJUg1wYXJlbnRHcm91cElEEiwKEWlzRGVmYXVsdFN1Ymdyb3Vw",
+            "GCQgASgIUhFpc0RlZmF1bHRTdWJncm91cBIgCgtkaXNwbGF5TmFtZRgmIAEo",
+            "CVILZGlzcGxheU5hbWUSFAoFcG5KSUQYJyABKAlSBXBuSklEEh4KCnNoYXJl",
+            "T3duUG4YKCABKAhSCnNoYXJlT3duUG4SNAoVcG5oRHVwbGljYXRlTGlkVGhy",
+            "ZWFkGCkgASgIUhVwbmhEdXBsaWNhdGVMaWRUaHJlYWQSFgoGbGlkSklEGCog",
+            "ASgJUgZsaWRKSUQSGgoIdXNlcm5hbWUYKyABKAlSCHVzZXJuYW1lEiQKDWxp",
+            "ZE9yaWdpblR5cGUYLCABKAlSDWxpZE9yaWdpblR5cGUSJAoNY29tbWVudHND",
+            "b3VudBgtIAEoDVINY29tbWVudHNDb3VudBIWCgZsb2NrZWQYLiABKAhSBmxv",
+            "Y2tlZBJlChVzeXN0ZW1NZXNzYWdlVG9JbnNlcnQYLyABKA4yLy5XQVdlYlBy",
+            "b3RvYnVmc0hpc3RvcnlTeW5jLlByaXZhY3lTeXN0ZW1NZXNzYWdlUhVzeXN0",
+            "ZW1NZXNzYWdlVG9JbnNlcnQSKgoQY2FwaUNyZWF0ZWRHcm91cBgwIAEoCFIQ",
+            "Y2FwaUNyZWF0ZWRHcm91cBIeCgphY2NvdW50TGlkGDEgASgJUgphY2NvdW50",
+            "TGlkEiIKDGxpbWl0U2hhcmluZxgyIAEoCFIMbGltaXRTaGFyaW5nEkIKHGxp",
+            "bWl0U2hhcmluZ1NldHRpbmdUaW1lc3RhbXAYMyABKANSHGxpbWl0U2hhcmlu",
+            "Z1NldHRpbmdUaW1lc3RhbXASUAoTbGltaXRTaGFyaW5nVHJpZ2dlchg0IAEo",
+            "DjIeLldBQ29tbW9uLkxpbWl0U2hhcmluZy5UcmlnZ2VyUhNsaW1pdFNoYXJp",
+            "bmdUcmlnZ2VyEjwKGWxpbWl0U2hhcmluZ0luaXRpYXRlZEJ5TWUYNSABKAhS",
+            "GWxpbWl0U2hhcmluZ0luaXRpYXRlZEJ5TWUSMgoUbWFpYmFBaVRocmVhZEVu",
+            "YWJsZWQYNiABKAhSFG1haWJhQWlUaHJlYWRFbmFibGVkEjoKGGlzTWFya2V0",
+            "aW5nTWVzc2FnZVRocmVhZBg3IAEoCFIYaXNNYXJrZXRpbmdNZXNzYWdlVGhy",
+            "ZWFkEi4KEmlzU2VuZGVyTmV3QWNjb3VudBg4IAEoCFISaXNTZW5kZXJOZXdB",
+            "Y2NvdW50EiwKEWFmdGVyUmVhZER1cmF0aW9uGDkgASgNUhFhZnRlclJlYWRE",
+            "dXJhdGlvbhIuChJpc1NlbmRlclN1c3BpY2lvdXMYOiABKAhSEmlzU2VuZGVy",
+            "U3VzcGljaW91cxJdCgxhcHBlYWxTdGF0dXMYOyABKA4yOS5XQVdlYlByb3Rv",
+            "YnVmc0hpc3RvcnlTeW5jLkNvbnZlcnNhdGlvbi5Hcm91cEFwcGVhbFN0YXR1",
+            "c1IMYXBwZWFsU3RhdHVzEioKEGFwcGVhbFVwZGF0ZVRpbWUYPCABKARSEGFw",
+            "cGVhbFVwZGF0ZVRpbWUSPgoaYXV0aEFnZW50UGFyZW50Q29tcGFueU5hbWUY",
+            "PSABKAlSGmF1dGhBZ2VudFBhcmVudENvbXBhbnlOYW1lEjgKF2F1dGhBZ2Vu",
+            "dE9iYVBob25lTnVtYmVyGD4gASgJUhdhdXRoQWdlbnRPYmFQaG9uZU51bWJl",
+            "chJoChRpZGVudGl0eVZlcmlmaWNhdGlvbhg/IAEoCzI0LldBV2ViUHJvdG9i",
+            "dWZzSGlzdG9yeVN5bmMuSWRlbnRpdHlWZXJpZmljYXRpb25TdGF0ZVIUaWRl",
+            "bnRpdHlWZXJpZmljYXRpb24SNwoLYWNwMlNldHRpbmcYQCABKAsyFS5XQUNv",
+            "bW1vbi5BQ1AyU2V0dGluZ1ILYWNwMlNldHRpbmcSMAoTYWNwMkhpc3RvcnlX",
+            "aXRoaGVsZBhBIAEoCFITYWNwMkhpc3RvcnlXaXRoaGVsZCJiChFHcm91cEFw",
+            "cGVhbFN0YXR1cxINCglOT19BUFBFQUwQABIUChBBUFBFQUxfSU5fUkVWSUVX",
+            "EAESEwoPQVBQRUFMX0FQUFJPVkVEEAISEwoPQVBQRUFMX1JFSkVDVEVEEAMi",
+            "gAIKGEVuZE9mSGlzdG9yeVRyYW5zZmVyVHlwZRIwCixDT01QTEVURV9CVVRf",
+            "TU9SRV9NRVNTQUdFU19SRU1BSU5fT05fUFJJTUFSWRAAEjIKLkNPTVBMRVRF",
+            "X0FORF9OT19NT1JFX01FU1NBR0VfUkVNQUlOX09OX1BSSU1BUlkQARI6CjZD",
+            "T01QTEVURV9PTl9ERU1BTkRfU1lOQ19CVVRfTU9SRV9NU0dfUkVNQUlOX09O",
+            "X1BSSU1BUlkQAhJCCj5DT01QTEVURV9PTl9ERU1BTkRfU1lOQ19XSVRIX01P",
+            "UkVfTVNHX09OX1BSSU1BUllfQlVUX05PX0FDQ0VTUxADIuQBChBHcm91cFBh",
+            "cnRpY2lwYW50EhgKB3VzZXJKSUQYASACKAlSB3VzZXJKSUQSRAoEcmFuaxgC",
+            "IAEoDjIwLldBV2ViUHJvdG9idWZzSGlzdG9yeVN5bmMuR3JvdXBQYXJ0aWNp",
+            "cGFudC5SYW5rUgRyYW5rEkAKC21lbWJlckxhYmVsGAMgASgLMh4uV0FXZWJQ",
+            "cm90b2J1ZnNFMkUuTWVtYmVyTGFiZWxSC21lbWJlckxhYmVsIi4KBFJhbmsS",
+            "CwoHUkVHVUxBUhAAEgkKBUFETUlOEAESDgoKU1VQRVJBRE1JThACIsUBCg9Q",
+            "YXN0UGFydGljaXBhbnQSGAoHdXNlckpJRBgBIAEoCVIHdXNlckpJRBJYCgts",
+            "ZWF2ZVJlYXNvbhgCIAEoDjI2LldBV2ViUHJvdG9idWZzSGlzdG9yeVN5bmMu",
+            "UGFzdFBhcnRpY2lwYW50LkxlYXZlUmVhc29uUgtsZWF2ZVJlYXNvbhIYCgds",
+            "ZWF2ZVRTGAMgASgEUgdsZWF2ZVRTIiQKC0xlYXZlUmVhc29uEggKBExFRlQQ",
+            "ABILCgdSRU1PVkVEEAEimgIKG09taXR0ZWRDb252ZXJzYXRpb25NZXRhZGF0",
+            "YRIeCgpzbmFwc2hvdElEGAEgASgJUgpzbmFwc2hvdElEEjAKE3NuYXBzaG90",
+            "VGltZXN0YW1wTVMYAiABKARSE3NuYXBzaG90VGltZXN0YW1wTVMSHgoKYmF0",
+            "Y2hJbmRleBgDIAEoDVIKYmF0Y2hJbmRleBIeCgpiYXRjaENvdW50GAQgASgN",
+            "UgpiYXRjaENvdW50EhoKCGNvbXBsZXRlGAUgASgIUghjb21wbGV0ZRJNCg1j",
+            "b252ZXJzYXRpb25zGAYgAygLMicuV0FXZWJQcm90b2J1ZnNIaXN0b3J5U3lu",
+            "Yy5Db252ZXJzYXRpb25SDWNvbnZlcnNhdGlvbnMiVQoZSWRlbnRpdHlWZXJp",
+            "ZmljYXRpb25TdGF0ZRIaCgh2ZXJpZmllZBgBIAEoCFIIdmVyaWZpZWQSHAoJ",
+            "YWN0aW9uU2VxGAIgASgEUglhY3Rpb25TZXEiRwoXUGhvbmVOdW1iZXJUb0xJ",
+            "RE1hcHBpbmcSFAoFcG5KSUQYASABKAlSBXBuSklEEhYKBmxpZEpJRBgCIAEo",
+            "CVIGbGlkSklEIpMBCg1JbmxpbmVDb250YWN0EhQKBXBuSklEGAEgASgJUgVw",
+            "bkpJRBIWCgZsaWRKSUQYAiABKAlSBmxpZEpJRBIaCghmdWxsTmFtZRgDIAEo",
+            "CVIIZnVsbE5hbWUSHAoJZmlyc3ROYW1lGAQgASgJUglmaXJzdE5hbWUSGgoI",
+            "dXNlcm5hbWUYBSABKAlSCHVzZXJuYW1lIocBCgdBY2NvdW50EhAKA2xpZBgB",
+            "IAEoCVIDbGlkEhoKCHVzZXJuYW1lGAIgASgJUgh1c2VybmFtZRIgCgtjb3Vu",
+            "dHJ5Q29kZRgDIAEoCVILY291bnRyeUNvZGUSLAoRaXNVc2VybmFtZURlbGV0",
+            "ZWQYBCABKAhSEWlzVXNlcm5hbWVEZWxldGVkIm0KDkhpc3RvcnlTeW5jTXNn",
+            "EjsKB21lc3NhZ2UYASABKAsyIS5XQVdlYlByb3RvYnVmc1dlYi5XZWJNZXNz",
+            "YWdlSW5mb1IHbWVzc2FnZRIeCgptc2dPcmRlcklEGAIgASgEUgptc2dPcmRl",
+            "cklEIjYKCFB1c2huYW1lEg4KAklEGAEgASgJUgJJRBIaCghwdXNobmFtZRgC",
+            "IAEoCVIIcHVzaG5hbWUiYwoRV2FsbHBhcGVyU2V0dGluZ3MSGgoIZmlsZW5h",
+            "bWUYASABKAlSCGZpbGVuYW1lEhgKB29wYWNpdHkYAiABKA1SB29wYWNpdHkS",
+            "GAoHaXNHZW5BaRgDIAEoCFIHaXNHZW5BaSKaDAoOR2xvYmFsU2V0dGluZ3MS",
+            "XgoTbGlnaHRUaGVtZVdhbGxwYXBlchgBIAEoCzIsLldBV2ViUHJvdG9idWZz",
+            "SGlzdG9yeVN5bmMuV2FsbHBhcGVyU2V0dGluZ3NSE2xpZ2h0VGhlbWVXYWxs",
+            "cGFwZXISVAoPbWVkaWFWaXNpYmlsaXR5GAIgASgOMiouV0FXZWJQcm90b2J1",
+            "ZnNIaXN0b3J5U3luYy5NZWRpYVZpc2liaWxpdHlSD21lZGlhVmlzaWJpbGl0",
+            "eRJcChJkYXJrVGhlbWVXYWxscGFwZXIYAyABKAsyLC5XQVdlYlByb3RvYnVm",
+            "c0hpc3RvcnlTeW5jLldhbGxwYXBlclNldHRpbmdzUhJkYXJrVGhlbWVXYWxs",
+            "cGFwZXISWwoQYXV0b0Rvd25sb2FkV2lGaRgEIAEoCzIvLldBV2ViUHJvdG9i",
+            "dWZzSGlzdG9yeVN5bmMuQXV0b0Rvd25sb2FkU2V0dGluZ3NSEGF1dG9Eb3du",
+            "bG9hZFdpRmkSYwoUYXV0b0Rvd25sb2FkQ2VsbHVsYXIYBSABKAsyLy5XQVdl",
+            "YlByb3RvYnVmc0hpc3RvcnlTeW5jLkF1dG9Eb3dubG9hZFNldHRpbmdzUhRh",
+            "dXRvRG93bmxvYWRDZWxsdWxhchJhChNhdXRvRG93bmxvYWRSb2FtaW5nGAYg",
+            "ASgLMi8uV0FXZWJQcm90b2J1ZnNIaXN0b3J5U3luYy5BdXRvRG93bmxvYWRT",
+            "ZXR0aW5nc1ITYXV0b0Rvd25sb2FkUm9hbWluZxJOCiJzaG93SW5kaXZpZHVh",
+            "bE5vdGlmaWNhdGlvbnNQcmV2aWV3GAcgASgIUiJzaG93SW5kaXZpZHVhbE5v",
+            "dGlmaWNhdGlvbnNQcmV2aWV3EkQKHXNob3dHcm91cE5vdGlmaWNhdGlvbnNQ",
+            "cmV2aWV3GAggASgIUh1zaG93R3JvdXBOb3RpZmljYXRpb25zUHJldmlldxI6",
+            "ChhkaXNhcHBlYXJpbmdNb2RlRHVyYXRpb24YCSABKAVSGGRpc2FwcGVhcmlu",
+            "Z01vZGVEdXJhdGlvbhI8ChlkaXNhcHBlYXJpbmdNb2RlVGltZXN0YW1wGAog",
+            "ASgDUhlkaXNhcHBlYXJpbmdNb2RlVGltZXN0YW1wEl0KEmF2YXRhclVzZXJT",
+            "ZXR0aW5ncxgLIAEoCzItLldBV2ViUHJvdG9idWZzSGlzdG9yeVN5bmMuQXZh",
+            "dGFyVXNlclNldHRpbmdzUhJhdmF0YXJVc2VyU2V0dGluZ3MSGgoIZm9udFNp",
+            "emUYDCABKAVSCGZvbnRTaXplEjQKFXNlY3VyaXR5Tm90aWZpY2F0aW9ucxgN",
+            "IAEoCFIVc2VjdXJpdHlOb3RpZmljYXRpb25zEi4KEmF1dG9VbmFyY2hpdmVD",
+            "aGF0cxgOIAEoCFISYXV0b1VuYXJjaGl2ZUNoYXRzEioKEHZpZGVvUXVhbGl0",
+            "eU1vZGUYDyABKAVSEHZpZGVvUXVhbGl0eU1vZGUSKgoQcGhvdG9RdWFsaXR5",
+            "TW9kZRgQIAEoBVIQcGhvdG9RdWFsaXR5TW9kZRJ3Ch5pbmRpdmlkdWFsTm90",
+            "aWZpY2F0aW9uU2V0dGluZ3MYESABKAsyLy5XQVdlYlByb3RvYnVmc0hpc3Rv",
+            "cnlTeW5jLk5vdGlmaWNhdGlvblNldHRpbmdzUh5pbmRpdmlkdWFsTm90aWZp",
+            "Y2F0aW9uU2V0dGluZ3MSbQoZZ3JvdXBOb3RpZmljYXRpb25TZXR0aW5ncxgS",
+            "IAEoCzIvLldBV2ViUHJvdG9idWZzSGlzdG9yeVN5bmMuTm90aWZpY2F0aW9u",
+            "U2V0dGluZ3NSGWdyb3VwTm90aWZpY2F0aW9uU2V0dGluZ3MSXAoQY2hhdExv",
+            "Y2tTZXR0aW5ncxgTIAEoCzIwLldBV2ViUHJvdG9idWZzQ2hhdExvY2tTZXR0",
+            "aW5ncy5DaGF0TG9ja1NldHRpbmdzUhBjaGF0TG9ja1NldHRpbmdzEkAKG2No",
+            "YXREYkxpZE1pZ3JhdGlvblRpbWVzdGFtcBgUIAEoA1IbY2hhdERiTGlkTWln",
+            "cmF0aW9uVGltZXN0YW1wIrgBChRBdXRvRG93bmxvYWRTZXR0aW5ncxImCg5k",
+            "b3dubG9hZEltYWdlcxgBIAEoCFIOZG93bmxvYWRJbWFnZXMSJAoNZG93bmxv",
+            "YWRBdWRpbxgCIAEoCFINZG93bmxvYWRBdWRpbxIkCg1kb3dubG9hZFZpZGVv",
+            "GAMgASgIUg1kb3dubG9hZFZpZGVvEiwKEWRvd25sb2FkRG9jdW1lbnRzGAQg",
+            "ASgIUhFkb3dubG9hZERvY3VtZW50cyK5AwoPU3RpY2tlck1ldGFkYXRhEhAK",
+            "A1VSTBgBIAEoCVIDVVJMEh4KCmZpbGVTSEEyNTYYAiABKAxSCmZpbGVTSEEy",
+            "NTYSJAoNZmlsZUVuY1NIQTI1NhgDIAEoDFINZmlsZUVuY1NIQTI1NhIaCght",
+            "ZWRpYUtleRgEIAEoDFIIbWVkaWFLZXkSGgoIbWltZXR5cGUYBSABKAlSCG1p",
+            "bWV0eXBlEhYKBmhlaWdodBgGIAEoDVIGaGVpZ2h0EhQKBXdpZHRoGAcgASgN",
+            "UgV3aWR0aBIeCgpkaXJlY3RQYXRoGAggASgJUgpkaXJlY3RQYXRoEh4KCmZp",
+            "bGVMZW5ndGgYCSABKARSCmZpbGVMZW5ndGgSFgoGd2VpZ2h0GAogASgCUgZ3",
+            "ZWlnaHQSLAoRbGFzdFN0aWNrZXJTZW50VFMYCyABKANSEWxhc3RTdGlja2Vy",
+            "U2VudFRTEhoKCGlzTG90dGllGAwgASgIUghpc0xvdHRpZRIcCglpbWFnZUhh",
+            "c2gYDSABKAlSCWltYWdlSGFzaBIoCg9pc0F2YXRhclN0aWNrZXIYDiABKAhS",
+            "D2lzQXZhdGFyU3RpY2tlciKGAQoQUGFzdFBhcnRpY2lwYW50cxIaCghncm91",
+            "cEpJRBgBIAEoCVIIZ3JvdXBKSUQSVgoQcGFzdFBhcnRpY2lwYW50cxgCIAMo",
+            "CzIqLldBV2ViUHJvdG9idWZzSGlzdG9yeVN5bmMuUGFzdFBhcnRpY2lwYW50",
+            "UhBwYXN0UGFydGljaXBhbnRzIkQKEkF2YXRhclVzZXJTZXR0aW5ncxISCgRG",
+            "QklEGAEgASgJUgRGQklEEhoKCHBhc3N3b3JkGAIgASgJUghwYXNzd29yZCKM",
+            "AgoUTm90aWZpY2F0aW9uU2V0dGluZ3MSJgoObWVzc2FnZVZpYnJhdGUYASAB",
+            "KAlSDm1lc3NhZ2VWaWJyYXRlEiIKDG1lc3NhZ2VQb3B1cBgCIAEoCVIMbWVz",
+            "c2FnZVBvcHVwEiIKDG1lc3NhZ2VMaWdodBgDIAEoCVIMbWVzc2FnZUxpZ2h0",
+            "EjoKGGxvd1ByaW9yaXR5Tm90aWZpY2F0aW9ucxgEIAEoCFIYbG93UHJpb3Jp",
+            "dHlOb3RpZmljYXRpb25zEiYKDnJlYWN0aW9uc011dGVkGAUgASgIUg5yZWFj",
+            "dGlvbnNNdXRlZBIgCgtjYWxsVmlicmF0ZRgGIAEoCVILY2FsbFZpYnJhdGUq",
+            "LwoPTWVkaWFWaXNpYmlsaXR5EgsKB0RFRkFVTFQQABIHCgNPRkYQARIGCgJP",
+            "ThACKkUKFFByaXZhY3lTeXN0ZW1NZXNzYWdlEgwKCEUyRUVfTVNHEAESDgoK",
+            "TkUyRUVfU0VMRhACEg8KC05FMkVFX09USEVSEANC/AEKHWNvbS5XQVdlYlBy",
+            "b3RvYnVmc0hpc3RvcnlTeW5jQh5XQVdlYlByb3RvYnVmc0hpc3RvcnlTeW5j",
+            "UHJvdG9QAVonZ28ubWF1LmZpL3doYXRzbWVvdy9wcm90by93YUhpc3RvcnlT",
+            "eW5jogIDV1hYqgIpV2hhdHNtZW93LlByb3RvLldBV2ViUHJvdG9idWZzSGlz",
+            "dG9yeVN5bmPKAhlXQVdlYlByb3RvYnVmc0hpc3RvcnlTeW5j4gIlV0FXZWJQ",
+            "cm90b2J1ZnNIaXN0b3J5U3luY1xHUEJNZXRhZGF0YeoCGVdBV2ViUHJvdG9i",
+            "dWZzSGlzdG9yeVN5bmM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Whatsmeow.Proto.WAWebProtobufSyncAction.WAWebProtobufSyncActionReflection.Descriptor, global::Whatsmeow.Proto.WAWebProtobufsChatLockSettings.WAWebProtobufsChatLockSettingsReflection.Descriptor, global::Whatsmeow.Proto.WAWebProtobufsE2E.WAWebProtobufsE2EReflection.Descriptor, global::Whatsmeow.Proto.WACommon.WACommonReflection.Descriptor, global::Whatsmeow.Proto.WAWebProtobufsWeb.WAWebProtobufsWebReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Whatsmeow.Proto.WAWebProtobufsHistorySync.MediaVisibility), typeof(global::Whatsmeow.Proto.WAWebProtobufsHistorySync.PrivacySystemMessage), }, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsHistorySync.HistorySync), global::Whatsmeow.Proto.WAWebProtobufsHistorySync.HistorySync.Parser, new[]{ "SyncType", "Conversations", "StatusV3Messages", "ChunkOrder", "Progress", "Pushnames", "GlobalSettings", "ThreadIDUserSecret", "ThreadDsTimeframeOffset", "RecentStickers", "PastParticipants", "CallLogRecords", "AiWaitListState", "PhoneNumberToLidMappings", "CompanionMetaNonce", "ShareableChatIdentifierEncryptionKey", "Accounts", "NctSalt", "InlineContacts", "InlineContactsProvided", "FavoriteStickers", "OmittedConversations", "OmittedConversationsProvided" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAWebProtobufsHistorySync.HistorySync.Types.BotAIWaitListState), typeof(global::Whatsmeow.Proto.WAWebProtobufsHistorySync.HistorySync.Types.HistorySyncType) }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsHistorySync.HistorySync), global::Whatsmeow.Proto.WAWebProtobufsHistorySync.HistorySync.Parser, new[]{ "SyncType", "Conversations", "StatusV3Messages", "ChunkOrder", "Progress", "Pushnames", "GlobalSettings", "ThreadIDUserSecret", "ThreadDsTimeframeOffset", "RecentStickers", "PastParticipants", "CallLogRecords", "AiWaitListState", "PhoneNumberToLidMappings", "CompanionMetaNonce", "ShareableChatIdentifierEncryptionKey", "Accounts", "NctSalt", "InlineContacts", "InlineContactsProvided", "FavoriteStickers", "OmittedConversationMetadata", "OmittedConversationMetadataSnapshotID" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAWebProtobufsHistorySync.HistorySync.Types.BotAIWaitListState), typeof(global::Whatsmeow.Proto.WAWebProtobufsHistorySync.HistorySync.Types.HistorySyncType) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsHistorySync.Conversation), global::Whatsmeow.Proto.WAWebProtobufsHistorySync.Conversation.Parser, new[]{ "ID", "Messages", "NewJID", "OldJID", "LastMsgTimestamp", "UnreadCount", "ReadOnly", "EndOfHistoryTransfer", "EphemeralExpiration", "EphemeralSettingTimestamp", "EndOfHistoryTransferType", "ConversationTimestamp", "Name", "PHash", "NotSpam", "Archived", "DisappearingMode", "UnreadMentionCount", "MarkedAsUnread", "Participant", "TcToken", "TcTokenTimestamp", "ContactPrimaryIdentityKey", "Pinned", "MuteEndTime", "Wallpaper", "MediaVisibility", "TcTokenSenderTimestamp", "Suspended", "Terminated", "CreatedAt", "CreatedBy", "Description", "Support", "IsParentGroup", "ParentGroupID", "IsDefaultSubgroup", "DisplayName", "PnJID", "ShareOwnPn", "PnhDuplicateLidThread", "LidJID", "Username", "LidOriginType", "CommentsCount", "Locked", "SystemMessageToInsert", "CapiCreatedGroup", "AccountLid", "LimitSharing", "LimitSharingSettingTimestamp", "LimitSharingTrigger", "LimitSharingInitiatedByMe", "MaibaAiThreadEnabled", "IsMarketingMessageThread", "IsSenderNewAccount", "AfterReadDuration", "IsSenderSuspicious", "AppealStatus", "AppealUpdateTime", "AuthAgentParentCompanyName", "AuthAgentObaPhoneNumber", "IdentityVerification", "Acp2Setting", "Acp2HistoryWithheld" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAWebProtobufsHistorySync.Conversation.Types.GroupAppealStatus), typeof(global::Whatsmeow.Proto.WAWebProtobufsHistorySync.Conversation.Types.EndOfHistoryTransferType) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsHistorySync.GroupParticipant), global::Whatsmeow.Proto.WAWebProtobufsHistorySync.GroupParticipant.Parser, new[]{ "UserJID", "Rank", "MemberLabel" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAWebProtobufsHistorySync.GroupParticipant.Types.Rank) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsHistorySync.PastParticipant), global::Whatsmeow.Proto.WAWebProtobufsHistorySync.PastParticipant.Parser, new[]{ "UserJID", "LeaveReason", "LeaveTS" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAWebProtobufsHistorySync.PastParticipant.Types.LeaveReason) }, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsHistorySync.RecoverableHistoryConversation), global::Whatsmeow.Proto.WAWebProtobufsHistorySync.RecoverableHistoryConversation.Parser, new[]{ "HistoryChatID", "AccountLid" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsHistorySync.OmittedConversationMetadata), global::Whatsmeow.Proto.WAWebProtobufsHistorySync.OmittedConversationMetadata.Parser, new[]{ "SnapshotID", "SnapshotTimestampMS", "BatchIndex", "BatchCount", "Complete", "Conversations" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsHistorySync.IdentityVerificationState), global::Whatsmeow.Proto.WAWebProtobufsHistorySync.IdentityVerificationState.Parser, new[]{ "Verified", "ActionSeq" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsHistorySync.PhoneNumberToLIDMapping), global::Whatsmeow.Proto.WAWebProtobufsHistorySync.PhoneNumberToLIDMapping.Parser, new[]{ "PnJID", "LidJID" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsHistorySync.InlineContact), global::Whatsmeow.Proto.WAWebProtobufsHistorySync.InlineContact.Parser, new[]{ "PnJID", "LidJID", "FullName", "FirstName", "Username" }, null, null, null, null),
@@ -344,8 +350,8 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
       inlineContacts_ = other.inlineContacts_.Clone();
       inlineContactsProvided_ = other.inlineContactsProvided_;
       favoriteStickers_ = other.favoriteStickers_.Clone();
-      omittedConversations_ = other.omittedConversations_.Clone();
-      omittedConversationsProvided_ = other.omittedConversationsProvided_;
+      omittedConversationMetadata_ = other.omittedConversationMetadata_ != null ? other.omittedConversationMetadata_.Clone() : null;
+      omittedConversationMetadataSnapshotID_ = other.omittedConversationMetadataSnapshotID_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -743,42 +749,42 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
       get { return favoriteStickers_; }
     }
 
-    /// <summary>Field number for the "omittedConversations" field.</summary>
-    public const int OmittedConversationsFieldNumber = 23;
-    private static readonly pb::FieldCodec<global::Whatsmeow.Proto.WAWebProtobufsHistorySync.RecoverableHistoryConversation> _repeated_omittedConversations_codec
-        = pb::FieldCodec.ForMessage(186, global::Whatsmeow.Proto.WAWebProtobufsHistorySync.RecoverableHistoryConversation.Parser);
-    private readonly pbc::RepeatedField<global::Whatsmeow.Proto.WAWebProtobufsHistorySync.RecoverableHistoryConversation> omittedConversations_ = new pbc::RepeatedField<global::Whatsmeow.Proto.WAWebProtobufsHistorySync.RecoverableHistoryConversation>();
+    /// <summary>Field number for the "omittedConversationMetadata" field.</summary>
+    public const int OmittedConversationMetadataFieldNumber = 25;
+    private global::Whatsmeow.Proto.WAWebProtobufsHistorySync.OmittedConversationMetadata omittedConversationMetadata_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pbc::RepeatedField<global::Whatsmeow.Proto.WAWebProtobufsHistorySync.RecoverableHistoryConversation> OmittedConversations {
-      get { return omittedConversations_; }
-    }
-
-    /// <summary>Field number for the "omittedConversationsProvided" field.</summary>
-    public const int OmittedConversationsProvidedFieldNumber = 24;
-    private readonly static bool OmittedConversationsProvidedDefaultValue = false;
-
-    private bool omittedConversationsProvided_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool OmittedConversationsProvided {
-      get { if ((_hasBits0 & 64) != 0) { return omittedConversationsProvided_; } else { return OmittedConversationsProvidedDefaultValue; } }
+    public global::Whatsmeow.Proto.WAWebProtobufsHistorySync.OmittedConversationMetadata OmittedConversationMetadata {
+      get { return omittedConversationMetadata_; }
       set {
-        _hasBits0 |= 64;
-        omittedConversationsProvided_ = value;
+        omittedConversationMetadata_ = value;
       }
     }
-    /// <summary>Gets whether the "omittedConversationsProvided" field is set</summary>
+
+    /// <summary>Field number for the "omittedConversationMetadataSnapshotID" field.</summary>
+    public const int OmittedConversationMetadataSnapshotIDFieldNumber = 26;
+    private readonly static string OmittedConversationMetadataSnapshotIDDefaultValue = "";
+
+    private string omittedConversationMetadataSnapshotID_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasOmittedConversationsProvided {
-      get { return (_hasBits0 & 64) != 0; }
+    public string OmittedConversationMetadataSnapshotID {
+      get { return omittedConversationMetadataSnapshotID_ ?? OmittedConversationMetadataSnapshotIDDefaultValue; }
+      set {
+        omittedConversationMetadataSnapshotID_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
     }
-    /// <summary>Clears the value of the "omittedConversationsProvided" field</summary>
+    /// <summary>Gets whether the "omittedConversationMetadataSnapshotID" field is set</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearOmittedConversationsProvided() {
-      _hasBits0 &= ~64;
+    public bool HasOmittedConversationMetadataSnapshotID {
+      get { return omittedConversationMetadataSnapshotID_ != null; }
+    }
+    /// <summary>Clears the value of the "omittedConversationMetadataSnapshotID" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearOmittedConversationMetadataSnapshotID() {
+      omittedConversationMetadataSnapshotID_ = null;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -817,8 +823,8 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
       if(!inlineContacts_.Equals(other.inlineContacts_)) return false;
       if (InlineContactsProvided != other.InlineContactsProvided) return false;
       if(!favoriteStickers_.Equals(other.favoriteStickers_)) return false;
-      if(!omittedConversations_.Equals(other.omittedConversations_)) return false;
-      if (OmittedConversationsProvided != other.OmittedConversationsProvided) return false;
+      if (!object.Equals(OmittedConversationMetadata, other.OmittedConversationMetadata)) return false;
+      if (OmittedConversationMetadataSnapshotID != other.OmittedConversationMetadataSnapshotID) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -847,8 +853,8 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
       hash ^= inlineContacts_.GetHashCode();
       if (HasInlineContactsProvided) hash ^= InlineContactsProvided.GetHashCode();
       hash ^= favoriteStickers_.GetHashCode();
-      hash ^= omittedConversations_.GetHashCode();
-      if (HasOmittedConversationsProvided) hash ^= OmittedConversationsProvided.GetHashCode();
+      if (omittedConversationMetadata_ != null) hash ^= OmittedConversationMetadata.GetHashCode();
+      if (HasOmittedConversationMetadataSnapshotID) hash ^= OmittedConversationMetadataSnapshotID.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -921,10 +927,13 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
         output.WriteBool(InlineContactsProvided);
       }
       favoriteStickers_.WriteTo(output, _repeated_favoriteStickers_codec);
-      omittedConversations_.WriteTo(output, _repeated_omittedConversations_codec);
-      if (HasOmittedConversationsProvided) {
-        output.WriteRawTag(192, 1);
-        output.WriteBool(OmittedConversationsProvided);
+      if (omittedConversationMetadata_ != null) {
+        output.WriteRawTag(202, 1);
+        output.WriteMessage(OmittedConversationMetadata);
+      }
+      if (HasOmittedConversationMetadataSnapshotID) {
+        output.WriteRawTag(210, 1);
+        output.WriteString(OmittedConversationMetadataSnapshotID);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -990,10 +999,13 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
         output.WriteBool(InlineContactsProvided);
       }
       favoriteStickers_.WriteTo(ref output, _repeated_favoriteStickers_codec);
-      omittedConversations_.WriteTo(ref output, _repeated_omittedConversations_codec);
-      if (HasOmittedConversationsProvided) {
-        output.WriteRawTag(192, 1);
-        output.WriteBool(OmittedConversationsProvided);
+      if (omittedConversationMetadata_ != null) {
+        output.WriteRawTag(202, 1);
+        output.WriteMessage(OmittedConversationMetadata);
+      }
+      if (HasOmittedConversationMetadataSnapshotID) {
+        output.WriteRawTag(210, 1);
+        output.WriteString(OmittedConversationMetadataSnapshotID);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
@@ -1048,9 +1060,11 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
         size += 2 + 1;
       }
       size += favoriteStickers_.CalculateSize(_repeated_favoriteStickers_codec);
-      size += omittedConversations_.CalculateSize(_repeated_omittedConversations_codec);
-      if (HasOmittedConversationsProvided) {
-        size += 2 + 1;
+      if (omittedConversationMetadata_ != null) {
+        size += 2 + pb::CodedOutputStream.ComputeMessageSize(OmittedConversationMetadata);
+      }
+      if (HasOmittedConversationMetadataSnapshotID) {
+        size += 2 + pb::CodedOutputStream.ComputeStringSize(OmittedConversationMetadataSnapshotID);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -1110,9 +1124,14 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
         InlineContactsProvided = other.InlineContactsProvided;
       }
       favoriteStickers_.Add(other.favoriteStickers_);
-      omittedConversations_.Add(other.omittedConversations_);
-      if (other.HasOmittedConversationsProvided) {
-        OmittedConversationsProvided = other.OmittedConversationsProvided;
+      if (other.omittedConversationMetadata_ != null) {
+        if (omittedConversationMetadata_ == null) {
+          OmittedConversationMetadata = new global::Whatsmeow.Proto.WAWebProtobufsHistorySync.OmittedConversationMetadata();
+        }
+        OmittedConversationMetadata.MergeFrom(other.OmittedConversationMetadata);
+      }
+      if (other.HasOmittedConversationMetadataSnapshotID) {
+        OmittedConversationMetadataSnapshotID = other.OmittedConversationMetadataSnapshotID;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -1220,12 +1239,15 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
             favoriteStickers_.AddEntriesFrom(input, _repeated_favoriteStickers_codec);
             break;
           }
-          case 186: {
-            omittedConversations_.AddEntriesFrom(input, _repeated_omittedConversations_codec);
+          case 202: {
+            if (omittedConversationMetadata_ == null) {
+              OmittedConversationMetadata = new global::Whatsmeow.Proto.WAWebProtobufsHistorySync.OmittedConversationMetadata();
+            }
+            input.ReadMessage(OmittedConversationMetadata);
             break;
           }
-          case 192: {
-            OmittedConversationsProvided = input.ReadBool();
+          case 210: {
+            OmittedConversationMetadataSnapshotID = input.ReadString();
             break;
           }
         }
@@ -1334,12 +1356,15 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
             favoriteStickers_.AddEntriesFrom(ref input, _repeated_favoriteStickers_codec);
             break;
           }
-          case 186: {
-            omittedConversations_.AddEntriesFrom(ref input, _repeated_omittedConversations_codec);
+          case 202: {
+            if (omittedConversationMetadata_ == null) {
+              OmittedConversationMetadata = new global::Whatsmeow.Proto.WAWebProtobufsHistorySync.OmittedConversationMetadata();
+            }
+            input.ReadMessage(OmittedConversationMetadata);
             break;
           }
-          case 192: {
-            OmittedConversationsProvided = input.ReadBool();
+          case 210: {
+            OmittedConversationMetadataSnapshotID = input.ReadString();
             break;
           }
         }
@@ -1365,6 +1390,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
         [pbr::OriginalName("PUSH_NAME")] PushName = 4,
         [pbr::OriginalName("NON_BLOCKING_DATA")] NonBlockingData = 5,
         [pbr::OriginalName("ON_DEMAND")] OnDemand = 6,
+        [pbr::OriginalName("RECENT_CONVERSATIONS_ON_DEMAND")] RecentConversationsOnDemand = 9,
       }
 
     }
@@ -5503,16 +5529,17 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
   }
 
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
-  public sealed partial class RecoverableHistoryConversation : pb::IMessage<RecoverableHistoryConversation>
+  public sealed partial class OmittedConversationMetadata : pb::IMessage<OmittedConversationMetadata>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
   #endif
   {
-    private static readonly pb::MessageParser<RecoverableHistoryConversation> _parser = new pb::MessageParser<RecoverableHistoryConversation>(() => new RecoverableHistoryConversation());
+    private static readonly pb::MessageParser<OmittedConversationMetadata> _parser = new pb::MessageParser<OmittedConversationMetadata>(() => new OmittedConversationMetadata());
     private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public static pb::MessageParser<RecoverableHistoryConversation> Parser { get { return _parser; } }
+    public static pb::MessageParser<OmittedConversationMetadata> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -5528,7 +5555,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public RecoverableHistoryConversation() {
+    public OmittedConversationMetadata() {
       OnConstruction();
     }
 
@@ -5536,87 +5563,189 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public RecoverableHistoryConversation(RecoverableHistoryConversation other) : this() {
-      historyChatID_ = other.historyChatID_;
-      accountLid_ = other.accountLid_;
+    public OmittedConversationMetadata(OmittedConversationMetadata other) : this() {
+      _hasBits0 = other._hasBits0;
+      snapshotID_ = other.snapshotID_;
+      snapshotTimestampMS_ = other.snapshotTimestampMS_;
+      batchIndex_ = other.batchIndex_;
+      batchCount_ = other.batchCount_;
+      complete_ = other.complete_;
+      conversations_ = other.conversations_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public RecoverableHistoryConversation Clone() {
-      return new RecoverableHistoryConversation(this);
+    public OmittedConversationMetadata Clone() {
+      return new OmittedConversationMetadata(this);
     }
 
-    /// <summary>Field number for the "historyChatID" field.</summary>
-    public const int HistoryChatIDFieldNumber = 1;
-    private readonly static string HistoryChatIDDefaultValue = "";
+    /// <summary>Field number for the "snapshotID" field.</summary>
+    public const int SnapshotIDFieldNumber = 1;
+    private readonly static string SnapshotIDDefaultValue = "";
 
-    private string historyChatID_;
+    private string snapshotID_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string HistoryChatID {
-      get { return historyChatID_ ?? HistoryChatIDDefaultValue; }
+    public string SnapshotID {
+      get { return snapshotID_ ?? SnapshotIDDefaultValue; }
       set {
-        historyChatID_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        snapshotID_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
-    /// <summary>Gets whether the "historyChatID" field is set</summary>
+    /// <summary>Gets whether the "snapshotID" field is set</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasHistoryChatID {
-      get { return historyChatID_ != null; }
+    public bool HasSnapshotID {
+      get { return snapshotID_ != null; }
     }
-    /// <summary>Clears the value of the "historyChatID" field</summary>
+    /// <summary>Clears the value of the "snapshotID" field</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearHistoryChatID() {
-      historyChatID_ = null;
+    public void ClearSnapshotID() {
+      snapshotID_ = null;
     }
 
-    /// <summary>Field number for the "accountLid" field.</summary>
-    public const int AccountLidFieldNumber = 2;
-    private readonly static string AccountLidDefaultValue = "";
+    /// <summary>Field number for the "snapshotTimestampMS" field.</summary>
+    public const int SnapshotTimestampMSFieldNumber = 2;
+    private readonly static ulong SnapshotTimestampMSDefaultValue = 0UL;
 
-    private string accountLid_;
+    private ulong snapshotTimestampMS_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string AccountLid {
-      get { return accountLid_ ?? AccountLidDefaultValue; }
+    public ulong SnapshotTimestampMS {
+      get { if ((_hasBits0 & 1) != 0) { return snapshotTimestampMS_; } else { return SnapshotTimestampMSDefaultValue; } }
       set {
-        accountLid_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        _hasBits0 |= 1;
+        snapshotTimestampMS_ = value;
       }
     }
-    /// <summary>Gets whether the "accountLid" field is set</summary>
+    /// <summary>Gets whether the "snapshotTimestampMS" field is set</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasAccountLid {
-      get { return accountLid_ != null; }
+    public bool HasSnapshotTimestampMS {
+      get { return (_hasBits0 & 1) != 0; }
     }
-    /// <summary>Clears the value of the "accountLid" field</summary>
+    /// <summary>Clears the value of the "snapshotTimestampMS" field</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearAccountLid() {
-      accountLid_ = null;
+    public void ClearSnapshotTimestampMS() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "batchIndex" field.</summary>
+    public const int BatchIndexFieldNumber = 3;
+    private readonly static uint BatchIndexDefaultValue = 0;
+
+    private uint batchIndex_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public uint BatchIndex {
+      get { if ((_hasBits0 & 2) != 0) { return batchIndex_; } else { return BatchIndexDefaultValue; } }
+      set {
+        _hasBits0 |= 2;
+        batchIndex_ = value;
+      }
+    }
+    /// <summary>Gets whether the "batchIndex" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasBatchIndex {
+      get { return (_hasBits0 & 2) != 0; }
+    }
+    /// <summary>Clears the value of the "batchIndex" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearBatchIndex() {
+      _hasBits0 &= ~2;
+    }
+
+    /// <summary>Field number for the "batchCount" field.</summary>
+    public const int BatchCountFieldNumber = 4;
+    private readonly static uint BatchCountDefaultValue = 0;
+
+    private uint batchCount_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public uint BatchCount {
+      get { if ((_hasBits0 & 4) != 0) { return batchCount_; } else { return BatchCountDefaultValue; } }
+      set {
+        _hasBits0 |= 4;
+        batchCount_ = value;
+      }
+    }
+    /// <summary>Gets whether the "batchCount" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasBatchCount {
+      get { return (_hasBits0 & 4) != 0; }
+    }
+    /// <summary>Clears the value of the "batchCount" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearBatchCount() {
+      _hasBits0 &= ~4;
+    }
+
+    /// <summary>Field number for the "complete" field.</summary>
+    public const int CompleteFieldNumber = 5;
+    private readonly static bool CompleteDefaultValue = false;
+
+    private bool complete_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Complete {
+      get { if ((_hasBits0 & 8) != 0) { return complete_; } else { return CompleteDefaultValue; } }
+      set {
+        _hasBits0 |= 8;
+        complete_ = value;
+      }
+    }
+    /// <summary>Gets whether the "complete" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasComplete {
+      get { return (_hasBits0 & 8) != 0; }
+    }
+    /// <summary>Clears the value of the "complete" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearComplete() {
+      _hasBits0 &= ~8;
+    }
+
+    /// <summary>Field number for the "conversations" field.</summary>
+    public const int ConversationsFieldNumber = 6;
+    private static readonly pb::FieldCodec<global::Whatsmeow.Proto.WAWebProtobufsHistorySync.Conversation> _repeated_conversations_codec
+        = pb::FieldCodec.ForMessage(50, global::Whatsmeow.Proto.WAWebProtobufsHistorySync.Conversation.Parser);
+    private readonly pbc::RepeatedField<global::Whatsmeow.Proto.WAWebProtobufsHistorySync.Conversation> conversations_ = new pbc::RepeatedField<global::Whatsmeow.Proto.WAWebProtobufsHistorySync.Conversation>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Whatsmeow.Proto.WAWebProtobufsHistorySync.Conversation> Conversations {
+      get { return conversations_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
-      return Equals(other as RecoverableHistoryConversation);
+      return Equals(other as OmittedConversationMetadata);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool Equals(RecoverableHistoryConversation other) {
+    public bool Equals(OmittedConversationMetadata other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (HistoryChatID != other.HistoryChatID) return false;
-      if (AccountLid != other.AccountLid) return false;
+      if (SnapshotID != other.SnapshotID) return false;
+      if (SnapshotTimestampMS != other.SnapshotTimestampMS) return false;
+      if (BatchIndex != other.BatchIndex) return false;
+      if (BatchCount != other.BatchCount) return false;
+      if (Complete != other.Complete) return false;
+      if(!conversations_.Equals(other.conversations_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -5624,8 +5753,12 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
-      if (HasHistoryChatID) hash ^= HistoryChatID.GetHashCode();
-      if (HasAccountLid) hash ^= AccountLid.GetHashCode();
+      if (HasSnapshotID) hash ^= SnapshotID.GetHashCode();
+      if (HasSnapshotTimestampMS) hash ^= SnapshotTimestampMS.GetHashCode();
+      if (HasBatchIndex) hash ^= BatchIndex.GetHashCode();
+      if (HasBatchCount) hash ^= BatchCount.GetHashCode();
+      if (HasComplete) hash ^= Complete.GetHashCode();
+      hash ^= conversations_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -5644,14 +5777,27 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (HasHistoryChatID) {
+      if (HasSnapshotID) {
         output.WriteRawTag(10);
-        output.WriteString(HistoryChatID);
+        output.WriteString(SnapshotID);
       }
-      if (HasAccountLid) {
-        output.WriteRawTag(18);
-        output.WriteString(AccountLid);
+      if (HasSnapshotTimestampMS) {
+        output.WriteRawTag(16);
+        output.WriteUInt64(SnapshotTimestampMS);
       }
+      if (HasBatchIndex) {
+        output.WriteRawTag(24);
+        output.WriteUInt32(BatchIndex);
+      }
+      if (HasBatchCount) {
+        output.WriteRawTag(32);
+        output.WriteUInt32(BatchCount);
+      }
+      if (HasComplete) {
+        output.WriteRawTag(40);
+        output.WriteBool(Complete);
+      }
+      conversations_.WriteTo(output, _repeated_conversations_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -5662,14 +5808,27 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (HasHistoryChatID) {
+      if (HasSnapshotID) {
         output.WriteRawTag(10);
-        output.WriteString(HistoryChatID);
+        output.WriteString(SnapshotID);
       }
-      if (HasAccountLid) {
-        output.WriteRawTag(18);
-        output.WriteString(AccountLid);
+      if (HasSnapshotTimestampMS) {
+        output.WriteRawTag(16);
+        output.WriteUInt64(SnapshotTimestampMS);
       }
+      if (HasBatchIndex) {
+        output.WriteRawTag(24);
+        output.WriteUInt32(BatchIndex);
+      }
+      if (HasBatchCount) {
+        output.WriteRawTag(32);
+        output.WriteUInt32(BatchCount);
+      }
+      if (HasComplete) {
+        output.WriteRawTag(40);
+        output.WriteBool(Complete);
+      }
+      conversations_.WriteTo(ref output, _repeated_conversations_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -5680,12 +5839,22 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
-      if (HasHistoryChatID) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(HistoryChatID);
+      if (HasSnapshotID) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(SnapshotID);
       }
-      if (HasAccountLid) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(AccountLid);
+      if (HasSnapshotTimestampMS) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(SnapshotTimestampMS);
       }
+      if (HasBatchIndex) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(BatchIndex);
+      }
+      if (HasBatchCount) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(BatchCount);
+      }
+      if (HasComplete) {
+        size += 1 + 1;
+      }
+      size += conversations_.CalculateSize(_repeated_conversations_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -5694,16 +5863,26 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(RecoverableHistoryConversation other) {
+    public void MergeFrom(OmittedConversationMetadata other) {
       if (other == null) {
         return;
       }
-      if (other.HasHistoryChatID) {
-        HistoryChatID = other.HistoryChatID;
+      if (other.HasSnapshotID) {
+        SnapshotID = other.SnapshotID;
       }
-      if (other.HasAccountLid) {
-        AccountLid = other.AccountLid;
+      if (other.HasSnapshotTimestampMS) {
+        SnapshotTimestampMS = other.SnapshotTimestampMS;
       }
+      if (other.HasBatchIndex) {
+        BatchIndex = other.BatchIndex;
+      }
+      if (other.HasBatchCount) {
+        BatchCount = other.BatchCount;
+      }
+      if (other.HasComplete) {
+        Complete = other.Complete;
+      }
+      conversations_.Add(other.conversations_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -5724,11 +5903,27 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 10: {
-            HistoryChatID = input.ReadString();
+            SnapshotID = input.ReadString();
             break;
           }
-          case 18: {
-            AccountLid = input.ReadString();
+          case 16: {
+            SnapshotTimestampMS = input.ReadUInt64();
+            break;
+          }
+          case 24: {
+            BatchIndex = input.ReadUInt32();
+            break;
+          }
+          case 32: {
+            BatchCount = input.ReadUInt32();
+            break;
+          }
+          case 40: {
+            Complete = input.ReadBool();
+            break;
+          }
+          case 50: {
+            conversations_.AddEntriesFrom(input, _repeated_conversations_codec);
             break;
           }
         }
@@ -5751,11 +5946,27 @@ namespace Whatsmeow.Proto.WAWebProtobufsHistorySync {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
           case 10: {
-            HistoryChatID = input.ReadString();
+            SnapshotID = input.ReadString();
             break;
           }
-          case 18: {
-            AccountLid = input.ReadString();
+          case 16: {
+            SnapshotTimestampMS = input.ReadUInt64();
+            break;
+          }
+          case 24: {
+            BatchIndex = input.ReadUInt32();
+            break;
+          }
+          case 32: {
+            BatchCount = input.ReadUInt32();
+            break;
+          }
+          case 40: {
+            Complete = input.ReadBool();
+            break;
+          }
+          case 50: {
+            conversations_.AddEntriesFrom(ref input, _repeated_conversations_codec);
             break;
           }
         }

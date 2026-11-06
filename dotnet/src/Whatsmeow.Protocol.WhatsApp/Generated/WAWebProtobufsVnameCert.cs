@@ -25,7 +25,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsVnameCert {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "Cil3YVZuYW1lQ2VydC9XQVdlYlByb3RvYnVmc1ZuYW1lQ2VydC5wcm90bxIX",
-            "V0FXZWJQcm90b2J1ZnNWbmFtZUNlcnQingMKEkJpekFjY291bnRMaW5rSW5m",
+            "V0FXZWJQcm90b2J1ZnNWbmFtZUNlcnQizAMKEkJpekFjY291bnRMaW5rSW5m",
             "bxIwChN3aGF0c2FwcEJpekFjY3RGYmlkGAEgASgEUhN3aGF0c2FwcEJpekFj",
             "Y3RGYmlkEi4KEndoYXRzYXBwQWNjdE51bWJlchgCIAEoCVISd2hhdHNhcHBB",
             "Y2N0TnVtYmVyEhwKCWlzc3VlVGltZRgDIAEoBFIJaXNzdWVUaW1lEl0KC2hv",
@@ -33,44 +33,45 @@ namespace Whatsmeow.Proto.WAWebProtobufsVnameCert {
             "QWNjb3VudExpbmtJbmZvLkhvc3RTdG9yYWdlVHlwZVILaG9zdFN0b3JhZ2US",
             "WQoLYWNjb3VudFR5cGUYBSABKA4yNy5XQVdlYlByb3RvYnVmc1ZuYW1lQ2Vy",
             "dC5CaXpBY2NvdW50TGlua0luZm8uQWNjb3VudFR5cGVSC2FjY291bnRUeXBl",
-            "Ih0KC0FjY291bnRUeXBlEg4KCkVOVEVSUFJJU0UQACIvCg9Ib3N0U3RvcmFn",
-            "ZVR5cGUSDgoKT05fUFJFTUlTRRAAEgwKCEZBQ0VCT09LEAEigQUKD0Jpeklk",
-            "ZW50aXR5SW5mbxJTCgZ2bGV2ZWwYASABKA4yOy5XQVdlYlByb3RvYnVmc1Zu",
-            "YW1lQ2VydC5CaXpJZGVudGl0eUluZm8uVmVyaWZpZWRMZXZlbFZhbHVlUgZ2",
-            "bGV2ZWwSTgoJdm5hbWVDZXJ0GAIgASgLMjAuV0FXZWJQcm90b2J1ZnNWbmFt",
-            "ZUNlcnQuVmVyaWZpZWROYW1lQ2VydGlmaWNhdGVSCXZuYW1lQ2VydBIWCgZz",
-            "aWduZWQYAyABKAhSBnNpZ25lZBIYCgdyZXZva2VkGAQgASgIUgdyZXZva2Vk",
-            "EloKC2hvc3RTdG9yYWdlGAUgASgOMjguV0FXZWJQcm90b2J1ZnNWbmFtZUNl",
-            "cnQuQml6SWRlbnRpdHlJbmZvLkhvc3RTdG9yYWdlVHlwZVILaG9zdFN0b3Jh",
-            "Z2USXQoMYWN0dWFsQWN0b3JzGAYgASgOMjkuV0FXZWJQcm90b2J1ZnNWbmFt",
-            "ZUNlcnQuQml6SWRlbnRpdHlJbmZvLkFjdHVhbEFjdG9yc1R5cGVSDGFjdHVh",
-            "bEFjdG9ycxIkCg1wcml2YWN5TW9kZVRTGAcgASgEUg1wcml2YWN5TW9kZVRT",
-            "EigKD2ZlYXR1cmVDb250cm9scxgIIAEoBFIPZmVhdHVyZUNvbnRyb2xzIiUK",
-            "EEFjdHVhbEFjdG9yc1R5cGUSCAoEU0VMRhAAEgcKA0JTUBABIi8KD0hvc3RT",
-            "dG9yYWdlVHlwZRIOCgpPTl9QUkVNSVNFEAASDAoIRkFDRUJPT0sQASI0ChJW",
-            "ZXJpZmllZExldmVsVmFsdWUSCwoHVU5LTk9XThAAEgcKA0xPVxABEggKBEhJ",
-            "R0gQAiJTCg1Mb2NhbGl6ZWROYW1lEg4KAmxnGAEgASgJUgJsZxIOCgJsYxgC",
-            "IAEoCVICbGMSIgoMdmVyaWZpZWROYW1lGAMgASgJUgx2ZXJpZmllZE5hbWUi",
-            "yQIKF1ZlcmlmaWVkTmFtZUNlcnRpZmljYXRlEhgKB2RldGFpbHMYASABKAxS",
-            "B2RldGFpbHMSHAoJc2lnbmF0dXJlGAIgASgMUglzaWduYXR1cmUSKAoPc2Vy",
-            "dmVyU2lnbmF0dXJlGAMgASgMUg9zZXJ2ZXJTaWduYXR1cmUaywEKB0RldGFp",
-            "bHMSFgoGc2VyaWFsGAEgASgEUgZzZXJpYWwSFgoGaXNzdWVyGAIgASgJUgZp",
-            "c3N1ZXISIgoMdmVyaWZpZWROYW1lGAQgASgJUgx2ZXJpZmllZE5hbWUSTgoO",
-            "bG9jYWxpemVkTmFtZXMYCCADKAsyJi5XQVdlYlByb3RvYnVmc1ZuYW1lQ2Vy",
-            "dC5Mb2NhbGl6ZWROYW1lUg5sb2NhbGl6ZWROYW1lcxIcCglpc3N1ZVRpbWUY",
-            "CiABKARSCWlzc3VlVGltZSKNAQoRQml6QWNjb3VudFBheWxvYWQSTgoJdm5h",
-            "bWVDZXJ0GAEgASgLMjAuV0FXZWJQcm90b2J1ZnNWbmFtZUNlcnQuVmVyaWZp",
-            "ZWROYW1lQ2VydGlmaWNhdGVSCXZuYW1lQ2VydBIoCg9iaXpBY2N0TGlua0lu",
-            "Zm8YAiABKAxSD2JpekFjY3RMaW5rSW5mb0LuAQobY29tLldBV2ViUHJvdG9i",
-            "dWZzVm5hbWVDZXJ0QhxXQVdlYlByb3RvYnVmc1ZuYW1lQ2VydFByb3RvUAFa",
-            "JWdvLm1hdS5maS93aGF0c21lb3cvcHJvdG8vd2FWbmFtZUNlcnSiAgNXWFiq",
-            "AidXaGF0c21lb3cuUHJvdG8uV0FXZWJQcm90b2J1ZnNWbmFtZUNlcnTKAhdX",
-            "QVdlYlByb3RvYnVmc1ZuYW1lQ2VydOICI1dBV2ViUHJvdG9idWZzVm5hbWVD",
-            "ZXJ0XEdQQk1ldGFkYXRh6gIXV0FXZWJQcm90b2J1ZnNWbmFtZUNlcnQ="));
+            "EiwKEXdoYXRzYXBwQWNjdEVtYWlsGAYgASgJUhF3aGF0c2FwcEFjY3RFbWFp",
+            "bCIdCgtBY2NvdW50VHlwZRIOCgpFTlRFUlBSSVNFEAAiLwoPSG9zdFN0b3Jh",
+            "Z2VUeXBlEg4KCk9OX1BSRU1JU0UQABIMCghGQUNFQk9PSxABIoEFCg9CaXpJ",
+            "ZGVudGl0eUluZm8SUwoGdmxldmVsGAEgASgOMjsuV0FXZWJQcm90b2J1ZnNW",
+            "bmFtZUNlcnQuQml6SWRlbnRpdHlJbmZvLlZlcmlmaWVkTGV2ZWxWYWx1ZVIG",
+            "dmxldmVsEk4KCXZuYW1lQ2VydBgCIAEoCzIwLldBV2ViUHJvdG9idWZzVm5h",
+            "bWVDZXJ0LlZlcmlmaWVkTmFtZUNlcnRpZmljYXRlUgl2bmFtZUNlcnQSFgoG",
+            "c2lnbmVkGAMgASgIUgZzaWduZWQSGAoHcmV2b2tlZBgEIAEoCFIHcmV2b2tl",
+            "ZBJaCgtob3N0U3RvcmFnZRgFIAEoDjI4LldBV2ViUHJvdG9idWZzVm5hbWVD",
+            "ZXJ0LkJpeklkZW50aXR5SW5mby5Ib3N0U3RvcmFnZVR5cGVSC2hvc3RTdG9y",
+            "YWdlEl0KDGFjdHVhbEFjdG9ycxgGIAEoDjI5LldBV2ViUHJvdG9idWZzVm5h",
+            "bWVDZXJ0LkJpeklkZW50aXR5SW5mby5BY3R1YWxBY3RvcnNUeXBlUgxhY3R1",
+            "YWxBY3RvcnMSJAoNcHJpdmFjeU1vZGVUUxgHIAEoBFINcHJpdmFjeU1vZGVU",
+            "UxIoCg9mZWF0dXJlQ29udHJvbHMYCCABKARSD2ZlYXR1cmVDb250cm9scyIl",
+            "ChBBY3R1YWxBY3RvcnNUeXBlEggKBFNFTEYQABIHCgNCU1AQASIvCg9Ib3N0",
+            "U3RvcmFnZVR5cGUSDgoKT05fUFJFTUlTRRAAEgwKCEZBQ0VCT09LEAEiNAoS",
+            "VmVyaWZpZWRMZXZlbFZhbHVlEgsKB1VOS05PV04QABIHCgNMT1cQARIICgRI",
+            "SUdIEAIiUwoNTG9jYWxpemVkTmFtZRIOCgJsZxgBIAEoCVICbGcSDgoCbGMY",
+            "AiABKAlSAmxjEiIKDHZlcmlmaWVkTmFtZRgDIAEoCVIMdmVyaWZpZWROYW1l",
+            "IskCChdWZXJpZmllZE5hbWVDZXJ0aWZpY2F0ZRIYCgdkZXRhaWxzGAEgASgM",
+            "UgdkZXRhaWxzEhwKCXNpZ25hdHVyZRgCIAEoDFIJc2lnbmF0dXJlEigKD3Nl",
+            "cnZlclNpZ25hdHVyZRgDIAEoDFIPc2VydmVyU2lnbmF0dXJlGssBCgdEZXRh",
+            "aWxzEhYKBnNlcmlhbBgBIAEoBFIGc2VyaWFsEhYKBmlzc3VlchgCIAEoCVIG",
+            "aXNzdWVyEiIKDHZlcmlmaWVkTmFtZRgEIAEoCVIMdmVyaWZpZWROYW1lEk4K",
+            "DmxvY2FsaXplZE5hbWVzGAggAygLMiYuV0FXZWJQcm90b2J1ZnNWbmFtZUNl",
+            "cnQuTG9jYWxpemVkTmFtZVIObG9jYWxpemVkTmFtZXMSHAoJaXNzdWVUaW1l",
+            "GAogASgEUglpc3N1ZVRpbWUijQEKEUJpekFjY291bnRQYXlsb2FkEk4KCXZu",
+            "YW1lQ2VydBgBIAEoCzIwLldBV2ViUHJvdG9idWZzVm5hbWVDZXJ0LlZlcmlm",
+            "aWVkTmFtZUNlcnRpZmljYXRlUgl2bmFtZUNlcnQSKAoPYml6QWNjdExpbmtJ",
+            "bmZvGAIgASgMUg9iaXpBY2N0TGlua0luZm9C7gEKG2NvbS5XQVdlYlByb3Rv",
+            "YnVmc1ZuYW1lQ2VydEIcV0FXZWJQcm90b2J1ZnNWbmFtZUNlcnRQcm90b1AB",
+            "WiVnby5tYXUuZmkvd2hhdHNtZW93L3Byb3RvL3dhVm5hbWVDZXJ0ogIDV1hY",
+            "qgInV2hhdHNtZW93LlByb3RvLldBV2ViUHJvdG9idWZzVm5hbWVDZXJ0ygIX",
+            "V0FXZWJQcm90b2J1ZnNWbmFtZUNlcnTiAiNXQVdlYlByb3RvYnVmc1ZuYW1l",
+            "Q2VydFxHUEJNZXRhZGF0YeoCF1dBV2ViUHJvdG9idWZzVm5hbWVDZXJ0"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsVnameCert.BizAccountLinkInfo), global::Whatsmeow.Proto.WAWebProtobufsVnameCert.BizAccountLinkInfo.Parser, new[]{ "WhatsappBizAcctFbid", "WhatsappAcctNumber", "IssueTime", "HostStorage", "AccountType" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAWebProtobufsVnameCert.BizAccountLinkInfo.Types.AccountType), typeof(global::Whatsmeow.Proto.WAWebProtobufsVnameCert.BizAccountLinkInfo.Types.HostStorageType) }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsVnameCert.BizAccountLinkInfo), global::Whatsmeow.Proto.WAWebProtobufsVnameCert.BizAccountLinkInfo.Parser, new[]{ "WhatsappBizAcctFbid", "WhatsappAcctNumber", "IssueTime", "HostStorage", "AccountType", "WhatsappAcctEmail" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAWebProtobufsVnameCert.BizAccountLinkInfo.Types.AccountType), typeof(global::Whatsmeow.Proto.WAWebProtobufsVnameCert.BizAccountLinkInfo.Types.HostStorageType) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsVnameCert.BizIdentityInfo), global::Whatsmeow.Proto.WAWebProtobufsVnameCert.BizIdentityInfo.Parser, new[]{ "Vlevel", "VnameCert", "Signed", "Revoked", "HostStorage", "ActualActors", "PrivacyModeTS", "FeatureControls" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAWebProtobufsVnameCert.BizIdentityInfo.Types.ActualActorsType), typeof(global::Whatsmeow.Proto.WAWebProtobufsVnameCert.BizIdentityInfo.Types.HostStorageType), typeof(global::Whatsmeow.Proto.WAWebProtobufsVnameCert.BizIdentityInfo.Types.VerifiedLevelValue) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsVnameCert.LocalizedName), global::Whatsmeow.Proto.WAWebProtobufsVnameCert.LocalizedName.Parser, new[]{ "Lg", "Lc", "VerifiedName" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsVnameCert.VerifiedNameCertificate), global::Whatsmeow.Proto.WAWebProtobufsVnameCert.VerifiedNameCertificate.Parser, new[]{ "Details", "Signature", "ServerSignature" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsVnameCert.VerifiedNameCertificate.Types.Details), global::Whatsmeow.Proto.WAWebProtobufsVnameCert.VerifiedNameCertificate.Types.Details.Parser, new[]{ "Serial", "Issuer", "VerifiedName", "LocalizedNames", "IssueTime" }, null, null, null, null)}),
@@ -123,6 +124,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsVnameCert {
       issueTime_ = other.issueTime_;
       hostStorage_ = other.hostStorage_;
       accountType_ = other.accountType_;
+      whatsappAcctEmail_ = other.whatsappAcctEmail_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -266,6 +268,32 @@ namespace Whatsmeow.Proto.WAWebProtobufsVnameCert {
       _hasBits0 &= ~8;
     }
 
+    /// <summary>Field number for the "whatsappAcctEmail" field.</summary>
+    public const int WhatsappAcctEmailFieldNumber = 6;
+    private readonly static string WhatsappAcctEmailDefaultValue = "";
+
+    private string whatsappAcctEmail_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string WhatsappAcctEmail {
+      get { return whatsappAcctEmail_ ?? WhatsappAcctEmailDefaultValue; }
+      set {
+        whatsappAcctEmail_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "whatsappAcctEmail" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasWhatsappAcctEmail {
+      get { return whatsappAcctEmail_ != null; }
+    }
+    /// <summary>Clears the value of the "whatsappAcctEmail" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearWhatsappAcctEmail() {
+      whatsappAcctEmail_ = null;
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -286,6 +314,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsVnameCert {
       if (IssueTime != other.IssueTime) return false;
       if (HostStorage != other.HostStorage) return false;
       if (AccountType != other.AccountType) return false;
+      if (WhatsappAcctEmail != other.WhatsappAcctEmail) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -298,6 +327,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsVnameCert {
       if (HasIssueTime) hash ^= IssueTime.GetHashCode();
       if (HasHostStorage) hash ^= HostStorage.GetHashCode();
       if (HasAccountType) hash ^= AccountType.GetHashCode();
+      if (HasWhatsappAcctEmail) hash ^= WhatsappAcctEmail.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -336,6 +366,10 @@ namespace Whatsmeow.Proto.WAWebProtobufsVnameCert {
         output.WriteRawTag(40);
         output.WriteEnum((int) AccountType);
       }
+      if (HasWhatsappAcctEmail) {
+        output.WriteRawTag(50);
+        output.WriteString(WhatsappAcctEmail);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -366,6 +400,10 @@ namespace Whatsmeow.Proto.WAWebProtobufsVnameCert {
         output.WriteRawTag(40);
         output.WriteEnum((int) AccountType);
       }
+      if (HasWhatsappAcctEmail) {
+        output.WriteRawTag(50);
+        output.WriteString(WhatsappAcctEmail);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -390,6 +428,9 @@ namespace Whatsmeow.Proto.WAWebProtobufsVnameCert {
       }
       if (HasAccountType) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) AccountType);
+      }
+      if (HasWhatsappAcctEmail) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(WhatsappAcctEmail);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -417,6 +458,9 @@ namespace Whatsmeow.Proto.WAWebProtobufsVnameCert {
       }
       if (other.HasAccountType) {
         AccountType = other.AccountType;
+      }
+      if (other.HasWhatsappAcctEmail) {
+        WhatsappAcctEmail = other.WhatsappAcctEmail;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -457,6 +501,10 @@ namespace Whatsmeow.Proto.WAWebProtobufsVnameCert {
             AccountType = (global::Whatsmeow.Proto.WAWebProtobufsVnameCert.BizAccountLinkInfo.Types.AccountType) input.ReadEnum();
             break;
           }
+          case 50: {
+            WhatsappAcctEmail = input.ReadString();
+            break;
+          }
         }
       }
     #endif
@@ -494,6 +542,10 @@ namespace Whatsmeow.Proto.WAWebProtobufsVnameCert {
           }
           case 40: {
             AccountType = (global::Whatsmeow.Proto.WAWebProtobufsVnameCert.BizAccountLinkInfo.Types.AccountType) input.ReadEnum();
+            break;
+          }
+          case 50: {
+            WhatsappAcctEmail = input.ReadString();
             break;
           }
         }

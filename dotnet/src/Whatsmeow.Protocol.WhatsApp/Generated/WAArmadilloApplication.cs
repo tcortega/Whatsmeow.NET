@@ -27,7 +27,7 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
             "CjN3YUFybWFkaWxsb0FwcGxpY2F0aW9uL1dBQXJtYWRpbGxvQXBwbGljYXRp",
             "b24ucHJvdG8SFldBQXJtYWRpbGxvQXBwbGljYXRpb24aI3dhQXJtYWRpbGxv",
             "WE1BL1dBQXJtYWRpbGxvWE1BLnByb3RvGhd3YUNvbW1vbi9XQUNvbW1vbi5w",
-            "cm90byK7RgoJQXJtYWRpbGxvEkMKB3BheWxvYWQYASABKAsyKS5XQUFybWFk",
+            "cm90byLCTQoJQXJtYWRpbGxvEkMKB3BheWxvYWQYASABKAsyKS5XQUFybWFk",
             "aWxsb0FwcGxpY2F0aW9uLkFybWFkaWxsby5QYXlsb2FkUgdwYXlsb2FkEkYK",
             "CG1ldGFkYXRhGAIgASgLMiouV0FBcm1hZGlsbG9BcHBsaWNhdGlvbi5Bcm1h",
             "ZGlsbG8uTWV0YWRhdGFSCG1ldGFkYXRhGgoKCE1ldGFkYXRhGtgCCgdQYXls",
@@ -135,7 +135,7 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
             "c3NhZ2VzQgwKCmFjdGlvblR5cGUaegoYTWV0YWRhdGFTeW5jTm90aWZpY2F0",
             "aW9uEl4KB2FjdGlvbnMYAiADKAsyRC5XQUFybWFkaWxsb0FwcGxpY2F0aW9u",
             "LkFybWFkaWxsby5BcHBsaWNhdGlvbkRhdGEuTWV0YWRhdGFTeW5jQWN0aW9u",
-            "UgdhY3Rpb25zQhEKD2FwcGxpY2F0aW9uRGF0YRqnIAoHQ29udGVudBJfCg1j",
+            "UgdhY3Rpb25zQhEKD2FwcGxpY2F0aW9uRGF0YRquJwoHQ29udGVudBJfCg1j",
             "b21tb25TdGlja2VyGAEgASgLMjcuV0FBcm1hZGlsbG9BcHBsaWNhdGlvbi5B",
             "cm1hZGlsbG8uQ29udGVudC5Db21tb25TdGlja2VySABSDWNvbW1vblN0aWNr",
             "ZXISaAoQc2NyZWVuc2hvdEFjdGlvbhgDIAEoCzI6LldBQXJtYWRpbGxvQXBw",
@@ -166,74 +166,94 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
             "ZXNzYWdlSABSEHJhdmVuTWVzc2FnZU1zZ3IShgEKGm5ldHdvcmtWZXJpZmlj",
             "YXRpb25NZXNzYWdlGA8gASgLMkQuV0FBcm1hZGlsbG9BcHBsaWNhdGlvbi5B",
             "cm1hZGlsbG8uQ29udGVudC5OZXR3b3JrVmVyaWZpY2F0aW9uTWVzc2FnZUgA",
-            "UhpuZXR3b3JrVmVyaWZpY2F0aW9uTWVzc2FnZRq6BwoaUGF5bWVudHNUcmFu",
-            "c2FjdGlvbk1lc3NhZ2USJAoNdHJhbnNhY3Rpb25JRBgBIAEoBFINdHJhbnNh",
-            "Y3Rpb25JRBIWCgZhbW91bnQYAiABKAlSBmFtb3VudBIaCghjdXJyZW5jeRgD",
-            "IAEoCVIIY3VycmVuY3kSeAoNcGF5bWVudFN0YXR1cxgEIAEoDjJSLldBQXJt",
-            "YWRpbGxvQXBwbGljYXRpb24uQXJtYWRpbGxvLkNvbnRlbnQuUGF5bWVudHNU",
-            "cmFuc2FjdGlvbk1lc3NhZ2UuUGF5bWVudFN0YXR1c1INcGF5bWVudFN0YXR1",
-            "cxJeChZleHRlbmRlZENvbnRlbnRNZXNzYWdlGAUgASgLMiYuV0FBcm1hZGls",
-            "bG9YTUEuRXh0ZW5kZWRDb250ZW50TWVzc2FnZVIWZXh0ZW5kZWRDb250ZW50",
-            "TWVzc2FnZSLnBAoNUGF5bWVudFN0YXR1cxITCg9QQVlNRU5UX1VOS05PV04Q",
-            "ABISCg5SRVFVRVNUX0lOSVRFRBAEEhQKEFJFUVVFU1RfREVDTElORUQQBRIb",
-            "ChdSRVFVRVNUX1RSQU5TRkVSX0lOSVRFRBAGEh4KGlJFUVVFU1RfVFJBTlNG",
-            "RVJfQ09NUExFVEVEEAcSGwoXUkVRVUVTVF9UUkFOU0ZFUl9GQUlMRUQQCBIU",
-            "ChBSRVFVRVNUX0NBTkNFTEVEEAkSEwoPUkVRVUVTVF9FWFBJUkVEEAoSEwoP",
-            "VFJBTlNGRVJfSU5JVEVEEAsSFAoQVFJBTlNGRVJfUEVORElORxAMEisKJ1RS",
-            "QU5TRkVSX1BFTkRJTkdfUkVDSVBJRU5UX1ZFUklGSUNBVElPThANEhUKEVRS",
-            "QU5TRkVSX0NBTkNFTEVEEA4SFgoSVFJBTlNGRVJfQ09NUExFVEVEEA8SOwo3",
-            "VFJBTlNGRVJfTk9fUkVDRUlWRVJfQ1JFREVOVElBTF9OT19SVFNfUEVORElO",
-            "R19DQU5DRUxFRBAQEjgKNFRSQU5TRkVSX05PX1JFQ0VJVkVSX0NSRURFTlRJ",
-            "QUxfTk9fUlRTX1BFTkRJTkdfT1RIRVIQERIVChFUUkFOU0ZFUl9SRUZVTkRF",
-            "RBASEhsKF1RSQU5TRkVSX1BBUlRJQUxfUkVGVU5EEBMSGQoVVFJBTlNGRVJf",
-            "Q0hBUkdFRF9CQUNLEBQSFAoQVFJBTlNGRVJfRVhQSVJFRBAVEhUKEVRSQU5T",
-            "RkVSX0RFQ0xJTkVEEBYSGAoUVFJBTlNGRVJfVU5BVkFJTEFCTEUQFxo4ChpO",
-            "ZXR3b3JrVmVyaWZpY2F0aW9uTWVzc2FnZRIaCghjb2RlVGV4dBgBIAEoCVII",
-            "Y29kZVRleHQa1AIKEE5vdGVSZXBseU1lc3NhZ2USOQoLdGV4dENvbnRlbnQY",
-            "BCABKAsyFS5XQUNvbW1vbi5NZXNzYWdlVGV4dEgAUgt0ZXh0Q29udGVudBI/",
-            "Cg5zdGlja2VyQ29udGVudBgFIAEoCzIVLldBQ29tbW9uLlN1YlByb3RvY29s",
-            "SABSDnN0aWNrZXJDb250ZW50EjsKDHZpZGVvQ29udGVudBgGIAEoCzIVLldB",
-            "Q29tbW9uLlN1YlByb3RvY29sSABSDHZpZGVvQ29udGVudBIWCgZub3RlSUQY",
-            "ASABKAlSBm5vdGVJRBIxCghub3RlVGV4dBgCIAEoCzIVLldBQ29tbW9uLk1l",
-            "c3NhZ2VUZXh0Ughub3RlVGV4dBIoCg9ub3RlVGltZXN0YW1wTVMYAyABKANS",
-            "D25vdGVUaW1lc3RhbXBNU0ISChBub3RlUmVwbHlDb250ZW50Gj0KE0J1bXBF",
-            "eGlzdGluZ01lc3NhZ2USJgoDa2V5GAEgASgLMhQuV0FDb21tb24uTWVzc2Fn",
-            "ZUtleVIDa2V5GkQKE0ltYWdlR2FsbGVyeU1lc3NhZ2USLQoGaW1hZ2VzGAEg",
-            "AygLMhUuV0FDb21tb24uU3ViUHJvdG9jb2xSBmltYWdlcxrDAQoQU2NyZWVu",
-            "c2hvdEFjdGlvbhJxCg5zY3JlZW5zaG90VHlwZRgBIAEoDjJJLldBQXJtYWRp",
-            "bGxvQXBwbGljYXRpb24uQXJtYWRpbGxvLkNvbnRlbnQuU2NyZWVuc2hvdEFj",
-            "dGlvbi5TY3JlZW5zaG90VHlwZVIOc2NyZWVuc2hvdFR5cGUiPAoOU2NyZWVu",
-            "c2hvdFR5cGUSFAoQU0NSRUVOU0hPVF9JTUFHRRABEhQKEFNDUkVFTl9SRUNP",
-            "UkRJTkcQAhrzAQoeRXh0ZW5kZWRDb250ZW50TWVzc2FnZVdpdGhTZWFyEhYK",
-            "BnNlYXJJRBgBIAEoCVIGc2VhcklEEhgKB3BheWxvYWQYAiABKAxSB3BheWxv",
-            "YWQSHAoJbmF0aXZlVVJMGAMgASgJUgluYXRpdmVVUkwSSwoVc2VhckFzc29j",
-            "aWF0ZWRNZXNzYWdlGAQgASgLMhUuV0FDb21tb24uU3ViUHJvdG9jb2xSFXNl",
-            "YXJBc3NvY2lhdGVkTWVzc2FnZRI0ChVzZWFyU2VudFdpdGhNZXNzYWdlSUQY",
-            "BSABKAlSFXNlYXJTZW50V2l0aE1lc3NhZ2VJRBqWAgoXUmF2ZW5BY3Rpb25O",
-            "b3RpZk1lc3NhZ2USJgoDa2V5GAEgASgLMhQuV0FDb21tb24uTWVzc2FnZUtl",
-            "eVIDa2V5EigKD2FjdGlvblRpbWVzdGFtcBgCIAEoA1IPYWN0aW9uVGltZXN0",
-            "YW1wEmwKCmFjdGlvblR5cGUYAyABKA4yTC5XQUFybWFkaWxsb0FwcGxpY2F0",
-            "aW9uLkFybWFkaWxsby5Db250ZW50LlJhdmVuQWN0aW9uTm90aWZNZXNzYWdl",
-            "LkFjdGlvblR5cGVSCmFjdGlvblR5cGUiOwoKQWN0aW9uVHlwZRIKCgZQTEFZ",
-            "RUQQABIOCgpTQ1JFRU5TSE9UEAESEQoNRk9SQ0VfRElTQUJMRRACGsgCCgxS",
-            "YXZlbk1lc3NhZ2USOwoMaW1hZ2VNZXNzYWdlGAIgASgLMhUuV0FDb21tb24u",
-            "U3ViUHJvdG9jb2xIAFIMaW1hZ2VNZXNzYWdlEjsKDHZpZGVvTWVzc2FnZRgD",
-            "IAEoCzIVLldBQ29tbW9uLlN1YlByb3RvY29sSABSDHZpZGVvTWVzc2FnZRJq",
-            "Cg1lcGhlbWVyYWxUeXBlGAEgASgOMkQuV0FBcm1hZGlsbG9BcHBsaWNhdGlv",
-            "bi5Bcm1hZGlsbG8uQ29udGVudC5SYXZlbk1lc3NhZ2UuRXBoZW1lcmFsVHlw",
-            "ZVINZXBoZW1lcmFsVHlwZSJCCg1FcGhlbWVyYWxUeXBlEg0KCVZJRVdfT05D",
-            "RRAAEhAKDEFMTE9XX1JFUExBWRABEhAKDEtFRVBfSU5fQ0hBVBACQg4KDG1l",
-            "ZGlhQ29udGVudBq2AQoNQ29tbW9uU3RpY2tlchJlCgtzdGlja2VyVHlwZRgB",
-            "IAEoDjJDLldBQXJtYWRpbGxvQXBwbGljYXRpb24uQXJtYWRpbGxvLkNvbnRl",
-            "bnQuQ29tbW9uU3RpY2tlci5TdGlja2VyVHlwZVILc3RpY2tlclR5cGUiPgoL",
-            "U3RpY2tlclR5cGUSDgoKU01BTExfTElLRRABEg8KC01FRElVTV9MSUtFEAIS",
-            "DgoKTEFSR0VfTElLRRADQgkKB2NvbnRlbnRC8wEKGmNvbS5XQUFybWFkaWxs",
-            "b0FwcGxpY2F0aW9uQhtXQUFybWFkaWxsb0FwcGxpY2F0aW9uUHJvdG9QAVow",
-            "Z28ubWF1LmZpL3doYXRzbWVvdy9wcm90by93YUFybWFkaWxsb0FwcGxpY2F0",
-            "aW9uogIDV1hYqgImV2hhdHNtZW93LlByb3RvLldBQXJtYWRpbGxvQXBwbGlj",
-            "YXRpb27KAhZXQUFybWFkaWxsb0FwcGxpY2F0aW9u4gIiV0FBcm1hZGlsbG9B",
-            "cHBsaWNhdGlvblxHUEJNZXRhZGF0YeoCFldBQXJtYWRpbGxvQXBwbGljYXRp",
-            "b24="));
+            "UhpuZXR3b3JrVmVyaWZpY2F0aW9uTWVzc2FnZRJ6ChZob21lYmFzZVNoYXJp",
+            "bmdDb250cm9sGBIgASgLMkAuV0FBcm1hZGlsbG9BcHBsaWNhdGlvbi5Bcm1h",
+            "ZGlsbG8uQ29udGVudC5Ib21lYmFzZVNoYXJpbmdDb250cm9sSABSFmhvbWVi",
+            "YXNlU2hhcmluZ0NvbnRyb2waugcKGlBheW1lbnRzVHJhbnNhY3Rpb25NZXNz",
+            "YWdlEiQKDXRyYW5zYWN0aW9uSUQYASABKARSDXRyYW5zYWN0aW9uSUQSFgoG",
+            "YW1vdW50GAIgASgJUgZhbW91bnQSGgoIY3VycmVuY3kYAyABKAlSCGN1cnJl",
+            "bmN5EngKDXBheW1lbnRTdGF0dXMYBCABKA4yUi5XQUFybWFkaWxsb0FwcGxp",
+            "Y2F0aW9uLkFybWFkaWxsby5Db250ZW50LlBheW1lbnRzVHJhbnNhY3Rpb25N",
+            "ZXNzYWdlLlBheW1lbnRTdGF0dXNSDXBheW1lbnRTdGF0dXMSXgoWZXh0ZW5k",
+            "ZWRDb250ZW50TWVzc2FnZRgFIAEoCzImLldBQXJtYWRpbGxvWE1BLkV4dGVu",
+            "ZGVkQ29udGVudE1lc3NhZ2VSFmV4dGVuZGVkQ29udGVudE1lc3NhZ2Ui5wQK",
+            "DVBheW1lbnRTdGF0dXMSEwoPUEFZTUVOVF9VTktOT1dOEAASEgoOUkVRVUVT",
+            "VF9JTklURUQQBBIUChBSRVFVRVNUX0RFQ0xJTkVEEAUSGwoXUkVRVUVTVF9U",
+            "UkFOU0ZFUl9JTklURUQQBhIeChpSRVFVRVNUX1RSQU5TRkVSX0NPTVBMRVRF",
+            "RBAHEhsKF1JFUVVFU1RfVFJBTlNGRVJfRkFJTEVEEAgSFAoQUkVRVUVTVF9D",
+            "QU5DRUxFRBAJEhMKD1JFUVVFU1RfRVhQSVJFRBAKEhMKD1RSQU5TRkVSX0lO",
+            "SVRFRBALEhQKEFRSQU5TRkVSX1BFTkRJTkcQDBIrCidUUkFOU0ZFUl9QRU5E",
+            "SU5HX1JFQ0lQSUVOVF9WRVJJRklDQVRJT04QDRIVChFUUkFOU0ZFUl9DQU5D",
+            "RUxFRBAOEhYKElRSQU5TRkVSX0NPTVBMRVRFRBAPEjsKN1RSQU5TRkVSX05P",
+            "X1JFQ0VJVkVSX0NSRURFTlRJQUxfTk9fUlRTX1BFTkRJTkdfQ0FOQ0VMRUQQ",
+            "EBI4CjRUUkFOU0ZFUl9OT19SRUNFSVZFUl9DUkVERU5USUFMX05PX1JUU19Q",
+            "RU5ESU5HX09USEVSEBESFQoRVFJBTlNGRVJfUkVGVU5ERUQQEhIbChdUUkFO",
+            "U0ZFUl9QQVJUSUFMX1JFRlVORBATEhkKFVRSQU5TRkVSX0NIQVJHRURfQkFD",
+            "SxAUEhQKEFRSQU5TRkVSX0VYUElSRUQQFRIVChFUUkFOU0ZFUl9ERUNMSU5F",
+            "RBAWEhgKFFRSQU5TRkVSX1VOQVZBSUxBQkxFEBcaOAoaTmV0d29ya1Zlcmlm",
+            "aWNhdGlvbk1lc3NhZ2USGgoIY29kZVRleHQYASABKAlSCGNvZGVUZXh0GtQC",
+            "ChBOb3RlUmVwbHlNZXNzYWdlEjkKC3RleHRDb250ZW50GAQgASgLMhUuV0FD",
+            "b21tb24uTWVzc2FnZVRleHRIAFILdGV4dENvbnRlbnQSPwoOc3RpY2tlckNv",
+            "bnRlbnQYBSABKAsyFS5XQUNvbW1vbi5TdWJQcm90b2NvbEgAUg5zdGlja2Vy",
+            "Q29udGVudBI7Cgx2aWRlb0NvbnRlbnQYBiABKAsyFS5XQUNvbW1vbi5TdWJQ",
+            "cm90b2NvbEgAUgx2aWRlb0NvbnRlbnQSFgoGbm90ZUlEGAEgASgJUgZub3Rl",
+            "SUQSMQoIbm90ZVRleHQYAiABKAsyFS5XQUNvbW1vbi5NZXNzYWdlVGV4dFII",
+            "bm90ZVRleHQSKAoPbm90ZVRpbWVzdGFtcE1TGAMgASgDUg9ub3RlVGltZXN0",
+            "YW1wTVNCEgoQbm90ZVJlcGx5Q29udGVudBo9ChNCdW1wRXhpc3RpbmdNZXNz",
+            "YWdlEiYKA2tleRgBIAEoCzIULldBQ29tbW9uLk1lc3NhZ2VLZXlSA2tleRpE",
+            "ChNJbWFnZUdhbGxlcnlNZXNzYWdlEi0KBmltYWdlcxgBIAMoCzIVLldBQ29t",
+            "bW9uLlN1YlByb3RvY29sUgZpbWFnZXMaiAYKFkhvbWViYXNlU2hhcmluZ0Nv",
+            "bnRyb2wSKAoPcHJvdG9jb2xWZXJzaW9uGAEgASgNUg9wcm90b2NvbFZlcnNp",
+            "b24SfgoJb3BlcmF0aW9uGAIgASgOMmAuV0FBcm1hZGlsbG9BcHBsaWNhdGlv",
+            "bi5Bcm1hZGlsbG8uQ29udGVudC5Ib21lYmFzZVNoYXJpbmdDb250cm9sLkhv",
+            "bWViYXNlU2hhcmluZ0NvbnRyb2xPcGVyYXRpb25SCW9wZXJhdGlvbhJ1CgZy",
+            "ZWFzb24YAyABKA4yXS5XQUFybWFkaWxsb0FwcGxpY2F0aW9uLkFybWFkaWxs",
+            "by5Db250ZW50LkhvbWViYXNlU2hhcmluZ0NvbnRyb2wuSG9tZWJhc2VTaGFy",
+            "aW5nQ29udHJvbFJlYXNvblIGcmVhc29uEjIKFGF1dGhvcml6YXRpb25FcG9j",
+            "aElEGAQgASgJUhRhdXRob3JpemF0aW9uRXBvY2hJRBIiCgxtZXNzYWdlTGlt",
+            "aXQYBSABKA1SDG1lc3NhZ2VMaW1pdCKbAgocSG9tZWJhc2VTaGFyaW5nQ29u",
+            "dHJvbFJlYXNvbhIWChJSRUFTT05fVU5TUEVDSUZJRUQQABIbChdBVVRIT1JJ",
+            "WkVfTkVXTFlfRU5BQkxFRBABEhoKFkFVVEhPUklaRV9SRUFVVEhPUklaRUQQ",
+            "AhIZChVSRVZPS0VfVVNFUl9SRVFVRVNURUQQAxIVChFSRVZPS0VfU1RBVEVf",
+            "TE9TVBAEEigKJFJFVk9LRV9ESVNBUFBFQVJJTkdfTUVTU0FHRVNfRU5BQkxF",
+            "RBAFEi8KK1JFVk9LRV9NRVNTQUdFX1NIQVJJTkdfUEVSTUlTU0lPTlNfRElT",
+            "QUJMRUQQBhIdChlSRVZPS0VfRkVBVFVSRV9UVVJORURfT0ZGEAciVwofSG9t",
+            "ZWJhc2VTaGFyaW5nQ29udHJvbE9wZXJhdGlvbhIZChVPUEVSQVRJT05fVU5T",
+            "UEVDSUZJRUQQABINCglBVVRIT1JJWkUQARIKCgZSRVZPS0UQAhrDAQoQU2Ny",
+            "ZWVuc2hvdEFjdGlvbhJxCg5zY3JlZW5zaG90VHlwZRgBIAEoDjJJLldBQXJt",
+            "YWRpbGxvQXBwbGljYXRpb24uQXJtYWRpbGxvLkNvbnRlbnQuU2NyZWVuc2hv",
+            "dEFjdGlvbi5TY3JlZW5zaG90VHlwZVIOc2NyZWVuc2hvdFR5cGUiPAoOU2Ny",
+            "ZWVuc2hvdFR5cGUSFAoQU0NSRUVOU0hPVF9JTUFHRRABEhQKEFNDUkVFTl9S",
+            "RUNPUkRJTkcQAhrzAQoeRXh0ZW5kZWRDb250ZW50TWVzc2FnZVdpdGhTZWFy",
+            "EhYKBnNlYXJJRBgBIAEoCVIGc2VhcklEEhgKB3BheWxvYWQYAiABKAxSB3Bh",
+            "eWxvYWQSHAoJbmF0aXZlVVJMGAMgASgJUgluYXRpdmVVUkwSSwoVc2VhckFz",
+            "c29jaWF0ZWRNZXNzYWdlGAQgASgLMhUuV0FDb21tb24uU3ViUHJvdG9jb2xS",
+            "FXNlYXJBc3NvY2lhdGVkTWVzc2FnZRI0ChVzZWFyU2VudFdpdGhNZXNzYWdl",
+            "SUQYBSABKAlSFXNlYXJTZW50V2l0aE1lc3NhZ2VJRBqWAgoXUmF2ZW5BY3Rp",
+            "b25Ob3RpZk1lc3NhZ2USJgoDa2V5GAEgASgLMhQuV0FDb21tb24uTWVzc2Fn",
+            "ZUtleVIDa2V5EigKD2FjdGlvblRpbWVzdGFtcBgCIAEoA1IPYWN0aW9uVGlt",
+            "ZXN0YW1wEmwKCmFjdGlvblR5cGUYAyABKA4yTC5XQUFybWFkaWxsb0FwcGxp",
+            "Y2F0aW9uLkFybWFkaWxsby5Db250ZW50LlJhdmVuQWN0aW9uTm90aWZNZXNz",
+            "YWdlLkFjdGlvblR5cGVSCmFjdGlvblR5cGUiOwoKQWN0aW9uVHlwZRIKCgZQ",
+            "TEFZRUQQABIOCgpTQ1JFRU5TSE9UEAESEQoNRk9SQ0VfRElTQUJMRRACGsgC",
+            "CgxSYXZlbk1lc3NhZ2USOwoMaW1hZ2VNZXNzYWdlGAIgASgLMhUuV0FDb21t",
+            "b24uU3ViUHJvdG9jb2xIAFIMaW1hZ2VNZXNzYWdlEjsKDHZpZGVvTWVzc2Fn",
+            "ZRgDIAEoCzIVLldBQ29tbW9uLlN1YlByb3RvY29sSABSDHZpZGVvTWVzc2Fn",
+            "ZRJqCg1lcGhlbWVyYWxUeXBlGAEgASgOMkQuV0FBcm1hZGlsbG9BcHBsaWNh",
+            "dGlvbi5Bcm1hZGlsbG8uQ29udGVudC5SYXZlbk1lc3NhZ2UuRXBoZW1lcmFs",
+            "VHlwZVINZXBoZW1lcmFsVHlwZSJCCg1FcGhlbWVyYWxUeXBlEg0KCVZJRVdf",
+            "T05DRRAAEhAKDEFMTE9XX1JFUExBWRABEhAKDEtFRVBfSU5fQ0hBVBACQg4K",
+            "DG1lZGlhQ29udGVudBq2AQoNQ29tbW9uU3RpY2tlchJlCgtzdGlja2VyVHlw",
+            "ZRgBIAEoDjJDLldBQXJtYWRpbGxvQXBwbGljYXRpb24uQXJtYWRpbGxvLkNv",
+            "bnRlbnQuQ29tbW9uU3RpY2tlci5TdGlja2VyVHlwZVILc3RpY2tlclR5cGUi",
+            "PgoLU3RpY2tlclR5cGUSDgoKU01BTExfTElLRRABEg8KC01FRElVTV9MSUtF",
+            "EAISDgoKTEFSR0VfTElLRRADQgkKB2NvbnRlbnRC8wEKGmNvbS5XQUFybWFk",
+            "aWxsb0FwcGxpY2F0aW9uQhtXQUFybWFkaWxsb0FwcGxpY2F0aW9uUHJvdG9Q",
+            "AVowZ28ubWF1LmZpL3doYXRzbWVvdy9wcm90by93YUFybWFkaWxsb0FwcGxp",
+            "Y2F0aW9uogIDV1hYqgImV2hhdHNtZW93LlByb3RvLldBQXJtYWRpbGxvQXBw",
+            "bGljYXRpb27KAhZXQUFybWFkaWxsb0FwcGxpY2F0aW9u4gIiV0FBcm1hZGls",
+            "bG9BcHBsaWNhdGlvblxHUEJNZXRhZGF0YeoCFldBQXJtYWRpbGxvQXBwbGlj",
+            "YXRpb24="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Whatsmeow.Proto.WAArmadilloXMA.WAArmadilloXMAReflection.Descriptor, global::Whatsmeow.Proto.WACommon.WACommonReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -252,11 +272,12 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.ApplicationData.Types.MetadataSyncAction.Types.SyncActionMessage), global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.ApplicationData.Types.MetadataSyncAction.Types.SyncActionMessage.Parser, new[]{ "Key", "Timestamp" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.ApplicationData.Types.MetadataSyncAction.Types.SyncActionMessageRange), global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.ApplicationData.Types.MetadataSyncAction.Types.SyncActionMessageRange.Parser, new[]{ "LastMessageTimestamp", "LastSystemMessageTimestamp", "Messages" }, null, null, null, null)}),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.ApplicationData.Types.MetadataSyncNotification), global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.ApplicationData.Types.MetadataSyncNotification.Parser, new[]{ "Actions" }, null, null, null, null)}),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content), global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Parser, new[]{ "CommonSticker", "ScreenshotAction", "ExtendedContentMessage", "RavenMessage", "RavenActionNotifMessage", "ExtendedMessageContentWithSear", "ImageGalleryMessage", "PaymentsTransactionMessage", "BumpExistingMessage", "NoteReplyMessage", "RavenMessageMsgr", "NetworkVerificationMessage" }, new[]{ "Content" }, null, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.PaymentsTransactionMessage), global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.PaymentsTransactionMessage.Parser, new[]{ "TransactionID", "Amount", "Currency", "PaymentStatus", "ExtendedContentMessage" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.PaymentsTransactionMessage.Types.PaymentStatus) }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content), global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Parser, new[]{ "CommonSticker", "ScreenshotAction", "ExtendedContentMessage", "RavenMessage", "RavenActionNotifMessage", "ExtendedMessageContentWithSear", "ImageGalleryMessage", "PaymentsTransactionMessage", "BumpExistingMessage", "NoteReplyMessage", "RavenMessageMsgr", "NetworkVerificationMessage", "HomebaseSharingControl" }, new[]{ "Content" }, null, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.PaymentsTransactionMessage), global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.PaymentsTransactionMessage.Parser, new[]{ "TransactionID", "Amount", "Currency", "PaymentStatus", "ExtendedContentMessage" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.PaymentsTransactionMessage.Types.PaymentStatus) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.NetworkVerificationMessage), global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.NetworkVerificationMessage.Parser, new[]{ "CodeText" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.NoteReplyMessage), global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.NoteReplyMessage.Parser, new[]{ "TextContent", "StickerContent", "VideoContent", "NoteID", "NoteText", "NoteTimestampMS" }, new[]{ "NoteReplyContent" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.BumpExistingMessage), global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.BumpExistingMessage.Parser, new[]{ "Key" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.ImageGalleryMessage), global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.ImageGalleryMessage.Parser, new[]{ "Images" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl), global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl.Parser, new[]{ "ProtocolVersion", "Operation", "Reason", "AuthorizationEpochID", "MessageLimit" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl.Types.HomebaseSharingControlReason), typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl.Types.HomebaseSharingControlOperation) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.ScreenshotAction), global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.ScreenshotAction.Parser, new[]{ "ScreenshotType" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.ScreenshotAction.Types.ScreenshotType) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.ExtendedContentMessageWithSear), global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.ExtendedContentMessageWithSear.Parser, new[]{ "SearID", "Payload", "NativeURL", "SearAssociatedMessage", "SearSentWithMessageID" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.RavenActionNotifMessage), global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.RavenActionNotifMessage.Parser, new[]{ "Key", "ActionTimestamp", "ActionType" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.RavenActionNotifMessage.Types.ActionType) }, null, null),
@@ -6779,6 +6800,9 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
             case ContentOneofCase.NetworkVerificationMessage:
               NetworkVerificationMessage = other.NetworkVerificationMessage.Clone();
               break;
+            case ContentOneofCase.HomebaseSharingControl:
+              HomebaseSharingControl = other.HomebaseSharingControl.Clone();
+              break;
           }
 
           _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -6934,6 +6958,18 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
           }
         }
 
+        /// <summary>Field number for the "homebaseSharingControl" field.</summary>
+        public const int HomebaseSharingControlFieldNumber = 18;
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl HomebaseSharingControl {
+          get { return contentCase_ == ContentOneofCase.HomebaseSharingControl ? (global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl) content_ : null; }
+          set {
+            content_ = value;
+            contentCase_ = value == null ? ContentOneofCase.None : ContentOneofCase.HomebaseSharingControl;
+          }
+        }
+
         private object content_;
         /// <summary>Enum of possible cases for the "content" oneof.</summary>
         public enum ContentOneofCase {
@@ -6950,6 +6986,7 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
           NoteReplyMessage = 13,
           RavenMessageMsgr = 14,
           NetworkVerificationMessage = 15,
+          HomebaseSharingControl = 18,
         }
         private ContentOneofCase contentCase_ = ContentOneofCase.None;
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6992,6 +7029,7 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
           if (!object.Equals(NoteReplyMessage, other.NoteReplyMessage)) return false;
           if (!object.Equals(RavenMessageMsgr, other.RavenMessageMsgr)) return false;
           if (!object.Equals(NetworkVerificationMessage, other.NetworkVerificationMessage)) return false;
+          if (!object.Equals(HomebaseSharingControl, other.HomebaseSharingControl)) return false;
           if (ContentCase != other.ContentCase) return false;
           return Equals(_unknownFields, other._unknownFields);
         }
@@ -7012,6 +7050,7 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
           if (contentCase_ == ContentOneofCase.NoteReplyMessage) hash ^= NoteReplyMessage.GetHashCode();
           if (contentCase_ == ContentOneofCase.RavenMessageMsgr) hash ^= RavenMessageMsgr.GetHashCode();
           if (contentCase_ == ContentOneofCase.NetworkVerificationMessage) hash ^= NetworkVerificationMessage.GetHashCode();
+          if (contentCase_ == ContentOneofCase.HomebaseSharingControl) hash ^= HomebaseSharingControl.GetHashCode();
           hash ^= (int) contentCase_;
           if (_unknownFields != null) {
             hash ^= _unknownFields.GetHashCode();
@@ -7079,6 +7118,10 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
             output.WriteRawTag(122);
             output.WriteMessage(NetworkVerificationMessage);
           }
+          if (contentCase_ == ContentOneofCase.HomebaseSharingControl) {
+            output.WriteRawTag(146, 1);
+            output.WriteMessage(HomebaseSharingControl);
+          }
           if (_unknownFields != null) {
             _unknownFields.WriteTo(output);
           }
@@ -7137,6 +7180,10 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
             output.WriteRawTag(122);
             output.WriteMessage(NetworkVerificationMessage);
           }
+          if (contentCase_ == ContentOneofCase.HomebaseSharingControl) {
+            output.WriteRawTag(146, 1);
+            output.WriteMessage(HomebaseSharingControl);
+          }
           if (_unknownFields != null) {
             _unknownFields.WriteTo(ref output);
           }
@@ -7182,6 +7229,9 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
           }
           if (contentCase_ == ContentOneofCase.NetworkVerificationMessage) {
             size += 1 + pb::CodedOutputStream.ComputeMessageSize(NetworkVerificationMessage);
+          }
+          if (contentCase_ == ContentOneofCase.HomebaseSharingControl) {
+            size += 2 + pb::CodedOutputStream.ComputeMessageSize(HomebaseSharingControl);
           }
           if (_unknownFields != null) {
             size += _unknownFields.CalculateSize();
@@ -7267,6 +7317,12 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
                 NetworkVerificationMessage = new global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.NetworkVerificationMessage();
               }
               NetworkVerificationMessage.MergeFrom(other.NetworkVerificationMessage);
+              break;
+            case ContentOneofCase.HomebaseSharingControl:
+              if (HomebaseSharingControl == null) {
+                HomebaseSharingControl = new global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl();
+              }
+              HomebaseSharingControl.MergeFrom(other.HomebaseSharingControl);
               break;
           }
 
@@ -7397,6 +7453,15 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
                 NetworkVerificationMessage = subBuilder;
                 break;
               }
+              case 146: {
+                global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl subBuilder = new global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl();
+                if (contentCase_ == ContentOneofCase.HomebaseSharingControl) {
+                  subBuilder.MergeFrom(HomebaseSharingControl);
+                }
+                input.ReadMessage(subBuilder);
+                HomebaseSharingControl = subBuilder;
+                break;
+              }
             }
           }
         #endif
@@ -7522,6 +7587,15 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
                 }
                 input.ReadMessage(subBuilder);
                 NetworkVerificationMessage = subBuilder;
+                break;
+              }
+              case 146: {
+                global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl subBuilder = new global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl();
+                if (contentCase_ == ContentOneofCase.HomebaseSharingControl) {
+                  subBuilder.MergeFrom(HomebaseSharingControl);
+                }
+                input.ReadMessage(subBuilder);
+                HomebaseSharingControl = subBuilder;
                 break;
               }
             }
@@ -9086,6 +9160,453 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
           }
 
           [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+          public sealed partial class HomebaseSharingControl : pb::IMessage<HomebaseSharingControl>
+          #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+              , pb::IBufferMessage
+          #endif
+          {
+            private static readonly pb::MessageParser<HomebaseSharingControl> _parser = new pb::MessageParser<HomebaseSharingControl>(() => new HomebaseSharingControl());
+            private pb::UnknownFieldSet _unknownFields;
+            private int _hasBits0;
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public static pb::MessageParser<HomebaseSharingControl> Parser { get { return _parser; } }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public static pbr::MessageDescriptor Descriptor {
+              get { return global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Descriptor.NestedTypes[5]; }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            pbr::MessageDescriptor pb::IMessage.Descriptor {
+              get { return Descriptor; }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public HomebaseSharingControl() {
+              OnConstruction();
+            }
+
+            partial void OnConstruction();
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public HomebaseSharingControl(HomebaseSharingControl other) : this() {
+              _hasBits0 = other._hasBits0;
+              protocolVersion_ = other.protocolVersion_;
+              operation_ = other.operation_;
+              reason_ = other.reason_;
+              authorizationEpochID_ = other.authorizationEpochID_;
+              messageLimit_ = other.messageLimit_;
+              _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public HomebaseSharingControl Clone() {
+              return new HomebaseSharingControl(this);
+            }
+
+            /// <summary>Field number for the "protocolVersion" field.</summary>
+            public const int ProtocolVersionFieldNumber = 1;
+            private readonly static uint ProtocolVersionDefaultValue = 0;
+
+            private uint protocolVersion_;
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public uint ProtocolVersion {
+              get { if ((_hasBits0 & 1) != 0) { return protocolVersion_; } else { return ProtocolVersionDefaultValue; } }
+              set {
+                _hasBits0 |= 1;
+                protocolVersion_ = value;
+              }
+            }
+            /// <summary>Gets whether the "protocolVersion" field is set</summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public bool HasProtocolVersion {
+              get { return (_hasBits0 & 1) != 0; }
+            }
+            /// <summary>Clears the value of the "protocolVersion" field</summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public void ClearProtocolVersion() {
+              _hasBits0 &= ~1;
+            }
+
+            /// <summary>Field number for the "operation" field.</summary>
+            public const int OperationFieldNumber = 2;
+            private readonly static global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl.Types.HomebaseSharingControlOperation OperationDefaultValue = global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl.Types.HomebaseSharingControlOperation.OperationUnspecified;
+
+            private global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl.Types.HomebaseSharingControlOperation operation_;
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl.Types.HomebaseSharingControlOperation Operation {
+              get { if ((_hasBits0 & 2) != 0) { return operation_; } else { return OperationDefaultValue; } }
+              set {
+                _hasBits0 |= 2;
+                operation_ = value;
+              }
+            }
+            /// <summary>Gets whether the "operation" field is set</summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public bool HasOperation {
+              get { return (_hasBits0 & 2) != 0; }
+            }
+            /// <summary>Clears the value of the "operation" field</summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public void ClearOperation() {
+              _hasBits0 &= ~2;
+            }
+
+            /// <summary>Field number for the "reason" field.</summary>
+            public const int ReasonFieldNumber = 3;
+            private readonly static global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl.Types.HomebaseSharingControlReason ReasonDefaultValue = global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl.Types.HomebaseSharingControlReason.ReasonUnspecified;
+
+            private global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl.Types.HomebaseSharingControlReason reason_;
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl.Types.HomebaseSharingControlReason Reason {
+              get { if ((_hasBits0 & 4) != 0) { return reason_; } else { return ReasonDefaultValue; } }
+              set {
+                _hasBits0 |= 4;
+                reason_ = value;
+              }
+            }
+            /// <summary>Gets whether the "reason" field is set</summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public bool HasReason {
+              get { return (_hasBits0 & 4) != 0; }
+            }
+            /// <summary>Clears the value of the "reason" field</summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public void ClearReason() {
+              _hasBits0 &= ~4;
+            }
+
+            /// <summary>Field number for the "authorizationEpochID" field.</summary>
+            public const int AuthorizationEpochIDFieldNumber = 4;
+            private readonly static string AuthorizationEpochIDDefaultValue = "";
+
+            private string authorizationEpochID_;
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public string AuthorizationEpochID {
+              get { return authorizationEpochID_ ?? AuthorizationEpochIDDefaultValue; }
+              set {
+                authorizationEpochID_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+              }
+            }
+            /// <summary>Gets whether the "authorizationEpochID" field is set</summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public bool HasAuthorizationEpochID {
+              get { return authorizationEpochID_ != null; }
+            }
+            /// <summary>Clears the value of the "authorizationEpochID" field</summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public void ClearAuthorizationEpochID() {
+              authorizationEpochID_ = null;
+            }
+
+            /// <summary>Field number for the "messageLimit" field.</summary>
+            public const int MessageLimitFieldNumber = 5;
+            private readonly static uint MessageLimitDefaultValue = 0;
+
+            private uint messageLimit_;
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public uint MessageLimit {
+              get { if ((_hasBits0 & 8) != 0) { return messageLimit_; } else { return MessageLimitDefaultValue; } }
+              set {
+                _hasBits0 |= 8;
+                messageLimit_ = value;
+              }
+            }
+            /// <summary>Gets whether the "messageLimit" field is set</summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public bool HasMessageLimit {
+              get { return (_hasBits0 & 8) != 0; }
+            }
+            /// <summary>Clears the value of the "messageLimit" field</summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public void ClearMessageLimit() {
+              _hasBits0 &= ~8;
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public override bool Equals(object other) {
+              return Equals(other as HomebaseSharingControl);
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public bool Equals(HomebaseSharingControl other) {
+              if (ReferenceEquals(other, null)) {
+                return false;
+              }
+              if (ReferenceEquals(other, this)) {
+                return true;
+              }
+              if (ProtocolVersion != other.ProtocolVersion) return false;
+              if (Operation != other.Operation) return false;
+              if (Reason != other.Reason) return false;
+              if (AuthorizationEpochID != other.AuthorizationEpochID) return false;
+              if (MessageLimit != other.MessageLimit) return false;
+              return Equals(_unknownFields, other._unknownFields);
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public override int GetHashCode() {
+              int hash = 1;
+              if (HasProtocolVersion) hash ^= ProtocolVersion.GetHashCode();
+              if (HasOperation) hash ^= Operation.GetHashCode();
+              if (HasReason) hash ^= Reason.GetHashCode();
+              if (HasAuthorizationEpochID) hash ^= AuthorizationEpochID.GetHashCode();
+              if (HasMessageLimit) hash ^= MessageLimit.GetHashCode();
+              if (_unknownFields != null) {
+                hash ^= _unknownFields.GetHashCode();
+              }
+              return hash;
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public override string ToString() {
+              return pb::JsonFormatter.ToDiagnosticString(this);
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public void WriteTo(pb::CodedOutputStream output) {
+            #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+              output.WriteRawMessage(this);
+            #else
+              if (HasProtocolVersion) {
+                output.WriteRawTag(8);
+                output.WriteUInt32(ProtocolVersion);
+              }
+              if (HasOperation) {
+                output.WriteRawTag(16);
+                output.WriteEnum((int) Operation);
+              }
+              if (HasReason) {
+                output.WriteRawTag(24);
+                output.WriteEnum((int) Reason);
+              }
+              if (HasAuthorizationEpochID) {
+                output.WriteRawTag(34);
+                output.WriteString(AuthorizationEpochID);
+              }
+              if (HasMessageLimit) {
+                output.WriteRawTag(40);
+                output.WriteUInt32(MessageLimit);
+              }
+              if (_unknownFields != null) {
+                _unknownFields.WriteTo(output);
+              }
+            #endif
+            }
+
+            #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+              if (HasProtocolVersion) {
+                output.WriteRawTag(8);
+                output.WriteUInt32(ProtocolVersion);
+              }
+              if (HasOperation) {
+                output.WriteRawTag(16);
+                output.WriteEnum((int) Operation);
+              }
+              if (HasReason) {
+                output.WriteRawTag(24);
+                output.WriteEnum((int) Reason);
+              }
+              if (HasAuthorizationEpochID) {
+                output.WriteRawTag(34);
+                output.WriteString(AuthorizationEpochID);
+              }
+              if (HasMessageLimit) {
+                output.WriteRawTag(40);
+                output.WriteUInt32(MessageLimit);
+              }
+              if (_unknownFields != null) {
+                _unknownFields.WriteTo(ref output);
+              }
+            }
+            #endif
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public int CalculateSize() {
+              int size = 0;
+              if (HasProtocolVersion) {
+                size += 1 + pb::CodedOutputStream.ComputeUInt32Size(ProtocolVersion);
+              }
+              if (HasOperation) {
+                size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Operation);
+              }
+              if (HasReason) {
+                size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Reason);
+              }
+              if (HasAuthorizationEpochID) {
+                size += 1 + pb::CodedOutputStream.ComputeStringSize(AuthorizationEpochID);
+              }
+              if (HasMessageLimit) {
+                size += 1 + pb::CodedOutputStream.ComputeUInt32Size(MessageLimit);
+              }
+              if (_unknownFields != null) {
+                size += _unknownFields.CalculateSize();
+              }
+              return size;
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public void MergeFrom(HomebaseSharingControl other) {
+              if (other == null) {
+                return;
+              }
+              if (other.HasProtocolVersion) {
+                ProtocolVersion = other.ProtocolVersion;
+              }
+              if (other.HasOperation) {
+                Operation = other.Operation;
+              }
+              if (other.HasReason) {
+                Reason = other.Reason;
+              }
+              if (other.HasAuthorizationEpochID) {
+                AuthorizationEpochID = other.AuthorizationEpochID;
+              }
+              if (other.HasMessageLimit) {
+                MessageLimit = other.MessageLimit;
+              }
+              _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public void MergeFrom(pb::CodedInputStream input) {
+            #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+              input.ReadRawMessage(this);
+            #else
+              uint tag;
+              while ((tag = input.ReadTag()) != 0) {
+              if ((tag & 7) == 4) {
+                // Abort on any end group tag.
+                return;
+              }
+              switch(tag) {
+                  default:
+                    _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+                    break;
+                  case 8: {
+                    ProtocolVersion = input.ReadUInt32();
+                    break;
+                  }
+                  case 16: {
+                    Operation = (global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl.Types.HomebaseSharingControlOperation) input.ReadEnum();
+                    break;
+                  }
+                  case 24: {
+                    Reason = (global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl.Types.HomebaseSharingControlReason) input.ReadEnum();
+                    break;
+                  }
+                  case 34: {
+                    AuthorizationEpochID = input.ReadString();
+                    break;
+                  }
+                  case 40: {
+                    MessageLimit = input.ReadUInt32();
+                    break;
+                  }
+                }
+              }
+            #endif
+            }
+
+            #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+              uint tag;
+              while ((tag = input.ReadTag()) != 0) {
+              if ((tag & 7) == 4) {
+                // Abort on any end group tag.
+                return;
+              }
+              switch(tag) {
+                  default:
+                    _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+                    break;
+                  case 8: {
+                    ProtocolVersion = input.ReadUInt32();
+                    break;
+                  }
+                  case 16: {
+                    Operation = (global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl.Types.HomebaseSharingControlOperation) input.ReadEnum();
+                    break;
+                  }
+                  case 24: {
+                    Reason = (global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Types.HomebaseSharingControl.Types.HomebaseSharingControlReason) input.ReadEnum();
+                    break;
+                  }
+                  case 34: {
+                    AuthorizationEpochID = input.ReadString();
+                    break;
+                  }
+                  case 40: {
+                    MessageLimit = input.ReadUInt32();
+                    break;
+                  }
+                }
+              }
+            }
+            #endif
+
+            #region Nested types
+            /// <summary>Container for nested types declared in the HomebaseSharingControl message type.</summary>
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+            [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+            public static partial class Types {
+              public enum HomebaseSharingControlReason {
+                [pbr::OriginalName("REASON_UNSPECIFIED")] ReasonUnspecified = 0,
+                [pbr::OriginalName("AUTHORIZE_NEWLY_ENABLED")] AuthorizeNewlyEnabled = 1,
+                [pbr::OriginalName("AUTHORIZE_REAUTHORIZED")] AuthorizeReauthorized = 2,
+                [pbr::OriginalName("REVOKE_USER_REQUESTED")] RevokeUserRequested = 3,
+                [pbr::OriginalName("REVOKE_STATE_LOST")] RevokeStateLost = 4,
+                [pbr::OriginalName("REVOKE_DISAPPEARING_MESSAGES_ENABLED")] RevokeDisappearingMessagesEnabled = 5,
+                [pbr::OriginalName("REVOKE_MESSAGE_SHARING_PERMISSIONS_DISABLED")] RevokeMessageSharingPermissionsDisabled = 6,
+                [pbr::OriginalName("REVOKE_FEATURE_TURNED_OFF")] RevokeFeatureTurnedOff = 7,
+              }
+
+              public enum HomebaseSharingControlOperation {
+                [pbr::OriginalName("OPERATION_UNSPECIFIED")] OperationUnspecified = 0,
+                [pbr::OriginalName("AUTHORIZE")] Authorize = 1,
+                [pbr::OriginalName("REVOKE")] Revoke = 2,
+              }
+
+            }
+            #endregion
+
+          }
+
+          [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
           public sealed partial class ScreenshotAction : pb::IMessage<ScreenshotAction>
           #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
               , pb::IBufferMessage
@@ -9101,7 +9622,7 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
             public static pbr::MessageDescriptor Descriptor {
-              get { return global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Descriptor.NestedTypes[5]; }
+              get { return global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Descriptor.NestedTypes[6]; }
             }
 
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9328,7 +9849,7 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
             public static pbr::MessageDescriptor Descriptor {
-              get { return global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Descriptor.NestedTypes[6]; }
+              get { return global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Descriptor.NestedTypes[7]; }
             }
 
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9740,7 +10261,7 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
             public static pbr::MessageDescriptor Descriptor {
-              get { return global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Descriptor.NestedTypes[7]; }
+              get { return global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Descriptor.NestedTypes[8]; }
             }
 
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10067,7 +10588,7 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
             public static pbr::MessageDescriptor Descriptor {
-              get { return global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Descriptor.NestedTypes[8]; }
+              get { return global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Descriptor.NestedTypes[9]; }
             }
 
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10429,7 +10950,7 @@ namespace Whatsmeow.Proto.WAArmadilloApplication {
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
             [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
             public static pbr::MessageDescriptor Descriptor {
-              get { return global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Descriptor.NestedTypes[9]; }
+              get { return global::Whatsmeow.Proto.WAArmadilloApplication.Armadillo.Types.Content.Descriptor.NestedTypes[10]; }
             }
 
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

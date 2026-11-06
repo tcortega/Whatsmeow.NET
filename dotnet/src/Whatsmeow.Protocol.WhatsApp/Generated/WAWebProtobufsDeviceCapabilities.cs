@@ -26,7 +26,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
           string.Concat(
             "Cjt3YURldmljZUNhcGFiaWxpdGllcy9XQVdlYlByb3RvYnVmc0RldmljZUNh",
             "cGFiaWxpdGllcy5wcm90bxIgV0FXZWJQcm90b2J1ZnNEZXZpY2VDYXBhYmls",
-            "aXRpZXMi2xYKEkRldmljZUNhcGFiaWxpdGllcxJ9ChRjaGF0TG9ja1N1cHBv",
+            "aXRpZXMihBgKEkRldmljZUNhcGFiaWxpdGllcxJ9ChRjaGF0TG9ja1N1cHBv",
             "cnRMZXZlbBgBIAEoDjJJLldBV2ViUHJvdG9idWZzRGV2aWNlQ2FwYWJpbGl0",
             "aWVzLkRldmljZUNhcGFiaWxpdGllcy5DaGF0TG9ja1N1cHBvcnRMZXZlbFIU",
             "Y2hhdExvY2tTdXBwb3J0TGV2ZWwSZQoMbGlkTWlncmF0aW9uGAIgASgLMkEu",
@@ -58,51 +58,56 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
             "dGVyQ2hhdHNNaWdyYXRpb24SiQEKGGhvc3RXcml0ZU11dGF0aW9uU3VwcG9y",
             "dBgMIAEoCzJNLldBV2ViUHJvdG9idWZzRGV2aWNlQ2FwYWJpbGl0aWVzLkRl",
             "dmljZUNhcGFiaWxpdGllcy5Ib3N0V3JpdGVNdXRhdGlvblN1cHBvcnRSGGhv",
-            "c3RXcml0ZU11dGF0aW9uU3VwcG9ydBq+AQoSUmV2ZXJzZUhpc3RvcnlTeW5j",
-            "EnkKD2VuYWJsZWRQcm9kdWN0cxgBIAMoDjJPLldBV2ViUHJvdG9idWZzRGV2",
-            "aWNlQ2FwYWJpbGl0aWVzLkRldmljZUNhcGFiaWxpdGllcy5SZXZlcnNlSGlz",
-            "dG9yeVN5bmMuUHJvZHVjdFIPZW5hYmxlZFByb2R1Y3RzIi0KB1Byb2R1Y3QS",
-            "FwoTUFJPRFVDVF9VTlNQRUNJRklFRBAAEgkKBUhBVENIEAEaqQEKCEFpVGhy",
-            "ZWFkEm4KDHN1cHBvcnRMZXZlbBgBIAEoDjJKLldBV2ViUHJvdG9idWZzRGV2",
-            "aWNlQ2FwYWJpbGl0aWVzLkRldmljZUNhcGFiaWxpdGllcy5BaVRocmVhZC5T",
-            "dXBwb3J0TGV2ZWxSDHN1cHBvcnRMZXZlbCItCgxTdXBwb3J0TGV2ZWwSCAoE",
-            "Tk9ORRAAEgkKBUlORlJBEAESCAoERlVMTBACGkAKGEhvc3RXcml0ZU11dGF0",
-            "aW9uU3VwcG9ydBIkCg1tdXRhdGlvbk5hbWVzGAEgAygJUg1tdXRhdGlvbk5h",
-            "bWVzGpIBChhOZXdzbGV0dGVyQ2hhdHNNaWdyYXRpb24SLAoRZWZmZWN0aXZl",
-            "TWlncmF0ZWQYASABKAhSEWVmZmVjdGl2ZU1pZ3JhdGVkEigKD2NvdW50ZG93",
-            "bkVuZHNBdBgCIAEoA1IPY291bnRkb3duRW5kc0F0Eh4KCnJvbGxlZEJhY2sY",
-            "AyABKAhSCnJvbGxlZEJhY2saPAoOQ29udGFjdFJlZnJlc2gSKgoQcmVmcmVz",
-            "aFN1cHBvcnRlZBgBIAEoCFIQcmVmcmVzaFN1cHBvcnRlZBpVChFCaXpBaVNl",
-            "dHRpbmdzU3luYxJAChtoYW5kb2ZmUmVtb3ZhbFRpbWluZ0VuYWJsZWQYASAB",
-            "KAhSG2hhbmRvZmZSZW1vdmFsVGltaW5nRW5hYmxlZBp1Cg9BaUZiaWRNaWdy",
-            "YXRpb24SOgoYY2hhdERiTWlncmF0aW9uVGltZXN0YW1wGAEgASgEUhhjaGF0",
-            "RGJNaWdyYXRpb25UaW1lc3RhbXASJgoOc3VwcG9ydFZlcnNpb24YAiABKA1S",
-            "DnN1cHBvcnRWZXJzaW9uGjUKDVVzZXJIYXNBdmF0YXISJAoNdXNlckhhc0F2",
-            "YXRhchgBIAEoCFINdXNlckhhc0F2YXRhchrHAgoRQnVzaW5lc3NCcm9hZGNh",
-            "c3QSLAoRaW1wb3J0TGlzdEVuYWJsZWQYASABKAhSEWltcG9ydExpc3RFbmFi",
-            "bGVkEjgKF2NvbXBhbmlvblN1cHBvcnRFbmFibGVkGAIgASgIUhdjb21wYW5p",
-            "b25TdXBwb3J0RW5hYmxlZBIwChNjYW1wYWlnblN5bmNFbmFibGVkGAMgASgI",
-            "UhNjYW1wYWlnblN5bmNFbmFibGVkEjAKE2luc2lnaHRzU3luY0VuYWJsZWQY",
-            "BCABKAhSE2luc2lnaHRzU3luY0VuYWJsZWQSJgoOcmVjaXBpZW50TGltaXQY",
-            "BSABKAVSDnJlY2lwaWVudExpbWl0Ej4KGnByb0NvbXBhbmlvblN1cHBvcnRF",
-            "bmFibGVkGAYgASgIUhpwcm9Db21wYW5pb25TdXBwb3J0RW5hYmxlZBpKCgxM",
-            "SURNaWdyYXRpb24SOgoYY2hhdERiTWlncmF0aW9uVGltZXN0YW1wGAEgASgE",
-            "UhhjaGF0RGJNaWdyYXRpb25UaW1lc3RhbXAiVQobTWVtYmVyTmFtZVRhZ1By",
-            "aW1hcnlTdXBwb3J0EgwKCERJU0FCTEVEEAASFAoQUkVDRUlWRVJfRU5BQkxF",
-            "RBABEhIKDlNFTkRFUl9FTkFCTEVEEAIiNwoUQ2hhdExvY2tTdXBwb3J0TGV2",
-            "ZWwSCAoETk9ORRAAEgsKB01JTklNQUwQARIICgRGVUxMEAJCrQIKJGNvbS5X",
-            "QVdlYlByb3RvYnVmc0RldmljZUNhcGFiaWxpdGllc0IlV0FXZWJQcm90b2J1",
-            "ZnNEZXZpY2VDYXBhYmlsaXRpZXNQcm90b1ABWi5nby5tYXUuZmkvd2hhdHNt",
-            "ZW93L3Byb3RvL3dhRGV2aWNlQ2FwYWJpbGl0aWVzogIDV1hYqgIwV2hhdHNt",
-            "ZW93LlByb3RvLldBV2ViUHJvdG9idWZzRGV2aWNlQ2FwYWJpbGl0aWVzygIg",
-            "V0FXZWJQcm90b2J1ZnNEZXZpY2VDYXBhYmlsaXRpZXPiAixXQVdlYlByb3Rv",
-            "YnVmc0RldmljZUNhcGFiaWxpdGllc1xHUEJNZXRhZGF0YeoCIFdBV2ViUHJv",
-            "dG9idWZzRGV2aWNlQ2FwYWJpbGl0aWVz"));
+            "c3RXcml0ZU11dGF0aW9uU3VwcG9ydBJ3ChJiaXpBaVdlYk9uYm9hcmRpbmcY",
+            "DSABKAsyRy5XQVdlYlByb3RvYnVmc0RldmljZUNhcGFiaWxpdGllcy5EZXZp",
+            "Y2VDYXBhYmlsaXRpZXMuQml6QWlXZWJPbmJvYXJkaW5nUhJiaXpBaVdlYk9u",
+            "Ym9hcmRpbmcavgEKElJldmVyc2VIaXN0b3J5U3luYxJ5Cg9lbmFibGVkUHJv",
+            "ZHVjdHMYASADKA4yTy5XQVdlYlByb3RvYnVmc0RldmljZUNhcGFiaWxpdGll",
+            "cy5EZXZpY2VDYXBhYmlsaXRpZXMuUmV2ZXJzZUhpc3RvcnlTeW5jLlByb2R1",
+            "Y3RSD2VuYWJsZWRQcm9kdWN0cyItCgdQcm9kdWN0EhcKE1BST0RVQ1RfVU5T",
+            "UEVDSUZJRUQQABIJCgVIQVRDSBABGqkBCghBaVRocmVhZBJuCgxzdXBwb3J0",
+            "TGV2ZWwYASABKA4ySi5XQVdlYlByb3RvYnVmc0RldmljZUNhcGFiaWxpdGll",
+            "cy5EZXZpY2VDYXBhYmlsaXRpZXMuQWlUaHJlYWQuU3VwcG9ydExldmVsUgxz",
+            "dXBwb3J0TGV2ZWwiLQoMU3VwcG9ydExldmVsEggKBE5PTkUQABIJCgVJTkZS",
+            "QRABEggKBEZVTEwQAhouChJCaXpBaVdlYk9uYm9hcmRpbmcSGAoHdmVyc2lv",
+            "bhgBIAEoDVIHdmVyc2lvbhpAChhIb3N0V3JpdGVNdXRhdGlvblN1cHBvcnQS",
+            "JAoNbXV0YXRpb25OYW1lcxgBIAMoCVINbXV0YXRpb25OYW1lcxqSAQoYTmV3",
+            "c2xldHRlckNoYXRzTWlncmF0aW9uEiwKEWVmZmVjdGl2ZU1pZ3JhdGVkGAEg",
+            "ASgIUhFlZmZlY3RpdmVNaWdyYXRlZBIoCg9jb3VudGRvd25FbmRzQXQYAiAB",
+            "KANSD2NvdW50ZG93bkVuZHNBdBIeCgpyb2xsZWRCYWNrGAMgASgIUgpyb2xs",
+            "ZWRCYWNrGjwKDkNvbnRhY3RSZWZyZXNoEioKEHJlZnJlc2hTdXBwb3J0ZWQY",
+            "ASABKAhSEHJlZnJlc2hTdXBwb3J0ZWQaVQoRQml6QWlTZXR0aW5nc1N5bmMS",
+            "QAobaGFuZG9mZlJlbW92YWxUaW1pbmdFbmFibGVkGAEgASgIUhtoYW5kb2Zm",
+            "UmVtb3ZhbFRpbWluZ0VuYWJsZWQadQoPQWlGYmlkTWlncmF0aW9uEjoKGGNo",
+            "YXREYk1pZ3JhdGlvblRpbWVzdGFtcBgBIAEoBFIYY2hhdERiTWlncmF0aW9u",
+            "VGltZXN0YW1wEiYKDnN1cHBvcnRWZXJzaW9uGAIgASgNUg5zdXBwb3J0VmVy",
+            "c2lvbho1Cg1Vc2VySGFzQXZhdGFyEiQKDXVzZXJIYXNBdmF0YXIYASABKAhS",
+            "DXVzZXJIYXNBdmF0YXIaxwIKEUJ1c2luZXNzQnJvYWRjYXN0EiwKEWltcG9y",
+            "dExpc3RFbmFibGVkGAEgASgIUhFpbXBvcnRMaXN0RW5hYmxlZBI4Chdjb21w",
+            "YW5pb25TdXBwb3J0RW5hYmxlZBgCIAEoCFIXY29tcGFuaW9uU3VwcG9ydEVu",
+            "YWJsZWQSMAoTY2FtcGFpZ25TeW5jRW5hYmxlZBgDIAEoCFITY2FtcGFpZ25T",
+            "eW5jRW5hYmxlZBIwChNpbnNpZ2h0c1N5bmNFbmFibGVkGAQgASgIUhNpbnNp",
+            "Z2h0c1N5bmNFbmFibGVkEiYKDnJlY2lwaWVudExpbWl0GAUgASgFUg5yZWNp",
+            "cGllbnRMaW1pdBI+Chpwcm9Db21wYW5pb25TdXBwb3J0RW5hYmxlZBgGIAEo",
+            "CFIacHJvQ29tcGFuaW9uU3VwcG9ydEVuYWJsZWQaSgoMTElETWlncmF0aW9u",
+            "EjoKGGNoYXREYk1pZ3JhdGlvblRpbWVzdGFtcBgBIAEoBFIYY2hhdERiTWln",
+            "cmF0aW9uVGltZXN0YW1wIlUKG01lbWJlck5hbWVUYWdQcmltYXJ5U3VwcG9y",
+            "dBIMCghESVNBQkxFRBAAEhQKEFJFQ0VJVkVSX0VOQUJMRUQQARISCg5TRU5E",
+            "RVJfRU5BQkxFRBACIjcKFENoYXRMb2NrU3VwcG9ydExldmVsEggKBE5PTkUQ",
+            "ABILCgdNSU5JTUFMEAESCAoERlVMTBACQq0CCiRjb20uV0FXZWJQcm90b2J1",
+            "ZnNEZXZpY2VDYXBhYmlsaXRpZXNCJVdBV2ViUHJvdG9idWZzRGV2aWNlQ2Fw",
+            "YWJpbGl0aWVzUHJvdG9QAVouZ28ubWF1LmZpL3doYXRzbWVvdy9wcm90by93",
+            "YURldmljZUNhcGFiaWxpdGllc6ICA1dYWKoCMFdoYXRzbWVvdy5Qcm90by5X",
+            "QVdlYlByb3RvYnVmc0RldmljZUNhcGFiaWxpdGllc8oCIFdBV2ViUHJvdG9i",
+            "dWZzRGV2aWNlQ2FwYWJpbGl0aWVz4gIsV0FXZWJQcm90b2J1ZnNEZXZpY2VD",
+            "YXBhYmlsaXRpZXNcR1BCTWV0YWRhdGHqAiBXQVdlYlByb3RvYnVmc0Rldmlj",
+            "ZUNhcGFiaWxpdGllcw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities), global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Parser, new[]{ "ChatLockSupportLevel", "LidMigration", "BusinessBroadcast", "UserHasAvatar", "MemberNameTagPrimarySupport", "AiThread", "AiFbidMigration", "BizAiSettingsSync", "ContactRefresh", "ReverseHistorySync", "NewsletterChatsMigration", "HostWriteMutationSupport" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.MemberNameTagPrimarySupport), typeof(global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.ChatLockSupportLevel) }, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.ReverseHistorySync), global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.ReverseHistorySync.Parser, new[]{ "EnabledProducts" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.ReverseHistorySync.Types.Product) }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities), global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Parser, new[]{ "ChatLockSupportLevel", "LidMigration", "BusinessBroadcast", "UserHasAvatar", "MemberNameTagPrimarySupport", "AiThread", "AiFbidMigration", "BizAiSettingsSync", "ContactRefresh", "ReverseHistorySync", "NewsletterChatsMigration", "HostWriteMutationSupport", "BizAiWebOnboarding" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.MemberNameTagPrimarySupport), typeof(global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.ChatLockSupportLevel) }, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.ReverseHistorySync), global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.ReverseHistorySync.Parser, new[]{ "EnabledProducts" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.ReverseHistorySync.Types.Product) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.AiThread), global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.AiThread.Parser, new[]{ "SupportLevel" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.AiThread.Types.SupportLevel) }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.BizAiWebOnboarding), global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.BizAiWebOnboarding.Parser, new[]{ "Version" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.HostWriteMutationSupport), global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.HostWriteMutationSupport.Parser, new[]{ "MutationNames" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.NewsletterChatsMigration), global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.NewsletterChatsMigration.Parser, new[]{ "EffectiveMigrated", "CountdownEndsAt", "RolledBack" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.ContactRefresh), global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.ContactRefresh.Parser, new[]{ "RefreshSupported" }, null, null, null, null),
@@ -166,6 +171,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
       reverseHistorySync_ = other.reverseHistorySync_ != null ? other.reverseHistorySync_.Clone() : null;
       newsletterChatsMigration_ = other.newsletterChatsMigration_ != null ? other.newsletterChatsMigration_.Clone() : null;
       hostWriteMutationSupport_ = other.hostWriteMutationSupport_ != null ? other.hostWriteMutationSupport_.Clone() : null;
+      bizAiWebOnboarding_ = other.bizAiWebOnboarding_ != null ? other.bizAiWebOnboarding_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -349,6 +355,18 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
       }
     }
 
+    /// <summary>Field number for the "bizAiWebOnboarding" field.</summary>
+    public const int BizAiWebOnboardingFieldNumber = 13;
+    private global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.BizAiWebOnboarding bizAiWebOnboarding_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.BizAiWebOnboarding BizAiWebOnboarding {
+      get { return bizAiWebOnboarding_; }
+      set {
+        bizAiWebOnboarding_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -376,6 +394,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
       if (!object.Equals(ReverseHistorySync, other.ReverseHistorySync)) return false;
       if (!object.Equals(NewsletterChatsMigration, other.NewsletterChatsMigration)) return false;
       if (!object.Equals(HostWriteMutationSupport, other.HostWriteMutationSupport)) return false;
+      if (!object.Equals(BizAiWebOnboarding, other.BizAiWebOnboarding)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -395,6 +414,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
       if (reverseHistorySync_ != null) hash ^= ReverseHistorySync.GetHashCode();
       if (newsletterChatsMigration_ != null) hash ^= NewsletterChatsMigration.GetHashCode();
       if (hostWriteMutationSupport_ != null) hash ^= HostWriteMutationSupport.GetHashCode();
+      if (bizAiWebOnboarding_ != null) hash ^= BizAiWebOnboarding.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -461,6 +481,10 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
         output.WriteRawTag(98);
         output.WriteMessage(HostWriteMutationSupport);
       }
+      if (bizAiWebOnboarding_ != null) {
+        output.WriteRawTag(106);
+        output.WriteMessage(BizAiWebOnboarding);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -519,6 +543,10 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
         output.WriteRawTag(98);
         output.WriteMessage(HostWriteMutationSupport);
       }
+      if (bizAiWebOnboarding_ != null) {
+        output.WriteRawTag(106);
+        output.WriteMessage(BizAiWebOnboarding);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -564,6 +592,9 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
       }
       if (hostWriteMutationSupport_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(HostWriteMutationSupport);
+      }
+      if (bizAiWebOnboarding_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(BizAiWebOnboarding);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -642,6 +673,12 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
           HostWriteMutationSupport = new global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.HostWriteMutationSupport();
         }
         HostWriteMutationSupport.MergeFrom(other.HostWriteMutationSupport);
+      }
+      if (other.bizAiWebOnboarding_ != null) {
+        if (bizAiWebOnboarding_ == null) {
+          BizAiWebOnboarding = new global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.BizAiWebOnboarding();
+        }
+        BizAiWebOnboarding.MergeFrom(other.BizAiWebOnboarding);
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -740,6 +777,13 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
             input.ReadMessage(HostWriteMutationSupport);
             break;
           }
+          case 106: {
+            if (bizAiWebOnboarding_ == null) {
+              BizAiWebOnboarding = new global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.BizAiWebOnboarding();
+            }
+            input.ReadMessage(BizAiWebOnboarding);
+            break;
+          }
         }
       }
     #endif
@@ -835,6 +879,13 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
               HostWriteMutationSupport = new global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.HostWriteMutationSupport();
             }
             input.ReadMessage(HostWriteMutationSupport);
+            break;
+          }
+          case 106: {
+            if (bizAiWebOnboarding_ == null) {
+              BizAiWebOnboarding = new global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Types.BizAiWebOnboarding();
+            }
+            input.ReadMessage(BizAiWebOnboarding);
             break;
           }
         }
@@ -1291,6 +1342,221 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
       }
 
       [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+      public sealed partial class BizAiWebOnboarding : pb::IMessage<BizAiWebOnboarding>
+      #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+          , pb::IBufferMessage
+      #endif
+      {
+        private static readonly pb::MessageParser<BizAiWebOnboarding> _parser = new pb::MessageParser<BizAiWebOnboarding>(() => new BizAiWebOnboarding());
+        private pb::UnknownFieldSet _unknownFields;
+        private int _hasBits0;
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public static pb::MessageParser<BizAiWebOnboarding> Parser { get { return _parser; } }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public static pbr::MessageDescriptor Descriptor {
+          get { return global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Descriptor.NestedTypes[2]; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        pbr::MessageDescriptor pb::IMessage.Descriptor {
+          get { return Descriptor; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public BizAiWebOnboarding() {
+          OnConstruction();
+        }
+
+        partial void OnConstruction();
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public BizAiWebOnboarding(BizAiWebOnboarding other) : this() {
+          _hasBits0 = other._hasBits0;
+          version_ = other.version_;
+          _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public BizAiWebOnboarding Clone() {
+          return new BizAiWebOnboarding(this);
+        }
+
+        /// <summary>Field number for the "version" field.</summary>
+        public const int VersionFieldNumber = 1;
+        private readonly static uint VersionDefaultValue = 0;
+
+        private uint version_;
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public uint Version {
+          get { if ((_hasBits0 & 1) != 0) { return version_; } else { return VersionDefaultValue; } }
+          set {
+            _hasBits0 |= 1;
+            version_ = value;
+          }
+        }
+        /// <summary>Gets whether the "version" field is set</summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public bool HasVersion {
+          get { return (_hasBits0 & 1) != 0; }
+        }
+        /// <summary>Clears the value of the "version" field</summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public void ClearVersion() {
+          _hasBits0 &= ~1;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public override bool Equals(object other) {
+          return Equals(other as BizAiWebOnboarding);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public bool Equals(BizAiWebOnboarding other) {
+          if (ReferenceEquals(other, null)) {
+            return false;
+          }
+          if (ReferenceEquals(other, this)) {
+            return true;
+          }
+          if (Version != other.Version) return false;
+          return Equals(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public override int GetHashCode() {
+          int hash = 1;
+          if (HasVersion) hash ^= Version.GetHashCode();
+          if (_unknownFields != null) {
+            hash ^= _unknownFields.GetHashCode();
+          }
+          return hash;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public override string ToString() {
+          return pb::JsonFormatter.ToDiagnosticString(this);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public void WriteTo(pb::CodedOutputStream output) {
+        #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+          output.WriteRawMessage(this);
+        #else
+          if (HasVersion) {
+            output.WriteRawTag(8);
+            output.WriteUInt32(Version);
+          }
+          if (_unknownFields != null) {
+            _unknownFields.WriteTo(output);
+          }
+        #endif
+        }
+
+        #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+          if (HasVersion) {
+            output.WriteRawTag(8);
+            output.WriteUInt32(Version);
+          }
+          if (_unknownFields != null) {
+            _unknownFields.WriteTo(ref output);
+          }
+        }
+        #endif
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public int CalculateSize() {
+          int size = 0;
+          if (HasVersion) {
+            size += 1 + pb::CodedOutputStream.ComputeUInt32Size(Version);
+          }
+          if (_unknownFields != null) {
+            size += _unknownFields.CalculateSize();
+          }
+          return size;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public void MergeFrom(BizAiWebOnboarding other) {
+          if (other == null) {
+            return;
+          }
+          if (other.HasVersion) {
+            Version = other.Version;
+          }
+          _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public void MergeFrom(pb::CodedInputStream input) {
+        #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+          input.ReadRawMessage(this);
+        #else
+          uint tag;
+          while ((tag = input.ReadTag()) != 0) {
+          if ((tag & 7) == 4) {
+            // Abort on any end group tag.
+            return;
+          }
+          switch(tag) {
+              default:
+                _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+                break;
+              case 8: {
+                Version = input.ReadUInt32();
+                break;
+              }
+            }
+          }
+        #endif
+        }
+
+        #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+          uint tag;
+          while ((tag = input.ReadTag()) != 0) {
+          if ((tag & 7) == 4) {
+            // Abort on any end group tag.
+            return;
+          }
+          switch(tag) {
+              default:
+                _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+                break;
+              case 8: {
+                Version = input.ReadUInt32();
+                break;
+              }
+            }
+          }
+        }
+        #endif
+
+      }
+
+      [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
       public sealed partial class HostWriteMutationSupport : pb::IMessage<HostWriteMutationSupport>
       #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
           , pb::IBufferMessage
@@ -1305,7 +1571,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Descriptor.NestedTypes[2]; }
+          get { return global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Descriptor.NestedTypes[3]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1493,7 +1759,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Descriptor.NestedTypes[3]; }
+          get { return global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Descriptor.NestedTypes[4]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1812,7 +2078,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Descriptor.NestedTypes[4]; }
+          get { return global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Descriptor.NestedTypes[5]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2027,7 +2293,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Descriptor.NestedTypes[5]; }
+          get { return global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Descriptor.NestedTypes[6]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2242,7 +2508,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Descriptor.NestedTypes[6]; }
+          get { return global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Descriptor.NestedTypes[7]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2509,7 +2775,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Descriptor.NestedTypes[7]; }
+          get { return global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Descriptor.NestedTypes[8]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2724,7 +2990,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Descriptor.NestedTypes[8]; }
+          get { return global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Descriptor.NestedTypes[9]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3199,7 +3465,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Descriptor.NestedTypes[9]; }
+          get { return global::Whatsmeow.Proto.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.Descriptor.NestedTypes[10]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
