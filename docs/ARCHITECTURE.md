@@ -1144,6 +1144,14 @@ Only the first Alice-to-Bob batch overlapped Alice's history delivery; the rever
 Send-to-handler and send-to-echo timings, default history counts, sampled sidecar RSS and visible telemetry are recorded with their limits.
 The seven-day full-sync comparison, receipt-to-handler latency and capacity beyond two sessions remain [unknown]; these observations do not complete the Phase 3 exit.
 
+### History and live traffic timing (#42, 2026-11-06)
+
+[observed: the linked record] The [2026-11-06 record](evidence/0042-history-timing-2026-11-06.md) measures callback receipt to handler entry on a freshly paired session, in a diagnostic build at whatsmeow `56e5ad0581ce`.
+Of eight live runs, the last completed the measurement: 3 eligible samples with history pending, median 2.250 ms and maximum 2.446 ms, each handler entering before its history delivery ended, and 5 quiet ones, median 1.250 ms and maximum 10.616 ms.
+The failed runs are kept in it: two that recorded nothing, a first fresh pairing whose pending sends failed, and six on-demand history requests that brought no history.
+[inferred] Handlers for live messages ran while history was delivered instead of after it; no cause, threshold or behaviour at other volumes is claimed.
+Two pairings with a full sync limited to seven days delivered messages back to 2024-07-01; what the limit changed is [unknown].
+
 ### Licence audit (2026-10-31)
 
 Question 9, run outside the repo with Go 1.27.3 on macOS arm64, because `sidecar/` has no package until #4.
@@ -1169,7 +1177,7 @@ Question 9, run outside the repo with Go 1.27.3 on macOS arm64, because `sidecar
 | 3 | History sync, chat state, hosting package, telemetry, `Whatsmeow.Testing` | hosted sample with two sessions; history doesn't delay live traffic |
 | 4 | Native packages, Trusted Publishing, weekly bump, AOT smoke, PublicAPI baseline, External mode, docs | `dotnet add package` works on all target RIDs from nuget.org |
 
-Phase 3 remains open in [#42](https://github.com/tcortega/Whatsmeow.NET/issues/42); its [2026-11-05 live evidence](evidence/0042-hosted-sample-2026-11-05.md) is partial.
+Phase 3's exit is [#42](https://github.com/tcortega/Whatsmeow.NET/issues/42); its live evidence is the [2026-11-05](evidence/0042-hosted-sample-2026-11-05.md) and [2026-11-06](evidence/0042-history-timing-2026-11-06.md) records, the second with the audit against its acceptance criteria.
 
 ---
 
