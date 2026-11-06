@@ -748,8 +748,12 @@ public sealed class LiveHistoryBoundsTests(FakeSidecar fixture, SidecarBinaries 
 			/// <summary>When it is due, on the clock's monotonic time; null while it is off.</summary>
 			public TimeSpan? DueAt { get; private set; }
 
-			/// <summary>Runs the callback now, whatever the clock says.</summary>
-			public void Fire() => callback(state);
+			/// <summary>Runs the callback now, whatever the clock says: a one-shot timer that fired is off until changed again.</summary>
+			public void Fire()
+			{
+				DueAt = null;
+				callback(state);
+			}
 
 			public bool Change(TimeSpan dueTime, TimeSpan period)
 			{

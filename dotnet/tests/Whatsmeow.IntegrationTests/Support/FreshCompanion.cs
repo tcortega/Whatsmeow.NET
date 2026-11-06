@@ -143,7 +143,7 @@ internal sealed class FreshCompanion : IDisposable
 				{
 					FreshLogout.Verified => ((FreshEvent?)FreshEvent.LogoutVerified, (Exception?)null),
 					FreshLogout.LoggedOutExternally => (FreshEvent.LoggedOutExternally, new InvalidOperationException($"the fresh companion was logged out before its cleanup: {detail}")),
-					FreshLogout.LoggedOutNotDeleted => (null, new InvalidOperationException($"the fresh companion logged out on WhatsApp, then its check or delete failed, so its session stays: {detail}")),
+					FreshLogout.LoggedOutCleanupUnverified => (null, new InvalidOperationException($"the fresh companion's logout succeeded; the cleanup's later verification failed, so its session's deletion is not confirmed: {detail}")),
 					FreshLogout.Kept or _ => (null, new InvalidOperationException($"the fresh companion is kept, it may still be linked: {detail}")),
 				};
 				if (recorded is { } kind)
@@ -185,7 +185,8 @@ internal sealed class FreshCompanion : IDisposable
 	/// connects, from Connecting or Reconnecting it waits for Connected or CaughtUp, then it logs out, and deletes the
 	/// session only once it reads LoggedOut with code 0 after that logout. A session logged out already, any code, was
 	/// logged out by WhatsApp or the phone, not here: it is reported and kept, as is one that turns LoggedOut while the cleanup waits. Any other state, error or the bound keeps
-	/// the session and its keys; after a logout that succeeded, a failed check or delete is said as such.
+	/// the session and its keys; after a logout that succeeded, a failed later step leaves the deletion unconfirmed, and is
+	/// said as such.
 	/// </summary>
 	public async Task<(FreshLogout Logout, string Detail)> LogoutAsync()
 	{
@@ -216,12 +217,12 @@ internal sealed class FreshCompanion : IDisposable
 			loggedOut = true;
 			var after = await SessionSetup.StateAsync(Client, bound.Token).ConfigureAwait(false);
 			if (after != new SessionState.LoggedOut { Code = 0 })
-				return (FreshLogout.LoggedOutNotDeleted, $"{after.GetType().Name} after the logout, not LoggedOut 0");
+				return (FreshLogout.LoggedOutCleanupUnverified, $"{after.GetType().Name} after the logout, not LoggedOut 0");
 
 			await _sidecar.Sessions.DeleteAsync(Client.SessionId, bound.Token).ConfigureAwait(false);
 			var sessions = await _sidecar.Sessions.ListAsync(bound.Token).ConfigureAwait(false);
 			return sessions.Any(s => s.Id == Client.SessionId)
-				? (FreshLogout.LoggedOutNotDeleted, "still listed after its delete")
+				? (FreshLogout.LoggedOutCleanupUnverified, "still listed after its delete")
 				: (FreshLogout.Verified, "logged out, LoggedOut 0, deleted");
 		}
 #pragma warning disable CA1031 // Justification: whatever failed, keeping the session and its keys is the safe end; the kind is reported.
@@ -229,7 +230,7 @@ internal sealed class FreshCompanion : IDisposable
 #pragma warning restore CA1031
 		{
 			return (
-				loggedOut ? FreshLogout.LoggedOutNotDeleted : FreshLogout.Kept,
+				loggedOut ? FreshLogout.LoggedOutCleanupUnverified : FreshLogout.Kept,
 				e switch
 				{
 					WhatsmeowException w => $"{e.GetType().Name} {w.ErrorCode}",
@@ -407,6 +408,9 @@ internal enum FreshLogout
 	/// <summary>Kept, with its keys: the device may still be linked.</summary>
 	Kept,
 
-	/// <summary>This cleanup's logout succeeded, so WhatsApp unlinked the device; the check after it or the delete failed, and the session stays.</summary>
-	LoggedOutNotDeleted,
+	/// <summary>
+	/// This cleanup's logout succeeded, so WhatsApp unlinked the device; a later step (the LoggedOut check, the delete or
+	/// the read after it) failed, so whether the session was deleted is not confirmed.
+	/// </summary>
+	LoggedOutCleanupUnverified,
 }
