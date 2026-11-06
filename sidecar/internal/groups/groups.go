@@ -25,8 +25,8 @@ import (
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/session"
 )
 
-// rateOverLimit is the code of whatsmeow's ErrIQRateOverLimit (errors.go:197). Its Is also compares the text
-// (errors.go:229-238), so the code alone is matched.
+// rateOverLimit is the code of whatsmeow's ErrIQRateOverLimit (errors.go:198). Its Is also compares the text
+// (errors.go:230-239), so the code alone is matched.
 const rateOverLimit = 429
 
 // badRequest is the code WhatsApp refuses an unknown or malformed invite code with, on a join and a preview alike
@@ -618,7 +618,7 @@ func classifyInvite(op string, err error, write bool) error {
 //
 // The error keeps whatsmeow's sentinel or a bare copy of its typed error, never the text whatsmeow wraps around it, and
 // for any other error only its Go type: whatsmeow names participants with %v, which keeps no type to strip
-// (group.go:71, 84, 221, 229), and an IQ error's node names the group (errors.go:216-226). The status message reaches
+// (group.go:71, 84, 221, 229), and an IQ error's node names the group (errors.go:217-227). The status message reaches
 // the application, and an INTERNAL one the error log (server.toStatus).
 func classify(op string, err error, write bool) error {
 	var (

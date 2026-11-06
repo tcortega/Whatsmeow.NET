@@ -234,7 +234,7 @@ namespace Whatsmeow.Protocol.V1 {
     [pbr::OriginalName("UNAVAILABLE_TYPE_UNSPECIFIED")] Unspecified = 0,
     /// <summary>
     /// A view-once message. whatsmeow asks the phone for it (message.go:327-330) and dispatches an answer as a normal
-    /// message (message.go:870-877); whether the phone answers for a view-once is unknown, #36 checks it live.
+    /// message (message.go:879-886); whether the phone answers for a view-once is unknown, #36 checks it live.
     /// </summary>
     [pbr::OriginalName("UNAVAILABLE_TYPE_VIEW_ONCE")] ViewOnce = 1,
   }

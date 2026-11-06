@@ -33,8 +33,8 @@ const (
 	pairClientType = whatsmeow.PairClientChrome
 	pairClientName = "Chrome (Linux)"
 
-	// rateOverLimit is the code of whatsmeow's ErrIQRateOverLimit (errors.go:197). Its Is also compares the text
-	// (errors.go:229-235), so the code alone is matched.
+	// rateOverLimit is the code of whatsmeow's ErrIQRateOverLimit (errors.go:198). Its Is also compares the text
+	// (errors.go:230-236), so the code alone is matched.
 	rateOverLimit = 429
 )
 
@@ -92,7 +92,7 @@ func (svc *Service) whilePairing(s *session, a *attempt, evt any) bool {
 			svc.log.Error().Err(err).Str("session_id", s.id).Msg("recording the linked device failed")
 		}
 	case *events.Disconnected:
-		// After the link, whatsmeow reconnects a paired client on its own (client.go:612-622, 648).
+		// After the link, whatsmeow reconnects a paired client on its own (client.go:614-624, 650).
 		a.dropped = a.dropped || !a.linked
 	case *events.Connected:
 		if !a.linked {
@@ -146,7 +146,7 @@ func stopLogin(s *session) bool {
 }
 
 // uploadedPreKeys reports whether the client's first pre-key upload happened. whatsmeow keeps that in a field,
-// PreKeysUploaded (client.go:116, prekeys.go:95); the fake WhatsApp and the tests' stub have a method.
+// PreKeysUploaded (client.go:117, prekeys.go:95); the fake WhatsApp and the tests' stub have a method.
 func uploadedPreKeys(client Client) bool {
 	switch c := client.(type) {
 	case *whatsmeow.Client:
@@ -274,7 +274,7 @@ func (svc *Service) startPairing(ctx context.Context, s *session) (*attempt, Cli
 
 	// The sidecar's lifetime, never the call's: whatsmeow's QR channel disconnects when its context ends
 	// (qrchan.go:125-131), which would race the 515 reconnect after a link, and the connection outlives the call
-	// (client.go:541-599).
+	// (client.go:543-601).
 	qr, err := client.GetQRChannel(svc.lifetime) //nolint:contextcheck // see above
 	if err == nil {
 		err = client.ConnectContext(svc.lifetime) //nolint:contextcheck // see above
@@ -468,7 +468,7 @@ func (svc *Service) awaitLogin(s *session, a *attempt) error {
 		return fmt.Errorf("pair session %q: WhatsApp ended the login: %w", s.id, server.ErrPairingFailed)
 	}
 
-	// whatsmeow's Disconnect waits for the event handlers (client.go:726-745), which take s.mu.
+	// whatsmeow's Disconnect waits for the event handlers (client.go:728-747), which take s.mu.
 	client := s.client
 	s.mu.Unlock()
 	client.Disconnect()

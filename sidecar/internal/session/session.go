@@ -60,7 +60,7 @@ type Service struct {
 	newClient NewClient
 	log       zerolog.Logger
 	// lifetime scopes every connection: whatsmeow ties keepalive, the node queue and reconnects to the context
-	// ConnectContext gets (client.go:541-599), so it is the sidecar's, never a call's.
+	// ConnectContext gets (client.go:543-601), so it is the sidecar's, never a call's.
 	lifetime context.Context //nolint:containedctx // the sidecar's lifetime, not a request's
 	end      context.CancelFunc
 	// recording is the lifetime without its end, for what an event handler records: a state that happened is
@@ -81,7 +81,7 @@ type Service struct {
 }
 
 // session is one session. ops serializes the calls that drive its connection; mu guards the rest and is never
-// held while calling into whatsmeow, whose Disconnect waits for the event handlers (client.go:726-745). device and
+// held while calling into whatsmeow, whose Disconnect waits for the event handlers (client.go:728-747). device and
 // client change only under both, when a Pair call starts.
 type session struct {
 	id     string
@@ -284,7 +284,7 @@ func (svc *Service) handle(s *session, client Client, evt any) {
 
 	// A client of a deleted session, or one a later Pair call replaced, is about nothing. If it dispatches, it is
 	// alive again: whatsmeow reconnects on its own after WhatsApp's 515 (connectionevents.go:33-36), which Delete
-	// cannot stop, because deleting by the recorded JID leaves the client's Store.Deleted unset (client.go:567).
+	// cannot stop, because deleting by the recorded JID leaves the client's Store.Deleted unset (client.go:569).
 	if s.gone() || client != s.client {
 		s.mu.Unlock()
 		svc.retire(client)
@@ -479,7 +479,7 @@ func (s *session) gone() bool {
 }
 
 // retire disconnects a client the Service no longer uses. Not on the handler's goroutine: whatsmeow's Disconnect
-// waits for the event handlers (client.go:726-745).
+// waits for the event handlers (client.go:728-747).
 func (svc *Service) retire(client Client) {
 	svc.spawn(client.Disconnect)
 }
@@ -859,7 +859,7 @@ func (svc *Service) startConnecting(ctx context.Context, sessions []*session, he
 // handshake runs whatsmeow's connect call for a session startConnecting moved to Connecting from previous, and on a
 // failure moves it back, unless an event that came in meanwhile is the newer truth. s.ops is held, s.mu is not.
 func (svc *Service) handshake(ctx context.Context, s *session, previous *whatsmeowv1.SessionState) error {
-	err := s.client.ConnectContext(svc.lifetime) //nolint:contextcheck // the connection outlives the call (client.go:541-599)
+	err := s.client.ConnectContext(svc.lifetime) //nolint:contextcheck // the connection outlives the call (client.go:543-601)
 	if err == nil {
 		return nil
 	}
@@ -898,7 +898,7 @@ func connectable(id string, state *whatsmeowv1.SessionState) error {
 	return nil
 }
 
-// Disconnect closes the connection and stops reconnecting; whatsmeow raises no event for it (client.go:695-703),
+// Disconnect closes the connection and stops reconnecting; whatsmeow raises no event for it (client.go:697-705),
 // so the sidecar records Disconnected itself.
 func (svc *Service) Disconnect(ctx context.Context, req *whatsmeowv1.DisconnectRequest) (*whatsmeowv1.DisconnectResponse, error) {
 	s, err := svc.get(req.GetSessionId())
@@ -945,7 +945,7 @@ func (svc *Service) disconnect(ctx context.Context, s *session) (*whatsmeowv1.Di
 }
 
 // Logout unlinks the device on WhatsApp; whatsmeow then deletes the device and raises no event
-// (client.go:749-779), so the sidecar records LoggedOut with code 0 itself.
+// (client.go:751-781), so the sidecar records LoggedOut with code 0 itself.
 func (svc *Service) Logout(ctx context.Context, req *whatsmeowv1.LogoutRequest) (*whatsmeowv1.LogoutResponse, error) {
 	s, err := svc.get(req.GetSessionId())
 	if err != nil {
@@ -979,7 +979,7 @@ func (svc *Service) logout(ctx context.Context, s *session) (*whatsmeowv1.Logout
 	if err := s.client.Logout(ctx); err != nil {
 		err = fmt.Errorf("log out session %q: %w", s.id, logoutError(err))
 
-		// whatsmeow disconnects only once WhatsApp unlinked the device (client.go:771-772), so an error with no
+		// whatsmeow disconnects only once WhatsApp unlinked the device (client.go:773-774), so an error with no
 		// connection left is a failure after the unlink, deleting the local store: the session is not connected.
 		if !s.client.IsConnected() && !isClassified(err) {
 			s.mu.Lock()

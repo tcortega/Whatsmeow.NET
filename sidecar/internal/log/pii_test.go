@@ -213,7 +213,7 @@ func TestTheWriterRedactsOnlyInsideStrings(t *testing.T) {
 func TestTheWriterRedactsAfterAnEscape(t *testing.T) {
 	t.Parallel()
 
-	// whatsmeow logs a panic's stack and a node's children on their own lines (message.go:320, client.go:1005).
+	// whatsmeow logs a panic's stack and a node's children on their own lines (message.go:320, client.go:1007).
 	got := line(t, func(log zerolog.Logger) {
 		log.Warn().Msg("a\n5511900000001\t5511900000002\"5511900000003\\5511900000004 é5511900000005")
 	})

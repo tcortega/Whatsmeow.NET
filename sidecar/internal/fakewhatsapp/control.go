@@ -47,7 +47,7 @@ func (c *Control) DeliverMessage(ctx context.Context, req *fakev1.DeliverMessage
 	}
 
 	if raw := req.GetMessage(); raw != nil {
-		// As whatsmeow dispatches a decrypted message (message.go:1172-1178), with its own unwrap.
+		// As whatsmeow dispatches a decrypted message (message.go:1181-1187), with its own unwrap.
 		evt = (&events.Message{Info: evt.Info, RawMessage: raw}).UnwrapRaw()
 	}
 
@@ -247,7 +247,7 @@ func (c *Control) ExpireQrCodes(_ context.Context, req *fakev1.ExpireQrCodesRequ
 }
 
 // DropConnection drops the connection of a session that is pairing: Disconnected off the node queue, whose handlers
-// run in order, the QR channel's last (client.go:612-622, qrchan.go:196-197).
+// run in order, the QR channel's last (client.go:614-624, qrchan.go:196-197).
 func (c *Control) DropConnection(_ context.Context, req *fakev1.DropConnectionRequest) (*fakev1.DropConnectionResponse, error) {
 	client, err := c.pairingClient(req.GetSessionId())
 	if err != nil {

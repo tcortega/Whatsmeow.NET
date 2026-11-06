@@ -294,7 +294,7 @@ func (c *Client) learn(ctx context.Context, info *types.MessageInfo) {
 	}
 }
 
-// storeLIDPNMapping is whatsmeow's (client.go:1085-1100).
+// storeLIDPNMapping is whatsmeow's (client.go:1087-1102).
 func (c *Client) storeLIDPNMapping(ctx context.Context, first, second types.JID) {
 	var lid, pn types.JID
 

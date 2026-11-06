@@ -38,7 +38,7 @@ public sealed class ChatStateTests(FakeSidecar fixture)
 		await client.MuteChatAsync(s_chat, s_until, ct);
 		Assert.Equal(new GetPhoneChatStateResponse { Muted = true, MuteUntil = Timestamp.FromDateTimeOffset(s_until) }, await PhoneAsync(session, s_chat, ct));
 
-		// The write comes back as a change, as whatsmeow's sync after it brings it (appstate.go:627-635).
+		// The write comes back as a change, as whatsmeow's sync after it brings it (appstate.go:636-644).
 		ChatStateChecks.ValidateMuteEcho(await changes.NextAsync(ct), s_chat, s_until);
 
 		await client.MuteChatAsync(s_chat, cancellationToken: ct);
@@ -322,7 +322,7 @@ public sealed class ChatStateTests(FakeSidecar fixture)
 
 	/// <summary>
 	/// #122: whatsmeow ignores the error when it parses a mutation's chat, so an index without one gives the empty JID,
-	/// and takes a star's message id unchecked (appstate.go:257-261, 331). The client cannot read either, so the
+	/// and takes a star's message id unchecked (appstate.go:266-270, 340). The client cannot read either, so the
 	/// sidecar does not record them, and the next change still arrives.
 	/// </summary>
 	[Fact(Timeout = Timeout)]

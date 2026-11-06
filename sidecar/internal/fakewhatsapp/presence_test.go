@@ -47,7 +47,7 @@ func TestDeliveredPresenceAndChatPresenceAreDispatchedAsWhatsmeowDoes(t *testing
 	got := make(chan any, 2)
 	client := whatsApp.NewClient("s1")
 	client.AddEventHandlerWithSuccessStatus(func(evt any) bool {
-		// On the node queue, as whatsmeow dispatches both (client.go:322-323, 896-903): its lock is held.
+		// On the node queue, as whatsmeow dispatches both (client.go:324-325, 898-905): its lock is held.
 		if client.queue.TryLock() {
 			client.queue.Unlock()
 			t.Errorf("%T was dispatched off the node queue", evt)
@@ -146,7 +146,7 @@ func TestPresenceFailsAsWhatsmeowsDoes(t *testing.T) {
 
 	user := types.NewJID("111", types.HiddenUserServer)
 
-	// No push name until the app state sync sets it (presence.go:67-68), then no connection (client.go:982).
+	// No push name until the app state sync sets it (presence.go:67-68), then no connection (client.go:984).
 	if err := client.SendPresence(ctx, types.PresenceAvailable); !errors.Is(err, whatsmeow.ErrNoPushName) {
 		t.Fatalf("SendPresence without a push name = %v, want %v", err, whatsmeow.ErrNoPushName)
 	}

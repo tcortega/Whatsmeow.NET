@@ -15,7 +15,7 @@ import (
 // records, or false for any other event, and for a change none of whose parts the contract has. A member the client
 // cannot read is left out of a list (#122). It is pure: no I/O.
 //
-// These are gated: whatsmeow acks a w:gp2 notification only when no handler failed (notification.go:493-506,
+// These are gated: whatsmeow acks a w:gp2 notification only when no handler failed (notification.go:495-508,
 // maybeDeferredAck receipt.go:115-128), so the handler's false after a failed write has WhatsApp send it again. The key
 // is empty: the event carries no stanza id (types/events/events.go:480-528), and a key from its content would merge
 // two real changes alike in the same second, a loss, where a redelivery recorded twice is a duplicate (ADR 0022).

@@ -131,7 +131,7 @@ func HistoryMessage(e *waevents.Message, account *store.Device) []*whatsmeowv1.M
 
 // historyVote is a vote a history poll carries, as a live vote's event: its id and voter from its key, its sender's
 // time (mautrix's for a history reaction, pkg/connector/backfill.go:909-930 at 5dd621f), the poll as its target, its
-// sender without the device ParseWebMessage keeps from a participant (client.go:1058-1060), as every target has it, and
+// sender without the device ParseWebMessage keeps from a participant (client.go:1060-1062), as every target has it, and
 // the selection as history has it, without a message, which history does not carry. nil for a key that names no voter.
 // The key's unread flag and server time have no counterpart on a live vote, and are dropped.
 func historyVote(u *waWeb.PollUpdate, poll *types.MessageInfo, account *store.Device) *whatsmeowv1.MessageEvent {
@@ -156,7 +156,7 @@ func historyVote(u *waWeb.PollUpdate, poll *types.MessageInfo, account *store.De
 }
 
 // voter is who sent the message a history key names, as ParseWebMessage reads a history message's sender
-// (client.go:1043-1062): the account when the key says so, by its LID in a LID chat and by its phone number otherwise,
+// (client.go:1045-1064): the account when the key says so, by its LID in a LID chat and by its phone number otherwise,
 // else the chat in a direct chat, else the key's participant as a user's JID. false for one that names none.
 func voter(k *waCommon.MessageKey, chat types.JID, account *store.Device) (types.JID, bool) {
 	if k.GetFromMe() {
@@ -178,8 +178,8 @@ func voter(k *waCommon.MessageKey, chat types.JID, account *store.Device) (types
 
 // onlySenderKey is a message with nothing but a sender key and its context info: the part of a group stanza that
 // carries the sender key next to the skmsg content (send.go:795-831). whatsmeow dispatches each decrypted part as a
-// Message with the same info (message.go:1172-1178) and stores the sender key itself (processProtocolParts,
-// message.go:938-961), so recording it would take the content's natural key and drop the content.
+// Message with the same info (message.go:1181-1187) and stores the sender key itself (processProtocolParts,
+// message.go:947-970), so recording it would take the content's natural key and drop the content.
 func onlySenderKey(message *waE2E.Message) bool {
 	if message.GetSenderKeyDistributionMessage() == nil {
 		return false

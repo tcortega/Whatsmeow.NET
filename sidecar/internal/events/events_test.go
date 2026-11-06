@@ -165,7 +165,7 @@ func messageEvent(id string) *waevents.Message {
 	}
 }
 
-// deliver runs the session's handler on evt as whatsmeow's dispatchEvent does (client.go:999-1013): a panic is
+// deliver runs the session's handler on evt as whatsmeow's dispatchEvent does (client.go:1001-1015): a panic is
 // recovered and counts as success, so the stanza is answered.
 func (h *harness) deliver(session string, evt any) (answered bool) {
 	defer func() {
@@ -580,7 +580,7 @@ func TestStreamEndsWithSessionNotFoundWhenTheSessionIsDeleted(t *testing.T) {
 }
 
 // senderKeyOnly is the part of a group stanza that only carries the sender key (the pkmsg or msg next to the skmsg,
-// send.go:795-831): whatsmeow dispatches it as a Message with the same info as the content (message.go:1172-1178).
+// send.go:795-831): whatsmeow dispatches it as a Message with the same info as the content (message.go:1181-1187).
 func senderKeyOnly(id string) *waevents.Message {
 	evt := messageEvent(id)
 	evt.Message = &waE2E.Message{

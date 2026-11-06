@@ -187,8 +187,8 @@ func (svc *Service) Close() {
 // notification from the account's own phone is queued in one short transaction, and the session's worker woken
 // without waiting; it returns true only after the commit, so whatsmeow answers the notification, a decrypted message,
 // with its delivery receipt only then (message.go:459-497), and false when the write fails or anything panics, with
-// its own recover (client.go:999-1013). whatsmeow sends the hist_sync receipt on its own goroutine before any handler
-// runs, whatever the handler returns (message.go:899-906, 1172-1178). OfflineSyncCompleted starts the session's
+// its own recover (client.go:1001-1015). whatsmeow sends the hist_sync receipt on its own goroutine before any handler
+// runs, whatever the handler returns (message.go:908-915, 1181-1187). OfflineSyncCompleted starts the session's
 // worker, or wakes the one this connection has. LoggedOut and PairSuccess take the queue of the account the session
 // had: a new pairing is a new account, whose blobs come anew. It never downloads, and never waits for .NET, the
 // network or media.
@@ -206,7 +206,7 @@ func (svc *Service) Handler(sessionID string) whatsmeow.EventHandlerWithSuccessS
 		switch e := evt.(type) {
 		case *waevents.Message:
 			notif := e.Message.GetProtocolMessage().GetHistorySyncNotification()
-			// whatsmeow acts only on the account's own (message.go:888-890).
+			// whatsmeow acts only on the account's own (message.go:897-899).
 			if notif == nil || !e.Info.IsFromMe {
 				return true
 			}
@@ -1089,7 +1089,7 @@ func classifySend(err error) error {
 	case errors.Is(err, whatsmeow.ErrNotLoggedIn):
 		return fmt.Errorf("request history: %w: %w", server.ErrLoggedOut, whatsmeow.ErrNotLoggedIn)
 	case errors.As(err, &iq) && iq.Code == 429:
-		// ErrIQRateOverLimit's Is also compares the text (errors.go:197, 229-240), so match the code.
+		// ErrIQRateOverLimit's Is also compares the text (errors.go:198, 230-241), so match the code.
 		return fmt.Errorf("request history: %w: %w", server.ErrRateLimited, &whatsmeow.IQError{Code: iq.Code, Text: iq.Text})
 	case errors.As(err, &iq):
 		return whatsAppError(iq.Code, &whatsmeow.IQError{Code: iq.Code, Text: iq.Text})

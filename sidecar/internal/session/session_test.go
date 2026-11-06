@@ -52,7 +52,7 @@ type stub struct {
 	logouts     int
 	connected   bool
 	// resetAt is when each ResetConnection came. Like whatsmeow's, a reset dispatches Disconnected and then the
-	// login's Connected after it returned, on a goroutine of its own (client.go:612-631, 712-724), unless holdReset,
+	// login's Connected after it returned, on a goroutine of its own (client.go:614-633, 714-726), unless holdReset,
 	// when it dispatches nothing.
 	resetAt   []time.Time
 	holdReset bool
@@ -1185,7 +1185,7 @@ func TestTheWhatsmeowClientEmitsAppStateEventsOnFullSync(t *testing.T) {
 
 	cli := NewWhatsmeowClient(zerolog.Nop())("s1", (&sqlstoreless{}).device(), func() {}).(*whatsmeow.Client) //nolint:forcetypeassert // the release factory's type
 
-	// Without it a full sync dispatches no chat state event (appstate.go:70-72): the state after pairing and after a
+	// Without it a full sync dispatches no chat state event (appstate.go:73-75): the state after pairing and after a
 	// recovery would never arrive (ADR 0031).
 	if !cli.EmitAppStateEventsOnFullSync {
 		t.Fatal("the client does not emit app state events on a full sync")
@@ -1280,7 +1280,7 @@ func TestLogoutWhoseStoreDeleteFailedAfterTheUnlinkRecordsDisconnected(t *testin
 	h := start(t)
 	h.connected("s1")
 
-	// whatsmeow disconnects once WhatsApp unlinked the device, then deleting the store fails (client.go:771-776).
+	// whatsmeow disconnects once WhatsApp unlinked the device, then deleting the store fails (client.go:773-778).
 	s := h.stub("s1")
 	s.logoutErr = errors.New("error deleting data from store: disk full")
 	s.connecting = nil
@@ -1318,7 +1318,7 @@ func TestCloseDoesNotWaitForAConnectInFlight(t *testing.T) {
 	s := h.stub("s1")
 	s.connecting = func(ctx context.Context) {
 		close(entered)
-		// A dial that ends only with its context, as whatsmeow's does (client.go:589).
+		// A dial that ends only with its context, as whatsmeow's does (client.go:591).
 		<-ctx.Done()
 	}
 

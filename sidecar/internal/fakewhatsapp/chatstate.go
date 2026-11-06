@@ -20,7 +20,7 @@ import (
 )
 
 // errNoAppStateKeys is whatsmeow's error for a write before the phone shared an app state key; it has no sentinel
-// (appstate.go:560-561).
+// (appstate.go:569-570).
 var errNoAppStateKeys = errors.New("no app state keys found, creating app state keys is not yet supported")
 
 // mutation is one entry of an app state collection, as WhatsApp keeps it: its index and its value.
@@ -89,17 +89,18 @@ func (w *WhatsApp) corruption(sessionID string, name appstate.WAPatchName) (corr
 	return ok, !unrecoverable
 }
 
-// mismatch is the error whatsmeow's patch decoding returns for a copy out of step (appstate.go:169,
-// appstate/decode.go:253).
+// mismatch is the error whatsmeow's patch decoding returns for a copy out of step (appstate.go:178,
+// appstate/decode.go:254). whatsmeow lets a patch through it when the patch MAC verifies and the version follows the
+// copy's (appstate/decode.go:346-363); the fake models only the mismatch it still fails on.
 func mismatch(name appstate.WAPatchName) error {
 	return fmt.Errorf("failed to decode app state %s patches: %w", name, fmt.Errorf("failed to verify patch v7: %w", appstate.ErrMismatchingLTHash))
 }
 
-// SendAppState sends the patch as whatsmeow's does (appstate.go:548-638): without an app state key it fails before
+// SendAppState sends the patch as whatsmeow's does (appstate.go:557-647): without an app state key it fails before
 // anything goes out; to a corrupted collection WhatsApp answers 409 with patches that do not verify, so whatsmeow
-// dispatches AppStateSyncError on the caller's goroutine without the app state lock (appstate.go:607-614, 167) and
+// dispatches AppStateSyncError on the caller's goroutine without the app state lock (appstate.go:616-623, 176) and
 // fails with both; otherwise WhatsApp takes it, and whatsmeow's sync after it dispatches the change's events on a
-// goroutine (appstate.go:627-635).
+// goroutine (appstate.go:636-644).
 func (c *Client) SendAppState(ctx context.Context, patch appstate.PatchInfo) error {
 	key, err := c.Store.AppStateKeys.GetLatestAppStateSyncKeyID(ctx)
 	if err != nil {
@@ -141,9 +142,9 @@ func (c *Client) SendAppState(ctx context.Context, patch appstate.PatchInfo) err
 // FetchAppState syncs a collection. The fake keeps no patches the client has not seen, so only a full sync does
 // anything: it records the request, waits while HoldFullSync holds it, all under the app state lock (appstate.go:46),
 // then repairs a corrupted copy and dispatches every entry of the collection marked FromFullSync, and
-// AppStateSyncComplete, once it let go of the lock (appstate.go:36-38, 92-94), as whatsmeow does with
+// AppStateSyncComplete, once it let go of the lock (appstate.go:36-38, 101-103), as whatsmeow does with
 // EmitAppStateEventsOnFullSync. A copy it cannot repair fails as a snapshot that does not verify, with
-// AppStateSyncError dispatched under the lock (appstate.go:167).
+// AppStateSyncError dispatched under the lock (appstate.go:176).
 func (c *Client) FetchAppState(ctx context.Context, name appstate.WAPatchName, fullSync, _ bool) error {
 	if !fullSync {
 		return nil
@@ -222,7 +223,7 @@ func (w *WhatsApp) repair(sessionID string, name appstate.WAPatchName) []mutatio
 	return entries
 }
 
-// chatEvent is the chat state event whatsmeow dispatches for a mutation (appstate.go:254-363), or nil for one this
+// chatEvent is the chat state event whatsmeow dispatches for a mutation (appstate.go:263-372), or nil for one this
 // fake does not make.
 func chatEvent(m mutation, fullSync bool) any {
 	var jid types.JID
@@ -260,8 +261,8 @@ func chatEvent(m mutation, fullSync bool) any {
 }
 
 // syncFromPhone is the session's client syncing a change the phone made, as after a server_sync notification: on the
-// node queue, holding the app state lock while it fetches (notification.go:73-89, 481-483; appstate.go:46). A
-// corrupted copy fails to decode the patch: AppStateSyncError is dispatched under the lock (appstate.go:167), and the
+// node queue, holding the app state lock while it fetches (notification.go:73-91, 483-485; appstate.go:46). A
+// corrupted copy fails to decode the patch: AppStateSyncError is dispatched under the lock (appstate.go:176), and the
 // change does not arrive. Otherwise the change's events are dispatched once the lock is free (appstate.go:36-38).
 func (c *Client) syncFromPhone(patch appstate.PatchInfo, fullSync bool) {
 	c.queue.Lock()
@@ -287,7 +288,7 @@ func (c *Client) syncFromPhone(patch appstate.PatchInfo, fullSync bool) {
 }
 
 // shareAppStateKey stores an app state key for the device, as the phone's key share does once after pairing
-// (message.go:827-861).
+// (message.go:827-870).
 func shareAppStateKey(ctx context.Context, device *store.Device) error {
 	key := store.AppStateSyncKey{Data: make([]byte, 32), Fingerprint: []byte{}, Timestamp: time.Now().UnixMilli()}
 	if err := device.AppStateKeys.PutAppStateSyncKey(ctx, []byte{0, 0, 0, 1}, key); err != nil {

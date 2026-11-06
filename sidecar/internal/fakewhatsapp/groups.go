@@ -247,7 +247,7 @@ func (w *WhatsApp) deliver(notices []notice) {
 }
 
 // notify dispatches a w:gp2 notification's event to c on its node queue and records whatsmeow's ack, which goes out
-// only when every handler succeeded (notification.go:493-506, maybeDeferredAck receipt.go:115-128), with the stanza's
+// only when every handler succeeded (notification.go:495-508, maybeDeferredAck receipt.go:115-128), with the stanza's
 // class, id and type (sendAck, receipt.go:151-181).
 func (w *WhatsApp) notify(c *Client, id string, evt any) {
 	if c.dispatch(evt) {

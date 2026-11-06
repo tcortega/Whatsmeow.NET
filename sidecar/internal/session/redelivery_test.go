@@ -288,7 +288,7 @@ func TestAResetHoldsTheSessionUntilItIsRecordedReconnecting(t *testing.T) {
 		r.client.mu.Unlock()
 
 		// whatsmeow's ResetConnection returns once it stopped the socket; its onDisconnect clears the socket and
-		// dispatches Disconnected later, on a goroutine of its own (client.go:612-631, 712-724). The stub holds it
+		// dispatches Disconnected later, on a goroutine of its own (client.go:614-633, 714-726). The stub holds it
 		// until the test dispatches it.
 		go func() { done <- r.svc.reset(s) }()
 

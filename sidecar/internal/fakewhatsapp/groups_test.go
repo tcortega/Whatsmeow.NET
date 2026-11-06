@@ -253,7 +253,7 @@ func TestAGroupNotificationIsAckedOnlyWhenEveryHandlerSucceeded(t *testing.T) {
 		t.Fatalf("DeliverGroupNotification: %v", err)
 	}
 
-	// The failed one is not acked (notification.go:493-506, receipt.go:115-128): the next one's ack, of the stanza's
+	// The failed one is not acked (notification.go:495-508, receipt.go:115-128): the next one's ack, of the stanza's
 	// class, id and type (sendAck, receipt.go:151-181), is the first thing sent.
 	fail = false
 	req.Id = "GN-NEXT"

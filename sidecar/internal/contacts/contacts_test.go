@@ -549,7 +549,7 @@ func TestBlocklistReadsAndUpdates(t *testing.T) {
 func TestWhatsAppsErrorsBecomeTheirReasons(t *testing.T) {
 	t.Parallel()
 
-	// whatsmeow puts the JID in its errors (user.go:1034, 1039, 1043, 1052) and in an IQ error's node (errors.go:216-226).
+	// whatsmeow puts the JID in its errors (user.go:1034, 1039, 1043, 1052) and in an IQ error's node (errors.go:217-227).
 	const pn = "5511900000001@s.whatsapp.net"
 
 	node := &waBinary.Node{Tag: "iq", Attrs: waBinary.Attrs{"from": jid(pn)}}
@@ -770,7 +770,7 @@ func TestTheInfoLogCarriesNoJID(t *testing.T) {
 
 	calls()
 
-	// And each failure whatsmeow returns with a JID in it (user.go:1034, 1039, 1043, 1052; errors.go:216-226).
+	// And each failure whatsmeow returns with a JID in it (user.go:1034, 1039, 1043, 1052; errors.go:217-227).
 	node := &waBinary.Node{Tag: "iq", Attrs: waBinary.Attrs{"from": jid("5511900000001@s.whatsapp.net")}}
 	for _, err := range []error{
 		fmt.Errorf("failed to get LID for PN %s: %w", "5511900000001@s.whatsapp.net", errors.New("database is locked")),

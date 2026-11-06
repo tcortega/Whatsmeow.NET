@@ -42,13 +42,13 @@ type Client struct {
 	// qr is the open QR channel, nil when none is open; codes counts the codes it sent.
 	qr    chan whatsmeow.QRChannelItem
 	codes int
-	// preKeysUploaded is whatsmeow's PreKeysUploaded (client.go:116), set by the login after a link.
+	// preKeysUploaded is whatsmeow's PreKeysUploaded (client.go:117), set by the login after a link.
 	preKeysUploaded bool
 	// activeReceipts is whatsmeow's sendActiveReceipts (client.go:95), which SendPresence turns on and off.
 	activeReceipts bool
 	// reconnect is set by ResetConnection until its reconnect, and cleared by Disconnect, which cancels it, as
-	// whatsmeow's expected disconnect does during autoReconnect's wait (client.go:657-659). whatsmeow does not cancel
-	// a reconnect whose wait already ended (client.go:571); the fake does not model that window.
+	// whatsmeow's expected disconnect does during autoReconnect's wait (client.go:659-661). whatsmeow does not cancel
+	// a reconnect whose wait already ended (client.go:573); the fake does not model that window.
 	reconnect bool
 	// unanswered are the message stanzas the client left unanswered, each its decrypted parts, which WhatsApp
 	// delivers again at the device's next login and never while the connection stays up (ARCHITECTURE §14, #10).
@@ -168,7 +168,7 @@ func (c *Client) PairPhone(_ context.Context, phone string, _ bool, _ whatsmeow.
 	return "FAKE-CDE1", nil
 }
 
-// HasUploadedPreKeys reports whatsmeow's PreKeysUploaded (client.go:116): set once the login after a link uploaded
+// HasUploadedPreKeys reports whatsmeow's PreKeysUploaded (client.go:117): set once the login after a link uploaded
 // the pre-keys.
 func (c *Client) HasUploadedPreKeys() bool {
 	c.conn.Lock()
@@ -192,7 +192,7 @@ func (c *Client) logInAfterLink() {
 }
 
 // Disconnect closes an open connection and cancels a reconnect ResetConnection started; like whatsmeow's, it raises
-// no event (client.go:695-703).
+// no event (client.go:697-705).
 func (c *Client) Disconnect() {
 	c.conn.Lock()
 	defer c.conn.Unlock()
@@ -208,9 +208,9 @@ func (c *Client) Disconnect() {
 }
 
 // ResetConnection closes an open connection and reconnects at once, as whatsmeow's does after a login: Disconnected
-// off the node queue, then a reconnect with no delay, whose login WhatsApp accepts (client.go:612-631, 653-660,
-// 712-724; connectionevents.go:165), or HoldNextLogin holds. A Disconnect while its Disconnected handlers run cancels the reconnect, as one
-// during whatsmeow's reconnect wait does (client.go:657-659). Without a connection it does nothing.
+// off the node queue, then a reconnect with no delay, whose login WhatsApp accepts (client.go:614-633, 655-662,
+// 714-726; connectionevents.go:165), or HoldNextLogin holds. A Disconnect while its Disconnected handlers run cancels the reconnect, as one
+// during whatsmeow's reconnect wait does (client.go:659-661). Without a connection it does nothing.
 func (c *Client) ResetConnection() {
 	c.conn.Lock()
 	defer c.conn.Unlock()
@@ -275,7 +275,7 @@ func (c *Client) IsConnected() bool {
 }
 
 // Logout sends the unlink request, then disconnects and deletes the device, raising no event, as whatsmeow's does
-// (client.go:749-779).
+// (client.go:751-781).
 func (c *Client) Logout(ctx context.Context) error {
 	if c.Store.ID == nil {
 		return whatsmeow.ErrNotLoggedIn
@@ -321,7 +321,7 @@ func (c *Client) disconnect() {
 	c.connected = false
 }
 
-// dispatch runs the handlers as whatsmeow's dispatchEvent does at the pin (client.go:999-1013): in order, stopping
+// dispatch runs the handlers as whatsmeow's dispatchEvent does at the pin (client.go:1001-1015): in order, stopping
 // at the first that returns false, which is a failure; a panic is logged and is not a failure, so the answer to the
 // stanza goes out.
 func (c *Client) dispatch(evt any) (handlerFailed bool) {

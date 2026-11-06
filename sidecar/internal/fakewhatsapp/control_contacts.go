@@ -53,7 +53,7 @@ func (c *Control) SetProfilePicture(_ context.Context, req *fakev1.SetProfilePic
 }
 
 // DeliverContactNotification dispatches a picture or status notification on the client's node queue; whatsmeow acks
-// it whatever the handlers return (notification.go:472), so their result changes nothing.
+// it whatever the handlers return (notification.go:474), so their result changes nothing.
 func (c *Control) DeliverContactNotification(_ context.Context, req *fakev1.DeliverContactNotificationRequest) (*fakev1.DeliverContactNotificationResponse, error) {
 	client, err := c.whatsApp.client(req.GetSessionId())
 	if err != nil {
@@ -91,7 +91,7 @@ func (c *Control) DeliverContactNotification(_ context.Context, req *fakev1.Deli
 	return &fakev1.DeliverContactNotificationResponse{}, nil
 }
 
-// SyncContact stores a contact's saved name, then dispatches Contact, as an app state sync does (appstate.go:292-296);
+// SyncContact stores a contact's saved name, then dispatches Contact, as an app state sync does (appstate.go:301-305);
 // FetchAppState ignores the handlers' result (appstate.go:31-39).
 func (c *Control) SyncContact(ctx context.Context, req *fakev1.SyncContactRequest) (*fakev1.SyncContactResponse, error) {
 	client, err := c.whatsApp.client(req.GetSessionId())

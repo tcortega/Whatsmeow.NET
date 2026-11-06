@@ -1056,8 +1056,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// DropConnection makes the connection of a session that is pairing drop: the client dispatches Disconnected off the
-      /// node queue (client.go:612-622), and its QR channel then sends timeout and closes (qrchan.go:196-197). whatsmeow
-      /// does not reconnect an unpaired client (client.go:648). No QR channel open is an error. It returns before the
+      /// node queue (client.go:614-624), and its QR channel then sends timeout and closes (qrchan.go:196-197). whatsmeow
+      /// does not reconnect an unpaired client (client.go:650). No QR channel open is an error. It returns before the
       /// handlers run.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -1072,8 +1072,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// DropConnection makes the connection of a session that is pairing drop: the client dispatches Disconnected off the
-      /// node queue (client.go:612-622), and its QR channel then sends timeout and closes (qrchan.go:196-197). whatsmeow
-      /// does not reconnect an unpaired client (client.go:648). No QR channel open is an error. It returns before the
+      /// node queue (client.go:614-624), and its QR channel then sends timeout and closes (qrchan.go:196-197). whatsmeow
+      /// does not reconnect an unpaired client (client.go:650). No QR channel open is an error. It returns before the
       /// handlers run.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -1086,8 +1086,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// DropConnection makes the connection of a session that is pairing drop: the client dispatches Disconnected off the
-      /// node queue (client.go:612-622), and its QR channel then sends timeout and closes (qrchan.go:196-197). whatsmeow
-      /// does not reconnect an unpaired client (client.go:648). No QR channel open is an error. It returns before the
+      /// node queue (client.go:614-624), and its QR channel then sends timeout and closes (qrchan.go:196-197). whatsmeow
+      /// does not reconnect an unpaired client (client.go:650). No QR channel open is an error. It returns before the
       /// handlers run.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -1102,8 +1102,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// DropConnection makes the connection of a session that is pairing drop: the client dispatches Disconnected off the
-      /// node queue (client.go:612-622), and its QR channel then sends timeout and closes (qrchan.go:196-197). whatsmeow
-      /// does not reconnect an unpaired client (client.go:648). No QR channel open is an error. It returns before the
+      /// node queue (client.go:614-624), and its QR channel then sends timeout and closes (qrchan.go:196-197). whatsmeow
+      /// does not reconnect an unpaired client (client.go:650). No QR channel open is an error. It returns before the
       /// handlers run.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -1280,7 +1280,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// FailNextPairPhone makes WhatsApp answer the session's next phone pairing request with an IQ error of code
-      /// (pair-code.go:104-127): 429 is whatsmeow's ErrIQRateOverLimit (errors.go:197).
+      /// (pair-code.go:104-127): 429 is whatsmeow's ErrIQRateOverLimit (errors.go:198).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -1294,7 +1294,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// FailNextPairPhone makes WhatsApp answer the session's next phone pairing request with an IQ error of code
-      /// (pair-code.go:104-127): 429 is whatsmeow's ErrIQRateOverLimit (errors.go:197).
+      /// (pair-code.go:104-127): 429 is whatsmeow's ErrIQRateOverLimit (errors.go:198).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -1306,7 +1306,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// FailNextPairPhone makes WhatsApp answer the session's next phone pairing request with an IQ error of code
-      /// (pair-code.go:104-127): 429 is whatsmeow's ErrIQRateOverLimit (errors.go:197).
+      /// (pair-code.go:104-127): 429 is whatsmeow's ErrIQRateOverLimit (errors.go:198).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -1320,7 +1320,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// FailNextPairPhone makes WhatsApp answer the session's next phone pairing request with an IQ error of code
-      /// (pair-code.go:104-127): 429 is whatsmeow's ErrIQRateOverLimit (errors.go:197).
+      /// (pair-code.go:104-127): 429 is whatsmeow's ErrIQRateOverLimit (errors.go:198).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -1605,7 +1605,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// DeliverContactNotification makes WhatsApp send the session's client a picture or status notification. As
       /// whatsmeow does, the client dispatches Picture or UserAbout on the node queue and ignores the handlers' result
-      /// (notification.go:91-115, 449-466, 472); it returns once the handlers ran. A session without a client is an error.
+      /// (notification.go:93-117, 451-468, 474); it returns once the handlers ran. A session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -1620,7 +1620,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// DeliverContactNotification makes WhatsApp send the session's client a picture or status notification. As
       /// whatsmeow does, the client dispatches Picture or UserAbout on the node queue and ignores the handlers' result
-      /// (notification.go:91-115, 449-466, 472); it returns once the handlers ran. A session without a client is an error.
+      /// (notification.go:93-117, 451-468, 474); it returns once the handlers ran. A session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -1633,7 +1633,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// DeliverContactNotification makes WhatsApp send the session's client a picture or status notification. As
       /// whatsmeow does, the client dispatches Picture or UserAbout on the node queue and ignores the handlers' result
-      /// (notification.go:91-115, 449-466, 472); it returns once the handlers ran. A session without a client is an error.
+      /// (notification.go:93-117, 451-468, 474); it returns once the handlers ran. A session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -1648,7 +1648,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// DeliverContactNotification makes WhatsApp send the session's client a picture or status notification. As
       /// whatsmeow does, the client dispatches Picture or UserAbout on the node queue and ignores the handlers' result
-      /// (notification.go:91-115, 449-466, 472); it returns once the handlers ran. A session without a client is an error.
+      /// (notification.go:93-117, 451-468, 474); it returns once the handlers ran. A session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -1660,7 +1660,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// SyncContact makes an app state sync deliver a contact's saved name: the client stores it, then dispatches Contact,
-      /// as whatsmeow does (appstate.go:292-296). The session must be linked.
+      /// as whatsmeow does (appstate.go:301-305). The session must be linked.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -1674,7 +1674,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// SyncContact makes an app state sync deliver a contact's saved name: the client stores it, then dispatches Contact,
-      /// as whatsmeow does (appstate.go:292-296). The session must be linked.
+      /// as whatsmeow does (appstate.go:301-305). The session must be linked.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -1686,7 +1686,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// SyncContact makes an app state sync deliver a contact's saved name: the client stores it, then dispatches Contact,
-      /// as whatsmeow does (appstate.go:292-296). The session must be linked.
+      /// as whatsmeow does (appstate.go:301-305). The session must be linked.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -1700,7 +1700,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// SyncContact makes an app state sync deliver a contact's saved name: the client stores it, then dispatches Contact,
-      /// as whatsmeow does (appstate.go:292-296). The session must be linked.
+      /// as whatsmeow does (appstate.go:301-305). The session must be linked.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -1713,7 +1713,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// FailNextContactQuery makes WhatsApp answer the session's next contact query (IsOnWhatsApp, GetUserInfo,
       /// GetProfilePictureInfo, GetBlocklist, UpdateBlocklist) with an IQ error of code: 429 is whatsmeow's
-      /// ErrIQRateOverLimit (errors.go:197).
+      /// ErrIQRateOverLimit (errors.go:198).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -1728,7 +1728,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// FailNextContactQuery makes WhatsApp answer the session's next contact query (IsOnWhatsApp, GetUserInfo,
       /// GetProfilePictureInfo, GetBlocklist, UpdateBlocklist) with an IQ error of code: 429 is whatsmeow's
-      /// ErrIQRateOverLimit (errors.go:197).
+      /// ErrIQRateOverLimit (errors.go:198).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -1741,7 +1741,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// FailNextContactQuery makes WhatsApp answer the session's next contact query (IsOnWhatsApp, GetUserInfo,
       /// GetProfilePictureInfo, GetBlocklist, UpdateBlocklist) with an IQ error of code: 429 is whatsmeow's
-      /// ErrIQRateOverLimit (errors.go:197).
+      /// ErrIQRateOverLimit (errors.go:198).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -1756,7 +1756,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// FailNextContactQuery makes WhatsApp answer the session's next contact query (IsOnWhatsApp, GetUserInfo,
       /// GetProfilePictureInfo, GetBlocklist, UpdateBlocklist) with an IQ error of code: 429 is whatsmeow's
-      /// ErrIQRateOverLimit (errors.go:197).
+      /// ErrIQRateOverLimit (errors.go:198).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -1880,7 +1880,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// SetPushName makes the app state sync set the account's push name, as whatsmeow does for the push name setting: it
-      /// sets the device's push name and saves the device (appstate.go:364-374). Until then SendPresence fails with
+      /// sets the device's push name and saves the device (appstate.go:373-383). Until then SendPresence fails with
       /// whatsmeow's ErrNoPushName (presence.go:67-68). A session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -1895,7 +1895,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// SetPushName makes the app state sync set the account's push name, as whatsmeow does for the push name setting: it
-      /// sets the device's push name and saves the device (appstate.go:364-374). Until then SendPresence fails with
+      /// sets the device's push name and saves the device (appstate.go:373-383). Until then SendPresence fails with
       /// whatsmeow's ErrNoPushName (presence.go:67-68). A session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -1908,7 +1908,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// SetPushName makes the app state sync set the account's push name, as whatsmeow does for the push name setting: it
-      /// sets the device's push name and saves the device (appstate.go:364-374). Until then SendPresence fails with
+      /// sets the device's push name and saves the device (appstate.go:373-383). Until then SendPresence fails with
       /// whatsmeow's ErrNoPushName (presence.go:67-68). A session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -1923,7 +1923,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// SetPushName makes the app state sync set the account's push name, as whatsmeow does for the push name setting: it
-      /// sets the device's push name and saves the device (appstate.go:364-374). Until then SendPresence fails with
+      /// sets the device's push name and saves the device (appstate.go:373-383). Until then SendPresence fails with
       /// whatsmeow's ErrNoPushName (presence.go:67-68). A session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -1988,7 +1988,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// ExpireMedia makes WhatsApp answer every download of direct_path with status, as whatsmeow reports it
-      /// (ErrMediaDownloadFailedWith403, 404 or 410, errors.go:133-135).
+      /// (ErrMediaDownloadFailedWith403, 404 or 410, errors.go:134-136).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -2002,7 +2002,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// ExpireMedia makes WhatsApp answer every download of direct_path with status, as whatsmeow reports it
-      /// (ErrMediaDownloadFailedWith403, 404 or 410, errors.go:133-135).
+      /// (ErrMediaDownloadFailedWith403, 404 or 410, errors.go:134-136).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -2014,7 +2014,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// ExpireMedia makes WhatsApp answer every download of direct_path with status, as whatsmeow reports it
-      /// (ErrMediaDownloadFailedWith403, 404 or 410, errors.go:133-135).
+      /// (ErrMediaDownloadFailedWith403, 404 or 410, errors.go:134-136).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -2028,7 +2028,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// ExpireMedia makes WhatsApp answer every download of direct_path with status, as whatsmeow reports it
-      /// (ErrMediaDownloadFailedWith403, 404 or 410, errors.go:133-135).
+      /// (ErrMediaDownloadFailedWith403, 404 or 410, errors.go:134-136).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -2143,7 +2143,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
       /// or supplies encrypted bytes unchanged, and returns once the client's event handlers ran. With reupload, the
       /// phone uploads the media at from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
-      /// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
+      /// (notification.go:512-513), so nothing shows in WaitForSent. No request for message_id is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -2160,7 +2160,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
       /// or supplies encrypted bytes unchanged, and returns once the client's event handlers ran. With reupload, the
       /// phone uploads the media at from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
-      /// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
+      /// (notification.go:512-513), so nothing shows in WaitForSent. No request for message_id is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -2175,7 +2175,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
       /// or supplies encrypted bytes unchanged, and returns once the client's event handlers ran. With reupload, the
       /// phone uploads the media at from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
-      /// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
+      /// (notification.go:512-513), so nothing shows in WaitForSent. No request for message_id is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -2192,7 +2192,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
       /// or supplies encrypted bytes unchanged, and returns once the client's event handlers ran. With reupload, the
       /// phone uploads the media at from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
-      /// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
+      /// (notification.go:512-513), so nothing shows in WaitForSent. No request for message_id is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -2268,7 +2268,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// RateLimitNextSends makes the session's next count sends fail as WhatsApp's rate limit fails them: an IQ before the
-      /// node is written answers 429 (ErrIQRateOverLimit, errors.go:197), so nothing is sent.
+      /// node is written answers 429 (ErrIQRateOverLimit, errors.go:198), so nothing is sent.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -2282,7 +2282,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// RateLimitNextSends makes the session's next count sends fail as WhatsApp's rate limit fails them: an IQ before the
-      /// node is written answers 429 (ErrIQRateOverLimit, errors.go:197), so nothing is sent.
+      /// node is written answers 429 (ErrIQRateOverLimit, errors.go:198), so nothing is sent.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -2294,7 +2294,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// RateLimitNextSends makes the session's next count sends fail as WhatsApp's rate limit fails them: an IQ before the
-      /// node is written answers 429 (ErrIQRateOverLimit, errors.go:197), so nothing is sent.
+      /// node is written answers 429 (ErrIQRateOverLimit, errors.go:198), so nothing is sent.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -2308,7 +2308,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// RateLimitNextSends makes the session's next count sends fail as WhatsApp's rate limit fails them: an IQ before the
-      /// node is written answers 429 (ErrIQRateOverLimit, errors.go:197), so nothing is sent.
+      /// node is written answers 429 (ErrIQRateOverLimit, errors.go:198), so nothing is sent.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -2542,7 +2542,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// DeliverGroupNotification makes WhatsApp send the session's client a w:gp2 notification of a change to a group,
       /// which need not be on WhatsApp's side. The client dispatches GroupInfo on its node queue, and returns once the
       /// handlers ran; as whatsmeow does, it acks the notification only when every handler succeeded
-      /// (notification.go:493-506, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
+      /// (notification.go:495-508, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
       /// request's id and type "w:gp2", shows in WaitForSent. The group calls' notifications are acked the same way. A
       /// session without a client is an error.
       ///
@@ -2578,7 +2578,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// DeliverGroupNotification makes WhatsApp send the session's client a w:gp2 notification of a change to a group,
       /// which need not be on WhatsApp's side. The client dispatches GroupInfo on its node queue, and returns once the
       /// handlers ran; as whatsmeow does, it acks the notification only when every handler succeeded
-      /// (notification.go:493-506, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
+      /// (notification.go:495-508, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
       /// request's id and type "w:gp2", shows in WaitForSent. The group calls' notifications are acked the same way. A
       /// session without a client is an error.
       ///
@@ -2612,7 +2612,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// DeliverGroupNotification makes WhatsApp send the session's client a w:gp2 notification of a change to a group,
       /// which need not be on WhatsApp's side. The client dispatches GroupInfo on its node queue, and returns once the
       /// handlers ran; as whatsmeow does, it acks the notification only when every handler succeeded
-      /// (notification.go:493-506, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
+      /// (notification.go:495-508, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
       /// request's id and type "w:gp2", shows in WaitForSent. The group calls' notifications are acked the same way. A
       /// session without a client is an error.
       ///
@@ -2648,7 +2648,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// DeliverGroupNotification makes WhatsApp send the session's client a w:gp2 notification of a change to a group,
       /// which need not be on WhatsApp's side. The client dispatches GroupInfo on its node queue, and returns once the
       /// handlers ran; as whatsmeow does, it acks the notification only when every handler succeeded
-      /// (notification.go:493-506, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
+      /// (notification.go:495-508, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
       /// request's id and type "w:gp2", shows in WaitForSent. The group calls' notifications are acked the same way. A
       /// session without a client is an error.
       ///
@@ -2732,7 +2732,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// FailNextGroupQuery makes WhatsApp answer the session's next group call with an IQ error of code: 429 is
-      /// whatsmeow's ErrIQRateOverLimit (errors.go:197).
+      /// whatsmeow's ErrIQRateOverLimit (errors.go:198).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -2746,7 +2746,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// FailNextGroupQuery makes WhatsApp answer the session's next group call with an IQ error of code: 429 is
-      /// whatsmeow's ErrIQRateOverLimit (errors.go:197).
+      /// whatsmeow's ErrIQRateOverLimit (errors.go:198).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -2758,7 +2758,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// FailNextGroupQuery makes WhatsApp answer the session's next group call with an IQ error of code: 429 is
-      /// whatsmeow's ErrIQRateOverLimit (errors.go:197).
+      /// whatsmeow's ErrIQRateOverLimit (errors.go:198).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -2772,7 +2772,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// FailNextGroupQuery makes WhatsApp answer the session's next group call with an IQ error of code: 429 is
-      /// whatsmeow's ErrIQRateOverLimit (errors.go:197).
+      /// whatsmeow's ErrIQRateOverLimit (errors.go:198).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -2785,9 +2785,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// SyncChatState makes the phone change a chat's state, and the session's client sync it as whatsmeow does after a
       /// server_sync notification: on its node queue, holding its app state lock while it fetches (appstate.go:46-47,
-      /// notification.go:481-483), and dispatching the change once it let go of the lock (appstate.go:36-38). While the
+      /// notification.go:483-485), and dispatching the change once it let go of the lock (appstate.go:36-38). While the
       /// collection is corrupted (CorruptAppState) the fetch fails instead: whatsmeow dispatches AppStateSyncError holding
-      /// the lock (appstate.go:167), and the change does not arrive. With full_sync the change arrives as a full sync's,
+      /// the lock (appstate.go:176), and the change does not arrive. With full_sync the change arrives as a full sync's,
       /// marked FromFullSync, as it does after pairing. It returns once the client's event handlers ran. A session without
       /// a client is an error.
       /// </summary>
@@ -2804,9 +2804,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// SyncChatState makes the phone change a chat's state, and the session's client sync it as whatsmeow does after a
       /// server_sync notification: on its node queue, holding its app state lock while it fetches (appstate.go:46-47,
-      /// notification.go:481-483), and dispatching the change once it let go of the lock (appstate.go:36-38). While the
+      /// notification.go:483-485), and dispatching the change once it let go of the lock (appstate.go:36-38). While the
       /// collection is corrupted (CorruptAppState) the fetch fails instead: whatsmeow dispatches AppStateSyncError holding
-      /// the lock (appstate.go:167), and the change does not arrive. With full_sync the change arrives as a full sync's,
+      /// the lock (appstate.go:176), and the change does not arrive. With full_sync the change arrives as a full sync's,
       /// marked FromFullSync, as it does after pairing. It returns once the client's event handlers ran. A session without
       /// a client is an error.
       /// </summary>
@@ -2821,9 +2821,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// SyncChatState makes the phone change a chat's state, and the session's client sync it as whatsmeow does after a
       /// server_sync notification: on its node queue, holding its app state lock while it fetches (appstate.go:46-47,
-      /// notification.go:481-483), and dispatching the change once it let go of the lock (appstate.go:36-38). While the
+      /// notification.go:483-485), and dispatching the change once it let go of the lock (appstate.go:36-38). While the
       /// collection is corrupted (CorruptAppState) the fetch fails instead: whatsmeow dispatches AppStateSyncError holding
-      /// the lock (appstate.go:167), and the change does not arrive. With full_sync the change arrives as a full sync's,
+      /// the lock (appstate.go:176), and the change does not arrive. With full_sync the change arrives as a full sync's,
       /// marked FromFullSync, as it does after pairing. It returns once the client's event handlers ran. A session without
       /// a client is an error.
       /// </summary>
@@ -2840,9 +2840,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// SyncChatState makes the phone change a chat's state, and the session's client sync it as whatsmeow does after a
       /// server_sync notification: on its node queue, holding its app state lock while it fetches (appstate.go:46-47,
-      /// notification.go:481-483), and dispatching the change once it let go of the lock (appstate.go:36-38). While the
+      /// notification.go:483-485), and dispatching the change once it let go of the lock (appstate.go:36-38). While the
       /// collection is corrupted (CorruptAppState) the fetch fails instead: whatsmeow dispatches AppStateSyncError holding
-      /// the lock (appstate.go:167), and the change does not arrive. With full_sync the change arrives as a full sync's,
+      /// the lock (appstate.go:176), and the change does not arrive. With full_sync the change arrives as a full sync's,
       /// marked FromFullSync, as it does after pairing. It returns once the client's event handlers ran. A session without
       /// a client is an error.
       /// </summary>
@@ -2909,9 +2909,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// CorruptAppState makes the session's copy of an app state collection out of step with WhatsApp's, as a mismatching
       /// LTHash does [inferred: the server cannot verify the hash, so it shows only when another device's patch arrives]:
-      /// a write to it is rejected with a 409 whose patches do not verify (appstate.go:607-614), and a sync of it fails.
+      /// a write to it is rejected with a 409 whose patches do not verify (appstate.go:616-623), and a sync of it fails.
       /// A full sync (FetchAppState with fullSync) repairs it, unless unrecoverable: then the full sync fails too, as one
-      /// whose snapshot does not verify does (appstate/decode.go:287-294).
+      /// whose snapshot does not verify does (appstate/decode.go:288-295).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -2926,9 +2926,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// CorruptAppState makes the session's copy of an app state collection out of step with WhatsApp's, as a mismatching
       /// LTHash does [inferred: the server cannot verify the hash, so it shows only when another device's patch arrives]:
-      /// a write to it is rejected with a 409 whose patches do not verify (appstate.go:607-614), and a sync of it fails.
+      /// a write to it is rejected with a 409 whose patches do not verify (appstate.go:616-623), and a sync of it fails.
       /// A full sync (FetchAppState with fullSync) repairs it, unless unrecoverable: then the full sync fails too, as one
-      /// whose snapshot does not verify does (appstate/decode.go:287-294).
+      /// whose snapshot does not verify does (appstate/decode.go:288-295).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -2941,9 +2941,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// CorruptAppState makes the session's copy of an app state collection out of step with WhatsApp's, as a mismatching
       /// LTHash does [inferred: the server cannot verify the hash, so it shows only when another device's patch arrives]:
-      /// a write to it is rejected with a 409 whose patches do not verify (appstate.go:607-614), and a sync of it fails.
+      /// a write to it is rejected with a 409 whose patches do not verify (appstate.go:616-623), and a sync of it fails.
       /// A full sync (FetchAppState with fullSync) repairs it, unless unrecoverable: then the full sync fails too, as one
-      /// whose snapshot does not verify does (appstate/decode.go:287-294).
+      /// whose snapshot does not verify does (appstate/decode.go:288-295).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -2958,9 +2958,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// CorruptAppState makes the session's copy of an app state collection out of step with WhatsApp's, as a mismatching
       /// LTHash does [inferred: the server cannot verify the hash, so it shows only when another device's patch arrives]:
-      /// a write to it is rejected with a 409 whose patches do not verify (appstate.go:607-614), and a sync of it fails.
+      /// a write to it is rejected with a 409 whose patches do not verify (appstate.go:616-623), and a sync of it fails.
       /// A full sync (FetchAppState with fullSync) repairs it, unless unrecoverable: then the full sync fails too, as one
-      /// whose snapshot does not verify does (appstate/decode.go:287-294).
+      /// whose snapshot does not verify does (appstate/decode.go:288-295).
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>

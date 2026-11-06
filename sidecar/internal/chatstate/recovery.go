@@ -16,7 +16,7 @@ import (
 const (
 	// cooldown is how long after a full sync of a collection that failed a failed sync of it starts no other, so a
 	// collection that a full sync cannot repair does not loop: each failed full sync dispatches another error
-	// (appstate.go:76-77, 167). After one that succeeded, the next failure is recovered at once.
+	// (appstate.go:85-86, 176). After one that succeeded, the next failure is recovered at once.
 	// An hour, as wuzapi's (appstate_recovery.go) [inferred: no measurement says how soon a retry can succeed].
 	cooldown = time.Hour
 	// syncTimeout bounds one full sync, the worker's or a write's.
@@ -54,7 +54,7 @@ type fullSync struct {
 
 // Handler is the slice's whatsmeow event handler for a session's client. It only signals the session's recovery when
 // a sync of a collection failed, and never blocks: whatsmeow dispatches AppStateSyncError holding its app state lock
-// (appstate.go:46-47, 77, 167), which the full sync takes (appstate.go:46), so the handler never syncs itself. It
+// (appstate.go:46-47, 86, 176), which the full sync takes (appstate.go:46), so the handler never syncs itself. It
 // always returns true: whatsmeow acks app state whatever the handlers return (appstate.go:36-38).
 func (svc *Service) Handler(sessionID string) whatsmeow.EventHandlerWithSuccessStatus {
 	return func(evt any) bool {

@@ -530,7 +530,7 @@ func TestPairUsesTheSidecarsLifetimeNotTheCall(t *testing.T) {
 	client.mu.Unlock()
 
 	// whatsmeow's QR channel disconnects when its context ends (qrchan.go:125-131), which would race the 515
-	// reconnect after a link; the connection outlives the call too (client.go:541-599).
+	// reconnect after a link; the connection outlives the call too (client.go:543-601).
 	if qrCtx.Err() != nil || len(connectCtxs) != 1 || connectCtxs[0].Err() != nil {
 		t.Fatal("the QR channel or the connection got the call's context")
 	}
@@ -967,7 +967,7 @@ func TestAClientThatReconnectsAfterItsSessionWasDeletedIsDisconnected(t *testing
 	again := client.nextDisconnect()
 
 	// whatsmeow's 515 goroutine disconnects, then connects again on its own (connectionevents.go:33-36): its
-	// connect checks only Store.Deleted (client.go:567), which Delete, deleting by the recorded JID, does not set.
+	// connect checks only Store.Deleted (client.go:569), which Delete, deleting by the recorded JID, does not set.
 	if err := client.ConnectContext(context.Background()); err != nil {
 		t.Fatalf("ConnectContext: %v", err)
 	}

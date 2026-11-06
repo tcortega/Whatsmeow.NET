@@ -35,7 +35,7 @@ func (h *harness) savedAccount() *store.Device {
 }
 
 // A vote is decrypted in the handler with whatsmeow's own DecryptPollVote and the poll's secret from the session's
-// store, which whatsmeow put there when the poll was sent or received (send.go:403-410, message.go:964-985). A vote the
+// store, which whatsmeow put there when the poll was sent or received (send.go:403-410, message.go:973-994). A vote the
 // sidecar cannot decrypt is still recorded, marked, with its poll; every one is answered.
 func TestAPollVoteIsRecordedDecrypted_OrMarkedUndecryptable(t *testing.T) {
 	t.Parallel()

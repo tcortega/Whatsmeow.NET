@@ -719,7 +719,7 @@ func TestAFailureThatSentNothingLeavesNoRecordSoARepeatSends(t *testing.T) {
 	h := start(t)
 
 	// Each fails before the node is written (send.go:207-211, 341-365; the IQs in sendDM 875-918, sendGroup 814-840;
-	// client.go:981-983).
+	// client.go:983-985).
 	cases := []struct {
 		err      error
 		code     codes.Code
@@ -730,7 +730,7 @@ func TestAFailureThatSentNothingLeavesNoRecordSoARepeatSends(t *testing.T) {
 		{fmt.Errorf("failed to get user info: %w", &whatsmeow.IQError{Code: 500, Text: "internal-server-error"}), codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "500"}},
 		// The device lost its ID: the session was logged out after it was found online.
 		{whatsmeow.ErrNotLoggedIn, codes.FailedPrecondition, "LOGGED_OUT", nil},
-		// No socket before the write (client.go:981-983), as sendDM wraps it (send.go:921).
+		// No socket before the write (client.go:983-985), as sendDM wraps it (send.go:921).
 		{fmt.Errorf("failed to send message node: %w", whatsmeow.ErrNotConnected), codes.Unavailable, "NOT_CONNECTED", nil},
 	}
 
@@ -755,7 +755,7 @@ func TestAFailureThatSentNothingLeavesNoRecordSoARepeatSends(t *testing.T) {
 }
 
 // whatsmeow wraps the recipient's JID into its errors (send.go:346, 353, 356), and an IQ error prints its nodes
-// (errors.go:216-226): other people's personal data, which neither a status message, which reaches the application,
+// (errors.go:217-227): other people's personal data, which neither a status message, which reaches the application,
 // nor the sidecar's log may carry (ARCHITECTURE §7.8).
 func TestNoErrorOrLogCarriesTheRecipientsJID(t *testing.T) {
 	t.Parallel()
@@ -1191,7 +1191,7 @@ func TestMarkReadIsInvalidWithoutMessagesOrAGroupSenderAndFailsWhenNotConnected(
 		wantReason(t, err, codes.InvalidArgument, "INVALID_ARGUMENT", map[string]string{"field": c.field})
 	}
 
-	// whatsmeow's sendNode without a socket (client.go:981-983).
+	// whatsmeow's sendNode without a socket (client.go:983-985).
 	h.stub.readErr = whatsmeow.ErrNotConnected
 
 	_, err := h.client.MarkRead(h.ctx, &whatsmeowv1.MarkReadRequest{SessionId: "s1", Chat: "111@lid", MessageIds: []string{"M1"}})

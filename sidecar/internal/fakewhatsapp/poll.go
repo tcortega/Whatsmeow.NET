@@ -18,8 +18,8 @@ import (
 )
 
 // secrets is a never-connected whatsmeow client of the session's device, for whatsmeow's own message secret code:
-// it reads and writes nothing but the device's store (msgsecret.go:158-445, message.go:964-985), and NewClient starts
-// nothing (client.go:267-325).
+// it reads and writes nothing but the device's store (msgsecret.go:158-445, message.go:973-994), and NewClient starts
+// nothing (client.go:268-327).
 func (c *Client) secrets() *whatsmeow.Client { return whatsmeow.NewClient(c.Store, nil) }
 
 // BuildPollCreation is whatsmeow's own (msgsecret.go:402-421).

@@ -121,7 +121,7 @@ func TestDeliverHistorySyncSendsTheNotificationAndTheClientDownloadsAndDeletesTh
 }
 
 // As whatsmeow's DownloadHistorySync stores the secrets the blob's messages carry, before it returns when asked to
-// (message.go:806-809, 988-1050): a member's by its participant, the account's own by its JID.
+// (message.go:806-809, 997-1059): a member's by its participant, the account's own by its JID.
 func TestADownloadedBlobsMessageSecretsAreStored(t *testing.T) {
 	t.Parallel()
 

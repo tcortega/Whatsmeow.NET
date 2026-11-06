@@ -23,7 +23,7 @@ import (
 )
 
 // handlers is a client that only keeps the handlers registered on it, run as whatsmeow's dispatchEvent runs them:
-// in order, up to the first that fails (client.go:999-1013).
+// in order, up to the first that fails (client.go:1001-1015).
 type handlers struct {
 	session.Client
 

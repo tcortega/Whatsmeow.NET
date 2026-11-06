@@ -83,7 +83,7 @@ func kept(state *whatsmeowv1.SessionState) bool {
 
 // next maps a whatsmeow event to the state it moves the session to from current (ARCHITECTURE §7.4), or false when
 // it moves nothing: an event that is not about the connection, or one that arrives late, after the session left
-// the states it applies to (whatsmeow dispatches connection events on their own goroutines, client.go:552, 621).
+// the states it applies to (whatsmeow dispatches connection events on their own goroutines, client.go:554, 623).
 // now is when the event arrived.
 func next(current *whatsmeowv1.SessionState, evt any, now time.Time) (*whatsmeowv1.SessionState, bool) {
 	_, isLoggedOut := current.GetKind().(*whatsmeowv1.SessionState_LoggedOut_)

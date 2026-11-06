@@ -165,7 +165,7 @@ func TestResetConnectionDropsTheConnectionThenLogsInAgainAndDeliversWhatWasUnans
 
 	client.ResetConnection()
 
-	// As whatsmeow: Disconnected, a login, then the stanza WhatsApp delivers again (client.go:612-631, 653).
+	// As whatsmeow: Disconnected, a login, then the stanza WhatsApp delivers again (client.go:614-633, 655).
 	then[*events.Disconnected](ctx, t, got)
 	then[*events.Connected](ctx, t, got)
 
@@ -235,7 +235,7 @@ func TestResetConnectionDoesNothingWithoutAConnectionAndADisconnectStopsItsRecon
 	}
 
 	// Connected again, then reset and disconnected while the reset's Disconnected handlers run: a Disconnect during
-	// whatsmeow's reconnect wait cancels the reconnect (client.go:657-659).
+	// whatsmeow's reconnect wait cancels the reconnect (client.go:659-661).
 	if err := client.ConnectContext(ctx); err != nil {
 		t.Fatalf("ConnectContext: %v", err)
 	}

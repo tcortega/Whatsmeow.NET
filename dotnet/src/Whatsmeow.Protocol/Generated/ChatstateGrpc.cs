@@ -111,8 +111,9 @@ namespace Whatsmeow.Protocol.V1 {
       /// When the write still fails, WhatsApp rejected it: WHATSAPP_ERROR, with metadata "code", 409 for a conflict.
       /// A write that went out with no answer back is OUTCOME_UNKNOWN, and is never retried.
       /// A write WhatsApp took whose sync after it failed is OK when the sync found the session's copy out of step (the
-      /// sidecar then syncs it in full), and otherwise OUTCOME_UNKNOWN or NOT_CONNECTED: whatsmeow wraps that sync's error
-      /// without a sentinel that would tell it from the write's own (appstate.go:627-629).
+      /// sidecar then syncs it in full) or WhatsApp held the sync back after a 429 (nothing is sent or synced again), and
+      /// otherwise OUTCOME_UNKNOWN or NOT_CONNECTED: whatsmeow wraps that sync's error without a sentinel that would tell it
+      /// from the write's own (appstate.go:636-638).
       /// Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, TEMPORARILY_BANNED, NOT_CONNECTED,
       /// RATE_LIMITED, WHATSAPP_ERROR, OUTCOME_UNKNOWN.
       /// </summary>
@@ -133,8 +134,9 @@ namespace Whatsmeow.Protocol.V1 {
       /// When the write still fails, WhatsApp rejected it: WHATSAPP_ERROR, with metadata "code", 409 for a conflict.
       /// A write that went out with no answer back is OUTCOME_UNKNOWN, and is never retried.
       /// A write WhatsApp took whose sync after it failed is OK when the sync found the session's copy out of step (the
-      /// sidecar then syncs it in full), and otherwise OUTCOME_UNKNOWN or NOT_CONNECTED: whatsmeow wraps that sync's error
-      /// without a sentinel that would tell it from the write's own (appstate.go:627-629).
+      /// sidecar then syncs it in full) or WhatsApp held the sync back after a 429 (nothing is sent or synced again), and
+      /// otherwise OUTCOME_UNKNOWN or NOT_CONNECTED: whatsmeow wraps that sync's error without a sentinel that would tell it
+      /// from the write's own (appstate.go:636-638).
       /// Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, TEMPORARILY_BANNED, NOT_CONNECTED,
       /// RATE_LIMITED, WHATSAPP_ERROR, OUTCOME_UNKNOWN.
       /// </summary>
@@ -153,8 +155,9 @@ namespace Whatsmeow.Protocol.V1 {
       /// When the write still fails, WhatsApp rejected it: WHATSAPP_ERROR, with metadata "code", 409 for a conflict.
       /// A write that went out with no answer back is OUTCOME_UNKNOWN, and is never retried.
       /// A write WhatsApp took whose sync after it failed is OK when the sync found the session's copy out of step (the
-      /// sidecar then syncs it in full), and otherwise OUTCOME_UNKNOWN or NOT_CONNECTED: whatsmeow wraps that sync's error
-      /// without a sentinel that would tell it from the write's own (appstate.go:627-629).
+      /// sidecar then syncs it in full) or WhatsApp held the sync back after a 429 (nothing is sent or synced again), and
+      /// otherwise OUTCOME_UNKNOWN or NOT_CONNECTED: whatsmeow wraps that sync's error without a sentinel that would tell it
+      /// from the write's own (appstate.go:636-638).
       /// Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, TEMPORARILY_BANNED, NOT_CONNECTED,
       /// RATE_LIMITED, WHATSAPP_ERROR, OUTCOME_UNKNOWN.
       /// </summary>
@@ -175,8 +178,9 @@ namespace Whatsmeow.Protocol.V1 {
       /// When the write still fails, WhatsApp rejected it: WHATSAPP_ERROR, with metadata "code", 409 for a conflict.
       /// A write that went out with no answer back is OUTCOME_UNKNOWN, and is never retried.
       /// A write WhatsApp took whose sync after it failed is OK when the sync found the session's copy out of step (the
-      /// sidecar then syncs it in full), and otherwise OUTCOME_UNKNOWN or NOT_CONNECTED: whatsmeow wraps that sync's error
-      /// without a sentinel that would tell it from the write's own (appstate.go:627-629).
+      /// sidecar then syncs it in full) or WhatsApp held the sync back after a 429 (nothing is sent or synced again), and
+      /// otherwise OUTCOME_UNKNOWN or NOT_CONNECTED: whatsmeow wraps that sync's error without a sentinel that would tell it
+      /// from the write's own (appstate.go:636-638).
       /// Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, TEMPORARILY_BANNED, NOT_CONNECTED,
       /// RATE_LIMITED, WHATSAPP_ERROR, OUTCOME_UNKNOWN.
       /// </summary>

@@ -339,7 +339,7 @@ public sealed class ContactTests(FakeSidecar fixture)
 	}
 
 	/// <summary>
-	/// #122: whatsmeow reads a status notification's sender without checking it (notification.go:451-467), so one
+	/// #122: whatsmeow reads a status notification's sender without checking it (notification.go:453-469), so one
 	/// without a <c>from</c> names the empty JID. The client cannot read it, so the sidecar does not record it, and the
 	/// next change still arrives.
 	/// </summary>

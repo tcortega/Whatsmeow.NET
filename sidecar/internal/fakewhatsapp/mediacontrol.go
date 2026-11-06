@@ -79,7 +79,7 @@ func (c *Control) HoldNextDownload(_ context.Context, req *fakev1.HoldNextDownlo
 
 // AnswerMediaRetry makes the phone answer a media retry request, as whatsmeow parses the answer
 // (mediaretry.go:139-176), encrypted under the request's media key (mediaretry.go:24-41), and dispatches it on the
-// node queue (notification.go:510-511).
+// node queue (notification.go:512-513).
 func (c *Control) AnswerMediaRetry(_ context.Context, req *fakev1.AnswerMediaRetryRequest) (*fakev1.AnswerMediaRetryResponse, error) {
 	client, err := c.whatsApp.client(req.GetSessionId())
 	if err != nil {
