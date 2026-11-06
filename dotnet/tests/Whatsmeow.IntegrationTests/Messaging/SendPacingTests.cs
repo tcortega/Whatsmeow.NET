@@ -108,14 +108,14 @@ public sealed class SendPacingTests(FakeSidecar fixture, SidecarBinaries binarie
 		return watch;
 	}
 
-	/// <summary>Bans the session for <paramref name="expire"/>, none for zero, and returns its state once it is TempBanned.</summary>
-	private async Task<SessionState.TempBanned> BanAsync(string session, StateWatch watch, TimeSpan expire, CancellationToken ct)
+	/// <summary>Bans the session for <paramref name="expire"/>, none for zero, and returns its state once it is TemporarilyBanned.</summary>
+	private async Task<SessionState.TemporarilyBanned> BanAsync(string session, StateWatch watch, TimeSpan expire, CancellationToken ct)
 	{
 		_ = await fixture.Fake.RaisePermanentDisconnectAsync(
 			new Raise { SessionId = session, TemporaryBan = new Raise.Types.TemporaryBan { Code = 101, Expire = Duration.FromTimeSpan(expire) } },
 			cancellationToken: ct
 		).ConfigureAwait(false);
-		return Assert.IsType<SessionState.TempBanned>(await watch.NextAsync().ConfigureAwait(false));
+		return Assert.IsType<SessionState.TemporarilyBanned>(await watch.NextAsync().ConfigureAwait(false));
 	}
 
 	[Fact]

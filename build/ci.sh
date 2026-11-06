@@ -141,6 +141,7 @@ job_contract() {
 	before="$(tree_state)"
 	check "shellcheck build/*.sh" shellcheck build/*.sh
 	check "build/release.sh refuses every tag and feed it must not publish (build/release-test.sh, ADR 0050)" bash build/release-test.sh
+	check "every member the last stable release shipped is still shipped (ADR 0055)" bash build/release.sh shipped-api
 	check "third_party/whatsmeow matches the pinned module" go -C tools run ./sync-protos
 	check "buf lint" buf lint
 	# Our protos only: third_party/whatsmeow is upstream's, copied unmodified (ARCHITECTURE §6).
@@ -453,6 +454,53 @@ package_version() {
 	echo "every package and binary is $version"
 }
 
+# Package validation's baseline (ADR 0055), from the tags: build/release.sh baseline, tested by build/release-test.sh. A
+# rehearsal's comes from the next stable release's, so it compares with what that release will.
+package_baseline() {
+	baseline="$(bash build/release.sh baseline "$version")" || return
+	if [ -z "$baseline" ]; then
+		echo "no package validation baseline: no stable release of this major version below $version"
+		return 0
+	fi
+	echo "package validation compares the stable packages with their published $baseline"
+}
+
+# The baseline packages come from nuget.org through restore (a PackageDownload, outside the lock file). Only NU1102,
+# no such version on nuget.org, means the release is missing; any other failure is restore's own.
+restore_baseline() {
+	local out rc
+	[ -n "$baseline" ] || return 0
+	out="$(dotnet restore dotnet/Whatsmeow.slnx --locked-mode -p:PackageValidationBaselineVersion="$baseline" 2>&1)"
+	rc=$?
+	printf '%s\n' "$out"
+	[ "$rc" -eq 0 ] && return 0
+	if grep -q 'NU1102' <<<"$out"; then
+		annotate error "package validation" "restore found no $baseline of a stable package on nuget.org (NU1102): the v$baseline release is not published yet, or was refused and its tag must be deleted (ADR 0050, ADR 0055)"
+		return 1
+	fi
+	annotate error "package validation" "restore of the $baseline baseline packages failed; see its output above (ADR 0055)"
+	return 1
+}
+
+# A stable release ships its public API (ADR 0055): at a stable tag every PublicAPI.Unshipped.txt holds only its
+# #nullable enable line, so PublicAPI.Shipped.txt is what the release publishes and RS0017 guards all of it. A
+# rehearsal stands for the next stable release, so it is held to that too.
+release_api_shipped() {
+	local file rc=0
+	if [[ "$version" == *-* ]] && [[ "$version" != 0.0.0-rehearsal.* ]]; then
+		echo "$version is a pre-release, so its public API may stay unshipped"
+		return 0
+	fi
+	for file in dotnet/src/*/PublicAPI.Unshipped.txt; do
+		if grep -q -v -x -e '#nullable enable' -e '' "$file"; then
+			annotate error "public API" "$file is not empty at $version, a stable release or the rehearsal of one: move its lines to PublicAPI.Shipped.txt before tagging (ADR 0055)"
+			rc=1
+		fi
+	done
+	[ "$rc" -eq 0 ] && echo "every stable package's public API is shipped at $version"
+	return "$rc"
+}
+
 # Release builds only: no fakewhatsapp tag (ADR 0019); -trimpath and -s -w, reproducible from the commit (ADR 0023).
 build_sidecars() {
 	local targets target
@@ -468,7 +516,7 @@ build_sidecars() {
 pack_feed() {
 	local nupkg line
 	rm -rf "$package_feed"
-	dotnet pack dotnet/Whatsmeow.slnx -c Release --no-restore -p:ContinuousIntegrationBuild=true -o "$package_feed" || return
+	dotnet pack dotnet/Whatsmeow.slnx -c Release --no-restore -p:ContinuousIntegrationBuild=true ${baseline:+-p:PackageValidationBaselineVersion="$baseline"} -o "$package_feed" || return
 	echo "$version" >"$package_feed/version"
 	for nupkg in "$package_feed"/Whatsmeow.Sidecar.Native.*.nupkg; do
 		line="$(basename "$nupkg"): $(wc -c <"$nupkg" | tr -d ' ') bytes"
@@ -596,6 +644,27 @@ packaged_testing_pins() {
 		fi
 	done
 	grep -F 'Whatsmeow.' "$nuspec"
+	return "$rc"
+}
+
+# Whatsmeow.Client is compiled against Whatsmeow.Protocol's generated code and internals, and that code against
+# Whatsmeow.Protocol.WhatsApp's types, which the Raw hatch exposes; each depends on the next at exactly its own version
+# (ADR 0055).
+packaged_protocol_pins() {
+	local pair nuspec dependency rc=0
+	for pair in whatsmeow.client:Whatsmeow.Protocol whatsmeow.protocol:Whatsmeow.Protocol.WhatsApp; do
+		nuspec="$packages/${pair%%:*}/$version/${pair%%:*}.nuspec" dependency="${pair#*:}"
+		if [ ! -f "$nuspec" ]; then
+			annotate error "exact pins" "the consumer restored no $nuspec"
+			rc=1
+			continue
+		fi
+		if ! grep -qF "<dependency id=\"$dependency\" version=\"[$version]\"" "$nuspec"; then
+			annotate error "exact pins" "${pair%%:*} does not depend on $dependency at exactly [$version] (ADR 0055); its ProjectReference needs PackExactVersion=\"true\" (_WhatsmeowExactProjectVersions, ADR 0023)"
+			rc=1
+		fi
+		grep -F "\"$dependency\"" "$nuspec"
+	done
 	return "$rc"
 }
 
@@ -1070,6 +1139,7 @@ job_install() { # feed
 	check "install: Whatsmeow.Client pins each native package at exactly its version" packaged_pins
 	check "install: Whatsmeow.Extensions.Hosting pins Whatsmeow.Client at exactly its version" packaged_hosting_pin
 	check "install: Whatsmeow.Testing pins Whatsmeow.Client and Whatsmeow.Extensions.Hosting at exactly its version" packaged_testing_pins
+	check "install: Whatsmeow.Client pins Whatsmeow.Protocol, and Whatsmeow.Protocol pins Whatsmeow.Protocol.WhatsApp, at exactly its version" packaged_protocol_pins
 	check "install: each native package holds exactly its binaries, its buildTransitive targets, its README and the GPL files" packaged_files
 	check "install: each native package's README and GPL files are the repository's, and COPYING is the GPL-3.0 text (ADR 0016)" packaged_notices
 	check "install: GPL-3.0-only on the native packages, MPL-2.0 on the .NET packages (ADR 0016)" packaged_licences
@@ -1236,6 +1306,9 @@ job_package() {
 	before="$(tree_state)"
 	check "dotnet restore (locked)" dotnet restore dotnet/Whatsmeow.slnx --locked-mode &&
 		check "one version for every package and binary, a pre-release when HEAD has no tag (ADR 0023)" package_version &&
+		check "a stable release ships its public API (ADR 0055)" release_api_shipped &&
+		check "the package validation baseline, the last stable release below this version (ADR 0055)" package_baseline &&
+		check "restore the baseline packages from nuget.org (ADR 0055)" restore_baseline &&
 		check "whatsmeow-net for every release target" build_sidecars &&
 		check "dotnet pack into the local feed $package_feed" pack_feed &&
 		check "the Corresponding Source archive into the feed (ADR 0016)" source_archive &&

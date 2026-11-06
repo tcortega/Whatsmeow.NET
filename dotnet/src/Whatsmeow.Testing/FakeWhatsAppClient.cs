@@ -561,7 +561,7 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 		CallAsync(nameof(SetDisappearingTimerAsync), [(nameof(chat), chat), (nameof(timer), timer), (nameof(id), id)], cancellationToken);
 
 	/// <inheritdoc/>
-	public Task MarkReadAsync(Jid chat, IReadOnlyCollection<MessageId> messageIds, Jid? sender = null, CancellationToken cancellationToken = default)
+	public Task MarkReadAsync(Jid chat, IReadOnlyList<MessageId> messageIds, Jid? sender = null, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(messageIds);
 		ImmutableArray<MessageId> ids = [.. messageIds];

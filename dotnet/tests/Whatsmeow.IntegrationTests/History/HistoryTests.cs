@@ -131,7 +131,7 @@ public sealed class HistoryTests(FakeSidecar fixture)
 				FileLength = 7,
 				StreamingSidecar = [],
 			},
-			Metadata = new ImageMetadata { Mimetype = "image/jpeg", Caption = "old photo" },
+			Metadata = new ImageMetadata { MimeType = "image/jpeg", Caption = "old photo" },
 			IsViewOnce = false,
 		};
 		Assert.Equal(

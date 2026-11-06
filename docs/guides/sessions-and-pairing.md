@@ -19,7 +19,7 @@ The id is your own name and is never redacted: it appears as given in log lines 
 
 ## States
 
-`client.WatchStateAsync()` yields the current state first, then every change; the same changes also arrive as `ConnectionStateChanged` events.
+`client.WatchStateAsync()` yields the current state first, then every change; the same changes also arrive as `SessionStateChanged` events.
 
 | State | Means |
 |---|---|
@@ -30,7 +30,7 @@ The id is your own name and is never redacted: it appears as given in log lines 
 | `Disconnected` | paired but offline: after `DisconnectAsync`, or after the sidecar restarted |
 | `LoggedOut` | unlinked; `Code` is 0 after your own `LogoutAsync`, else WhatsApp's reason, such as 401 |
 | `Replaced` | another client logged in with the same device |
-| `TempBanned` | temporarily banned, until `Until` when WhatsApp said |
+| `TemporarilyBanned` | temporarily banned, until `Until` when WhatsApp said |
 | `Outdated` | WhatsApp refused this client version |
 | `Error` | any other permanent failure, with `Code` and `Message` |
 

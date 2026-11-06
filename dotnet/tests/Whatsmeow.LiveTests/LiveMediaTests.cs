@@ -82,7 +82,7 @@ public sealed class LiveMediaTests(LiveSidecar live, LivePeer peer)
 			LiveChecks.Equal((hash, length), (media.FileSha256.ToArray(), media.FileLength));
 
 			var id = MessageId.New();
-			var metadata = new DocumentMetadata { Mimetype = "application/octet-stream", FileName = $"wmn-{mib}MiB.bin" };
+			var metadata = new DocumentMetadata { MimeType = "application/octet-stream", FileName = $"wmn-{mib}MiB.bin" };
 			var arrived = LiveChecks.ArrivalAsync(other, id, ct);
 			try
 			{
@@ -160,7 +160,7 @@ public sealed class LiveMediaTests(LiveSidecar live, LivePeer peer)
 
 		var (again, oldestAge) = oldest.Value;
 		var id = MessageId.New();
-		var metadata = new DocumentMetadata { Mimetype = "application/octet-stream", FileName = "wmn-old-ref.bin" };
+		var metadata = new DocumentMetadata { MimeType = "application/octet-stream", FileName = "wmn-old-ref.bin" };
 		var arrived = LiveChecks.ArrivalAsync(other, id, ct);
 		_ = await client.SendDocumentAsync(to, again.Media, metadata, id, cancellationToken: ct);
 		var got = await LiveChecks.WithinAsync(arrived, $"the document sent again from a ref {Age(oldestAge)} old");

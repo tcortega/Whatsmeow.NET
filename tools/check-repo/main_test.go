@@ -510,3 +510,119 @@ func TestCheckTheReadmeShowsASample(t *testing.T) {
 
 	assertFindings(t, fstest.MapFS{"README.md": {Data: []byte("# A\n\nNo code.\n")}}, []string{"README.md:0: [snippet]"})
 }
+
+func TestCheckPublicAPIKeepsShippedMembersAndProtobufTypesOut(t *testing.T) {
+	t.Parallel()
+
+	assertFindings(t, fstest.MapFS{
+		"dotnet/src/A/PublicAPI.Shipped.txt": {Data: []byte("#nullable enable\n" +
+			"A.Client.Send(A.Message! message) -> void\n" +
+			"[WMN1001]A.Client.SendRaw(Whatsmeow.Proto.WAWebProtobufsE2E.Message! message) -> void\n" +
+			"A.Client.Info.get -> Whatsmeow.Protocol.V1.SidecarInfo!\n" +
+			"A.Client.Codec.get -> Google.Protobuf.MessageParser!\n" +
+			"A.Client.Call.get -> Grpc.Core.CallInvoker!\n" +
+			"[WMN9999]A.Client.Other.get -> Whatsmeow.Proto.WAWebProtobufsE2E.Message!\n" +
+			// The Raw hatch exposes upstream WhatsApp types only, never the contract's or a runtime's.
+			"[WMN1001]A.Client.RawInfo.get -> Whatsmeow.Protocol.V1.SidecarInfo!\n" +
+			"[WMN1001]A.Client.RawSend(Whatsmeow.Proto.WAWebProtobufsE2E.Message! message) -> Google.Protobuf.ByteString!\n" +
+			"[WMN1001]A.Client.RawCall.get -> Grpc.Core.CallInvoker!\n")},
+		"dotnet/src/A/PublicAPI.Unshipped.txt": {Data: []byte("#nullable enable\n" +
+			"*REMOVED*A.Client.Send(A.Message! message) -> void\n" +
+			"A.Client.Send(A.Message! message, int retries = 0) -> void\n")},
+		// Only the stable packages' API files are read.
+		"dotnet/tests/T/PublicAPI.Unshipped.txt": {Data: []byte("*REMOVED*T.X\nT.Y -> Google.Protobuf.ByteString\n")},
+	}, []string{
+		"dotnet/src/A/PublicAPI.Shipped.txt:4: [public-api-protobuf]",
+		"dotnet/src/A/PublicAPI.Shipped.txt:5: [public-api-protobuf]",
+		"dotnet/src/A/PublicAPI.Shipped.txt:6: [public-api-protobuf]",
+		"dotnet/src/A/PublicAPI.Shipped.txt:7: [public-api-protobuf]",
+		"dotnet/src/A/PublicAPI.Shipped.txt:8: [public-api-protobuf]",
+		"dotnet/src/A/PublicAPI.Shipped.txt:9: [public-api-protobuf]",
+		"dotnet/src/A/PublicAPI.Shipped.txt:10: [public-api-protobuf]",
+		"dotnet/src/A/PublicAPI.Unshipped.txt:2: [public-api-removed]",
+	})
+}
+
+func TestCheckCompatibilitySuppressionsOnlyLetIWhatsAppClientGrowAndRawChange(t *testing.T) {
+	t.Parallel()
+
+	suppressions := func(entries ...[2]string) *fstest.MapFile {
+		var b strings.Builder
+
+		b.WriteString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<Suppressions>\n")
+
+		for _, e := range entries {
+			fmt.Fprintf(&b, "  <Suppression>\n    <DiagnosticId>%s</DiagnosticId>\n    <Target>%s</Target>\n  </Suppression>\n", e[0], e[1])
+		}
+
+		b.WriteString("</Suppressions>\n")
+
+		return &fstest.MapFile{Data: []byte(b.String())}
+	}
+
+	assertFindings(t, fstest.MapFS{
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml": suppressions(
+			// A member added to IWhatsAppClient in a minor version.
+			[2]string{"CP0006", "M:Whatsmeow.IWhatsAppClient.NewAsync(System.Threading.CancellationToken)"},
+			[2]string{"CP0006", "P:Whatsmeow.IWhatsAppClient.Other"},
+			// The Raw hatch follows Whatsmeow.Protocol.WhatsApp.
+			[2]string{"CP0002", "M:Whatsmeow.IWhatsAppClient.SendRawAsync(Whatsmeow.Jid,Whatsmeow.Proto.WAWebProtobufsE2E.Message,System.Nullable{Whatsmeow.MessageId},System.Threading.CancellationToken)"},
+			[2]string{"CP0002", "M:Whatsmeow.Events.MessageReceived.get_Raw"},
+			// Line 19: a shipped member removed.
+			[2]string{"CP0002", "M:Whatsmeow.Jid.get_IsLid"},
+			// Line 23: an IWhatsAppClient member removed, not added.
+			[2]string{"CP0002", "M:Whatsmeow.IWhatsAppClient.ConnectAsync(System.Threading.CancellationToken)"},
+			// Line 27: a member added to another interface, through a look-alike name.
+			[2]string{"CP0006", "M:Whatsmeow.IWhatsAppClientExtras.NewAsync"},
+			// Line 31: the interface itself changed.
+			[2]string{"CP0008", "T:Whatsmeow.IWhatsAppClient"},
+			// Line 35: a member beside Raw whose name starts like it.
+			[2]string{"CP0002", "P:Whatsmeow.Events.MessageReceived.RawText"},
+		),
+		"dotnet/src/Whatsmeow.Testing/CompatibilitySuppressions.xml": suppressions(
+			[2]string{"CP0002", "M:Whatsmeow.Testing.FakeWhatsAppClient.SendRawAsync(Whatsmeow.Jid,Whatsmeow.Proto.WAWebProtobufsE2E.Message,System.Nullable{Whatsmeow.MessageId},System.Threading.CancellationToken)"},
+			// Line 7: the fake only grows, so nothing else of it is suppressed.
+			[2]string{"CP0002", "M:Whatsmeow.Testing.FakeWhatsAppClient.FailNext(System.String,System.Exception)"},
+		),
+		// Hosting's interface is the consumers' to implement, so it never grows, and nothing else of it changes.
+		"dotnet/src/Whatsmeow.Extensions.Hosting/CompatibilitySuppressions.xml": suppressions(
+			[2]string{"CP0006", "M:Whatsmeow.Extensions.Hosting.IWhatsAppEventHandler`1.Other"},
+		),
+		"dotnet/src/Whatsmeow.Client/compatibilitysuppressions.xml.bak":  {Data: []byte("not read")},
+		"dotnet/src/Whatsmeow.Testing/sub/CompatibilitySuppressions.xml": {Data: []byte("<Suppressions>")},
+	}, []string{
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:19: [compat-suppression]",
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:23: [compat-suppression]",
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:27: [compat-suppression]",
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:31: [compat-suppression]",
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:35: [compat-suppression]",
+		"dotnet/src/Whatsmeow.Extensions.Hosting/CompatibilitySuppressions.xml:0: [compat-suppression]",
+		"dotnet/src/Whatsmeow.Testing/CompatibilitySuppressions.xml:7: [compat-suppression]",
+		"dotnet/src/Whatsmeow.Testing/sub/CompatibilitySuppressions.xml:0: [compat-suppression]",
+	})
+
+	// A file package validation might read differently than this check is reported, not skipped.
+	assertFindings(t, fstest.MapFS{
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml": {Data: []byte("<Suppressions>\n" +
+			"  <Suppression><DiagnosticId>CP0006</DiagnosticId><Target>M:Whatsmeow.IWhatsAppClient.NewAsync</Target>\n")},
+	}, []string{"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:2: [compat-suppression]"})
+
+	// ApiCompat reads the first of repeated fields and skips a namespaced one, encoding/xml the last and any, so a
+	// suppression must hold each field once, unqualified.
+	assertFindings(t, fstest.MapFS{
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml": {Data: []byte("<Suppressions>\n" +
+			"  <Suppression><DiagnosticId>CP0002</DiagnosticId><DiagnosticId>CP0006</DiagnosticId>" +
+			"<Target>M:Whatsmeow.Jid.get_IsLid</Target><Target>M:Whatsmeow.IWhatsAppClient.X</Target></Suppression>\n" +
+			"  <Suppression><DiagnosticId>CP0006</DiagnosticId><Target xmlns=\"urn:x\">M:Whatsmeow.IWhatsAppClient.X</Target></Suppression>\n" +
+			"  <Suppression><DiagnosticId>CP0006</DiagnosticId></Suppression>\n" +
+			"  <Suppression><DiagnosticId>CP0006</DiagnosticId><DiagnosticId>CP0002</DiagnosticId><Target>M:Whatsmeow.IWhatsAppClient.X</Target></Suppression>\n" +
+			"  <Suppression><DiagnosticId>CP0006</DiagnosticId><Target>M:Whatsmeow.IWhatsAppClient.X</Target>" +
+			"<Left>lib/net10.0/Whatsmeow.Client.dll</Left><IsBaselineSuppression>true</IsBaselineSuppression></Suppression>\n" +
+			"</Suppressions>\n")},
+	}, []string{
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:2: [compat-suppression]",
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:3: [compat-suppression]",
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:4: [compat-suppression]",
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:5: [compat-suppression]",
+	})
+}

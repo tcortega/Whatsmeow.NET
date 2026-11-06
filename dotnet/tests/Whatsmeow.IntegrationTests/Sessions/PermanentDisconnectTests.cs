@@ -23,7 +23,7 @@ public sealed class PermanentDisconnectTests(FakeSidecar fixture)
 			"replaced" => (new Raise { StreamReplaced = new Raise.Types.StreamReplaced() }, new SessionState.Replaced()),
 			"outdated" => (new Raise { ClientOutdated = new Raise.Types.ClientOutdated() }, new SessionState.Outdated()),
 			"cat-refresh" => (new Raise { CatRefreshError = new Raise.Types.CatRefreshError { Message = "token expired" } }, new SessionState.Error { Code = 0, Message = "token expired" }),
-			"banned" => (new Raise { TemporaryBan = new Raise.Types.TemporaryBan { Code = 101 } }, new SessionState.TempBanned { Code = 101, Until = null }),
+			"banned" => (new Raise { TemporaryBan = new Raise.Types.TemporaryBan { Code = 101 } }, new SessionState.TemporarilyBanned { Code = 101, Until = null }),
 			"connect-failure" => (new Raise { ConnectFailure = new Raise.Types.ConnectFailure { Reason = 418, Message = "unknown" } }, new SessionState.Error { Code = 418, Message = "unknown" }),
 			_ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "not a case"),
 		};
@@ -59,7 +59,7 @@ public sealed class PermanentDisconnectTests(FakeSidecar fixture)
 			new Raise { SessionId = "ban-end", TemporaryBan = new Raise.Types.TemporaryBan { Code = 102, Expire = Duration.FromTimeSpan(ban) } },
 			cancellationToken: ct
 		);
-		var state = Assert.IsType<SessionState.TempBanned>(await watch.NextAsync());
+		var state = Assert.IsType<SessionState.TemporarilyBanned>(await watch.NextAsync());
 		var after = s_wallClock.GetUtcNow();
 
 		// The sidecar's receive time plus the ban, kept to the second.
@@ -79,7 +79,7 @@ public sealed class PermanentDisconnectTests(FakeSidecar fixture)
 			new Raise { SessionId = "ban-connect", TemporaryBan = new Raise.Types.TemporaryBan { Code = 101, Expire = Duration.FromTimeSpan(TimeSpan.FromHours(1)) } },
 			cancellationToken: ct
 		);
-		var state = Assert.IsType<SessionState.TempBanned>(await watch.NextAsync());
+		var state = Assert.IsType<SessionState.TemporarilyBanned>(await watch.NextAsync());
 
 		var error = await Assert.ThrowsAsync<TemporarilyBannedException>(() => client.ConnectAsync(ct));
 

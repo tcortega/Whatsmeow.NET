@@ -14,7 +14,9 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 		<PackageReference Include="Microsoft.Extensions.Options" />
 		<PackageReference Include="Vogen" />
-		<ProjectReference Include="../Whatsmeow.Protocol/Whatsmeow.Protocol.csproj" />
+		<!-- Exactly this package's version: the client is compiled against the generated code and its internals, and the
+		Raw hatch's types come from Whatsmeow.Protocol.WhatsApp through it (ADR 0055). -->
+		<ProjectReference Include="../Whatsmeow.Protocol/Whatsmeow.Protocol.csproj" PackExactVersion="true" />
 	</ItemGroup>
 
 	<!--

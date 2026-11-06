@@ -30,7 +30,7 @@ internal static class MediaMessageMapping
 	{
 		var proto = new Protocol.V1.ImageMetadata
 		{
-			Mimetype = metadata.Mimetype ?? "",
+			Mimetype = metadata.MimeType ?? "",
 			Caption = metadata.Caption ?? "",
 			JpegThumbnail = ToBytes(metadata.JpegThumbnail),
 		};
@@ -46,7 +46,7 @@ internal static class MediaMessageMapping
 	{
 		var proto = new Protocol.V1.VideoMetadata
 		{
-			Mimetype = metadata.Mimetype ?? "",
+			Mimetype = metadata.MimeType ?? "",
 			Caption = metadata.Caption ?? "",
 			Duration = ToDuration(metadata.Duration),
 			JpegThumbnail = ToBytes(metadata.JpegThumbnail),
@@ -61,7 +61,7 @@ internal static class MediaMessageMapping
 	public static Protocol.V1.AudioMetadata ToProto(AudioMetadata metadata) =>
 		new()
 		{
-			Mimetype = metadata.Mimetype ?? "",
+			Mimetype = metadata.MimeType ?? "",
 			Duration = ToDuration(metadata.Duration),
 			VoiceNote = metadata.IsVoiceNote,
 			Waveform = ToBytes(metadata.Waveform),
@@ -70,7 +70,7 @@ internal static class MediaMessageMapping
 	public static Protocol.V1.DocumentMetadata ToProto(DocumentMetadata metadata) =>
 		new()
 		{
-			Mimetype = metadata.Mimetype ?? "",
+			Mimetype = metadata.MimeType ?? "",
 			FileName = metadata.FileName ?? "",
 			Caption = metadata.Caption ?? "",
 			JpegThumbnail = ToBytes(metadata.JpegThumbnail),
@@ -81,7 +81,7 @@ internal static class MediaMessageMapping
 	{
 		var proto = new Protocol.V1.StickerMetadata
 		{
-			Mimetype = metadata.Mimetype ?? "",
+			Mimetype = metadata.MimeType ?? "",
 			PngThumbnail = ToBytes(metadata.PngThumbnail),
 		};
 		if (ToPixels(metadata.Width, nameof(metadata)) is { } width)

@@ -32,7 +32,7 @@ public sealed class WithheldRedeliveryTests(FakeSidecar fixture)
 		var client = await SessionSetup.LinkedAsync(fixture, Session, ct);
 		using var received = new Received<MessageReceived>(client);
 		// From the outbox, so every state comes, in order; the state watch keeps only the latest (IWhatsAppClient).
-		using var states = new Received<ConnectionStateChanged>(client);
+		using var states = new Received<SessionStateChanged>(client);
 		await client.ConnectAsync(ct);
 		for (var state = (await states.NextAsync(ct)).State; state != new SessionState.Connected(); state = (await states.NextAsync(ct)).State)
 			Assert.True(state is SessionState.Disconnected or SessionState.Connecting, $"state {state} before Connected");
