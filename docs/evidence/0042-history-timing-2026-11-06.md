@@ -11,7 +11,7 @@ The sidecar reports Go 1.27.3, `CGO_ENABLED=0`, `darwin/arm64`, `-trimpath` and 
 Its module is `(devel)` with no VCS fields, so `vcs.modified` is not reported, which is not the same as false.
 Every run was at whatsmeow `56e5ad0581ce`; #148 proposes a bump to `307a2edf117d`, unmerged when this was written, and no run used it.
 [observed: the upstream diff between the two] That bump changes app state, its key share logging and `server_sync` handling, and the history sync schema: a new sync type, `RECENT_CONVERSATIONS_ON_DEMAND`, and the omitted-conversation fields replaced (`WAWebProtobufsHistorySync.proto`).
-[inferred] The live message path from the callback to the handler has no changed file; whether the history delivery measured here behaves the same at that pin is [unknown].
+[inferred: the upstream diff read at both pins] Its `message.go` changes are in the handler of app state key shares, and no change was identified in the code from the message's callback to the handler; whether the history delivery measured here behaves the same at that pin is [unknown].
 
 [observed: the diagnostic's source] The start of a sample is a native timestamp at entry to the sidecar's Events callback for the decrypted message, before mapping and the outbox.
 Its end is a native timestamp in .NET after the exact controlled-message filter, just before the sample's compiled `EchoHandler` runs.
@@ -76,7 +76,7 @@ It does not establish a cause, a threshold, or behaviour under other volumes, de
 | 15:54:51 | 207 | 998 / 119 / 50,414 | 2024-07-01 20:44:17 | 2026-11-06 15:57:58 |
 
 Both pairings of the same account requested a full sync limited to seven days, and both delivered messages from 2024-07-01.
-The capture keeps no per-type timestamps and no batch arrival times, so what the seven-day limit changed, and whether any option limited this delivery, is [unknown].
+The capture keeps batch marks on the monotonic clock but no UTC arrival time for a batch, and no message timestamp bounds per type, so what the seven-day limit changed, and whether any option limited this delivery, is [unknown].
 These counts sit beside the 2026-11-05 defaults at other times and account states; they are not a controlled comparison.
 `FullSyncSizeLimitMegabytes` and `StorageQuotaMegabytes` were not varied: [unknown].
 No sidecar memory was sampled on 2026-11-06; the [2026-11-05 samples](0042-hosted-sample-2026-11-05.md#sidecar-resident-memory) stand.
@@ -85,7 +85,7 @@ No sidecar memory was sampled on 2026-11-06; the [2026-11-05 samples](0042-hoste
 
 * The sample and its fake-mode check: ADR 0049.
 * Telemetry: seen in the 2026-11-05 record, under the names `whatsmeow.process`, which covers the event's handlers, with a `whatsmeow.send` child, and four metrics.
-  The criterion names receive, handle and send spans; the API has no separately named receive or handle spans [observed: `Tracing.cs`], so whether these names meet it is open for the owner.
+  The API has no separately named receive or handle spans [observed: `Tracing.cs`]; the coordinator took `whatsmeow.process` as the criterion's receive and handle span, with `whatsmeow.send` as its send span [observed: the coordinator's decision, 2026-11-06].
 * Two sessions echoing on their own, and a disconnect of one not stopping the other: the 2026-11-05 record; while Alice was locally disconnected, Bob's send got `Delivered` and Bob stayed connected or caught up [observed: that record].
   A phone-side logout of one session while the other keeps echoing was not run [unknown].
   The accounts were the owner's personal and Business ones, not dedicated test numbers.
