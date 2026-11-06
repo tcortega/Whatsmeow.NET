@@ -93,6 +93,9 @@ public sealed class LivePeer : IAsyncLifetime
 		}
 	}
 
+	/// <summary>Whether a test of this run started the peer's sidecar already: a test that must be the run's first use of the peer checks it.</summary>
+	internal bool Started => Volatile.Read(ref _sidecar) is not null;
+
 	/// <summary>Every session on the peer database, with this device's JIDs, never creating one.</summary>
 	public async Task<ImmutableArray<SessionInfo>> SessionsAsync(LiveSidecar live, CancellationToken cancellationToken) =>
 		await (await StartAsync(live, cancellationToken).ConfigureAwait(false)).Sessions.ListAsync(cancellationToken).ConfigureAwait(false);

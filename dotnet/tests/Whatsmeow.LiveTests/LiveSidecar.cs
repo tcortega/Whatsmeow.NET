@@ -228,7 +228,7 @@ public sealed class LiveSidecar : IAsyncLifetime
 	}
 
 	/// <summary>How long a connect may take until WhatsApp accepted or refused the login (<see cref="ConnectAsync"/>).</summary>
-	private static readonly TimeSpan s_connectBound = TimeSpan.FromMinutes(2);
+	internal static TimeSpan ConnectBound { get; } = TimeSpan.FromMinutes(2);
 
 	/// <summary>
 	/// Connects a paired session and returns its state once WhatsApp accepted the login, or a failure when it was still
@@ -236,7 +236,7 @@ public sealed class LiveSidecar : IAsyncLifetime
 	/// </summary>
 	public static async Task<SessionState> ConnectAsync(IWhatsAppClient client, CancellationToken cancellationToken)
 	{
-		using var bound = LiveClock.Bound(s_connectBound, cancellationToken);
+		using var bound = LiveClock.Bound(ConnectBound, cancellationToken);
 		try
 		{
 			await client.ConnectAsync(bound.Token).ConfigureAwait(false);
@@ -251,7 +251,7 @@ public sealed class LiveSidecar : IAsyncLifetime
 		}
 		catch (OperationCanceledException e) when (!cancellationToken.IsCancellationRequested)
 		{
-			throw new TimeoutException($"{client.SessionId} did not log in within {s_connectBound.TotalMinutes:F0} min", e);
+			throw new TimeoutException($"{client.SessionId} did not log in within {ConnectBound.TotalMinutes:F0} min", e);
 		}
 	}
 

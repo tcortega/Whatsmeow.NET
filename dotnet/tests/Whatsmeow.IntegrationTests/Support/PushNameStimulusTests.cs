@@ -33,10 +33,13 @@ public sealed class PushNameStimulusTests(FakeSidecar fixture)
 		Assert.Equal(
 			[
 				"push name stimulus, before the first text, the sender's rows: none; the store pairs: phone number with none, LID with none",
+				"push name stimulus 1: just before its text, the sender's rows: none",
 				"push name stimulus 1 (no presence): carried none",
+				"push name stimulus 2: just before its text, the sender's rows: none",
 				"push name stimulus 2 (named unavailable presence): presence sent, carried dash",
+				"push name stimulus 3: just before its text, the sender's rows: none",
 				"push name stimulus 3 (named available presence): presence sent, carried named",
-				"push name stimulus: text 3 named; the sender's LID row had a push name before the first text: False",
+				"push name stimulus: text 3 named; the sender's LID row had a push name before the first text: False, just before the named text: False",
 				"push name stimulus: the push name change came, checked with the fake-mode check",
 			],
 			h.Lines
@@ -92,24 +95,59 @@ public sealed class PushNameStimulusTests(FakeSidecar fixture)
 
 		var failed = await Assert.ThrowsAsync<TrueException>(() => PushNameStimulus.RunAsync(h.Ladder(["Bia", null, null]), ct));
 
-		Assert.StartsWith("pushname_precondition_spent", failed.Message, StringComparison.Ordinal);
+		Assert.StartsWith("pushname_precondition_spent: the sender's row had a push name before the first text", failed.Message, StringComparison.Ordinal);
 		Assert.Equal(["text 1"], h.Calls);
 	}
 
 	/// <summary>
-	/// Another message from the sender stores its push name during the ladder, before the named text, which then carries
-	/// the same name and changes nothing: the change that came is not the named text's, so it is never a parity pass.
+	/// Another message from the sender stores its push name after the first text, and the named text then carries the same
+	/// name and changes nothing: the row read just before the named text has it, so the ladder says it was spent then,
+	/// instead of waiting for a change that cannot come, and the change that came, not the named text's, is never a pass.
 	/// </summary>
 	[Fact(Timeout = Timeout)]
-	public async Task Run_APushNameChangeCameBeforeTheNamedText_FailsAsOriginUnclear()
+	public async Task Run_ThePushNameWasStoredBetweenTheTexts_FailsAsSpentBeforeTheNamedText()
 	{
 		var ct = TestContext.Current.CancellationToken;
-		var h = await Harness.StartAsync(fixture, "pushname-ladder-origin", sender: 6, senderHasPushName: true, ct);
+		var h = await Harness.StartAsync(fixture, "pushname-ladder-between", sender: 6, senderHasPushName: true, ct);
 		h.BeforeText = (k, token) => k == 1 ? h.DeliverNamedAsync("FOREIGN", "Ana", token) : Task.CompletedTask;
 
 		var failed = await Assert.ThrowsAsync<TrueException>(() => PushNameStimulus.RunAsync(h.Ladder([null, "Ana", null]), ct));
 
+		Assert.StartsWith("pushname_precondition_spent: the sender's row gained a push name", failed.Message, StringComparison.Ordinal);
+		Assert.Equal(["text 1", "presence Unavailable", "text 2"], h.Calls);
+	}
+
+	/// <summary>
+	/// A message from the sender's phone number, with no LID beside it, stores the push name on that row only (whatsmeow
+	/// user.go 679-707), and its change comes, before the named text, which comes by LID with the same name: the LID row was
+	/// empty in both reads, but a change of the sender came first, so it is not the text's.
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task Run_APushNameChangeOfTheOtherFormCameBeforeTheNamedText_FailsAsOriginUnclear()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var h = await Harness.StartAsync(fixture, "pushname-ladder-origin", sender: 7, senderHasPushName: true, ct);
+		h.BeforeText = (k, token) => k == 1 ? h.DeliverNamedByPhoneNumberAsync("FOREIGN", "Ana", token) : Task.CompletedTask;
+
+		var failed = await Assert.ThrowsAsync<TrueException>(() => PushNameStimulus.RunAsync(h.Ladder([null, "Ana", null]), ct));
+
 		Assert.StartsWith("pushname_origin_unclear", failed.Message, StringComparison.Ordinal);
+		Assert.Equal(["text 1", "presence Unavailable", "text 2"], h.Calls);
+	}
+
+	/// <summary>
+	/// Before the named text another account's message brings its push name, and the sender's picture changes: neither is the
+	/// sender's push name change, so the ladder passes on the named text's change.
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task Run_OtherContactChangesBeforeTheNamedText_AreNotTheSendersPushName_AndTheLadderPasses()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var h = await Harness.StartAsync(fixture, "pushname-ladder-traffic", sender: 8, senderHasPushName: true, ct);
+		h.BeforeText = (k, token) => k == 1 ? h.DeliverOtherTrafficAsync(token) : Task.CompletedTask;
+
+		await PushNameStimulus.RunAsync(h.Ladder([null, "Ana", null]), ct);
+
 		Assert.Equal(["text 1", "presence Unavailable", "text 2"], h.Calls);
 	}
 
@@ -182,24 +220,64 @@ public sealed class PushNameStimulusTests(FakeSidecar fixture)
 				Time = new FakeTimeProvider(),
 			};
 
-		/// <summary>A message from the sender, not the ladder's, carrying <paramref name="pushName"/>; returns once its change came.</summary>
+		/// <summary>A message from the sender by LID, not the ladder's, carrying <paramref name="pushName"/>; returns once its change came.</summary>
 		public async Task DeliverNamedAsync(string id, string pushName, CancellationToken cancellationToken)
 		{
-			var change = _receiver.WaitForAsync<ContactUpdated>(e => e.Change is ContactChange.PushName { Name: var name } && name == pushName, TimeSpan.FromSeconds(60), cancellationToken);
-			await DeliverAsync(id, pushName, "not the ladder's", cancellationToken).ConfigureAwait(false);
+			var change = WaitForChangeAsync(_senderLid, cancellationToken);
+			await DeliverAsync(id, _senderLid, _senderPn, pushName, "not the ladder's", cancellationToken).ConfigureAwait(false);
 			Assert.Equal(ContactChecks.PushName(_receiver.SessionId, Jid.Parse(_senderLid), Jid.Parse(_senderPn), pushName), await change.ConfigureAwait(false));
 		}
 
-		private async Task DeliverAsync(string id, string? pushName, string text, CancellationToken cancellationToken) =>
+		/// <summary>
+		/// A message from the sender's phone number with no LID beside it, before the store pairs the two, carrying
+		/// <paramref name="pushName"/>; returns once its change came.
+		/// </summary>
+		public async Task DeliverNamedByPhoneNumberAsync(string id, string pushName, CancellationToken cancellationToken)
+		{
+			var change = WaitForChangeAsync(_senderPn, cancellationToken);
+			await DeliverAsync(id, _senderPn, senderAlt: "", pushName, "not the ladder's", cancellationToken).ConfigureAwait(false);
+			Assert.Equal(ContactChecks.PushName(_receiver.SessionId, Jid.Parse(_senderPn), jidAlt: null, pushName), await change.ConfigureAwait(false));
+		}
+
+		/// <summary>Another account's named message and a picture change of the sender; returns once both changes came.</summary>
+		public async Task DeliverOtherTrafficAsync(CancellationToken cancellationToken)
+		{
+			const string OtherLid = "984000001@lid";
+			const string OtherPn = "5511984000001@s.whatsapp.net";
+			var named = WaitForChangeAsync(OtherLid, cancellationToken);
+			await DeliverAsync("OTHER", OtherLid, OtherPn, "Cy", "not the sender's", cancellationToken).ConfigureAwait(false);
+			Assert.Equal(ContactChecks.PushName(_receiver.SessionId, Jid.Parse(OtherLid), Jid.Parse(OtherPn), "Cy"), await named.ConfigureAwait(false));
+
+			var picture = _receiver.WaitForAsync<ContactUpdated>(e => e.Jid == Jid.Parse(_senderLid) && e.Change is ContactChange.Picture, TimeSpan.FromSeconds(60), cancellationToken);
+			_ = await _fixture
+				.Fake.DeliverContactNotificationAsync(
+					new DeliverContactNotificationRequest
+					{
+						SessionId = _receiverId,
+						Picture = new DeliverContactNotificationRequest.Types.Picture { Jid = _senderLid, Id = "P1" },
+					},
+					cancellationToken: cancellationToken
+				)
+				.ConfigureAwait(false);
+			Assert.Equal(ContactChecks.Picture(_receiver.SessionId, Jid.Parse(_senderLid), "P1"), await picture.ConfigureAwait(false));
+		}
+
+		private Task<ContactUpdated> WaitForChangeAsync(string jid, CancellationToken cancellationToken) =>
+			_receiver.WaitForAsync<ContactUpdated>(e => e.Jid == Jid.Parse(jid) && e.Change is ContactChange.PushName, TimeSpan.FromSeconds(60), cancellationToken);
+
+		private Task DeliverAsync(string id, string? pushName, string text, CancellationToken cancellationToken) =>
+			DeliverAsync(id, _senderLid, _senderPn, pushName, text, cancellationToken);
+
+		private async Task DeliverAsync(string id, string sender, string senderAlt, string? pushName, string text, CancellationToken cancellationToken) =>
 			_ = await _fixture
 				.Fake.DeliverMessageAsync(
 					new DeliverMessageRequest
 					{
 						SessionId = _receiverId,
 						Id = id,
-						Chat = _senderLid,
-						Sender = _senderLid,
-						SenderAlt = _senderPn,
+						Chat = sender,
+						Sender = sender,
+						SenderAlt = senderAlt,
 						PushName = pushName ?? "",
 						Text = text,
 					},

@@ -17,17 +17,34 @@ namespace Whatsmeow.IntegrationTests.Support;
 /// <para>
 /// Each text's line names its variant and what it carried, none, dash or named, never the name. A dash, which whatsmeow
 /// stores nothing for (message.go 59), continues the ladder; a presence refused <c>NO_PUSH_NAME</c> is recorded and stops
-/// it, with no text after it. On the first named text it checks the fake-mode record: the sender's row in the receiver's
-/// store, read before the first text, had no push name (the first sight, whatsmeow user.go 679-707), no push name change
-/// came before that text was sent, and the change that came equals <see cref="ContactChecks.PushName"/> whole, its other
-/// form from the message or else the store's pair read before the first text, as whatsmeow takes it. A row that had one
-/// fails <c>pushname_precondition_spent</c>: the texts are evidence of the stimulus, never a parity pass.
+/// it, with no text after it. The sender's rows in the receiver's store are read before the first text, and again just
+/// before each text. On the first named text it checks the fake-mode record: the sender's row in the form the text came
+/// from had no push name in either read (the first sight, whatsmeow user.go 679-707), no push name change of the sender
+/// was delivered before that text was sent, and the change that came equals <see cref="ContactChecks.PushName"/> whole,
+/// its other form from the message or else the store's pair read before the first text, as whatsmeow takes it. A row that
+/// had one fails <c>pushname_precondition_spent</c>, and a change delivered first <c>pushname_origin_unclear</c>: the
+/// texts are then evidence of the stimulus, never a parity pass.
+/// </para>
+/// <para>
+/// That attribution is not atomic: a change stored after the read just before the named text and delivered after its send
+/// would be taken as the text's, since <see cref="ContactUpdated"/> carries no message id [inferred: no test can order
+/// it]. The second read narrows the window to that read and the send; it cannot close it.
 /// </para>
 /// </summary>
 internal static class PushNameStimulus
 {
 	/// <summary>The presence before each text, in order; null for none.</summary>
 	private static readonly ImmutableArray<PresenceState?> s_presences = [null, PresenceState.Unavailable, PresenceState.Available];
+
+	/// <summary>How long whatsmeow waits for WhatsApp's answer to a send by default (send.go 155, 213-214) [observed: source].</summary>
+	private static readonly TimeSpan s_sendAnswer = TimeSpan.FromSeconds(75);
+
+	/// <summary>
+	/// The ladder's bounded waits, with <paramref name="watch"/> as its watch: each text's send, which whatsmeow waits up to
+	/// 75 s for an answer to, and its arrival, then the push name change. A presence waits for no answer (presence.go 83-86),
+	/// and the store reads are the sidecar's local reads.
+	/// </summary>
+	public static TimeSpan Bound(TimeSpan watch) => (s_presences.Length * (s_sendAnswer + watch)) + watch;
 
 	public static async Task RunAsync(PushNameLadder ladder, CancellationToken cancellationToken)
 	{
@@ -49,10 +66,13 @@ internal static class PushNameStimulus
 		ladder.Log(
 			$"push name stimulus, before the first text, the sender's rows: {Describe(rows)}; the store pairs: {string.Join(", ", pairs.Select(p => $"{Form(p.Jid)} with {Form(p.JidAlt)}"))}"
 		);
-		Assert.All(pairs, p => Assert.True(p.JidAlt is null || IsOtherForm(sender, p.Jid, p.JidAlt.Value), "the store pairs the sender with another account or the same form"));
+		ladder.Redacting(() =>
+			Assert.All(pairs, p => Assert.True(p.JidAlt is null || IsOtherForm(sender, p.Jid, p.JidAlt.Value), "the store pairs the sender with another account or the same form"))
+		);
 
 		MessageReceived? named = null;
 		var namedText = 0;
+		var rowsBeforeNamed = ImmutableArray<Contact>.Empty;
 		var changesBefore = 0;
 		for (var k = 1; k <= s_presences.Length && named is null; k++)
 		{
@@ -78,6 +98,9 @@ internal static class PushNameStimulus
 				line += "presence sent, ";
 			}
 
+			// Just before the text, so a push name stored with no event since the first read shows too.
+			var rowsBefore = await RowsAsync(receiver, sender, cancellationToken).ConfigureAwait(false);
+			ladder.Log($"push name stimulus {k}: just before its text, the sender's rows: {Describe(rowsBefore)}");
 			var id = ladder.Id(k);
 			var text = $"wmn push name {k}";
 			var arrival = receiver.WaitForAsync<MessageReceived>(m => m.Id == id, ladder.Watch, cancellationToken);
@@ -88,20 +111,29 @@ internal static class PushNameStimulus
 			ladder.Log($"{line}carried {carried}");
 			ladder.CheckMessage(got, id, text);
 			if (carried is "named")
-				(named, namedText) = (got, k);
+				(named, namedText, rowsBeforeNamed) = (got, k, rowsBefore);
 		}
 
 		if (named is null)
 			Assert.Fail($"pushname_stimulus_missing: none of the {s_presences.Length} texts carried a push name, so #36's push-name branch stays unfulfilled live");
 
 		var from = named.Source.Sender with { Device = 0 };
-		var spent = rows.SingleOrDefault(r => r.Jid == from)?.PushName is not null;
-		ladder.Log($"push name stimulus: text {namedText} named; the sender's {Form(from)} row had a push name before the first text: {spent}");
-		Assert.True(!spent, "pushname_precondition_spent: the sender's row had a push name before the first text, so the texts are stimulus evidence only, never a parity pass");
-		Assert.True(changesBefore == 0, "pushname_origin_unclear: a push name change of the sender came before the named text was sent, so the change is not the text's");
+		var spentAtStart = HasPushName(rows, from);
+		var spentAtSend = HasPushName(rowsBeforeNamed, from);
+		ladder.Log(
+			$"push name stimulus: text {namedText} named; the sender's {Form(from)} row had a push name before the first text: {spentAtStart}, just before the named text: {spentAtSend}"
+		);
+		Assert.True(!spentAtStart, "pushname_precondition_spent: the sender's row had a push name before the first text, so the texts are stimulus evidence only, never a parity pass");
+		Assert.True(
+			!spentAtSend,
+			"pushname_precondition_spent: the sender's row gained a push name after the first text and before the named text was sent, so the text found it stored; stimulus evidence only, never a parity pass"
+		);
+		Assert.True(changesBefore == 0, "pushname_origin_unclear: a push name change of the sender was delivered before the named text was sent, so the change is not the text's");
 		var fromAlt = named.Source.SenderAlt is { } a ? a with { Device = 0 } : (Jid?)null;
 		Assert.True(fromAlt is null || IsOtherForm(sender, from, fromAlt.Value), "the text's other form is not the sender's other form");
-		var alt = fromAlt ?? Assert.Single(pairs, p => p.Jid == from).JidAlt;
+		var alt = fromAlt;
+		if (alt is null)
+			ladder.Redacting(() => alt = Assert.Single(pairs, p => p.Jid == from).JidAlt);
 
 		var change = await NextAsync(changes.Reader, ladder, cancellationToken).ConfigureAwait(false);
 		ladder.Redacting(() => Assert.Equal(ContactChecks.PushName(receiver.SessionId, from, alt, named.PushName!), change));
@@ -111,6 +143,9 @@ internal static class PushNameStimulus
 	/// <summary>The sender's rows in the receiver's contacts, by its phone number and its LID; never the others.</summary>
 	public static async Task<ImmutableArray<Contact>> RowsAsync(IWhatsAppClient receiver, (Jid Chat, Jid? Lid) sender, CancellationToken cancellationToken) =>
 		[.. (await receiver.GetContactsAsync(cancellationToken).ConfigureAwait(false)).Where(c => c.Jid == sender.Chat || c.Jid == sender.Lid)];
+
+	/// <summary>Whether <paramref name="rows"/> give <paramref name="jid"/> a push name.</summary>
+	private static bool HasPushName(ImmutableArray<Contact> rows, Jid jid) => rows.SingleOrDefault(r => r.Jid == jid)?.PushName is not null;
 
 	/// <summary>Which of each row's names are set, never the names.</summary>
 	public static string Describe(ImmutableArray<Contact> rows) =>

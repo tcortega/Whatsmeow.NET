@@ -84,6 +84,9 @@ public sealed class LiveFactAttribute : FactAttribute
 	/// <summary>
 	/// Whether the test is the push name stimulus on the persistent sessions, which spends the peer store's first sight of
 	/// the business's push name, so it runs only when asked for (<see cref="LiveSettings.PushNameFirstSightVariable"/>, ADR 0061).
+	/// Its timeout is the work, two connects each with its catch-up (the live session's new connection, then the peer's
+	/// first), the ladder's bounded waits (<see cref="PushNameStimulus.Bound"/>) and its two restores: 300 s + 2 x (120 s +
+	/// 600 s) + 3 x (75 s + 60 s) + 60 s + 2 x 30 s = 2,265 s.
 	/// </summary>
 	public bool NeedsPushNameFirstSight
 	{
@@ -92,6 +95,12 @@ public sealed class LiveFactAttribute : FactAttribute
 		{
 			field = value;
 			Explicit = IsOff();
+			if (value)
+				Timeout =
+					WorkTimeout
+					+ (2 * ((int)LiveSidecar.ConnectBound.TotalMilliseconds + CatchUpTimeout))
+					+ (int)PushNameStimulus.Bound(LiveChecks.Watch).TotalMilliseconds
+					+ (2 * (int)LiveRestore.Bound.TotalMilliseconds);
 		}
 	}
 
