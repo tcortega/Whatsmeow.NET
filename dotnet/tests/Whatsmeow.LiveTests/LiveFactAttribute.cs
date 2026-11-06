@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Whatsmeow.IntegrationTests.Support;
 
 namespace Whatsmeow.LiveTests;
 
@@ -81,8 +82,10 @@ public sealed class LiveFactAttribute : FactAttribute
 
 	/// <summary>
 	/// Whether the test pairs a fresh companion of the peer's account, which needs a QR scan every run: only with
-	/// <see cref="LiveSettings.FreshDatabaseVariable"/> and <see cref="LiveSettings.HistoryBoundsVariable"/> set (ADR 0060).
-	/// Its timeout is the scan, the history bound from Paired, which holds the catch-up and the checks, and the cleanup.
+	/// <see cref="LiveSettings.FreshDatabaseVariable"/>, <see cref="LiveSettings.HistoryBoundsVariable"/> and
+	/// <see cref="LiveSettings.KnownDevicesVariable"/> set (ADR 0060). Its timeout is the scan, the live and the peer
+	/// sessions' first catch-up before it, the capture's bound from Paired, which holds the fresh session's catch-up, its
+	/// steps and the window, and the cleanup's own bound.
 	/// </summary>
 	public bool NeedsFreshPairing
 	{
@@ -91,7 +94,8 @@ public sealed class LiveFactAttribute : FactAttribute
 		{
 			field = value;
 			Explicit = IsOff();
-			Timeout = WorkTimeout + (int)LiveHistoryBounds.Bound.TotalMilliseconds + (int)LiveFresh.CleanupBound.TotalMilliseconds;
+			if (value)
+				Timeout = WorkTimeout + (2 * CatchUpTimeout) + (int)LiveHistoryBounds.Bound.TotalMilliseconds + (int)FreshCompanion.CleanupBound.TotalMilliseconds;
 		}
 	}
 
@@ -101,5 +105,5 @@ public sealed class LiveFactAttribute : FactAttribute
 		|| (NeedsPeer && LiveSettings.PeerDatabase.Length == 0)
 		|| (NeedsOwner && !LiveSettings.Owner)
 		|| (NeedsMediaSizes && !LiveSettings.MediaSizes)
-		|| (NeedsFreshPairing && (LiveSettings.FreshDatabase.Length == 0 || LiveSettings.HistoryBounds.Length == 0));
+		|| (NeedsFreshPairing && (LiveSettings.FreshDatabase.Length == 0 || LiveSettings.HistoryBounds.Length == 0 || !LiveSettings.HasKnownDevices));
 }

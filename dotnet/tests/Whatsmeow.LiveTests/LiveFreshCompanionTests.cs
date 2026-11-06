@@ -1,35 +1,35 @@
 using System.Collections.Immutable;
-using System.Runtime.ExceptionServices;
 using Whatsmeow.Contacts;
+using Whatsmeow.Core.Errors;
 using Whatsmeow.Events;
-using Whatsmeow.History;
 using Whatsmeow.IntegrationTests.Contacts;
 using Whatsmeow.IntegrationTests.Pairing;
 using Whatsmeow.IntegrationTests.Sessions;
+using Whatsmeow.IntegrationTests.Support;
 using Whatsmeow.LiveTests.Control;
 using Whatsmeow.Pairing;
+using Whatsmeow.Sessions;
 
 namespace Whatsmeow.LiveTests;
 
 /// <summary>
-/// One fresh companion of the peer's account, paired by QR code on opt-in (<see cref="LiveFresh"/>, ADR 0060), for what a
-/// new store has not cached yet, checked before each stimulus: the Contacts FullCycle's changes, checked with the
-/// fake-mode tests' own records (<see cref="ContactChecks"/>), and #42's history bounds per sync type
-/// (<see cref="LiveHistoryBounds"/>). The live
-/// session (the business account) is the other side.
+/// One fresh companion of the peer's account, paired by QR code on opt-in (<see cref="LiveFresh"/>, ADR 0060), for the
+/// Contacts FullCycle's changes a new store has not cached yet, checked before each stimulus with the fake-mode tests'
+/// own records (<see cref="ContactChecks"/>), and #42's history bounds per sync type (<see cref="LiveHistoryBounds"/>).
+/// The live session (the business account) is the other side. The proof, the steps' failures, the capture bound and
+/// the cleanup are the shared <see cref="FreshCompanion"/>'s, which its fake-mode tests check.
 /// <para>
-/// Branches 2 (business name), 1 (push name), 3 and 4 (the run's group photo set and removed) run. Branch 5 (about)
-/// needs an account-wide profile change that is not authorized, and branch 6 (the saved name read back) an expected value
-/// only the owner can give, so both are written to the log as not run: this test is not the FullCycle passing live, and
-/// #36 stays open for Contacts until they run.
-/// </para>
-/// <para>
-/// The companion's history is held from its first history event until branch 1 ended, so the sidecar downloads no
-/// further history blob, in particular no push names, before the push name branch [observed: the sidecar's history
-/// worker, ADR 0035]. It does not make the push name new: a push name blob that came first fills the row, and the branch
-/// then fails on its precondition. Every branch runs whatever an earlier one did, the hold is released and #42's window
-/// runs to its end either way, and every failure is reported at the end. A failed identity proof stops the companion's
-/// sidecar before any change and logs nothing out.
+/// Branches 2 (business name, before any message from the business account) and 1 (push name) run as soon as the
+/// session is Connected, before it waits for CaughtUp: the sidecar's history worker starts only at OfflineSyncCompleted
+/// and downloads only while the session is online [observed: <c>history.go</c> 221-222, 403-424], and downloading a
+/// <c>PUSH_NAME</c> blob stores its push names with no event [observed: whatsmeow message.go 806-807]. The history is
+/// also held from its first event, which stops recording once 4 events are unacked; it does not stop a download: the
+/// blob being recorded, and any whose events fit the window, are downloaded first [inferred: <c>history.go</c> 583,
+/// 660, 746, 773-785]. So a push name can still be cached before branch 1, and its precondition then fails the branch;
+/// no first sight is promised, and no second scan follows. Branches 3 and 4 (the run's group photo set and removed)
+/// run after. Branch 5 (about) needs an account-wide profile change that is not authorized, and branch 6 (the saved name
+/// read back) an expected value only the owner can give, so both are written as not run: this test is not the
+/// FullCycle passing live, and #36 stays open for Contacts.
 /// </para>
 /// </summary>
 [Collection(nameof(Live))]
@@ -44,63 +44,74 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 		_ = await peer.ConnectedAsync(live, ct);
 		var peerAccount = await peer.AccountAsync(ct);
 		Assert.True(businessAccount is { Chat.IsPhoneNumber: true, Lid.IsLid: true }, "the live account has no phone number and LID pair");
+		var others = (await live.SessionsAsync(ct))
+			.AddRange(await peer.SessionsAsync(live, ct))
+			.SelectMany(s => new[] { s.Jid, s.Lid })
+			.OfType<Jid>()
+			.ToImmutableArray();
 
 		using var bounds = new LiveHistoryBounds(LiveClock.Time, LiveSettings.HistoryBounds);
-		var failures = new List<ExceptionDispatchInfo>();
-		var proven = false;
 		try
 		{
 			await using var fresh = await LiveFresh.StartAsync(live, bounds, ct);
-			var client = fresh.Client;
-			// #42's handlers first, so they date each history event's arrival, not the hold's release.
+			var client = fresh.Companion.Client;
+			// #42's handlers first, so they stamp each history event as the handlers see it, before the hold.
 			bounds.Register(client);
-			var hold = new Hold(bounds);
-			using var holding = hold.Register(client);
+			fresh.Companion.HoldHistory(bounds.HoldStart, bounds.HoldEnd);
 			using var traffic = new BusinessTraffic(client, businessAccount);
-			try
-			{
-				await PairAsync(client, bounds, ct);
-				if (await fresh.ProveAsync(live, peer, ct) is { } rejected)
+
+			await fresh.Companion.RunAsync(
+				new FreshRun
 				{
-					bounds.FreshIdentityRejected();
-					live.Write($"live: fresh companion rejected ({rejected}): its sidecar stops, nothing is logged out, the database stays");
-					Assert.Fail($"the fresh companion is not the run's own peer device: {rejected}");
-				}
-
-				bounds.FreshIdentityVerified();
-				proven = true;
-
-				await RunAsync(failures, "catch up", () => live.StayUntilCaughtUpAsync(client, ct));
-				await RunAsync(failures, "branch 2, business name", () => BusinessNameAsync(client, businessAccount, traffic, ct));
-				await RunAsync(failures, "branch 1, push name", () => PushNameAsync(client, business, businessAccount, peerAccount, ct));
-				hold.Release();
-				await RunAsync(failures, "branches 3 and 4, picture", () => PictureAsync(client, ct));
-				live.Write("live: branch 5, about: not run, no authorized stimulus (ADR 0060)");
-				live.Write("live: branch 6, saved name read back: not run, no expected value from the owner (ADR 0060)");
-
-				live.Write($"live: history window ended {await bounds.WindowAsync(ct)}");
-			}
-			finally
-			{
-				hold.Release();
-				if (proven)
-				{
-					var unrestored = await LiveRestore.RunAsync(live, ("log the fresh companion out and delete it", t => fresh.LogoutAsync(live, peer, t)));
-					if (unrestored.Count == 0)
-						bounds.LogoutVerified();
-					failures.AddRange(unrestored.Select(u => ExceptionDispatchInfo.Capture(new InvalidOperationException(LiveRedaction.Redact(u)))));
-				}
-			}
+					PairAsync = (companion, token) => PairAsync(companion, bounds, token),
+					Expected = peerAccount,
+					Forbidden = businessAccount,
+					OtherDevices = others,
+					KnownDevices = LiveSettings.KnownDevices,
+					FirstSight =
+					[
+						new FreshStep { Name = "branch 2, business name", Run = token => BusinessNameAsync(client, businessAccount, traffic, token) },
+						new FreshStep { Name = "branch 1, push name", Run = token => PushNameAsync(client, business, businessAccount, peerAccount, token) },
+					],
+					Then =
+					[
+						new FreshStep { Name = "catch up", Run = token => live.StayUntilCaughtUpAsync(client, token) },
+						new FreshStep { Name = "branches 3 and 4, picture", Run = token => PictureAsync(client, token) },
+					],
+					Deadline = bounds.Deadline,
+					WindowAsync = bounds.WindowAsync,
+					Record = e => Record(bounds, e),
+				},
+				ct
+			);
 		}
 		finally
 		{
+			live.Write("live: branch 5, about: not run, no authorized stimulus (ADR 0060)");
+			live.Write("live: branch 6, saved name read back: not run, no expected value from the owner (ADR 0060)");
 			bounds.Summarize();
 		}
+	}
 
-		if (failures.Count == 1)
-			failures[0].Throw();
-		if (failures.Count > 1)
-			throw new AggregateException(failures.Select(f => f.SourceException));
+	private static void Record(LiveHistoryBounds bounds, FreshEvent recorded)
+	{
+		switch (recorded)
+		{
+			case FreshEvent.IdentityVerified:
+				bounds.FreshIdentityVerified();
+				break;
+			case FreshEvent.IdentityRejected:
+				bounds.FreshIdentityRejected();
+				break;
+			case FreshEvent.LogoutVerified:
+				bounds.LogoutVerified();
+				break;
+			case FreshEvent.LoggedOutExternally:
+				bounds.LoggedOutExternally();
+				break;
+			default:
+				throw new ArgumentOutOfRangeException(nameof(recorded), recorded, "an event the record does not know");
+		}
 	}
 
 	/// <summary>Branch 2: reading the business's profile by its phone number stores its verified name, the first time.</summary>
@@ -120,11 +131,18 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 		LiveChecks.Equal(ContactChecks.BusinessName(client.SessionId, businessAccount.Chat, name), await LiveChecks.WithinAsync(change, "the business name change").ConfigureAwait(false));
 	}
 
-	/// <summary>Branch 1: the business's text carries its push name, which the companion's store did not have.</summary>
+	/// <summary>
+	/// Branch 1: the business's text carries its push name, which the companion's store did not have. The event's other
+	/// form is the message's <c>SenderAlt</c> when it has one, else what the store pairs the sender with, read before the
+	/// send with the same lookup whatsmeow makes (<c>Device.GetAltJID</c>: contacts.go 252, whatsmeow user.go 688-691).
+	/// </summary>
 	private async Task PushNameAsync(IWhatsAppClient client, IWhatsAppClient business, (Jid Chat, Jid? Lid) businessAccount, (Jid Chat, Jid? Lid) peerAccount, CancellationToken ct)
 	{
 		var rows = await RowsAsync(client, businessAccount, ct).ConfigureAwait(false);
-		live.Write($"live: before branch 1, the business's rows: {Describe(rows)}");
+		var pairs = await client.ResolveJidsAsync([businessAccount.Chat, businessAccount.Lid!.Value], ct).ConfigureAwait(false);
+		live.Write($"live: before branch 1, the business's rows: {Describe(rows)}; the store pairs: {string.Join(", ", pairs.Select(p => $"{LiveChecks.Form(p.Jid)} with {LiveChecks.Form(p.JidAlt)}"))}");
+		Assert.All(pairs, p => Assert.True(p.JidAlt is null || IsOtherForm(businessAccount, p.Jid, p.JidAlt.Value), "the store pairs the business with another account or the same form"));
+
 		var id = MessageId.From($"WMNFRESH{LiveClock.Time.GetUtcNow():yyyyMMddHHmmss}");
 		const string Text = "wmn fresh companion";
 		var arrival = LiveChecks.ArrivalAsync(client, id, ct);
@@ -140,13 +158,21 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 
 		var sender = got.Source.Sender with { Device = 0 };
 		Assert.True(rows.SingleOrDefault(r => r.Jid == sender)?.PushName is null, "pushname_precondition_spent: the sender's row had a push name before the text");
-		// whatsmeow names the other form from the message, else from the store's pair (user.go:688-691).
-		var alt = got.Source.SenderAlt is { } senderAlt ? senderAlt with { Device = 0 } : sender.IsLid ? businessAccount.Chat : businessAccount.Lid;
+		var senderAlt = got.Source.SenderAlt is { } a ? a with { Device = 0 } : (Jid?)null;
+		Assert.True(senderAlt is null || IsOtherForm(businessAccount, sender, senderAlt.Value), "the text's other form is not the business's other form");
+		var alt = senderAlt ?? Assert.Single(pairs, p => p.Jid == sender).JidAlt;
 
 		LiveChecks.Equal(ContactChecks.PushName(client.SessionId, sender, alt, pushName), await LiveChecks.WithinAsync(change, "the push name change").ConfigureAwait(false));
 	}
 
-	/// <summary>Branches 3 and 4: the live session sets the run's group photo, then removes it; the companion is a member's device.</summary>
+	/// <summary>Whether <paramref name="alt"/> names <paramref name="account"/> in the form <paramref name="jid"/> is not.</summary>
+	private static bool IsOtherForm((Jid Chat, Jid? Lid) account, Jid jid, Jid alt) => LiveChecks.Names(account, alt) && alt.IsLid != jid.IsLid;
+
+	/// <summary>
+	/// Branches 3 and 4: the live session sets the run's group photo, then removes it; the companion is a member's
+	/// device. A set whose answer is unknown is never sent again; the restore removes the photo if the set may have
+	/// happened and the removal did not. A failed call is the client's exception, with its reason (<see cref="RpcErrors"/>).
+	/// </summary>
 	private async Task PictureAsync(IWhatsAppClient client, CancellationToken ct)
 	{
 		var jid = await group.WithPeerAsync(ct).ConfigureAwait(false);
@@ -167,12 +193,12 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 				var set = client.WaitForAsync<ContactUpdated>(e => e.Jid == jid && e.Change is ContactChange.Picture { Id: not null }, LiveChecks.Watch, ct);
 				// Set before the call: an answer lost on the way may still have set the photo.
 				photoSet = true;
-				var answer = await control.SetGroupPhotoAsync(setPhoto, cancellationToken: ct).ConfigureAwait(false);
+				var answer = await RpcErrors.CallAsync(control.SetGroupPhotoAsync(setPhoto, cancellationToken: ct)).ConfigureAwait(false);
 				Assert.NotEmpty(answer.PictureId);
 				LiveChecks.Equal(ContactChecks.Picture(client.SessionId, jid, answer.PictureId), await LiveChecks.WithinAsync(set, "the group photo change").ConfigureAwait(false));
 
 				var removed = client.WaitForAsync<ContactUpdated>(e => e.Jid == jid && e.Change is ContactChange.Picture { Id: null }, LiveChecks.Watch, ct);
-				_ = await control.SetGroupPhotoAsync(removePhoto, cancellationToken: ct).ConfigureAwait(false);
+				_ = await RpcErrors.CallAsync(control.SetGroupPhotoAsync(removePhoto, cancellationToken: ct)).ConfigureAwait(false);
 				photoSet = false;
 				LiveChecks.Equal(ContactChecks.Picture(client.SessionId, jid, id: null), await LiveChecks.WithinAsync(removed, "the group photo removal").ConfigureAwait(false));
 			},
@@ -181,21 +207,29 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 				async t =>
 				{
 					if (photoSet)
-						_ = await control.SetGroupPhotoAsync(removePhoto, cancellationToken: t).ConfigureAwait(false);
+						_ = await RpcErrors.CallAsync(control.SetGroupPhotoAsync(removePhoto, cancellationToken: t)).ConfigureAwait(false);
 				}
 		)
 		).ConfigureAwait(false);
 	}
 
-	/// <summary>Pairs by QR code, the codes in <c>qr.png</c>, telling #42's record when it is paired.</summary>
-	private async Task PairAsync(IWhatsAppClient client, LiveHistoryBounds bounds, CancellationToken ct)
+	/// <summary>
+	/// Pairs by QR code, the codes in <c>qr.png</c>, telling the companion and #42's record when it is paired, then waits
+	/// for the first of Connected and CaughtUp, so the first sight steps start as early as the session can use them.
+	/// </summary>
+	private async Task PairAsync(FreshCompanion companion, LiveHistoryBounds bounds, CancellationToken ct)
 	{
+		var client = companion.Client;
 		var updates = new List<PairingUpdate>();
 		await foreach (var update in client.PairWithQrCodeAsync(ct).ConfigureAwait(false))
 		{
 			updates.Add(update);
 			if (update is PairingUpdate.Paired)
+			{
+				companion.Paired();
 				bounds.Paired();
+			}
+
 			if (update is not PairingUpdate.QrCode qrCode)
 				continue;
 			if (updates.Count == 1)
@@ -204,6 +238,15 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 		}
 
 		live.DeleteShown();
+		var watch = StateWatch.Start(client, ct);
+		await using (watch.ConfigureAwait(false))
+		{
+			var state = await watch.NextAsync().ConfigureAwait(false);
+			while (state is SessionState.Connecting or SessionState.Reconnecting)
+				state = await watch.NextAsync().ConfigureAwait(false);
+			Assert.True(state is SessionState.Connected or SessionState.CaughtUp, $"the paired session is {state.GetType().Name}, not usable");
+		}
+
 		PairingChecks.ValidateQrPairing(updates, await SessionSetup.StateAsync(client, ct).ConfigureAwait(false));
 	}
 
@@ -216,74 +259,6 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 		rows.IsEmpty
 			? "none"
 			: string.Join(", ", rows.Select(r => $"{LiveChecks.Form(r.Jid)}: saved {r.SavedName is not null}, push {r.PushName is not null}, business {r.BusinessName is not null}"));
-
-	/// <summary>Runs one step; its failure is kept for the end, so the later steps, the hold's release and #42's window still run.</summary>
-	private async Task RunAsync(List<ExceptionDispatchInfo> failures, string step, Func<Task> run)
-	{
-		try
-		{
-			await run().ConfigureAwait(false);
-			live.Write($"live: {step}: passed");
-		}
-#pragma warning disable CA1031 // Justification: rethrown at the end of the test, after the other steps and the cleanup ran.
-		catch (Exception e)
-#pragma warning restore CA1031
-		{
-			live.Write($"live: {step}: failed, {LiveRestore.Describe(e)}");
-			failures.Add(ExceptionDispatchInfo.Capture(e));
-		}
-	}
-
-	/// <summary>
-	/// Holds the companion's history lane from its first history event until <see cref="Release"/>, so the sidecar keeps
-	/// at most its window of history events unacked and downloads no further blob (ADR 0035). An event that comes after
-	/// the release is not held.
-	/// </summary>
-	private sealed class Hold(LiveHistoryBounds bounds)
-	{
-		private readonly TaskCompletionSource _released = new(TaskCreationOptions.RunContinuationsAsynchronously);
-		private readonly Lock _lock = new();
-		private bool _started;
-
-		public IDisposable Register(IWhatsAppClient client) =>
-			new Both(client.On<HistoryReceived>((_, ct) => WaitAsync(ct)), client.On<HistorySyncProgressed>((_, ct) => WaitAsync(ct)));
-
-		public void Release()
-		{
-			lock (_lock)
-			{
-				if (!_released.TrySetResult() || !_started)
-					return;
-			}
-
-			bounds.HoldEnd();
-		}
-
-		private async ValueTask WaitAsync(CancellationToken cancellationToken)
-		{
-			lock (_lock)
-			{
-				if (_released.Task.IsCompleted)
-					return;
-				if (!_started)
-				{
-					_started = true;
-					bounds.HoldStart();
-				}
-			}
-
-			await _released.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
-		}
-
-		private sealed class Both(IDisposable first, IDisposable second) : IDisposable
-		{
-			public void Dispose()
-			{
-				first.Dispose();
-				second.Dispose();
-			}
-		}
-	}
 
 	/// <summary>What the companion got from the business since pairing: its messages, undecryptable ones, and business name changes.</summary>
 	private sealed class BusinessTraffic : IDisposable

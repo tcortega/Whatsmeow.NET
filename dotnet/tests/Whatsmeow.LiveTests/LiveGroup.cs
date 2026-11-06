@@ -4,11 +4,12 @@ using Whatsmeow.Groups;
 namespace Whatsmeow.LiveTests;
 
 /// <summary>
-/// The run's one group, with the peer its only other member: the live session creates it the first time a group test
-/// needs it, so a run creates one group however many tests use it. Each test leaves it as it found it, and one that took
-/// the peer out adds it back (<see cref="WithPeerAsync"/>). At the end the live session removes the peer and leaves, the
-/// closest WhatsApp has to deleting a group: no other number is ever added. Before it creates one, it does the same to
-/// every group an aborted run left: one the live account owns, whose name is a run's, with no member but the two accounts.
+/// A run's group, with the peer its only other member: the live session creates it the first time a test of a class
+/// that has it as its class fixture needs it, so one per such class, closed after that class. Each test leaves it as it
+/// found it, and one that took the peer out adds it back (<see cref="WithPeerAsync"/>). At the end the live session
+/// removes the peer and leaves, the closest WhatsApp has to deleting a group: no other number is ever added. Before it
+/// creates one, it does the same to every group an aborted run left: one the live account owns, whose name is a run's,
+/// with no member but the two accounts.
 /// </summary>
 public sealed partial class LiveGroup(LiveSidecar live, LivePeer peer) : IAsyncLifetime
 {
