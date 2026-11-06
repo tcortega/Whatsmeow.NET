@@ -65,6 +65,7 @@ The library pairs nothing by itself: a hosted service that pairs unpaired sessio
 * `RaiseAsync(event)` runs your handlers on the client's own event pipeline, in the same per-chat order, and waits for them.
 * `Calls` records what your code called, with its arguments; `FailNext(member, exception)` makes the next call to a member throw.
 * `UseFakeClient(fake)` on the builder replaces a declared session, and a host whose declared sessions are all fakes starts no sidecar.
+* A minor version can add members to `IWhatsAppClient`, and the fake gets them in the same version; a class of your own that implements the interface breaks on such an update, so substitute it with the fake or a mocking library (§8.1).
 
 ```csharp
 await using var fake = new FakeWhatsAppClient(SessionId.From("sales"));

@@ -575,22 +575,54 @@ func checkSuppressions(name string, content []byte) []finding {
 			continue
 		}
 
-		var s struct {
-			DiagnosticID string `xml:"DiagnosticId"`
-			Target       string `xml:"Target"`
-		}
-
-		if err := decoder.DecodeElement(&s, &start); err != nil {
+		fields, err := suppressionFields(decoder)
+		if err != nil {
 			return append(findings, finding{name, lineAt(content, int(offset)), rule, "not well-formed XML: " + err.Error()})
 		}
 
-		id, target := strings.TrimSpace(s.DiagnosticID), strings.TrimSpace(s.Target)
+		if len(fields["DiagnosticId"]) != 1 || len(fields["Target"]) != 1 {
+			findings = append(findings, finding{name, lineAt(content, int(offset)), rule, "a suppression holds one DiagnosticId and one Target, without a namespace, or ApiCompat may read it differently than this check"})
+
+			continue
+		}
+
+		id, target := fields["DiagnosticId"][0], fields["Target"][0]
 		if !slices.ContainsFunc(allowed, func(a suppression) bool {
 			prefix := strings.HasSuffix(a.target, ".") || strings.HasSuffix(a.target, "(")
 
 			return (a.id == "" || a.id == id) && (target == a.target || prefix && strings.HasPrefix(target, a.target))
 		}) {
 			findings = append(findings, finding{name, lineAt(content, int(offset)), rule, id + " on " + target + " hides a break from the comparison with the last stable release; only a member added to IWhatsAppClient and the [WMN1001] Raw hatch may be suppressed (ADR 0055)"})
+		}
+	}
+}
+
+// suppressionFields reads the DiagnosticId and Target children of the Suppression element the decoder just opened,
+// each value trimmed, in order. A namespaced one, which ApiCompat skips, is read under no name, so it never counts.
+func suppressionFields(decoder *xml.Decoder) (map[string][]string, error) {
+	fields := map[string][]string{}
+
+	for {
+		token, err := decoder.Token()
+		if err != nil {
+			return nil, fmt.Errorf("read a suppression: %w", err)
+		}
+
+		switch t := token.(type) {
+		case xml.EndElement:
+			return fields, nil
+		case xml.StartElement:
+			var value string
+			if err := decoder.DecodeElement(&value, &t); err != nil {
+				return nil, fmt.Errorf("read %s: %w", t.Name.Local, err)
+			}
+
+			key := t.Name.Local
+			if t.Name.Space != "" {
+				key = ""
+			}
+
+			fields[key] = append(fields[key], strings.TrimSpace(value))
 		}
 	}
 }

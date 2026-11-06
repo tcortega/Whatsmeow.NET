@@ -606,4 +606,23 @@ func TestCheckCompatibilitySuppressionsOnlyLetIWhatsAppClientGrowAndRawChange(t 
 		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml": {Data: []byte("<Suppressions>\n" +
 			"  <Suppression><DiagnosticId>CP0006</DiagnosticId><Target>M:Whatsmeow.IWhatsAppClient.NewAsync</Target>\n")},
 	}, []string{"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:2: [compat-suppression]"})
+
+	// ApiCompat reads the first of repeated fields and skips a namespaced one, encoding/xml the last and any, so a
+	// suppression must hold each field once, unqualified.
+	assertFindings(t, fstest.MapFS{
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml": {Data: []byte("<Suppressions>\n" +
+			"  <Suppression><DiagnosticId>CP0002</DiagnosticId><DiagnosticId>CP0006</DiagnosticId>" +
+			"<Target>M:Whatsmeow.Jid.get_IsLid</Target><Target>M:Whatsmeow.IWhatsAppClient.X</Target></Suppression>\n" +
+			"  <Suppression><DiagnosticId>CP0006</DiagnosticId><Target xmlns=\"urn:x\">M:Whatsmeow.IWhatsAppClient.X</Target></Suppression>\n" +
+			"  <Suppression><DiagnosticId>CP0006</DiagnosticId></Suppression>\n" +
+			"  <Suppression><DiagnosticId>CP0006</DiagnosticId><DiagnosticId>CP0002</DiagnosticId><Target>M:Whatsmeow.IWhatsAppClient.X</Target></Suppression>\n" +
+			"  <Suppression><DiagnosticId>CP0006</DiagnosticId><Target>M:Whatsmeow.IWhatsAppClient.X</Target>" +
+			"<Left>lib/net10.0/Whatsmeow.Client.dll</Left><IsBaselineSuppression>true</IsBaselineSuppression></Suppression>\n" +
+			"</Suppressions>\n")},
+	}, []string{
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:2: [compat-suppression]",
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:3: [compat-suppression]",
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:4: [compat-suppression]",
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:5: [compat-suppression]",
+	})
 }
