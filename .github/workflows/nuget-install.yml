@@ -2,8 +2,8 @@ name: nuget.org install
 
 # Installs an already published release from nuget.org on every target host and RID with this revision's checker (#52,
 # ADR 0059), for a checker fault the release's own nuget-install job cannot get past: the release's inputs come from
-# its tag, which must be on this revision's line, and this revision must pin the release's SDK and tools. It reads and
-# publishes nothing else.
+# its tag, which must be on this revision's line, and its SDK, tools and Alpine SDK images are the release's
+# (build/ci.sh release-pins and the tag's tree). It reads and publishes nothing else.
 
 on:
   workflow_dispatch:

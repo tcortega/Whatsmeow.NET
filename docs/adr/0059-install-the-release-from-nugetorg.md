@@ -26,6 +26,7 @@ The checker revision and the release revision are separate, so a fault in the ch
 * Every release input comes from the tag's tree, extracted with `git archive` into the consumer's directory: the consumer's `global.json` and `build/package-smoke/Program.cs`, AotSmoke and the `dotnet/Directory.*.props` it reads, the notice and README files the package checks compare, `build/release.sh ids`, the release targets (the release's `tools/check-licenses -targets`), and the Go toolchain `source_build` must use.
 * The SDK and tools installed are the release's: `bash build/ci.sh release-pins v<version>` writes the tag's `mise.toml` and `global.json` into the checkout before they are installed, and the startup Go check reads the tag's `go.mod` pins; `GOTOOLCHAIN` stays `local`, so no toolchain is downloaded.
 A checkout whose pins differ from the release's fails with that recovery named.
+The Alpine SDK images, pinned beside `global.json` (whose `rollForward` is `disable`), are the ones the tag's `build/ci.sh` names.
 * `nuget-install.yml` (`workflow_dispatch`, a required tag, `contents: read`, no environment or secret) runs `install.yml` with the tag from the revision it is dispatched on; release.yml's `nuget-install` job runs it after `publish`, on a tag push only, where the checker is the release.
 
 What the install job checks in this mode:

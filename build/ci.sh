@@ -622,6 +622,14 @@ package_origin() { # feed | nuget.org:<version>
 				annotate error "nuget.org" "this checkout pins another SDK or tools than v$version: run bash build/ci.sh release-pins v$version, then mise install, as install.yml does"
 				return 1
 			fi
+			# And the Alpine SDK images the release pinned beside its global.json, whose rollForward is disable.
+			alpine_image="$(sed -n 's/^alpine_image=//p' "$release_tree/build/ci.sh")"
+			alpine_image_arm64="$(sed -n 's/^alpine_image_arm64=//p' "$release_tree/build/ci.sh")"
+			if [ -z "$alpine_image" ] || [ -z "$alpine_image_arm64" ]; then
+				annotate error "nuget.org" "v$version's build/ci.sh names no Alpine SDK images"
+				return 1
+			fi
+			echo "the release's Alpine SDK images: $alpine_image $alpine_image_arm64"
 			echo "the release's inputs from v$version ($release_commit); the checker is $(git rev-parse HEAD)"
 			;;
 		*)
