@@ -136,8 +136,11 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 	/// form is the message's <c>SenderAlt</c> when it has one, else what the store pairs the sender with, read before the
 	/// send with the same lookup whatsmeow makes (<c>Device.GetAltJID</c>: contacts.go 252, whatsmeow user.go 688-691).
 	/// On 2026-11-06 the text, sent by the live session, a linked companion, arrived with no push name (ARCHITECTURE
-	/// §14), so whether the text carried one is logged before any check, and one without fails the branch as a missing
-	/// stimulus, never a skip: the branch stays unfulfilled live until a stimulus with a push name exists.
+	/// §14). That run sent no named presence first [inferred: no <c>SendPresence</c> call in its log], which whatsmeow
+	/// documents as how the server gets the push name (presence.go 60-62); whether it would make WhatsApp attach one is
+	/// [unknown], as is a text sent from the phone. So whether the text carried one is logged before any check, and one
+	/// without fails the branch as a missing stimulus, never a skip: the branch stays unfulfilled live until a stimulus
+	/// with a push name exists.
 	/// </summary>
 	private async Task PushNameAsync(IWhatsAppClient client, IWhatsAppClient business, (Jid Chat, Jid? Lid) businessAccount, (Jid Chat, Jid? Lid) peerAccount, CancellationToken ct)
 	{
