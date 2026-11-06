@@ -693,9 +693,11 @@ How to write each test, what is banned, and the can-it-fail check: [guidelines/t
 
 - One git tag (`vX.Y.Z`) drives MinVer, and `build/ci.sh package` builds the binaries at MinVer's version and packs every package at it. The versions are always equal; untagged, they are one pre-release ([ADR 0023](adr/0023-native-packages-build-pin-and-find.md)).
 - `build/ci.sh package` validates the stable packages against the highest stable release of the same major below the version it packs (`build/release.sh baseline`), restored from nuget.org, and refuses a stable version whose `PublicAPI.Unshipped.txt` files are not empty; a rehearsal is held to both as the next stable release. Pull requests do not pack, so the contract job's `build/release.sh shipped-api` fails one that drops a line the last stable release shipped ([ADR 0055](adr/0055-public-api-baseline-and-package-validation.md)).
-- No Developer ID signing, notarization, or Authenticode (§14 questions 2 and 6).
-  A binary restored by `dotnet restore` from nuget.org carries no `com.apple.quarantine` attribute, and an ad-hoc signed one runs even though `spctl` rejects it (§14 question 6) [inferred: Gatekeeper assesses only quarantined launches, which matches what we saw].
-  Apple Silicon needs arm64 code to be signed at all [inferred: Apple platform rule, not measured here], and the Go linker ad-hoc signs `darwin/arm64` itself.
+- No Developer ID signing, notarization, or Authenticode (§14 questions 2 and 6, [evidence 0045](evidence/0045-macos-gatekeeper-2026-11-06.md)).
+  A binary restored by `dotnet restore` from nuget.org carries no `com.apple.quarantine` attribute, and an ad-hoc signed one runs even though `spctl` rejects it (§14 question 6).
+  On one daily-use macOS 26.5.2 Apple Silicon Mac, syspolicyd scanned every launch of the packaged sidecar, and only one given a synthetic quarantine attribute raised a Gatekeeper prompt and was refused; restore from a loopback HTTP feed, build, publish and `cp -R` or `ditto` copies set no quarantine, and the sidecar started, arm64 natively and x64 under Rosetta [observed: evidence 0045, D and Q1a].
+  `whatsmeow-net` restored from nuget.org, a clean Mac and native Intel are [unknown] (#45).
+  On the same Mac an arm64 sidecar with no signature is refused without a prompt [observed: evidence 0045, S1], and the Go linker ad-hoc signs `darwin/arm64` itself, which is enough there for a launch without quarantine [observed: evidence 0045, D1 to D6 and D9].
   An app that embeds us and ships as a notarized `.app` signs its embedded binaries as part of its own release [inferred: standard macOS app signing, not our concern].
 - **Weekly `whatsmeow-bump` workflow** (`build/bump.sh`, [ADR 0043](adr/0043-weekly-whatsmeow-bump.md)), Mondays and on demand:
   1. Pin whatsmeow's latest `main`; with no change since main's pin, stop.
@@ -1118,7 +1120,8 @@ Setup: Go 1.27.3 grpc-go 1.85.0 server, .NET 10.0.14 Native AOT client, on Windo
 - Sizes: linux-amd64 22.9 MB, linux-arm64 21.9 MB, darwin-arm64 22.4 MB, darwin-amd64 23.3 MB, windows-amd64 23.2 MB, windows-arm64 21.9 MB.
 - The Linux binaries ran (store upgrade, client, socket, ready line) on `alpine:3` and `debian:stable-slim`, arm64 natively and amd64 under emulation.
 - macOS: the Go linker ad-hoc signs `darwin/arm64`; `darwin/amd64` is unsigned.
-  `spctl` rejects both, but that only applies to quarantined launches [inferred: Gatekeeper assesses only quarantined launches].
+  `spctl` rejects both.
+  That this only applies to quarantined launches was [inferred]; [evidence 0045](evidence/0045-macos-gatekeeper-2026-11-06.md) later saw syspolicyd scan unquarantined launches too, on one daily-use Mac, where only a quarantined sidecar raised a prompt and was refused.
   The macOS `protoc` that `dotnet restore` pulled from nuget.org (Grpc.Tools 2.85.0) has no `com.apple.quarantine`, is only ad-hoc signed, and runs.
   Developer ID signing and notarization are therefore dropped (§12).
 
