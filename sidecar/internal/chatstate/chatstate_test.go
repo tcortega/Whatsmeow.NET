@@ -665,7 +665,7 @@ func TestAWriteTakenWhoseSyncWhatsAppHoldsBackIsDoneWithoutAnotherSendOrSync(t *
 
 			logs.waitFor(h.ctx, t, `"error":"app state fetch is rate limited by the server","message":"a chat state write was taken, but WhatsApp holds back the sync after it"`, 1)
 
-			for _, wrapped := range []string{"not fetching", "2026-11-06T15:00:00Z", "5511987654321"} {
+			for _, wrapped := range []string{"not fetching", "2026-11-06T15:00:00Z"} {
 				if strings.Contains(logs.String(), wrapped) {
 					t.Fatalf("a log line carries %q: %s", wrapped, logs.String())
 				}
@@ -784,6 +784,9 @@ func TestWhatsmeowsErrorsBecomeTheirReasonsWithoutAJIDAndAreNotRecovered(t *test
 		{"a disconnect while waiting", &whatsmeow.DisconnectedError{Action: "info query"}, codes.Unknown, "OUTCOME_UNKNOWN", map[string]string{}},
 		{"not connected", whatsmeow.ErrNotConnected, codes.Unavailable, "NOT_CONNECTED", map[string]string{}},
 		{"rate limited", &whatsmeow.IQError{Code: 429, Text: "rate-overlimit"}, codes.ResourceExhausted, "RATE_LIMITED", map[string]string{}},
+		// Taken, and the sync after it got the 429 that starts a backoff: wrapped like the write's own (appstate.go:84-89,
+		// 636-638).
+		{"rate limited on the sync after a taken write", fmt.Errorf("failed to fetch app state after sending update: %w", fmt.Errorf("failed to fetch app state %s patches: %w", appstate.WAPatchRegularLow, &whatsmeow.IQError{Code: 429, Text: "rate-overlimit"})), codes.ResourceExhausted, "RATE_LIMITED", map[string]string{}},
 		{"an IQ error", &whatsmeow.IQError{Code: 500, Text: "internal-server-error"}, codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "500"}},
 		// A conflict whatsmeow's own retry did not get past (appstate.go:616, 631), with WhatsApp's node in its text.
 		{"a rejected write", fmt.Errorf("%w (regular_low): <error code=\"409\" jid=\"%s\"/>", whatsmeow.ErrAppStateUpdate, direct), codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{}},

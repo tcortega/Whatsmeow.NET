@@ -115,7 +115,7 @@ func MessageEvent(e *waevents.Message, account *store.Device) *whatsmeowv1.Messa
 }
 
 // HistoryMessage is a history message as the contract's MessageEvents: its own (MessageEvent), then, for a poll, each
-// vote its WebMessageInfo carries decrypted (pollUpdates, WAWebProtobufsWeb.proto:328, 598-605), in the list's order,
+// vote its WebMessageInfo carries decrypted (pollUpdates, WAWebProtobufsWeb.proto:330, 600-607), in the list's order,
 // as a live vote's event (ADR 0047). account is the session's device, which names the account.
 func HistoryMessage(e *waevents.Message, account *store.Device) []*whatsmeowv1.MessageEvent {
 	events := []*whatsmeowv1.MessageEvent{MessageEvent(e, account)}

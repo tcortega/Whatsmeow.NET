@@ -18,7 +18,7 @@ Presence and typing are ephemeral: no ack, never repeated, lost on a restart ([D
 `MuteChatAsync` (until a time, or for ever), `PinChatAsync`, `ArchiveChatAsync`, `MarkChatReadAsync`, `StarMessageAsync`, and their opposites, change what all the account's devices show ([ADR 0031](../adr/0031-chat-state-and-app-state-recovery.md)).
 They write WhatsApp's app state, which needs its keys from the phone first: right after pairing, a write can fail with `NotConnected` until they arrive.
 Archiving a chat also unpins it: whatsmeow builds the change that way (§14 Chat state).
-A write WhatsApp took succeeds even when WhatsApp then holds back the sync after it, after a 429; when this write's own change then arrives as `ChatStateChanged` is [unknown] (§14 Chat state).
+A write can fail with `RateLimited` although WhatsApp took it, when the sync after it got the 429; while the backoff WhatsApp sets with it lasts, later writes succeed with that sync held back, and when their own change arrives as `ChatStateChanged` is [unknown] (§14 Chat state).
 
 Changes from the account's other devices arrive as `ChatStateChanged` with a `ChatStateChange`: mute, pin, archive, read or star.
 `FromFullSync` is set for the whole state that arrives after pairing or after the sidecar recovered from a sync error, which it does by itself, waiting an hour after a recovery that failed, one WhatsApp held back after a 429 included.

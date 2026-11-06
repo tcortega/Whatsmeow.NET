@@ -30393,7 +30393,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
             = pb::FieldCodec.ForMessage(74, global::Whatsmeow.Proto.WAWebProtobufsWeb.PollUpdate.Parser);
         private readonly pbc::RepeatedField<global::Whatsmeow.Proto.WAWebProtobufsWeb.PollUpdate> pollUpdates_ = new pbc::RepeatedField<global::Whatsmeow.Proto.WAWebProtobufsWeb.PollUpdate>();
         /// <summary>
-        /// A poll's votes, as a WebMessageInfo carries them decrypted (pollUpdates, WAWebProtobufsWeb.proto:328, 598-605).
+        /// A poll's votes, as a WebMessageInfo carries them decrypted (pollUpdates, WAWebProtobufsWeb.proto:330, 600-607).
         /// </summary>
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]

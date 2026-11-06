@@ -7223,7 +7223,7 @@ type DeliverHistorySyncRequest_Message struct {
 	// The message's secret, as a WebMessageInfo carries it (messageSecret), which whatsmeow stores when it downloads
 	// the blob (message.go:806-809, 997-1059): a poll's, which votes on it are encrypted with.
 	MessageSecret []byte `protobuf:"bytes,8,opt,name=message_secret,json=messageSecret,proto3" json:"message_secret,omitempty"`
-	// A poll's votes, as a WebMessageInfo carries them decrypted (pollUpdates, WAWebProtobufsWeb.proto:328, 598-605).
+	// A poll's votes, as a WebMessageInfo carries them decrypted (pollUpdates, WAWebProtobufsWeb.proto:330, 600-607).
 	PollUpdates   []*waWeb.PollUpdate `protobuf:"bytes,9,rep,name=poll_updates,json=pollUpdates,proto3" json:"poll_updates,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
