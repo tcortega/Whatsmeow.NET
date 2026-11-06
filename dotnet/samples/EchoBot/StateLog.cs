@@ -7,9 +7,9 @@ using Whatsmeow.Sessions;
 namespace EchoBot;
 
 /// <summary>Logs each session's state as it changes: one session logged out leaves the other as it is.</summary>
-public sealed partial class StateLog(ILogger<StateLog> logger) : IWhatsAppEventHandler<ConnectionStateChanged>
+public sealed partial class StateLog(ILogger<StateLog> logger) : IWhatsAppEventHandler<SessionStateChanged>
 {
-	public ValueTask HandleAsync(ConnectionStateChanged e, IWhatsAppClient client, CancellationToken cancellationToken)
+	public ValueTask HandleAsync(SessionStateChanged e, IWhatsAppClient client, CancellationToken cancellationToken)
 	{
 		StateChanged(logger, e.SessionId.Value, Name(e.State));
 		return ValueTask.CompletedTask;
@@ -27,7 +27,7 @@ public sealed partial class StateLog(ILogger<StateLog> logger) : IWhatsAppEventH
 			SessionState.Disconnected => nameof(SessionState.Disconnected),
 			SessionState.LoggedOut => nameof(SessionState.LoggedOut),
 			SessionState.Replaced => nameof(SessionState.Replaced),
-			SessionState.TempBanned => nameof(SessionState.TempBanned),
+			SessionState.TemporarilyBanned => nameof(SessionState.TemporarilyBanned),
 			SessionState.Outdated => nameof(SessionState.Outdated),
 			SessionState.Error => nameof(SessionState.Error),
 			_ => nameof(SessionState.Unknown),

@@ -4,6 +4,10 @@ namespace Whatsmeow.Contacts;
 /// A user's or a group's profile picture, from <see cref="IWhatsAppClient.GetProfilePictureAsync"/>: <see cref="Set"/>,
 /// <see cref="None"/> or <see cref="Hidden"/>. Each case is a nested sealed record.
 /// </summary>
+/// <remarks>
+/// The library defines every case; a type derived from it elsewhere is unsupported, and the cases may become a closed
+/// set (ADR 0055).
+/// </remarks>
 public abstract record ProfilePicture
 {
 	private protected ProfilePicture()

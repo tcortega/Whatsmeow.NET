@@ -9,7 +9,7 @@ namespace Whatsmeow.Messaging;
 public sealed record DocumentMetadata
 {
 	/// <summary>The file's MIME type, such as <c>application/pdf</c>; null when unknown.</summary>
-	public string? Mimetype { get; init; }
+	public string? MimeType { get; init; }
 
 	/// <summary>The file name the recipient sees; null for none.</summary>
 	public string? FileName { get; init; }
@@ -23,11 +23,11 @@ public sealed record DocumentMetadata
 	/// <summary>Compares every field, the thumbnail by content.</summary>
 	public bool Equals(DocumentMetadata? other) =>
 		other is not null
-		&& string.Equals(Mimetype, other.Mimetype, StringComparison.Ordinal)
+		&& string.Equals(MimeType, other.MimeType, StringComparison.Ordinal)
 		&& string.Equals(FileName, other.FileName, StringComparison.Ordinal)
 		&& string.Equals(Caption, other.Caption, StringComparison.Ordinal)
 		&& JpegThumbnail.AsSpan().SequenceEqual(other.JpegThumbnail.AsSpan());
 
 	/// <inheritdoc/>
-	public override int GetHashCode() => HashCode.Combine(Mimetype, FileName, Caption);
+	public override int GetHashCode() => HashCode.Combine(MimeType, FileName, Caption);
 }

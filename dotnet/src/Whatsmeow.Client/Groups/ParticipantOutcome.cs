@@ -1,6 +1,10 @@
 namespace Whatsmeow.Groups;
 
 /// <summary>Whether a change to one participant was made. Each case is a nested sealed record.</summary>
+/// <remarks>
+/// The library defines every case; a type derived from it elsewhere is unsupported, and the cases may become a closed
+/// set (ADR 0055).
+/// </remarks>
 public abstract record ParticipantOutcome
 {
 	private protected ParticipantOutcome()

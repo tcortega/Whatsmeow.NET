@@ -10,7 +10,7 @@ namespace Whatsmeow.Messaging;
 public sealed record StickerMetadata
 {
 	/// <summary>The file's MIME type, such as <c>image/webp</c>; null when unknown.</summary>
-	public string? Mimetype { get; init; }
+	public string? MimeType { get; init; }
 
 	/// <summary>The width in pixels; null when unknown.</summary>
 	public int? Width { get; init; }
@@ -24,11 +24,11 @@ public sealed record StickerMetadata
 	/// <summary>Compares every field, the thumbnail by content.</summary>
 	public bool Equals(StickerMetadata? other) =>
 		other is not null
-		&& string.Equals(Mimetype, other.Mimetype, StringComparison.Ordinal)
+		&& string.Equals(MimeType, other.MimeType, StringComparison.Ordinal)
 		&& Width == other.Width
 		&& Height == other.Height
 		&& PngThumbnail.AsSpan().SequenceEqual(other.PngThumbnail.AsSpan());
 
 	/// <inheritdoc/>
-	public override int GetHashCode() => HashCode.Combine(Mimetype, Width, Height);
+	public override int GetHashCode() => HashCode.Combine(MimeType, Width, Height);
 }

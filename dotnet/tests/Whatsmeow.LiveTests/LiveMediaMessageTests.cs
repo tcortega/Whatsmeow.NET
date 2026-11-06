@@ -39,12 +39,12 @@ public sealed class LiveMediaMessageTests(LiveSidecar live, LivePeer peer)
 		var voice = await UploadAsync(client, MediaType.Audio, 8 * 1024, contents, ct);
 		var document = await UploadAsync(client, MediaType.Document, 30 * 1024, contents, ct);
 		var sticker = await UploadAsync(client, MediaType.Image, 5 * 1024, contents, ct);
-		var imageMetadata = new ImageMetadata { Mimetype = "image/jpeg", Caption = "look", Width = 640, Height = 480, JpegThumbnail = s_jpeg };
-		var videoMetadata = new VideoMetadata { Mimetype = "video/mp4", Caption = "watch", Width = 1280, Height = 720, Duration = TimeSpan.FromSeconds(12.9), JpegThumbnail = s_jpeg };
-		var audioMetadata = new AudioMetadata { Mimetype = "audio/mpeg", Duration = TimeSpan.FromSeconds(200) };
-		var voiceMetadata = new AudioMetadata { Mimetype = "audio/ogg; codecs=opus", Duration = TimeSpan.FromSeconds(3), IsVoiceNote = true, Waveform = s_waveform };
-		var documentMetadata = new DocumentMetadata { Mimetype = "application/pdf", FileName = "report.pdf", Caption = "the numbers", JpegThumbnail = s_jpeg };
-		var stickerMetadata = new StickerMetadata { Mimetype = "image/webp", Width = 512, Height = 512, PngThumbnail = s_png };
+		var imageMetadata = new ImageMetadata { MimeType = "image/jpeg", Caption = "look", Width = 640, Height = 480, JpegThumbnail = s_jpeg };
+		var videoMetadata = new VideoMetadata { MimeType = "video/mp4", Caption = "watch", Width = 1280, Height = 720, Duration = TimeSpan.FromSeconds(12.9), JpegThumbnail = s_jpeg };
+		var audioMetadata = new AudioMetadata { MimeType = "audio/mpeg", Duration = TimeSpan.FromSeconds(200) };
+		var voiceMetadata = new AudioMetadata { MimeType = "audio/ogg; codecs=opus", Duration = TimeSpan.FromSeconds(3), IsVoiceNote = true, Waveform = s_waveform };
+		var documentMetadata = new DocumentMetadata { MimeType = "application/pdf", FileName = "report.pdf", Caption = "the numbers", JpegThumbnail = s_jpeg };
+		var stickerMetadata = new StickerMetadata { MimeType = "image/webp", Width = 512, Height = 512, PngThumbnail = s_png };
 
 		(Func<MessageId, Task<SendResult>> Send, MessageContent Content)[] kinds =
 		[
@@ -87,7 +87,7 @@ public sealed class LiveMediaMessageTests(LiveSidecar live, LivePeer peer)
 		var sender = await live.AccountAsync(ct);
 		var (to, _) = await peer.AccountAsync(ct);
 		var voice = await UploadAsync(client, MediaType.Audio, 8 * 1024, contents: null, ct);
-		var metadata = new AudioMetadata { Mimetype = "audio/ogg; codecs=opus", Duration = TimeSpan.FromSeconds(5), IsVoiceNote = true, Waveform = s_waveform };
+		var metadata = new AudioMetadata { MimeType = "audio/ogg; codecs=opus", Duration = TimeSpan.FromSeconds(5), IsVoiceNote = true, Waveform = s_waveform };
 		var id = MessageId.New();
 
 		var arrived = LiveChecks.ArrivalAsync(other, id, ct);

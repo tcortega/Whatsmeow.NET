@@ -30,11 +30,11 @@ AGENTS.md              this file (CLAUDE.md is a symlink to it; nothing may depe
 
 Setup once: the .NET SDK from `global.json` (10.0.403), then `mise trust && mise install` for Go, buf, golangci-lint, protoc, the protoc plugins and shellcheck.
 
-Everything CI runs is `build/ci.sh`, one subcommand per CI job, on linux-x64, osx-arm64 and win-x64 (Git Bash on Windows); `package` runs on win-x64 only, `external` (the integration suite against a standalone sidecar) on linux-x64 only, `install` runs fresh JIT consumers of its feed on every target RID (both musl RIDs in Alpine), and `aot` publishes AotSmoke from it with Native AOT on those eight RIDs (ADR 0056, 0058).
+Everything CI runs is `build/ci.sh`, one subcommand per CI job, on linux-x64, osx-arm64 and win-x64 (Git Bash on Windows); `package` runs on win-x64 only, `external` (the integration suite against a standalone sidecar) on linux-x64 only, `install` runs fresh JIT consumers of its feed on every target RID (both musl RIDs in Alpine), and `aot` publishes AotSmoke from it with Native AOT on those eight RIDs (ADR 0056, 0058); after a publish, both run again against nuget.org (`nuget.org:<version>`, ADR 0059).
 Run it from anywhere before pushing; it runs every check, reports each failure, and fails at the end:
 
 ```sh
-bash build/ci.sh all        # or: setup, contract, go, dotnet, external, package; install <feed> installs a feed built elsewhere; aot <feed> <rid> publishes AotSmoke from it
+bash build/ci.sh all        # or: setup, contract, go, dotnet, external, package; install <feed>|nuget.org:<version> installs a feed built elsewhere or a published release; aot <feed>|nuget.org:<version> <rid> publishes AotSmoke from it; release-pins v<version> first overwrites the tracked mise.toml and global.json with a release's
 ```
 
 A package change regenerates `packages.lock.json` with a plain `dotnet restore dotnet/Whatsmeow.slnx`; commit it.
@@ -56,6 +56,7 @@ No runtime reflection. Source generators, `[LoggerMessage]`, `[LibraryImport]`, 
 `ConfigureAwait(false)` everywhere. `CancellationToken` last, `Async` suffix. No sync-over-async.
 No interface just to mock it. `IWhatsAppClient` is the only exception.
 Generated protobuf types never in the stable public API, except the `[Experimental]` `Raw` hatch.
+A new public member goes to `PublicAPI.Unshipped.txt`; from v1.0.0 a shipped one is never removed or changed, before it one is edited in `PublicAPI.Shipped.txt` (ADR 0055).
 Global usings live in the csproj `ItemGroup Label="Usings"`; samples state theirs per file instead (ADR 0054).
 C# idioms: [docs/guidelines/csharp.md](docs/guidelines/csharp.md).
 Options and configuration: [docs/guidelines/options.md](docs/guidelines/options.md).

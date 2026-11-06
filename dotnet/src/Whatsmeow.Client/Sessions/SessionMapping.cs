@@ -31,7 +31,7 @@ internal static class SessionMapping
 			ProtoState.KindOneofCase.Disconnected => new SessionState.Disconnected(),
 			ProtoState.KindOneofCase.LoggedOut => new SessionState.LoggedOut { Code = state.LoggedOut.Code },
 			ProtoState.KindOneofCase.Replaced => new SessionState.Replaced(),
-			ProtoState.KindOneofCase.TempBanned => new SessionState.TempBanned
+			ProtoState.KindOneofCase.TempBanned => new SessionState.TemporarilyBanned
 			{
 				Code = state.TempBanned.Code,
 				Until = state.TempBanned.ExpireTime?.ToDateTimeOffset(),

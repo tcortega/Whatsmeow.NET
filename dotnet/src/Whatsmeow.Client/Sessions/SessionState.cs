@@ -4,6 +4,10 @@ namespace Whatsmeow.Sessions;
 /// A session's state (ARCHITECTURE §7.4). Each case is a nested sealed record; <see cref="Unknown"/> is a state this
 /// client version does not know.
 /// </summary>
+/// <remarks>
+/// The library defines every case; a type derived from it elsewhere is unsupported, and the cases may become a closed
+/// set (ADR 0055).
+/// </remarks>
 [SuppressMessage(
 	"Naming",
 	"CA1724:Type names should not match namespaces",
@@ -50,7 +54,7 @@ public abstract record SessionState
 	public sealed record Replaced : SessionState;
 
 	/// <summary>The account is temporarily banned.</summary>
-	public sealed record TempBanned : SessionState
+	public sealed record TemporarilyBanned : SessionState
 	{
 		/// <summary>WhatsApp's ban code.</summary>
 		public required int Code { get; init; }

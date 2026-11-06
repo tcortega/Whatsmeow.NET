@@ -1,10 +1,9 @@
 name: packaging
 
-# Native packages (ADR 0023): the package job on Windows builds every binary, packs every package and installs them
-# there; the install jobs install that same feed on every other native host, including both Alpine architectures; the
-# aot jobs publish AotSmoke from it with Native AOT on every target RID (ADR 0056). ci.yml calls it on main and on
-# workflow_dispatch, and release.yml on every release and rehearsal (ADR 0050), so a release publishes the feed these
-# checks passed. Every check lives in build/ci.sh.
+# Native packages (ADR 0023): the package job on Windows builds every binary and packs every package; install.yml installs
+# that same feed on every native host, including both Alpine architectures, and publishes AotSmoke from it with Native
+# AOT on every target RID (ADR 0056, 0058). ci.yml calls it on main and on workflow_dispatch, and release.yml on every
+# release and rehearsal (ADR 0050), so a release publishes the feed these checks passed. Every check lives in build/ci.sh.
 
 on:
   workflow_call:
@@ -86,110 +85,11 @@ jobs:
           # A release's publish job reads it, possibly after days of waiting for approval, and so does its re-run.
           retention-days: 30
 
-  install:
-    name: install (${{ matrix.name }})
+  # The feed's consumers on every target host and Native AOT on every target RID, in install.yml, which release.yml
+  # also calls after a publish to install the same release from nuget.org.
+  consumers:
+    name: consumers
     needs: package
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { name: linux-x64, os: ubuntu-26.04 }
-          - { name: linux-arm64, os: ubuntu-26.04-arm }
-          - { name: osx-x64, os: macos-26-intel }
-          - { name: osx-arm64, os: macos-26 }
-          - { name: win-arm64, os: windows-11-arm }
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
-        with:
-          global-json-file: global.json
-
-      # Go reads the packaged binaries' build information (go version -m) and the release targets.
-      - uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5.2.5
-        with:
-          version: ${{ env.MISE_VERSION }}
-          install_args: go
-          cache_key_prefix: mise-install
-          cache: ${{ inputs.cache }}
-
-      - name: Go caches under the runner temp directory
-        run: |
-          {
-            echo "GOMODCACHE=$RUNNER_TEMP/go/mod"
-            echo "GOCACHE=$RUNNER_TEMP/go/build"
-          } >> "$GITHUB_ENV"
-
-      - if: inputs.cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ${{ runner.temp }}/go
-          key: go-install-${{ runner.os }}-${{ hashFiles('mise.toml', 'tools/go.sum') }}
-          restore-keys: go-install-${{ runner.os }}-
-
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: native-packages
-          path: ${{ runner.temp }}/native-packages
-
-      - name: build/ci.sh install
-        run: bash build/ci.sh install "$RUNNER_TEMP/native-packages"
-
-  # AotSmoke with Native AOT from that same feed on every target RID, each on a native runner of its own (ADR 0056):
-  # Native AOT never crosses operating systems, and an emulated run proves nothing about the RID. musl runs in the
-  # Alpine SDK container of its architecture on the Linux runner of that architecture.
-  aot:
-    name: aot (${{ matrix.rid }})
-    needs: package
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { rid: linux-x64, os: ubuntu-26.04 }
-          - { rid: linux-arm64, os: ubuntu-26.04-arm }
-          - { rid: linux-musl-x64, os: ubuntu-26.04 }
-          - { rid: linux-musl-arm64, os: ubuntu-26.04-arm }
-          - { rid: osx-x64, os: macos-26-intel }
-          - { rid: osx-arm64, os: macos-26 }
-          - { rid: win-x64, os: windows-2025 }
-          - { rid: win-arm64, os: windows-11-arm }
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      # musl publishes with the Alpine container's SDK, not the runner's.
-      - if: ${{ !startsWith(matrix.rid, 'linux-musl-') }}
-        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
-        with:
-          global-json-file: global.json
-
-      # Only Go, which build/ci.sh checks against go.mod before any job; its own cache key, holding Go only.
-      - uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5.2.5
-        with:
-          version: ${{ env.MISE_VERSION }}
-          install_args: go
-          cache: ${{ inputs.cache }}
-          cache_key_prefix: mise-aot
-
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: native-packages
-          path: ${{ runner.temp }}/native-packages
-
-      - name: build/ci.sh aot
-        env:
-          RID: ${{ matrix.rid }}
-        run: bash build/ci.sh aot "$RUNNER_TEMP/native-packages" "$RID"
+    uses: ./.github/workflows/install.yml
+    with:
+      cache: ${{ inputs.cache }}

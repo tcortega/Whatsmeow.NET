@@ -52,7 +52,7 @@ public sealed class LiveDeliveryTests(LiveSidecar live, LivePeer peer)
 				await release.Task.WaitAsync(token).ConfigureAwait(false);
 			}
 		);
-		using var states = client.On<ConnectionStateChanged>(
+		using var states = client.On<SessionStateChanged>(
 			(e, token) =>
 			{
 				if (e.State is SessionState.Connected && killed.Task.IsCompleted)
@@ -189,7 +189,7 @@ public sealed class LiveDeliveryTests(LiveSidecar live, LivePeer peer)
 		var text = $"{WithholdPrefix}{id}";
 		using var arrivals = new Arrivals(client);
 		var changes = new ConcurrentQueue<(TimeSpan At, SessionState State)>();
-		using var states = client.On<ConnectionStateChanged>(
+		using var states = client.On<SessionStateChanged>(
 			(e, token) =>
 			{
 				changes.Enqueue((LiveClock.Time.GetElapsedTime(arrivals.Origin), e.State));

@@ -91,7 +91,7 @@ internal static class ContentMapping
 			Media = ToRef(MediaType.Image, image.URL, image.DirectPath, image.MediaKey, image.FileSHA256, image.FileEncSHA256, image.FileLength, ByteString.Empty),
 			Metadata = new ImageMetadata
 			{
-				Mimetype = NullIfEmpty(image.Mimetype),
+				MimeType = NullIfEmpty(image.Mimetype),
 				Caption = NullIfEmpty(image.Caption),
 				Width = image.HasWidth ? ToPixels(image.Width) : null,
 				Height = image.HasHeight ? ToPixels(image.Height) : null,
@@ -106,7 +106,7 @@ internal static class ContentMapping
 			Media = ToRef(MediaType.Video, video.URL, video.DirectPath, video.MediaKey, video.FileSHA256, video.FileEncSHA256, video.FileLength, video.StreamingSidecar),
 			Metadata = new VideoMetadata
 			{
-				Mimetype = NullIfEmpty(video.Mimetype),
+				MimeType = NullIfEmpty(video.Mimetype),
 				Caption = NullIfEmpty(video.Caption),
 				Width = video.HasWidth ? ToPixels(video.Width) : null,
 				Height = video.HasHeight ? ToPixels(video.Height) : null,
@@ -122,7 +122,7 @@ internal static class ContentMapping
 			Media = ToRef(MediaType.Audio, audio.URL, audio.DirectPath, audio.MediaKey, audio.FileSHA256, audio.FileEncSHA256, audio.FileLength, audio.StreamingSidecar),
 			Metadata = new AudioMetadata
 			{
-				Mimetype = NullIfEmpty(audio.Mimetype),
+				MimeType = NullIfEmpty(audio.Mimetype),
 				Duration = audio.HasSeconds ? TimeSpan.FromSeconds(audio.Seconds) : null,
 				IsVoiceNote = audio.PTT,
 				Waveform = [.. audio.Waveform.Span],
@@ -145,7 +145,7 @@ internal static class ContentMapping
 			),
 			Metadata = new DocumentMetadata
 			{
-				Mimetype = NullIfEmpty(document.Mimetype),
+				MimeType = NullIfEmpty(document.Mimetype),
 				FileName = NullIfEmpty(document.FileName),
 				Caption = NullIfEmpty(document.Caption),
 				JpegThumbnail = [.. document.JPEGThumbnail.Span],
@@ -159,7 +159,7 @@ internal static class ContentMapping
 			Media = ToRef(MediaType.Image, sticker.URL, sticker.DirectPath, sticker.MediaKey, sticker.FileSHA256, sticker.FileEncSHA256, sticker.FileLength, ByteString.Empty),
 			Metadata = new StickerMetadata
 			{
-				Mimetype = NullIfEmpty(sticker.Mimetype),
+				MimeType = NullIfEmpty(sticker.Mimetype),
 				Width = sticker.HasWidth ? ToPixels(sticker.Width) : null,
 				Height = sticker.HasHeight ? ToPixels(sticker.Height) : null,
 				PngThumbnail = [.. sticker.PngThumbnail.Span],

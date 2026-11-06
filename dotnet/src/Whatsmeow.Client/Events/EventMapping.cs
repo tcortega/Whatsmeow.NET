@@ -44,7 +44,7 @@ internal static class EventMapping
 				HidePlaceholder = response.UndecryptableMessage.HidePlaceholder,
 				Unavailable = response.UndecryptableMessage.Unavailable ? ToUnavailable(response.UndecryptableMessage.UnavailableType) : null,
 			},
-			Payload.ConnectionState => new ConnectionStateChanged { SessionId = sessionId, State = SessionMapping.ToState(response.ConnectionState.State) },
+			Payload.ConnectionState => new SessionStateChanged { SessionId = sessionId, State = SessionMapping.ToState(response.ConnectionState.State) },
 			Payload.Contact => ContactMapping.ToEvent(sessionId, response.Contact),
 			Payload.MediaRetry => new MediaRetryReceived
 			{
@@ -103,7 +103,7 @@ internal static class EventMapping
 			PresenceChanged presence => presence.From.ToString(),
 			ChatPresenceChanged chatPresence => chatPresence.Source.Chat.ToString(),
 			HistoryReceived or HistorySyncProgressed => HistoryMapping.Lane,
-			ConnectionStateChanged or EphemeralEventsDropped or null => SessionLane,
+			SessionStateChanged or EphemeralEventsDropped or null => SessionLane,
 			_ => SessionLane,
 		};
 

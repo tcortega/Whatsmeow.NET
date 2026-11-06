@@ -1,0 +1,26 @@
+name: nuget.org install
+
+# Installs an already published release from nuget.org on every target host and RID with this revision's checker (#52,
+# ADR 0059), for a checker fault the release's own nuget-install job cannot get past: the release's inputs come from
+# its tag, which must be on this revision's line, and its SDK, tools and Alpine SDK images are the release's
+# (build/ci.sh release-pins and the tag's tree). It reads and publishes nothing else. A run counts for #52 only when this
+# revision is a reviewed commit on main; the evidence names it, the tag, the run and every required row (ADR 0059).
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The published release's v<semver> tag.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  nuget-install:
+    name: nuget.org install
+    uses: ./.github/workflows/install.yml
+    with:
+      tag: ${{ inputs.tag }}
+      cache: false

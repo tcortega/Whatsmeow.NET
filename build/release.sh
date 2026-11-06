@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# The release (#46, ADR 0050); .github/workflows/release.yml calls this and nothing else.
+# The release (#46, ADR 0050); .github/workflows/release.yml calls this and nothing else, and build/ci.sh package
+# calls its baseline.
 #
 #   guard <tag>                      the tag is v<semver>, points at HEAD here and on origin, and HEAD is on main; in a
 #                                    tag push, also that the release environment makes the publish wait for a reviewer
@@ -11,6 +12,11 @@
 #   publish <tag> <assets>           publishes that draft, Latest only when the tag is the highest stable version
 #   push <tag> <feed> 1|2            pushes one phase to nuget.org, skipping what is there
 #   wait <tag> <feed> 1|2            waits until nuget.org serves the phase; for phase 2 a timeout only warns
+#   baseline <version>               prints the published release package validation compares a version with, or
+#                                    nothing; a rehearsal's v0.0.0-rehearsal.<n> stands for the next stable release
+#   shipped-api                      every line the release the next stable one compares with shipped in a
+#                                    PublicAPI.Shipped.txt, but the [WMN1001] Raw hatch's, is still there (ADR 0055)
+#   ids                              every package id a release publishes, in push order (build/ci.sh install reads it)
 #
 # draft, publish and push publish, so they refuse to run anywhere but in a push of that tag; with --dry-run they and
 # wait only print what they would do. Nothing here deletes or unlists anything (tools/check-repo, ADR 0029).
@@ -415,8 +421,83 @@ wait_served() { # tag feed 1|2 [--dry-run]
 	done
 }
 
+# The tags merged into HEAD that match a pattern. A shallow clone may lack the commits, and so the tags, a baseline
+# needs, and would then compare with nothing, so it fails.
+merged_tags() { # pattern
+	[ "$(git rev-parse --is-shallow-repository)" = false ] ||
+		die "this clone is shallow, so it may lack the tag of the release to compare with (ADR 0055): fetch the whole history (fetch-depth: 0)"
+	git tag --merged HEAD --list "$1" || die "cannot list the tags merged into HEAD"
+}
+
+# The package validation baseline of a version (ADR 0055): the highest stable v<major>.<minor>.<patch> tag merged into
+# HEAD with the version's major and below it, so every build after a release is compared with what that release
+# published. None before 1.0, none for a major's first release or the version of HEAD's own tag, never a pre-release,
+# and never a tag of another branch. A version past its major's first release with no release of that major below it
+# fails: its tags are missing, or it skipped one. A rehearsal's version stands for the next stable release.
+baseline() {
+	local version="$1" core major tags found
+	if [[ "$version" == 0.0.0-rehearsal.* ]]; then
+		version="$(next_stable)" || exit 1
+		[ -n "$version" ] || return 0
+	fi
+	core="${version%%-*}"
+	major="${core%%.*}"
+	tags="$(merged_tags "v$major.*")" || exit 1
+	[ "$major" = 0 ] && return 0
+	found="$({
+		sed -n -E 's/^v((0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))$/\1/p' <<<"$tags"
+		echo "$core"
+	} | sort -V | awk -v core="$core" '$0 == core { exit } { print }' | tail -n 1)"
+	if [ -z "$found" ] && [ "${core#*.}" != 0.0 ]; then
+		die "no stable v$major release below $version among the tags merged into HEAD, though $version is past $major.0.0: fetch every tag, or release $major.0.0 first (ADR 0055)"
+	fi
+	[ -z "$found" ] || echo "$found"
+}
+
+# The version the next stable release will have, as far as the tags merged into HEAD tell: the version of the
+# highest pre-release when no stable release has it yet, else the patch after the highest stable release; nothing
+# before any tag. A rehearsal's own tag is 0.0.0, below every release.
+next_stable() {
+	local tags highest
+	tags="$(merged_tags 'v*')" || exit 1
+	highest="$(sed -n -E 's/^v((0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))(-.*)?$/\1/p' <<<"$tags" | sort -u -V | tail -n 1)"
+	[ -n "$highest" ] || return 0
+	if grep -qxF "v$highest" <<<"$tags"; then
+		echo "${highest%.*}.$((${highest##*.} + 1))"
+		return 0
+	fi
+	echo "$highest"
+}
+
+# Every line the release the next stable one compares with shipped in a PublicAPI.Shipped.txt, but the [WMN1001] Raw
+# hatch's, which is outside the promise, is still in that file (ADR 0055). RS0017 does not see a member dropped from
+# both the code and PublicAPI.Shipped.txt, and pull requests do not pack, so this is their check. None before 1.0, and
+# none once a new major's pre-release is tagged, since that major may break the last one.
+shipped_api() {
+	local next base root file missing rc=0
+	next="$(next_stable)" || exit 1
+	if [ -n "$next" ]; then base="$(baseline "$next")" || exit 1; fi
+	if [ -z "${base:-}" ]; then
+		echo "no stable release whose public API the next stable release must keep"
+		return 0
+	fi
+	root="$(git rev-parse --show-toplevel)" || die "not in a git repository"
+	while IFS= read -r file; do
+		[[ "$file" == */PublicAPI.Shipped.txt ]] || continue
+		missing="$(git -C "$root" show "v$base:$file" | tr -d '\r' | grep -v -x -e '#nullable enable' -e '' | grep -v '^\[WMN1001\]' |
+			grep -v -x -F -f <(tr -d '\r' <"$root/$file" 2>/dev/null || true))"
+		[ -n "$missing" ] || continue
+		rc=1
+		while IFS= read -r line; do
+			echo "$file: v$base shipped, and it is gone or changed: $line" >&2
+		done <<<"$missing"
+	done < <(git -C "$root" ls-tree -r --name-only "v$base" -- dotnet/src)
+	[ "$rc" -eq 0 ] || die "a member v$base shipped is gone from PublicAPI.Shipped.txt or changed: removing or changing a shipped member is a break, which takes a new major version and its ADR (ADR 0055)"
+	echo "every member v$base shipped is still in PublicAPI.Shipped.txt, the [WMN1001] Raw hatch aside"
+}
+
 usage() {
-	sed -n '4,16p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
+	sed -n '5,22p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2
 	exit 2
 }
 
@@ -431,5 +512,8 @@ case "$cmd" in
 	publish) [ $# -eq 2 ] || [ $# -eq 3 ] || usage; publish "$@" ;;
 	push) [ $# -eq 3 ] || [ $# -eq 4 ] || usage; push "$@" ;;
 	wait) [ $# -eq 3 ] || [ $# -eq 4 ] || usage; wait_served "$@" ;;
+	baseline) [ $# -eq 1 ] || usage; baseline "$@" ;;
+	shipped-api) [ $# -eq 0 ] || usage; shipped_api ;;
+	ids) [ $# -eq 0 ] || usage; printf '%s\n' "${phase1[@]}" "${phase2[@]}" ;;
 	*) usage ;;
 esac

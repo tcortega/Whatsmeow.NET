@@ -11,6 +11,10 @@
 // Corresponding Source of the packages on nuget.org, which stay there, so it is never deleted (ADR 0016, ADR 0029).
 // In the README, the user guides and the packages' READMEs, a code block under a snippet marker must be the sample
 // file it names, byte for byte, so the code they show is code CI builds (ADR 0054).
+// In the stable packages' PublicAPI files it rejects a *REMOVED* line, which would let a build drop a shipped member,
+// a generated protobuf or gRPC type outside the [WMN1001] Raw hatch, and in it any but an upstream WhatsApp one
+// (ARCHITECTURE §13 invariant 6, ADR 0055). A package validation suppression file may only accept a member added to
+// IWhatsAppClient or a change of the Raw hatch, so no other break hides from the comparison with the last release.
 //
 // Findings print as path:line: [rule] message. The rules are in docs/guidelines/csharp.md Suppressions.
 // Run it from the tools module: go -C tools run ./check-repo [-root ..].
@@ -83,6 +87,8 @@ var (
 	positionalRecord  = regexp.MustCompile(`\brecord\s+(?:struct\s+|class\s+)?[A-Za-z_]\w*\s*(?:<[^>]*>)?\s*\(`)
 	// Every way a workflow or script deletes a release or its assets: the gh CLI, Octokit, an action named for it,
 	// and the REST DELETE through gh api, curl or a request route.
+	// A generated protobuf or gRPC type in a PublicAPI line: upstream WhatsApp, whatsmeow.v1, the runtimes.
+	protobufType  = regexp.MustCompile(`\b(Whatsmeow\.Proto|Whatsmeow\.Protocol|Google\.Protobuf|Grpc)\.`)
 	releaseDelete = regexp.MustCompile(`(?i)\bgh\s+release\s+delete|\bdeleteRelease|\buses:\s*\S*(?:delete\S*release|release\S*delete)|` +
 		`(?:-X\s*|--request[\s=]+|--method[\s=]+)DELETE\b.*/releases\b|/releases\b.*(?:-X\s*|--request[\s=]+|--method[\s=]+)DELETE\b|\bDELETE\s+/repos/\S*/releases\b`)
 )
@@ -249,6 +255,24 @@ func checkFile(fsys fs.FS, name string) ([]finding, error) {
 		}
 
 		return checkDoc(fsys, name, content, onlySamples)
+	}
+
+	if strings.HasPrefix(name, "dotnet/src/") && (path.Base(name) == "PublicAPI.Shipped.txt" || path.Base(name) == "PublicAPI.Unshipped.txt") {
+		content, err := fs.ReadFile(fsys, name)
+		if err != nil {
+			return nil, fmt.Errorf("read %s: %w", name, err)
+		}
+
+		return checkPublicAPI(name, content), nil
+	}
+
+	if strings.ToLower(path.Base(name)) == "compatibilitysuppressions.xml" {
+		content, err := fs.ReadFile(fsys, name)
+		if err != nil {
+			return nil, fmt.Errorf("read %s: %w", name, err)
+		}
+
+		return checkSuppressions(name, content), nil
 	}
 
 	ext := strings.ToLower(path.Ext(name))
@@ -474,6 +498,144 @@ func checkDoc(fsys fs.FS, name string, content []byte, onlySamples bool) ([]find
 	}
 
 	return findings, nil
+}
+
+// checkPublicAPI keeps the stable packages' shipped surface: a *REMOVED* line drops a shipped member, a break once
+// it is published, and only the [WMN1001] Raw hatch may name a generated protobuf type, and only an upstream
+// WhatsApp one, never whatsmeow.v1's or a runtime's (ADR 0055).
+func checkPublicAPI(name string, content []byte) []finding {
+	var findings []finding
+
+	for i, line := range strings.Split(strings.ReplaceAll(string(content), "\r", ""), "\n") {
+		switch {
+		case strings.HasPrefix(line, "*REMOVED*"):
+			findings = append(findings, finding{name, i + 1, "public-api-removed", "a shipped member is part of the stability promise; removing or changing it is a break (ADR 0055)"})
+		case !strings.HasPrefix(line, "[WMN1001]") && protobufType.MatchString(line):
+			findings = append(findings, finding{name, i + 1, "public-api-protobuf", "a generated protobuf or gRPC type is in the stable API outside the [WMN1001] Raw hatch (ARCHITECTURE §13 invariant 6)"})
+		case strings.HasPrefix(line, "[WMN1001]") && rawHatchOverreach(line):
+			findings = append(findings, finding{name, i + 1, "public-api-protobuf", "the [WMN1001] Raw hatch exposes upstream WhatsApp types (Whatsmeow.Proto.) only, never a whatsmeow.v1, Google.Protobuf or gRPC type (ARCHITECTURE §13 invariant 6, ADR 0055)"})
+		}
+	}
+
+	return findings
+}
+
+// suppressible lists, per stable package, the suppressions package validation may accept: a member added to
+// IWhatsAppClient (CP0006; only the library and Whatsmeow.Testing implement it), and any change of the [WMN1001] Raw
+// hatch, which follows Whatsmeow.Protocol.WhatsApp (ADR 0055). Anything else would hide a break from the comparison
+// with the last stable release. A target ending in . or ( is a documentation id prefix, any other the whole id; an
+// empty diagnostic id is any.
+func suppressible() map[string][]suppression {
+	return map[string][]suppression{
+		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml": {
+			{"CP0006", "M:Whatsmeow.IWhatsAppClient."},
+			{"CP0006", "P:Whatsmeow.IWhatsAppClient."},
+			{"CP0006", "E:Whatsmeow.IWhatsAppClient."},
+			{"", "M:Whatsmeow.IWhatsAppClient.SendRawAsync("},
+			{"", "P:Whatsmeow.Events.MessageReceived.Raw"},
+			{"", "M:Whatsmeow.Events.MessageReceived.get_Raw"},
+			{"", "M:Whatsmeow.Events.MessageReceived.set_Raw("},
+		},
+		"dotnet/src/Whatsmeow.Testing/CompatibilitySuppressions.xml": {
+			{"", "M:Whatsmeow.Testing.FakeWhatsAppClient.SendRawAsync("},
+		},
+	}
+}
+
+type suppression struct{ id, target string }
+
+// checkSuppressions keeps package validation's suppression file to what ADR 0055 lets a release after 1.0 change:
+// the file exists only beside a stable package that may need it, and each suppression is one suppressible lists.
+func checkSuppressions(name string, content []byte) []finding {
+	const rule = "compat-suppression"
+
+	allowed, ok := suppressible()[name]
+	if !ok {
+		return []finding{{name, 0, rule, "package validation is suppressed only for Whatsmeow.Client's IWhatsAppClient growth and the Raw hatch of Whatsmeow.Client and Whatsmeow.Testing (ADR 0055)"}}
+	}
+
+	var findings []finding
+
+	decoder := xml.NewDecoder(bytes.NewReader(content))
+
+	for {
+		offset := decoder.InputOffset()
+
+		token, err := decoder.Token()
+		if errors.Is(err, io.EOF) {
+			return findings
+		}
+
+		if err != nil {
+			return append(findings, finding{name, lineAt(content, int(offset)), rule, "not well-formed XML: " + err.Error()})
+		}
+
+		start, isStart := token.(xml.StartElement)
+		if !isStart || start.Name.Local != "Suppression" {
+			continue
+		}
+
+		fields, err := suppressionFields(decoder)
+		if err != nil {
+			return append(findings, finding{name, lineAt(content, int(offset)), rule, "not well-formed XML: " + err.Error()})
+		}
+
+		if len(fields["DiagnosticId"]) != 1 || len(fields["Target"]) != 1 {
+			findings = append(findings, finding{name, lineAt(content, int(offset)), rule, "a suppression holds one DiagnosticId and one Target, without a namespace, or ApiCompat may read it differently than this check"})
+
+			continue
+		}
+
+		id, target := fields["DiagnosticId"][0], fields["Target"][0]
+		if !slices.ContainsFunc(allowed, func(a suppression) bool {
+			prefix := strings.HasSuffix(a.target, ".") || strings.HasSuffix(a.target, "(")
+
+			return (a.id == "" || a.id == id) && (target == a.target || prefix && strings.HasPrefix(target, a.target))
+		}) {
+			findings = append(findings, finding{name, lineAt(content, int(offset)), rule, id + " on " + target + " hides a break from the comparison with the last stable release; only a member added to IWhatsAppClient and the [WMN1001] Raw hatch may be suppressed (ADR 0055)"})
+		}
+	}
+}
+
+// suppressionFields reads the DiagnosticId and Target children of the Suppression element the decoder just opened,
+// each value trimmed, in order. A namespaced one, which ApiCompat skips, is read under no name, so it never counts.
+func suppressionFields(decoder *xml.Decoder) (map[string][]string, error) {
+	fields := map[string][]string{}
+
+	for {
+		token, err := decoder.Token()
+		if err != nil {
+			return nil, fmt.Errorf("read a suppression: %w", err)
+		}
+
+		switch t := token.(type) {
+		case xml.EndElement:
+			return fields, nil
+		case xml.StartElement:
+			var value string
+			if err := decoder.DecodeElement(&value, &t); err != nil {
+				return nil, fmt.Errorf("read %s: %w", t.Name.Local, err)
+			}
+
+			key := t.Name.Local
+			if t.Name.Space != "" {
+				key = ""
+			}
+
+			fields[key] = append(fields[key], strings.TrimSpace(value))
+		}
+	}
+}
+
+// rawHatchOverreach says whether a [WMN1001] line names a generated type outside the Whatsmeow.Proto namespace.
+func rawHatchOverreach(line string) bool {
+	for _, match := range protobufType.FindAllStringSubmatch(line, -1) {
+		if match[1] != "Whatsmeow.Proto" {
+			return true
+		}
+	}
+
+	return false
 }
 
 // checkName reports a file whose name alone breaks a rule: a configuration file that is not the blessed one,
