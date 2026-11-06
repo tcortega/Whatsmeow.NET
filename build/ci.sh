@@ -587,11 +587,12 @@ source_archive() {
 consumer_setup() { # feed | nuget.org:<version>
 	work="$(mktemp -d)" || return
 	packages="$work/packages"
-	package_origin "$1" || return
+	# The host first, so a failure of the origin still reports this RID (fail_rows).
 	native_host || return
 	host_rid="$native_host_rid"
 	exe=""
 	case "$host_rid" in win-*) exe=.exe ;; esac
+	package_origin "$1" || return
 	cp "$release_tree/global.json" "$work/" || return
 	consumer_config "$origin" >"$work/nuget.config" || return
 	in_consumer dotnet new console -o app -n Consumer || return
@@ -1284,22 +1285,30 @@ install_external() {
 	return "$rc"
 }
 
-# A setup or AOT publish that failed leaves no per-form row, so it gets one; for nuget.org, with restore's NU1101/NU1102 lines
-# naming a Whatsmeow package, which say nuget.org did not serve it when restore ran (not why).
-setup_failed() { # JIT|AOT step log
-	local rid="${aot_rid:-${native_host_rid:-host}}" line lines
-	[ "$1" = JIT ] && rid="${native_host_rid:-host}"
-	line="$rid | $1 | $2 | FAIL | ${published:-feed} ${version:-?}"
-	[ "$1" = JIT ] && line="$line | no consumer form ran"
-	if [ -n "$published" ] && [ -f "$3" ]; then
-		lines="$(grep -E 'NU110[12]' "$3" | grep -F 'Whatsmeow.' | sed 's/^.*\(NU110[12]\)/\1/' | sort -u)"
-		if [ -n "$lines" ]; then
-			line="$line; nuget.org did not serve, when restore ran: $(paste -sd';' - <<<"$lines")"
-			annotate error "nuget.org" "nuget.org did not serve a Whatsmeow package at $version when restore ran: $(paste -sd';' - <<<"$lines")"
-		fi
+# A failure that leaves no per-form row gets one per RID it stands for: a JIT setup on a Linux CI host also stands for
+# the Alpine RID of its architecture, whose forms then do not run; an AOT failure is its RID's. For nuget.org it adds
+# restore's NU1101/NU1102 lines naming a Whatsmeow package, which say nuget.org did not serve it when restore ran (not why).
+fail_rows() { # JIT|AOT step [log]
+	local rids lines line r
+	if [ -z "${native_host_rid:-}" ]; then native_host >/dev/null 2>&1 || true; fi
+	if [ "$1" = JIT ]; then
+		rids="${native_host_rid:-host}"
+		if linux_ci && [ -n "${native_host_rid:-}" ]; then rids="$rids linux-musl-${native_host_rid##*-}"; fi
+	else
+		rids="${aot_rid:-${native_host_rid:-host}}"
 	fi
-	echo "$line"
-	if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then echo "* $line" >>"$GITHUB_STEP_SUMMARY"; fi
+	lines=""
+	if [ -n "${published:-}" ] && [ -n "${3:-}" ] && [ -f "$3" ]; then
+		lines="$(grep -E 'NU110[12]' "$3" | grep -F 'Whatsmeow.' | sed 's/^.*\(NU110[12]\)/\1/' | sort -u | paste -sd';' -)"
+		if [ -n "$lines" ]; then annotate error "nuget.org" "nuget.org did not serve a Whatsmeow package at $version when restore ran: $lines"; fi
+	fi
+	for r in $rids; do
+		line="$r | $1 | $2 | FAIL | ${published:-feed} ${version:-?}"
+		if [ "$1" = JIT ]; then line="$line | no consumer form ran"; fi
+		if [ -n "$lines" ]; then line="$line; nuget.org did not serve, when restore ran: $lines"; fi
+		echo "$line"
+		if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then echo "* $line" >>"$GITHUB_STEP_SUMMARY"; fi
+	done
 	return 0
 }
 
@@ -1317,7 +1326,7 @@ install_check() { # rid where path command...
 }
 
 job_install() { # feed
-	check "install: a new consumer of $1" consumer_setup "$1" || { setup_failed JIT "consumer setup" "$work/restore.log"; return; }
+	check "install: a new consumer of $1" consumer_setup "$1" || { fail_rows JIT "consumer setup" "$work/restore.log"; return; }
 	check "install: Whatsmeow.Client pins each native package at exactly its version" packaged_pins
 	check "install: Whatsmeow.Extensions.Hosting pins Whatsmeow.Client at exactly its version" packaged_hosting_pin
 	check "install: Whatsmeow.Testing pins Whatsmeow.Client and Whatsmeow.Extensions.Hosting at exactly its version" packaged_testing_pins
@@ -1427,21 +1436,24 @@ aot_publish_run() {
 	if ! (unset WHATSMEOW_NET_SIDECAR_PATH && cd "$work/src" && NUGET_PACKAGES="$(native_path "$packages")" NUGET_HTTP_CACHE_PATH="$(native_path "$work/http-cache")" UseSharedCompilation=false \
 		dotnet publish AotSmoke -c Release -warnaserror -r "$aot_rid" -o "$(native_path "$out")" 2>&1 | tee "$work/publish.log"); then
 		annotate error "aot $aot_rid" "the Native AOT publish from ${published:-the feed} failed, or had a trim or AOT warning"
-		setup_failed AOT "Native AOT publish" "$work/publish.log"
+		fail_rows AOT "Native AOT publish" "$work/publish.log"
 		return 1
 	fi
 	# A publish without Native AOT leaves the IL assembly beside the app; the app checks it too.
 	if [ -f "$out/AotSmoke.dll" ]; then
 		annotate error "aot $aot_rid" "not a Native AOT publish: $out holds AotSmoke.dll"
+		fail_rows AOT "Native AOT layout (AotSmoke.dll present)"
 		return 1
 	fi
 	if [ ! -f "$out/whatsmeow-net$exe" ]; then
 		annotate error "aot $aot_rid" "the packaged whatsmeow-net$exe is not beside the app"
+		fail_rows AOT "Native AOT layout (whatsmeow-net$exe missing)"
 		ls -l "$out"
 		return 1
 	fi
 	if ! (unset WHATSMEOW_NET_SIDECAR_PATH && "$out/AotSmoke$exe" "$version" "$aot_rid"); then
 		annotate error "aot $aot_rid" "the Native AOT app did not start the packaged sidecar, run the hosting path, or run natively as $aot_rid"
+		fail_rows AOT "AotSmoke run"
 		return 1
 	fi
 	aot_summary "$host_os_arch"
@@ -1459,7 +1471,7 @@ aot_musl() {
 		test -f out/whatsmeow-net || { echo "the packaged whatsmeow-net is not beside the app" >&2; ls -l out; exit 1; }
 		./out/AotSmoke "$VERSION" "$RID"' 2>&1 | tee "$work/publish.log"; then
 		annotate error "aot $aot_rid" "the Native AOT publish or run on Alpine failed"
-		setup_failed AOT "Native AOT publish and run on Alpine" "$work/publish.log"
+		fail_rows AOT "Native AOT publish and run on Alpine" "$work/publish.log"
 		return 1
 	fi
 	aot_summary "$host_os_arch (native, Alpine container)"
@@ -1480,8 +1492,11 @@ job_aot() { # feed rid
 	aot_rid="$2"
 	check "aot: $2 on a native host" aot_native_host || return
 	check "aot: a temporary directory" aot_work || return
-	check "aot: AotSmoke from $1 for $2" aot_setup "$1" "$2" &&
+	if check "aot: AotSmoke from $1 for $2" aot_setup "$1" "$2"; then
 		check "aot: Native AOT publish for $2 with zero trim and AOT warnings, and run (ADR 0056)" aot_publish_run
+	else
+		fail_rows AOT "AotSmoke setup"
+	fi
 	rm -rf "$work"
 }
 
@@ -1521,7 +1536,14 @@ esac
 # A published release is checked with its own toolchain (ADR 0059).
 pins_at=""
 case "$1:${2:-}" in
-	install:nuget.org:* | aot:nuget.org:*) release_commit_of "${2#nuget.org:}" || exit 1; pins_at="$release_commit" ;;
+	install:nuget.org:* | aot:nuget.org:*)
+		if ! release_commit_of "${2#nuget.org:}"; then
+			published=nuget.org version="${2#nuget.org:}"
+			if [ "$1" = install ]; then fail_rows JIT "release tag"; else aot_rid="$3" && fail_rows AOT "release tag"; fi
+			exit 1
+		fi
+		pins_at="$release_commit"
+		;;
 esac
 check "Go from mise equals the go.mod toolchain" go_toolchain ${pins_at:+"$pins_at"} || {
 	echo "fix the toolchain first" >&2
