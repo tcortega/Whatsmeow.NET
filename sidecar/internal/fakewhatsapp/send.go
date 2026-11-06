@@ -101,7 +101,7 @@ func (c *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E.M
 		case <-ctx.Done():
 			return whatsmeow.SendResponse{}, ctx.Err() //nolint:wrapcheck // as whatsmeow returns it (send.go:451-454)
 		case <-connection:
-			// whatsmeow's response waiters get the stream end (client.go:618, 720, 730), and retryFrame waits for a
+			// whatsmeow's response waiters get the stream end (client.go:620, 722, 732), and retryFrame waits for a
 			// reconnect before it gives up (request.go:198-201); the fake never reconnects on its own.
 			select {
 			case <-time.After(retryWait):

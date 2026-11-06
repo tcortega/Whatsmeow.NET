@@ -194,7 +194,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 
 // newLogger is the sidecar's one logger: JSON lines on stderr, at info level and above, each with no phone number or
 // JID user part (wmlog.Writer). Every component's logger, whatsmeow's, its store's and libsignal's included, derives
-// from it, so none logs debug: whatsmeow's debug lines carry every node it sends (client.go:990), phone numbers in
+// from it, so none logs debug: whatsmeow's debug lines carry every node it sends (client.go:992), phone numbers in
 // them, and each QR code with the device's ADV secret (qrchan.go:97, pair.go:125-130); and none writes a number:
 // whatsmeow logs other people's JIDs at warn and error (ARCHITECTURE §7.8, ADR 0039).
 func newLogger(stderr io.Writer, redactor *wmlog.Redactor) zerolog.Logger {
@@ -399,7 +399,7 @@ func recording(newClient session.NewClient, fail failing, events *eventsslice.Se
 }
 
 // redelivering is handler, which calls withheld each time it withholds an answer: whatsmeow skips the handlers after
-// one that failed (client.go:1008-1011), so the session slice's own never sees it. withheld never waits.
+// one that failed (client.go:1010-1013), so the session slice's own never sees it. withheld never waits.
 func redelivering(handler whatsmeow.EventHandlerWithSuccessStatus, withheld func()) whatsmeow.EventHandlerWithSuccessStatus {
 	return func(evt any) bool {
 		if handler(evt) {

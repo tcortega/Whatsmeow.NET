@@ -68,7 +68,7 @@ func New(box *outbox.Outbox, log zerolog.Logger, mappers ...Mapper) *Service {
 // Handler is the whatsmeow event handler of one session's client (ARCHITECTURE §7.3). It maps the event, records it
 // in one short transaction, and returns true only after the commit: whatsmeow answers a gated stanza only then
 // (message.go:459-497). It returns false when the write fails or anything panics, with its own recover, because
-// whatsmeow's dispatchEvent turns a panic into success (client.go:999-1013). It never calls .NET, the network or
+// whatsmeow's dispatchEvent turns a panic into success (client.go:1001-1015). It never calls .NET, the network or
 // media, and never returns false because no consumer is connected. An event it does not record returns true.
 // account is the client's device, which names the account in what it maps.
 func (svc *Service) Handler(sessionID string, account *store.Device) whatsmeow.EventHandlerWithSuccessStatus {
@@ -77,7 +77,7 @@ func (svc *Service) Handler(sessionID string, account *store.Device) whatsmeow.E
 	ephemeral := svc.ring(sessionID)
 
 	// A never-connected whatsmeow client of the device, for its message secret code only: DecryptPollVote reads
-	// nothing but the device's store (msgsecret.go:158-202), and NewClient starts nothing (client.go:267-325). It is
+	// nothing but the device's store (msgsecret.go:158-202), and NewClient starts nothing (client.go:268-327). It is
 	// whatsmeow's own decryption whichever client the session runs, the fake WhatsApp's too.
 	var votes voteDecrypter
 	if account != nil {

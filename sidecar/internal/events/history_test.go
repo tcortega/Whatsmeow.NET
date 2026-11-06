@@ -47,7 +47,7 @@ func TestMessageEventIsTheMappingOfALiveMessage(t *testing.T) {
 }
 
 // A history poll carries its votes decrypted (WebMessageInfo.pollUpdates): each follows the poll as a live vote's
-// event, its voter read from the vote's key as ParseWebMessage reads a history message's sender (client.go:1043-1062),
+// event, its voter read from the vote's key as ParseWebMessage reads a history message's sender (client.go:1045-1064),
 // its poll the target, without a message, which history does not carry. A vote that names no voter is dropped.
 func TestAHistoryPollsVotesFollowItAsLiveVotes(t *testing.T) {
 	t.Parallel()
@@ -99,7 +99,7 @@ func TestAHistoryPollsVotesFollowItAsLiveVotes(t *testing.T) {
 		want []*whatsmeowv1.MessageEvent
 	}{
 		{
-			"a member's group poll, its sender with a device as ParseWebMessage keeps a participant's (client.go:1058-1060): a " +
+			"a member's group poll, its sender with a device as ParseWebMessage keeps a participant's (client.go:1060-1062): a " +
 				"LID member's vote, the account's by its phone number, one that names no voter",
 			poll(groupChat, "5511912345678:3@s.whatsapp.net", "P1", false,
 				update(vkey(groupChat, "V1", false, "333:2@lid"), pizza, sushi),

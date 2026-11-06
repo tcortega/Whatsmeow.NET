@@ -41,11 +41,14 @@ type ChatStateServiceClient interface {
 	// SetChatState sets one chat state, or stars or unstars one message. Setting a state the chat already has succeeds.
 	// When WhatsApp rejects the write because the session's copy of the app state is out of step with WhatsApp's, the
 	// sidecar syncs that copy again in full and retries the write once: WhatsApp rejected it, so it did not take effect.
-	// When the write still fails, WhatsApp rejected it: WHATSAPP_ERROR, with metadata "code", 409 for a conflict.
+	// When the write still fails, WhatsApp rejected it: WHATSAPP_ERROR, with metadata "code", 409 for a conflict. When a
+	// backoff WhatsApp set after a 429 holds back that full sync, it is RATE_LIMITED, and the write is not sent again.
 	// A write that went out with no answer back is OUTCOME_UNKNOWN, and is never retried.
 	// A write WhatsApp took whose sync after it failed is OK when the sync found the session's copy out of step (the
-	// sidecar then syncs it in full), and otherwise OUTCOME_UNKNOWN or NOT_CONNECTED: whatsmeow wraps that sync's error
-	// without a sentinel that would tell it from the write's own (appstate.go:627-629).
+	// sidecar then syncs it in full) or a backoff WhatsApp set after an earlier 429 held the sync back (nothing is sent
+	// or synced again). Otherwise it fails as the write would, OUTCOME_UNKNOWN, NOT_CONNECTED, RATE_LIMITED (the 429 that
+	// starts such a backoff) or WHATSAPP_ERROR: whatsmeow wraps that sync's error without a sentinel that would tell it
+	// from the write's own (appstate.go:84-89, 636-638).
 	// Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, TEMPORARILY_BANNED, NOT_CONNECTED,
 	// RATE_LIMITED, WHATSAPP_ERROR, OUTCOME_UNKNOWN.
 	SetChatState(ctx context.Context, in *SetChatStateRequest, opts ...grpc.CallOption) (*SetChatStateResponse, error)
@@ -88,11 +91,14 @@ type ChatStateServiceServer interface {
 	// SetChatState sets one chat state, or stars or unstars one message. Setting a state the chat already has succeeds.
 	// When WhatsApp rejects the write because the session's copy of the app state is out of step with WhatsApp's, the
 	// sidecar syncs that copy again in full and retries the write once: WhatsApp rejected it, so it did not take effect.
-	// When the write still fails, WhatsApp rejected it: WHATSAPP_ERROR, with metadata "code", 409 for a conflict.
+	// When the write still fails, WhatsApp rejected it: WHATSAPP_ERROR, with metadata "code", 409 for a conflict. When a
+	// backoff WhatsApp set after a 429 holds back that full sync, it is RATE_LIMITED, and the write is not sent again.
 	// A write that went out with no answer back is OUTCOME_UNKNOWN, and is never retried.
 	// A write WhatsApp took whose sync after it failed is OK when the sync found the session's copy out of step (the
-	// sidecar then syncs it in full), and otherwise OUTCOME_UNKNOWN or NOT_CONNECTED: whatsmeow wraps that sync's error
-	// without a sentinel that would tell it from the write's own (appstate.go:627-629).
+	// sidecar then syncs it in full) or a backoff WhatsApp set after an earlier 429 held the sync back (nothing is sent
+	// or synced again). Otherwise it fails as the write would, OUTCOME_UNKNOWN, NOT_CONNECTED, RATE_LIMITED (the 429 that
+	// starts such a backoff) or WHATSAPP_ERROR: whatsmeow wraps that sync's error without a sentinel that would tell it
+	// from the write's own (appstate.go:84-89, 636-638).
 	// Errors: INVALID_ARGUMENT, SESSION_NOT_FOUND, NOT_LOGGED_IN, LOGGED_OUT, TEMPORARILY_BANNED, NOT_CONNECTED,
 	// RATE_LIMITED, WHATSAPP_ERROR, OUTCOME_UNKNOWN.
 	SetChatState(context.Context, *SetChatStateRequest) (*SetChatStateResponse, error)

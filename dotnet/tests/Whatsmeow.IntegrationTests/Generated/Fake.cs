@@ -2896,7 +2896,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
     private bool withoutAppStateKey_;
     /// <summary>
     /// True to keep the app state key from the device. Otherwise the phone shares one as the device is linked, as it
-    /// does once after pairing (message.go:827-861), and the device can write app state.
+    /// does once after pairing (message.go:827-870), and the device can write app state.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -8103,7 +8103,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
     /// <summary>
     /// True for a group message as whatsmeow sends one with a new sender key (send.go:795-831): the stanza's pkmsg part
     /// decrypts to only the sender key, and its skmsg part to the content. The client dispatches a Message for each, with
-    /// the same info, in that order (message.go:355-497, 1172-1178), and answers once, after both.
+    /// the same info, in that order (message.go:355-497, 1181-1187), and answers once, after both.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -8119,7 +8119,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
     private global::Whatsmeow.Proto.WAWebProtobufsE2E.Message message_;
     /// <summary>
     /// The message as WhatsApp sends it, wrappers included, instead of text: the client dispatches it unwrapped by
-    /// whatsmeow's own events.Message.UnwrapRaw, as whatsmeow does (message.go:1172-1178). Unset sends text.
+    /// whatsmeow's own events.Message.UnwrapRaw, as whatsmeow does (message.go:1181-1187). Unset sends text.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -10821,7 +10821,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
     /// <summary>Field number for the "message" field.</summary>
     public const int MessageFieldNumber = 12;
     /// <summary>
-    /// A message node: the hand-off of a send (sendNodeAndGetData, client.go:974-992).
+    /// A message node: the hand-off of a send (sendNodeAndGetData, client.go:976-994).
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -11819,7 +11819,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
   }
 
   /// <summary>
-  /// AppStateFullSync is the full sync of one app state collection, asking for its snapshot (appstate.go:466-494).
+  /// AppStateFullSync is the full sync of one app state collection, asking for its snapshot (appstate.go:475-503).
   /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   internal sealed partial class AppStateFullSync : pb::IMessage<AppStateFullSync>
@@ -19039,7 +19039,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
   }
 
   /// <summary>
-  /// RemoveCompanionDevice is the remove-companion-device request whatsmeow's Logout sends (client.go:749-779).
+  /// RemoveCompanionDevice is the remove-companion-device request whatsmeow's Logout sends (client.go:751-781).
   /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   internal sealed partial class RemoveCompanionDevice : pb::IMessage<RemoveCompanionDevice>
@@ -21206,7 +21206,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static partial class Types {
       /// <summary>
-      /// A picture notification (notification.go:91-115).
+      /// A picture notification (notification.go:93-117).
       /// </summary>
       [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
       internal sealed partial class Picture : pb::IMessage<Picture>
@@ -21490,7 +21490,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
 
       /// <summary>
-      /// A status notification (notification.go:449-466).
+      /// A status notification (notification.go:451-468).
       /// </summary>
       [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
       internal sealed partial class About : pb::IMessage<About>
@@ -30376,7 +30376,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
         private pb::ByteString messageSecret_ = pb::ByteString.Empty;
         /// <summary>
         /// The message's secret, as a WebMessageInfo carries it (messageSecret), which whatsmeow stores when it downloads
-        /// the blob (message.go:806-809, 988-1050): a poll's, which votes on it are encrypted with.
+        /// the blob (message.go:806-809, 997-1059): a poll's, which votes on it are encrypted with.
         /// </summary>
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -30393,7 +30393,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
             = pb::FieldCodec.ForMessage(74, global::Whatsmeow.Proto.WAWebProtobufsWeb.PollUpdate.Parser);
         private readonly pbc::RepeatedField<global::Whatsmeow.Proto.WAWebProtobufsWeb.PollUpdate> pollUpdates_ = new pbc::RepeatedField<global::Whatsmeow.Proto.WAWebProtobufsWeb.PollUpdate>();
         /// <summary>
-        /// A poll's votes, as a WebMessageInfo carries them decrypted (pollUpdates, WAWebProtobufsWeb.proto:328, 598-605).
+        /// A poll's votes, as a WebMessageInfo carries them decrypted (pollUpdates, WAWebProtobufsWeb.proto:330, 600-607).
         /// </summary>
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]

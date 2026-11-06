@@ -40,7 +40,7 @@ func TestEachChatStateEventIsMappedUnkeyedAndOthersAreNot(t *testing.T) {
 				e.Change = &whatsmeowv1.ChatStateEvent_Mute{Mute: &whatsmeowv1.ChatMute{Muted: true, Until: timestamppb.New(until)}}
 			}),
 		},
-		// -1 is forever (appstate.go:271-273); 0 is too, as mautrix reads it.
+		// -1 is forever (appstate.go:280-282); 0 is too, as mautrix reads it.
 		{
 			"muted forever", &events.Mute{JID: chat, Timestamp: at, Action: &waSyncAction.MuteAction{Muted: proto.Bool(true), MuteEndTimestamp: proto.Int64(-1)}, FromFullSync: true},
 			event(direct, true, func(e *whatsmeowv1.ChatStateEvent) {

@@ -9,7 +9,7 @@ func TestALiveMessageWithAnInvalidUTF8PushNameIsRecordedWithTheReplacementCharac
 
 	h := start(t, "s1")
 	m := messageEvent("M1")
-	// ParseWebMessage and the node parser copy a push name unchecked (client.go:1039-1040); proto3 strings must be UTF-8.
+	// ParseWebMessage and the node parser copy a push name unchecked (client.go:1041-1042); proto3 strings must be UTF-8.
 	m.Info.PushName = "Ana \xff"
 
 	h.mustDeliver("s1", m)

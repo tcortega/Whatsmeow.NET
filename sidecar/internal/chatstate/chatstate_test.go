@@ -54,7 +54,7 @@ type stub struct {
 	// sends are the patches sent; errs are what each send returns in turn, nil once they run out.
 	sends []appstate.PatchInfo
 	errs  []error
-	// onSend runs inside each send, as whatsmeow dispatches AppStateSyncError inside a rejected one (appstate.go:167).
+	// onSend runs inside each send, as whatsmeow dispatches AppStateSyncError inside a rejected one (appstate.go:176).
 	onSend func()
 	// decide, when set and it says so, gives a send's error in place of errs; it may wait.
 	decide func(appstate.PatchInfo) (error, bool)
@@ -359,8 +359,15 @@ func wantReason(t *testing.T, err error, code codes.Code, reason string, metadat
 	}
 }
 
+// heldBack is what SendAppState returns when WhatsApp took the write and the sync after it met whatsmeow's backoff
+// after a 429 (appstate.go:48-50, 636-638).
+func heldBack(name appstate.WAPatchName) error {
+	return fmt.Errorf("failed to fetch app state after sending update: %w",
+		fmt.Errorf("%w: not fetching %s until %s", whatsmeow.ErrAppStateRateLimited, name, "2026-11-06T15:00:00Z"))
+}
+
 // rejected is what whatsmeow's SendAppState returns when WhatsApp answered 409 and the patches it sent with it do not
-// verify against the session's copy (appstate.go:603-614, appstate/decode.go:253), with the chat's JID in its text as
+// verify against the session's copy (appstate.go:612-623, appstate/decode.go:254), with the chat's JID in its text as
 // a node of WhatsApp's could carry one.
 func rejected(name appstate.WAPatchName) error {
 	mainErr := fmt.Errorf("%w (%s): %s", whatsmeow.ErrAppStateUpdate, name, `<error code="409" text="conflict" jid="`+direct+`"/>`)
@@ -498,7 +505,7 @@ func TestAnInvalidRequestIsInvalidArgumentAndSendsNothing(t *testing.T) {
 		{"a chat that does not parse", "chat", &whatsmeowv1.SetChatStateRequest{Chat: "not a jid@", Change: pin}},
 		{"a chat that is neither a user nor a group", "chat", &whatsmeowv1.SetChatStateRequest{Chat: "120363000000000002@newsletter", Change: pin}},
 		{"no change", "change", &whatsmeowv1.SetChatStateRequest{}},
-		// At or before the Unix epoch is no end whatsmeow can send: 0 or less reads as forever (appstate.go:271-275).
+		// At or before the Unix epoch is no end whatsmeow can send: 0 or less reads as forever (appstate.go:280-284).
 		{"a mute that ends at the epoch", "until", &whatsmeowv1.SetChatStateRequest{Change: &whatsmeowv1.SetChatStateRequest_Mute{Mute: &whatsmeowv1.ChatMute{Muted: true, Until: timestamppb.New(time.Unix(0, 0))}}}},
 		{"a mute that ends in year 1", "until", &whatsmeowv1.SetChatStateRequest{Change: &whatsmeowv1.SetChatStateRequest_Mute{Mute: &whatsmeowv1.ChatMute{Muted: true, Until: timestamppb.New(time.Time{})}}}},
 		{"a star without a message id", "message_id", &whatsmeowv1.SetChatStateRequest{Change: star(&whatsmeowv1.MessageStar{Starred: true})}},
@@ -597,11 +604,35 @@ func TestAWriteWhoseRecoveryFailsIsAConflict(t *testing.T) {
 	}
 }
 
+func TestARejectedWriteWhoseRecoveryWhatsAppHoldsBackIsRateLimited(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.stub.errs = []error{rejected(appstate.WAPatchRegularLow)}
+	h.stub.syncErr = fmt.Errorf("%w: not fetching %s until %s", whatsmeow.ErrAppStateRateLimited, appstate.WAPatchRegularLow, "2026-11-06T15:00:00Z")
+
+	err := h.set(&whatsmeowv1.SetChatStateRequest{Change: &whatsmeowv1.SetChatStateRequest_Pin{Pin: &whatsmeowv1.ChatPin{Pinned: true}}})
+	wantReason(t, err, codes.ResourceExhausted, "RATE_LIMITED", map[string]string{})
+
+	for _, wrapped := range []string{"not fetching", "2026-11-06T15:00:00Z", "5511987654321"} {
+		if strings.Contains(status.Convert(err).Message(), wrapped) {
+			t.Fatalf("the status carries %q: %v", wrapped, err)
+		}
+	}
+
+	h.wantSync(appstate.WAPatchRegularLow)
+	h.wantNoSync()
+
+	if sent := h.stub.sent(); len(sent) != 1 {
+		t.Fatalf("sent %d patches, want 1: the recovery did not run, so the write is not sent again", len(sent))
+	}
+}
+
 func TestAWriteTakenWhoseSyncFoundTheCopyOutOfStepIsDoneAfterAFullSync(t *testing.T) {
 	t.Parallel()
 
 	h := start(t)
-	// WhatsApp took it; the sync after it failed (appstate.go:627-629).
+	// WhatsApp took it; the sync after it failed (appstate.go:636-638).
 	h.stub.errs = []error{fmt.Errorf("failed to fetch app state after sending update: %w", fmt.Errorf("failed to verify patch v8: %w", appstate.ErrMismatchingPatchMAC))}
 
 	if err := h.set(&whatsmeowv1.SetChatStateRequest{Change: &whatsmeowv1.SetChatStateRequest_Read{Read: &whatsmeowv1.ChatRead{Read: true}}}); err != nil {
@@ -612,6 +643,58 @@ func TestAWriteTakenWhoseSyncFoundTheCopyOutOfStepIsDoneAfterAFullSync(t *testin
 
 	if sent := h.stub.sent(); len(sent) != 1 {
 		t.Fatalf("sent %d patches, want 1: it was taken", len(sent))
+	}
+}
+
+func TestAWriteTakenWhoseSyncWhatsAppHoldsBackIsDoneWithoutAnotherSendOrSync(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name   string
+		closed bool
+		errs   []error
+		sends  int
+		syncs  int
+	}{
+		{"on the first send", false, []error{heldBack(appstate.WAPatchRegularLow)}, 1, 0},
+		{"on the send after a recovery", false, []error{rejected(appstate.WAPatchRegularLow), heldBack(appstate.WAPatchRegularLow)}, 2, 1},
+		// A write while the slice closes has no recovery to join.
+		{"once the slice closed", true, []error{heldBack(appstate.WAPatchRegularLow)}, 1, 0},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			var logs syncBuffer
+
+			h := startLogging(t, zerolog.New(&logs), true)
+			h.stub.errs = tc.errs
+
+			if tc.closed {
+				h.svc.Close()
+			}
+
+			if err := h.set(&whatsmeowv1.SetChatStateRequest{Change: &whatsmeowv1.SetChatStateRequest_Pin{Pin: &whatsmeowv1.ChatPin{Pinned: true}}}); err != nil {
+				t.Fatalf("SetChatState: %v", err)
+			}
+
+			for range tc.syncs {
+				h.wantSync(appstate.WAPatchRegularLow)
+			}
+
+			h.wantNoSync()
+
+			if sent := h.stub.sent(); len(sent) != tc.sends {
+				t.Fatalf("sent %d patches, want %d: it was taken", len(sent), tc.sends)
+			}
+
+			logs.waitFor(h.ctx, t, `"error":"app state fetch is rate limited by the server","message":"a chat state write was taken, but WhatsApp holds back the sync after it"`, 1)
+
+			for _, wrapped := range []string{"not fetching", "2026-11-06T15:00:00Z"} {
+				if strings.Contains(logs.String(), wrapped) {
+					t.Fatalf("a log line carries %q: %s", wrapped, logs.String())
+				}
+			}
+		})
 	}
 }
 
@@ -690,7 +773,7 @@ func TestAWriteAndTheFailedSyncItDispatchedRecoverWithOneFullSync(t *testing.T) 
 
 	h := start(t)
 	h.stub.errs = []error{rejected(appstate.WAPatchRegularLow)}
-	// whatsmeow dispatches the decode failure inside the rejected send, the first (appstate.go:613, 167), which wakes
+	// whatsmeow dispatches the decode failure inside the rejected send, the first (appstate.go:622, 176), which wakes
 	// the worker.
 	var once sync.Once
 	h.stub.onSend = func() {
@@ -725,10 +808,13 @@ func TestWhatsmeowsErrorsBecomeTheirReasonsWithoutAJIDAndAreNotRecovered(t *test
 		{"a disconnect while waiting", &whatsmeow.DisconnectedError{Action: "info query"}, codes.Unknown, "OUTCOME_UNKNOWN", map[string]string{}},
 		{"not connected", whatsmeow.ErrNotConnected, codes.Unavailable, "NOT_CONNECTED", map[string]string{}},
 		{"rate limited", &whatsmeow.IQError{Code: 429, Text: "rate-overlimit"}, codes.ResourceExhausted, "RATE_LIMITED", map[string]string{}},
+		// Taken, and the sync after it got the 429 that starts a backoff: wrapped like the write's own (appstate.go:84-89,
+		// 636-638).
+		{"rate limited on the sync after a taken write", fmt.Errorf("failed to fetch app state after sending update: %w", fmt.Errorf("failed to fetch app state %s patches: %w", appstate.WAPatchRegularLow, &whatsmeow.IQError{Code: 429, Text: "rate-overlimit"})), codes.ResourceExhausted, "RATE_LIMITED", map[string]string{}},
 		{"an IQ error", &whatsmeow.IQError{Code: 500, Text: "internal-server-error"}, codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "500"}},
-		// A conflict whatsmeow's own retry did not get past (appstate.go:607, 622), with WhatsApp's node in its text.
+		// A conflict whatsmeow's own retry did not get past (appstate.go:616, 631), with WhatsApp's node in its text.
 		{"a rejected write", fmt.Errorf("%w (regular_low): <error code=\"409\" jid=\"%s\"/>", whatsmeow.ErrAppStateUpdate, direct), codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{}},
-		// A missing key is whatsmeow's to ask the phone for; a full sync does not fix it (appstate.go:164-166).
+		// A missing key is whatsmeow's to ask the phone for; a full sync does not fix it (appstate.go:173-175).
 		{"a missing key", fmt.Errorf("decode %s: %w", direct, appstate.ErrKeyNotFound), codes.Internal, "INTERNAL", map[string]string{}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -782,7 +868,7 @@ func TestAFailedSyncIsRecoveredByTheSessionsWorkerOnceWithinTheCooldownOfAFailed
 	t.Parallel()
 
 	h := start(t)
-	// Each full sync fails, and dispatches another error (appstate.go:76-77, 167).
+	// Each full sync fails, and dispatches another error (appstate.go:85-86, 176).
 	h.stub.syncErr = appstate.ErrMismatchingLTHash
 	handle := h.svc.Handler("s1")
 
@@ -807,6 +893,37 @@ func TestAFailedSyncIsRecoveredByTheSessionsWorkerOnceWithinTheCooldownOfAFailed
 	h.advance(time.Second)
 	handle(&events.AppStateSyncError{Name: appstate.WAPatchRegularHigh})
 	h.wantSync(appstate.WAPatchRegularHigh)
+}
+
+func TestARecoveryWhoseFullSyncWhatsAppHoldsBackFailedAndWaitsForTheCooldown(t *testing.T) {
+	t.Parallel()
+
+	var logs syncBuffer
+
+	h := startLogging(t, zerolog.New(&logs), true)
+	// whatsmeow returns the backoff from the full sync itself, before it deletes the copy's version (appstate.go:48-50).
+	h.stub.syncErr = fmt.Errorf("%w: not fetching %s until %s", whatsmeow.ErrAppStateRateLimited, appstate.WAPatchRegularHigh, "2026-11-06T15:00:00Z")
+	handle := h.svc.Handler("s1")
+
+	handle(&events.AppStateSyncError{Name: appstate.WAPatchRegularHigh})
+	h.wantSync(appstate.WAPatchRegularHigh)
+	h.waitIdle(appstate.WAPatchRegularHigh, 1)
+
+	logs.waitFor(h.ctx, t, `"error":"app state fetch is rate limited by the server","message":"a full sync of an app state collection failed"`, 1)
+
+	for _, wrapped := range []string{"not fetching", "2026-11-06T15:00:00Z"} {
+		if strings.Contains(logs.String(), wrapped) {
+			t.Fatalf("a log line carries %q: %s", wrapped, logs.String())
+		}
+	}
+
+	// It failed, so another failure within the cooldown starts none.
+	h.advance(cooldown - time.Second)
+	handle(&events.AppStateSyncError{Name: appstate.WAPatchRegularHigh})
+	handle(&events.AppStateSyncError{Name: appstate.WAPatchRegularLow})
+	h.wantSync(appstate.WAPatchRegularLow)
+	h.waitIdle(appstate.WAPatchRegularLow, 1)
+	h.wantNoSync()
 }
 
 func TestAFailedSyncAfterASuccessfulRecoveryIsRecoveredWithinTheHour(t *testing.T) {
@@ -917,7 +1034,7 @@ func TestARetryTakenWhoseSyncFoundTheCopyOutOfStepIsDoneAfterAnotherFullSync(t *
 	t.Parallel()
 
 	h := start(t)
-	// Rejected, then taken on the retry with the sync after it failing (appstate.go:627-629).
+	// Rejected, then taken on the retry with the sync after it failing (appstate.go:636-638).
 	h.stub.errs = []error{
 		rejected(appstate.WAPatchRegularLow),
 		fmt.Errorf("failed to fetch app state after sending update: %w", fmt.Errorf("failed to verify patch v9: %w", appstate.ErrMismatchingLTHash)),

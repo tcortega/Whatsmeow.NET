@@ -568,7 +568,7 @@ type LinkDeviceRequest struct {
 	// The device JID WhatsApp assigns, user:device@s.whatsapp.net.
 	Jid string `protobuf:"bytes,2,opt,name=jid,proto3" json:"jid,omitempty"`
 	// True to keep the app state key from the device. Otherwise the phone shares one as the device is linked, as it
-	// does once after pairing (message.go:827-861), and the device can write app state.
+	// does once after pairing (message.go:827-870), and the device can write app state.
 	WithoutAppStateKey bool `protobuf:"varint,3,opt,name=without_app_state_key,json=withoutAppStateKey,proto3" json:"without_app_state_key,omitempty"`
 	// The device's LID WhatsApp assigns with the link, user:device@lid (pair.go:157, 223); empty for none.
 	Lid           string `protobuf:"bytes,4,opt,name=lid,proto3" json:"lid,omitempty"`
@@ -1487,10 +1487,10 @@ type DeliverMessageRequest struct {
 	MessageTime *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=message_time,json=messageTime,proto3" json:"message_time,omitempty"`
 	// True for a group message as whatsmeow sends one with a new sender key (send.go:795-831): the stanza's pkmsg part
 	// decrypts to only the sender key, and its skmsg part to the content. The client dispatches a Message for each, with
-	// the same info, in that order (message.go:355-497, 1172-1178), and answers once, after both.
+	// the same info, in that order (message.go:355-497, 1181-1187), and answers once, after both.
 	SenderKey bool `protobuf:"varint,11,opt,name=sender_key,json=senderKey,proto3" json:"sender_key,omitempty"`
 	// The message as WhatsApp sends it, wrappers included, instead of text: the client dispatches it unwrapped by
-	// whatsmeow's own events.Message.UnwrapRaw, as whatsmeow does (message.go:1172-1178). Unset sends text.
+	// whatsmeow's own events.Message.UnwrapRaw, as whatsmeow does (message.go:1181-1187). Unset sends text.
 	Message *waE2E.Message `protobuf:"bytes,12,opt,name=message,proto3" json:"message,omitempty"`
 	// True to fail the sidecar's own recording of this message's first delivery, as a failed outbox write would: in
 	// fake mode the sidecar's Events handler fails it without recording it, so its answer is withheld and the sidecar's
@@ -2318,7 +2318,7 @@ type Sent_MediaRetryReceipt struct {
 }
 
 type Sent_Message struct {
-	// A message node: the hand-off of a send (sendNodeAndGetData, client.go:974-992).
+	// A message node: the hand-off of a send (sendNodeAndGetData, client.go:976-994).
 	Message *SentMessage `protobuf:"bytes,12,opt,name=message,proto3,oneof"`
 }
 
@@ -2416,7 +2416,7 @@ func (x *MediaDelete) GetDirectPath() string {
 	return ""
 }
 
-// AppStateFullSync is the full sync of one app state collection, asking for its snapshot (appstate.go:466-494).
+// AppStateFullSync is the full sync of one app state collection, asking for its snapshot (appstate.go:475-503).
 type AppStateFullSync struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The collection's name, as whatsmeow's WAPatchName: "regular_low", "regular_high", ...
@@ -4042,7 +4042,7 @@ func (*Disconnect) Descriptor() ([]byte, []int) {
 	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{68}
 }
 
-// RemoveCompanionDevice is the remove-companion-device request whatsmeow's Logout sends (client.go:749-779).
+// RemoveCompanionDevice is the remove-companion-device request whatsmeow's Logout sends (client.go:751-781).
 type RemoveCompanionDevice struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -6782,7 +6782,7 @@ func (*SetProfilePictureRequest_Hidden) Descriptor() ([]byte, []int) {
 	return file_whatsmeow_fake_v1_fake_proto_rawDescGZIP(), []int{73, 1}
 }
 
-// A picture notification (notification.go:91-115).
+// A picture notification (notification.go:93-117).
 type DeliverContactNotificationRequest_Picture struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The user or group whose picture changed.
@@ -6846,7 +6846,7 @@ func (x *DeliverContactNotificationRequest_Picture) GetRemoved() bool {
 	return false
 }
 
-// A status notification (notification.go:449-466).
+// A status notification (notification.go:451-468).
 type DeliverContactNotificationRequest_About struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The user whose about text changed.
@@ -7221,9 +7221,9 @@ type DeliverHistorySyncRequest_Message struct {
 	// When set, the message itself, in place of the text: a media message, or one in a view-once wrapper.
 	Message *waE2E.Message `protobuf:"bytes,7,opt,name=message,proto3" json:"message,omitempty"`
 	// The message's secret, as a WebMessageInfo carries it (messageSecret), which whatsmeow stores when it downloads
-	// the blob (message.go:806-809, 988-1050): a poll's, which votes on it are encrypted with.
+	// the blob (message.go:806-809, 997-1059): a poll's, which votes on it are encrypted with.
 	MessageSecret []byte `protobuf:"bytes,8,opt,name=message_secret,json=messageSecret,proto3" json:"message_secret,omitempty"`
-	// A poll's votes, as a WebMessageInfo carries them decrypted (pollUpdates, WAWebProtobufsWeb.proto:328, 598-605).
+	// A poll's votes, as a WebMessageInfo carries them decrypted (pollUpdates, WAWebProtobufsWeb.proto:330, 600-607).
 	PollUpdates   []*waWeb.PollUpdate `protobuf:"bytes,9,rep,name=poll_updates,json=pollUpdates,proto3" json:"poll_updates,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

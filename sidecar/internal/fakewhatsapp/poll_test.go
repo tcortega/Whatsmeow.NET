@@ -144,7 +144,7 @@ func TestARateLimitedSendHasItsSecretStoredFirst(t *testing.T) {
 	}
 }
 
-// As whatsmeow stores a received message's secret before it dispatches the message (message.go:939-940, 964-985).
+// As whatsmeow stores a received message's secret before it dispatches the message (message.go:948-949, 973-994).
 func TestADeliveredMessagesSecretIsStored(t *testing.T) {
 	t.Parallel()
 

@@ -24,8 +24,8 @@ import (
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/session"
 )
 
-// rateOverLimit is the code of whatsmeow's ErrIQRateOverLimit (errors.go:197). Its Is also compares the text
-// (errors.go:229-238), so the code alone is matched.
+// rateOverLimit is the code of whatsmeow's ErrIQRateOverLimit (errors.go:198). Its Is also compares the text
+// (errors.go:230-239), so the code alone is matched.
 const rateOverLimit = 429
 
 // phoneNumber is a number as the contract takes it: digits with an optional leading +.
@@ -380,7 +380,7 @@ func text(jid types.JID) string {
 // NOT_CONNECTED when the socket dropped. A context error stays one.
 //
 // The error keeps whatsmeow's sentinel or a bare copy of its typed error, never the text whatsmeow wraps around it:
-// that text names the JID (user.go:1034, 1039, 1043, 1052), and so does an IQ error's node (errors.go:216-226). The
+// that text names the JID (user.go:1034, 1039, 1043, 1052), and so does an IQ error's node (errors.go:217-227). The
 // status message reaches the application, and an INTERNAL one the error log (server.toStatus).
 func classify(op string, err error, write bool) error {
 	var (
@@ -424,7 +424,7 @@ func classify(op string, err error, write bool) error {
 
 // cause is the error at the end of err's chain: a store or socket error, or whatsmeow's own typed one, without the
 // text whatsmeow wrapped around it. At the pin none of those it can end with on these calls names a JID [inferred:
-// read at the pin, request.go, client.go:975-996, user.go:840-955, store/sqlstore/lidmap.go].
+// read at the pin, request.go, client.go:977-998, user.go:840-955, store/sqlstore/lidmap.go].
 func cause(err error) error {
 	for {
 		next := errors.Unwrap(err)

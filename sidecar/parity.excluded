@@ -18,7 +18,7 @@ RejectCall: calls are a §1 non-goal
 
 # client.go
 AddEventHandler: the sidecar's handlers use AddEventHandlerWithSuccessStatus, whose false return withholds the answer to a gated stanza (§13 invariant 2)
-Connect: the sidecar connects with ConnectContext and its own lifetime context (ADR 0020, client.go:541-599)
+Connect: the sidecar connects with ConnectContext and its own lifetime context (ADR 0020, client.go:543-601)
 IsLoggedIn: a session's state comes from whatsmeow's events and the store (§7.4)
 RemoveEventHandler: the sidecar adds its handlers once per client and never removes them
 RemoveEventHandlers: the sidecar adds its handlers once per client and never removes them
@@ -29,7 +29,7 @@ SetProxy: a proxy is not configurable, out of v1 scope (#36)
 SetProxyAddress: a proxy is not configurable, out of v1 scope (#36)
 SetSOCKSProxy: a proxy is not configurable, out of v1 scope (#36)
 SetWebsocketHTTPClient: whatsmeow's HTTP clients are not configurable, out of v1 scope (#36)
-StoreLIDPNMapping: whatsmeow stores the mappings it learns itself (message.go:52-54, notification.go:124, pair.go:231); the application only reads them (ADR 0028)
+StoreLIDPNMapping: whatsmeow stores the mappings it learns itself (message.go:52-54, notification.go:126, pair.go:231); the application only reads them (ADR 0028)
 WaitForConnection: a session's state comes from whatsmeow's events (§7.4)
 
 # connectionevents.go
@@ -67,7 +67,7 @@ DangerousInternals: whatsmeow's unexported internals are never called
 
 # message.go
 SendHistorySyncServerErrorReceipt: history sync reports a blob that cannot be downloaded (EXPIRED, INVALID, UNAVAILABLE) and never asks the phone to upload it again (ADR 0035)
-SendProtocolMessageReceipt: whatsmeow sends the history sync and peer message receipts itself (message.go:901, 929)
+SendProtocolMessageReceipt: whatsmeow sends the history sync and peer message receipts itself (message.go:910, 938)
 
 # msgsecret.go
 DecryptComment: encrypted comments are out of v1 scope (#36); one arrives with its content in Raw
@@ -114,7 +114,7 @@ BuildMessageKey: BuildRevoke and BuildReaction call it (send.go:540, 554), which
 BuildUnavailableMessageRequest: whatsmeow requests an undecryptable message from the phone itself with AutomaticMessageRerequestFromPhone (retry.go:455, §7.2)
 GenerateMessageID: the caller makes message ids, in the same format, so a repeat is idempotent (ADR 0025)
 RevokeMessage: deprecated upstream in favour of BuildRevoke (send.go:504), which SendRevoke covers
-SendPeerMessage: RequestHistory sends its peer message with SendMessage and Peer, as SendPeerMessage does (send.go:491-497), to pass an id of its own (history.go); whatsmeow sends its other peer messages itself (appstate.go:532, retry.go:455)
+SendPeerMessage: RequestHistory sends its peer message with SendMessage and Peer, as SendPeerMessage does (send.go:491-497), to pass an id of its own (history.go); whatsmeow sends its other peer messages itself (appstate.go:541, retry.go:455)
 
 # sendfb.go
 SendFBMessage: Messenger and Instagram (FB) messages are not WhatsApp

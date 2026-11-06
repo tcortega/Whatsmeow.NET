@@ -626,7 +626,7 @@ func (*RequestMediaRetryResponse) Descriptor() ([]byte, []int) {
 }
 
 // MediaRetryEvent is the phone's answer to RequestMediaRetry. It is best effort: whatsmeow acknowledges the
-// notification it comes in whatever the handler does (notification.go:510-511), and the phone may never answer.
+// notification it comes in whatever the handler does (notification.go:512-513), and the phone may never answer.
 type MediaRetryEvent struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The WhatsApp message id the request named.

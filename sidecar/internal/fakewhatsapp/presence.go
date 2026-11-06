@@ -128,7 +128,7 @@ func (c *Control) DeliverChatPresence(_ context.Context, req *fakev1.DeliverChat
 }
 
 // SetPushName sets the device's push name and saves the device, as whatsmeow's app state sync does
-// (appstate.go:364-374).
+// (appstate.go:373-383).
 func (c *Control) SetPushName(ctx context.Context, req *fakev1.SetPushNameRequest) (*fakev1.SetPushNameResponse, error) {
 	client, err := c.whatsApp.client(req.GetSessionId())
 	if err != nil {

@@ -663,7 +663,7 @@ func (h *harness) queueRows(id string) []string {
 	return got
 }
 
-// notification is the protocol message the account's phone sends for a blob (message.go:884-907), as whatsmeow
+// notification is the protocol message the account's phone sends for a blob (message.go:893-916), as whatsmeow
 // dispatches it.
 func notification(id, directPath string, blob *waHistorySync.HistorySync) *events.Message {
 	chat := types.NewJID("5511000000000", types.DefaultUserServer)

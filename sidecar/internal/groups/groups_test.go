@@ -644,7 +644,7 @@ func TestWhatsAppsErrorsBecomeTheirReasons(t *testing.T) {
 	t.Parallel()
 
 	// whatsmeow names the participant in some of its errors with %v, which keeps no type (group.go:71, 84, 221, 229);
-	// an IQ error without a code prints its node (errors.go:216-226).
+	// an IQ error without a code prints its node (errors.go:217-227).
 	node := &waBinary.Node{Tag: "iq", Attrs: waBinary.Attrs{"from": jid(group), "participant": jid("5511777000009@s.whatsapp.net")}}
 	disconnected := &whatsmeow.DisconnectedError{Action: "info query", Node: node}
 
@@ -1179,7 +1179,7 @@ func TestTheNewCallsErrorsBecomeTheirReasons(t *testing.T) {
 	}
 }
 
-// wrapped is an error as whatsmeow's wrapIQError makes it (errors.go:157-176): Is the human error, unwrapping to the IQ
+// wrapped is an error as whatsmeow's wrapIQError makes it (errors.go:158-177): Is the human error, unwrapping to the IQ
 // error.
 type wrapped struct{ human, iq error }
 

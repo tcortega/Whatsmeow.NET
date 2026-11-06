@@ -152,7 +152,7 @@ public sealed class EventTests(FakeSidecar fixture)
 
 	/// <summary>
 	/// #122: whatsmeow's ParseWebMessage, for a placeholder resend, accepts a message key without a chat or an id
-	/// (client.go:1027-1039; message.go:874-880). The client cannot read such a message, so the sidecar does not record
+	/// (client.go:1029-1041; message.go:883-889). The client cannot read such a message, so the sidecar does not record
 	/// it, and still answers it.
 	/// </summary>
 	[Fact(Timeout = Timeout)]

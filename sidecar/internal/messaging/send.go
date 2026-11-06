@@ -466,7 +466,7 @@ const (
 
 // classify reads a SendMessage error at the pin, and gives the error the send returns for it. That error keeps
 // whatsmeow's sentinel or a bare copy of its typed error, never the text whatsmeow wraps around it, which names the
-// recipient (send.go:346, 353, 356), nor an IQ error's nodes (errors.go:216-226): a status message reaches the
+// recipient (send.go:346, 353, 356), nor an IQ error's nodes (errors.go:217-227): a status message reaches the
 // application, and the log keeps the cause (ARCHITECTURE §7.8).
 //
 // Only what provably fails before the node is written is notSent:
@@ -476,7 +476,7 @@ const (
 //   - an IQ error: every IQ of a send (the LID lookup, group members, devices) runs before sendNodeAndGetData
 //     (send.go:310-351, sendDM 875-918, sendGroup 814-840).
 //   - ErrNotConnected wrapped: sendDM and sendGroup wrap what comes before the write (send.go:840, 921), and
-//     sendNodeAndGetData returns it when there is no socket, before it marshals or writes anything (client.go:981-983).
+//     sendNodeAndGetData returns it when there is no socket, before it marshals or writes anything (client.go:983-985).
 //
 // ErrNotConnected itself, unwrapped, is retryFrame's after the node was written (request.go:207-209, send.go:459-462):
 // unknown, as are a timeout, a context end, a DisconnectedError and a failed write (send.go:438-463).
@@ -489,7 +489,7 @@ func classify(err error) (class, error) {
 	case errors.Is(err, whatsmeow.ErrRecipientNotOnWhatsApp):
 		return notSent, fmt.Errorf("%w: %w", server.ErrRecipientNotOnWhatsApp, whatsmeow.ErrRecipientNotOnWhatsApp)
 	case errors.As(err, &iq) && iq.Code == 429:
-		// ErrIQRateOverLimit's Is also compares the text (errors.go:197, 229-240), so match the code.
+		// ErrIQRateOverLimit's Is also compares the text (errors.go:198, 230-241), so match the code.
 		return rateLimited, fmt.Errorf("%w: %w", server.ErrRateLimited, &whatsmeow.IQError{Code: iq.Code, Text: iq.Text})
 	case errors.As(err, &iq):
 		return notSent, fmt.Errorf("WhatsApp answered with error %d: %w: %w", iq.Code,
@@ -505,7 +505,7 @@ func classify(err error) (class, error) {
 
 // errorAttributes are the names of the attributes of an IQ error's error node, sorted, never their values. Whether
 // WhatsApp says in them how long to wait after a 429 is unknown: whatsmeow reads only the code and the text
-// (errors.go:203-214), and nothing at the pin reads a delay, so the names are what a live 429 records (ADR 0042).
+// (errors.go:204-215), and nothing at the pin reads a delay, so the names are what a live 429 records (ADR 0042).
 func errorAttributes(err error) []string {
 	var iq *whatsmeow.IQError
 	if !errors.As(err, &iq) || iq.ErrorNode == nil {
@@ -533,7 +533,7 @@ func whatsAppError(code int) error {
 
 // cause is the error at the end of err's chain: a socket or store error, or whatsmeow's own sentinel or typed error,
 // without the text whatsmeow wrapped around it. At the pin none of those a send can end with names a JID [inferred:
-// read at the pin, send.go:191-489, request.go, client.go:975-996].
+// read at the pin, send.go:191-489, request.go, client.go:977-998].
 func cause(err error) error {
 	for {
 		next := errors.Unwrap(err)

@@ -34,7 +34,7 @@ var errNotPaired = errors.New("the session was never paired")
 // DownloadHistorySync reads the blob as whatsmeow does (message.go:783-825): the inline payload, or a download from
 // the media server, which needs the connection (mediaconn.go:44-58) and fails for a blob ExpireMedia expired. The rest
 // is whatsmeow's own, on a client that never connects: it decompresses and parses the blob, and stores what it
-// carries, the messages' secrets among it (message.go:799-825, 988-1050).
+// carries, the messages' secrets among it (message.go:799-825, 997-1059).
 func (c *Client) DownloadHistorySync(ctx context.Context, notif *waE2E.HistorySyncNotification, synchronousStorage bool) (*waHistorySync.HistorySync, error) {
 	data := notif.GetInitialHistBootstrapInlinePayload()
 	if data == nil {
@@ -98,7 +98,7 @@ func (c *Client) DeleteMedia(_ context.Context, _ whatsmeow.MediaType, directPat
 	return nil
 }
 
-// ParseWebMessage is whatsmeow's own (client.go:1025-1083), on a client that never connects: it reads only the
+// ParseWebMessage is whatsmeow's own (client.go:1027-1085), on a client that never connects: it reads only the
 // device's JIDs.
 func (c *Client) ParseWebMessage(chat types.JID, webMsg *waWeb.WebMessageInfo) (*events.Message, error) {
 	return whatsmeow.NewClient(c.Store, nil).ParseWebMessage(chat, webMsg) //nolint:wrapcheck // whatsmeow's own
@@ -166,7 +166,7 @@ func (c *Control) DeliverHistorySync(ctx context.Context, req *fakev1.DeliverHis
 		notif.DirectPath = proto.String(directPath)
 	}
 
-	// From the account's primary device, to the account (message.go:884-907).
+	// From the account's primary device, to the account (message.go:893-916).
 	own := client.Store.ID.ToNonAD()
 	evt := &events.Message{
 		Info: types.MessageInfo{

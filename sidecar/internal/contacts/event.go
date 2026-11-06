@@ -12,8 +12,8 @@ import (
 // records, or false for any other event. It is pure: no I/O.
 //
 // None of these is gated: whatsmeow dispatches PushName and BusinessName on their own goroutines (message.go:56-61),
-// Picture and UserAbout from notifications it acks whatever the handlers return (notification.go:91-115, 449-466,
-// 472), so the key is empty, as for a ConnectionStateEvent. They are never redispatched from the decrypted-event
+// Picture and UserAbout from notifications it acks whatever the handlers return (notification.go:93-117, 451-468,
+// 474), so the key is empty, as for a ConnectionStateEvent. They are never redispatched from the decrypted-event
 // buffer, and PushName and BusinessName fire only when the stored value changed (user.go:683, 713), so a repeat is
 // rare and carries the same value (ADR 0028).
 func Event(_ string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) {

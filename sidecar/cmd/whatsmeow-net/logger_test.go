@@ -10,7 +10,7 @@ import (
 	wmlog "github.com/tcortega/Whatsmeow.NET/sidecar/internal/log"
 )
 
-// whatsmeow logs every node it sends and each QR code it emits at debug level (client.go:990, qrchan.go:97), and a
+// whatsmeow logs every node it sends and each QR code it emits at debug level (client.go:992, qrchan.go:97), and a
 // QR code carries the device's ADV secret (pair.go:125-130), so the sidecar's logger, and every logger derived from
 // it, drops debug.
 func TestTheLoggerDropsDebugForEveryComponent(t *testing.T) {

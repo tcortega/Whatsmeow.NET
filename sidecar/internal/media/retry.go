@@ -92,7 +92,7 @@ func retryTarget(req *whatsmeowv1.RequestMediaRetryRequest) (*types.MessageInfo,
 // id: the answer names the chat as the phone's notification does (<rmr jid>, mediaretry.go:151-155), which may be the
 // other addressing form, LID or phone number, than the request's [unknown: the live run, #10]. A final answer settles the request, and
 // its row, with its media key, is deleted (ADR 0026); whatsmeow acks the notification whatever the handler returns
-// (notification.go:510-511), so no answer comes again for a request whose event failed to record.
+// (notification.go:512-513), so no answer comes again for a request whose event failed to record.
 func Mapper(db *sql.DB, w *store.Writer, log zerolog.Logger) func(sessionID string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) {
 	return func(sessionID string, evt any) (string, *whatsmeowv1.StreamEventsResponse, bool) {
 		retry, ok := evt.(*events.MediaRetry)

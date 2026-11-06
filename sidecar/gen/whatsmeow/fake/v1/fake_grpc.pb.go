@@ -114,8 +114,8 @@ type FakeWhatsAppServiceClient interface {
 	// disconnects without a Disconnected event, as whatsmeow's does (qrchan.go:77-84). No QR channel open is an error.
 	ExpireQrCodes(ctx context.Context, in *ExpireQrCodesRequest, opts ...grpc.CallOption) (*ExpireQrCodesResponse, error)
 	// DropConnection makes the connection of a session that is pairing drop: the client dispatches Disconnected off the
-	// node queue (client.go:612-622), and its QR channel then sends timeout and closes (qrchan.go:196-197). whatsmeow
-	// does not reconnect an unpaired client (client.go:648). No QR channel open is an error. It returns before the
+	// node queue (client.go:614-624), and its QR channel then sends timeout and closes (qrchan.go:196-197). whatsmeow
+	// does not reconnect an unpaired client (client.go:650). No QR channel open is an error. It returns before the
 	// handlers run.
 	DropConnection(ctx context.Context, in *DropConnectionRequest, opts ...grpc.CallOption) (*DropConnectionResponse, error)
 	// HoldNextLogin makes the session's next login, after a connect or a reset's reconnect, hold Connected until
@@ -130,7 +130,7 @@ type FakeWhatsAppServiceClient interface {
 	// that (prekeys.go:84-87), never sets PreKeysUploaded, and still dispatches Connected (connectionevents.go:187-204).
 	FailNextPreKeyUpload(ctx context.Context, in *FailNextPreKeyUploadRequest, opts ...grpc.CallOption) (*FailNextPreKeyUploadResponse, error)
 	// FailNextPairPhone makes WhatsApp answer the session's next phone pairing request with an IQ error of code
-	// (pair-code.go:104-127): 429 is whatsmeow's ErrIQRateOverLimit (errors.go:197).
+	// (pair-code.go:104-127): 429 is whatsmeow's ErrIQRateOverLimit (errors.go:198).
 	FailNextPairPhone(ctx context.Context, in *FailNextPairPhoneRequest, opts ...grpc.CallOption) (*FailNextPairPhoneResponse, error)
 	// FailNextConnect makes the session's next connect fail with an error whatsmeow does not retry. Without it a
 	// connect succeeds, and a linked client then gets Connected, as whatsmeow does once WhatsApp accepts the login.
@@ -152,14 +152,14 @@ type FakeWhatsAppServiceClient interface {
 	SetProfilePicture(ctx context.Context, in *SetProfilePictureRequest, opts ...grpc.CallOption) (*SetProfilePictureResponse, error)
 	// DeliverContactNotification makes WhatsApp send the session's client a picture or status notification. As
 	// whatsmeow does, the client dispatches Picture or UserAbout on the node queue and ignores the handlers' result
-	// (notification.go:91-115, 449-466, 472); it returns once the handlers ran. A session without a client is an error.
+	// (notification.go:93-117, 451-468, 474); it returns once the handlers ran. A session without a client is an error.
 	DeliverContactNotification(ctx context.Context, in *DeliverContactNotificationRequest, opts ...grpc.CallOption) (*DeliverContactNotificationResponse, error)
 	// SyncContact makes an app state sync deliver a contact's saved name: the client stores it, then dispatches Contact,
-	// as whatsmeow does (appstate.go:292-296). The session must be linked.
+	// as whatsmeow does (appstate.go:301-305). The session must be linked.
 	SyncContact(ctx context.Context, in *SyncContactRequest, opts ...grpc.CallOption) (*SyncContactResponse, error)
 	// FailNextContactQuery makes WhatsApp answer the session's next contact query (IsOnWhatsApp, GetUserInfo,
 	// GetProfilePictureInfo, GetBlocklist, UpdateBlocklist) with an IQ error of code: 429 is whatsmeow's
-	// ErrIQRateOverLimit (errors.go:197).
+	// ErrIQRateOverLimit (errors.go:198).
 	FailNextContactQuery(ctx context.Context, in *FailNextContactQueryRequest, opts ...grpc.CallOption) (*FailNextContactQueryResponse, error)
 	// DeliverPresence makes WhatsApp send a user's presence to the session's client, which dispatches events.Presence on
 	// its node queue (presence.go:39-58), and returns once the client's event handlers ran. whatsmeow answers nothing.
@@ -170,14 +170,14 @@ type FakeWhatsAppServiceClient interface {
 	// whatsmeow answers nothing. A session without a client is an error.
 	DeliverChatPresence(ctx context.Context, in *DeliverChatPresenceRequest, opts ...grpc.CallOption) (*DeliverChatPresenceResponse, error)
 	// SetPushName makes the app state sync set the account's push name, as whatsmeow does for the push name setting: it
-	// sets the device's push name and saves the device (appstate.go:364-374). Until then SendPresence fails with
+	// sets the device's push name and saves the device (appstate.go:373-383). Until then SendPresence fails with
 	// whatsmeow's ErrNoPushName (presence.go:67-68). A session without a client is an error.
 	SetPushName(ctx context.Context, in *SetPushNameRequest, opts ...grpc.CallOption) (*SetPushNameResponse, error)
 	// FailNextUploads makes the session's next count uploads fail after they encrypted the file, as a POST that fails
 	// does (upload.go:291-302). Each attempt shows in WaitForSent as a MediaUpload.
 	FailNextUploads(ctx context.Context, in *FailNextUploadsRequest, opts ...grpc.CallOption) (*FailNextUploadsResponse, error)
 	// ExpireMedia makes WhatsApp answer every download of direct_path with status, as whatsmeow reports it
-	// (ErrMediaDownloadFailedWith403, 404 or 410, errors.go:133-135).
+	// (ErrMediaDownloadFailedWith403, 404 or 410, errors.go:134-136).
 	ExpireMedia(ctx context.Context, in *ExpireMediaRequest, opts ...grpc.CallOption) (*ExpireMediaResponse, error)
 	// CorruptMedia flips one byte of the ciphertext stored at direct_path, so every download of it fails verification
 	// (ErrInvalidMediaEncSHA256, download-to-file.go:218-219) and leaves ciphertext in the file, as whatsmeow does.
@@ -188,7 +188,7 @@ type FakeWhatsAppServiceClient interface {
 	// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
 	// or supplies encrypted bytes unchanged, and returns once the client's event handlers ran. With reupload, the
 	// phone uploads the media at from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
-	// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
+	// (notification.go:512-513), so nothing shows in WaitForSent. No request for message_id is an error.
 	AnswerMediaRetry(ctx context.Context, in *AnswerMediaRetryRequest, opts ...grpc.CallOption) (*AnswerMediaRetryResponse, error)
 	// DeliverReceipt makes WhatsApp deliver a receipt to a session's client, and returns once the client's event
 	// handlers ran. With SynchronousAck, whatsmeow acks a receipt only when every handler succeeded
@@ -197,7 +197,7 @@ type FakeWhatsAppServiceClient interface {
 	// session without a client is an error.
 	DeliverReceipt(ctx context.Context, in *DeliverReceiptRequest, opts ...grpc.CallOption) (*DeliverReceiptResponse, error)
 	// RateLimitNextSends makes the session's next count sends fail as WhatsApp's rate limit fails them: an IQ before the
-	// node is written answers 429 (ErrIQRateOverLimit, errors.go:197), so nothing is sent.
+	// node is written answers 429 (ErrIQRateOverLimit, errors.go:198), so nothing is sent.
 	RateLimitNextSends(ctx context.Context, in *RateLimitNextSendsRequest, opts ...grpc.CallOption) (*RateLimitNextSendsResponse, error)
 	// HoldNextSend makes the session's next send write its node, which WaitForSent shows, and then get no answer until
 	// ReleaseSend: like whatsmeow's, it then returns ctx.Err() when its context ends (send.go:445-455), and when the
@@ -217,7 +217,7 @@ type FakeWhatsAppServiceClient interface {
 	// DeliverGroupNotification makes WhatsApp send the session's client a w:gp2 notification of a change to a group,
 	// which need not be on WhatsApp's side. The client dispatches GroupInfo on its node queue, and returns once the
 	// handlers ran; as whatsmeow does, it acks the notification only when every handler succeeded
-	// (notification.go:493-506, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
+	// (notification.go:495-508, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
 	// request's id and type "w:gp2", shows in WaitForSent. The group calls' notifications are acked the same way. A
 	// session without a client is an error.
 	//
@@ -243,13 +243,13 @@ type FakeWhatsAppServiceClient interface {
 	// invite, WhatsApp offers an invite instead, as for a user whose privacy settings ask for one (group.go:729-739).
 	RefuseGroupAdd(ctx context.Context, in *RefuseGroupAddRequest, opts ...grpc.CallOption) (*RefuseGroupAddResponse, error)
 	// FailNextGroupQuery makes WhatsApp answer the session's next group call with an IQ error of code: 429 is
-	// whatsmeow's ErrIQRateOverLimit (errors.go:197).
+	// whatsmeow's ErrIQRateOverLimit (errors.go:198).
 	FailNextGroupQuery(ctx context.Context, in *FailNextGroupQueryRequest, opts ...grpc.CallOption) (*FailNextGroupQueryResponse, error)
 	// SyncChatState makes the phone change a chat's state, and the session's client sync it as whatsmeow does after a
 	// server_sync notification: on its node queue, holding its app state lock while it fetches (appstate.go:46-47,
-	// notification.go:481-483), and dispatching the change once it let go of the lock (appstate.go:36-38). While the
+	// notification.go:483-485), and dispatching the change once it let go of the lock (appstate.go:36-38). While the
 	// collection is corrupted (CorruptAppState) the fetch fails instead: whatsmeow dispatches AppStateSyncError holding
-	// the lock (appstate.go:167), and the change does not arrive. With full_sync the change arrives as a full sync's,
+	// the lock (appstate.go:176), and the change does not arrive. With full_sync the change arrives as a full sync's,
 	// marked FromFullSync, as it does after pairing. It returns once the client's event handlers ran. A session without
 	// a client is an error.
 	SyncChatState(ctx context.Context, in *SyncChatStateRequest, opts ...grpc.CallOption) (*SyncChatStateResponse, error)
@@ -258,9 +258,9 @@ type FakeWhatsAppServiceClient interface {
 	GetPhoneChatState(ctx context.Context, in *GetPhoneChatStateRequest, opts ...grpc.CallOption) (*GetPhoneChatStateResponse, error)
 	// CorruptAppState makes the session's copy of an app state collection out of step with WhatsApp's, as a mismatching
 	// LTHash does [inferred: the server cannot verify the hash, so it shows only when another device's patch arrives]:
-	// a write to it is rejected with a 409 whose patches do not verify (appstate.go:607-614), and a sync of it fails.
+	// a write to it is rejected with a 409 whose patches do not verify (appstate.go:616-623), and a sync of it fails.
 	// A full sync (FetchAppState with fullSync) repairs it, unless unrecoverable: then the full sync fails too, as one
-	// whose snapshot does not verify does (appstate/decode.go:287-294).
+	// whose snapshot does not verify does (appstate/decode.go:288-295).
 	CorruptAppState(ctx context.Context, in *CorruptAppStateRequest, opts ...grpc.CallOption) (*CorruptAppStateResponse, error)
 	// HoldFullSync makes the session's next full syncs wait, holding the client's app state lock, until it is called
 	// again with hold false. A full sync is recorded (Sent.app_state_full_sync) before it waits.
@@ -794,8 +794,8 @@ type FakeWhatsAppServiceServer interface {
 	// disconnects without a Disconnected event, as whatsmeow's does (qrchan.go:77-84). No QR channel open is an error.
 	ExpireQrCodes(context.Context, *ExpireQrCodesRequest) (*ExpireQrCodesResponse, error)
 	// DropConnection makes the connection of a session that is pairing drop: the client dispatches Disconnected off the
-	// node queue (client.go:612-622), and its QR channel then sends timeout and closes (qrchan.go:196-197). whatsmeow
-	// does not reconnect an unpaired client (client.go:648). No QR channel open is an error. It returns before the
+	// node queue (client.go:614-624), and its QR channel then sends timeout and closes (qrchan.go:196-197). whatsmeow
+	// does not reconnect an unpaired client (client.go:650). No QR channel open is an error. It returns before the
 	// handlers run.
 	DropConnection(context.Context, *DropConnectionRequest) (*DropConnectionResponse, error)
 	// HoldNextLogin makes the session's next login, after a connect or a reset's reconnect, hold Connected until
@@ -810,7 +810,7 @@ type FakeWhatsAppServiceServer interface {
 	// that (prekeys.go:84-87), never sets PreKeysUploaded, and still dispatches Connected (connectionevents.go:187-204).
 	FailNextPreKeyUpload(context.Context, *FailNextPreKeyUploadRequest) (*FailNextPreKeyUploadResponse, error)
 	// FailNextPairPhone makes WhatsApp answer the session's next phone pairing request with an IQ error of code
-	// (pair-code.go:104-127): 429 is whatsmeow's ErrIQRateOverLimit (errors.go:197).
+	// (pair-code.go:104-127): 429 is whatsmeow's ErrIQRateOverLimit (errors.go:198).
 	FailNextPairPhone(context.Context, *FailNextPairPhoneRequest) (*FailNextPairPhoneResponse, error)
 	// FailNextConnect makes the session's next connect fail with an error whatsmeow does not retry. Without it a
 	// connect succeeds, and a linked client then gets Connected, as whatsmeow does once WhatsApp accepts the login.
@@ -832,14 +832,14 @@ type FakeWhatsAppServiceServer interface {
 	SetProfilePicture(context.Context, *SetProfilePictureRequest) (*SetProfilePictureResponse, error)
 	// DeliverContactNotification makes WhatsApp send the session's client a picture or status notification. As
 	// whatsmeow does, the client dispatches Picture or UserAbout on the node queue and ignores the handlers' result
-	// (notification.go:91-115, 449-466, 472); it returns once the handlers ran. A session without a client is an error.
+	// (notification.go:93-117, 451-468, 474); it returns once the handlers ran. A session without a client is an error.
 	DeliverContactNotification(context.Context, *DeliverContactNotificationRequest) (*DeliverContactNotificationResponse, error)
 	// SyncContact makes an app state sync deliver a contact's saved name: the client stores it, then dispatches Contact,
-	// as whatsmeow does (appstate.go:292-296). The session must be linked.
+	// as whatsmeow does (appstate.go:301-305). The session must be linked.
 	SyncContact(context.Context, *SyncContactRequest) (*SyncContactResponse, error)
 	// FailNextContactQuery makes WhatsApp answer the session's next contact query (IsOnWhatsApp, GetUserInfo,
 	// GetProfilePictureInfo, GetBlocklist, UpdateBlocklist) with an IQ error of code: 429 is whatsmeow's
-	// ErrIQRateOverLimit (errors.go:197).
+	// ErrIQRateOverLimit (errors.go:198).
 	FailNextContactQuery(context.Context, *FailNextContactQueryRequest) (*FailNextContactQueryResponse, error)
 	// DeliverPresence makes WhatsApp send a user's presence to the session's client, which dispatches events.Presence on
 	// its node queue (presence.go:39-58), and returns once the client's event handlers ran. whatsmeow answers nothing.
@@ -850,14 +850,14 @@ type FakeWhatsAppServiceServer interface {
 	// whatsmeow answers nothing. A session without a client is an error.
 	DeliverChatPresence(context.Context, *DeliverChatPresenceRequest) (*DeliverChatPresenceResponse, error)
 	// SetPushName makes the app state sync set the account's push name, as whatsmeow does for the push name setting: it
-	// sets the device's push name and saves the device (appstate.go:364-374). Until then SendPresence fails with
+	// sets the device's push name and saves the device (appstate.go:373-383). Until then SendPresence fails with
 	// whatsmeow's ErrNoPushName (presence.go:67-68). A session without a client is an error.
 	SetPushName(context.Context, *SetPushNameRequest) (*SetPushNameResponse, error)
 	// FailNextUploads makes the session's next count uploads fail after they encrypted the file, as a POST that fails
 	// does (upload.go:291-302). Each attempt shows in WaitForSent as a MediaUpload.
 	FailNextUploads(context.Context, *FailNextUploadsRequest) (*FailNextUploadsResponse, error)
 	// ExpireMedia makes WhatsApp answer every download of direct_path with status, as whatsmeow reports it
-	// (ErrMediaDownloadFailedWith403, 404 or 410, errors.go:133-135).
+	// (ErrMediaDownloadFailedWith403, 404 or 410, errors.go:134-136).
 	ExpireMedia(context.Context, *ExpireMediaRequest) (*ExpireMediaResponse, error)
 	// CorruptMedia flips one byte of the ciphertext stored at direct_path, so every download of it fails verification
 	// (ErrInvalidMediaEncSHA256, download-to-file.go:218-219) and leaves ciphertext in the file, as whatsmeow does.
@@ -868,7 +868,7 @@ type FakeWhatsAppServiceServer interface {
 	// showed as a MediaRetryReceipt: it encrypts the answer with the media key the request carried, as the phone does,
 	// or supplies encrypted bytes unchanged, and returns once the client's event handlers ran. With reupload, the
 	// phone uploads the media at from_direct_path again, to a new path. whatsmeow acknowledges the notification whatever the handlers return
-	// (notification.go:510-511), so nothing shows in WaitForSent. No request for message_id is an error.
+	// (notification.go:512-513), so nothing shows in WaitForSent. No request for message_id is an error.
 	AnswerMediaRetry(context.Context, *AnswerMediaRetryRequest) (*AnswerMediaRetryResponse, error)
 	// DeliverReceipt makes WhatsApp deliver a receipt to a session's client, and returns once the client's event
 	// handlers ran. With SynchronousAck, whatsmeow acks a receipt only when every handler succeeded
@@ -877,7 +877,7 @@ type FakeWhatsAppServiceServer interface {
 	// session without a client is an error.
 	DeliverReceipt(context.Context, *DeliverReceiptRequest) (*DeliverReceiptResponse, error)
 	// RateLimitNextSends makes the session's next count sends fail as WhatsApp's rate limit fails them: an IQ before the
-	// node is written answers 429 (ErrIQRateOverLimit, errors.go:197), so nothing is sent.
+	// node is written answers 429 (ErrIQRateOverLimit, errors.go:198), so nothing is sent.
 	RateLimitNextSends(context.Context, *RateLimitNextSendsRequest) (*RateLimitNextSendsResponse, error)
 	// HoldNextSend makes the session's next send write its node, which WaitForSent shows, and then get no answer until
 	// ReleaseSend: like whatsmeow's, it then returns ctx.Err() when its context ends (send.go:445-455), and when the
@@ -897,7 +897,7 @@ type FakeWhatsAppServiceServer interface {
 	// DeliverGroupNotification makes WhatsApp send the session's client a w:gp2 notification of a change to a group,
 	// which need not be on WhatsApp's side. The client dispatches GroupInfo on its node queue, and returns once the
 	// handlers ran; as whatsmeow does, it acks the notification only when every handler succeeded
-	// (notification.go:493-506, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
+	// (notification.go:495-508, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
 	// request's id and type "w:gp2", shows in WaitForSent. The group calls' notifications are acked the same way. A
 	// session without a client is an error.
 	//
@@ -923,13 +923,13 @@ type FakeWhatsAppServiceServer interface {
 	// invite, WhatsApp offers an invite instead, as for a user whose privacy settings ask for one (group.go:729-739).
 	RefuseGroupAdd(context.Context, *RefuseGroupAddRequest) (*RefuseGroupAddResponse, error)
 	// FailNextGroupQuery makes WhatsApp answer the session's next group call with an IQ error of code: 429 is
-	// whatsmeow's ErrIQRateOverLimit (errors.go:197).
+	// whatsmeow's ErrIQRateOverLimit (errors.go:198).
 	FailNextGroupQuery(context.Context, *FailNextGroupQueryRequest) (*FailNextGroupQueryResponse, error)
 	// SyncChatState makes the phone change a chat's state, and the session's client sync it as whatsmeow does after a
 	// server_sync notification: on its node queue, holding its app state lock while it fetches (appstate.go:46-47,
-	// notification.go:481-483), and dispatching the change once it let go of the lock (appstate.go:36-38). While the
+	// notification.go:483-485), and dispatching the change once it let go of the lock (appstate.go:36-38). While the
 	// collection is corrupted (CorruptAppState) the fetch fails instead: whatsmeow dispatches AppStateSyncError holding
-	// the lock (appstate.go:167), and the change does not arrive. With full_sync the change arrives as a full sync's,
+	// the lock (appstate.go:176), and the change does not arrive. With full_sync the change arrives as a full sync's,
 	// marked FromFullSync, as it does after pairing. It returns once the client's event handlers ran. A session without
 	// a client is an error.
 	SyncChatState(context.Context, *SyncChatStateRequest) (*SyncChatStateResponse, error)
@@ -938,9 +938,9 @@ type FakeWhatsAppServiceServer interface {
 	GetPhoneChatState(context.Context, *GetPhoneChatStateRequest) (*GetPhoneChatStateResponse, error)
 	// CorruptAppState makes the session's copy of an app state collection out of step with WhatsApp's, as a mismatching
 	// LTHash does [inferred: the server cannot verify the hash, so it shows only when another device's patch arrives]:
-	// a write to it is rejected with a 409 whose patches do not verify (appstate.go:607-614), and a sync of it fails.
+	// a write to it is rejected with a 409 whose patches do not verify (appstate.go:616-623), and a sync of it fails.
 	// A full sync (FetchAppState with fullSync) repairs it, unless unrecoverable: then the full sync fails too, as one
-	// whose snapshot does not verify does (appstate/decode.go:287-294).
+	// whose snapshot does not verify does (appstate/decode.go:288-295).
 	CorruptAppState(context.Context, *CorruptAppStateRequest) (*CorruptAppStateResponse, error)
 	// HoldFullSync makes the session's next full syncs wait, holding the client's app state lock, until it is called
 	// again with hold false. A full sync is recorded (Sent.app_state_full_sync) before it waits.

@@ -56,7 +56,7 @@ func (c *Control) AddGroup(_ context.Context, req *fakev1.AddGroupRequest) (*fak
 }
 
 // DeliverGroupNotification dispatches a change notification on the client's node queue, acked only when every handler
-// succeeded (notification.go:493-506).
+// succeeded (notification.go:495-508).
 func (c *Control) DeliverGroupNotification(_ context.Context, req *fakev1.DeliverGroupNotificationRequest) (*fakev1.DeliverGroupNotificationResponse, error) {
 	client, err := c.whatsApp.client(req.GetSessionId())
 	if err != nil {

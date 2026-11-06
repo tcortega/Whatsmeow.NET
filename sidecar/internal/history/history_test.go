@@ -67,7 +67,7 @@ func TestANotificationThatIsNotTheAccountsOwnIsNotQueued(t *testing.T) {
 	}
 
 	if got := h.queueRows("s1"); len(got) != 0 {
-		t.Fatalf("queue %v, want nothing: whatsmeow ignores a notification from anyone else (message.go:888-890)", got)
+		t.Fatalf("queue %v, want nothing: whatsmeow ignores a notification from anyone else (message.go:897-899)", got)
 	}
 }
 
@@ -1363,7 +1363,7 @@ func TestAHistoryMessageWithAnInvalidUTF8PushNameArrivesWithTheReplacementCharac
 
 	h := start(t)
 	m := webMessage(direct, "A1", false, "", "hi")
-	// ParseWebMessage copies the push name unchecked (client.go:1039-1040); proto3 strings must be UTF-8.
+	// ParseWebMessage copies the push name unchecked (client.go:1041-1042); proto3 strings must be UTF-8.
 	m.PushName = proto.String("Bia \xff")
 	h.notify("s1", "N1", "/blob/1", blob(waHistorySync.HistorySync_RECENT, &waHistorySync.Conversation{
 		ID: proto.String(direct), Messages: []*waHistorySync.HistorySyncMsg{{Message: m}},

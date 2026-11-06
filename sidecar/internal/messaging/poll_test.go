@@ -25,7 +25,7 @@ func withoutSecret(message *waE2E.Message) *waE2E.Message {
 }
 
 // secret stores a poll's message secret in the session's store, as whatsmeow does for a poll it sends or receives
-// (send.go:403-410, message.go:964-985).
+// (send.go:403-410, message.go:973-994).
 func (h *harness) secret(chat, sender, pollID string) {
 	h.t.Helper()
 

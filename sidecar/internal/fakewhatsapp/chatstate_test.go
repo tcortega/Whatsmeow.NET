@@ -110,7 +110,7 @@ func TestASentPatchIsWhatThePhoneShowsAndItsEchoIsDispatchedOffTheQueue(t *testi
 	end := until.UnixMilli()
 	target := types.NewJID("5511987654321", types.DefaultUserServer)
 
-	// The sync after a write dispatches its change on a goroutine of its own (appstate.go:631-635), so two writes'
+	// The sync after a write dispatches its change on a goroutine of its own (appstate.go:640-644), so two writes'
 	// echoes come in either order: each write's echo is awaited before the next write goes out.
 	echo := func(want string) dispatched {
 		t.Helper()

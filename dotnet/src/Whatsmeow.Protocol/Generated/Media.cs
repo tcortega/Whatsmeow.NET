@@ -2516,7 +2516,7 @@ namespace Whatsmeow.Protocol.V1 {
 
   /// <summary>
   /// MediaRetryEvent is the phone's answer to RequestMediaRetry. It is best effort: whatsmeow acknowledges the
-  /// notification it comes in whatever the handler does (notification.go:510-511), and the phone may never answer.
+  /// notification it comes in whatever the handler does (notification.go:512-513), and the phone may never answer.
   /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   internal sealed partial class MediaRetryEvent : pb::IMessage<MediaRetryEvent>

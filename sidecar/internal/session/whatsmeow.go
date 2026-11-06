@@ -17,10 +17,10 @@ func NewWhatsmeowClient(log zerolog.Logger) NewClient {
 	}
 }
 
-// configure sets §7.2's fields. EnableAutoReconnect is already true (client.go:307), and there is no
+// configure sets §7.2's fields. EnableAutoReconnect is already true (client.go:309), and there is no
 // AutoReconnectHook: mautrix sets none, and one that returns false leaves the session Reconnecting with no event
-// (client.go:673-675). EmitAppStateEventsOnFullSync is ours, not mautrix's: without it a full sync dispatches no chat
-// state events (appstate.go:70-72), so the chat state after pairing and after a recovery would not arrive (ADR 0031).
+// (client.go:675-677). EmitAppStateEventsOnFullSync is ours, not mautrix's: without it a full sync dispatches no chat
+// state events (appstate.go:73-75), so the chat state after pairing and after a recovery would not arrive (ADR 0031).
 func configure(cli *whatsmeow.Client) *whatsmeow.Client {
 	cli.SynchronousAck = true
 	cli.EnableDecryptedEventBuffer = true

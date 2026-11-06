@@ -5,7 +5,7 @@ import "time"
 // A session's redelivery (ADR 0044). WhatsApp delivers a stanza whose answer was withheld again at the device's next
 // login, and was never seen to while the connection stayed up (ARCHITECTURE §14, #10), so after a withheld answer
 // the sidecar resets the connection: whatsmeow's ResetConnection closes it and logs in again at once
-// (client.go:612-631, 653-660, 712-724).
+// (client.go:614-633, 655-662, 714-726).
 const (
 	// settle is how long after a withheld answer the connection is reset, so that a burst of failed writes, as a
 	// store fault makes, is one reset.
@@ -15,7 +15,7 @@ const (
 	coolDown    = time.Minute
 	maxCoolDown = 30 * time.Minute
 	// resetWait bounds how long a reset holds the session for whatsmeow's Disconnected; it comes as soon as the
-	// stopped socket's read loop ends [inferred: client.go:612-631, unmeasured].
+	// stopped socket's read loop ends [inferred: client.go:614-633, unmeasured].
 	resetWait = 10 * time.Second
 )
 
@@ -93,7 +93,7 @@ func (svc *Service) sleep(s *session, d time.Duration) bool {
 // A session in any other state is not: one Connecting or Reconnecting logs in soon, and WhatsApp delivers again then;
 // one disconnected does at its next Connect. It holds s.ops until the session left Connected and CaughtUp, at most
 // resetWait: ResetConnection returns once it stopped the socket, and whatsmeow clears the socket and dispatches
-// Disconnected later, on its own goroutine (client.go:612-631, 712-724), so a Logout that ran in between would send
+// Disconnected later, on its own goroutine (client.go:614-633, 714-726), so a Logout that ran in between would send
 // its unlink on the stopped socket. After it, a call finds the session Reconnecting.
 func (svc *Service) reset(s *session) bool {
 	if err := s.lock(); err != nil {

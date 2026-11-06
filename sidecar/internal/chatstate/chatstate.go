@@ -28,11 +28,11 @@ import (
 	"github.com/tcortega/Whatsmeow.NET/sidecar/internal/session"
 )
 
-// rateOverLimit is the code of whatsmeow's ErrIQRateOverLimit (errors.go:197).
+// rateOverLimit is the code of whatsmeow's ErrIQRateOverLimit (errors.go:198).
 const rateOverLimit = 429
 
 // conflict is the code WhatsApp rejects an app state write with when the patch does not follow its copy
-// (appstate.go:607).
+// (appstate.go:616).
 const conflict = "409"
 
 // Client is what the slice needs of a whatsmeow client. *whatsmeow.Client and the fake WhatsApp's client both
@@ -105,7 +105,7 @@ func (svc *Service) SetChatState(ctx context.Context, req *whatsmeowv1.SetChatSt
 
 // client is the client of a session that is online and can write app state, and the channel Online closes once it
 // is not: whatsmeow writes with the latest app state key, which the phone shares once after pairing
-// (message.go:827-861), and without one fails with an error that has no sentinel (appstate.go:557-562). Until then the
+// (message.go:827-870), and without one fails with an error that has no sentinel (appstate.go:566-571). Until then the
 // session is not connected to its account's app state: NOT_CONNECTED.
 func (svc *Service) client(ctx context.Context, id string) (Client, <-chan struct{}, error) {
 	c, online, err := svc.sessions.Online(id)
@@ -142,7 +142,7 @@ func (svc *Service) client(ctx context.Context, id string) (Client, <-chan struc
 func (svc *Service) write(ctx context.Context, id string, client Client, online <-chan struct{}, patch appstate.PatchInfo) error {
 	rec := svc.recovery(id) //nolint:contextcheck // the worker outlives the call: Close ends it, not the call's context
 	if rec == nil {
-		return classify("set the chat state", client.SendAppState(ctx, patch))
+		return svc.result(id, patch, client.SendAppState(ctx, patch))
 	}
 
 	for attempt := range 2 {
@@ -150,7 +150,7 @@ func (svc *Service) write(ctx context.Context, id string, client Client, online 
 
 		err := client.SendAppState(ctx, patch)
 		if err == nil || !outOfStep(err) {
-			return classify("set the chat state", err)
+			return svc.result(id, patch, err)
 		}
 
 		if attempt == 1 && errors.Is(err, whatsmeow.ErrAppStateUpdate) {
@@ -161,7 +161,7 @@ func (svc *Service) write(ctx context.Context, id string, client Client, online 
 		recovered := svc.recoverAfter(ctx, id, rec, client, online, patch.Type, seen)
 
 		if !errors.Is(err, whatsmeow.ErrAppStateUpdate) {
-			// Sent and taken (appstate.go:627-629): only the sync after it failed.
+			// Sent and taken (appstate.go:636-638): only the sync after it failed.
 			if recovered != nil {
 				svc.log.Warn().Str("session_id", id).Str("collection", string(patch.Type)).Err(bare(recovered)).Msg("a chat state write was taken, but its collection is still out of step")
 			}
@@ -174,6 +174,11 @@ func (svc *Service) write(ctx context.Context, id string, client Client, online 
 				return fmt.Errorf("set the chat state: %w", context.Cause(ctx))
 			}
 
+			if errors.Is(recovered, whatsmeow.ErrAppStateRateLimited) {
+				// Rejected, and the full sync that would recover it met the backoff a 429 set (appstate.go:48-50).
+				return fmt.Errorf("set the chat state: %w: %w", server.ErrRateLimited, whatsmeow.ErrAppStateRateLimited)
+			}
+
 			return fmt.Errorf("set the chat state: %w: %w", server.WithMetadata(server.ErrWhatsAppError, "code", conflict), whatsmeow.ErrAppStateUpdate)
 		}
 	}
@@ -181,9 +186,23 @@ func (svc *Service) write(ctx context.Context, id string, client Client, online 
 	return nil
 }
 
+// result is what a send that needs no recovery returned, as the RPC's result. whatsmeow returns
+// ErrAppStateRateLimited from a send only when WhatsApp took the write and the sync after it met the backoff a 429
+// set: the write is done, and nothing is sent or synced again, since a full sync would meet the same backoff
+// (appstate.go:48-50, 636-638).
+func (svc *Service) result(id string, patch appstate.PatchInfo, err error) error {
+	if errors.Is(err, whatsmeow.ErrAppStateRateLimited) {
+		svc.log.Warn().Str("session_id", id).Str("collection", string(patch.Type)).Err(bare(err)).Msg("a chat state write was taken, but WhatsApp holds back the sync after it")
+
+		return nil
+	}
+
+	return classify("set the chat state", err)
+}
+
 // outOfStep is an error of a session's copy of a collection that is out of step with WhatsApp's: one of the MACs that
 // verify it does not match (appstate/errors.go). A missing key is not: a full sync cannot fix it, and whatsmeow asks
-// the phone for it itself (appstate.go:164-166).
+// the phone for it itself (appstate.go:173-175).
 func outOfStep(err error) bool {
 	return errors.Is(err, appstate.ErrMismatchingLTHash) || errors.Is(err, appstate.ErrMismatchingPatchMAC) ||
 		errors.Is(err, appstate.ErrMismatchingContentMAC) || errors.Is(err, appstate.ErrMismatchingIndexMAC)
@@ -193,7 +212,7 @@ func outOfStep(err error) bool {
 // have taken effect: OUTCOME_UNKNOWN. A context error stays one.
 //
 // The error keeps whatsmeow's sentinel or a bare copy of its typed error, never the text whatsmeow wraps around it:
-// a rejected write's text carries WhatsApp's nodes (appstate.go:603-605), and so does an IQ error's (errors.go:216-226).
+// a rejected write's text carries WhatsApp's nodes (appstate.go:612-614), and so does an IQ error's (errors.go:217-227).
 // The status message reaches the application, and an INTERNAL one the error log (server.toStatus).
 func classify(op string, err error) error {
 	var (
@@ -209,10 +228,10 @@ func classify(op string, err error) error {
 	case errors.Is(err, context.DeadlineExceeded):
 		return fmt.Errorf("%s: %w", op, context.DeadlineExceeded)
 	case errors.Is(err, whatsmeow.ErrAppStateUpdate) && outOfStep(err):
-		// whatsmeow's own retry after a 409 found the copy out of step (appstate.go:607-614).
+		// whatsmeow's own retry after a 409 found the copy out of step (appstate.go:616-623).
 		return fmt.Errorf("%s: %w: %w", op, server.WithMetadata(server.ErrWhatsAppError, "code", conflict), whatsmeow.ErrAppStateUpdate)
 	case errors.Is(err, whatsmeow.ErrAppStateUpdate):
-		// WhatsApp's error code is only in the node's text (appstate.go:603-605), which is not kept.
+		// WhatsApp's error code is only in the node's text (appstate.go:612-614), which is not kept.
 		return fmt.Errorf("%s: %w: %w", op, server.ErrWhatsAppError, whatsmeow.ErrAppStateUpdate)
 	case errors.As(err, &iqErr):
 		bare := &whatsmeow.IQError{Code: iqErr.Code, Text: iqErr.Text}
@@ -223,10 +242,10 @@ func classify(op string, err error) error {
 		return fmt.Errorf("%s: %w: %w", op, server.WithMetadata(server.ErrWhatsAppError, "code", fmt.Sprint(iqErr.Code)), bare)
 	case errors.Is(err, whatsmeow.ErrNotConnected), errors.Is(err, socket.ErrSocketClosed):
 		// The write did not go out (request.go:133-141, framesocket.go:128), or it was taken and the sync after it could
-		// not go out: whatsmeow wraps that sync's error without a sentinel to tell the two apart (appstate.go:629).
+		// not go out: whatsmeow wraps that sync's error without a sentinel to tell the two apart (appstate.go:638).
 		return fmt.Errorf("%s: %w: %w", op, server.ErrNotConnected, cause(err))
 	case errors.Is(err, whatsmeow.ErrIQTimedOut):
-		// Also a write taken whose sync after it got no answer (appstate.go:629).
+		// Also a write taken whose sync after it got no answer (appstate.go:638).
 		return fmt.Errorf("%s: %w: %w", op, server.ErrOutcomeUnknown, whatsmeow.ErrIQTimedOut)
 	case errors.As(err, &disconnected):
 		return fmt.Errorf("%s: %w: %w", op, server.ErrOutcomeUnknown, &whatsmeow.DisconnectedError{Action: disconnected.Action})
@@ -252,7 +271,7 @@ func bare(err error) error {
 
 // cause is the error at the end of err's chain: a store or socket error, or whatsmeow's own typed one, without the
 // text whatsmeow wrapped around it. At the pin none of those an app state write ends with names a JID [inferred: read
-// at the pin, appstate.go:548-638, request.go, store/sqlstore/store.go].
+// at the pin, appstate.go:557-647, request.go, store/sqlstore/store.go].
 func cause(err error) error {
 	for {
 		next := errors.Unwrap(err)
@@ -291,7 +310,7 @@ func build(req *whatsmeowv1.SetChatStateRequest) (appstate.PatchInfo, error) {
 }
 
 // mute is a mute until a time, forever, or an unmute. The end is in milliseconds, as whatsmeow writes it
-// (appstate/encode.go:43-69) and reads it (appstate.go:269-276) [inferred: what WhatsApp's other clients write is
+// (appstate/encode.go:43-69) and reads it (appstate.go:278-285) [inferred: what WhatsApp's other clients write is
 // unmeasured; mautrix-whatsapp 5dd621f reads seconds, pkg/connector/handlewhatsapp.go:917].
 func mute(chat types.JID, m *whatsmeowv1.ChatMute) (appstate.PatchInfo, error) {
 	if !m.GetMuted() {
@@ -303,7 +322,7 @@ func mute(chat types.JID, m *whatsmeowv1.ChatMute) (appstate.PatchInfo, error) {
 		return appstate.BuildMuteAbs(chat, true, nil), nil
 	}
 
-	// An end of 0 or less reads as forever (appstate.go:271-275, mautrix's handlewhatsapp.go:915-917).
+	// An end of 0 or less reads as forever (appstate.go:280-284, mautrix's handlewhatsapp.go:915-917).
 	end := m.GetUntil().AsTime().UnixMilli()
 	if end <= 0 {
 		return appstate.PatchInfo{}, fmt.Errorf("mute: %w", server.InvalidArgument("until", "at or before the Unix epoch"))
