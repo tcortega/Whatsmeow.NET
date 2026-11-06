@@ -163,22 +163,12 @@ public sealed class ContactTests(FakeSidecar fixture)
 			},
 			cancellationToken: ct
 		);
-		var ana = new ContactUpdated
-		{
-			SessionId = session,
-			Jid = Lid("950000001"),
-			JidAlt = Pn("5511950000001"),
-			Change = new ContactChange.PushName { Name = "Ana" },
-		};
-		Assert.Equal(ana, await received.NextAsync(ct));
+		Assert.Equal(ContactChecks.PushName(session, Lid("950000001"), Pn("5511950000001"), "Ana"), await received.NextAsync(ct));
 
 		// Reading a business's profile stores its verified name (user.go:269-271).
 		_ = await fixture.Fake.RegisterUserAsync(new RegisterUserRequest { PhoneJid = "5511950000002@s.whatsapp.net", BusinessName = "Bea's Shop" }, cancellationToken: ct);
 		_ = await client.GetUserInfoAsync([Pn("5511950000002")], ct);
-		Assert.Equal(
-			ana with { Jid = Pn("5511950000002"), JidAlt = null, Change = new ContactChange.BusinessName { Name = "Bea's Shop" } },
-			await received.NextAsync(ct)
-		);
+		Assert.Equal(ContactChecks.BusinessName(session, Pn("5511950000002"), "Bea's Shop"), await received.NextAsync(ct));
 
 		// Picture and status notifications.
 		_ = await fixture.Fake.DeliverContactNotificationAsync(
@@ -189,7 +179,7 @@ public sealed class ContactTests(FakeSidecar fixture)
 			},
 			cancellationToken: ct
 		);
-		Assert.Equal(ana with { JidAlt = null, Change = new ContactChange.Picture { Id = "P2" } }, await received.NextAsync(ct));
+		Assert.Equal(ContactChecks.Picture(session, Lid("950000001"), "P2"), await received.NextAsync(ct));
 
 		_ = await fixture.Fake.DeliverContactNotificationAsync(
 			new DeliverContactNotificationRequest
@@ -199,7 +189,7 @@ public sealed class ContactTests(FakeSidecar fixture)
 			},
 			cancellationToken: ct
 		);
-		Assert.Equal(ana with { JidAlt = null, Change = new ContactChange.Picture { Id = null } }, await received.NextAsync(ct));
+		Assert.Equal(ContactChecks.Picture(session, Lid("950000001"), id: null), await received.NextAsync(ct));
 
 		_ = await fixture.Fake.DeliverContactNotificationAsync(
 			new DeliverContactNotificationRequest
@@ -209,7 +199,7 @@ public sealed class ContactTests(FakeSidecar fixture)
 			},
 			cancellationToken: ct
 		);
-		Assert.Equal(ana with { JidAlt = null, Change = new ContactChange.About { Text = "busy" } }, await received.NextAsync(ct));
+		Assert.Equal(ContactChecks.About(session, Lid("950000001"), "busy"), await received.NextAsync(ct));
 
 		// An app state sync brings the saved name.
 		_ = await fixture.Fake.SyncContactAsync(
