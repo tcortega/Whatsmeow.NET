@@ -9,8 +9,9 @@ Eight live runs are recorded below, the failed ones included; only the last one 
 [observed: `provenance.json`, `go-provenance.txt`] Every run used one diagnostic build: client and sidecar from product commit `7be34e3d5dc02176048914980bf194c6fd50f939` with a temporary timing patch, version `0.0.0-alpha.0.999`, never a release.
 The sidecar reports Go 1.27.3, `CGO_ENABLED=0`, `darwin/arm64`, `-trimpath` and whatsmeow `56e5ad0581ce`.
 Its module is `(devel)` with no VCS fields, so `vcs.modified` is not reported, which is not the same as false.
-Every run was at whatsmeow `56e5ad0581ce`; none was run again after the bump to `307a2edf117d` (#148).
-[inferred: #148's upstream diff touches app state, key share logging and `server_sync` handling, no history file] The bump does not change the measured path, but that was not measured.
+Every run was at whatsmeow `56e5ad0581ce`; #148 proposes a bump to `307a2edf117d`, unmerged when this was written, and no run used it.
+[observed: the upstream diff between the two] That bump changes app state, its key share logging and `server_sync` handling, and the history sync schema: a new sync type, `RECENT_CONVERSATIONS_ON_DEMAND`, and the omitted-conversation fields replaced (`WAWebProtobufsHistorySync.proto`).
+[inferred] The live message path from the callback to the handler has no changed file; whether the history delivery measured here behaves the same at that pin is [unknown].
 
 [observed: the diagnostic's source] The start of a sample is a native timestamp at entry to the sidecar's Events callback for the decrypted message, before mapping and the outbox.
 Its end is a native timestamp in .NET after the exact controlled-message filter, just before the sample's compiled `EchoHandler` runs.
@@ -33,7 +34,7 @@ The sender ran in its own sidecar on its persistent store [observed: `driver-fre
 
 | Run | Purpose | Outcome |
 | --- | --- | --- |
-| 11:48:36 | Receiver | No event recorded, its failure suppressed; the reason is [unknown] |
+| 11:48:36 | Receiver | No event recorded; the run failed with its details suppressed, as the driver does by design [observed: the coordinator's run record, the driver's source]; the reason is [unknown] |
 | 11:57:26 | Receiver | Same: no event, byte for byte the same file as 11:48:36 |
 | 12:04:22 | Receiver, first fresh pairing | Paired; 187 history batches over 15 intervals; the 5 pending sends failed at once, so nothing was measured with history pending |
 | 12:18:33 | Error diagnostic, retained session | 1 send, failed with `NotConnected` [observed: `root-error-diagnostic.log`]; no history |
@@ -42,7 +43,9 @@ The sender ran in its own sidecar on its persistent store [observed: `driver-fre
 | 14:28:39 | On-demand history with peer responses, retained session | 1 request with the chat as received, no history and no peer response within 120 s; the second form was skipped, the chat already being in it [observed: `root-ondemand2-analysis.json`] |
 | 15:54:51 | Receiver, second fresh pairing | Completed: below |
 
-[inferred: the sender connected only after `Paired`] Why the 12:04:22 sends failed was not recorded in that run; the 12:18:33 run recorded `NotConnected` directly, and the 15:54:51 driver checks the sender's state before the QR and before each batch.
+[inferred] The 12:04:22 sends failed because the sender connected only after `Paired`.
+That run did not record why: its driver records any exception as a failed send [observed: the driver's source].
+The 12:18:33 run recorded `NotConnected` directly, and the 15:54:51 driver checks the sender's state before the QR and before each batch.
 The retained session brought no history on any reconnect [observed: the 12:18:33 to 14:28:39 rows].
 Why the on-demand requests got nothing is [unknown]; what was checked offline is in the 13:28:25 and 14:28:39 handoffs, not repeated here.
 
@@ -80,14 +83,16 @@ No sidecar memory was sampled on 2026-11-06; the [2026-11-05 samples](0042-hoste
 
 ## Against #42's acceptance criteria
 
-* The sample, its fake-mode check and the telemetry are covered by ADR 0049 and the 2026-11-05 record.
-  The span names are `whatsmeow.process`, which covers the event's handlers, with a `whatsmeow.send` child; the API has no separately named receive or handle spans [observed: `Tracing.cs`].
-* Two sessions echoing on their own, and a disconnect of one not stopping the other: the 2026-11-05 record, a local disconnect of Alice while Bob sent, got `Delivered` and stayed connected [observed: that record].
+* The sample and its fake-mode check: ADR 0049.
+* Telemetry: seen in the 2026-11-05 record, under the names `whatsmeow.process`, which covers the event's handlers, with a `whatsmeow.send` child, and four metrics.
+  The criterion names receive, handle and send spans; the API has no separately named receive or handle spans [observed: `Tracing.cs`], so whether these names meet it is open for the owner.
+* Two sessions echoing on their own, and a disconnect of one not stopping the other: the 2026-11-05 record; while Alice was locally disconnected, Bob's send got `Delivered` and Bob stayed connected or caught up [observed: that record].
   A phone-side logout of one session while the other keeps echoing was not run [unknown].
   The accounts were the owner's personal and Business ones, not dedicated test numbers.
 * Receipt to handler with and without history pending: this record.
 * Memory with two sessions: the 2026-11-05 samples, without a capacity claim.
   What the history options limited: the delivered volumes above, the limiting effect [unknown].
+* Every Phase 3 issue closed: #42 is the milestone's only open issue [observed: milestones API, 2026-11-06], so this holds once #42 closes.
 
 ## Evidence provenance
 
