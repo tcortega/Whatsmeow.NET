@@ -50,6 +50,13 @@ jobs:
           fetch-depth: ${{ inputs.tag == '' && 1 || 0 }}
           persist-credentials: false
 
+      # A published release is installed and checked with its own SDK and tools, whatever this revision pins (ADR 0059).
+      - name: build/ci.sh release-pins
+        if: inputs.tag != ''
+        env:
+          TAG: ${{ inputs.tag }}
+        run: bash build/ci.sh release-pins "$TAG"
+
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
@@ -116,6 +123,13 @@ jobs:
         with:
           fetch-depth: ${{ inputs.tag == '' && 1 || 0 }}
           persist-credentials: false
+
+      # A published release is installed and checked with its own SDK and tools, whatever this revision pins (ADR 0059).
+      - name: build/ci.sh release-pins
+        if: inputs.tag != ''
+        env:
+          TAG: ${{ inputs.tag }}
+        run: bash build/ci.sh release-pins "$TAG"
 
       # musl publishes with the Alpine container's SDK, not the runner's.
       - if: ${{ !startsWith(matrix.rid, 'linux-musl-') }}

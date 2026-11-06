@@ -58,19 +58,46 @@ tree_unchanged() { # before-state what
 	fi
 }
 
-go_toolchain() {
-	local want got
-	want="$(sed -n 's/^toolchain //p' sidecar/go.mod)"
-	if [ "$(sed -n 's/^toolchain //p' tools/go.mod)" != "$want" ]; then
-		annotate error "Go toolchain" "tools/go.mod and sidecar/go.mod pin different toolchains"
+# The go.mod toolchain pins of this checkout, or of a published release's commit when one is given (ADR 0059).
+go_toolchain() { # [release commit]
+	local want got at="${1:+ at $1}"
+	pin() { if [ -n "${1:-}" ]; then git show "$1:$2"; else cat "$2"; fi | sed -n 's/^toolchain //p'; }
+	want="$(pin "${1:-}" sidecar/go.mod)"
+	if [ "$(pin "${1:-}" tools/go.mod)" != "$want" ]; then
+		annotate error "Go toolchain" "tools/go.mod and sidecar/go.mod pin different toolchains$at"
 		return 1
 	fi
 	got="$(go env GOVERSION)"
 	if [ "$got" != "$want" ]; then
-		annotate error "Go toolchain" "go is $got, sidecar/go.mod pins $want; align mise.toml and run mise install"
+		annotate error "Go toolchain" "go is $got, sidecar/go.mod pins $want$at; align mise.toml and run mise install"
 		return 1
 	fi
-	echo "go is $got, as sidecar/go.mod pins"
+	echo "go is $got, as sidecar/go.mod pins$at"
+}
+
+# A published release's version as its tag names it, v<major>.<minor>.<patch>[-<pre-release>], so the tag is never a
+# revision expression or an option; and the tag's commit, in release_commit, which must be on HEAD's line (ADR 0059).
+release_commit_of() { # version
+	local commit
+	release_commit=""
+	if ! [[ "$1" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
+		annotate error "nuget.org" "'$1' is not a release version: <major>.<minor>.<patch>[-<pre-release>]"
+		return 1
+	fi
+	commit="$(git rev-parse -q --verify "refs/tags/v$1^{commit}")"
+	if [ -z "$commit" ] || ! git merge-base --is-ancestor "$commit" HEAD; then
+		annotate error "nuget.org" "no tag v$1 on HEAD's line: fetch the tags, and run the checker at the release or a later commit after it"
+		return 1
+	fi
+	release_commit="$commit"
+}
+
+# The release's tool pins into this checkout, before its tools are installed, so a later checker installs and checks with
+# the release's SDK and Go (install.yml runs it; GOTOOLCHAIN stays local).
+release_pins() { # tag
+	release_commit_of "${1#v}" || return
+	git show "$release_commit:mise.toml" >mise.toml && git show "$release_commit:global.json" >global.json || return
+	echo "mise.toml and global.json are v${1#v}'s ($release_commit)"
 }
 
 buf_breaking() {
@@ -588,15 +615,11 @@ package_origin() { # feed | nuget.org:<version>
 	case "$1" in
 		nuget.org:*)
 			published=nuget.org version="${1#nuget.org:}" origin="$nuget_org" package_source="$work/feed" release_tree="$work/release"
-			release_commit="$(git rev-parse -q --verify "refs/tags/v$version^{commit}")"
-			if [ -z "$version" ] || [ -z "$release_commit" ] || ! git merge-base --is-ancestor "$release_commit" HEAD; then
-				annotate error "nuget.org" "no tag v$version on HEAD's line: fetch the tags, and run the checker at the release or a later commit after it"
-				return 1
-			fi
+			release_commit_of "$version" || return
 			mkdir -p "$package_source" "$release_tree" && git archive "$release_commit" | tar -x -C "$release_tree" || return
-			# The checker's SDK (and its pinned Alpine SDK images) and Go are the release's, or it cannot check it as released.
+			# The SDK and tools installed are the release's, which release-pins arranges before they are installed.
 			if ! cmp -s "$release_tree/global.json" global.json || ! cmp -s "$release_tree/mise.toml" mise.toml; then
-				annotate error "nuget.org" "this revision pins another SDK or tool versions than v$version (global.json, mise.toml): run the checker from a revision with the release's, such as a branch cut from the tag"
+				annotate error "nuget.org" "this checkout pins another SDK or tools than v$version: run bash build/ci.sh release-pins v$version, then mise install, as install.yml does"
 				return 1
 			fi
 			echo "the release's inputs from v$version ($release_commit); the checker is $(git rev-parse HEAD)"
@@ -1050,6 +1073,32 @@ install_alpine() { # path script
 	fi
 }
 
+# Every entry of a tree with its kind: a link with its target (never followed), an executable file (not on Windows, whose
+# checkouts do not keep the bit), a directory, a file.
+tree_listing() { # dir
+	local windows=false
+	case "$(uname -s)" in MINGW* | MSYS* | CYGWIN*) windows=true ;; esac
+	(cd "$1" && find . -mindepth 1 | LC_ALL=C sort | while IFS= read -r e; do
+		if [ -L "$e" ]; then echo "l $e -> $(readlink "$e")"
+		elif [ -d "$e" ]; then echo "d $e"
+		elif [ "$windows" = false ] && [ -x "$e" ]; then echo "x $e"
+		else echo "f $e"; fi
+	done)
+}
+
+# Two trees with the same entries, kinds and link targets, and every file's bytes equal.
+same_tree() { # reference got
+	local a b e
+	a="$(tree_listing "$1")" b="$(tree_listing "$2")" || return
+	if [ "$a" != "$b" ]; then
+		diff <(echo "$a") <(echo "$b") | head -20
+		return 1
+	fi
+	while IFS= read -r e; do
+		case "$e" in f\ * | x\ *) cmp -s "$1/${e#? }" "$2/${e#? }" || { echo "bytes differ: ${e#? }"; return 1; } ;; esac
+	done <<<"$a"
+}
+
 # The source archive holds exactly the release commit's files, byte for byte, plus the vendored modules of sidecar/:
 # compared with that commit's own git archive (HEAD for a feed, the tag for a published release). The vendored modules
 # are checked by source_build (built from them alone) and source_corresponds (the packaged binary's module versions).
@@ -1074,8 +1123,8 @@ source_contents() {
 	fi
 	rm -rf "$got" "$ref" && mkdir -p "$got" "$ref" || return
 	{ tar -xzf "$archive" -C "$got" && rm -rf "${got:?}/$prefix/sidecar/vendor" && git archive "$release_commit" | tar -x -C "$ref"; } || rc=$?
-	if [ "$rc" -eq 0 ] && ! diff -r -q "$ref" "$got/$prefix"; then
-		annotate error "source archive" "$(source_archive_name) holds the files of $release_commit, but not their bytes"
+	if [ "$rc" -eq 0 ] && ! same_tree "$ref" "$got/$prefix"; then
+		annotate error "source archive" "$(source_archive_name) holds the files of $release_commit, but not their bytes, kinds or link targets"
 		rc=1
 	fi
 	rm -rf "$got" "$ref"
@@ -1450,17 +1499,23 @@ job_package() {
 }
 
 usage() {
-	echo "usage: bash build/ci.sh setup|contract|go|dotnet|external|package|all, bash build/ci.sh install <feed>|nuget.org:<version>, or bash build/ci.sh aot <feed>|nuget.org:<version> <rid>" >&2
+	echo "usage: bash build/ci.sh setup|contract|go|dotnet|external|package|all, bash build/ci.sh install <feed>|nuget.org:<version>, bash build/ci.sh aot <feed>|nuget.org:<version> <rid>, or bash build/ci.sh release-pins v<version>" >&2
 	exit 2
 }
 
 case "${1:-}" in
 	install) [ $# -eq 2 ] || usage ;;
 	aot) [ $# -eq 3 ] || usage ;;
+	release-pins) [ $# -eq 2 ] || usage; release_pins "$2"; exit ;;
 	*) [ $# -eq 1 ] || usage ;;
 esac
 
-check "Go from mise equals the go.mod toolchain" go_toolchain || {
+# A published release is checked with its own toolchain (ADR 0059).
+pins_at=""
+case "$1:${2:-}" in
+	install:nuget.org:* | aot:nuget.org:*) release_commit_of "${2#nuget.org:}" || exit 1; pins_at="$release_commit" ;;
+esac
+check "Go from mise equals the go.mod toolchain" go_toolchain ${pins_at:+"$pins_at"} || {
 	echo "fix the toolchain first" >&2
 	exit 1
 }
