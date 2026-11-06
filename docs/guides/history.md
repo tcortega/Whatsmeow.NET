@@ -33,7 +33,7 @@ How large a blob can be is [unknown]; the sidecar holds one in memory at a time 
 WhatsApp only reads them when a device pairs, so they apply to every session paired while the sidecar runs with them, and never to one paired before.
 The [2026-11-05 live run](../evidence/0042-hosted-sample-2026-11-05.md#default-history) records default history delivery [observed].
 Two pairings with `RequestFullSync` and a `FullSyncDaysLimit` of 7 delivered messages more than two years old [observed: the [2026-11-06 record](../evidence/0042-history-timing-2026-11-06.md#history-delivered)]; what each option limits remains [unknown] (§14, #42).
-In a third such pairing, the `Full` type's messages went back 3.2 days while `InitialBootstrap` and `Recent` went back more than two years [observed: the [bounds record](../evidence/0042-history-bounds-2026-11-06.md#history-delivered)]; one configuration does not show that the limit caused it.
+In a third such pairing, the `Full` type's messages went back 3.2 days while `InitialBootstrap` and `Recent` went back more than two years [observed: the [bounds record](../evidence/0042-history-bounds-2026-11-06.md#history-delivered)]; one configuration does not show that the limit caused it (§14, #42).
 
 ## More history on demand
 
