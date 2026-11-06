@@ -10,8 +10,9 @@ Eight live runs are recorded below, the failed ones included; only the last one 
 The sidecar reports Go 1.27.3, `CGO_ENABLED=0`, `darwin/arm64`, `-trimpath` and whatsmeow `56e5ad0581ce`.
 Its module is `(devel)` with no VCS fields, so `vcs.modified` is not reported, which is not the same as false.
 Every run was at whatsmeow `56e5ad0581ce`; #148 proposes a bump to `307a2edf117d`, unmerged when this was written, and no run used it.
-[observed: the upstream diff between the two] That bump changes app state, its key share logging and `server_sync` handling, and the history sync schema: a new sync type, `RECENT_CONVERSATIONS_ON_DEMAND`, and the omitted-conversation fields replaced (`WAWebProtobufsHistorySync.proto`).
-[inferred: the upstream diff read at both pins] Its `message.go` changes are in the handler of app state key shares, and no change was identified in the code from the message's callback to the handler; whether the history delivery measured here behaves the same at that pin is [unknown].
+[observed: the upstream diff and the module cache at both pins] That bump changes app state (the rate-limit backoff, the LTHash check, key share logging, the `server_sync` handler's rate-limited branch) and the reported WhatsApp version, and updates `.proto` sources, the history sync schema among them (a new `RECENT_CONVERSATIONS_ON_DEMAND` type and replaced omitted-conversation fields), while whatsmeow's generated `.pb.go` for them is unchanged.
+[observed: the same diff] Its `message.go` changes are in the handler of app state key shares.
+[inferred] No change was identified in the code from the message's callback to the handler; whether the history delivery measured here behaves the same at that pin is [unknown].
 
 [observed: the diagnostic's source] The start of a sample is a native timestamp at entry to the sidecar's Events callback for the decrypted message, before mapping and the outbox.
 Its end is a native timestamp in .NET after the exact controlled-message filter, just before the sample's compiled `EchoHandler` runs.
