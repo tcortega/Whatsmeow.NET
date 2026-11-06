@@ -135,6 +135,12 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 	/// Branch 1: the business's text carries its push name, which the companion's store did not have. The event's other
 	/// form is the message's <c>SenderAlt</c> when it has one, else what the store pairs the sender with, read before the
 	/// send with the same lookup whatsmeow makes (<c>Device.GetAltJID</c>: contacts.go 252, whatsmeow user.go 688-691).
+	/// On 2026-11-06 the text, sent by the live session, a linked companion, arrived with no push name (ARCHITECTURE
+	/// §14). That run sent no named presence first [inferred: no <c>SendPresence</c> call in its log], which whatsmeow
+	/// documents as how the server gets the push name (presence.go 60-62); whether it would make WhatsApp attach one is
+	/// [unknown], as is a text sent from the phone. So whether the text carried one is logged before any check, and one
+	/// without fails the branch as a missing stimulus, never a skip: the branch stays unfulfilled live until a stimulus
+	/// with a push name exists.
 	/// </summary>
 	private async Task PushNameAsync(IWhatsAppClient client, IWhatsAppClient business, (Jid Chat, Jid? Lid) businessAccount, (Jid Chat, Jid? Lid) peerAccount, CancellationToken ct)
 	{
@@ -150,10 +156,14 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 		_ = await business.SendTextAsync(peerAccount.Chat, Text, id, cancellationToken: ct).ConfigureAwait(false);
 
 		var got = await LiveChecks.WithinAsync(arrival, "the business's text").ConfigureAwait(false);
+		var pushName = got.PushName;
+		live.Write($"live: branch 1's text carried a push name: {pushName is not null}");
 		LiveChecks.Equal(LiveChecks.Received(client, got, businessAccount, id, new TextContent { Text = Text }), got);
 		live.Write($"live: branch 1's text came from a {LiveChecks.Form(got.Source.Sender)} with a {LiveChecks.Form(got.Source.SenderAlt)} beside it");
-		var pushName = got.PushName;
-		Assert.NotNull(pushName);
+		Assert.True(
+			pushName is not null,
+			"pushname_stimulus_missing: the business companion's text carried no push name, so branch 1 has no stimulus and #36's push-name branch stays unfulfilled live"
+		);
 		Assert.NotEmpty(pushName);
 
 		var sender = got.Source.Sender with { Device = 0 };
