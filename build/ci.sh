@@ -587,12 +587,11 @@ source_archive() {
 consumer_setup() { # feed | nuget.org:<version>
 	work="$(mktemp -d)" || return
 	packages="$work/packages"
-	# The host first, so a failure of the origin still reports this RID (fail_rows).
+	package_origin "$1" || return
 	native_host || return
 	host_rid="$native_host_rid"
 	exe=""
 	case "$host_rid" in win-*) exe=.exe ;; esac
-	package_origin "$1" || return
 	cp "$release_tree/global.json" "$work/" || return
 	consumer_config "$origin" >"$work/nuget.config" || return
 	in_consumer dotnet new console -o app -n Consumer || return
@@ -1290,6 +1289,7 @@ install_external() {
 # restore's NU1101/NU1102 lines naming a Whatsmeow package, which say nuget.org did not serve it when restore ran (not why).
 fail_rows() { # JIT|AOT step [log]
 	local rids lines line r
+	# Its own host detection: a failure can come before consumer_setup or job_aot found the host.
 	if [ -z "${native_host_rid:-}" ]; then native_host >/dev/null 2>&1 || true; fi
 	if [ "$1" = JIT ]; then
 		rids="${native_host_rid:-host}"

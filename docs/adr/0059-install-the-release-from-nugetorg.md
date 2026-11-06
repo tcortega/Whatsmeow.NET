@@ -24,10 +24,15 @@ Ours carry no author signature (ADR 0007), so nuget.org signing them the same wa
 The checker revision and the release revision are separate, so a fault in the checker is fixed in a later commit and run against the same tag:
 * The version must be `<major>.<minor>.<patch>[-<pre-release>]`, and the tag `v<version>` must exist and be an ancestor of HEAD, checked before anything is read from it: the checker is the release or a later commit on its line.
 * Every release input comes from the tag's tree, extracted with `git archive` into the consumer's directory: the consumer's `global.json` and `build/package-smoke/Program.cs`, AotSmoke and the `dotnet/Directory.*.props` it reads, the notice and README files the package checks compare, `build/release.sh ids`, the release targets (the release's `tools/check-licenses -targets`), and the Go toolchain `source_build` must use.
-* The SDK and tools installed are the release's: `bash build/ci.sh release-pins v<version>` writes the tag's `mise.toml` and `global.json` into the checkout before they are installed, and the startup Go check reads the tag's `go.mod` pins; `GOTOOLCHAIN` stays `local`, so no toolchain is downloaded.
+* The SDK and tools installed are the release's: `bash build/ci.sh release-pins v<version>` overwrites the checkout's tracked `mise.toml` and `global.json` with the tag's before they are installed, and the startup Go check reads the tag's `go.mod` pins; `GOTOOLCHAIN` stays `local`, so no toolchain is downloaded.
 A checkout whose pins differ from the release's fails with that recovery named.
 The Alpine SDK images, pinned beside `global.json` (whose `rollForward` is `disable`), are the ones the tag's `build/ci.sh` names.
 * `nuget-install.yml` (`workflow_dispatch`, a required tag, `contents: read`, no environment or secret) runs `install.yml` with the tag from the revision it is dispatched on; release.yml's `nuget-install` job runs it after `publish`, on a tag push only, where the checker is the release.
+* Some expectations stay the checker's own, not the release's: `readme_tags`, `native_notices`, `gpl3_sha256`, the fields `packaged_metadata` requires, the layout `packaged_files` expects, and the arguments it passes to the release's `Program.cs` and AotSmoke.
+A later checker must stay compatible with the target release in these, or it fails that release falsely.
+* Evidence for #52: a run counts only when its checker is a commit merged to main after review (the release's own `nuget-install`, where the checker is the release, or `nuget-install.yml` dispatched on such a commit), and the evidence names the checker SHA, the target tag, the run and every required row passing.
+Runs from other refs stay allowed for investigation and count for nothing.
+No branch-name gate: a name proves no review.
 
 What the install job checks in this mode:
 * `nuget.config` has nuget.org alone; restore uses an empty packages folder and, in both modes, an empty HTTP cache.
@@ -41,7 +46,7 @@ That is a presence check of the served file, not a cryptographic verification: `
 
 The aot job checks the tag and its pins, and publishes and runs AotSmoke from nuget.org alone; the package set, origin, nuspec, signature file and source checks are the install job's.
 
-A setup that fails (a restore, an AOT publish) gets one row per RID in the step summary; for nuget.org it adds restore's `NU1101`/`NU1102` lines naming a Whatsmeow package, which say nuget.org did not serve it when restore ran, not why.
+A failure that leaves no per-form row (the release tag, a JIT setup, an AOT setup, publish, layout or run) gets one row per RID it stands for in the step summary, the Alpine RID of its architecture too for a JIT setup on a Linux CI host, whose musl forms then do not run; for nuget.org it adds restore's `NU1101`/`NU1102` lines naming a Whatsmeow package, which say nuget.org did not serve it when restore ran, not why.
 A version nuget.org does not serve yet fails `nuget-install`; re-running its failed jobs retries, and nothing waits or sleeps for it.
 
 The install and aot jobs live in `install.yml`, one matrix for both uses: packaging.yml calls it for its artifact, release.yml and `nuget-install.yml` with a tag.

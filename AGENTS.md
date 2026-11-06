@@ -34,7 +34,7 @@ Everything CI runs is `build/ci.sh`, one subcommand per CI job, on linux-x64, os
 Run it from anywhere before pushing; it runs every check, reports each failure, and fails at the end:
 
 ```sh
-bash build/ci.sh all        # or: setup, contract, go, dotnet, external, package; install <feed>|nuget.org:<version> installs a feed built elsewhere or a published release; aot <feed>|nuget.org:<version> <rid> publishes AotSmoke from it; release-pins v<version> takes a release's tool pins first
+bash build/ci.sh all        # or: setup, contract, go, dotnet, external, package; install <feed>|nuget.org:<version> installs a feed built elsewhere or a published release; aot <feed>|nuget.org:<version> <rid> publishes AotSmoke from it; release-pins v<version> first overwrites the tracked mise.toml and global.json with a release's
 ```
 
 A package change regenerates `packages.lock.json` with a plain `dotnet restore dotnet/Whatsmeow.slnx`; commit it.
