@@ -3,6 +3,7 @@
 Evidence for [#36](https://github.com/tcortega/Whatsmeow.NET/issues/36) AC6, the Contacts FullCycle's push name branch: one run of ADR 0061's stimulus ladder on the persistent live and peer sessions.
 It follows the fresh companion run of 20:55 UTC the same day ([its history record](0042-history-bounds-2026-11-06.md)), whose companion-sent text arrived with no push name (ARCHITECTURE §14, Contacts).
 It records one sequence; it does not show what caused a text to carry a push name, nor what a fresh device gets.
+What a fresh device got after a named presence was measured later, in the [one-day record of 2026-11-07](0042-history-days-limit-2026-11-07.md#contacts-branches-36).
 
 ## Scope and method
 
