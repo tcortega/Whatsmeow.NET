@@ -3,6 +3,7 @@
 Evidence for [#42](https://github.com/tcortega/Whatsmeow.NET/issues/42): the history one fresh pairing delivered, per sync type, with message timestamp bounds, under `RequestFullSync` and a `FullSyncDaysLimit` of 7.
 It follows the [2026-11-05](0042-hosted-sample-2026-11-05.md) and [2026-11-06 timing](0042-history-timing-2026-11-06.md) records, which stay as they were.
 It records what was delivered under one configuration; it does not show what any option caused.
+The [one-day record of 2026-11-07](0042-history-days-limit-2026-11-07.md) later repeated this run with a `FullSyncDaysLimit` of 1, as the one-option change its audit below asks for.
 
 ## Scope and method
 

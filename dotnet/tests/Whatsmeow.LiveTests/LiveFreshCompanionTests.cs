@@ -143,8 +143,9 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 	/// persistent peer, a text before any presence on a connection the test opened anew carried none and the next, after
 	/// a named unavailable presence, carried one (ARCHITECTURE §14, docs/evidence/0036-pushname-stimulus-2026-11-06.md)
 	/// [observed]. So the live session sends a named unavailable presence just before this text, after the reads and the
-	/// waits; a refusal logs its type and code and fails the branch with no text. Whether a fresh companion's text then
-	/// carries a push name is [unknown] until a fresh run, and the presence is a candidate, not a proven cause. Whether
+	/// waits; a refusal logs its type and code and fails the branch with no text. On 2026-11-07 at 01:38 UTC the text then
+	/// carried one and the branch passed (docs/evidence/0042-history-days-limit-2026-11-07.md) [observed]; the presence
+	/// is still a candidate, not a proven cause [inferred]. Whether
 	/// the text carried one is logged before any check, and one without fails the branch as a missing stimulus, never a
 	/// skip. The live session is left unavailable, the state chosen here, not a restore.
 	/// </summary>
