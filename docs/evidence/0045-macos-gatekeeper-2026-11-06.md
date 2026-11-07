@@ -1,7 +1,8 @@
 # macOS Gatekeeper on the packaged sidecar, 2026-11-06
 
 Evidence for [#45](https://github.com/tcortega/Whatsmeow.NET/issues/45), its macOS half, measured on one daily-use Mac.
-It does not complete #45: Windows, a clean Mac, a native Intel desktop and a restore of `whatsmeow-net` from nuget.org are unmeasured.
+It does not complete #45: Windows and a restore of `whatsmeow-net` from nuget.org are unmeasured.
+The owner authorized this Mac in place of the clean Mac #45 names (#11), so this record stands in for that run without being evidence about a clean Mac; a clean Mac, a native Intel desktop, other macOS versions and Q2a to Q2c are unmeasured extras, not #45 gates.
 Every claim is scoped to this host and these packages; an [inferred] or [unknown] claim is an open question, not a result.
 This record is authoritative over the raw results it draws on; the raw claims it corrects are listed under [Superseded raw claims](#superseded-raw-claims).
 Times are the host's local clock, UTC-3, as `log show` printed them.
@@ -117,7 +118,7 @@ Every completed launch printed `sidecar 0.0.0-alpha.0.77, protocol 1`.
 | | osx-x64 framework-dependent | | not run on this Mac: no x64 .NET runtime |
 
 Every arm64 launch printed `process Arm64, OS Arm64`.
-The x64 launches ran under Rosetta [inferred: x86_64-only Mach-O files on Apple silicon, and kernel sandbox lines naming `/private/var/db/oah/` in each x64 window], so they say nothing about native Intel.
+The x64 launches D7, D8 and D9's x64 copies ran under Rosetta [inferred: x86_64-only Mach-O files on Apple silicon, and kernel sandbox lines naming `/private/var/db/oah/` in each of their windows], so they say nothing about native Intel; Q1b's basis is narrower ([Q1b](#q1b-quarantined-x64-sidecar)).
 [observed: `gh run view 42257604502`] The run that built these packages passed `install (osx-x64)` and `aot (osx-x64)` on `macos-26-intel` runners (§11), so osx-x64 consumers, framework-dependent included, started natively on a CI runner; that run recorded no quarantine metadata, so whether the runner's copies carried quarantine, and its Gatekeeper state, are [unknown], as are a native Intel desktop and quarantine on Intel.
 No launch used the client's copy fallback (its isolated directory stayed empty), no sidecar process was left after any case, and the watchdog never fired.
 
@@ -178,16 +179,20 @@ Whether quarantine alone explains the difference from D4 is [unknown].
 
 [observed: `cases/Q1b-sidecar-quarantined-x64-rosetta/` `pre.txt`, `post.txt`, `post-dialog.txt`] The sidecar is the packaged osx-x64 binary (`5866f7e7…`, `not signed at all`), with `com.apple.quarantine` `0081;6aee1751;Safari;F8629C5B-4C12-4A4E-97EB-9C642DA05A44`, synthetic like Q1a's; the apphost `Consumer` is D7's (`6eca4f33…`), ad-hoc signed, with no quarantine.
 Both files had the same SHA-256 and attributes before the launch, after it, and after the dialog closed.
-The copy was prepared with the others and never launched before; Q1b ran at 23:54, almost nine hours after D7 had run the same code from `out/sc-x64` and `spctl` had assessed it, and no assessment ran before or after Q1b.
+The copy was prepared with the others and never launched before Q1b, and no assessment ran before or after Q1b.
+The same sidecar bytes had run earlier that day, in D7 (15:05:11), D8 (15:05:25) and D9's x64 copies (15:06:02 and 15:06:14), and `spctl` had assessed D7's at 15:06 [observed: their `case.txt`, `logs/setup.log`, `logs/M10-copies.txt`, `logs/assess-D-S.txt`]; whether that changed Q1b is [unknown].
 [observed: `host.txt`] The host was unchanged: macOS 26.5.2 (25F84), SIP enabled, `assessments enabled`, XProtect 5371.
+The sidecar is an x86_64-only Mach-O on Apple silicon, so Rosetta is [inferred]; unlike D7, D8 and D9's x64 copies, Q1b's window has no `/private/var/db/oah/` line, and whether any sidecar code ran or was translated is [unknown].
 
-Q1b ran under `case-q1b.sh`, which keeps `case.sh`'s launch, isolation, 90 s cap and log captures, and differs in three ways [observed: the script, hashed below]:
+Q1b ran under `case-q1b.sh`, which keeps `case.sh`'s launch, isolation and 90 s cap, and differs in four ways [observed: the script, hashed below]:
 
 * it refuses to launch unless both files' hashes and attributes are the ones above;
-* it samples only the consumer's PID and its children, and kills only a live child whose path is the Q1b sidecar, on every exit path;
-* it lists CoreServicesUIAgent's on-screen windows, as metadata with no image, before the launch, at 5 s and 20 s, and after the exit.
+* it samples only the consumer's PID and its children, and on every exit path kills only its own PIDs: its consumer (at the cap or in cleanup), a live child whose path is the Q1b sidecar, and its own helpers;
+* it lists CoreServicesUIAgent's on-screen windows, as metadata with no image, before the launch, at 5 s and 20 s, and after the exit;
+* its policy capture adds `process == "oahd"` and kernel `ASP` messages to `case.sh`'s, so no earlier case can be compared on those lines.
 
-The coordinating agent that approved this one launch answered its dialog with a computer-use tool; the owner did not take part [observed: the coordinator's report, `root-report.txt`].
+`oslog-after.txt`, `oslog-after-2.txt`, `post-dialog.txt`, `pids-after.txt` and `root-report.txt` were made by hand after the driver exited, and the `log show` predicate of the two `oslog-after` files is not recorded with them.
+The coordinating agent answered the dialog with a computer-use tool; the owner did not take part [observed: the coordinator's report, `root-report.txt`].
 
 | Time | Source | Logged or observed |
 | --- | --- | --- |
@@ -198,24 +203,30 @@ The coordinating agent that approved this one launch answered its dialog with a 
 | 23:54:23.729 | syspolicyd | `GK evaluateScanResult: 1, PST: (path: 6f89235a3eae2501), (team: (null)), (id: (null)), ...` |
 | 23:54:23.730 | syspolicyd | `Prompt shown (8, 0), waiting for response: PST: (path: 6f89235a3eae2501), ...` |
 | 23:54:23.734 | CoreServicesUIAgent | `present code-evaluation prompt` |
+| 23:54:32 | window list (`windows.t20`) | one CoreServicesUIAgent window, none at 23:54:17 |
 | 23:54:51.246 | `ps.log` | sidecar last seen |
+| 23:54:51.336 | kernel | `(AppleSystemPolicy) ASP: Sleep interrupted: ref 77352, signal 0x100, pid: 86972` |
 | 23:54:51.336 | kernel | `(AppleSystemPolicy) ASP: Security policy would not allow process: 86972, .../copies/Q1b/whatsmeow-net` |
 | 23:54:51.983 | harness | consumer exit 134, after 39.399 s |
-| 23:54:52 to 23:55:01 | window list | the CoreServicesUIAgent window, first listed at 23:54:32, still on screen |
-| 23:55:44.376 | coordinator | read the dialog through accessibility, then invoked its Done button |
+| 23:54:52 | window list (`windows.after`) | the same window still on screen |
+| 23:55:44.376 | coordinator | read the dialog through accessibility, then invoked its Done button; the tool call timed out after 5.8 s, and a follow-up accessibility read timed out |
 | 23:55:45.123 | CoreServicesUIAgent | `(AppKit) performClick:` |
 | 23:55:45.138 | syspolicyd | `Code evaluation completed: 2` and `Adding Gatekeeper denial breadcrumb (direct): PST: (path: 6f89235a3eae2501), ...` |
-| 23:55:46 | window list | no CoreServicesUIAgent window |
+| 23:55:45.171 to .172 | syspolicyd | `Found provenance data on target` and `Created provenance data for target: TA(7dd874d1846aa5ed, 2), PST: (path: 6f89235a3eae2501), ...` |
+| 23:56:02.837 | coordinator | the app inventory lists no CoreServicesUIAgent |
 
 The client threw `SidecarUnavailableException: The sidecar did not start: it printed no ready line within 00:00:30 (exit code 137). It wrote nothing to stderr.`; no process was left after the case, and the client's copy fallback wrote nothing.
 The dialog read "whatsmeow-net" Not Opened, said Apple could not verify that it is free of malware, and offered Help, Move to Trash and Done [observed: the coordinator's accessibility read].
-That names the sidecar, and the prompt and the breadcrumb carry the same path hash, so the prompt was the sidecar's.
-The kernel's ASP line came when the client's timeout killed the sidecar (exit code 137) [inferred: timing], while the prompt was still waiting.
-The coordinator's Done came 54 s later, after both processes had exited, so it could allow or refuse nothing.
-The `performClick:` 0.75 s after it is that click [inferred: timing, and the window was gone at the next listing].
-What `Code evaluation completed: 2` and the breadcrumb record about this file beyond their text is [unknown], and the `temporarySigning` line, in no other case's log, is quoted with its meaning [unknown].
+The prompt was the sidecar's [inferred: the dialog names it, and the prompt and the breadcrumb carry the same path hash].
+The exception's text comes only from the timeout branch of `SidecarProcess.StartAsync`, which kills the process tree before it reads the exit code, and the timer starts before the spawn [observed: `SidecarProcess.cs:121-131` and `:333`, `WhatsmeowSidecar.cs:435`, at `e5cf3b1`].
+ps saw the sidecar for 28.0 s of those 30 s; what took the rest, between the timer's start and the first sample, is [unknown].
+The two ASP lines came when that kill hit the sidecar while the prompt was still waiting [inferred: the code path, exit code 137, and the interrupted ASP sleep in the same millisecond]; what `signal 0x100` means is [unknown].
+The coordinator's Done came 53.0 s after the ASP lines and 52.4 s after the consumer exited, too late to allow or refuse that launch [inferred: both processes had exited].
+The `performClick:` 0.75 s after it is that click [inferred: timing; the tool call itself timed out], and the app inventory at 23:56:02.837 no longer listed CoreServicesUIAgent, which does not mean the process exited.
+What `Code evaluation completed: 2`, the breadcrumb and the provenance lines record about this file beyond their text, and whether they leave state for a later launch of this file or path, are [unknown]; `copies/Q1b` is no longer a first-launch control.
+The `temporarySigning` line, in no other case's log, is quoted with its meaning [unknown].
 No AMFI line names this sidecar, unlike every ad-hoc arm64 launch.
-In this one synthetic case, a quarantined, unsigned x64 sidecar, started under Rosetta [inferred] by an unquarantined app, raised a Gatekeeper prompt and never printed its ready line, and the client gave up at its 30 s `StartupTimeout` with the prompt still on screen.
+In this one synthetic case, a quarantined, unsigned x64 sidecar, spawned by an unquarantined app after launches and an assessment of the same code earlier that day, raised a Gatekeeper prompt and never printed its ready line, and the client gave up at its 30 s `StartupTimeout` with the prompt still on screen.
 Whether it would have run if the prompt had been allowed in time, and whether quarantine alone explains the difference from D7, are [unknown].
 
 ## What this settles, and what it does not
@@ -232,10 +243,10 @@ Whether it would have run if the prompt had been allowed in time, and whether qu
 Unmeasured, so no claim covers them:
 
 * a restore from nuget.org, since nothing is published yet;
-* a clean Mac, a native Intel desktop, and other macOS versions;
+* a clean Mac, a native Intel desktop, and other macOS versions (extras, not #45 gates);
 * osx-x64 framework-dependent on this Mac;
-* Q1a without a prior assessment of the same code, and a repeat launch of one file from one path;
-* Q2a to Q2c: a quarantined app directory, and whether the apphost is refused first;
+* Q1a and Q1b without a prior assessment or launch of the same code, and a repeat launch of one file from one path, such as Q1b's copy, which now has a denial breadcrumb;
+* Q2a to Q2c (extras, not #45 gates): a quarantined app directory, and whether the apphost is refused first;
 * a prompt allowed within `StartupTimeout`, and a prompt nobody answers (Q1b's stayed on screen after its client exited, until it was answered);
 * which tools, transfers or user actions set quarantine on a consumer's machine, beyond the paths measured here;
 * what Q1a's prompt offered, and what each answer does (Q1b's offered Help, Move to Trash and Done; Done came after its process had exited);
@@ -247,6 +258,7 @@ Unmeasured, so no claim covers them:
 
 The measurer's `RESULTS.md` stays as recorded (hash below), and this record wins where they differ.
 A dated private addendum, kept beside the archive below, lists the same corrections.
+Q1b's private addendum is corrected the same way by a later private corrections file (below), and this record wins over both.
 
 * "Ordering: every launch first": the assessments preceded Q1a, on byte-identical code (Method).
 * Every launch "got a syspolicyd `GK performScan` of the apphost, the .NET native libraries and the sidecar": scans appear in each window, the .NET libraries' only in some; only the arm64 `a.out` scan is tied to the sidecar, and that is [inferred].
@@ -263,7 +275,7 @@ A dated private addendum, kept beside the archive below, lists the same correcti
 ## Evidence provenance
 
 The raw records stay private: their OS logs include unrelated activity of a daily-use machine, and their scripts and paths name the host.
-They were recorded in `/tmp/whatsmeow-issues/45-mac-current/` on the measuring Mac, which still holds them unchanged; Q1b later added 29 files there and changed none.
+They were recorded in `/tmp/whatsmeow-issues/45-mac-current/` on the measuring Mac, which still holds them unchanged; Q1b later added 29 files there, its review corrections one more, and neither changed any.
 Since `/tmp` may not last, a private archive of that whole directory, every file with its extended attributes, is kept outside git in `~/Library/Application Support/Whatsmeow.NET/evidence/` (directory 0700, files 0600).
 
 | Private artifact | SHA-256 |
@@ -273,15 +285,18 @@ Since `/tmp` may not last, a private archive of that whole directory, every file
 | `45-mac-current-addendum-2026-11-06.md`, the dated addendum | `94a2b98a3af0f8fcf313bef9f7ab8f47c701e91bf3e8b97d65977b2cd78c0daa` |
 
 The file digest is `find 45-mac-current -type f | LC_ALL=C sort | while read -r f; do printf '%s  %s\n' "$(shasum -a 256 "$f" | cut -d' ' -f1)" "$f"; done | shasum -a 256`, run in `/tmp/whatsmeow-issues`; the archive's members, hashed while streamed, give the same list.
-With Q1b's 29 files left out, the directory still gives the 4,901 files' digest.
+With those 30 files left out, the directory still gives the 4,901 files' digest, which checks their content; their extended attributes were not re-checked, beyond the two Q1b files'.
 
 | Q1b private artifact | SHA-256 |
 | --- | --- |
 | `45-mac-q1b-2026-11-07.tar.gz`, Q1b's archive, 49,023 bytes | `98ebd47f5e1dd911ea980b08e501dca5cbc9cf701c1e1bf3776d5e756d537fbc` |
 | Its 29 files, by the same command over their list | `0cfd482d6735c73f13591a6c82de38ab8266df4acf880385dab3c5d7d75b289f` |
 | `45-mac-q1b-addendum-2026-11-07.md`, Q1b's dated addendum | `2f00ac0cf7f3a7ac4dcefcddfd83b206957e8922887807ed1669e784a800bbe1` |
+| `45-mac-q1b-corrections-2026-11-07.md`, corrections to that addendum, not in the archive | `df72ecbc95e2b0d943e15e60fe82c417bb6a24805370bcfe00e7f2fb96529cce` |
 
 Q1b's 29 files are `q1b-plan.md`, `RESULTS-Q1b-addendum-2026-11-07.md`, `scripts/case-q1b.sh`, `scripts/uiagent-windows.swift` and its build `scripts/uiagent-windows`, `logs/Q1b-run.txt`, and the 23 files of `cases/Q1b-sidecar-quarantined-x64-rosetta/`.
+The Q1b archive also holds an AppleDouble `._*` member per file, carrying its extended attributes: a generic tar reader sees 58 members, macOS `tar -t` shows 29, and the list matches once the `._*` members are left out.
+The corrections file is also in the measurement directory, as `RESULTS-Q1b-corrections-2026-11-07.md`.
 
 | Artifact | SHA-256 |
 | --- | --- |
@@ -316,5 +331,6 @@ Q1b's 29 files are `q1b-plan.md`, `RESULTS-Q1b-addendum-2026-11-07.md`, `scripts
 
 The `cases/` digest is `find cases -type f | LC_ALL=C sort | xargs shasum -a 256 | shasum -a 256`, run in the measurement directory before Q1b; Q1b's directory digest is the same command over it.
 To repeat the measurement: download the run's `native-packages` artifact, then run `setup.sh`, the preparation above, and `case.sh <id> <dir> <command>` per case; the scripts hard-code the measurement directory and the host's `DOTNET_ROOT`.
+`copies/Q1b` is no longer a first-launch control: a repeat of Q1b needs a fresh copy.
 Do not reuse `case.sh`'s cleanup as it is: it kills leftover processes it selects by path pattern, and a rerun should kill only the exact PIDs it started.
 It killed nothing in these runs; `case-q1b.sh` kills only its own PIDs, and killed nothing either.
