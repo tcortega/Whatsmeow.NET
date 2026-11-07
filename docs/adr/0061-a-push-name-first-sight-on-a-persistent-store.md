@@ -73,24 +73,25 @@ Whether an earlier run read those rows, and whether the peer's store has the bus
   That output stays private, and only the redacted `live:` lines are evidence.
 * The fresh companion test is unchanged except that its two store pair assertions now redact their failure output, as the ladder's do.
 
-## Addendum, 2026-11-06: the fresh companion sends a named presence before its text
+## Addendum, 2026-11-06: the live sender sends a named presence before its text to the fresh companion
 
 * Evidence: [the 2026-11-06 stimulus record](../evidence/0036-pushname-stimulus-2026-11-06.md), root's approval of this follow-up, whatsmeow at `307a2edf117d`
 * Amends: [ADR 0060](0060-a-live-test-control-and-a-fresh-companion.md) (the push name step), this ADR's last Consequence (the fresh companion test is no longer unchanged)
 
 ### Context
 
-The ladder's one run, at 23:39 UTC on main `03f26c8`, sent two texts from the live session on a new connection: the first, with no presence before it, carried no push name, and the second, after a named unavailable presence, carried one [observed: the record].
+The ladder's one run, at 23:39 UTC on main `03f26c8`, sent two texts from the live session: the first carried no push name, and the second, after a named unavailable presence, carried one [observed: the record].
+That the first went on a new connection with no presence sent on it holds by construction, from the test's restart of the live sidecar (`LiveContactsTests.cs:134-137`) and the source below, not from the log [observed: source].
 The peer's rows already had the push name, so it failed `pushname_precondition_spent` and checked no change [observed: the record].
 The fresh companion's text of 20:55 UTC carried none, with no `SendPresence` call in its log [observed: ARCHITECTURE §14, Contacts; inferred: no presence sent].
 So a named presence is the one measured candidate for the fresh step's missing stimulus; that it causes `notify` is [inferred], and what a fresh device gets after one is [unknown].
-At the pin, `SendPresence` always puts the stored push name in `name`, and the sidecar calls it only for the `SendPresence` RPC (presence.go:64-87, `internal/presence/presence.go:64`) [observed: source].
+At the pin, `SendPresence` puts the stored push name in `name` on the normal WhatsApp path this sidecar uses, since only a `MessengerConfig`, which the sidecar never sets, leaves it out; the sidecar calls it only for the `SendPresence` RPC, and whatsmeow never calls it itself (presence.go:64-87, `internal/presence/presence.go:64`) [observed: source].
 A received presence stores no push name (presence.go:18-58) [observed: source].
 
 ### Decision
 
 * `LiveFreshCompanionTests`' push name step (branch 1) has the live session send a named unavailable presence immediately before its text, after the companion's rows and pairs are read and its arrival and change waits are armed, with the step's token, and logs only that it was sent.
-* A refused presence fails the step with its exception, as any failed call there does; the step sends no text then.
+* A refused presence logs its exception type and `ErrorCode`, never an identifier, as the ladder does, then fails the step with that exception; the step sends no text then.
 * Nothing else changes: the precondition read, the no-push-name failure (`pushname_stimulus_missing`), the whole-record `ContactChecks.PushName` equality, and branch 2 before it.
   No cached name stands in for the text's, and About, the saved name and the business name stay as ADR 0060 and #153 leave them.
 * Unavailable is the state chosen for the live session from then on, the one the other live tests leave it in, not a restore of a state the test read: its earlier presence is [unknown].

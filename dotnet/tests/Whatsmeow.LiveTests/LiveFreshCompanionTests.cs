@@ -140,12 +140,13 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 	/// send with the same lookup whatsmeow makes (<c>Device.GetAltJID</c>: contacts.go 252, whatsmeow user.go 688-691).
 	/// On 2026-11-06 at 20:55 UTC the text, sent by the live session, a linked companion, arrived with no push name, and
 	/// that run sent no named presence first [inferred: no <c>SendPresence</c> call in its log]. At 23:39 UTC, on the
-	/// persistent peer, a text before any presence on a new connection carried none and the next, after a named unavailable
-	/// presence, carried one (ARCHITECTURE §14, docs/evidence/0036-pushname-stimulus-2026-11-06.md) [observed]. So the
-	/// live session sends a named unavailable presence just before this text, after the reads and the waits; whether a
-	/// fresh companion's text then carries a push name is [unknown] until a fresh run, and the presence is a candidate, not
-	/// a proven cause. Whether the text carried one is logged before any check, and one without fails the branch as a
-	/// missing stimulus, never a skip. The live session is left unavailable, the state chosen here, not a restore.
+	/// persistent peer, a text before any presence on a connection the test opened anew carried none and the next, after
+	/// a named unavailable presence, carried one (ARCHITECTURE §14, docs/evidence/0036-pushname-stimulus-2026-11-06.md)
+	/// [observed]. So the live session sends a named unavailable presence just before this text, after the reads and the
+	/// waits; a refusal logs its type and code and fails the branch with no text. Whether a fresh companion's text then
+	/// carries a push name is [unknown] until a fresh run, and the presence is a candidate, not a proven cause. Whether
+	/// the text carried one is logged before any check, and one without fails the branch as a missing stimulus, never a
+	/// skip. The live session is left unavailable, the state chosen here, not a restore.
 	/// </summary>
 	private async Task PushNameAsync(IWhatsAppClient client, IWhatsAppClient business, (Jid Chat, Jid? Lid) businessAccount, (Jid Chat, Jid? Lid) peerAccount, CancellationToken ct)
 	{
@@ -160,8 +161,18 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 		const string Text = "wmn fresh companion";
 		var arrival = LiveChecks.ArrivalAsync(client, id, ct);
 		var change = client.WaitForAsync<ContactUpdated>(e => LiveChecks.Names(businessAccount, e.Jid) && e.Change is ContactChange.PushName, LiveChecks.Watch, ct);
-		// Named, as whatsmeow sends every presence (presence.go 64-87); unavailable is the state the live session is left in.
-		await business.SendPresenceAsync(PresenceState.Unavailable, ct).ConfigureAwait(false);
+		// Named, as whatsmeow sends a presence without a MessengerConfig, which the sidecar never sets (presence.go 64-87);
+		// unavailable is the state the live session is left in.
+		try
+		{
+			await business.SendPresenceAsync(PresenceState.Unavailable, ct).ConfigureAwait(false);
+		}
+		catch (WhatsmeowException e)
+		{
+			live.Write($"live: branch 1's named unavailable presence: refused, {e.GetType().Name} {e.ErrorCode}; no text sent");
+			throw;
+		}
+
 		live.Write("live: branch 1's named unavailable presence: sent");
 		_ = await business.SendTextAsync(peerAccount.Chat, Text, id, cancellationToken: ct).ConfigureAwait(false);
 
