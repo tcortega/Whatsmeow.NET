@@ -1200,9 +1200,9 @@ The client logged no skipped history; the sidecar's progress events counted 45 s
 [observed: the linked record] The [one-day record](evidence/0042-history-days-limit-2026-11-07.md) repeats the bounds run with a `FullSyncDaysLimit` of 1 and nothing else in the options changed, at `2768e55` and the same whatsmeow pin, with message age counts per batch.
 Its 210 batches and 52,154 entries closed on a quiet window 666 s after pairing: `Full` 23 entries, all within 1 day, the oldest 0.949 days before pairing; `InitialBootstrap` 997 and `Recent` 51,134, each back to 858.204 days, with 146 and 5,005 messages 1 to 7 days old.
 The client logged no skipped history; the sidecar's progress events counted 37 skipped, and `Recent` 79 more entries than its message counts.
-[observed] The days limit did not cap `InitialBootstrap` or `Recent`, under 1 day or 7.
-[inferred, n = 1 per configuration] With the seven-day run's `Full` at 3.187 days, that the limit bounds `Full` is the supported reading, not a proven cause; whether WhatsApp held any of the delivered 1 to 7 day messages eligible for `Full` is [unknown].
-Time, account state, the harness and a 1.023 s hold also differ between the two runs; the size and quota options stay [unknown].
+[observed] In the two runs the days limit did not cap the ages `InitialBootstrap` and `Recent` delivered, under 1 day or 7; any other effect on them is [unknown].
+[inferred, one pairing per days value] With the seven-day run's `Full` at 3.187 days, that the limit bounds `Full` is the supported reading, not a proven cause; whether WhatsApp held any of the delivered 1 to 7 day messages eligible for `Full` is [unknown].
+Time, account state, the harness and a 1.023 s hold also differ between the two runs; the size and quota options, never requested or varied, stay [unknown].
 
 ### Licence audit (2026-10-31)
 

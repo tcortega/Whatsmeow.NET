@@ -30,7 +30,7 @@ A quiet window is observed silence, not proof that the phone had nothing more to
 
 ## History delivered
 
-[observed: `records.jsonl`, recomputed independently and equal to `analysis.json`] Entries are delivered entries, not unique messages; times are UTC; observed is when the record's handler saw the type's first and last batch, in seconds after `Paired`.
+[observed: `records.jsonl`, recomputed independently and equal to `analysis.json`] Entries are delivered entries, not unique messages; message times are UTC; observed is when the record's handler saw the type's first and last batch, in seconds after `Paired` on the monotonic clock (`MonoNs`), the clock of the window's close.
 
 | Sync type | Batches | Entries | Oldest message | Newest message | Oldest, days | Up to 1 d | 1 to 3 d | 3 to 7 d | Over 7 d | Observed |
 | --- | ---: | ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
@@ -52,15 +52,18 @@ Which of the reasons the bounds record lists each one is, is [unknown].
 
 ## What the one-day limit limited
 
-[observed: `/tmp/whatsmeow-issues/42-next-decision-result.md` §4, SHA-256 `c7cf475ec5c60d9e33a6bb3c501d54763563ba9fbf5b66abf9fafc8e08ac140e`] The outcome was pre-registered before the run; this run matches its row "`Full` oldest at most 1 day, and `Recent` has 1 to 7 day messages".
+[observed: `42-next-decision-result.md` §4, in the durable evidence directory, provenance below] The outcome was pre-registered before the run: the file's birth time is 2026-11-06 22:21:27 UTC, 3 h 17 min before the pairing [observed: `stat` of the durable copy, whose source timestamps root preserved].
+This run matches its row "`Full` oldest at most 1 day, and `Recent` has 1 to 7 day messages".
 
 * [observed: this run] Under a 1-day limit, `Full` stayed within 1 day (oldest 0.949 days), while the same run delivered 5,005 messages 1 to 7 days old in `Recent` and 146 in `InitialBootstrap`.
 * [observed: the baseline] Under a 7-day limit, at the same pin, `Full` went back 3.187 days.
-* [inferred, n = 1 per configuration] So "the days limit bounds `Full`" is the supported reading; it is not proven.
+* [inferred, one pairing per days-limit value at this pin] So "the days limit bounds `Full`" is the supported reading; it is not proven.
   Messages delivered in `Recent` or `InitialBootstrap` show the account had 1 to 7 day content in this run; whether WhatsApp counted any of it eligible for `Full` is [unknown].
-* [observed: this run and the baseline] The days limit did not cap `InitialBootstrap` or `Recent`: under 1 day, 697 of 997 and 48,058 of 51,134 entries were more than 1 day old; under 7 days, both went back 858 days.
-* [observed: the bounds record's table, this run] `Full` arrived in each of the four full-sync pairings and in none under the defaults on 2026-11-05; those pairings differ in more than that option, so that `RequestFullSync` causes `Full` is [inferred].
-* [unknown] `FullSyncSizeLimitMegabytes` and `StorageQuotaMegabytes`: never set or varied in any #42 run.
+* [observed: this run and the baseline] In these two runs the days limit did not cap the ages `InitialBootstrap` and `Recent` delivered: under 1 day, 697 of 997 and 48,058 of 51,134 entries were more than 1 day old; under 7 days, both went back 858 days.
+  Any other effect of the limit on them is [unknown].
+* [observed: the bounds record's table, this run, the 2026-11-05 record and its raw `echobot.log` and `driver.log`] On Alice's account, `Full` arrived in each of the four full-sync pairings, at two pins, and in none of the one defaults pairing on 2026-11-05; Bob's defaults pairing that day, another account, had no `Full` either.
+  This contrast is apart from the same-pin days comparison: the pairings differ in pin, time, harness and the days limit too, so that `RequestFullSync` causes `Full` is [inferred].
+* [unknown] `FullSyncSizeLimitMegabytes` and `StorageQuotaMegabytes`: never explicitly requested or varied in any #42 run; the quota resolved to whatsmeow's default 10,240 MB each time, read from the source.
 * Not claimed: wire behaviour, why `Full` had 23 entries against 119, why this run's delivery was shorter, or the completeness of WhatsApp's history.
 
 ### Against the baseline
@@ -87,7 +90,7 @@ Which of the reasons the bounds record lists each one is, is [unknown].
 * Harness: 5 commits from `377cac2` to `2768e55`, 21 files, none under `sidecar/` [observed: `git diff --stat`]; they add the days variable, the age counts, and the named presence before the push name text, which made the hold.
 * The hold kept the record's events for 1.023 s; it stops no download (ADR 0060), and the baseline had none.
 * The baseline has no age counts, so the within-run control exists for this run only.
-* n = 1 per configuration, and `Full` came in one batch each time.
+* One pairing per days-limit value, and `Full` came in one batch each time.
 
 ## Contacts branches (#36)
 
@@ -118,7 +121,7 @@ Which of the reasons the bounds record lists each one is, is [unknown].
 * Telemetry: met in the 2026-11-05 record, `whatsmeow.process` with a `whatsmeow.send` child and four metrics, by the coordinator's 2026-11-06 reading of the span names ([timing record](0042-history-timing-2026-11-06.md#against-42s-acceptance-criteria)).
 * Memory with two sessions: met by the [2026-11-05 samples](0042-hosted-sample-2026-11-05.md#sidecar-resident-memory), a local `CGO_ENABLED=1` build, no capacity claim.
   What the history options limited: met under the pre-registered reading, above.
-  For each option the runs set, what it did or did not limit is `[observed]` per sync type, its cause `[inferred]` where only two configurations bear on it, and the options never set are `[unknown]`.
+  For each option the runs set, what it did or did not limit is `[observed]` per sync type, its cause `[inferred]` (one pairing per days-limit value; four full-sync against one defaults pairing of Alice for `RequestFullSync`), and the options never requested are `[unknown]`.
 * Every Phase 3 issue closed: #42 is the milestone's only open issue [observed: milestones API, 2026-11-07].
 
 Every criterion now maps to evidence; closing #42 is the owner's decision.
@@ -129,6 +132,7 @@ Root retained the files privately under run identifier `42-days1-20261107`, iden
 [observed: `manifest.json`, `receipt.json`] The manifest's hashes match the files, and the receipt's SHA-256 and line count, 238, match `records.jsonl`.
 The analyzer, run again on `records.jsonl` with `receipt.json` beside it as `records.jsonl.receipt.json`, gives `analysis.json` byte for byte.
 The branch lines are in `159-branches-sanitized.log` beside that directory, identical in both places.
+The pre-registration is `42-next-decision-result.md` in `~/Library/Application Support/Whatsmeow.NET/evidence/`, root's byte-identical copy with its source timestamps.
 
 | Artifact | SHA-256 |
 | --- | --- |
@@ -139,4 +143,5 @@ The branch lines are in `159-branches-sanitized.log` beside that directory, iden
 | `report.md` | `312555787838be332eebfec58e0c32523836ce53240ecce89a22a96e835aa8ec` |
 | `manifest.json` | `f9fff2f9e5fff67bfa7d3b431f6717e9ec19db6147e7fc54d3e00b6601433074` |
 | `159-branches-sanitized.log` | `5e485182ed99a59bb6c2539b6c6a7d8ddcc69f0535014b35e5dab12e85773abe` |
+| `42-next-decision-result.md` | `c7cf475ec5c60d9e33a6bb3c501d54763563ba9fbf5b66abf9fafc8e08ac140e` |
 | `analyze-histbounds.py` v3.1 | `fc3e4978c0cd8bad7c5d8c36941bedfee65619c7970617296742f6ecd194d18a` |

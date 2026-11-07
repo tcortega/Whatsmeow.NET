@@ -144,10 +144,10 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 	/// a named unavailable presence, carried one (ARCHITECTURE §14, docs/evidence/0036-pushname-stimulus-2026-11-06.md)
 	/// [observed]. So the live session sends a named unavailable presence just before this text, after the reads and the
 	/// waits; a refusal logs its type and code and fails the branch with no text. On 2026-11-07 at 01:38 UTC the text then
-	/// carried one and the branch passed (docs/evidence/0042-history-days-limit-2026-11-07.md) [observed]; the presence
-	/// is still a candidate, not a proven cause [inferred]. Whether
-	/// the text carried one is logged before any check, and one without fails the branch as a missing stimulus, never a
-	/// skip. The live session is left unavailable, the state chosen here, not a restore.
+	/// carried one and the branch passed (docs/evidence/0042-history-days-limit-2026-11-07.md) [observed]; that the
+	/// presence caused it is [inferred]. Whether the text carried one is logged before any check, and one without fails
+	/// the branch as a missing stimulus, never a skip. The live session is left unavailable, the state chosen here, not a
+	/// restore.
 	/// </summary>
 	private async Task PushNameAsync(IWhatsAppClient client, IWhatsAppClient business, (Jid Chat, Jid? Lid) businessAccount, (Jid Chat, Jid? Lid) peerAccount, CancellationToken ct)
 	{

@@ -35,9 +35,11 @@ The [2026-11-05 live run](../evidence/0042-hosted-sample-2026-11-05.md#default-h
 Two pairings with `RequestFullSync` and a `FullSyncDaysLimit` of 7 delivered messages more than two years old [observed: the [2026-11-06 record](../evidence/0042-history-timing-2026-11-06.md#history-delivered)].
 In a third such pairing, the `Full` type's messages went back 3.2 days while `InitialBootstrap` and `Recent` went back more than two years [observed: the [bounds record](../evidence/0042-history-bounds-2026-11-06.md#history-delivered)].
 With a `FullSyncDaysLimit` of 1, `Full` went back 0.95 days, while the same pairing's `InitialBootstrap` and `Recent` still went back more than two years, with messages 1 to 7 days old among them [observed: the [one-day record](../evidence/0042-history-days-limit-2026-11-07.md#what-the-one-day-limit-limited)].
-So the days limit does not limit `InitialBootstrap` or `Recent` [observed]; that it limits `Full`, and that `RequestFullSync` brings `Full` at all, are [inferred] from one pairing per setting (§14, #42).
-Do not count on it to bound everything a new session receives.
-What `FullSyncSizeLimitMegabytes` and `StorageQuotaMegabytes` change is [unknown]: no run varied them.
+In those two pairings the days limit did not cap the ages of the `InitialBootstrap` and `Recent` messages delivered [observed]; whether it has some other effect on them is [unknown].
+That it limits `Full` is [inferred] from one pairing per days value at the same whatsmeow version (§14, #42).
+That `RequestFullSync` brings `Full` at all is [inferred] too: four full-sync pairings of one account had `Full` and its one defaults pairing had none, but they differ in more than that option.
+Do not count on the days limit to bound everything a new session receives.
+What `FullSyncSizeLimitMegabytes` and `StorageQuotaMegabytes` change is [unknown]: no run requested or varied them, so the quota was whatsmeow's default.
 
 ## More history on demand
 
