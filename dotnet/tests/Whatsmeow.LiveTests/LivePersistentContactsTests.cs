@@ -1,6 +1,8 @@
+using Whatsmeow.Core.Errors;
 using Whatsmeow.Events;
 using Whatsmeow.IntegrationTests.Contacts;
 using Whatsmeow.IntegrationTests.Support;
+using Whatsmeow.LiveTests.Control;
 using Whatsmeow.Presence;
 
 namespace Whatsmeow.LiveTests;
@@ -9,7 +11,7 @@ namespace Whatsmeow.LiveTests;
 /// #36's Contacts FullCycle on the persistent sessions, on opt-in only (ADR 0062): the peer (the owner's personal account)
 /// is the receiver of every branch, and the live session (the business account) the subject, checked with the fake-mode
 /// tests' own records (<see cref="ContactChecks"/>) through the shared <see cref="ContactsCycle"/>, which its fake-mode
-/// tests check. No QR code, no new session, no logout, no deletion, no profile change.
+/// tests check. No QR code, no new session, no logout, no deletion, and no profile change but branch 5's, on consent.
 /// <para>
 /// The persistent stores have seen the business: its push name and its business name are on both of the peer's rows
 /// [observed: root's #153 measurement of 2026-11-08, 03:36 and 03:38 UTC, before connecting and after catch-up].
@@ -19,8 +21,9 @@ namespace Whatsmeow.LiveTests;
 /// Those failures are the verdict, not a skip: this test passes only when every branch passed.
 /// </para>
 /// <para>
-/// Branch 5 (about) needs an account-wide profile change that is not authorized, so it fails <c>about_not_authorized</c>
-/// with no stimulus. Branch 6 compares the peer's phone number row of the business whole, with the saved name the owner
+/// Branch 5 (about) changes the business account's about text once and puts the text back (<see cref="AboutChange"/>,
+/// ADR 0063), only with the owner's consent (<see cref="LiveSettings.AboutConsentVariable"/>); without it, it fails
+/// <c>about_not_authorized</c> before it reads or sets anything. Branch 6 compares the peer's phone number row of the business whole, with the saved name the owner
 /// stated (<see cref="LiveSettings.PeerSavedNameVariable"/>), and the names this run's text and answer carried; without
 /// one it fails, and the store's value never stands in. No failure prints a name.
 /// </para>
@@ -117,7 +120,7 @@ public sealed class LivePersistentContactsTests(LiveSidecar live, LivePeer peer,
 								Then =
 								[
 									new FreshStep { Name = "branches 3 and 4, picture", Run = t => LiveGroupPhoto.SetAndRemoveAsync(live, group, receiver, t) },
-									new FreshStep { Name = "branch 5, about", Run = AboutAsync },
+									new FreshStep { Name = "branch 5, about", Run = t => AboutAsync(receiver, business, businessAccount, t) },
 								],
 								SavedName = LiveSettings.PeerSavedName,
 								Redacting = LiveChecks.Redacting,
@@ -145,10 +148,32 @@ public sealed class LivePersistentContactsTests(LiveSidecar live, LivePeer peer,
 		return Task.CompletedTask;
 	}
 
-	/// <summary>Branch 5: no authorized stimulus, so it fails, never passes and never changes a profile (ADR 0062).</summary>
-	private static Task AboutAsync(CancellationToken _)
-	{
-		Assert.Fail("about_not_authorized: changing the business account's about text needs the owner's consent, which this run does not have, so branch 5 was not run");
-		return Task.CompletedTask;
-	}
+	/// <summary>
+	/// Branch 5 (ADR 0063): without the owner's consent (<see cref="LiveSettings.AboutConsentVariable"/>) it fails before it
+	/// reads or sets anything; with it, the live session changes its account's about text once through the live tests'
+	/// control and puts the original text back, checked by its own read, and the peer must get the change.
+	/// </summary>
+	private async Task AboutAsync(IWhatsAppClient receiver, IWhatsAppClient business, (Jid Chat, Jid? Lid) businessAccount, CancellationToken ct) =>
+		await AboutChange
+			.RunAsync(
+				new AboutRun
+				{
+					Consented = LiveSettings.AboutConsent,
+					Receiver = receiver,
+					Subject = businessAccount,
+					ReadOwnProfileAsync = (jid, t) => business.GetUserInfoAsync([jid], t),
+					SetAsync = async (text, t) =>
+					{
+						var control = await live.ContactControlAsync(t).ConfigureAwait(false);
+						_ = await RpcErrors.CallAsync(control.SetAboutAsync(new SetAboutRequest { SessionId = LiveSidecar.LiveSessionId, Text = text }, cancellationToken: t)).ConfigureAwait(false);
+					},
+					Stimulus = () => $"{AboutChange.StimulusPrefix}{LiveClock.Time.GetUtcNow():yyyyMMddHHmmss}",
+					CallBound = AboutChange.CallBound,
+					Watch = LiveChecks.Watch,
+					Time = LiveClock.Time,
+					Log = line => live.Write($"live: {line}"),
+				},
+				ct
+			)
+			.ConfigureAwait(false);
 }

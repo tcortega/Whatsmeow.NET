@@ -59,6 +59,14 @@ internal static class LiveSettings
 	public const string PeerSavedNameVariable = "WHATSMEOW_LIVE_PEER_SAVED_NAME";
 
 	/// <summary>
+	/// Set to exactly <c>text-only</c> (<see cref="AboutChange.ConsentValue"/>) when the owner consented to the Contacts
+	/// FullCycle's about branch (ADR 0063): one change of the business account's about text by the live session, put back
+	/// as text only, the owner having said it has no emoji and no expiry. Any other value, or none, and the branch fails
+	/// before it reads or sets anything; it is not an opt-in, so the test still runs without it.
+	/// </summary>
+	public const string AboutConsentVariable = "WHATSMEOW_LIVE_ABOUT_CONSENT";
+
+	/// <summary>
 	/// A new database file for the fresh companion of the peer's account (<see cref="LiveFresh"/>, ADR 0060): the opt-in
 	/// for the one test that asks for a QR scan every run. The test creates the file and refuses one that exists.
 	/// </summary>
@@ -125,6 +133,9 @@ internal static class LiveSettings
 
 	/// <summary>The peer's saved name of the live account, or null when not given.</summary>
 	public static string? PeerSavedName { get; } = Environment.GetEnvironmentVariable(PeerSavedNameVariable);
+
+	/// <summary>Whether the owner's consent to the about branch was given, by its one value.</summary>
+	public static bool AboutConsent { get; } = Environment.GetEnvironmentVariable(AboutConsentVariable) == AboutChange.ConsentValue;
 
 	/// <summary>Whether the owner is at the phone.</summary>
 	public static bool Owner { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(OwnerVariable));

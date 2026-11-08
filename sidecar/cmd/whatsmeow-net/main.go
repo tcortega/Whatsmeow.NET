@@ -284,7 +284,9 @@ func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, op
 	defer sessions.Close()
 
 	whatsmeowv1.RegisterSessionServiceServer(srv, sessions)
-	whatsmeowv1.RegisterContactServiceServer(srv, contacts.New(sessions))
+	contactService := contacts.New(sessions)
+	whatsmeowv1.RegisterContactServiceServer(srv, contactService)
+	contacts.RegisterLive(srv, contactService)
 	whatsmeowv1.RegisterPresenceServiceServer(srv, presence.New(sessions))
 	groupService := groups.New(sessions)
 	whatsmeowv1.RegisterGroupServiceServer(srv, groupService)

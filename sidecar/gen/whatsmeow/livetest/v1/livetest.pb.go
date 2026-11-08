@@ -129,6 +129,97 @@ func (x *SetGroupPhotoResponse) GetPictureId() string {
 	return ""
 }
 
+type SetAboutRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The session whose account's about text changes.
+	SessionId string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// The new about text; not empty.
+	Text          string `protobuf:"bytes,2,opt,name=text,proto3" json:"text,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetAboutRequest) Reset() {
+	*x = SetAboutRequest{}
+	mi := &file_whatsmeow_livetest_v1_livetest_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetAboutRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetAboutRequest) ProtoMessage() {}
+
+func (x *SetAboutRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_livetest_v1_livetest_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetAboutRequest.ProtoReflect.Descriptor instead.
+func (*SetAboutRequest) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_livetest_v1_livetest_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *SetAboutRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *SetAboutRequest) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
+// SetAboutResponse has no fields: whatsmeow reads nothing of the answer but its errors.
+type SetAboutResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetAboutResponse) Reset() {
+	*x = SetAboutResponse{}
+	mi := &file_whatsmeow_livetest_v1_livetest_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetAboutResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetAboutResponse) ProtoMessage() {}
+
+func (x *SetAboutResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_whatsmeow_livetest_v1_livetest_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetAboutResponse.ProtoReflect.Descriptor instead.
+func (*SetAboutResponse) Descriptor() ([]byte, []int) {
+	return file_whatsmeow_livetest_v1_livetest_proto_rawDescGZIP(), []int{3}
+}
+
 var File_whatsmeow_livetest_v1_livetest_proto protoreflect.FileDescriptor
 
 const file_whatsmeow_livetest_v1_livetest_proto_rawDesc = "" +
@@ -141,9 +232,16 @@ const file_whatsmeow_livetest_v1_livetest_proto_rawDesc = "" +
 	"\tjpeg_path\x18\x03 \x01(\tR\bjpegPath\"6\n" +
 	"\x15SetGroupPhotoResponse\x12\x1d\n" +
 	"\n" +
-	"picture_id\x18\x01 \x01(\tR\tpictureId2}\n" +
+	"picture_id\x18\x01 \x01(\tR\tpictureId\"D\n" +
+	"\x0fSetAboutRequest\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x12\n" +
+	"\x04text\x18\x02 \x01(\tR\x04text\"\x12\n" +
+	"\x10SetAboutResponse2}\n" +
 	"\x0fLiveTestService\x12j\n" +
-	"\rSetGroupPhoto\x12+.whatsmeow.livetest.v1.SetGroupPhotoRequest\x1a,.whatsmeow.livetest.v1.SetGroupPhotoResponseB\xf6\x01\n" +
+	"\rSetGroupPhoto\x12+.whatsmeow.livetest.v1.SetGroupPhotoRequest\x1a,.whatsmeow.livetest.v1.SetGroupPhotoResponse2q\n" +
+	"\x12LiveContactService\x12[\n" +
+	"\bSetAbout\x12&.whatsmeow.livetest.v1.SetAboutRequest\x1a'.whatsmeow.livetest.v1.SetAboutResponseB\xf6\x01\n" +
 	"\x19com.whatsmeow.livetest.v1B\rLivetestProtoP\x01ZNgithub.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/livetest/v1;livetestv1\xa2\x02\x03WLX\xaa\x02\x1bWhatsmeow.LiveTests.Control\xca\x02\x15Whatsmeow\\Livetest\\V1\xe2\x02!Whatsmeow\\Livetest\\V1\\GPBMetadata\xea\x02\x17Whatsmeow::Livetest::V1b\x06proto3"
 
 var (
@@ -158,16 +256,20 @@ func file_whatsmeow_livetest_v1_livetest_proto_rawDescGZIP() []byte {
 	return file_whatsmeow_livetest_v1_livetest_proto_rawDescData
 }
 
-var file_whatsmeow_livetest_v1_livetest_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_whatsmeow_livetest_v1_livetest_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_whatsmeow_livetest_v1_livetest_proto_goTypes = []any{
 	(*SetGroupPhotoRequest)(nil),  // 0: whatsmeow.livetest.v1.SetGroupPhotoRequest
 	(*SetGroupPhotoResponse)(nil), // 1: whatsmeow.livetest.v1.SetGroupPhotoResponse
+	(*SetAboutRequest)(nil),       // 2: whatsmeow.livetest.v1.SetAboutRequest
+	(*SetAboutResponse)(nil),      // 3: whatsmeow.livetest.v1.SetAboutResponse
 }
 var file_whatsmeow_livetest_v1_livetest_proto_depIdxs = []int32{
 	0, // 0: whatsmeow.livetest.v1.LiveTestService.SetGroupPhoto:input_type -> whatsmeow.livetest.v1.SetGroupPhotoRequest
-	1, // 1: whatsmeow.livetest.v1.LiveTestService.SetGroupPhoto:output_type -> whatsmeow.livetest.v1.SetGroupPhotoResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	2, // 1: whatsmeow.livetest.v1.LiveContactService.SetAbout:input_type -> whatsmeow.livetest.v1.SetAboutRequest
+	1, // 2: whatsmeow.livetest.v1.LiveTestService.SetGroupPhoto:output_type -> whatsmeow.livetest.v1.SetGroupPhotoResponse
+	3, // 3: whatsmeow.livetest.v1.LiveContactService.SetAbout:output_type -> whatsmeow.livetest.v1.SetAboutResponse
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -184,9 +286,9 @@ func file_whatsmeow_livetest_v1_livetest_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_whatsmeow_livetest_v1_livetest_proto_rawDesc), len(file_whatsmeow_livetest_v1_livetest_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   4,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   2,
 		},
 		GoTypes:           file_whatsmeow_livetest_v1_livetest_proto_goTypes,
 		DependencyIndexes: file_whatsmeow_livetest_v1_livetest_proto_depIdxs,

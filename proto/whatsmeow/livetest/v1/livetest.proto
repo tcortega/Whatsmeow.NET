@@ -26,3 +26,22 @@ message SetGroupPhotoResponse {
   // The new photo's id as WhatsApp answered it; empty when the photo was removed.
   string picture_id = 1;
 }
+
+// LiveContactService is the contacts slice's part of the live tests' control (ADR 0063), served the same way as
+// LiveTestService: only by a sidecar built with -tags livetest, never in a release build.
+service LiveContactService {
+  // SetAbout sets the session's own account's about text with whatsmeow's SetStatusMessage (user.go:160-172), the text
+  // only: no emoji and no duration, which no read gives back (user.go:257-258). An empty text is refused. A GraphQL
+  // error comes back with its codes only, never its message. The session must be online.
+  rpc SetAbout(SetAboutRequest) returns (SetAboutResponse);
+}
+
+message SetAboutRequest {
+  // The session whose account's about text changes.
+  string session_id = 1;
+  // The new about text; not empty.
+  string text = 2;
+}
+
+// SetAboutResponse has no fields: whatsmeow reads nothing of the answer but its errors.
+message SetAboutResponse {}

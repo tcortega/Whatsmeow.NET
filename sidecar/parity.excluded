@@ -133,4 +133,4 @@ GetUserDevices: whatsmeow looks up the devices it sends to itself (send.go:1198)
 GetUserDevicesContext: whatsmeow looks up the devices it sends to itself (send.go:1198); the application addresses users, not devices
 ResolveBusinessMessageLink: business features are a §1 non-goal
 ResolveContactQRLink: contact QR links are out of v1 scope (#36)
-SetStatusMessage: the account's about text is out of v1 scope (#36)
+SetStatusMessage: the account's about text is out of v1 scope (#36); only the live tests' control calls it, in a livetest build (ADR 0063)

@@ -288,6 +288,8 @@ func TestCheckLiveTestLivesInTheLiveSeamsOnly(t *testing.T) {
 		"sidecar/internal/messaging/livetest_off.go": {Data: []byte("//go:build !livetest\n\npackage messaging\n")},
 		"sidecar/internal/groups/livetest_on.go":     {Data: []byte("//go:build livetest\n\npackage groups\n")},
 		"sidecar/internal/groups/groups_live.go":     {Data: []byte("//go:build livetest\n\npackage groups\n")},
+		"sidecar/internal/contacts/livetest_on.go":   {Data: []byte("//go:build livetest\n\npackage contacts\n")},
+		"sidecar/internal/contacts/contacts_live.go": {Data: []byte("//go:build livetest\n\npackage contacts\n")},
 		"sidecar/internal/events/events_live.go":     {Data: []byte("//go:build livetest\n\npackage events\n")},
 		"sidecar/internal/session/livetest_on.go":    {Data: []byte("//go:build livetest\n\npackage session\n")},
 		"sidecar/cmd/whatsmeow-net/livetest_on.go":   {Data: []byte("//go:build livetest\n\npackage main\n")},
@@ -295,6 +297,7 @@ func TestCheckLiveTestLivesInTheLiveSeamsOnly(t *testing.T) {
 
 	assertFindings(t, repo, []string{
 		"sidecar/cmd/whatsmeow-net/livetest_on.go:1: [build-tag]",
+		"sidecar/internal/contacts/contacts_live.go:1: [build-tag]",
 		"sidecar/internal/events/events_live.go:1: [build-tag]",
 		"sidecar/internal/groups/groups_live.go:1: [build-tag]",
 		"sidecar/internal/session/livetest_on.go:1: [build-tag]",

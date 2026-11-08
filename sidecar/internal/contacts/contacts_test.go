@@ -140,6 +140,7 @@ type harness struct {
 	stub     *stub
 	sessions *sessions
 	device   *store.Device
+	conn     *grpc.ClientConn
 	client   whatsmeowv1.ContactServiceClient
 	ctx      context.Context //nolint:containedctx // the test's call context
 }
@@ -175,7 +176,9 @@ func startLogging(t *testing.T, log zerolog.Logger) *harness {
 	h.sessions = &sessions{client: h.stub, device: device}
 
 	srv := server.New(token, log, sidecarlog.NewRedactor())
-	whatsmeowv1.RegisterContactServiceServer(srv, New(h.sessions))
+	svc := New(h.sessions)
+	whatsmeowv1.RegisterContactServiceServer(srv, svc)
+	RegisterLive(srv, svc)
 
 	lis := bufconn.Listen(1 << 20)
 	served := make(chan error, 1)
@@ -207,6 +210,7 @@ func startLogging(t *testing.T, log zerolog.Logger) *harness {
 	t.Cleanup(cancel)
 
 	h.ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	h.conn = conn
 	h.client = whatsmeowv1.NewContactServiceClient(conn)
 
 	return h

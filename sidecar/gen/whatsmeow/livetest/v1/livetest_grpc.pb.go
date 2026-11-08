@@ -135,3 +135,117 @@ var LiveTestService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "whatsmeow/livetest/v1/livetest.proto",
 }
+
+const (
+	LiveContactService_SetAbout_FullMethodName = "/whatsmeow.livetest.v1.LiveContactService/SetAbout"
+)
+
+// LiveContactServiceClient is the client API for LiveContactService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// LiveContactService is the contacts slice's part of the live tests' control (ADR 0063), served the same way as
+// LiveTestService: only by a sidecar built with -tags livetest, never in a release build.
+type LiveContactServiceClient interface {
+	// SetAbout sets the session's own account's about text with whatsmeow's SetStatusMessage (user.go:160-172), the text
+	// only: no emoji and no duration, which no read gives back (user.go:257-258). An empty text is refused. A GraphQL
+	// error comes back with its codes only, never its message. The session must be online.
+	SetAbout(ctx context.Context, in *SetAboutRequest, opts ...grpc.CallOption) (*SetAboutResponse, error)
+}
+
+type liveContactServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewLiveContactServiceClient(cc grpc.ClientConnInterface) LiveContactServiceClient {
+	return &liveContactServiceClient{cc}
+}
+
+func (c *liveContactServiceClient) SetAbout(ctx context.Context, in *SetAboutRequest, opts ...grpc.CallOption) (*SetAboutResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetAboutResponse)
+	err := c.cc.Invoke(ctx, LiveContactService_SetAbout_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// LiveContactServiceServer is the server API for LiveContactService service.
+// All implementations must embed UnimplementedLiveContactServiceServer
+// for forward compatibility.
+//
+// LiveContactService is the contacts slice's part of the live tests' control (ADR 0063), served the same way as
+// LiveTestService: only by a sidecar built with -tags livetest, never in a release build.
+type LiveContactServiceServer interface {
+	// SetAbout sets the session's own account's about text with whatsmeow's SetStatusMessage (user.go:160-172), the text
+	// only: no emoji and no duration, which no read gives back (user.go:257-258). An empty text is refused. A GraphQL
+	// error comes back with its codes only, never its message. The session must be online.
+	SetAbout(context.Context, *SetAboutRequest) (*SetAboutResponse, error)
+	mustEmbedUnimplementedLiveContactServiceServer()
+}
+
+// UnimplementedLiveContactServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedLiveContactServiceServer struct{}
+
+func (UnimplementedLiveContactServiceServer) SetAbout(context.Context, *SetAboutRequest) (*SetAboutResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetAbout not implemented")
+}
+func (UnimplementedLiveContactServiceServer) mustEmbedUnimplementedLiveContactServiceServer() {}
+func (UnimplementedLiveContactServiceServer) testEmbeddedByValue()                            {}
+
+// UnsafeLiveContactServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to LiveContactServiceServer will
+// result in compilation errors.
+type UnsafeLiveContactServiceServer interface {
+	mustEmbedUnimplementedLiveContactServiceServer()
+}
+
+func RegisterLiveContactServiceServer(s grpc.ServiceRegistrar, srv LiveContactServiceServer) {
+	// If the following call panics, it indicates UnimplementedLiveContactServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&LiveContactService_ServiceDesc, srv)
+}
+
+func _LiveContactService_SetAbout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetAboutRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LiveContactServiceServer).SetAbout(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LiveContactService_SetAbout_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LiveContactServiceServer).SetAbout(ctx, req.(*SetAboutRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// LiveContactService_ServiceDesc is the grpc.ServiceDesc for LiveContactService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var LiveContactService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "whatsmeow.livetest.v1.LiveContactService",
+	HandlerType: (*LiveContactServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "SetAbout",
+			Handler:    _LiveContactService_SetAbout_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "whatsmeow/livetest/v1/livetest.proto",
+}
