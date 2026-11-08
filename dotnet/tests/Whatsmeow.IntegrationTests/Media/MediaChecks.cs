@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Security.Cryptography;
 
 namespace Whatsmeow.IntegrationTests.Media;
@@ -26,7 +25,7 @@ internal static class MediaChecks
 				FileSha256 = [.. SHA256.HashData(content)],
 				FileEncSha256 = media.FileEncSha256,
 				FileLength = content.Length,
-				StreamingSidecar = ImmutableArray<byte>.Empty,
+				StreamingSidecar = [],
 			},
 			media
 		);

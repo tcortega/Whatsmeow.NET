@@ -34,7 +34,7 @@ public sealed class LivePollTests(LiveSidecar live, LivePeer peer)
 
 		var vote = await PollThenVoteAsync(client, liveAccount, other, peerAccount, ["Sushi", "Tacos"], ct);
 
-		Assert.Equal<bool>([false, true, true], s_lunch.Options.Select(((PollVoteContent)vote.Content).Selects));
+		Assert.Equal([false, true, true], s_lunch.Options.Select(((PollVoteContent)vote.Content).Selects));
 	}
 
 	/// <summary>The same the other way: the peer's poll, the live session's vote, which the peer gets decrypted.</summary>
@@ -49,7 +49,7 @@ public sealed class LivePollTests(LiveSidecar live, LivePeer peer)
 
 		var vote = await PollThenVoteAsync(other, peerAccount, client, liveAccount, ["Pizza"], ct);
 
-		Assert.Equal<bool>([true, false, false], s_lunch.Options.Select(((PollVoteContent)vote.Content).Selects));
+		Assert.Equal([true, false, false], s_lunch.Options.Select(((PollVoteContent)vote.Content).Selects));
 	}
 
 	/// <summary>

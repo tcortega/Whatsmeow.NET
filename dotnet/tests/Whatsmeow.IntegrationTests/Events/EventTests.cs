@@ -153,7 +153,7 @@ public sealed class EventTests(FakeSidecar fixture)
 
 		// Unusable: a message must say where it is. Skipped and acked, never the end of the stream. No slice records one
 		// (#122), so the fake records it as it is (RecordEvent).
-		const string Nowhere = """{"message": {"info": {"id": "M1", "source": {"sender": "5511999999999@s.whatsapp.net"}, "messageTime": "2023-11-14T22:13:20Z"}}}""";
+		const string Nowhere = /*lang=json,strict*/ """{"message": {"info": {"id": "M1", "source": {"sender": "5511999999999@s.whatsapp.net"}, "messageTime": "2023-11-14T22:13:20Z"}}}""";
 		_ = await fixture.Fake.RecordEventAsync(new RecordEventRequest { SessionId = "events-no-chat", EventJson = Nowhere }, cancellationToken: ct);
 		await Deliveries.DeliverAsync(fixture.Fake, "events-no-chat", ct, "M2");
 
