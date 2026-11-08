@@ -398,6 +398,7 @@ job_dotnet() {
 	check "dotnet restore (locked)" dotnet restore dotnet/Whatsmeow.slnx --locked-mode &&
 		check "dotnet build" dotnet build dotnet/Whatsmeow.slnx -c Release --no-restore -p:ContinuousIntegrationBuild=true &&
 		{
+			check "dotnet format leaves the code unchanged (docs/guidelines/csharp.md)" dotnet format dotnet/Whatsmeow.slnx --verify-no-changes --no-restore
 			check "no shipped assembly contains the fake WhatsApp control (ADR 0019)" shipped_have_no_fake
 			check "no shipped assembly contains the live tests' control (ADR 0060)" shipped_have_no_livetest
 			# Never the live tests, even with their variables exported in the shell that runs this.

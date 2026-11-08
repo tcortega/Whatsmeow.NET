@@ -223,6 +223,9 @@ Copy from tcortega/bridge when scaffolding `dotnet/`, then apply the deltas list
 - `/global.json` at the repo root: the exact SDK (`rollForward: disable`) and the Microsoft.Testing.Platform runner. The SDK looks for it from the working directory, not the project, so under `dotnet/` it was ignored by commands run from the root [observed: scaffold, #2].
 - `tests/AotSmoke` roots every shipped assembly with `TrimmerRootAssembly`, so all of each one is analyzed, and sets `TreatWarningsAsErrors` itself, so a trim or AOT warning fails the publish locally as well. It takes its RID from the SDK host and lists all three CI RIDs, so its lock file is the same on every OS; `dotnet publish -r` would flow the RID into the libraries and break their locked restore with NU1004 [observed].
 - `.slnx`, never `.sln`.
+- The dotnet job runs `dotnet format dotnet/Whatsmeow.slnx --verify-no-changes --no-restore` (`build/ci.sh dotnet`).
+  The CI build reported none of the IMPORTS, IDE0001, IDE0002, IDE0021, IDE0039, IDE0301, IDE0305 or JSON002 findings the formatter failed on, so that drift had landed unseen [observed: `-p:ContinuousIntegrationBuild=true` builds of the affected projects at 3774a53, 0 warnings].
+  Why the build and the formatter disagree is unknown.
 
 ```xml
 <ItemGroup>
