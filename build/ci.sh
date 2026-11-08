@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # The checks CI runs, one subcommand per CI job; .github/workflows/ci.yml calls this and nothing else.
-# Run it before pushing: bash build/ci.sh all (or contract, go, dotnet, package; install <feed>; aot <feed> <rid>).
+# Subcommands: setup, contract, go, dotnet, external, package, all; install <feed>; aot <feed> <rid>; release-pins v<version>.
+# Locally, run the one for what changed; all runs every job in turn, only to reproduce a CI failure (AGENTS.md, Commands).
 # After a release, install nuget.org:<version> and aot nuget.org:<version> <rid> run the same checks against nuget.org.
 # Works in Git Bash on Windows.
 #
-# Every check runs and reports, even after an earlier one failed; the script fails at the end if any did.
+# A check runs and reports even after an unrelated one failed (one that needs a failed restore or build is skipped);
+# the script fails at the end if any did.
 # A check that only makes sense once something exists (a Go module with no package yet) says so and passes.
 set -uo pipefail
 
