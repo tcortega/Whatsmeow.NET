@@ -167,7 +167,7 @@ public sealed class LivePersistentContactsTests(LiveSidecar live, LivePeer peer,
 						var control = await live.ContactControlAsync(t).ConfigureAwait(false);
 						_ = await RpcErrors.CallAsync(control.SetAboutAsync(new SetAboutRequest { SessionId = LiveSidecar.LiveSessionId, Text = text }, cancellationToken: t)).ConfigureAwait(false);
 					},
-					Stimulus = () => $"wmn about {LiveClock.Time.GetUtcNow():yyyyMMddHHmmss}",
+					Stimulus = () => $"{AboutChange.StimulusPrefix}{LiveClock.Time.GetUtcNow():yyyyMMddHHmmss}",
 					CallBound = AboutChange.CallBound,
 					Watch = LiveChecks.Watch,
 					Time = LiveClock.Time,

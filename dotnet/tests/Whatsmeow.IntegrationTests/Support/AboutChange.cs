@@ -17,9 +17,9 @@ namespace Whatsmeow.IntegrationTests.Support;
 /// </para>
 /// <para>
 /// Without the consent it fails before any read or call. It reads the original first and changes nothing when that read
-/// fails, names no single entry, or is empty. Once the set was sent the change counts as possibly made, whatever its
-/// answer: a failed or timed-out write may still apply, so it is never sent again, and the restore runs, on bounds of its
-/// own that the caller's token does not cancel. The restore sets the original once and then reads, whatever the set did;
+/// fails, names no single entry, is empty, or starts as an earlier run's test text (<see cref="StimulusPrefix"/>). Once
+/// the set was sent the change counts as possibly made, whatever its answer: a failed or timed-out write may still apply,
+/// so it is never sent again, and the restore runs, on bounds of its own that the caller's token does not cancel. The restore sets the original once and then reads, whatever the set did;
 /// it passes only when that read shows the original; its change is logged, and a wait that ended without one (the
 /// receiver stopped, say) is logged as none. The body's failure and the restore's are both thrown.
 /// </para>
@@ -32,6 +32,13 @@ internal static class AboutChange
 {
 	/// <summary>The consent's one value (ADR 0063): a text-only change, the owner having said the about has no emoji and no expiry.</summary>
 	public const string ConsentValue = "text-only";
+
+	/// <summary>
+	/// What every test text starts with: <c>wmn about </c> and the UTC time. An original that starts with it is taken as an
+	/// earlier run's text, left when that run was killed before its restore [inferred]; an owner's about that happened to
+	/// start with it would be refused too, never restored.
+	/// </summary>
+	public const string StimulusPrefix = "wmn about ";
 
 	/// <summary>How long whatsmeow waits for an IQ's answer by default (request.go 150) [observed: source].</summary>
 	private static readonly TimeSpan s_iqAnswer = TimeSpan.FromSeconds(75);
@@ -88,6 +95,10 @@ internal static class AboutChange
 		Assert.True(
 			original is { Length: > 0 },
 			"about_original_unreadable: the account's own read gave no about text, and an unset, empty or hidden one read the same (user.go 257), so there is nothing to restore; nothing was changed"
+		);
+		Assert.True(
+			!original.StartsWith(StimulusPrefix, StringComparison.Ordinal),
+			"about_original_is_test_text: the account's about is an earlier run's test text, left when that run did not restore it, so it is no original to put back; nothing was changed, and only the owner can set the real one from the phone"
 		);
 		run.Log("branch 5's original about text: readable");
 		return original;

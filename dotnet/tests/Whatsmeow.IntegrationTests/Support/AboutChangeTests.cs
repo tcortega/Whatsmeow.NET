@@ -99,6 +99,24 @@ public sealed class AboutChangeTests(FakeSidecar fixture)
 		Assert.Empty(h.Sets);
 	}
 
+	/// <summary>
+	/// An earlier run that was killed before its restore left its own text as the about: it is no original, so restoring
+	/// it would put test text back and pass; the branch refuses it before any set.
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task Run_TheOriginalIsAnEarlierRunsText_FailsIsTestText_AndSetsNothing()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var h = await Harness.StartAsync(fixture, "about-earlier-run", subject: 18, about: "wmn about 20261107235959", ct);
+
+		var failed = await Assert.ThrowsAsync<TrueException>(() => AboutChange.RunAsync(h.Run(), ct));
+
+		Assert.StartsWith("about_original_is_test_text", failed.Message, StringComparison.Ordinal);
+		Assert.Equal(1, h.Reads);
+		Assert.Empty(h.Sets);
+		Assert.DoesNotContain("20261107235959", failed.ToString(), StringComparison.Ordinal);
+	}
+
 	[Fact(Timeout = Timeout)]
 	public async Task Run_TheTestsTextEqualsTheOriginal_FailsNotNew_AndSetsNothing()
 	{
@@ -293,6 +311,45 @@ public sealed class AboutChangeTests(FakeSidecar fixture)
 		NoText(h, failed);
 	}
 
+	/// <summary>
+	/// The body's set and then the restore's set never answer: each ends at its own bound on the run's clock, a timeout
+	/// with no text, never sent again; the restore's read still runs and shows the original, since neither set applied,
+	/// so the body's failure alone is thrown.
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task Run_EachSetHangsUntilItsBound_FailsSetTimedOut_AndTheRestoreStillReads()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var h = await Harness.StartAsync(fixture, "about-sets-hang", subject: 19, Original, ct);
+		var callBound = TimeSpan.FromSeconds(3);
+		h.Hangs = _ => true;
+
+		var run = AboutChange.RunAsync(h.Run(callBound: callBound, watch: TimeSpan.FromSeconds(1)), ct);
+		await h.Hung.WaitAsync(ct);
+		Assert.Equal([Stimulus], h.Sets);
+		h.Clock.Advance(callBound);
+		// A bound's cancellation runs inside Advance, so the hanging set's token is cancelled by now.
+		Assert.True(h.HangTokens[0].IsCancellationRequested, "the body's set was not cancelled at its bound");
+		await h.Hung.WaitAsync(ct);
+		Assert.Equal([Stimulus, Original], h.Sets);
+		h.Clock.Advance(callBound);
+		Assert.True(h.HangTokens[1].IsCancellationRequested, "the restore's set was not cancelled at its bound");
+		var failed = await Assert.ThrowsAnyAsync<XunitException>(() => run);
+
+		Assert.Equal("about_set_failed: branch 5's set did not end within 3 s", failed.Message);
+		Assert.Null(failed.InnerException);
+		Assert.Equal(2, h.Reads);
+		Assert.Equal(
+			[
+				"branch 5's original about text: readable",
+				"branch 5's restore: set did not end within 3 s, own read equal True, its change came False, equal False",
+			],
+			h.Lines
+		);
+		Assert.Equal(Original, await h.AboutNowAsync(ct));
+		NoText(h, failed);
+	}
+
 	/// <summary>The restore's set failed after applying: the read shows the original, so the restore passes, and the log says the set failed.</summary>
 	[Fact(Timeout = Timeout)]
 	public async Task Run_TheRestoresSetFailsButTheReadShowsTheOriginal_Passes_AndLogsTheSetsFailure()
@@ -375,6 +432,18 @@ public sealed class AboutChangeTests(FakeSidecar fixture)
 		/// <summary>The JID a set's notification names instead of the subject's LID; the subject's by default.</summary>
 		public Func<string, string?> NotifiedJid { get; set; } = _ => null;
 
+		/// <summary>Whether a set never answers, until its token is cancelled; it then did nothing.</summary>
+		public Func<string, bool> Hangs { get; set; } = _ => false;
+
+		/// <summary>Released each time a set starts to hang.</summary>
+		public SemaphoreSlim Hung { get; } = new(0);
+
+		/// <summary>The tokens the hanging sets got, in order.</summary>
+		public List<CancellationToken> HangTokens { get; } = [];
+
+		/// <summary>The clock of the calls' bounds, which only the test advances.</summary>
+		public FakeTimeProvider Clock { get; } = new();
+
 		/// <summary>What a set throws after it did what it does; none by default.</summary>
 		public Func<string, Exception?> FailsAfter { get; set; } = _ => null;
 
@@ -407,7 +476,7 @@ public sealed class AboutChangeTests(FakeSidecar fixture)
 				Stimulus = () => stimulus,
 				CallBound = callBound ?? TimeSpan.FromSeconds(10),
 				Watch = watch ?? TimeSpan.FromSeconds(5),
-				Time = new FakeTimeProvider(),
+				Time = Clock,
 				Log = Lines.Add,
 			};
 
@@ -428,6 +497,13 @@ public sealed class AboutChangeTests(FakeSidecar fixture)
 		private async Task SetAsync(string text, CancellationToken cancellationToken)
 		{
 			Sets.Add(text);
+			if (Hangs(text))
+			{
+				HangTokens.Add(cancellationToken);
+				_ = Hung.Release();
+				await new TaskCompletionSource().Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+			}
+
 			if (Applies(text))
 				await RegisterAsync(text, cancellationToken).ConfigureAwait(false);
 			if (Notifies(text))
