@@ -6,24 +6,15 @@ namespace Whatsmeow;
 public sealed class OutcomeUnknownException : WhatsmeowException
 {
 	/// <summary>Creates the exception.</summary>
-	public OutcomeUnknownException()
-	{
-		ErrorCode = WhatsmeowErrorCode.OutcomeUnknown;
-	}
+	public OutcomeUnknownException() => ErrorCode = WhatsmeowErrorCode.OutcomeUnknown;
 
 	/// <summary>Creates the exception with a message.</summary>
 	public OutcomeUnknownException(string message)
-		: base(message)
-	{
-		ErrorCode = WhatsmeowErrorCode.OutcomeUnknown;
-	}
+		: base(message) => ErrorCode = WhatsmeowErrorCode.OutcomeUnknown;
 
 	/// <summary>Creates the exception with a message and its cause.</summary>
 	public OutcomeUnknownException(string message, Exception? innerException)
-		: base(message, innerException)
-	{
-		ErrorCode = WhatsmeowErrorCode.OutcomeUnknown;
-	}
+		: base(message, innerException) => ErrorCode = WhatsmeowErrorCode.OutcomeUnknown;
 
 	[DoesNotReturn]
 	internal static void Throw(RpcException exception) =>

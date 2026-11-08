@@ -2,9 +2,9 @@ using System.Collections.Immutable;
 using Google.Protobuf;
 using Whatsmeow.Core.Errors;
 using Whatsmeow.Messaging;
+using E2E = Whatsmeow.Proto.WAWebProtobufsE2E;
 using MessageTarget = Whatsmeow.Protocol.V1.MessageTarget;
 using PollVote = Whatsmeow.Protocol.V1.PollVote;
-using E2E = Whatsmeow.Proto.WAWebProtobufsE2E;
 using ProtocolType = Whatsmeow.Proto.WAWebProtobufsE2E.ProtocolMessage.Types.Type;
 
 namespace Whatsmeow.Events;

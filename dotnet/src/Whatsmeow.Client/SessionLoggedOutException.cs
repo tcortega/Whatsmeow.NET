@@ -6,24 +6,15 @@ namespace Whatsmeow;
 public sealed class SessionLoggedOutException : WhatsmeowException
 {
 	/// <summary>Creates the exception.</summary>
-	public SessionLoggedOutException()
-	{
-		ErrorCode = WhatsmeowErrorCode.LoggedOut;
-	}
+	public SessionLoggedOutException() => ErrorCode = WhatsmeowErrorCode.LoggedOut;
 
 	/// <summary>Creates the exception with a message.</summary>
 	public SessionLoggedOutException(string message)
-		: base(message)
-	{
-		ErrorCode = WhatsmeowErrorCode.LoggedOut;
-	}
+		: base(message) => ErrorCode = WhatsmeowErrorCode.LoggedOut;
 
 	/// <summary>Creates the exception with a message and its cause.</summary>
 	public SessionLoggedOutException(string message, Exception? innerException)
-		: base(message, innerException)
-	{
-		ErrorCode = WhatsmeowErrorCode.LoggedOut;
-	}
+		: base(message, innerException) => ErrorCode = WhatsmeowErrorCode.LoggedOut;
 
 	[DoesNotReturn]
 	internal static void Throw(RpcException exception) =>

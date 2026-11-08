@@ -9,24 +9,15 @@ namespace Whatsmeow;
 public sealed class MediaExpiredException : WhatsmeowException
 {
 	/// <summary>Creates the exception.</summary>
-	public MediaExpiredException()
-	{
-		ErrorCode = WhatsmeowErrorCode.MediaExpired;
-	}
+	public MediaExpiredException() => ErrorCode = WhatsmeowErrorCode.MediaExpired;
 
 	/// <summary>Creates the exception with a message.</summary>
 	public MediaExpiredException(string message)
-		: base(message)
-	{
-		ErrorCode = WhatsmeowErrorCode.MediaExpired;
-	}
+		: base(message) => ErrorCode = WhatsmeowErrorCode.MediaExpired;
 
 	/// <summary>Creates the exception with a message and its cause.</summary>
 	public MediaExpiredException(string message, Exception? innerException)
-		: base(message, innerException)
-	{
-		ErrorCode = WhatsmeowErrorCode.MediaExpired;
-	}
+		: base(message, innerException) => ErrorCode = WhatsmeowErrorCode.MediaExpired;
 
 	[DoesNotReturn]
 	internal static void Throw(RpcException exception) =>

@@ -1,9 +1,9 @@
 using Whatsmeow.Events;
 using Whatsmeow.Protocol.V1;
 using E2E = Whatsmeow.Proto.WAWebProtobufsE2E;
-using Timestamp = Google.Protobuf.WellKnownTypes.Timestamp;
 using EphemeralPayload = Whatsmeow.Protocol.V1.StreamEphemeralEventsResponse.PayloadOneofCase;
 using Payload = Whatsmeow.Protocol.V1.StreamEventsResponse.PayloadOneofCase;
+using Timestamp = Google.Protobuf.WellKnownTypes.Timestamp;
 
 namespace Whatsmeow.Client.Tests.Events;
 
@@ -37,7 +37,7 @@ public sealed class EventLaneTests
 			static r => r.UndecryptableMessage.Info.Source.Chat
 		),
 		["ConnectionState"] = Durable(
-			new StreamEventsResponse { ConnectionState = new ConnectionStateEvent { State = new Protocol.V1.SessionState { Connected = new Protocol.V1.SessionState.Types.Connected() } } },
+			new StreamEventsResponse { ConnectionState = new ConnectionStateEvent { State = new SessionState { Connected = new SessionState.Types.Connected() } } },
 			static _ => ""
 		),
 		["Contact"] = Durable(
@@ -87,7 +87,7 @@ public sealed class EventLaneTests
 				{
 					Group = "120363025246125487@g.us",
 					Time = s_time,
-					Changed = new GroupEvent.Types.Changed { Changes = { new Protocol.V1.GroupChange { Renamed = new Protocol.V1.GroupChange.Types.Renamed { Name = "team" } } } },
+					Changed = new GroupEvent.Types.Changed { Changes = { new GroupChange { Renamed = new GroupChange.Types.Renamed { Name = "team" } } } },
 				},
 			},
 			static r => r.Group.Group
@@ -111,7 +111,7 @@ public sealed class EventLaneTests
 			{
 				HistoryMessages = new HistoryMessagesEvent
 				{
-					SyncType = Protocol.V1.HistorySyncType.Recent,
+					SyncType = HistorySyncType.Recent,
 					Messages =
 					{
 						new MessageEvent
@@ -129,7 +129,7 @@ public sealed class EventLaneTests
 			{
 				HistoryProgress = new HistorySyncProgressEvent
 				{
-					SyncType = Protocol.V1.HistorySyncType.Recent,
+					SyncType = HistorySyncType.Recent,
 					ChunkOrder = 1,
 					Progress = 100,
 					MessageCount = 1,
@@ -142,7 +142,7 @@ public sealed class EventLaneTests
 	private static readonly Dictionary<string, (StreamEphemeralEventsResponse Response, string Lane)> s_ephemeral = new(StringComparer.Ordinal)
 	{
 		["Presence"] = Ephemeral(
-			new StreamEphemeralEventsResponse { Presence = new PresenceEvent { From = "5511999990005:7@s.whatsapp.net", State = Protocol.V1.PresenceState.Available } },
+			new StreamEphemeralEventsResponse { Presence = new PresenceEvent { From = "5511999990005:7@s.whatsapp.net", State = PresenceState.Available } },
 			static r => r.Presence.From
 		),
 		["ChatPresence"] = Ephemeral(
@@ -151,7 +151,7 @@ public sealed class EventLaneTests
 				ChatPresence = new ChatPresenceEvent
 				{
 					Source = Source("120363025246125486@g.us", "5511999990006@s.whatsapp.net"),
-					State = Protocol.V1.ChatPresenceState.Typing,
+					State = ChatPresenceState.Typing,
 				},
 			},
 			static r => r.ChatPresence.Source.Chat
