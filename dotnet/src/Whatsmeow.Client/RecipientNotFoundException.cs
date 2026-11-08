@@ -6,24 +6,15 @@ namespace Whatsmeow;
 public sealed class RecipientNotFoundException : WhatsmeowException
 {
 	/// <summary>Creates the exception.</summary>
-	public RecipientNotFoundException()
-	{
-		ErrorCode = WhatsmeowErrorCode.RecipientNotOnWhatsApp;
-	}
+	public RecipientNotFoundException() => ErrorCode = WhatsmeowErrorCode.RecipientNotOnWhatsApp;
 
 	/// <summary>Creates the exception with a message.</summary>
 	public RecipientNotFoundException(string message)
-		: base(message)
-	{
-		ErrorCode = WhatsmeowErrorCode.RecipientNotOnWhatsApp;
-	}
+		: base(message) => ErrorCode = WhatsmeowErrorCode.RecipientNotOnWhatsApp;
 
 	/// <summary>Creates the exception with a message and its cause.</summary>
 	public RecipientNotFoundException(string message, Exception? innerException)
-		: base(message, innerException)
-	{
-		ErrorCode = WhatsmeowErrorCode.RecipientNotOnWhatsApp;
-	}
+		: base(message, innerException) => ErrorCode = WhatsmeowErrorCode.RecipientNotOnWhatsApp;
 
 	[DoesNotReturn]
 	internal static void Throw(RpcException exception) =>

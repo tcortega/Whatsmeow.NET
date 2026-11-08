@@ -6,24 +6,15 @@ namespace Whatsmeow;
 public sealed class WhatsmeowValidationException : WhatsmeowException
 {
 	/// <summary>Creates the exception.</summary>
-	public WhatsmeowValidationException()
-	{
-		ErrorCode = WhatsmeowErrorCode.InvalidArgument;
-	}
+	public WhatsmeowValidationException() => ErrorCode = WhatsmeowErrorCode.InvalidArgument;
 
 	/// <summary>Creates the exception with a message.</summary>
 	public WhatsmeowValidationException(string message)
-		: base(message)
-	{
-		ErrorCode = WhatsmeowErrorCode.InvalidArgument;
-	}
+		: base(message) => ErrorCode = WhatsmeowErrorCode.InvalidArgument;
 
 	/// <summary>Creates the exception with a message and its cause.</summary>
 	public WhatsmeowValidationException(string message, Exception? innerException)
-		: base(message, innerException)
-	{
-		ErrorCode = WhatsmeowErrorCode.InvalidArgument;
-	}
+		: base(message, innerException) => ErrorCode = WhatsmeowErrorCode.InvalidArgument;
 
 	[DoesNotReturn]
 	internal static void ThrowInvalid(string message) => throw new WhatsmeowValidationException(message);

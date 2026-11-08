@@ -6,24 +6,15 @@ namespace Whatsmeow;
 public sealed class TemporarilyBannedException : WhatsmeowException
 {
 	/// <summary>Creates the exception.</summary>
-	public TemporarilyBannedException()
-	{
-		ErrorCode = WhatsmeowErrorCode.TemporarilyBanned;
-	}
+	public TemporarilyBannedException() => ErrorCode = WhatsmeowErrorCode.TemporarilyBanned;
 
 	/// <summary>Creates the exception with a message.</summary>
 	public TemporarilyBannedException(string message)
-		: base(message)
-	{
-		ErrorCode = WhatsmeowErrorCode.TemporarilyBanned;
-	}
+		: base(message) => ErrorCode = WhatsmeowErrorCode.TemporarilyBanned;
 
 	/// <summary>Creates the exception with a message and its cause.</summary>
 	public TemporarilyBannedException(string message, Exception? innerException)
-		: base(message, innerException)
-	{
-		ErrorCode = WhatsmeowErrorCode.TemporarilyBanned;
-	}
+		: base(message, innerException) => ErrorCode = WhatsmeowErrorCode.TemporarilyBanned;
 
 	/// <summary>When the ban ends; null when WhatsApp sent no end. Settable so a test can build the exception the library throws (ADR 0036).</summary>
 	public DateTimeOffset? Until { get; init; }

@@ -169,7 +169,7 @@ public sealed class LiveMediaTests(LiveSidecar live, LivePeer peer)
 		await using var resent = new HashingStream(memory: null);
 		await other.DownloadMediaAsync(((DocumentContent)got.Content).Media, resent, ct);
 		live.Write($"live: a ref {Age(oldestAge)} old was sent again without an upload, and the peer downloaded it");
-		LiveChecks.Equal(again.Media.FileSha256.ToArray(), resent.Hash());
+		LiveChecks.Equal([.. again.Media.FileSha256], resent.Hash());
 	}
 
 	private static string Age(TimeSpan age) => age.TotalDays >= 1 ? $"{age.TotalDays.ToString("F1", CultureInfo.InvariantCulture)} days" : $"{age.TotalHours.ToString("F1", CultureInfo.InvariantCulture)} hours";

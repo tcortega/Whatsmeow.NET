@@ -1,6 +1,6 @@
+using Whatsmeow.IntegrationTests.Fake;
 using Whatsmeow.IntegrationTests.Support;
 using Whatsmeow.Sessions;
-using Whatsmeow.IntegrationTests.Fake;
 using Raise = Whatsmeow.IntegrationTests.Fake.RaisePermanentDisconnectRequest;
 
 namespace Whatsmeow.IntegrationTests.Sessions;

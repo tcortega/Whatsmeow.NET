@@ -1,8 +1,8 @@
 using System.Collections.Immutable;
 using Whatsmeow.Contacts;
 using Whatsmeow.Events;
-using Whatsmeow.Messaging;
 using Whatsmeow.Groups;
+using Whatsmeow.Messaging;
 using Whatsmeow.Pairing;
 using Whatsmeow.Presence;
 using Whatsmeow.Sessions;
@@ -391,7 +391,7 @@ public interface IWhatsAppClient
 	/// Gives each JID its other address form, the LID of a phone-number JID or the phone-number JID of a LID, when the
 	/// session's store knows it: one result per JID, in the order given; an unknown one has a null
 	/// <see cref="ResolvedJid.JidAlt"/>, and nothing throws for it. Some LIDs never resolve to a phone number. The store
-	/// learns a pair from every message that carries both forms (<see cref="Events.MessageSource.SenderAlt"/>), from
+	/// learns a pair from every message that carries both forms (<see cref="MessageSource.SenderAlt"/>), from
 	/// <see cref="IsOnWhatsAppAsync"/>, <see cref="GetUserInfoAsync"/> and the blocklist; this never asks WhatsApp, so it
 	/// works while the session is disconnected. The store is shared by the sidecar's sessions.
 	/// </summary>
@@ -717,7 +717,7 @@ public interface IWhatsAppClient
 	/// <param name="chat">The poll's chat: a user (by phone number or LID, without a device) or a group.</param>
 	/// <param name="poll">
 	/// The poll: no sender, or the account's own, for the account's poll; else its sender as the poll's
-	/// <see cref="Events.MessageReceived.Source"/> named it, since the vote names the account in the same address form.
+	/// <see cref="MessageReceived.Source"/> named it, since the vote names the account in the same address form.
 	/// </param>
 	/// <param name="selectedOptions">The names of the options selected, as the poll has them, none empty or repeated; empty clears the vote.</param>
 	/// <param name="id">The vote's own id, in <see cref="MessageId.New"/>'s format; null makes a new one.</param>
@@ -737,7 +737,7 @@ public interface IWhatsAppClient
 	/// per <paramref name="id"/>, the setting's own id, as <see cref="SendTextAsync"/> is, so a repeat with the same id
 	/// after an unknown outcome sends nothing again. In a group it is a setting of the group, with no id, which a locked group lets only admins change; the members get
 	/// <see cref="GroupInfoChanged"/> with a <see cref="GroupChange.DisappearingTimerChanged"/>. A change by the other
-	/// side arrives as <see cref="Events.DisappearingTimerContent"/> in a direct chat. The session's later messages do
+	/// side arrives as <see cref="DisappearingTimerContent"/> in a direct chat. The session's later messages do
 	/// not carry the timer: the library sets none on a send, so a message that should disappear sets its own
 	/// (<see cref="SendRawAsync"/>, <c>ContextInfo.Expiration</c>).
 	/// </summary>

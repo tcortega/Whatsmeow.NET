@@ -66,7 +66,7 @@ public sealed class ExternalTests(FakeSidecar fixture, SidecarBinaries binaries)
 		await using var standalone = await StandaloneSidecar.StartAsync(binaries.Sidecar, binaries.NewDatabase(), "tcp:127.0.0.1:0", token, [], ct);
 
 		var error = await Assert.ThrowsAsync<SidecarVersionMismatchException>(() =>
-			WhatsmeowSidecar.StartAsync(Options(standalone, token), Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance, minProtocol: 2, maxProtocol: 3, ct)
+			WhatsmeowSidecar.StartAsync(Options(standalone, token), NullLoggerFactory.Instance, minProtocol: 2, maxProtocol: 3, ct)
 		);
 
 		Assert.Equal($"The external sidecar is version {SidecarBinaries.ClientVersion} with protocol 1; this client needs a protocol from 2 to 3.", error.Message);
@@ -104,7 +104,7 @@ public sealed class ExternalTests(FakeSidecar fixture, SidecarBinaries binaries)
 		var options = new WhatsmeowSidecarOptions { External = new ExternalSidecarOptions { Address = address, TokenPath = token } };
 
 		// The orchestrator may start the sidecar after the application: the client asks again until the timeout.
-		var connecting = WhatsmeowSidecar.StartAsync(options, Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance, time, ct);
+		var connecting = WhatsmeowSidecar.StartAsync(options, NullLoggerFactory.Instance, time, ct);
 		Assert.Equal(TimeSpan.FromSeconds(30), await time.Timers.Reader.ReadAsync(ct));
 		for (var second = 1; second < 30; second++)
 		{
@@ -129,7 +129,7 @@ public sealed class ExternalTests(FakeSidecar fixture, SidecarBinaries binaries)
 		var path = StandaloneSidecar.NewSocketPath();
 		var options = new WhatsmeowSidecarOptions { External = new ExternalSidecarOptions { Address = "unix:" + path, TokenPath = token } };
 
-		var connecting = WhatsmeowSidecar.StartAsync(options, Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance, time, ct);
+		var connecting = WhatsmeowSidecar.StartAsync(options, NullLoggerFactory.Instance, time, ct);
 		_ = await time.Timers.Reader.ReadAsync(ct);
 		Assert.Equal(TimeSpan.FromSeconds(1), await time.Timers.Reader.ReadAsync(ct));
 		await using var standalone = await StandaloneSidecar.StartAsync(binaries.Sidecar, binaries.NewDatabase(), "unix:" + path, token, [], ct);

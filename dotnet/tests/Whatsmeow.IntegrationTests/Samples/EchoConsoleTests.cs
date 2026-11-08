@@ -233,7 +233,7 @@ public sealed class EchoConsoleTests(FakeSidecar fixture, SidecarBinaries binari
 
 		public override Task WriteLineAsync(string? value)
 		{
-			base.WriteLine(value);
+			WriteLine(value);
 			_ = _written.TrySetResult();
 			return Task.CompletedTask;
 		}

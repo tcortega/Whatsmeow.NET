@@ -479,8 +479,8 @@ public sealed class MessageActionTests(FakeSidecar fixture)
 		await ConnectAsync(client, ct);
 		var device = Jid.Parse(SessionSetup.Jid(Session));
 		var phone = device with { Device = 0 };
-		var reply = static (string? participant) =>
-			new E2E.Message
+		static E2E.Message Reply(string? participant) =>
+			new()
 			{
 				ExtendedTextMessage = new E2E.ExtendedTextMessage
 				{
@@ -496,7 +496,7 @@ public sealed class MessageActionTests(FakeSidecar fixture)
 		string[] own = [phone.ToString(), (device with { Device = 5 }).ToString(), $"{Session}@c.us", (lid with { Device = 0 }).ToString(), (lid with { Device = 4 }).ToString()];
 		for (var i = 0; i < own.Length; i++)
 		{
-			await DeliverAsync(Session, $"Q{i}", s_group, s_member, reply(own[i]), ct);
+			await DeliverAsync(Session, $"Q{i}", s_group, s_member, Reply(own[i]), ct);
 			Assert.Equal(
 				Received(Session, $"Q{i}", s_group, s_member, text) with
 				{
@@ -509,7 +509,7 @@ public sealed class MessageActionTests(FakeSidecar fixture)
 		string?[] none = [null, "333@", s_group.ToString()];
 		for (var i = 0; i < none.Length; i++)
 		{
-			await DeliverAsync(Session, $"N{i}", s_group, s_member, reply(none[i]), ct);
+			await DeliverAsync(Session, $"N{i}", s_group, s_member, Reply(none[i]), ct);
 			Assert.Equal(Received(Session, $"N{i}", s_group, s_member, text), await received.NextAsync(ct));
 		}
 	}

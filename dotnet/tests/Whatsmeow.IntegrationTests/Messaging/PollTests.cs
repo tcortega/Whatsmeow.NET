@@ -180,7 +180,7 @@ public sealed class PollTests(FakeSidecar fixture)
 
 		// The application holds the poll's options, and tells which the latest vote selected.
 		var latest = (PollVoteContent)votes[1].Content;
-		Assert.Equal<bool>([false, true, true], s_lunch.Options.Select(latest.Selects));
+		Assert.Equal([false, true, true], s_lunch.Options.Select(latest.Selects));
 	}
 
 	[Fact(Timeout = Timeout)]
@@ -263,7 +263,7 @@ public sealed class PollTests(FakeSidecar fixture)
 
 		var next = await client.SendTextAsync(s_peer, "next", cancellationToken: ct);
 		var sent = await NextAsync(Session, 0, 3, ct);
-		Assert.Equal<MessageId>([pollId, voteId, next.Id], sent.Select(static s => MessageId.From(s.Message.Id)));
+		Assert.Equal([pollId, voteId, next.Id], sent.Select(static s => MessageId.From(s.Message.Id)));
 	}
 
 	[Fact(Timeout = Timeout)]

@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -134,7 +133,7 @@ internal static partial class LiveMediaRefs
 					FileSha256 = [.. Convert.FromBase64String(FileSha256)],
 					FileEncSha256 = [.. Convert.FromBase64String(FileEncSha256)],
 					FileLength = FileLength,
-					StreamingSidecar = ImmutableArray<byte>.Empty,
+					StreamingSidecar = [],
 				},
 			};
 	}

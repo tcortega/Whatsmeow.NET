@@ -8,8 +8,8 @@ using Whatsmeow.IntegrationTests.Sessions;
 using Whatsmeow.IntegrationTests.Support;
 using Whatsmeow.Messaging;
 using Conversation = Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncRequest.Types.Conversation;
-using MessageSource = Whatsmeow.Events.MessageSource;
 using E2E = Whatsmeow.Proto.WAWebProtobufsE2E;
+using MessageSource = Whatsmeow.Events.MessageSource;
 using WebMessage = Whatsmeow.IntegrationTests.Fake.DeliverHistorySyncRequest.Types.Message;
 
 namespace Whatsmeow.IntegrationTests.History;
@@ -84,7 +84,7 @@ public sealed class HistoryTests(FakeSidecar fixture)
 
 		// The notification was answered once it was queued, then the blob was downloaded, and deleted last.
 		var sent = await Histories.SentUntilAsync(fixture, Session, s => s.MediaDelete is not null, ct);
-		Assert.Equal<string>(["receipt N1", $"download {blob.DirectPath}", $"delete {blob.DirectPath}"], sent.Select(Describe).OfType<string>(), StringComparer.Ordinal);
+		Assert.Equal(["receipt N1", $"download {blob.DirectPath}", $"delete {blob.DirectPath}"], sent.Select(Describe).OfType<string>(), StringComparer.Ordinal);
 	}
 
 	[Fact(Timeout = Timeout)]
