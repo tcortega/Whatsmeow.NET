@@ -185,6 +185,10 @@ public sealed class LiveSidecar : IAsyncLifetime
 	internal async Task<LiveTestService.LiveTestServiceClient> ControlAsync(CancellationToken cancellationToken) =>
 		new((await StartAsync(cancellationToken).ConfigureAwait(false)).CallInvoker);
 
+	/// <summary>The live sidecar's own description, the whatsmeow version it links included; a local call, no network.</summary>
+	public async Task<SidecarInfo> InfoAsync(CancellationToken cancellationToken) =>
+		await (await StartAsync(cancellationToken).ConfigureAwait(false)).GetInfoAsync(cancellationToken).ConfigureAwait(false);
+
 	/// <summary>Every session on the live database, with this device's JIDs, never creating one.</summary>
 	public async Task<ImmutableArray<SessionInfo>> SessionsAsync(CancellationToken cancellationToken) =>
 		await (await StartAsync(cancellationToken).ConfigureAwait(false)).Sessions.ListAsync(cancellationToken).ConfigureAwait(false);

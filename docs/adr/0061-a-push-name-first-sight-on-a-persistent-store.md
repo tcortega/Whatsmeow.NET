@@ -4,6 +4,7 @@
 * Date: 2026-11-06
 * Evidence: #36 AC6, the 2026-11-06 fresh companion run and PR #155 (ARCHITECTURE §14, Contacts), root's approval of the #36 push name diagnostic plan, whatsmeow at `307a2edf117d` and the sidecar (lines below)
 * Amends: [ADR 0060](0060-a-live-test-control-and-a-fresh-companion.md) (its Context's "The persistent stores have both values cached", for the push name), docs/guidelines/tests.md (Live WhatsApp)
+* Amended by: [ADR 0062](0062-the-contacts-fullcycle-on-the-persistent-sessions.md) (a separate opt-in test reads the business's profile on the persistent peer; this diagnostic still never does)
 
 ## Context
 

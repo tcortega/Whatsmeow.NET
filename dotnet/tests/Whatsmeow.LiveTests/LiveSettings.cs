@@ -47,6 +47,18 @@ internal static class LiveSettings
 	public const string PushNameFirstSightVariable = "WHATSMEOW_LIVE_PUSHNAME_FIRST_SIGHT";
 
 	/// <summary>
+	/// Set, to any value, to run the Contacts FullCycle on the persistent sessions (<c>LivePersistentContactsTests</c>, ADR
+	/// 0062): it reads the business's profile on the peer, which spends the first sight of a row with no business name.
+	/// </summary>
+	public const string ContactsFullCycleVariable = "WHATSMEOW_LIVE_CONTACTS_FULLCYCLE";
+
+	/// <summary>
+	/// The name the live account is saved under in the peer account's phone contacts, as the owner stated it (ADR 0062):
+	/// the Contacts FullCycle's expected saved name, which no store gives. A secret: never printed.
+	/// </summary>
+	public const string PeerSavedNameVariable = "WHATSMEOW_LIVE_PEER_SAVED_NAME";
+
+	/// <summary>
 	/// A new database file for the fresh companion of the peer's account (<see cref="LiveFresh"/>, ADR 0060): the opt-in
 	/// for the one test that asks for a QR scan every run. The test creates the file and refuses one that exists.
 	/// </summary>
@@ -107,6 +119,12 @@ internal static class LiveSettings
 
 	/// <summary>Whether the push name stimulus runs.</summary>
 	public static bool PushNameFirstSight { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(PushNameFirstSightVariable));
+
+	/// <summary>Whether the Contacts FullCycle on the persistent sessions runs.</summary>
+	public static bool ContactsFullCycle { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(ContactsFullCycleVariable));
+
+	/// <summary>The peer's saved name of the live account, or null when not given.</summary>
+	public static string? PeerSavedName { get; } = Environment.GetEnvironmentVariable(PeerSavedNameVariable);
 
 	/// <summary>Whether the owner is at the phone.</summary>
 	public static bool Owner { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(OwnerVariable));

@@ -37,6 +37,18 @@ public sealed class LivePeer : IAsyncLifetime
 		return await sidecar.Sessions.GetOrCreateAsync(SessionId.From(SessionIdValue), cancellationToken).ConfigureAwait(false);
 	}
 
+	/// <summary>
+	/// The peer session's client, not connected, so a test can register handlers before its first connection; the same
+	/// client <see cref="ConnectedAsync"/> returns. It must be paired already, checked before <c>GetOrCreate</c>, which would
+	/// add an unpaired session to the peer's database.
+	/// </summary>
+	public async Task<IWhatsAppClient> ExistingAsync(LiveSidecar live, CancellationToken cancellationToken)
+	{
+		var sidecar = await StartAsync(live, cancellationToken).ConfigureAwait(false);
+		_ = await LiveSidecar.AccountOfAsync(sidecar, SessionId.From(SessionIdValue), cancellationToken).ConfigureAwait(false);
+		return await sidecar.Sessions.GetOrCreateAsync(SessionId.From(SessionIdValue), cancellationToken).ConfigureAwait(false);
+	}
+
 	/// <summary>The peer session, connected and CaughtUp. It must be paired already: the QR test pairs it.</summary>
 	public async Task<IWhatsAppClient> ConnectedAsync(LiveSidecar live, CancellationToken cancellationToken)
 	{
