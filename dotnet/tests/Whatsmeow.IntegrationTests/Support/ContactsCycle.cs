@@ -18,10 +18,13 @@ namespace Whatsmeow.IntegrationTests.Support;
 /// A business name and a push name change dispatch only when the stored value changes; a row with no value counts as
 /// changed (whatsmeow user.go 679-736, store/sqlstore/store.go 625, 646) [observed: source]. So each branch reads the
 /// subject's rows first and fails <c>businessname_precondition_spent</c> or <c>pushname_precondition_spent</c> when its
-/// row was set already: a cached store is never a first sight. whatsmeow compares the row of the answer's JID (user.go
-/// 248, 270, 713) [observed: source]; that the answer keys an entry under the JID asked was seen for one query of the
-/// live account's own LID [observed: ARCHITECTURE §14, the #10 run] and is [unknown] for another account's LID, so
-/// branch 2 asks by the first form whose row has no business name and requires exactly one entry for the JID asked.
+/// row was set already: a cached store is never a first sight, though a real rename would still bring a change.
+/// whatsmeow compares the row of the answer's JID (user.go 248, 270, 713) [observed: source]. That the answer keys an
+/// entry under the JID asked was seen for one query of the live account's own LID [observed: ARCHITECTURE §14, the #10
+/// run], and for the peer's query of the business account by its LID on a measurement build of the pin with #153's fix
+/// [observed: root's #153 measurement, 2026-11-08 03:38:40 UTC]; that it holds at the shipped pin and for other
+/// accounts is [inferred]. So branch 2 asks by the first form whose row has no business name and requires exactly one
+/// entry for the JID asked.
 /// </para>
 /// <para>
 /// Attribution: a change carries no message id, so the subject's traffic (<see cref="ContactsTraffic"/>) is checked
@@ -30,7 +33,9 @@ namespace Whatsmeow.IntegrationTests.Support;
 /// had no push name at the branch's start and just before the text, no push name change came before the text was
 /// sent, and by the time the change was taken the subject's only message since the branch began was the text. A change
 /// stored before a read and delivered after it is still taken as the stimulus's [inferred]: the reads narrow that
-/// window, nothing here closes it.
+/// window, nothing here closes it. The counts are as of .NET dispatch: lanes run concurrently (<c>Dispatcher</c>), a
+/// message in its chat's lane and a change in its contact's (<c>EventMapping.Lane</c>) [observed: source], so a subject
+/// message in another lane, received before the change, may still be uncounted when a count is read [inferred].
 /// </para>
 /// <para>
 /// The read back compares the phone number row whole with values none of them read from the store: the saved name the
@@ -138,8 +143,9 @@ internal static class ContactsCycle
 	/// <summary>
 	/// Branch 2: the receiver reads the subject's profile by the first form whose row has no business name, or by its
 	/// phone number when both have one. On an unspent row the change is awaited, or-null, before any verdict, so a bad
-	/// answer still records, booleans only, whether the change came; on a spent row none can come (user.go 713-717), so
-	/// none is awaited or claimed. Then: exactly one entry for the JID asked, a verified name in it (#153), an unspent row,
+	/// answer still records, booleans only, whether the change came; on a spent row no first sight is left, and a change
+	/// could come only if the answer's name differs from the stored one (user.go 713-717, store.go 646), so none is
+	/// awaited or claimed. Then: exactly one entry for the JID asked, a non-empty verified name in it (#153), an unspent row,
 	/// the change, no other traffic of the subject until it was taken, and <see cref="ContactChecks.BusinessName"/> whole.
 	/// </summary>
 	private static async Task BusinessNameAsync(ContactsRun run, Wire wire, CancellationToken ct)
@@ -167,13 +173,17 @@ internal static class ContactsCycle
 			wire.BusinessName = name;
 			var got = change is null ? null : await OrNullAsync(change).ConfigureAwait(false);
 			var after = run.Traffic.Now();
-			run.Log($"branch 2's answer carried a verified business name: {name is not null}");
-			if (change is not null && name is null)
-				run.Log($"branch 2's answer carried no verified business name; a business name change came: {got is not null}, naming the JID asked: {got?.Jid == asked}");
+			run.Log($"branch 2's answer carried a verified business name: {name is { Length: > 0 }}");
+			if (change is not null && name is not { Length: > 0 })
+				run.Log($"branch 2's answer carried {(name is null ? "no" : "an empty")} verified business name; a business name change came: {got is not null}, naming the JID asked: {got?.Jid == asked}");
 
 			Assert.True(entries.Length == 1, $"businessname_answer_keyed: the answer had {answer.Length} entries, {entries.Length} for the JID asked");
 			Assert.True(name is not null, "businessname_answer_null: the answer's entry carried no verified business name (#153)");
-			Assert.True(!spent, "businessname_precondition_spent: both of the subject's rows had a business name before the query, so no change can come; the answer was checked, no change was awaited");
+			Assert.True(name.Length > 0, "businessname_answer_empty: the answer's entry carried an empty verified business name");
+			Assert.True(
+				!spent,
+				"businessname_precondition_spent: both of the subject's rows had a business name before the query, so no first sight is left; a change could come only from a rename; the answer was checked, no change was awaited"
+			);
 			Assert.True(got is not null, $"the business name change did not come within {run.Watch.TotalSeconds:F0} s");
 			Assert.True(
 				after is { Messages.Length: 0, Undecryptable: 0, BusinessNames: 1 },
@@ -285,7 +295,10 @@ internal static class ContactsCycle
 	{
 		Assert.False(string.IsNullOrWhiteSpace(run.SavedName), "savedname_input_missing: no saved name was given, so the read back has no expected value; the store's is never used instead");
 		Assert.True(Named(wire.PushName), "readback_pushname_unanchored: this run's text carried no push name, or a dash, so the read back has no expected push name");
-		Assert.True(wire.BusinessName is not null, "readback_businessname_unanchored: this run's answer carried no verified business name, so the read back has no expected business name");
+		Assert.True(
+			wire.BusinessName is { Length: > 0 },
+			"readback_businessname_unanchored: this run's answer carried no verified business name, or an empty one, so the read back has no expected business name"
+		);
 
 		var rows = await RowsAsync(run.Receiver, run.Subject, ct).ConfigureAwait(false);
 		run.Log($"branch 6 reads back the subject's rows: {Describe(rows)}");
