@@ -4,7 +4,7 @@
 * Date: 2026-11-06
 * Evidence: #36 AC6 and its exit audit (the live contacts suite does not cover the Contacts FullCycle), whatsmeow at `307a2edf117d` and the sidecar (lines below)
 * Amends: [ADR 0019](0019-fake-whatsapp-mode.md) (a second test-only control, and the groups slice's `livetest_*` files), [ADR 0032](0032-live-test-seams-and-the-peer-session.md) (the `livetest` tag in the groups slice too, a control service, and a throwaway companion again, on opt-in only), docs/guidelines/tests.md (Live WhatsApp)
-* Amended by: [ADR 0061](0061-a-push-name-first-sight-on-a-persistent-store.md) (the push name branch may pass on a persistent store whose precondition read holds, on opt-in, with no claim about a fresh device; its Addendum has the push name step send a named unavailable presence before its text)
+* Amended by: [ADR 0061](0061-a-push-name-first-sight-on-a-persistent-store.md) (the push name branch may pass on a persistent store whose precondition read holds, on opt-in, with no claim about a fresh device; its Addendum has the push name step send a named unavailable presence before its text); [ADR 0062](0062-the-contacts-fullcycle-on-the-persistent-sessions.md) (the Contacts FullCycle on the persistent sessions, the saved name from the owner on opt-in)
 
 ## Context
 

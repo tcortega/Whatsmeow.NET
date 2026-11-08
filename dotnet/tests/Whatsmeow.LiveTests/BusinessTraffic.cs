@@ -3,7 +3,7 @@ using Whatsmeow.Events;
 
 namespace Whatsmeow.LiveTests;
 
-/// <summary>What the companion got from the business since pairing: its messages, undecryptable ones, and business name changes.</summary>
+/// <summary>What a session got from the business since this count started: its messages, undecryptable ones, and business name changes.</summary>
 internal sealed class BusinessTraffic : IDisposable
 {
 	private readonly IDisposable[] _handlers;
