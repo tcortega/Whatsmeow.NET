@@ -1,12 +1,10 @@
 using System.Collections.Immutable;
 using Whatsmeow.Contacts;
-using Whatsmeow.Core.Errors;
 using Whatsmeow.Events;
 using Whatsmeow.IntegrationTests.Contacts;
 using Whatsmeow.IntegrationTests.Pairing;
 using Whatsmeow.IntegrationTests.Sessions;
 using Whatsmeow.IntegrationTests.Support;
-using Whatsmeow.LiveTests.Control;
 using Whatsmeow.Pairing;
 using Whatsmeow.Presence;
 using Whatsmeow.Sessions;
@@ -79,7 +77,7 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 					Then =
 					[
 						new FreshStep { Name = "catch up", Run = token => live.StayUntilCaughtUpAsync(client, token) },
-						new FreshStep { Name = "branches 3 and 4, picture", Run = token => PictureAsync(client, token) },
+						new FreshStep { Name = "branches 3 and 4, picture", Run = token => LiveGroupPhoto.SetAndRemoveAsync(live, group, client, token) },
 					],
 					Deadline = bounds.Deadline,
 					WindowAsync = bounds.WindowAsync,
@@ -201,51 +199,6 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 	private static bool IsOtherForm((Jid Chat, Jid? Lid) account, Jid jid, Jid alt) => LiveChecks.Names(account, alt) && alt.IsLid != jid.IsLid;
 
 	/// <summary>
-	/// Branches 3 and 4: the live session sets the run's group photo, then removes it; the companion is a member's
-	/// device. A set whose answer is unknown is never sent again; the restore removes the photo if the set may have
-	/// happened and the removal did not. A failed call is the client's exception, with its reason (<see cref="RpcErrors"/>).
-	/// </summary>
-	private async Task PictureAsync(IWhatsAppClient client, CancellationToken ct)
-	{
-		var jid = await group.WithPeerAsync(ct).ConfigureAwait(false);
-		var control = await live.ControlAsync(ct).ConfigureAwait(false);
-		var setPhoto = new SetGroupPhotoRequest
-		{
-			SessionId = LiveSidecar.LiveSessionId,
-			Group = jid.ToString(),
-			JpegPath = Path.Combine(AppContext.BaseDirectory, "group-photo.jpg"),
-		};
-		var removePhoto = new SetGroupPhotoRequest { SessionId = LiveSidecar.LiveSessionId, Group = jid.ToString() };
-		var photoSet = false;
-
-		await LiveRestore.AfterAsync(
-			live,
-			async () =>
-			{
-				var set = client.WaitForAsync<ContactUpdated>(e => e.Jid == jid && e.Change is ContactChange.Picture { Id: not null }, LiveChecks.Watch, ct);
-				// Set before the call: an answer lost on the way may still have set the photo.
-				photoSet = true;
-				var answer = await RpcErrors.CallAsync(control.SetGroupPhotoAsync(setPhoto, cancellationToken: ct)).ConfigureAwait(false);
-				Assert.NotEmpty(answer.PictureId);
-				LiveChecks.Equal(ContactChecks.Picture(client.SessionId, jid, answer.PictureId), await LiveChecks.WithinAsync(set, "the group photo change").ConfigureAwait(false));
-
-				var removed = client.WaitForAsync<ContactUpdated>(e => e.Jid == jid && e.Change is ContactChange.Picture { Id: null }, LiveChecks.Watch, ct);
-				_ = await RpcErrors.CallAsync(control.SetGroupPhotoAsync(removePhoto, cancellationToken: ct)).ConfigureAwait(false);
-				photoSet = false;
-				LiveChecks.Equal(ContactChecks.Picture(client.SessionId, jid, id: null), await LiveChecks.WithinAsync(removed, "the group photo removal").ConfigureAwait(false));
-			},
-			(
-				"remove the group photo",
-				async t =>
-				{
-					if (photoSet)
-						_ = await RpcErrors.CallAsync(control.SetGroupPhotoAsync(removePhoto, cancellationToken: t)).ConfigureAwait(false);
-				}
-		)
-		).ConfigureAwait(false);
-	}
-
-	/// <summary>
 	/// Pairs by QR code, the codes in <c>qr.png</c>, telling the companion and #42's record when it is paired, then waits
 	/// for the first of Connected and CaughtUp, so the first sight steps start as early as the session can use them.
 	/// </summary>
@@ -291,40 +244,4 @@ public sealed class LiveFreshCompanionTests(LiveSidecar live, LivePeer peer, Liv
 		rows.IsEmpty
 			? "none"
 			: string.Join(", ", rows.Select(r => $"{LiveChecks.Form(r.Jid)}: saved {r.SavedName is not null}, push {r.PushName is not null}, business {r.BusinessName is not null}"));
-
-	/// <summary>What the companion got from the business since pairing: its messages, undecryptable ones, and business name changes.</summary>
-	private sealed class BusinessTraffic : IDisposable
-	{
-		private readonly IDisposable[] _handlers;
-		private int _messages;
-		private int _undecryptable;
-		private int _changes;
-
-		public BusinessTraffic(IWhatsAppClient client, (Jid Chat, Jid? Lid) account) =>
-			_handlers =
-			[
-				client.On<MessageReceived>((e, _) => CountAsync(LiveChecks.Names(account, e.Source.Sender), ref _messages)),
-				client.On<UndecryptableMessageReceived>((e, _) => CountAsync(LiveChecks.Names(account, e.Source.Sender), ref _undecryptable)),
-				client.On<ContactUpdated>((e, _) => CountAsync(LiveChecks.Names(account, e.Jid) && e.Change is ContactChange.BusinessName, ref _changes)),
-			];
-
-		public int Messages => Volatile.Read(ref _messages);
-
-		public int Undecryptable => Volatile.Read(ref _undecryptable);
-
-		public int Changes => Volatile.Read(ref _changes);
-
-		public void Dispose()
-		{
-			foreach (var handler in _handlers)
-				handler.Dispose();
-		}
-
-		private static ValueTask CountAsync(bool matches, ref int count)
-		{
-			if (matches)
-				_ = Interlocked.Increment(ref count);
-			return ValueTask.CompletedTask;
-		}
-	}
 }
