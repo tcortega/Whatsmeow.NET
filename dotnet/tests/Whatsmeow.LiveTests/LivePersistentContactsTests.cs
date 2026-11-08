@@ -61,7 +61,7 @@ public sealed class LivePersistentContactsTests(LiveSidecar live, LivePeer peer,
 		var business = await live.LiveAsync(ct);
 		var receiver = await peer.ConnectedAsync(live, ct);
 		var peerAccount = await peer.AccountAsync(ct);
-		using var traffic = new BusinessTraffic(receiver, businessAccount);
+		using var traffic = new ContactsTraffic(receiver, businessAccount);
 		live.Write($"live: contacts fullcycle, the live store's rows of the peer: {ContactsCycle.Describe(await ContactsCycle.RowsAsync(business, peerAccount, ct))}");
 		var others = (await receiver.GetContactsAsync(ct)).Where(c => LiveChecks.Names(businessAccount, c.Jid) && c.Jid != businessAccount.Chat && c.Jid != businessAccount.Lid).ToArray();
 		live.Write($"live: contacts fullcycle, the peer's other rows naming the business: {others.Length}{string.Concat(others.Select(c => $", a {LiveChecks.Form(c.Jid)}"))}");
@@ -74,11 +74,12 @@ public sealed class LivePersistentContactsTests(LiveSidecar live, LivePeer peer,
 					{
 						Receiver = receiver,
 						Subject = businessAccount,
-						Traffic = () => (traffic.Messages, traffic.Undecryptable, traffic.Changes),
+						Traffic = traffic,
+						ReadProfileAsync = (jid, t) => receiver.GetUserInfoAsync([jid], t),
 						SendNamedPresenceAsync = t => business.SendPresenceAsync(PresenceState.Unavailable, t),
 						SendTextAsync = async (id, text, t) => _ = await business.SendTextAsync(peerAccount.Chat, text, id, cancellationToken: t).ConfigureAwait(false),
 						Id = () => MessageId.From($"WMNCONTACTS{LiveClock.Time.GetUtcNow():yyyyMMddHHmmss}"),
-						CheckMessage = (got, id, text) => LiveChecks.Equal(LiveChecks.Received(receiver, got, businessAccount, id, new TextContent { Text = text }), got),
+						Expected = (got, id, text) => LiveChecks.Received(receiver, got, businessAccount, id, new TextContent { Text = text }),
 						Then =
 						[
 							new FreshStep { Name = "branches 3 and 4, picture", Run = t => LiveGroupPhoto.SetAndRemoveAsync(live, group, receiver, t) },

@@ -54,6 +54,12 @@ internal static class ContactsCycle
 			throw new AggregateException(failures.Select(f => f.SourceException));
 	}
 
+	/// <summary>Refuses a whatsmeow version known to drop the verified business name (#153), before any network use.</summary>
+	public static void RefuseKnownBadPin(string whatsmeowVersion) { }
+
+	/// <summary>Refuses a subject and a receiver that name the same account by either form, before any network use.</summary>
+	public static void RequireDistinct((Jid Chat, Jid? Lid) subject, (Jid Chat, Jid? Lid) receiver) { }
+
 	/// <summary>The subject's rows in the receiver's contacts, by its phone number and its LID; never the others.</summary>
 	public static async Task<ImmutableArray<Contact>> RowsAsync(IWhatsAppClient receiver, (Jid Chat, Jid? Lid) subject, CancellationToken cancellationToken) =>
 		[.. (await receiver.GetContactsAsync(cancellationToken).ConfigureAwait(false)).Where(c => c.Jid == subject.Chat || c.Jid == subject.Lid)];
@@ -87,11 +93,11 @@ internal static class ContactsCycle
 	{
 		var receiver = run.Receiver;
 		var rows = await RowsAsync(receiver, run.Subject, ct).ConfigureAwait(false);
-		var traffic = run.Traffic();
+		var traffic = run.Traffic.Now();
 		run.Log(
-			$"before branch 2, the subject's rows: {Describe(rows)}; since the count started, its messages: {traffic.Messages}, undecryptable: {traffic.Undecryptable}, business name changes: {traffic.Changes}"
+			$"before branch 2, the subject's rows: {Describe(rows)}; since the count started, its messages: {traffic.Messages.Length}, undecryptable: {traffic.Undecryptable}, business name changes: {traffic.BusinessNames}"
 		);
-		Assert.True(traffic is (0, 0, 0), "businessname_origin_unclear: the subject sent something, or a business name change of it came, before the query");
+		Assert.True(traffic is { Messages.Length: 0, Undecryptable: 0, BusinessNames: 0 }, "businessname_origin_unclear: the subject sent something, or a business name change of it came, before the query");
 
 		Jid[] forms = run.Subject.Lid is { } lid ? [run.Subject.Chat, lid] : [run.Subject.Chat];
 		var unspent = forms.Where(f => rows.SingleOrDefault(r => r.Jid == f)?.BusinessName is null).ToArray();
@@ -100,7 +106,7 @@ internal static class ContactsCycle
 		run.Log($"branch 2 asks by the {Form(asked)}, whose row had a business name: {spent}");
 
 		var change = receiver.WaitForAsync<ContactUpdated>(e => Names(run.Subject, e.Jid) && e.Change is ContactChange.BusinessName, run.Watch, ct);
-		var answer = await receiver.GetUserInfoAsync([asked], ct).ConfigureAwait(false);
+		var answer = await run.ReadProfileAsync(asked, ct).ConfigureAwait(false);
 		string? name = null;
 		run.Redacting(() => name = Assert.Single(answer, a => a.Jid == asked).VerifiedBusinessName);
 		wire.BusinessName = name;
@@ -150,7 +156,8 @@ internal static class ContactsCycle
 		var pushName = got.PushName;
 		wire.PushName = pushName;
 		run.Log($"branch 1's text carried {Carried(pushName)}");
-		run.CheckMessage(got, id, Text);
+		var expected = run.Expected(got, id, Text);
+		run.Redacting(() => Assert.Equal(expected, got));
 		run.Log($"branch 1's text came from a {Form(got.Source.Sender)} with a {Form(got.Source.SenderAlt)} beside it");
 		Assert.True(pushName is not null, "pushname_stimulus_missing: the subject's text carried no push name, so branch 1 has no stimulus");
 		Assert.NotEmpty(pushName);
@@ -249,8 +256,11 @@ internal sealed record ContactsRun
 	/// <summary>The subject, a verified business, by its phone number and its LID.</summary>
 	public required (Jid Chat, Jid? Lid) Subject { get; init; }
 
-	/// <summary>What the receiver got from the subject since the count started, before the receiver's first read of it.</summary>
-	public required Func<(int Messages, int Undecryptable, int Changes)> Traffic { get; init; }
+	/// <summary>What the receiver got from the subject since the count started, before the receiver's first connection.</summary>
+	public required ContactsTraffic Traffic { get; init; }
+
+	/// <summary>Reads the subject's profile as the receiver: the receiver's <c>GetUserInfoAsync</c>.</summary>
+	public required Func<Jid, CancellationToken, Task<ImmutableArray<UserInfo>>> ReadProfileAsync { get; init; }
 
 	/// <summary>Has the subject send a named unavailable presence.</summary>
 	public required Func<CancellationToken, Task> SendNamedPresenceAsync { get; init; }
@@ -261,8 +271,8 @@ internal sealed record ContactsRun
 	/// <summary>The text's id.</summary>
 	public required Func<MessageId> Id { get; init; }
 
-	/// <summary>Checks the text as the receiver got it, after its lines were logged.</summary>
-	public required Action<MessageReceived, MessageId, string> CheckMessage { get; init; }
+	/// <summary>The fake-mode record the text must be, built from what the receiver got, its id and its text.</summary>
+	public required Func<MessageReceived, MessageId, string, MessageReceived> Expected { get; init; }
 
 	/// <summary>The steps between branch 1 and the read back: the picture and the about branches.</summary>
 	public required ImmutableArray<FreshStep> Then { get; init; }

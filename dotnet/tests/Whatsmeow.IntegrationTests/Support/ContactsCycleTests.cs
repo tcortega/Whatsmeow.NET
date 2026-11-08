@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Whatsmeow.Contacts;
 using Whatsmeow.Events;
 using Whatsmeow.IntegrationTests.Contacts;
@@ -28,7 +29,7 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 	public async Task Run_AStoreThatHasNotSeenTheSubject_PassesEveryBranch_InOrder_AndLogsNoName()
 	{
 		var ct = TestContext.Current.CancellationToken;
-		var h = await Harness.StartAsync(fixture, "contacts-cycle-pass", subject: 1, Business, ct);
+		using var h = await Harness.StartAsync(fixture, "contacts-cycle-pass", subject: 1, Business, ct);
 		await h.SyncSavedNameAsync(Saved, ct);
 
 		await ContactsCycle.RunAsync(h.Run("Ana", Saved), ct);
@@ -62,7 +63,7 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 	public async Task Run_BothRowsHadTheBusinessName_FailsBranch2AsSpent_AfterCheckingTheAnswer()
 	{
 		var ct = TestContext.Current.CancellationToken;
-		var h = await Harness.StartAsync(fixture, "contacts-cycle-business-spent", subject: 2, Business, ct);
+		using var h = await Harness.StartAsync(fixture, "contacts-cycle-business-spent", subject: 2, Business, ct);
 		await h.SyncSavedNameAsync(Saved, ct);
 		await h.ReadProfileFirstAsync(ct);
 
@@ -82,7 +83,7 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 	public async Task Run_OnlyThePhoneNumberRowHadTheBusinessName_AsksByTheLid_AndTheChangeNamesIt()
 	{
 		var ct = TestContext.Current.CancellationToken;
-		var h = await Harness.StartAsync(fixture, "contacts-cycle-business-lid", subject: 3, Business, ct, registerLid: false);
+		using var h = await Harness.StartAsync(fixture, "contacts-cycle-business-lid", subject: 3, Business, ct, registerLid: false);
 		await h.SyncSavedNameAsync(Saved, ct);
 		await h.ReadProfileFirstAsync(ct);
 		await h.RegisterAsync(Business, withLid: true, ct);
@@ -101,7 +102,7 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 	public async Task Run_TheAnswerCarriesNoBusinessNameWhileTheStoreHasOne_FailsBranch2_AndTheReadBackIsUnanchored()
 	{
 		var ct = TestContext.Current.CancellationToken;
-		var h = await Harness.StartAsync(fixture, "contacts-cycle-business-null", subject: 4, Business, ct);
+		using var h = await Harness.StartAsync(fixture, "contacts-cycle-business-null", subject: 4, Business, ct);
 		await h.SyncSavedNameAsync(Saved, ct);
 		await h.ReadProfileFirstAsync(ct);
 		await h.RegisterAsync(businessName: "", withLid: true, ct);
@@ -121,7 +122,7 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 	public async Task Run_TheSendersRowHadThePushName_FailsBranch1AsSpent_AndTheReadBackStillPasses()
 	{
 		var ct = TestContext.Current.CancellationToken;
-		var h = await Harness.StartAsync(fixture, "contacts-cycle-push-spent", subject: 5, Business, ct);
+		using var h = await Harness.StartAsync(fixture, "contacts-cycle-push-spent", subject: 5, Business, ct);
 		await h.SyncSavedNameAsync(Saved, ct);
 		await h.DeliverEarlierNamedAsync("Ana", ct);
 
@@ -136,7 +137,7 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 	public async Task Run_TheTextCarriesNoPushName_FailsBranch1_AndTheReadBackIsUnanchored()
 	{
 		var ct = TestContext.Current.CancellationToken;
-		var h = await Harness.StartAsync(fixture, "contacts-cycle-push-none", subject: 6, Business, ct);
+		using var h = await Harness.StartAsync(fixture, "contacts-cycle-push-none", subject: 6, Business, ct);
 		await h.SyncSavedNameAsync(Saved, ct);
 
 		var failed = await Assert.ThrowsAsync<AggregateException>(() => ContactsCycle.RunAsync(h.Run(pushName: null, Saved), ct));
@@ -154,7 +155,7 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 	public async Task Run_NoSavedNameGiven_FailsTheReadBackAsInputMissing_AndTheOtherBranchesRan()
 	{
 		var ct = TestContext.Current.CancellationToken;
-		var h = await Harness.StartAsync(fixture, "contacts-cycle-saved-missing", subject: 7, Business, ct);
+		using var h = await Harness.StartAsync(fixture, "contacts-cycle-saved-missing", subject: 7, Business, ct);
 		await h.SyncSavedNameAsync(Saved, ct);
 
 		var failed = await Assert.ThrowsAsync<FalseException>(() => ContactsCycle.RunAsync(h.Run("Ana", savedName: null), ct));
@@ -169,7 +170,7 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 	public async Task Run_TheSavedNameGivenIsNotTheStoredOne_FailsTheReadBack()
 	{
 		var ct = TestContext.Current.CancellationToken;
-		var h = await Harness.StartAsync(fixture, "contacts-cycle-saved-other", subject: 8, Business, ct);
+		using var h = await Harness.StartAsync(fixture, "contacts-cycle-saved-other", subject: 8, Business, ct);
 		await h.SyncSavedNameAsync(Saved, ct);
 
 		_ = await Assert.ThrowsAsync<EqualException>(() => ContactsCycle.RunAsync(h.Run("Ana", "Bea L."), ct));
@@ -182,18 +183,19 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 	public async Task Run_TheSubjectSentSomethingBeforeTheQuery_FailsBranch2AsOriginUnclear()
 	{
 		var ct = TestContext.Current.CancellationToken;
-		var h = await Harness.StartAsync(fixture, "contacts-cycle-origin", subject: 9, Business, ct);
+		using var h = await Harness.StartAsync(fixture, "contacts-cycle-origin", subject: 9, Business, ct);
 		await h.SyncSavedNameAsync(Saved, ct);
-		h.Traffic = (1, 0, 0);
+		var run = h.Run("Ana", Saved);
+		await h.DeliveredAsync("BEFORE", pushName: null, "after the count started", ct);
 
-		var failed = await Assert.ThrowsAsync<AggregateException>(() => ContactsCycle.RunAsync(h.Run("Ana", Saved), ct));
+		var failed = await Assert.ThrowsAsync<AggregateException>(() => ContactsCycle.RunAsync(run, ct));
 
 		Assert.StartsWith("businessname_origin_unclear", failed.InnerExceptions[0].Message, StringComparison.Ordinal);
 		Assert.DoesNotContain(h.Lines, l => l.StartsWith("branch 2 asks", StringComparison.Ordinal));
 	}
 
 	/// <summary>A receiver, a presence sender and a subject of one test's own, and what the run did through them.</summary>
-	private sealed class Harness
+	private sealed class Harness : IDisposable
 	{
 		private readonly FakeSidecar _fixture;
 		private readonly string _receiverId;
@@ -201,6 +203,7 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 		private readonly IWhatsAppClient _sender;
 		private readonly string _lid;
 		private readonly string _pn;
+		private ContactsTraffic? _traffic;
 
 		private Harness(FakeSidecar fixture, string receiverId, IWhatsAppClient receiver, IWhatsAppClient sender, int subject)
 		{
@@ -221,8 +224,22 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 		/// <summary>The branches' verdict lines.</summary>
 		public List<string> Verdicts => [.. Lines.Where(l => l.EndsWith(": passed", StringComparison.Ordinal) || l.Contains(": failed, ", StringComparison.Ordinal))];
 
-		/// <summary>What the run's traffic count answers.</summary>
-		public (int Messages, int Undecryptable, int Changes) Traffic { get; set; }
+		/// <summary>Reads the profile for the run; the receiver's own call unless a test replaces it.</summary>
+		public Func<Jid, CancellationToken, Task<ImmutableArray<UserInfo>>>? ReadProfile { get; set; }
+
+		/// <summary>Runs inside the named presence's send, before the text, for a test that delivers something first.</summary>
+		public Func<CancellationToken, Task> BeforeText { get; set; } = _ => Task.CompletedTask;
+
+		/// <summary>The record the text must be; the fake-mode check unless a test replaces it.</summary>
+		public Func<MessageReceived, MessageId, string, MessageReceived>? Expected { get; set; }
+
+		/// <summary>The steps between branch 1 and the read back; one that records <c>then</c> unless a test replaces them.</summary>
+		public ImmutableArray<FreshStep>? Then { get; set; }
+
+		public void Dispose() => _traffic?.Dispose();
+
+		/// <summary>The receiver's own profile read.</summary>
+		public Task<ImmutableArray<UserInfo>> ReadProfileAsync(Jid jid, CancellationToken cancellationToken) => _receiver.GetUserInfoAsync([jid], cancellationToken);
 
 		/// <summary>Starts the sessions and puts the subject in the directory; <paramref name="subject"/>, a digit, makes its numbers.</summary>
 		public static async Task<Harness> StartAsync(FakeSidecar fixture, string id, int subject, string businessName, CancellationToken cancellationToken, bool registerLid = true)
@@ -234,16 +251,22 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 			return h;
 		}
 
+		/// <summary>
+		/// The run, its traffic count started now, after the test's setup, as the live test starts it before connecting,
+		/// after everything an earlier run did.
+		/// </summary>
 		public ContactsRun Run(string? pushName, string? savedName) =>
 			new()
 			{
 				Receiver = _receiver,
 				Subject = (Jid.Parse(_pn), Jid.Parse(_lid)),
-				Traffic = () => Traffic,
+				Traffic = _traffic ??= new ContactsTraffic(_receiver, (Jid.Parse(_pn), Jid.Parse(_lid))),
+				ReadProfileAsync = ReadProfile ?? ReadProfileAsync,
 				SendNamedPresenceAsync = async token =>
 				{
 					Calls.Add("presence");
 					await _sender.SendPresenceAsync(PresenceState.Unavailable, token).ConfigureAwait(false);
+					await BeforeText(token).ConfigureAwait(false);
 				},
 				SendTextAsync = async (id, text, token) =>
 				{
@@ -251,9 +274,12 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 					await DeliverAsync(id.Value, pushName, text, token).ConfigureAwait(false);
 				},
 				Id = () => MessageId.From("CYCLE1"),
-				CheckMessage = (got, id, text) =>
-					Assert.Equal(MessageChecks.Received(_receiver.SessionId, id, got.Source, got.PushName, got.Timestamp, new TextContent { Text = text }), got),
+				Expected =
+					Expected
+					?? ((got, id, text) => MessageChecks.Received(_receiver.SessionId, id, got.Source, got.PushName, got.Timestamp, new TextContent { Text = text })),
 				Then =
+					Then
+					??
 				[
 					new FreshStep
 					{
@@ -299,7 +325,16 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 			Assert.Equal(ContactChecks.PushName(_receiver.SessionId, Jid.Parse(_lid), Jid.Parse(_pn), pushName), await change.ConfigureAwait(false));
 		}
 
-		private async Task DeliverAsync(string id, string? pushName, string text, CancellationToken cancellationToken) =>
+		/// <summary>A message from the subject, as <see cref="DeliverAsync"/>; returns once the receiver got it.</summary>
+		public async Task DeliveredAsync(string id, string? pushName, string text, CancellationToken cancellationToken)
+		{
+			var arrival = _receiver.WaitForAsync<MessageReceived>(m => m.Id == MessageId.From(id), TimeSpan.FromSeconds(60), cancellationToken);
+			await DeliverAsync(id, pushName, text, cancellationToken).ConfigureAwait(false);
+			_ = await arrival.ConfigureAwait(false);
+		}
+
+		/// <summary>A message from the subject by LID, with its phone number beside it, carrying <paramref name="pushName"/>.</summary>
+		public async Task DeliverAsync(string id, string? pushName, string text, CancellationToken cancellationToken) =>
 			_ = await _fixture
 				.Fake.DeliverMessageAsync(
 					new DeliverMessageRequest
