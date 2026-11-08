@@ -18,6 +18,12 @@ namespace Whatsmeow.IntegrationTests.Support;
 /// The receiver is a session of each test's own on the shared fake-mode sidecar; the fake WhatsApp delivers the subject's
 /// text with the push name each test scripts and answers its profile from the directory; the named presence goes out from
 /// a second session, as the live subject's does.
+/// <para>
+/// They prove the cycle's bookkeeping and guards, not WhatsApp's or whatsmeow's behaviour: the fake answers the verified
+/// name itself, unlike whatsmeow at the pin (#153), and passes the directory's LID as the other form for any query, while
+/// what WhatsApp keys and sends for another account's LID query is [unknown]. A test that needs the pin's dropped answer
+/// replaces the profile read instead.
+/// </para>
 /// </summary>
 public sealed class ContactsCycleTests(FakeSidecar fixture)
 {
@@ -95,8 +101,8 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 	}
 
 	/// <summary>
-	/// The store has the business name from an earlier read, and this answer carries none, as whatsmeow's does at the pin
-	/// (#153): branch 2 fails on the answer, and the read back fails unanchored instead of taking the store's name.
+	/// The store has the business name from an earlier read, and this answer carries none, the fake's stand-in for a
+	/// dropped name: branch 2 fails on the answer, and the read back fails unanchored instead of taking the store's name.
 	/// </summary>
 	[Fact(Timeout = Timeout)]
 	public async Task Run_TheAnswerCarriesNoBusinessNameWhileTheStoreHasOne_FailsBranch2_AndTheReadBackIsUnanchored()
@@ -173,9 +179,11 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 		using var h = await Harness.StartAsync(fixture, "contacts-cycle-saved-other", subject: 8, Business, ct);
 		await h.SyncSavedNameAsync(Saved, ct);
 
-		_ = await Assert.ThrowsAsync<EqualException>(() => ContactsCycle.RunAsync(h.Run("Ana", "Bea L."), ct));
+		var failed = await Assert.ThrowsAsync<TrueException>(() => ContactsCycle.RunAsync(h.Run("Ana", "Bea L."), ct));
 
-		Assert.Equal("branch 6, saved name read back: failed, EqualException", h.Verdicts[^1]);
+		Assert.StartsWith("readback_mismatch: the phone number row is not the expected record: saved equal False", failed.Message, StringComparison.Ordinal);
+
+		Assert.Equal("branch 6, saved name read back: failed, TrueException", h.Verdicts[^1]);
 	}
 
 	/// <summary>The subject sent something before the query: the business name change could be its, so branch 2 fails before asking.</summary>
@@ -213,6 +221,23 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 		Assert.Equal("branch 1, push name: failed, TrueException", h.Verdicts[1]);
 	}
 
+	/// <summary>
+	/// Another message of the subject, with no push name, lands between the presence and the text: the text still brings
+	/// the change, but it is not the subject's only message since the branch began, so the change is not attributed to it.
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task Run_AnotherSubjectMessageLandsBeforeTheText_FailsBranch1AsOriginUnclear()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var h = await Harness.StartAsync(fixture, "contacts-cycle-push-other", subject: 18, Business, ct);
+		await h.SyncSavedNameAsync(Saved, ct);
+		h.BeforeText = token => h.DeliveredAsync("OTHER", pushName: null, "not the probe", token);
+
+		var failed = await Assert.ThrowsAsync<TrueException>(() => ContactsCycle.RunAsync(h.Run("Ana", Saved), ct));
+
+		Assert.StartsWith("pushname_origin_unclear: since the branch began the subject sent 2 messages (the text among them: True)", failed.Message, StringComparison.Ordinal);
+	}
+
 	/// <summary>A message from the subject lands while branch 2's query and its change are awaited: the change is not attributed to the query.</summary>
 	[Fact(Timeout = Timeout)]
 	public async Task Run_TheSubjectSendsAMessageDuringTheQuery_FailsBranch2AsOriginUnclear_AndBranch1StillPasses()
@@ -234,8 +259,9 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 	}
 
 	/// <summary>
-	/// The query's answer drops the verified name whatsmeow stored, as at the pin (#153): branch 2 still records, booleans
-	/// only, whether the change came and named the JID asked, before it fails on the answer.
+	/// The query's answer drops the verified name the store got, the shape of #153 at the pin, made here by replacing the
+	/// profile read: branch 2 still records, booleans only, whether the change came and named the JID asked, before it
+	/// fails on the answer.
 	/// </summary>
 	[Fact(Timeout = Timeout)]
 	public async Task Run_TheAnswerDropsTheNameOnAnUnspentRow_RecordsWhetherTheChangeCame_ThenFailsOnTheAnswer()
@@ -268,11 +294,10 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 			new FreshStep
 			{
 				Name = "the cancelling step",
-				Run = token =>
+				Run = async token =>
 				{
-					cancel.Cancel();
+					await cancel.CancelAsync().ConfigureAwait(false);
 					token.ThrowIfCancellationRequested();
-					return Task.CompletedTask;
 				},
 			},
 			new FreshStep
@@ -288,7 +313,7 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 
 		_ = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => ContactsCycle.RunAsync(h.Run("Ana", Saved), cancel.Token));
 
-		Assert.DoesNotContain("after", h.Calls);
+		Assert.DoesNotContain("after", h.Calls, StringComparer.Ordinal);
 		Assert.DoesNotContain(h.Lines, l => l.StartsWith("branch 6", StringComparison.Ordinal));
 	}
 

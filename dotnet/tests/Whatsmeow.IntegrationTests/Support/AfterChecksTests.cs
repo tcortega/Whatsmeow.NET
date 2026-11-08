@@ -14,7 +14,7 @@ public sealed class AfterChecksTests
 	private static readonly Jid s_device = Jid.Parse("5511986000001:7@s.whatsapp.net");
 	private static readonly Jid s_lid = Jid.Parse("986000001:7@lid");
 
-	[Fact(Timeout = 30_000)]
+	[Fact]
 	public async Task RunAsync_TheBodyAndACheckFail_RunsEveryCheck_AndThrowsBothWithTheBodyFirst()
 	{
 		var lines = new List<string>();
@@ -34,18 +34,19 @@ public sealed class AfterChecksTests
 						ran.Add("second");
 						return Task.CompletedTask;
 					}
-				)
+		)
 			)
 		);
 
-		Assert.Equal(["the body", "the first check"], failed.InnerExceptions.Select(e => e.Message));
-		Assert.Equal(["second"], ran);
-		Assert.Equal(["first check: failed, TimeoutException", "second check: passed"], lines);
+		Assert.Equal(["the body", "the first check"], failed.InnerExceptions.Select(e => e.Message), StringComparer.Ordinal);
+		Assert.Equal(["second"], ran, StringComparer.Ordinal);
+		Assert.Equal(["first check: failed, TimeoutException", "second check: passed"], lines, StringComparer.Ordinal);
 	}
 
 	[Fact(Timeout = 30_000)]
 	public async Task RunAsync_ACheckNeverEnds_ItsBoundEndsIt_AndTheNextCheckStillRuns()
 	{
+		var ct = TestContext.Current.CancellationToken;
 		var lines = new List<string>();
 
 		var failed = await Assert.ThrowsAsync<TimeoutException>(() =>
@@ -54,13 +55,14 @@ public sealed class AfterChecksTests
 				TimeSpan.Zero,
 				new FakeTimeProvider(),
 				lines.Add,
-				("hanging check", _ => new TaskCompletionSource().Task),
+				// Ignores its bounded token; only the test's ends it, should the bound not.
+				("hanging check", _ => new TaskCompletionSource().Task.WaitAsync(ct)),
 				("next check", _ => Task.CompletedTask)
 			)
 		);
 
 		Assert.NotNull(failed);
-		Assert.Equal(["hanging check: failed, TimeoutException", "next check: passed"], lines);
+		Assert.Equal(["hanging check: failed, TimeoutException", "next check: passed"], lines, StringComparer.Ordinal);
 	}
 
 	[Fact]

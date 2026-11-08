@@ -56,10 +56,18 @@ internal sealed class ContactsTraffic : IDisposable
 		];
 
 	/// <summary>The count now.</summary>
-	public (ImmutableArray<MessageId> Messages, int Undecryptable, int BusinessNames, int PushNames) Now()
+	public TrafficCount Now()
 	{
 		lock (_lock)
-			return ([.. _messages], Volatile.Read(ref _undecryptable), Volatile.Read(ref _businessNames), Volatile.Read(ref _pushNames));
+		{
+			return new TrafficCount
+			{
+				Messages = [.. _messages],
+				Undecryptable = Volatile.Read(ref _undecryptable),
+				BusinessNames = Volatile.Read(ref _businessNames),
+				PushNames = Volatile.Read(ref _pushNames),
+			};
+		}
 	}
 
 	public void Dispose()
@@ -69,4 +77,17 @@ internal sealed class ContactsTraffic : IDisposable
 	}
 
 	private static bool Names((Jid Chat, Jid? Lid) account, Jid jid) => (jid with { Device = 0 }) == account.Chat || (jid with { Device = 0 }) == account.Lid;
+}
+
+/// <summary>What <see cref="ContactsTraffic.Now"/> counted.</summary>
+internal sealed record TrafficCount
+{
+	/// <summary>The subject's messages' ids, in the order the receiver got them.</summary>
+	public required ImmutableArray<MessageId> Messages { get; init; }
+
+	public required int Undecryptable { get; init; }
+
+	public required int BusinessNames { get; init; }
+
+	public required int PushNames { get; init; }
 }

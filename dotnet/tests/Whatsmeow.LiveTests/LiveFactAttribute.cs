@@ -108,10 +108,14 @@ public sealed class LiveFactAttribute : FactAttribute
 	/// <summary>
 	/// Whether the test is the Contacts FullCycle on the persistent sessions, which spends the peer store's first sight of
 	/// any row of the business with no business name, so it runs only when asked for
-	/// (<see cref="LiveSettings.ContactsFullCycleVariable"/>, ADR 0062). Its timeout is the work, two connects each with
-	/// its catch-up (the live session's, then the peer's), the branches' bounded waits (<see cref="ContactsCycle.Bound"/>),
-	/// the picture's two waits, and two restores (the photo, the live session's presence): 300 s + 2 x (120 s + 600 s) +
-	/// (60 s + 75 s + 60 s) + 2 x 60 s + 2 x 30 s = 2,115 s.
+	/// (<see cref="LiveSettings.ContactsFullCycleVariable"/>, ADR 0062). Its timeout adds up its bounded operations: two
+	/// connects each with its catch-up (the live session's, then the peer's), the branches' waits
+	/// (<see cref="ContactsCycle.Bound"/>: the business name change, then the text's arrival and push name change, armed
+	/// before its send), the picture's two waits, and five operations on <see cref="LiveRestore.Bound"/> (the photo's
+	/// removal, the live session's presence, and the three postflight checks); the work allowance, a deliberate 300 s, holds
+	/// the local reads, the profile query, the run group's creation with its joined waits and any leftover groups' closing,
+	/// the control and send calls, and the row reads, none of which has a bound of its own here: 300 s + 2 x (120 s + 600 s)
+	/// + (60 s + 75 s + 60 s) + 2 x 60 s + 5 x 30 s = 2,205 s.
 	/// </summary>
 	public bool NeedsContactsFullCycle
 	{
@@ -126,7 +130,7 @@ public sealed class LiveFactAttribute : FactAttribute
 					+ (2 * ((int)LiveSidecar.ConnectBound.TotalMilliseconds + CatchUpTimeout))
 					+ (int)ContactsCycle.Bound(LiveChecks.Watch).TotalMilliseconds
 					+ (2 * (int)LiveChecks.Watch.TotalMilliseconds)
-					+ (2 * (int)LiveRestore.Bound.TotalMilliseconds);
+					+ (5 * (int)LiveRestore.Bound.TotalMilliseconds);
 		}
 	}
 
