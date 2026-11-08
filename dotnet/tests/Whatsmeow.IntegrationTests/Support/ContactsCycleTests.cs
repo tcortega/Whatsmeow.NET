@@ -134,7 +134,7 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 
 		var failed = await Assert.ThrowsAsync<TrueException>(() => ContactsCycle.RunAsync(h.Run("Ana", Saved), ct));
 
-		Assert.StartsWith("pushname_precondition_spent", failed.Message, StringComparison.Ordinal);
+		Assert.StartsWith("pushname_precondition_spent: the sender's row had a push name before the branch began", failed.Message, StringComparison.Ordinal);
 		Assert.Equal(["branch 2, business name: passed", "branch 1, push name: failed, TrueException", "the caller's step: passed", "branch 6, saved name read back: passed"], h.Verdicts);
 	}
 
@@ -565,12 +565,18 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 			Assert.Equal(ContactChecks.BusinessName(_receiver.SessionId, Jid.Parse(_pn), Business), await change.ConfigureAwait(false));
 		}
 
-		/// <summary>A message from the subject before the run, carrying <paramref name="pushName"/>; returns once its change came.</summary>
+		/// <summary>
+		/// A message from the subject before the run, carrying <paramref name="pushName"/>; returns once the message and its
+		/// change came. The fake dispatches the change first, in the message's lane, so a return on the change alone could
+		/// leave the message to land after a count armed next.
+		/// </summary>
 		public async Task DeliverEarlierNamedAsync(string pushName, CancellationToken cancellationToken)
 		{
 			var change = _receiver.WaitForAsync<ContactUpdated>(e => e.Jid == Jid.Parse(_lid) && e.Change is ContactChange.PushName, TimeSpan.FromSeconds(60), cancellationToken);
+			var arrival = _receiver.WaitForAsync<MessageReceived>(m => m.Id == MessageId.From("EARLIER"), TimeSpan.FromSeconds(60), cancellationToken);
 			await DeliverAsync("EARLIER", pushName, "before the run", cancellationToken).ConfigureAwait(false);
 			Assert.Equal(ContactChecks.PushName(_receiver.SessionId, Jid.Parse(_lid), Jid.Parse(_pn), pushName), await change.ConfigureAwait(false));
+			_ = await arrival.ConfigureAwait(false);
 		}
 
 		/// <summary>A message from the subject, as <see cref="DeliverAsync"/>; returns once the receiver got it.</summary>
