@@ -31,11 +31,17 @@ AGENTS.md              this file (CLAUDE.md is a symlink to it; nothing may depe
 
 Setup once: the .NET SDK from `global.json` (10.0.403), then `mise trust && mise install` for Go, buf, golangci-lint, protoc, the protoc plugins and shellcheck.
 
-Everything CI runs is `build/ci.sh`, one subcommand per CI job, on linux-x64, osx-arm64 and win-x64 (Git Bash on Windows); `package` runs on win-x64 only, `external` (the integration suite against a standalone sidecar) on linux-x64 only, `install` runs fresh JIT consumers of its feed on every target RID (both musl RIDs in Alpine), and `aot` publishes AotSmoke from it with Native AOT on those eight RIDs (ADR 0056, 0058); after a publish, both run again against nuget.org (`nuget.org:<version>`, ADR 0059).
-Run it from anywhere before pushing; it runs every check, reports each failure, and fails at the end:
+Everything CI runs is `build/ci.sh`, one subcommand per CI job; it also runs in Git Bash on Windows.
+`ci.yml` runs `contract`, `go`, `dotnet` and `external` on linux-x64 only, on every trigger.
+On pushes to main and manual runs, it also runs `packaging.yml`: `package` builds the feed on win-x64, `install` runs fresh JIT consumers of it on six native hosts whose two Linux ones also cover both musl RIDs in Alpine, and `aot` publishes AotSmoke from it with Native AOT on each of the eight target RIDs (ADR 0056, 0058).
+`release.yml` runs none of the four core jobs; it runs `packaging.yml` before publishing, and after a publish runs `install` and `aot` again against nuget.org (`nuget.org:<version>`, ADR 0059).
+Before pushing, run only what covers your change: the packages and test classes you touched plus lint, or the one subcommand for that area; CI runs the rest.
+`all` runs `contract`, `go`, `dotnet`, `external` and `package` in turn, and locally `package` also runs `install` and `aot` on the host.
+Run `all` only to reproduce a CI failure, one at a time machine-wide: `until mkdir /tmp/wmn-ci.lock 2>/dev/null; do sleep 15; done; trap 'rmdir /tmp/wmn-ci.lock' EXIT`.
+A subcommand runs from anywhere, keeps running its independent checks after one fails (a check that needs a failed restore or build is skipped), and fails at the end:
 
 ```sh
-bash build/ci.sh all        # or: setup, contract, go, dotnet, external, package; install <feed>|nuget.org:<version> installs a feed built elsewhere or a published release; aot <feed>|nuget.org:<version> <rid> publishes AotSmoke from it; release-pins v<version> first overwrites the tracked mise.toml and global.json with a release's
+bash build/ci.sh go         # or: setup, contract, dotnet, external, package, all; install <feed>|nuget.org:<version> installs a feed built elsewhere or a published release; aot <feed>|nuget.org:<version> <rid> publishes AotSmoke from it; release-pins v<version> first overwrites the tracked mise.toml and global.json with a release's
 ```
 
 A package change regenerates `packages.lock.json` with a plain `dotnet restore dotnet/Whatsmeow.slnx`; commit it.
