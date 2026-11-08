@@ -13,11 +13,9 @@
 		<ProjectReference Include="../Whatsmeow.Extensions.Hosting/Whatsmeow.Extensions.Hosting.csproj" PackExactVersion="true" />
 	</ItemGroup>
 
-	<!-- Stable package: its public API is tracked in PublicAPI.*.txt (RS0016/RS0017 are errors, dotnet/.globalconfig). -->
+	<!-- Stable package: its public API is tracked in PublicAPI.*.txt (RS0016/RS0017 are errors, dotnet/.globalconfig); the analyzer package adds both files as AdditionalFiles itself. -->
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all" />
-		<AdditionalFiles Include="PublicAPI.Shipped.txt" />
-		<AdditionalFiles Include="PublicAPI.Unshipped.txt" />
 	</ItemGroup>
 
 	<ItemGroup Label="Usings">
