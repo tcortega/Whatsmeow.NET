@@ -159,5 +159,157 @@ namespace Whatsmeow.LiveTests.Control {
     }
 
   }
+  /// <summary>
+  /// LiveContactService is the contacts slice's part of the live tests' control (ADR 0063), served the same way as
+  /// LiveTestService: only by a sidecar built with -tags livetest, never in a release build.
+  /// </summary>
+  internal static partial class LiveContactService
+  {
+    static readonly string __ServiceName = "whatsmeow.livetest.v1.LiveContactService";
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static void __Helper_SerializeMessage(global::Google.Protobuf.IMessage message, grpc::SerializationContext context)
+    {
+      #if !GRPC_DISABLE_PROTOBUF_BUFFER_SERIALIZATION
+      if (message is global::Google.Protobuf.IBufferMessage)
+      {
+        context.SetPayloadLength(message.CalculateSize());
+        global::Google.Protobuf.MessageExtensions.WriteTo(message, context.GetBufferWriter());
+        context.Complete();
+        return;
+      }
+      #endif
+      context.Complete(global::Google.Protobuf.MessageExtensions.ToByteArray(message));
+    }
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static class __Helper_MessageCache<T>
+    {
+      public static readonly bool IsBufferMessage = global::System.Reflection.IntrospectionExtensions.GetTypeInfo(typeof(global::Google.Protobuf.IBufferMessage)).IsAssignableFrom(typeof(T));
+    }
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static T __Helper_DeserializeMessage<T>(grpc::DeserializationContext context, global::Google.Protobuf.MessageParser<T> parser) where T : global::Google.Protobuf.IMessage<T>
+    {
+      #if !GRPC_DISABLE_PROTOBUF_BUFFER_SERIALIZATION
+      if (__Helper_MessageCache<T>.IsBufferMessage)
+      {
+        return parser.ParseFrom(context.PayloadAsReadOnlySequence());
+      }
+      #endif
+      return parser.ParseFrom(context.PayloadAsNewBuffer());
+    }
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.LiveTests.Control.SetAboutRequest> __Marshaller_whatsmeow_livetest_v1_SetAboutRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.LiveTests.Control.SetAboutRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.LiveTests.Control.SetAboutResponse> __Marshaller_whatsmeow_livetest_v1_SetAboutResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.LiveTests.Control.SetAboutResponse.Parser));
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.LiveTests.Control.SetAboutRequest, global::Whatsmeow.LiveTests.Control.SetAboutResponse> __Method_SetAbout = new grpc::Method<global::Whatsmeow.LiveTests.Control.SetAboutRequest, global::Whatsmeow.LiveTests.Control.SetAboutResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "SetAbout",
+        __Marshaller_whatsmeow_livetest_v1_SetAboutRequest,
+        __Marshaller_whatsmeow_livetest_v1_SetAboutResponse);
+
+    /// <summary>Service descriptor</summary>
+    public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
+    {
+      get { return global::Whatsmeow.LiveTests.Control.LivetestReflection.Descriptor.Services[1]; }
+    }
+
+    /// <summary>Client for LiveContactService</summary>
+    public partial class LiveContactServiceClient : grpc::ClientBase<LiveContactServiceClient>
+    {
+      /// <summary>Creates a new client for LiveContactService</summary>
+      /// <param name="channel">The channel to use to make remote calls.</param>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public LiveContactServiceClient(grpc::ChannelBase channel) : base(channel)
+      {
+      }
+      /// <summary>Creates a new client for LiveContactService that uses a custom <c>CallInvoker</c>.</summary>
+      /// <param name="callInvoker">The callInvoker to use to make remote calls.</param>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public LiveContactServiceClient(grpc::CallInvoker callInvoker) : base(callInvoker)
+      {
+      }
+      /// <summary>Protected parameterless constructor to allow creation of test doubles.</summary>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      protected LiveContactServiceClient() : base()
+      {
+      }
+      /// <summary>Protected constructor to allow creation of configured clients.</summary>
+      /// <param name="configuration">The client configuration.</param>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      protected LiveContactServiceClient(ClientBaseConfiguration configuration) : base(configuration)
+      {
+      }
+
+      /// <summary>
+      /// SetAbout sets the session's own account's about text with whatsmeow's SetStatusMessage (user.go:160-172), the text
+      /// only: no emoji and no duration, which no read gives back (user.go:257-258). An empty text is refused. A GraphQL
+      /// error comes back with its codes only, never its message. The session must be online.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.LiveTests.Control.SetAboutResponse SetAbout(global::Whatsmeow.LiveTests.Control.SetAboutRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SetAbout(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SetAbout sets the session's own account's about text with whatsmeow's SetStatusMessage (user.go:160-172), the text
+      /// only: no emoji and no duration, which no read gives back (user.go:257-258). An empty text is refused. A GraphQL
+      /// error comes back with its codes only, never its message. The session must be online.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.LiveTests.Control.SetAboutResponse SetAbout(global::Whatsmeow.LiveTests.Control.SetAboutRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_SetAbout, null, options, request);
+      }
+      /// <summary>
+      /// SetAbout sets the session's own account's about text with whatsmeow's SetStatusMessage (user.go:160-172), the text
+      /// only: no emoji and no duration, which no read gives back (user.go:257-258). An empty text is refused. A GraphQL
+      /// error comes back with its codes only, never its message. The session must be online.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.LiveTests.Control.SetAboutResponse> SetAboutAsync(global::Whatsmeow.LiveTests.Control.SetAboutRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SetAboutAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SetAbout sets the session's own account's about text with whatsmeow's SetStatusMessage (user.go:160-172), the text
+      /// only: no emoji and no duration, which no read gives back (user.go:257-258). An empty text is refused. A GraphQL
+      /// error comes back with its codes only, never its message. The session must be online.
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.LiveTests.Control.SetAboutResponse> SetAboutAsync(global::Whatsmeow.LiveTests.Control.SetAboutRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_SetAbout, null, options, request);
+      }
+      /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      protected override LiveContactServiceClient NewInstance(ClientBaseConfiguration configuration)
+      {
+        return new LiveContactServiceClient(configuration);
+      }
+    }
+
+  }
 }
 #endregion

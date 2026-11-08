@@ -115,7 +115,7 @@ Sidecar (#4). Copy it for the next slice; do not invent a second pattern.
 | Consumer fakes | `dotnet/src/Whatsmeow.Testing/`; their tests, public API only, in `dotnet/tests/Whatsmeow.Testing.Tests/` (ADR 0036) |
 | Integration test (default) | `dotnet/tests/Whatsmeow.IntegrationTests/<Slice>/`, on the `FakeSidecar` fixture |
 | Live test (real WhatsApp, opt-in) | `dotnet/tests/Whatsmeow.LiveTests/`, `[LiveFact]` in the `Live` collection, with the fake-mode checks (ADR 0021, 0032) |
-| A live-only sidecar seam | a `livetest_*.go` pair in the slice, behind `-tags livetest`, never in a release binary; a slice other than events, messaging and groups needs its directory added to `tools/check-repo` first (ADR 0032, 0060) |
+| A live-only sidecar seam | a `livetest_*.go` pair in the slice, behind `-tags livetest`, never in a release binary; a slice other than events, messaging, groups and contacts needs its directory added to `tools/check-repo` first (ADR 0032, 0060, 0063) |
 | Fake WhatsApp control for a slice | `proto/whatsmeow/fake/v1/fake.proto` + `sidecar/internal/fakewhatsapp/` (ADR 0019) |
 | Dispatcher / supervisor / request body fence unit test | `dotnet/tests/Whatsmeow.Client.Tests/` |
 | A new module linked into the sidecar | read its licence, then its lines in `sidecar/licenses.allow` (ADR 0016) |

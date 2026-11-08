@@ -319,7 +319,7 @@ internal static class ContactsCycle
 	}
 
 	/// <summary>Compares a change whole; a mismatch says which fields differ, never a value.</summary>
-	private static void Same(string what, ContactUpdated expected, ContactUpdated? actual) =>
+	internal static void Same(string what, ContactUpdated expected, ContactUpdated? actual) =>
 		Assert.True(
 			expected.Equals(actual),
 			$"{what} is not the fake-mode record: session equal {expected.SessionId == actual?.SessionId}, jid equal {expected.Jid == actual?.Jid}, other form equal {expected.JidAlt == actual?.JidAlt}, change equal {expected.Change.Equals(actual?.Change)}"
@@ -376,7 +376,7 @@ internal static class ContactsCycle
 		};
 
 	/// <summary>Whether <paramref name="jid"/> names <paramref name="account"/>'s user, by either form, on any device.</summary>
-	private static bool Names((Jid Chat, Jid? Lid) account, Jid jid) => (jid with { Device = 0 }) == account.Chat || (jid with { Device = 0 }) == account.Lid;
+	internal static bool Names((Jid Chat, Jid? Lid) account, Jid jid) => (jid with { Device = 0 }) == account.Chat || (jid with { Device = 0 }) == account.Lid;
 
 	/// <summary>Whether <paramref name="alt"/> names <paramref name="account"/> in the form <paramref name="jid"/> is not.</summary>
 	private static bool IsOtherForm((Jid Chat, Jid? Lid) account, Jid jid, Jid alt) => Names(account, alt) && alt.IsLid != jid.IsLid;
