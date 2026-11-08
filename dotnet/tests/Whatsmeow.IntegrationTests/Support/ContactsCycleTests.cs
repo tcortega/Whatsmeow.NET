@@ -281,6 +281,28 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 		Assert.Contains("branch 2's answer carried no verified business name; a business name change came: True, naming the JID asked: True", h.Lines, StringComparer.Ordinal);
 	}
 
+	/// <summary>
+	/// The answer carries an empty verified business name: not a name, so branch 2 fails on it, and the read back has no
+	/// expected business name; neither failure prints a value.
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task Run_TheAnswerCarriesAnEmptyBusinessName_FailsBranch2_AndTheReadBackIsUnanchored()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var h = await Harness.StartAsync(fixture, "contacts-cycle-answer-empty", subject: 19, Business, ct);
+		await h.SyncSavedNameAsync(Saved, ct);
+		h.ReadProfile = async (jid, token) => [.. (await h.ReadProfileAsync(jid, token).ConfigureAwait(false)).Select(u => u with { VerifiedBusinessName = "" })];
+
+		var failed = await Assert.ThrowsAsync<AggregateException>(() => ContactsCycle.RunAsync(h.Run("Ana", Saved), ct));
+
+		Assert.Collection(
+			failed.InnerExceptions,
+			e => Assert.StartsWith("businessname_answer_empty", e.Message, StringComparison.Ordinal),
+			e => Assert.StartsWith("readback_businessname_unanchored", e.Message, StringComparison.Ordinal)
+		);
+		AssertNoValue(failed, Business, Saved, "Ana");
+	}
+
 	/// <summary>The caller cancels during a step: no later step runs, the read back included, and the cancellation is thrown.</summary>
 	[Fact(Timeout = Timeout)]
 	public async Task Run_CancelledDuringAStep_RunsNoLaterStep_AndThrowsTheCancellation()
