@@ -194,6 +194,207 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 		Assert.DoesNotContain(h.Lines, l => l.StartsWith("branch 2 asks", StringComparison.Ordinal));
 	}
 
+	/// <summary>
+	/// Review B's reproduction: an older named message from the subject lands after branch 1 read the rows and before
+	/// its text, which carries the same name and so changes nothing; the change that came is not the text's, so the
+	/// branch fails, never passes on it.
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task Run_AnEarlierNamedMessageLandsBeforeTheText_FailsBranch1_InsteadOfPassingOnItsChange()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var h = await Harness.StartAsync(fixture, "contacts-cycle-push-earlier", subject: 10, Business, ct);
+		await h.SyncSavedNameAsync(Saved, ct);
+		h.BeforeText = token => h.DeliverEarlierNamedAsync("Ana", token);
+
+		var failed = await Assert.ThrowsAsync<TrueException>(() => ContactsCycle.RunAsync(h.Run("Ana", Saved), ct));
+
+		Assert.StartsWith("pushname_precondition_spent: the sender's row gained", failed.Message, StringComparison.Ordinal);
+		Assert.Equal("branch 1, push name: failed, TrueException", h.Verdicts[1]);
+	}
+
+	/// <summary>A message from the subject lands while branch 2's query and its change are awaited: the change is not attributed to the query.</summary>
+	[Fact(Timeout = Timeout)]
+	public async Task Run_TheSubjectSendsAMessageDuringTheQuery_FailsBranch2AsOriginUnclear_AndBranch1StillPasses()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var h = await Harness.StartAsync(fixture, "contacts-cycle-query-window", subject: 11, Business, ct);
+		await h.SyncSavedNameAsync(Saved, ct);
+		h.ReadProfile = async (jid, token) =>
+		{
+			var answer = await h.ReadProfileAsync(jid, token).ConfigureAwait(false);
+			await h.DeliveredAsync("DURING", pushName: null, "during the query", token).ConfigureAwait(false);
+			return answer;
+		};
+
+		var failed = await Assert.ThrowsAsync<TrueException>(() => ContactsCycle.RunAsync(h.Run("Ana", Saved), ct));
+
+		Assert.StartsWith("businessname_origin_unclear: the subject sent", failed.Message, StringComparison.Ordinal);
+		Assert.Equal(["branch 2, business name: failed, TrueException", "branch 1, push name: passed", "the caller's step: passed", "branch 6, saved name read back: passed"], h.Verdicts);
+	}
+
+	/// <summary>
+	/// The query's answer drops the verified name whatsmeow stored, as at the pin (#153): branch 2 still records, booleans
+	/// only, whether the change came and named the JID asked, before it fails on the answer.
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task Run_TheAnswerDropsTheNameOnAnUnspentRow_RecordsWhetherTheChangeCame_ThenFailsOnTheAnswer()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var h = await Harness.StartAsync(fixture, "contacts-cycle-answer-dropped", subject: 12, Business, ct);
+		await h.SyncSavedNameAsync(Saved, ct);
+		h.ReadProfile = async (jid, token) => [.. (await h.ReadProfileAsync(jid, token).ConfigureAwait(false)).Select(u => u with { VerifiedBusinessName = null })];
+
+		var failed = await Assert.ThrowsAsync<AggregateException>(() => ContactsCycle.RunAsync(h.Run("Ana", Saved), ct));
+
+		Assert.Collection(
+			failed.InnerExceptions,
+			e => Assert.StartsWith("businessname_answer_null", e.Message, StringComparison.Ordinal),
+			e => Assert.StartsWith("readback_businessname_unanchored", e.Message, StringComparison.Ordinal)
+		);
+		Assert.Contains("branch 2's answer carried no verified business name; a business name change came: True, naming the JID asked: True", h.Lines, StringComparer.Ordinal);
+	}
+
+	/// <summary>The caller cancels during a step: no later step runs, the read back included, and the cancellation is thrown.</summary>
+	[Fact(Timeout = Timeout)]
+	public async Task Run_CancelledDuringAStep_RunsNoLaterStep_AndThrowsTheCancellation()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var h = await Harness.StartAsync(fixture, "contacts-cycle-cancel", subject: 13, Business, ct);
+		await h.SyncSavedNameAsync(Saved, ct);
+		using var cancel = CancellationTokenSource.CreateLinkedTokenSource(ct);
+		h.Then =
+		[
+			new FreshStep
+			{
+				Name = "the cancelling step",
+				Run = token =>
+				{
+					cancel.Cancel();
+					token.ThrowIfCancellationRequested();
+					return Task.CompletedTask;
+				},
+			},
+			new FreshStep
+			{
+				Name = "the step after",
+				Run = _ =>
+				{
+					h.Calls.Add("after");
+					return Task.CompletedTask;
+				},
+			},
+		];
+
+		_ = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => ContactsCycle.RunAsync(h.Run("Ana", Saved), cancel.Token));
+
+		Assert.DoesNotContain("after", h.Calls);
+		Assert.DoesNotContain(h.Lines, l => l.StartsWith("branch 6", StringComparison.Ordinal));
+	}
+
+	/// <summary>A text whose push name is a dash, which whatsmeow stores nothing for (message.go 59): no stimulus, no read back anchor.</summary>
+	[Fact(Timeout = Timeout)]
+	public async Task Run_TheTextCarriesADash_FailsBranch1AsAMissingStimulus_AndTheReadBackIsUnanchored()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var h = await Harness.StartAsync(fixture, "contacts-cycle-push-dash", subject: 14, Business, ct);
+		await h.SyncSavedNameAsync(Saved, ct);
+
+		var failed = await Assert.ThrowsAsync<AggregateException>(() => ContactsCycle.RunAsync(h.Run("-", Saved), ct));
+
+		Assert.Collection(
+			failed.InnerExceptions,
+			e => Assert.StartsWith("pushname_stimulus_missing", e.Message, StringComparison.Ordinal),
+			e => Assert.StartsWith("readback_pushname_unanchored", e.Message, StringComparison.Ordinal)
+		);
+		Assert.Contains("branch 1's text carried a dash", h.Lines, StringComparer.Ordinal);
+	}
+
+	/// <summary>A read back mismatch says which fields differ, never a value: not the saved name given, nor the store's names.</summary>
+	[Fact(Timeout = Timeout)]
+	public async Task Run_TheReadBackDiffers_FailsWithFieldBooleansOnly_NoNameInTheMessage()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var h = await Harness.StartAsync(fixture, "contacts-cycle-private-readback", subject: 15, Business, ct);
+		await h.SyncSavedNameAsync(Saved, ct);
+
+		var failed = await Assert.ThrowsAnyAsync<XunitException>(() => ContactsCycle.RunAsync(h.Run("Ana", "SENTINEL-SAVED"), ct));
+
+		Assert.Contains("saved equal False, push equal True, business equal True", failed.Message, StringComparison.Ordinal);
+		AssertNoValue(failed, "SENTINEL-SAVED", Saved, "Ana", Business);
+	}
+
+	/// <summary>An answer with two entries for the JID asked fails on its count, never printing an entry.</summary>
+	[Fact(Timeout = Timeout)]
+	public async Task Run_TheAnswerHasTwoEntriesForTheJidAsked_FailsOnTheCount_NoEntryInTheMessage()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var h = await Harness.StartAsync(fixture, "contacts-cycle-private-keys", subject: 16, Business, ct);
+		await h.SyncSavedNameAsync(Saved, ct);
+		h.ReadProfile = async (jid, token) =>
+		{
+			var answer = await h.ReadProfileAsync(jid, token).ConfigureAwait(false);
+			return answer.Add(answer[0] with { About = "SENTINEL-ABOUT" });
+		};
+
+		var failed = await Assert.ThrowsAsync<AggregateException>(() => ContactsCycle.RunAsync(h.Run("Ana", Saved), ct));
+
+		Assert.StartsWith("businessname_answer_keyed: the answer had 2 entries, 2 for the JID asked", failed.InnerExceptions[0].Message, StringComparison.Ordinal);
+		AssertNoValue(failed, "SENTINEL-ABOUT", Business);
+	}
+
+	/// <summary>A text that is not the expected record fails with field booleans only, never its push name.</summary>
+	[Fact(Timeout = Timeout)]
+	public async Task Run_TheTextIsNotTheExpectedRecord_FailsWithFieldBooleansOnly_NoPushNameInTheMessage()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var h = await Harness.StartAsync(fixture, "contacts-cycle-private-text", subject: 17, Business, ct);
+		await h.SyncSavedNameAsync(Saved, ct);
+		h.Expected = (got, id, _) => MessageChecks.Received(got.SessionId, id, got.Source, got.PushName, got.Timestamp, new TextContent { Text = "another text" });
+
+		var failed = await Assert.ThrowsAnyAsync<XunitException>(() => ContactsCycle.RunAsync(h.Run("SENTINEL-PUSH", Saved), ct));
+
+		Assert.Contains("content equal False", failed.Message, StringComparison.Ordinal);
+		AssertNoValue(failed, "SENTINEL-PUSH", "another text");
+	}
+
+	[Fact]
+	public void RefuseKnownBadPin_TheVersionThatDropsTheName_IsRefused_AndAnotherIsNot()
+	{
+		var refused = Assert.Throws<FalseException>(() => ContactsCycle.RefuseKnownBadPin("v0.0.0-20261105212532-307a2edf117d"));
+
+		Assert.StartsWith("contacts_pin_known_bad", refused.Message, StringComparison.Ordinal);
+		ContactsCycle.RefuseKnownBadPin("v0.0.0-20261201000000-0123456789ab");
+	}
+
+	[Theory]
+	[InlineData("5511985000001@s.whatsapp.net", "985000001@lid", "5511985000001@s.whatsapp.net", "985000009@lid")]
+	[InlineData("5511985000001@s.whatsapp.net", "985000001@lid", "5511985000009@s.whatsapp.net", "985000001@lid")]
+	public void RequireDistinct_TheSameAccountByEitherForm_IsRefused(string subjectPn, string subjectLid, string receiverPn, string receiverLid)
+	{
+		var refused = Assert.Throws<FalseException>(() =>
+			ContactsCycle.RequireDistinct((Jid.Parse(subjectPn), Jid.Parse(subjectLid)), (Jid.Parse(receiverPn), Jid.Parse(receiverLid)))
+		);
+
+		Assert.StartsWith("contacts_same_account", refused.Message, StringComparison.Ordinal);
+		Assert.DoesNotContain("985000", refused.Message, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void RequireDistinct_TwoAccounts_Passes() =>
+		ContactsCycle.RequireDistinct(
+			(Jid.Parse("5511985000001@s.whatsapp.net"), Jid.Parse("985000001@lid")),
+			(Jid.Parse("5511985000002@s.whatsapp.net"), Jid.Parse("985000002@lid"))
+		);
+
+	/// <summary>None of <paramref name="values"/> in the failure's text, its inner failures' included.</summary>
+	private static void AssertNoValue(Exception failed, params string[] values)
+	{
+		var text = failed.ToString();
+		foreach (var value in values)
+			Assert.False(text.Contains(value, StringComparison.Ordinal), $"the failure's text carries a value it must not ({values.ToList().IndexOf(value)})");
+	}
+
 	/// <summary>A receiver, a presence sender and a subject of one test's own, and what the run did through them.</summary>
 	private sealed class Harness : IDisposable
 	{
