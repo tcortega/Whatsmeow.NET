@@ -24,8 +24,9 @@ namespace Whatsmeow.IntegrationTests.Support;
 /// receiver stopped, say) is logged as none. The body's failure and the restore's are both thrown.
 /// </para>
 /// <para>
-/// No about text leaves the branch: its log lines and failures carry booleans, field names and exception type names;
-/// an exception a read or a set threw is never kept, inner exceptions included.
+/// No about text leaves the branch: its log lines and failures carry booleans, field names, exception type names and
+/// WhatsApp's code of a <see cref="WhatsAppErrorException"/>; an exception a read or a set threw is never kept, inner
+/// exceptions included.
 /// </para>
 /// </summary>
 internal static class AboutChange
@@ -191,8 +192,8 @@ internal static class AboutChange
 
 	/// <summary>
 	/// A read or a set on its own bound, linked to <paramref name="cancellationToken"/>. A cancellation of that token is
-	/// a bare cancellation; any other failure is a <see cref="CallFailedException"/> with the failure's type name, never
-	/// its message nor the exception itself, which may carry WhatsApp's text.
+	/// a bare cancellation; any other failure is a <see cref="CallFailedException"/> with the failure's type name and
+	/// WhatsApp's code, never its message nor the exception itself, which may carry WhatsApp's text.
 	/// </summary>
 	private static async Task<T> CallAsync<T>(AboutRun run, string reason, string what, Func<CancellationToken, Task<T>> call, CancellationToken cancellationToken)
 	{
@@ -207,11 +208,14 @@ internal static class AboutChange
 		{
 			if (cancellationToken.IsCancellationRequested)
 				throw new OperationCanceledException($"{what} was cancelled", cancellationToken);
-			var outcome = bound.IsCancellationRequested ? $"did not end within {run.CallBound.TotalSeconds:F0} s" : $"failed, {e.GetType().Name}";
+			var outcome = bound.IsCancellationRequested ? $"did not end within {run.CallBound.TotalSeconds:F0} s" : $"failed, {Failure(e)}";
 			throw new CallFailedException($"{reason}: {what} {outcome}", outcome);
 		}
 #pragma warning restore CA1031, MA0054
 	}
+
+	/// <summary>A failure's type name, and WhatsApp's code when it refused with one (0 is none), never its message (ADR 0067).</summary>
+	private static string Failure(Exception e) => e is WhatsAppErrorException { Code: not 0 } refused ? $"{e.GetType().Name} code {refused.Code}" : e.GetType().Name;
 
 	private static Task<bool> CallAsync(AboutRun run, string reason, string what, Func<CancellationToken, Task> call, CancellationToken cancellationToken) =>
 		CallAsync(

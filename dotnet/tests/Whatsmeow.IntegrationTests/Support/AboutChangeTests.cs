@@ -364,6 +364,35 @@ public sealed class AboutChangeTests(FakeSidecar fixture)
 		NoText(h, failure: null);
 	}
 
+	/// <summary>WhatsApp refused the set and the restore's set after both applied: each outcome names WhatsApp's code, never its message.</summary>
+	[Fact(Timeout = Timeout)]
+	public async Task Run_WhatsAppRefusesTheSetAndTheRestoresSet_ThrowsAndLogsEachCode_WithoutItsText()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var h = await Harness.StartAsync(fixture, "about-whatsapp-codes", subject: 20, Original, ct);
+		h.FailsAfter = t => new WhatsAppErrorException($"WhatsApp refused {t}") { Code = t == Stimulus ? 400 : 406 };
+
+		var failed = await Assert.ThrowsAnyAsync<XunitException>(() => AboutChange.RunAsync(h.Run(), ct));
+
+		Assert.Equal("about_set_failed: branch 5's set failed, WhatsAppErrorException code 400", failed.Message);
+		Assert.Contains("branch 5's restore: set failed, WhatsAppErrorException code 406, own read equal True, its change came True, equal True", h.Lines, StringComparer.Ordinal);
+		NoText(h, failed);
+	}
+
+	/// <summary>WhatsApp sent no code (0): the outcome is the type name alone.</summary>
+	[Fact(Timeout = Timeout)]
+	public async Task Run_WhatsAppRefusesTheSetWithoutACode_ThrowsTheTypeNameAlone()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var h = await Harness.StartAsync(fixture, "about-whatsapp-no-code", subject: 21, Original, ct);
+		h.FailsAfter = t => t == Stimulus ? new WhatsAppErrorException($"WhatsApp refused {t}") : null;
+
+		var failed = await Assert.ThrowsAnyAsync<XunitException>(() => AboutChange.RunAsync(h.Run(), ct));
+
+		Assert.Equal("about_set_failed: branch 5's set failed, WhatsAppErrorException", failed.Message);
+		NoText(h, failed);
+	}
+
 	/// <summary>The restore's read failed after the body passed: the restore is unverified, with the read's outcome, no text.</summary>
 	[Fact(Timeout = Timeout)]
 	public async Task Run_TheRestoresReadFails_FailsUnverified_WithoutItsText()

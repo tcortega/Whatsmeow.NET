@@ -63,7 +63,7 @@ UnlinkGroup: communities are not in the groups slice (ADR 0030)
 UpdateGroupRequestParticipants: join-request approval is not in the groups slice (ADR 0030)
 
 # internals.go
-DangerousInternals: whatsmeow's unexported internals are never called
+DangerousInternals: whatsmeow's unexported internals are never called, but by the live tests' control in a livetest build, for the legacy status IQ until a pin has #1331 (ADR 0067)
 
 # message.go
 SendHistorySyncServerErrorReceipt: history sync reports a blob that cannot be downloaded (EXPIRED, INVALID, UNAVAILABLE) and never asks the phone to upload it again (ADR 0035)
