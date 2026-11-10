@@ -1639,7 +1639,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
   defined by the Mozilla Public License, v. 2.0.
 
 ================================================================================
-go.mau.fi/whatsmeow v0.0.0-20261107160454-79dc2a8c33df LICENSE (MPL-2.0)
+go.mau.fi/whatsmeow v0.0.0-20261110152934-c88388f983b4 LICENSE (MPL-2.0)
 ================================================================================
 Mozilla Public License Version 2.0
 ==================================

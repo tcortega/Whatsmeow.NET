@@ -11,7 +11,7 @@ Up to `307a2edf117d`, whatsmeow sent an undecryptable message's retry receipt an
 A failed handler on the phone's copy of a message, which whatsmeow dispatches from inside the phone's protocol message, was turned into success.
 ADR 0022 and ARCHITECTURE §1 built on that: undecryptable messages are answered early, and the phone's copy is not gated.
 
-At `79dc2a8c33df`:
+At `79dc2a8c33df`, and at the pin `c88388f983b4`, whose `message.go` and `receipt.go` are the same:
 
 - whatsmeow dispatches `UndecryptableMessage` first, and a failed handler returns before the retry receipt, the ack or nack and the request to the phone, for an undecryptable, an unavailable and a missing-secret bot message [observed: message.go:324-337, 419-451].
   The sidecar's handler fails only when its outbox write fails (ARCHITECTURE §7.3), so whatsmeow acks such a message only after the write returned.

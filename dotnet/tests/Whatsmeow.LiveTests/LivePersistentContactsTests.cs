@@ -28,10 +28,8 @@ namespace Whatsmeow.LiveTests;
 /// one it fails, and the store's value never stands in. No failure prints a name.
 /// </para>
 /// <para>
-/// Before any WhatsApp network use it reads both accounts and the live sidecar's whatsmeow version, local calls that
-/// create no session: it refuses the version known to drop the verified business name (<c>contacts_pin_known_bad</c>,
-/// #153), and the same account in both roles (<c>contacts_same_account</c>). Any other version still needs root's
-/// reviewed fixed-pin provenance before a run. It runs alone, with a filter on this one method (docs/guidelines/tests.md),
+/// Before any WhatsApp network use it reads both accounts and logs the live sidecar's whatsmeow version, local calls
+/// that create no session, and refuses the same account in both roles (<c>contacts_same_account</c>). It runs alone, with a filter on this one method (docs/guidelines/tests.md),
 /// failing <c>contacts_not_alone</c> before anything starts when a test of the run already used the peer.
 /// </para>
 /// <para>
@@ -64,7 +62,6 @@ public sealed class LivePersistentContactsTests(LiveSidecar live, LivePeer peer,
 		Assert.True(businessAccount is { Chat.IsPhoneNumber: true, Lid.IsLid: true }, "the live account has no phone number and LID pair");
 		var info = await live.InfoAsync(ct);
 		live.Write($"live: contacts fullcycle: whatsmeow {info.WhatsmeowVersion}");
-		ContactsCycle.RefuseKnownBadPin(info.WhatsmeowVersion);
 		var peerBefore = await peer.SessionsAsync(live, ct);
 		var peerAccount = await peer.AccountAsync(ct);
 		ContactsCycle.RequireDistinct(businessAccount, peerAccount);

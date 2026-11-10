@@ -20,8 +20,8 @@ namespace Whatsmeow.IntegrationTests.Support;
 /// a second session, as the live subject's does.
 /// <para>
 /// They prove the cycle's bookkeeping and guards, not WhatsApp's or whatsmeow's behaviour: the fake answers the verified
-/// name itself, unlike whatsmeow at the pin (#153), and passes the directory's LID as the other form for any query, while
-/// what WhatsApp keys and sends for another account's LID query is [unknown]. A test that needs the pin's dropped answer
+/// name itself, as whatsmeow does since the pin fixed #153, and passes the directory's LID as the other form for any query, while
+/// what WhatsApp keys and sends for another account's LID query is [unknown]. A test that needs #153's dropped answer
 /// replaces the profile read instead.
 /// </para>
 /// </summary>
@@ -259,7 +259,7 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 	}
 
 	/// <summary>
-	/// The query's answer drops the verified name the store got, the shape of #153 at the pin, made here by replacing the
+	/// The query's answer drops the verified name the store got, the shape of #153 before the pin fixed it, made here by replacing the
 	/// profile read: branch 2 still records, booleans only, whether the change came and named the JID asked, before it
 	/// fails on the answer.
 	/// </summary>
@@ -403,15 +403,6 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 
 		Assert.Contains("content equal False", failed.Message, StringComparison.Ordinal);
 		AssertNoValue(failed, "SENTINEL-PUSH", "another text");
-	}
-
-	[Fact]
-	public void RefuseKnownBadPin_TheVersionThatDropsTheName_IsRefused_AndAnotherIsNot()
-	{
-		var refused = Assert.Throws<FalseException>(() => ContactsCycle.RefuseKnownBadPin("v0.0.0-20261105212532-307a2edf117d"));
-
-		Assert.StartsWith("contacts_pin_known_bad", refused.Message, StringComparison.Ordinal);
-		ContactsCycle.RefuseKnownBadPin("v0.0.0-20261201000000-0123456789ab");
 	}
 
 	[Theory]
