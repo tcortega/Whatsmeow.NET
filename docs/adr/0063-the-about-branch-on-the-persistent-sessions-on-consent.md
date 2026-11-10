@@ -4,6 +4,7 @@
 * Date: 2026-11-08
 * Evidence: #36 AC6, ADR 0062's branch 5, root's approval of the offline About plan (R1-R6), whatsmeow at `307a2edf117d`, upstream main `79dc2a8`, upstream PRs #1219 (closed) and #1331 (open), and the sidecar (lines below)
 * Amends: [ADR 0060](0060-a-live-test-control-and-a-fresh-companion.md) (a second control service, and the `livetest` tag in the contacts slice), [ADR 0062](0062-the-contacts-fullcycle-on-the-persistent-sessions.md) (branch 5, which failed until "the owner consents and an ADR adds the control"), docs/guidelines/tests.md (Live WhatsApp)
+* Amended by: [ADR 0067](0067-the-about-control-falls-back-to-the-legacy-status-iq.md) (when WhatsApp refuses the mutation with a GraphQL error, the control sends the legacy status IQ, upstream #1331's node, and logs both outcomes, codes only; branch 5 logs WhatsApp's code of a failure)
 
 ## Context
 
