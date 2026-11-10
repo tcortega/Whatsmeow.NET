@@ -38,5 +38,6 @@ Its code reached .NET as `WhatsAppErrorException.Code`, but branch 5 logged type
 ## Consequences
 
 * One live run tells the two readings apart as far as the protocol shows them: the mutation's code and severity (#1331 names `400 CRITICAL` for an account without the feature), and whether the legacy IQ alone applies the text, which the account's own read (`GetUserInfo`, the usync `<status>`) and the peer's change then check [inferred: that these separate cause (a) from (b)].
+  Measured on 2026-11-10 at main `143efda` (ARCHITECTURE §14 Contacts): the mutation's refusal was `400` `CRITICAL`, set and restore alike; the legacy IQ was answered and the account's own read showed the text it set; no peer change came within 240 s of either, for a cause still [unknown].
 * A pass through the legacy path shows the IQ changed the text the account's own read and the peer see; it says nothing about the mutation's newer fields, which the branch never sets.
 * The control now sends a node whatsmeow does not build at the pin; a node that differs from #1331's is caught by its test, not by whatsmeow's types.
