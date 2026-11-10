@@ -3,7 +3,8 @@
 # calls its baseline.
 #
 #   guard <tag>                      the tag is v<semver>, points at HEAD here and on origin, and HEAD is on main; in a
-#                                    tag push, also that the release environment makes the publish wait for a reviewer
+#                                    tag push, also that the release environment makes the publish wait for a reviewer;
+#                                    in a rehearsal, that the tag is lowercase and the only v* tag at HEAD (ADR 0064)
 #   environment                      only that last check
 #   owners <tag>                     each package id is absent on nuget.org, or NUGET_USER owns it
 #   verify <tag> <feed> <assets>     the feed holds exactly the release's packages at the tag's version, in an order
@@ -120,14 +121,22 @@ require_protected_environment() {
 }
 
 guard() { # tag
-	local tag="$1" commit head remote peeled
+	local tag="$1" commit head remote peeled others
 	if [[ ! "$tag" =~ $semver ]]; then
 		if [[ "$tag" == *+* ]]; then die "$tag has build metadata, which NuGet ignores; a release tag is v<major>.<minor>.<patch>[-<pre-release>]"; fi
 		die "$tag is not a release tag: v<major>.<minor>.<patch>[-<pre-release>], SemVer 2.0.0"
 	fi
+	if [ "${GITHUB_EVENT_NAME:-}" = workflow_dispatch ] && [[ "$tag" == *[A-Z]* ]]; then
+		die "$tag has uppercase; a rehearsal's version is lowercase (ADR 0064)"
+	fi
 	commit="$(git rev-parse -q --verify "refs/tags/$tag^{commit}")" || die "no tag $tag in this clone"
 	head="$(git rev-parse HEAD)" || die "no HEAD"
 	if [ "$commit" != "$head" ]; then die "the tag $tag ($commit) does not point at HEAD ($head)"; fi
+	# MinVer builds at the highest tag at HEAD, so a rehearsal there would only fail late, in verify.
+	if [ "${GITHUB_EVENT_NAME:-}" = workflow_dispatch ]; then
+		others="$(git tag --points-at HEAD --list 'v*' | grep -vxF -- "$tag" | paste -sd' ' -)"
+		[ -z "$others" ] || die "HEAD already carries $others, so MinVer would not build $tag; rehearse a commit after it (ADR 0064)"
+	fi
 	# Fetched here, so a clone's stale or missing origin/main never decides.
 	git fetch --quiet --no-tags origin +refs/heads/main:refs/remotes/origin/main || die "cannot fetch main from origin"
 	if ! git merge-base --is-ancestor "$head" refs/remotes/origin/main; then

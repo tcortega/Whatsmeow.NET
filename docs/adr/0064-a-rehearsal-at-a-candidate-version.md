@@ -28,7 +28,9 @@ Measured at `c280bb1`:
 * The guard job exports the tag it guarded (`outputs.tag`, set by a step after `build/release.sh guard`), and `packaging` gets its `rehearsal-tag` from that output, so only a guarded tag is built.
 * Nothing else changes: the same guard, packaging without caches, install, aot, verify, dry-run publishing and refusal checks; `publish` and `nuget-install` still run only on a push, and the rehearsal has no environment and no `id-token`.
   The input reaches a shell only as the `TAG` environment value, never in `run:` text.
-* `build/release-test.sh` pins this wiring line by line: the input, the `TAG` expression, the guard's output after the guard step, packaging's `rehearsal-tag`, one rehearsal tag literal, and publishing only on a push.
+* In a rehearsal, the guard also refuses a tag with uppercase, and a HEAD that already carries another `v*` tag: MinVer builds at the highest tag at HEAD, so that run would otherwise fail only late, in `verify` (ADR 0050 said to rehearse a commit after it; the guard now says so first).
+* The run is named after its tag in a push, else `rehearsal <version>` or `rehearsal default` (`run-name`, which may read `github` and `inputs` [observed: docs.github.com workflow syntax, 2026-11-10]).
+* `build/release-test.sh` pins this wiring line by line: the input, the `TAG` expression, the run name, the guard's output after the guard step with neither step gated nor its failure ignored, packaging's `rehearsal-tag`, one rehearsal tag literal outside comments, publishing only on a push, and no permissions beyond `contents: read` outside `publish`.
 
 ## Consequences
 
@@ -36,7 +38,9 @@ Measured at `c280bb1`:
 * A candidate rehearsal is held to what its tag will be (ADR 0055): at a pre-release such as `1.0.0-rc.1`, `release_api_shipped` is skipped, as it will be in that tag's run, and the baseline is the one its tag computes (none, for `1.0.0-rc.1`).
   The default rehearsal is still held to the next stable release.
   So a candidate run does not prove a stable PublicAPI baseline; that is checked separately (`PublicAPI.Unshipped.txt` files, or a default rehearsal at the same commit).
-* A typed `v` (`vv1...`), build metadata, or a tag origin has elsewhere fails in the guard job, before anything builds [observed: `build/release-test.sh`]; so does a version whose tag the clone already has, since `git tag` refuses an existing name [observed: local git, "fatal: tag ... already exists", exit 128].
+* A version whose tag the clone already has, origin's tags included (`fetch-depth: 0`), fails at the guard job's `git tag "$TAG"` step, before the guard step runs (`release.yml`, "the rehearsal's tag, in this runner only"), since `git tag` refuses an existing name [observed: local git, "fatal: tag ... already exists", exit 128]; so a tag origin has on another commit fails there, not in the guard [inferred: from that step order].
+  A typed `v` (`vv1...`) or build metadata fails in the guard step [observed: `build/release-test.sh`].
+  Either way the guard job fails, so nothing builds.
 * The test proves the text GitHub reads, not GitHub's evaluation of it; the first candidate dispatch on main is that proof [unknown until then].
   A wrong push-path value fails closed: the tag run's guard refuses a tag that is not SemVer, at HEAD, on main and on origin.
 * The artifact of a candidate rehearsal is that run's only; a release downloads only its own run's artifact (`download-artifact` without `run-id`), so the candidate's evidence is linked to a later release by the binaries' checksums, which are reproducible from the commit (ADR 0023) [inferred].

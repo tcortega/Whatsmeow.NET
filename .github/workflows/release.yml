@@ -19,6 +19,8 @@ name: release
 # build/release.sh refuses to publish outside a push of the tag. It may take a candidate version, so the exact candidate
 # is built and installed on every target before its tag exists (ADR 0064). Every step lives in build/release.sh.
 
+run-name: ${{ github.event_name == 'push' && github.ref_name || format('rehearsal {0}', inputs.version || 'default') }}
+
 on:
   push:
     tags: ["v*"]
