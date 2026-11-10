@@ -1,7 +1,7 @@
 # macOS Gatekeeper on the packaged sidecar, 2026-11-06
 
 Evidence for [#45](https://github.com/tcortega/Whatsmeow.NET/issues/45), its macOS half, measured on one daily-use Mac.
-It does not complete #45: Windows and a restore of `whatsmeow-net` from nuget.org are unmeasured.
+It does not complete #45: Windows and a restore of `whatsmeow-net` from nuget.org are unmeasured here; Windows has [its own record](0045-windows-smartscreen-2026-11-10.md), measured 2026-11-10.
 The owner authorized this Mac in place of the clean Mac #45 names (#11), so this record stands in for that run without being evidence about a clean Mac; a clean Mac, a native Intel desktop, other macOS versions and Q2a to Q2c are unmeasured extras, not #45 gates.
 Every claim is scoped to this host and these packages; an [inferred] or [unknown] claim is an open question, not a result.
 This record is authoritative over the raw results it draws on; the raw claims it corrects are listed under [Superseded raw claims](#superseded-raw-claims).
@@ -251,7 +251,7 @@ Unmeasured, so no claim covers them:
 * which tools, transfers or user actions set quarantine on a consumer's machine, beyond the paths measured here;
 * what Q1a's prompt offered, and what each answer does (Q1b's offered Help, Move to Trash and Done; Done came after its process had exited);
 * the launching terminal's Developer Tools exemption;
-* Windows: SmartScreen, Mark-of-the-Web, Smart App Control, and §10's Temp ACL for a non-administrator;
+* Windows: SmartScreen, Mark-of-the-Web, Smart App Control, and §10's Temp ACL for a non-administrator, since measured in [the Windows record](0045-windows-smartscreen-2026-11-10.md), except a desktop session and Smart App Control in enforcement;
 * the notarized `.app` claim, which stays [inferred] (#51).
 
 ## Superseded raw claims
