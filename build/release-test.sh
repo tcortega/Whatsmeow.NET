@@ -172,9 +172,6 @@ tag_at v2.0.0 side
 at main
 expect pass "" "guard: a v<semver> tag at HEAD on main" guard v1.2.3
 expect pass "" "guard: a pre-release tag at HEAD on main" guard v1.0.0-rc.1
-# A rehearsal at a candidate version (ADR 0064): the tag is in the runner only, so origin has none.
-dispatch_guard() { in_repo as_dispatch bash "$release" guard "$1"; }
-expect pass "points at HEAD" "guard: a rehearsal at a candidate version, its tag in the runner only" dispatch_guard v1.0.0-rc.1
 expect pass "" "guard: numeric pre-release identifiers" guard v1.0.0-0.3.7
 expect pass "" "guard: hyphens and a digit-led alphanumeric identifier" guard v1.0.0-x-y.0a
 expect fail "is not a release tag" "guard: vfoo is no release tag" guard vfoo
@@ -202,6 +199,23 @@ tag_at v1.3.0 HEAD
 expect pass "" "guard: a commit main reached after the clone (the guard fetches main)" guard v1.3.0
 git_q -C "$repo" update-ref -d refs/remotes/origin/main
 expect pass "" "guard: no origin/main ref in the clone at all" guard v1.3.0
+
+# A rehearsal (ADR 0064), on a commit of its own on main: its tag is in the runner only, so origin has none. MinVer
+# builds at the highest tag at HEAD, so a rehearsal refuses a commit that carries another, before anything builds.
+(cd "$tmp/other" && git_q commit --allow-empty -m three && git_q push origin main && git rev-parse HEAD) >"$tmp/three" || exit 1
+three="$(cat "$tmp/three")"
+git_q -C "$repo" fetch origin "$three"
+at "$three"
+dispatch_guard() { in_repo as_dispatch bash "$release" guard "$1"; }
+tag_at v1.4.0-rc.1 HEAD
+expect pass "points at HEAD" "guard: a rehearsal at a candidate version, its tag in the runner only" dispatch_guard v1.4.0-rc.1
+tag_at v0.0.0-rehearsal.7 HEAD
+expect fail "already carries v1.4.0-rc.1" "guard: a rehearsal of a commit that carries a release tag" dispatch_guard v0.0.0-rehearsal.7
+git_q -C "$repo" tag -d v0.0.0-rehearsal.7
+tag_at v1.4.0 HEAD
+expect fail "HEAD already carries v1.4.0," "guard: a candidate rehearsal of a commit that carries another tag" dispatch_guard v1.4.0-rc.1
+git_q -C "$repo" tag -d v1.4.0
+expect fail "uppercase" "guard: a rehearsal refuses uppercase in the version" dispatch_guard v1.4.0-RC.1
 
 # A tag push: the tag on origin is the one at HEAD, and the release environment makes the publish wait for a reviewer.
 at main
@@ -820,12 +834,14 @@ guard_step='        run: bash build/release.sh guard "$TAG"'
 export_step='        run: echo "tag=$TAG" >>"$GITHUB_OUTPUT"'
 # shellcheck disable=SC2016
 output_line='      tag: ${{ steps.tag.outputs.tag }}'
+run_name="run-name: \${{ github.event_name == 'push' && github.ref_name || format('rehearsal {0}', inputs.version || 'default') }}"
 packaging_tag="      rehearsal-tag: \${{ github.event_name == 'workflow_dispatch' && needs.guard.outputs.tag || '' }}"
 
 dispatch_takes_version() {
 	once workflow_dispatch "$(block workflow_dispatch)" '    inputs:' '      version:' '        type: string' '        default: ""'
 }
 tag_chosen() { once release.yml "$(cat "$workflow")" "$tag_line"; }
+run_named() { once release.yml "$(cat "$workflow")" "$run_name"; }
 guard_exports() {
 	local text guarded exported
 	text="$(block guard)"
@@ -833,11 +849,19 @@ guard_exports() {
 	guarded="$(grep -nxF -- "$guard_step" <<<"$text" | cut -d: -f1)"
 	exported="$(grep -nxF -- '        id: tag' <<<"$text" | cut -d: -f1)"
 	[ "$exported" -gt "$guarded" ] || { echo "the step id: tag (line $exported) comes before the guard (line $guarded)"; return 1; }
+	# Neither step may be skipped, nor the guard's failure ignored.
+	if grep -q 'continue-on-error' <<<"$text"; then echo "continue-on-error in the guard job"; return 1; fi
+	awk -v g="$guard_step" -v e="$export_step" '
+		/^      - / { if (gated && wanted) bad = 1; gated = wanted = 0 }
+		/^        if:/ { gated = 1 }
+		$0 == g || $0 == e { wanted = 1 }
+		END { if (gated && wanted) bad = 1; exit bad }
+	' <<<"$text" || { echo "an if: on the guard or export step"; return 1; }
 }
 packaging_at_guarded() { once packaging "$(block packaging)" "$packaging_tag"; }
 rehearsal_tag_once() {
 	local count
-	count="$(grep -oF 'v0.0.0-rehearsal.' "$workflow" | wc -l | tr -d ' ')"
+	count="$(grep -v '^ *#' "$workflow" | grep -oF 'v0.0.0-rehearsal.' | wc -l | tr -d ' ')"
 	[ "$count" -eq 1 ] || { echo "v0.0.0-rehearsal. occurs $count times in release.yml"; return 1; }
 }
 only_push_publishes() {
@@ -847,12 +871,37 @@ only_push_publishes() {
 	[ "$(grep -cE '^ *(environment|id-token):' "$workflow")" -eq 2 ] || { echo "environment or id-token outside publish"; rc=1; }
 	return "$rc"
 }
+# No permissions block outside publish grants more than contents: read, and none anywhere is write-all or read-all.
+least_permissions() {
+	awk '
+		/^jobs:/ { jobs = 1; next }
+		jobs && /^  [^ #][^:]*:/ { job = $0; sub(/^  /, "", job); sub(/:.*/, "", job) }
+		block && /[^ ]/ && !/^ *#/ {
+			match($0, /^ */)
+			if (RLENGTH <= indent) block = 0
+			else {
+				grant = $0; sub(/^ */, "", grant); sub(/ *#.*/, "", grant)
+				if (job != "publish" && grant != "contents: read") { print "line " NR " grants more than contents: read: " $0; bad = 1 }
+				next
+			}
+		}
+		/^ *permissions:/ {
+			match($0, /^ */); indent = RLENGTH
+			value = $0; sub(/^ *permissions: */, "", value); sub(/ *#.*/, "", value)
+			if (value == "") block = 1
+			else if (value != "{}") { print "line " NR ": " $0; bad = 1 }
+		}
+		END { exit bad }
+	' "$workflow"
+}
 expect pass "" "workflow: workflow_dispatch takes an optional version" dispatch_takes_version
 expect pass "" "workflow: TAG is the push's tag, the candidate's, or the rehearsal's" tag_chosen
+expect pass "" "workflow: a run is named after its tag or its candidate" run_named
 expect pass "" "workflow: guard exports the tag it guarded" guard_exports
 expect pass "" "workflow: packaging builds at the guarded tag" packaging_at_guarded
 expect pass "" "workflow: the rehearsal tag is chosen in one place" rehearsal_tag_once
 expect pass "" "workflow: only a tag push publishes" only_push_publishes
+expect pass "" "workflow: no job but publish grants more than contents: read" least_permissions
 
 if [ "${#failed[@]}" -gt 0 ]; then
 	echo
