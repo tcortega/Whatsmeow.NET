@@ -1,8 +1,8 @@
 # 0007. Packaging as per-OS native NuGet packages with exact-version pins
 
-- Status: Accepted; amended by [0016](0016-sidecar-binary-gpl-3-corresponding-source-per-release.md), which settles the licences in the last two Consequences, and by [0023](0023-native-packages-build-pin-and-find.md), which builds the packages and measures them; its macOS evidence amended in place by [evidence 0045](../evidence/0045-macos-gatekeeper-2026-11-06.md) (#45), with the decision unchanged
+- Status: Accepted; amended by [0016](0016-sidecar-binary-gpl-3-corresponding-source-per-release.md), which settles the licences in the last two Consequences, and by [0023](0023-native-packages-build-pin-and-find.md), which builds the packages and measures them; its macOS and Windows evidence amended in place by [evidence 0045](../evidence/0045-macos-gatekeeper-2026-11-06.md) and [its Windows record](../evidence/0045-windows-smartscreen-2026-11-10.md) (#45), with the decision unchanged
 - Date: 2026-10-31
-- Evidence: [ARCHITECTURE §14](../ARCHITECTURE.md#spike-results-2026-10-31) question 6, the Mark-of-the-Web result in question 2, and, for macOS, [evidence 0045](../evidence/0045-macos-gatekeeper-2026-11-06.md) (one daily-use Mac, 2026-11-06)
+- Evidence: [ARCHITECTURE §14](../ARCHITECTURE.md#spike-results-2026-10-31) question 6, the Mark-of-the-Web result in question 2, and, for macOS, [evidence 0045](../evidence/0045-macos-gatekeeper-2026-11-06.md) (one daily-use Mac, 2026-11-06), and for Windows [its Windows record](../evidence/0045-windows-smartscreen-2026-11-10.md) (one laptop, session 0, 2026-11-10)
 
 ## Context
 
@@ -30,6 +30,13 @@ Evidence 0045, macOS 26.5.2 on one daily-use Apple Silicon Mac, not a clean one,
 
 Question 2, Windows [observed: §14 Spike results, Question 2]: the `protoc.exe` that `dotnet restore` pulled from nuget.org has no `Zone.Identifier` stream, and the unsigned spike `sidecar.exe` (Authenticode `NotSigned`) starts.
 
+Evidence 0045's Windows record, Windows 11 Home 25H2 (build 26200) on one x64 laptop in daily use, driven over SSH with nobody at it, every case as a standard account in a session 0 batch logon, with the CI-built packages of `210097c` restored from a loopback HTTP feed, not nuget.org [observed: [the Windows record](../evidence/0045-windows-smartscreen-2026-11-10.md)]:
+
+- The feed's nupkgs carried a browser-style Mark-of-the-Web, applied by the harness; the nupkg NuGet installed, the binaries it extracted, the portable build, the portable, framework-dependent, self-contained and single-file publishes, and `Copy-Item` and `robocopy` copies carried none, and each started the unsigned sidecar (M1 to M10, D1 to D8).
+- The sidecar with a synthetic `Zone.Identifier` of zone 3, alone (Z1) or with every file of the app marked (Z2), started through the consumer's `CreateProcess` too, with no SmartScreen process, no CodeIntegrity, Defender or AppLocker event, and no measurable delay.
+- Z1 and Z2 are synthetic controls, not delivery paths.
+  An interactive desktop session (so the Explorer double-click, Z3), a restore from nuget.org, Smart App Control in enforcement (off on that laptop) and win-arm64 on a desktop were not measured.
+
 ## Decision
 
 Phase 0 verdict:
@@ -51,7 +58,8 @@ Why no signing, with the evidence level of each step:
   This was first explained as Gatekeeper assessing only quarantined launches [inferred]; on one daily-use Mac a scan with the sidecar's signing identifier appeared in every ad-hoc arm64 launch, quarantined or not, and of those sidecars only the quarantined one raised a prompt, while the measured restore, build, publish and copy paths set no quarantine and started it [observed: evidence 0045; attribution inferred].
   `whatsmeow-net` restored from nuget.org, a clean Mac and a native Intel desktop are [unknown].
 - This arm64 sidecar must be signed at all to run on the one Apple Silicon Mac measured [observed: evidence 0045 S1; first inferred as an Apple platform rule, and beyond that Mac still inferred], and the Go linker ad-hoc signs `darwin/arm64` itself [observed: Question 6], which was enough there without quarantine [observed: evidence 0045 D].
-- So no Authenticode signing is needed either [inferred: SmartScreen keys on Mark-of-the-Web, which matches what we saw].
+- So no Authenticode signing is needed either: on one laptop the measured restore, build, publish and copy paths put no Mark-of-the-Web on the sidecar and started it, and a marked sidecar started by the app through `CreateProcess` in a session 0 batch logon ran with no SmartScreen check visible [observed: evidence 0045's Windows record, M, D, Z1, Z2].
+  This was first explained as SmartScreen keying on Mark-of-the-Web [inferred]; that its app reputation check runs on shell launches, not on `CreateProcess`, is [inferred], and an interactive desktop session, a restore from nuget.org and Smart App Control in enforcement are [unknown].
 - An app that embeds us and ships as a notarized `.app` signs its embedded binaries as part of its own release [inferred: standard macOS app signing, not our concern].
 
 ## Consequences
