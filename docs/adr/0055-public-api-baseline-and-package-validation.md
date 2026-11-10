@@ -4,6 +4,7 @@
 - Date: 2026-11-04
 - Evidence: issue #50, its plan review, the API review in its PR and its delegated decision, `build/release-test.sh`, `tools/check-repo` tests, and the probes and mutations in the PR body
 - Amends: ARCHITECTURE §8.1 (stability), §8.3 (closed hierarchies), §12 (the release); [ADR 0023](0023-native-packages-build-pin-and-find.md) (which dependencies are exact); [ADR 0012](0012-iwhatsappclient-interface-exception.md) and [ADR 0036](0036-testing-package-and-fake-client.md) (who implements `IWhatsAppClient`)
+- Amended by: [ADR 0064](0064-a-rehearsal-at-a-candidate-version.md) (a candidate rehearsal is held to its own version)
 
 ## Context
 
@@ -26,7 +27,7 @@ Measured:
 - PublicAPI files record no `required`, type kind, base type or interface list, generic constraint or variance [observed: `PublicAPI.Shipped.txt` lists `WhatsmeowException` without `: Exception`, `IWhatsAppEventHandler<TEvent>` without `in`, and `AddHandler<TEvent, THandler>()` without its `where` clauses], so making a shipped property `required`, or changing a shipped type's base, interfaces or constraints, is a source break that neither RS0016/RS0017 nor a check of those files reports [inferred].
 - RS0017 compares the code with the `PublicAPI.*.txt` files only, so a member dropped from the code and from `PublicAPI.Shipped.txt` together passes it [observed: a clone with `Jid.IsLid` dropped from `Jid.cs` and `PublicAPI.Shipped.txt` builds `Whatsmeow.Client` without RS0017, and `build/release.sh shipped-api` there, at a local `v1.0.0` tag, names the line].
 - The CI checkouts that read the tags fetch every tag (`fetch-depth: 0`), and no `v*` tag exists yet [observed: the workflows, `git ls-remote --tags origin`]; in a `--depth 1` clone `git tag --merged HEAD` sees only the tags of the commits it has, so a baseline would be silently empty there [observed: the review of #50's PR; `build/release-test.sh`].
-- `packaging` runs on a push to main, on `workflow_dispatch` and in the release workflow, never on a pull request [observed: `ci.yml`, `release.yml`, ADR 0056]; the rehearsal packs at `v0.0.0-rehearsal.<run>`, a tag in the runner only (ADR 0050).
+- `packaging` runs on a push to main, on `workflow_dispatch` and in the release workflow, never on a pull request [observed: `ci.yml`, `release.yml`, ADR 0056]; the rehearsal packs at `v0.0.0-rehearsal.<run>`, a tag in the runner only (ADR 0050), or at a candidate version given to the run ([ADR 0064](0064-a-rehearsal-at-a-candidate-version.md)).
 
 ## Decision
 
@@ -53,7 +54,7 @@ Measured:
   It fails in a shallow clone, and when a version past its major's first release finds no release of that major, so missing tags never pass as no baseline.
   A rehearsal's `0.0.0-rehearsal.<run>` stands for the next stable release: the version of the highest pre-release tag that no stable tag has yet, else the patch after the highest stable tag; its baseline is that version's.
   `build/ci.sh package` restores the baseline packages and packs with that version, so every package job after a release (a push to main, a manual `ci.yml` run, the release workflow and its rehearsal) is compared with what the release published; a baseline nuget.org does not serve (NU1102) fails the job, saying the release is not published yet or its tag must be deleted (ADR 0050).
-  A rehearsal is also held to a stable release's empty `PublicAPI.Unshipped.txt`, so a break or an unshipped member shows there before the tag.
+  A default rehearsal is also held to a stable release's empty `PublicAPI.Unshipped.txt`, so a break or an unshipped member shows there before the tag; a candidate rehearsal is held to its own version instead, so a pre-release candidate is not ([ADR 0064](0064-a-rehearsal-at-a-candidate-version.md)).
 - **Exact pins**: `Whatsmeow.Client` depends on `Whatsmeow.Protocol`, and `Whatsmeow.Protocol` on `Whatsmeow.Protocol.WhatsApp`, at exactly its own version (`PackExactVersion`, ADR 0023), which `build/ci.sh install` checks.
 
 ## Consequences

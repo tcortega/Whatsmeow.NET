@@ -2548,7 +2548,7 @@ namespace Whatsmeow.Protocol.V1 {
     /// <summary>
     /// True when the sender's device sent this device no ciphertext at all. Once the sidecar recorded the event,
     /// whatsmeow asks the account's phone for it and acknowledges the message (message.go:324-337); that WhatsApp sends
-    /// it again after a failed recording is not measured, so it is best effort (ADR 0066).
+    /// it again after a failed recording is not measured, so it is best effort (ADR 0065).
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]

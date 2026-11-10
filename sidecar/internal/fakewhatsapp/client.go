@@ -52,7 +52,7 @@ type Client struct {
 	reconnect bool
 	// unanswered are the stanzas the client left unanswered, each as the call that delivers it, which WhatsApp
 	// delivers again at the device's next login and never while the connection stays up: [observed] for decrypted
-	// messages (ARCHITECTURE §14 Question 4, #10), [inferred] for undecryptable ones (ADR 0066).
+	// messages (ARCHITECTURE §14 Question 4, #10), [inferred] for undecryptable ones (ADR 0065).
 	// They are the device's, so the client's: a Pair call gives the session a new client and a new device.
 	unanswered []func()
 	// queue runs one dispatch at a time, as whatsmeow's per-client node queue does (ARCHITECTURE §7.3).

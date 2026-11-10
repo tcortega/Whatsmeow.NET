@@ -160,7 +160,7 @@ func TestAMessageLeftUnansweredIsDeliveredAgainAtTheNextLogin(t *testing.T) {
 
 // whatsmeow dispatches an undecryptable message before it answers it, and a failed handler leaves it unanswered
 // [observed: message.go:324-337, 419-451]. The fake has WhatsApp deliver it again at the next login, still undecryptable,
-// as it does an unanswered message; for real WhatsApp that is [inferred] (ADR 0066).
+// as it does an unanswered message; for real WhatsApp that is [inferred] (ADR 0065).
 func TestAnUndecryptableMessageLeftUnansweredIsDeliveredAgainAtTheNextLogin(t *testing.T) {
 	t.Parallel()
 

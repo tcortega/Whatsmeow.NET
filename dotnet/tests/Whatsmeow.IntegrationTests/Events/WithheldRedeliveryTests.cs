@@ -66,9 +66,9 @@ public sealed class WithheldRedeliveryTests(FakeSidecar fixture)
 	}
 
 	/// <summary>
-	/// whatsmeow acks an undecryptable message only after the sidecar recorded it (ADR 0066), so a failed recording
+	/// whatsmeow acks an undecryptable message only after the sidecar recorded it (ADR 0065), so a failed recording
 	/// withholds its answer like a message's, and the sidecar's reset brings it again. That WhatsApp delivers it again
-	/// is the fake's model, [inferred] for real WhatsApp (ADR 0066).
+	/// is the fake's model, [inferred] for real WhatsApp (ADR 0065).
 	/// </summary>
 	[Fact(Timeout = Timeout)]
 	public async Task FullCycle_AWithheldUndecryptableMessage_IsRecordedOnceAfterTheReset()

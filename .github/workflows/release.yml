@@ -16,12 +16,20 @@ name: release
 #
 # workflow_dispatch is the rehearsal: the same guard, packaging and verify, at a tag made in each runner only and never
 # pushed, with every publishing command printed instead of run. It has no environment and no id-token permission, and
-# build/release.sh refuses to publish outside a push of the tag. Every step lives in build/release.sh.
+# build/release.sh refuses to publish outside a push of the tag. It may take a candidate version, so the exact candidate
+# is built and installed on every target before its tag exists (ADR 0064). Every step lives in build/release.sh.
+
+run-name: ${{ github.event_name == 'push' && github.ref_name || format('rehearsal {0}', inputs.version || 'default') }}
 
 on:
   push:
     tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      version:
+        description: A candidate version to rehearse at, <major>.<minor>.<patch>[-<pre-release>] without v; empty rehearses at 0.0.0-rehearsal.<run>. Its tag stays in the runners.
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -31,13 +39,16 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  TAG: ${{ github.event_name == 'push' && github.ref_name || format('v0.0.0-rehearsal.{0}', github.run_number) }}
+  TAG: ${{ github.event_name == 'push' && github.ref_name || (inputs.version != '' && format('v{0}', inputs.version) || format('v0.0.0-rehearsal.{0}', github.run_number)) }}
 
 jobs:
   guard:
     name: guard
     runs-on: ubuntu-26.04
     timeout-minutes: 10
+    # Only the tag the guard passed reaches packaging.
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
     defaults:
       run:
         shell: bash
@@ -57,12 +68,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: bash build/release.sh guard "$TAG"
 
+      - name: the guarded tag
+        id: tag
+        run: echo "tag=$TAG" >>"$GITHUB_OUTPUT"
+
   packaging:
     name: packaging
     needs: guard
     uses: ./.github/workflows/packaging.yml
     with:
-      rehearsal-tag: ${{ github.event_name == 'workflow_dispatch' && format('v0.0.0-rehearsal.{0}', github.run_number) || '' }}
+      rehearsal-tag: ${{ github.event_name == 'workflow_dispatch' && needs.guard.outputs.tag || '' }}
       # A release never restores a cache another ref saved.
       cache: false
 

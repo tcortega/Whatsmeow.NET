@@ -190,7 +190,7 @@ message UndecryptableMessageEvent {
   bool hide_placeholder = 2;
   // True when the sender's device sent this device no ciphertext at all. Once the sidecar recorded the event,
   // whatsmeow asks the account's phone for it and acknowledges the message (message.go:324-337); that WhatsApp sends
-  // it again after a failed recording is not measured, so it is best effort (ADR 0066).
+  // it again after a failed recording is not measured, so it is best effort (ADR 0065).
   bool unavailable = 3;
   // Why it is unavailable, when WhatsApp said; unspecified when it did not, or for a message that is not unavailable.
   UnavailableType unavailable_type = 4;

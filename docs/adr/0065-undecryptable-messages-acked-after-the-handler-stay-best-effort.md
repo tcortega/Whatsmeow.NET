@@ -1,4 +1,4 @@
-# 0066. Undecryptable messages are acked after the handler at whatsmeow 79dc2a8c33df, and stay best effort
+# 0065. Undecryptable messages are acked after the handler at whatsmeow 79dc2a8c33df, and stay best effort
 
 - Status: Accepted
 - Date: 2026-11-10

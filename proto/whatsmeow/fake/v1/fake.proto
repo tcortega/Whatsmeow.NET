@@ -34,7 +34,7 @@ service FakeWhatsAppService {
   // the client's event handlers ran. whatsmeow dispatches UndecryptableMessage first and sends its retry receipt and
   // ack only when every handler succeeded (message.go:324-337, 419-451); the fake records neither. One left
   // unanswered is delivered again at the device's next login, as DeliverMessage's is, which is [inferred] for an
-  // undecryptable message and [observed] only for a decrypted one (ARCHITECTURE §14, ADR 0066). A resend that decrypts
+  // undecryptable message and [observed] only for a decrypted one (ARCHITECTURE §14, ADR 0065). A resend that decrypts
   // is a DeliverMessage with the same id. A session without a client is an error.
   rpc DeliverUndecryptableMessage(DeliverUndecryptableMessageRequest) returns (DeliverUndecryptableMessageResponse);
 
@@ -555,7 +555,7 @@ message DeliverUndecryptableMessageRequest {
   string unavailable_type = 8;
   // True to fail the sidecar's own recording of this message's first delivery, as a failed outbox write would: in
   // fake mode the sidecar's Events handler fails it without recording it, so its answer is withheld and the sidecar's
-  // redelivery runs (ADR 0044, ADR 0066). Every later delivery of it is recorded.
+  // redelivery runs (ADR 0044, ADR 0065). Every later delivery of it is recorded.
   bool withhold_first_answer = 9;
 }
 

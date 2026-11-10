@@ -771,7 +771,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// the client's event handlers ran. whatsmeow dispatches UndecryptableMessage first and sends its retry receipt and
       /// ack only when every handler succeeded (message.go:324-337, 419-451); the fake records neither. One left
       /// unanswered is delivered again at the device's next login, as DeliverMessage's is, which is [inferred] for an
-      /// undecryptable message and [observed] only for a decrypted one (ARCHITECTURE §14, ADR 0066). A resend that decrypts
+      /// undecryptable message and [observed] only for a decrypted one (ARCHITECTURE §14, ADR 0065). A resend that decrypts
       /// is a DeliverMessage with the same id. A session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -789,7 +789,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// the client's event handlers ran. whatsmeow dispatches UndecryptableMessage first and sends its retry receipt and
       /// ack only when every handler succeeded (message.go:324-337, 419-451); the fake records neither. One left
       /// unanswered is delivered again at the device's next login, as DeliverMessage's is, which is [inferred] for an
-      /// undecryptable message and [observed] only for a decrypted one (ARCHITECTURE §14, ADR 0066). A resend that decrypts
+      /// undecryptable message and [observed] only for a decrypted one (ARCHITECTURE §14, ADR 0065). A resend that decrypts
       /// is a DeliverMessage with the same id. A session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -805,7 +805,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// the client's event handlers ran. whatsmeow dispatches UndecryptableMessage first and sends its retry receipt and
       /// ack only when every handler succeeded (message.go:324-337, 419-451); the fake records neither. One left
       /// unanswered is delivered again at the device's next login, as DeliverMessage's is, which is [inferred] for an
-      /// undecryptable message and [observed] only for a decrypted one (ARCHITECTURE §14, ADR 0066). A resend that decrypts
+      /// undecryptable message and [observed] only for a decrypted one (ARCHITECTURE §14, ADR 0065). A resend that decrypts
       /// is a DeliverMessage with the same id. A session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -823,7 +823,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// the client's event handlers ran. whatsmeow dispatches UndecryptableMessage first and sends its retry receipt and
       /// ack only when every handler succeeded (message.go:324-337, 419-451); the fake records neither. One left
       /// unanswered is delivered again at the device's next login, as DeliverMessage's is, which is [inferred] for an
-      /// undecryptable message and [observed] only for a decrypted one (ARCHITECTURE §14, ADR 0066). A resend that decrypts
+      /// undecryptable message and [observed] only for a decrypted one (ARCHITECTURE §14, ADR 0065). A resend that decrypts
       /// is a DeliverMessage with the same id. A session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>

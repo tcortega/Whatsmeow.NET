@@ -9464,7 +9464,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
     /// <summary>
     /// True to fail the sidecar's own recording of this message's first delivery, as a failed outbox write would: in
     /// fake mode the sidecar's Events handler fails it without recording it, so its answer is withheld and the sidecar's
-    /// redelivery runs (ADR 0044, ADR 0066). Every later delivery of it is recorded.
+    /// redelivery runs (ADR 0044, ADR 0065). Every later delivery of it is recorded.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]

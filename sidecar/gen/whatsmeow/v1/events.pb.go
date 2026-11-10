@@ -793,7 +793,7 @@ type UndecryptableMessageEvent struct {
 	HidePlaceholder bool `protobuf:"varint,2,opt,name=hide_placeholder,json=hidePlaceholder,proto3" json:"hide_placeholder,omitempty"`
 	// True when the sender's device sent this device no ciphertext at all. Once the sidecar recorded the event,
 	// whatsmeow asks the account's phone for it and acknowledges the message (message.go:324-337); that WhatsApp sends
-	// it again after a failed recording is not measured, so it is best effort (ADR 0066).
+	// it again after a failed recording is not measured, so it is best effort (ADR 0065).
 	Unavailable bool `protobuf:"varint,3,opt,name=unavailable,proto3" json:"unavailable,omitempty"`
 	// Why it is unavailable, when WhatsApp said; unspecified when it did not, or for a message that is not unavailable.
 	UnavailableType UnavailableType `protobuf:"varint,4,opt,name=unavailable_type,json=unavailableType,proto3,enum=whatsmeow.v1.UnavailableType" json:"unavailable_type,omitempty"`

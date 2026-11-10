@@ -199,7 +199,7 @@ func (c *Client) deliver(parts []*events.Message) {
 // otherwise the stanza is left unanswered, and the fake has WhatsApp deliver it again at the next login. That
 // redelivery is [observed] for a decrypted message's withheld answer (ARCHITECTURE §14 Question 4, the #10 live runs)
 // and [inferred] for an undecryptable one: the server cannot tell whether a stanza was decryptable, but nobody has
-// measured it (ADR 0066).
+// measured it (ADR 0065).
 func (c *Client) deliverUndecryptable(evt *events.UndecryptableMessage) {
 	if !c.dispatch(evt) {
 		return

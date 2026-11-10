@@ -21,7 +21,7 @@ Measured against real WhatsApp: with the sidecar killed in the middle of a burst
 Best effort, because whatsmeow answers them before or whatever the handler does, or because WhatsApp sending them again is not measured:
 
 * `UndecryptableMessageReceived`.
-  whatsmeow acks one only after the sidecar recorded it [observed: source, §14 Question 4], but that WhatsApp sends it again after a failed recording is [inferred], so it stays best effort until a live run measures it (ADR 0066).
+  whatsmeow acks one only after the sidecar recorded it [observed: source, §14 Question 4], but that WhatsApp sends it again after a failed recording is [inferred], so it stays best effort until a live run measures it (ADR 0065).
   The content is recovered by WhatsApp's retry protocol: the sender's resend comes later as a normal, at least once `MessageReceived`.
   It has the same id when the sender is whatsmeow [observed: source] and, for other senders, [inferred].
   The copy the account's own phone sends back holds back its receipt, of type `sender` or `peer_msg`, until the sidecar recorded it [observed: source, §7.2].
