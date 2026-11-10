@@ -89,8 +89,9 @@ type Service struct {
 	after  func(time.Duration) <-chan time.Time
 	jitter func(time.Duration) time.Duration
 	// onQueue and onWait, when set, run when a send has to wait behind another and when a repeat waits for the same
-	// send in flight; tests wait on them.
-	onQueue, onWait func()
+	// send in flight; tests wait on them. onRecorded runs once a send's record is written, before the hand-off; a test
+	// ends the call there.
+	onQueue, onWait, onRecorded func()
 
 	mu      sync.Mutex
 	flights map[flightKey]*flight

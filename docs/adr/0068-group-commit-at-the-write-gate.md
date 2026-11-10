@@ -34,7 +34,9 @@ That the CI run's disk was briefly that slow is [inferred]: the sidecar started 
 - **Each write keeps its own outcome.** Each write runs in a savepoint of its own (`SAVEPOINT`, then `RELEASE`).
   A write whose function fails, on any statement, or panics is rolled back to its savepoint and gets its own error; the others commit.
   A panic is raised again on the writer's own goroutine.
-  Only a failure of the transaction itself (its savepoint, release or commit) fails every write of the batch, none of them kept, as one failed commit failed one write before.
+  Only a failure of the transaction itself (its savepoint, release or commit, or a write that ends it) fails every write of the batch, none of them kept, as one failed commit failed one write before; each innocent write's error names the cause.
+  The batch then takes no more writes, so the writes still queued commit in the next one.
+  A write function that ends the leader's goroutine (`runtime.Goexit`) still frees the gate, and the batch's other writes fail, none kept.
 - **A write returns only once the commit holding it is durable.** Waiters are told their outcomes after `COMMIT` returned (`synchronous(FULL)`), with the connection back in the pool. So §13 invariant 2 holds: the outbox wakes a session's streams, and an ack closes its feed, after `Tx` returned.
 - **Cancellation is checked only before a write joins a batch.** A write joins when a leader takes it, after `BEGIN`.
   A write whose context ended before that leaves the queue, or is skipped when taken, and never runs, as before (`TestAWriterWhoseContextEndsLeavesTheQueue`, `TestAWriteWhoseContextAlreadyEndedNeverBegins`, `TestAWriteWhoseContextEndsInItsBeginNeverRuns`).
@@ -42,7 +44,7 @@ That the CI run's disk was briefly that slow is [inferred]: the sidecar started 
   Why: SQLite rolls back the whole transaction when a write statement inside it is interrupted, and modernc interrupts a statement when its context ends, so one caller's cancel would undo every write of the batch.
   The alternatives were re-running the others, which would make every write function run more than once and need to be idempotent, or failing the whole batch for one caller's cancel.
   This extends the rule a write already had once its commit started: ended during `COMMIT`, applied.
-- **Closing the store waits for the batch in flight.** `Store.Close` refuses writes from then on and waits for the batch, bounded by its 250 ms of writes and its commit (and its `BEGIN`, which waits for whatsmeow's writes up to the `busy_timeout`, as before).
+- **Closing the store waits for the batch in flight.** `Store.Close` refuses new batches from then on and waits for the one in flight, which still takes queued writes up to its limits, so the wait is bounded by its 250 ms of writes and its commit (and its `BEGIN`, which waits for whatsmeow's writes up to the `busy_timeout`, as before). Writes still queued then fail.
   So the store still never closes with a write's connection open (#124).
 - **Scope does not change.** whatsmeow's own store writes stay outside the gate (ADR 0040); `BEGIN` still waits for them up to the `busy_timeout`, now once per batch.
   The event handlers keep their `store.BusyTimeout` deadline, which now bounds only their wait for the gate.
@@ -52,12 +54,12 @@ That the CI run's disk was briefly that slow is [inferred]: the sidecar started 
 
 - A restart's backlog costs about a 64th of the commits it did, so a send after a restart of 300 sessions is durable after at most 16 commits instead of 902 (`TestASendAfterA300SessionRestartWaitsForFewCommits`).
 - A caller whose context ends after its write joined a batch still has its write kept.
-  For a send, the record is then kept and the send goes on to whatsmeow with an ended context, as it already did when the context ended right after the commit; the window is now up to a batch long.
+  A send checks its call once its record is written: when the call ended meanwhile, nothing was handed to whatsmeow, so it deletes the record and ends with the call's error, never sent on an ended context and never left pending (`TestACancelWhileItsRecordIsWrittenSendsNothingAndLeavesNoRecord`).
 - A write function that runs long holds every write of its batch, up to the batch's 250 ms budget, which is only checked between writes.
   A statement that never ends would hold the gate, as it would have before when its caller never cancelled.
-- Tests: `internal/store` `TestASendAfterA300SessionRestartWaitsForFewCommits`, `TestAFailingWriteInABatchFailsAlone`, `TestNoWriteReturnsBeforeItsBatchCommitted`, `TestABatchTakesAtMost64Writes`, `TestABatchStopsTakingWritesOnceItsTimeIsSpent`, `TestCloseWaitsForTheBatchInFlight`, `TestAWriteWhoseContextEndsAfterItJoinedCommits`.
+- Tests: `internal/store` `TestASendAfterA300SessionRestartWaitsForFewCommits`, `TestAFailingWriteInABatchFailsAlone`, `TestNoWriteReturnsBeforeItsBatchCommitted`, `TestABatchTakesAtMost64Writes` (each batch's size), `TestABatchStopsTakingWritesOnceItsTimeIsSpent`, `TestCloseWaitsForTheBatchInFlight`, `TestACommitThatFailsFailsEveryWriteOfItsBatch`, `TestAWriteThatBreaksTheTransactionLosesItsBatch`, `TestAWriteThatEndsTheLeadersGoroutineFreesTheGate`, `TestAWriteWhoseContextEndsAfterItJoinedCommits`.
   ADR 0040's tests stay, apart from those for statement cancellation: `TestACancelledStatementInAWriteEndsAndTheWriteIsRolledBack` is gone, and `TestAWriteWhoseContextEndedDoesNotCommit` is now `TestAWriteWhoseContextEndsAfterItJoinedCommits`.
   `TestACancelledWriteGivesItsConnectionBackBeforeItReturns` now expects the write kept.
   `TestTheGateHandsItselfOverInArrivalOrder` checks that the writes enter in arrival order and that no writer gets a lap ahead of one still waiting, since a batch takes several writes at once.
   `TestACancelledWriterNeverKeepsTheGate` now drives the gate through `Tx`, one write per batch.
-  A test-only seam, `SetBeforeCommit` and `StopTheClock` in `export_test.go`, counts commits and freezes the batch's clock; it is in no binary.
+  A test-only seam, `SetBeforeCommit`, `SetCommit` and `StopTheClock` in `export_test.go`, counts, reads or fails commits and freezes the batch's clock; it is in no binary.

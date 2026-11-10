@@ -962,6 +962,40 @@ func TestQueuedSendsFailWhenTheSessionStopsBeingOnline(t *testing.T) {
 	}
 }
 
+// A call that ends while its send's record is in a write batch still has the record kept, as every write that joined a
+// batch is (ADR 0068). Nothing was handed to whatsmeow yet, so the send ends with the call: nothing sent, the record
+// gone, not left pending, and a repeat sends. Called on the slice itself, as for a cancel while queued.
+func TestACancelWhileItsRecordIsWrittenSendsNothingAndLeavesNoRecord(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	ctx, cancel := context.WithCancel(h.ctx)
+	h.svc.onRecorded = cancel
+
+	_, err := h.svc.SendText(ctx, &whatsmeowv1.SendTextRequest{SessionId: "s1", Chat: "111@lid", ClientMessageId: id(1), Text: "hello"})
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("the send cancelled while its record was written = %v; want its context's end", err)
+	}
+
+	if got := h.stub.ids(); len(got) != 0 {
+		t.Fatalf("whatsmeow got %v, want nothing: the call had ended", got)
+	}
+
+	if exists, _, _, _ := h.record(1); exists {
+		t.Fatal("the cancelled send left its record pending: a repeat would read it as an unknown outcome")
+	}
+
+	h.svc.onRecorded = nil
+
+	if _, err := h.sendText(h.ctx, 1, "hi"); err != nil {
+		t.Fatalf("the repeat: %v", err)
+	}
+
+	if got := h.stub.ids(); len(got) != 1 || got[0] != id(1) {
+		t.Fatalf("whatsmeow got %v, want the repeat of 1", got)
+	}
+}
+
 func TestACancelWhileQueuedSendsNothingAndLeavesNoRecord(t *testing.T) {
 	t.Parallel()
 
