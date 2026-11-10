@@ -48,12 +48,12 @@ type Client struct {
 	activeReceipts bool
 	// reconnect is set by ResetConnection until its reconnect, and cleared by Disconnect, which cancels it, as
 	// whatsmeow's expected disconnect does during autoReconnect's wait (client.go:659-661). whatsmeow does not cancel
-	// a reconnect whose wait already ended (client.go:573); the fake does not model that window.
+	// a reconnect whose wait already ended (client.go:580); the fake does not model that window.
 	reconnect bool
-	// unanswered are the message stanzas the client left unanswered, each its decrypted parts, which WhatsApp
+	// unanswered are the stanzas the client left unanswered, each as the call that delivers it, which WhatsApp
 	// delivers again at the device's next login and never while the connection stays up (ARCHITECTURE §14, #10).
 	// They are the device's, so the client's: a Pair call gives the session a new client and a new device.
-	unanswered [][]*events.Message
+	unanswered []func()
 	// queue runs one dispatch at a time, as whatsmeow's per-client node queue does (ARCHITECTURE §7.3).
 	queue sync.Mutex
 	// appStateLock is whatsmeow's appStateSyncLock (client.go:107), held while a sync fetches (appstate.go:46).
@@ -261,8 +261,8 @@ func (c *Client) logIn() {
 	c.unanswered = nil
 	c.conn.Unlock()
 
-	for _, parts := range again {
-		c.deliver(parts)
+	for _, deliver := range again {
+		deliver()
 	}
 }
 

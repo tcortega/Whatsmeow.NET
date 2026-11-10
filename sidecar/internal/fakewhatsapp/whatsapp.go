@@ -181,7 +181,7 @@ func (c *Client) deliver(parts []*events.Message) {
 	for _, part := range parts {
 		if c.dispatch(part) {
 			c.conn.Lock()
-			c.unanswered = append(c.unanswered, parts)
+			c.unanswered = append(c.unanswered, func() { c.deliver(parts) })
 			c.conn.Unlock()
 
 			return
@@ -191,6 +191,19 @@ func (c *Client) deliver(parts []*events.Message) {
 	info := &parts[len(parts)-1].Info
 	receipt := &fakev1.Receipt{Id: info.ID, Type: c.receiptType(info)}
 	c.whatsApp.append(&fakev1.Sent{SessionId: c.sessionID, Kind: &fakev1.Sent_Receipt{Receipt: receipt}})
+}
+
+// deliverUndecryptable dispatches a message whatsmeow could not decrypt, which it answers, with an ack and a retry
+// receipt the fake does not record, only once every handler succeeded (message.go:324-337, 419-451); otherwise the
+// stanza is left unanswered for the next login.
+func (c *Client) deliverUndecryptable(evt *events.UndecryptableMessage) {
+	if !c.dispatch(evt) {
+		return
+	}
+
+	c.conn.Lock()
+	c.unanswered = append(c.unanswered, func() { c.deliverUndecryptable(evt) })
+	c.conn.Unlock()
 }
 
 // client returns the session's client.

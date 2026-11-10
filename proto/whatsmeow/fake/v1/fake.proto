@@ -31,9 +31,10 @@ service FakeWhatsAppService {
   rpc DeliverPollVote(DeliverPollVoteRequest) returns (DeliverPollVoteResponse);
 
   // DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
-  // the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches
-  // UndecryptableMessage, whatever the handlers return (message.go:418-437); the fake records neither. A resend that
-  // decrypts is a DeliverMessage with the same id. A session without a client is an error.
+  // the client's event handlers ran. whatsmeow dispatches UndecryptableMessage first and sends its retry receipt and
+  // ack only when every handler succeeded (message.go:324-337, 419-451); the fake records neither. One left
+  // unanswered is delivered again at the device's next login, as DeliverMessage's is. A resend that decrypts is a
+  // DeliverMessage with the same id. A session without a client is an error.
   rpc DeliverUndecryptableMessage(DeliverUndecryptableMessageRequest) returns (DeliverUndecryptableMessageResponse);
 
   // WaitForSent returns the first thing the session's client sent to WhatsApp after the entry `after`, and waits
@@ -547,7 +548,7 @@ message DeliverUndecryptableMessageRequest {
   // The message's WhatsApp timestamp; unset is the zero time.
   google.protobuf.Timestamp message_time = 6;
   // True for a stanza with no ciphertext for this device, as WhatsApp sends a view-once message to a companion
-  // (message.go:324-333).
+  // (message.go:324-337).
   bool unavailable = 7;
   // The unavailable stanza's type attribute, whatsmeow's UnavailableType: "view_once", or empty for none.
   string unavailable_type = 8;

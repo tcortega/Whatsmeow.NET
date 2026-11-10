@@ -92,9 +92,10 @@ type FakeWhatsAppServiceClient interface {
 	// DeliverMessage's, with a message of its own.
 	DeliverPollVote(ctx context.Context, in *DeliverPollVoteRequest, opts ...grpc.CallOption) (*DeliverPollVoteResponse, error)
 	// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
-	// the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches
-	// UndecryptableMessage, whatever the handlers return (message.go:418-437); the fake records neither. A resend that
-	// decrypts is a DeliverMessage with the same id. A session without a client is an error.
+	// the client's event handlers ran. whatsmeow dispatches UndecryptableMessage first and sends its retry receipt and
+	// ack only when every handler succeeded (message.go:324-337, 419-451); the fake records neither. One left
+	// unanswered is delivered again at the device's next login, as DeliverMessage's is. A resend that decrypts is a
+	// DeliverMessage with the same id. A session without a client is an error.
 	DeliverUndecryptableMessage(ctx context.Context, in *DeliverUndecryptableMessageRequest, opts ...grpc.CallOption) (*DeliverUndecryptableMessageResponse, error)
 	// WaitForSent returns the first thing the session's client sent to WhatsApp after the entry `after`, and waits
 	// until there is one. Only the call's deadline or cancellation ends the wait. The log lives in the sidecar process,
@@ -772,9 +773,10 @@ type FakeWhatsAppServiceServer interface {
 	// DeliverMessage's, with a message of its own.
 	DeliverPollVote(context.Context, *DeliverPollVoteRequest) (*DeliverPollVoteResponse, error)
 	// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
-	// the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches
-	// UndecryptableMessage, whatever the handlers return (message.go:418-437); the fake records neither. A resend that
-	// decrypts is a DeliverMessage with the same id. A session without a client is an error.
+	// the client's event handlers ran. whatsmeow dispatches UndecryptableMessage first and sends its retry receipt and
+	// ack only when every handler succeeded (message.go:324-337, 419-451); the fake records neither. One left
+	// unanswered is delivered again at the device's next login, as DeliverMessage's is. A resend that decrypts is a
+	// DeliverMessage with the same id. A session without a client is an error.
 	DeliverUndecryptableMessage(context.Context, *DeliverUndecryptableMessageRequest) (*DeliverUndecryptableMessageResponse, error)
 	// WaitForSent returns the first thing the session's client sent to WhatsApp after the entry `after`, and waits
 	// until there is one. Only the call's deadline or cancellation ends the wait. The log lives in the sidecar process,

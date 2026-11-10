@@ -1792,7 +1792,7 @@ type DeliverUndecryptableMessageRequest struct {
 	// The message's WhatsApp timestamp; unset is the zero time.
 	MessageTime *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=message_time,json=messageTime,proto3" json:"message_time,omitempty"`
 	// True for a stanza with no ciphertext for this device, as WhatsApp sends a view-once message to a companion
-	// (message.go:324-333).
+	// (message.go:324-337).
 	Unavailable bool `protobuf:"varint,7,opt,name=unavailable,proto3" json:"unavailable,omitempty"`
 	// The unavailable stanza's type attribute, whatsmeow's UnavailableType: "view_once", or empty for none.
 	UnavailableType string `protobuf:"bytes,8,opt,name=unavailable_type,json=unavailableType,proto3" json:"unavailable_type,omitempty"`

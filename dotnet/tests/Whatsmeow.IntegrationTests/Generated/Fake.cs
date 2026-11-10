@@ -9430,7 +9430,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
     private bool unavailable_;
     /// <summary>
     /// True for a stanza with no ciphertext for this device, as WhatsApp sends a view-once message to a companion
-    /// (message.go:324-333).
+    /// (message.go:324-337).
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]

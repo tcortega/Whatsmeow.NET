@@ -56,6 +56,7 @@ func TestAHistoryPollsVotesFollowItAsLiveVotes(t *testing.T) {
 		groupChat = "120363000000000000@g.us"
 		member    = "5511912345678@s.whatsapp.net"
 		peer      = "222@lid"
+		bot       = "867051314767696@bot"
 	)
 
 	at := int64(1_600_000_000_123)
@@ -118,6 +119,11 @@ func TestAHistoryPollsVotesFollowItAsLiveVotes(t *testing.T) {
 				vote(peer, peer, "V4", false, &whatsmeowv1.MessageTarget{Id: "P2"}, pizza),
 				vote(peer, "900000001@lid", "V5", true, &whatsmeowv1.MessageTarget{Id: "P2"}),
 			},
+		},
+		{
+			"the account's poll in a bot chat: the bot's vote names no participant, so it is the chat's (client.go:1058-1059)",
+			poll(bot, "5511900000001@s.whatsapp.net", "P4", true, update(vkey(bot, "V6", false, ""), pizza)),
+			[]*whatsmeowv1.MessageEvent{vote(bot, bot, "V6", false, &whatsmeowv1.MessageTarget{Id: "P4"}, pizza)},
 		},
 		{"a poll without votes", poll(peer, peer, "P3", false), nil},
 	}

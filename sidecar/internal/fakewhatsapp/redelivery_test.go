@@ -12,8 +12,8 @@ import (
 	fakev1 "github.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/fake/v1"
 )
 
-// withholding is a linked, connected session s1 whose handler fails the first delivery of each message id, as a
-// failed outbox write would, and reports every event it saw on got.
+// withholding is a linked, connected session s1 whose handler fails the first delivery of each message or
+// undecryptable message id, as a failed outbox write would, and reports every event it saw on got.
 func withholding(t *testing.T) (*WhatsApp, fakev1.FakeWhatsAppServiceClient, context.Context, *Client, chan any) {
 	t.Helper()
 
@@ -32,16 +32,22 @@ func withholding(t *testing.T) (*WhatsApp, fakev1.FakeWhatsAppServiceClient, con
 	client.AddEventHandlerWithSuccessStatus(func(evt any) bool {
 		got <- evt
 
-		msg, ok := evt.(*events.Message)
-		if !ok {
+		var id string
+
+		switch e := evt.(type) {
+		case *events.Message:
+			id = e.Info.ID
+		case *events.UndecryptableMessage:
+			id = e.Info.ID
+		default:
 			return true
 		}
 
 		mu.Lock()
 		defer mu.Unlock()
 
-		first := !seen[msg.Info.ID]
-		seen[msg.Info.ID] = true
+		first := !seen[id]
+		seen[id] = true
 
 		return !first
 	})
@@ -149,6 +155,53 @@ func TestAMessageLeftUnansweredIsDeliveredAgainAtTheNextLogin(t *testing.T) {
 
 	if msg := then[*events.Message](ctx, t, got); msg.Info.ID != "M3" {
 		t.Fatalf("delivered %q, want M3: an answered message came again", msg.Info.ID)
+	}
+}
+
+// whatsmeow dispatches an undecryptable message before it answers it, and a failed handler leaves it unanswered
+// (message.go:324-337, 419-451), so WhatsApp delivers it again at the next login, as a message.
+func TestAnUndecryptableMessageLeftUnansweredIsDeliveredAgainAtTheNextLogin(t *testing.T) {
+	t.Parallel()
+
+	_, control, ctx, client, got := withholding(t)
+
+	if _, err := control.DeliverUndecryptableMessage(ctx, &fakev1.DeliverUndecryptableMessageRequest{
+		SessionId: "s1", Id: "U1", Chat: "1666@s.whatsapp.net", Sender: "1666@s.whatsapp.net",
+	}); err != nil {
+		t.Fatalf("DeliverUndecryptableMessage: %v", err)
+	}
+
+	if evt := then[*events.UndecryptableMessage](ctx, t, got); evt.Info.ID != "U1" {
+		t.Fatalf("delivered %q, want U1", evt.Info.ID)
+	}
+
+	client.Disconnect()
+
+	if err := client.ConnectContext(ctx); err != nil {
+		t.Fatalf("ConnectContext: %v", err)
+	}
+
+	then[*events.Connected](ctx, t, got)
+
+	if evt := then[*events.UndecryptableMessage](ctx, t, got); evt.Info.ID != "U1" {
+		t.Fatalf("delivered %q again, want U1", evt.Info.ID)
+	}
+
+	// Answered now: the next login delivers nothing again.
+	client.Disconnect()
+
+	if err := client.ConnectContext(ctx); err != nil {
+		t.Fatalf("ConnectContext: %v", err)
+	}
+
+	then[*events.Connected](ctx, t, got)
+
+	if _, err := control.DeliverMessage(ctx, &fakev1.DeliverMessageRequest{SessionId: "s1", Id: "M1", Chat: "1666@s.whatsapp.net", Sender: "1666@s.whatsapp.net"}); err != nil {
+		t.Fatalf("DeliverMessage: %v", err)
+	}
+
+	if msg := then[*events.Message](ctx, t, got); msg.Info.ID != "M1" {
+		t.Fatalf("delivered %q, want M1: an answered undecryptable message came again", msg.Info.ID)
 	}
 }
 

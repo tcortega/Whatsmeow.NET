@@ -94,8 +94,7 @@ func (c *Control) DeliverUndecryptableMessage(_ context.Context, req *fakev1.Del
 		return nil, fmt.Errorf("deliver undecryptable message %q: %w", req.GetId(), err)
 	}
 
-	// whatsmeow answered it before the dispatch (message.go:418-437), so the handlers' result changes nothing.
-	client.dispatch(evt)
+	client.deliverUndecryptable(evt)
 
 	return &fakev1.DeliverUndecryptableMessageResponse{}, nil
 }
