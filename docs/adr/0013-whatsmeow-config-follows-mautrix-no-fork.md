@@ -3,6 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-31
 - Evidence: [ARCHITECTURE §14](../ARCHITECTURE.md#spike-results-2026-10-31) questions 8 and 4, "Other whatsmeow claims"
+- Amended by: [ADR 0064](0064-the-verified-name-through-whatsmeows-usync-until-upstream-fixes-it.md) (#153's gap is bridged in the sidecar until the pin carries its upstream fix)
 
 ## Context
 

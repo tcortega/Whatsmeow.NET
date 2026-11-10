@@ -54,9 +54,6 @@ internal static class ContactsCycle
 	/// <summary>How long whatsmeow waits for WhatsApp's answer to a send by default (send.go 155, 213-214) [observed: source].</summary>
 	private static readonly TimeSpan s_sendAnswer = TimeSpan.FromSeconds(75);
 
-	/// <summary>The whatsmeow version whose <c>GetUserInfo</c> drops the verified business name (#153; user.go 252-271) [observed: source].</summary>
-	private const string KnownBadPin = "307a2edf117d";
-
 	/// <summary>
 	/// The branches' bounded waits, with <paramref name="watch"/> as its watch: branch 2's business name change, then
 	/// branch 1's arrival and push name change, both armed before the presence and the text's send, which whatsmeow waits
@@ -93,17 +90,6 @@ internal static class ContactsCycle
 		if (failures.Count > 1)
 			throw new AggregateException(failures.Select(f => f.SourceException));
 	}
-
-	/// <summary>
-	/// Refuses the whatsmeow version known to drop the verified business name (#153) before any network use, since a run
-	/// there would spend a row's first sight on an answer known to fail. Any other version is not thereby fixed: a run
-	/// still needs root's reviewed provenance of a pin with the fix (ADR 0062).
-	/// </summary>
-	public static void RefuseKnownBadPin(string whatsmeowVersion) =>
-		Assert.False(
-			whatsmeowVersion.Contains(KnownBadPin, StringComparison.Ordinal),
-			$"contacts_pin_known_bad: whatsmeow {whatsmeowVersion} drops the verified business name from GetUserInfo's answer (#153), so nothing was connected, read or sent; another version still needs root's reviewed fixed-pin provenance"
-		);
 
 	/// <summary>Refuses a subject and a receiver that name the same account by either form, before any network use.</summary>
 	public static void RequireDistinct((Jid Chat, Jid? Lid) subject, (Jid Chat, Jid? Lid) receiver)

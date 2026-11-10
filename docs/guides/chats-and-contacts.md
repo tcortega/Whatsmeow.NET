@@ -30,7 +30,8 @@ That other clients write a mute's end in milliseconds, as whatsmeow does, is [in
 
 * `IsOnWhatsAppAsync(phoneNumbers)` checks numbers, with each one's JID and LID when it is on WhatsApp.
 * `GetUserInfoAsync(users)` gives the about text and picture id; `GetProfilePictureAsync` the picture.
-  At the current whatsmeow pin its `VerifiedBusinessName` is null even for a verified business ([#153](https://github.com/tcortega/Whatsmeow.NET/issues/153)) [observed: two live runs, §14 Contacts].
+  Its `VerifiedBusinessName` is the verified business name WhatsApp sent in that answer, and null when it sent none ([#153](https://github.com/tcortega/Whatsmeow.NET/issues/153), §14 Contacts).
+  whatsmeow drops that name at the current pin, so the sidecar reads it from the same answer itself; that a live answer carries it this way is [inferred] until a live run records it.
   When WhatsApp sends a verified name, the call still stores it as the contact's `BusinessName` (§14 Contacts); in those runs `GetContactsAsync` then showed a business name set on both of the account's forms [observed: same runs].
   whatsmeow dispatches the business name change only when the stored name changed (§14 Contacts); that it then arrives as `ContactUpdated` live is [unknown].
 * `GetContactsAsync` lists the contacts the account knows, with the name it saved, their push name and business name.

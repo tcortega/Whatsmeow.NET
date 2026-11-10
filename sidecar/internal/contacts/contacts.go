@@ -167,7 +167,7 @@ func (svc *Service) GetUserInfo(ctx context.Context, req *whatsmeowv1.GetUserInf
 		return nil, err
 	}
 
-	answers, err := client.GetUserInfo(ctx, jids)
+	answers, err := getUserInfo(ctx, client, jids)
 	if err != nil {
 		return nil, classify("get user info", err, false)
 	}

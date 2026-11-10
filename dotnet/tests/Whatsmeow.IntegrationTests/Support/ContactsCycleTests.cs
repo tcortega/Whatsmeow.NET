@@ -405,15 +405,6 @@ public sealed class ContactsCycleTests(FakeSidecar fixture)
 		AssertNoValue(failed, "SENTINEL-PUSH", "another text");
 	}
 
-	[Fact]
-	public void RefuseKnownBadPin_TheVersionThatDropsTheName_IsRefused_AndAnotherIsNot()
-	{
-		var refused = Assert.Throws<FalseException>(() => ContactsCycle.RefuseKnownBadPin("v0.0.0-20261105212532-307a2edf117d"));
-
-		Assert.StartsWith("contacts_pin_known_bad", refused.Message, StringComparison.Ordinal);
-		ContactsCycle.RefuseKnownBadPin("v0.0.0-20261201000000-0123456789ab");
-	}
-
 	[Theory]
 	[InlineData("5511985000001@s.whatsapp.net", "985000001@lid", "5511985000001@s.whatsapp.net", "985000009@lid")]
 	[InlineData("5511985000001@s.whatsapp.net", "985000001@lid", "5511985000009@s.whatsapp.net", "985000001@lid")]

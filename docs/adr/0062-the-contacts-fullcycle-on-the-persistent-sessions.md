@@ -4,7 +4,7 @@
 * Date: 2026-11-08
 * Evidence: #36 AC6, #153, the owner's direction to finish Contacts on the existing sessions with no new pairing, root's approval of the existing-session plan, the two checkpoint reviews and root's dispositions of them, root's #153 measurement on the existing sessions of 2026-11-08, whatsmeow at `307a2edf117d` and the sidecar (lines below)
 * Amends: [ADR 0060](0060-a-live-test-control-and-a-fresh-companion.md) (its Context's "the saved name's expected value needs a fact from the owner", now taken from the owner on opt-in), [ADR 0061](0061-a-push-name-first-sight-on-a-persistent-store.md) (its diagnostic never calls `GetUserInfo` on the persistent peer; this test does, on its own opt-in), docs/guidelines/tests.md (Live WhatsApp)
-* Amended by: [ADR 0063](0063-the-about-branch-on-the-persistent-sessions-on-consent.md) (branch 5 changes the about text once and puts the text back, on the owner's consent, through a live test control)
+* Amended by: [ADR 0063](0063-the-about-branch-on-the-persistent-sessions-on-consent.md) (branch 5 changes the about text once and puts the text back, on the owner's consent, through a live test control), [ADR 0064](0064-the-verified-name-through-whatsmeows-usync-until-upstream-fixes-it.md) (the sidecar sets the verified name whatsmeow drops, so `contacts_pin_known_bad` is retired and a run needs no fixed pin)
 
 ## Context
 
