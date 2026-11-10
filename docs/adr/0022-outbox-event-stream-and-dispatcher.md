@@ -4,6 +4,7 @@
 - Date: 2026-11-01
 - Evidence: issue #8, its plan review, ARCHITECTURE §14 "Measured for Events (#8)", and the tests named below
 - Supersedes: `busy_timeout(5000)` in [ADR 0003](0003-at-least-once-delivery-synchronousack-sqlite-outbox.md) and ARCHITECTURE §5; the `PortalEventBuffer` default in [ADR 0013](0013-whatsmeow-config-follows-mautrix-no-fork.md); the "gated" recovery of an undecryptable message in [ADR 0003](0003-at-least-once-delivery-synchronousack-sqlite-outbox.md) and ARCHITECTURE §1; the word "acked" in invariant 2
+- Amended by: [ADR 0066](0066-undecryptable-messages-acked-after-the-handler-stay-best-effort.md) (at whatsmeow `79dc2a8c33df` an undecryptable message is acked, and the phone's copy receipted, only after the handler; both stay best effort)
 
 ## Context
 

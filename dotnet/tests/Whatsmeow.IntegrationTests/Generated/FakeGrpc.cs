@@ -770,8 +770,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
       /// the client's event handlers ran. whatsmeow dispatches UndecryptableMessage first and sends its retry receipt and
       /// ack only when every handler succeeded (message.go:324-337, 419-451); the fake records neither. One left
-      /// unanswered is delivered again at the device's next login, as DeliverMessage's is. A resend that decrypts is a
-      /// DeliverMessage with the same id. A session without a client is an error.
+      /// unanswered is delivered again at the device's next login, as DeliverMessage's is, which is [inferred] for an
+      /// undecryptable message and [observed] only for a decrypted one (ARCHITECTURE §14, ADR 0066). A resend that decrypts
+      /// is a DeliverMessage with the same id. A session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -787,8 +788,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
       /// the client's event handlers ran. whatsmeow dispatches UndecryptableMessage first and sends its retry receipt and
       /// ack only when every handler succeeded (message.go:324-337, 419-451); the fake records neither. One left
-      /// unanswered is delivered again at the device's next login, as DeliverMessage's is. A resend that decrypts is a
-      /// DeliverMessage with the same id. A session without a client is an error.
+      /// unanswered is delivered again at the device's next login, as DeliverMessage's is, which is [inferred] for an
+      /// undecryptable message and [observed] only for a decrypted one (ARCHITECTURE §14, ADR 0066). A resend that decrypts
+      /// is a DeliverMessage with the same id. A session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -802,8 +804,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
       /// the client's event handlers ran. whatsmeow dispatches UndecryptableMessage first and sends its retry receipt and
       /// ack only when every handler succeeded (message.go:324-337, 419-451); the fake records neither. One left
-      /// unanswered is delivered again at the device's next login, as DeliverMessage's is. A resend that decrypts is a
-      /// DeliverMessage with the same id. A session without a client is an error.
+      /// unanswered is delivered again at the device's next login, as DeliverMessage's is, which is [inferred] for an
+      /// undecryptable message and [observed] only for a decrypted one (ARCHITECTURE §14, ADR 0066). A resend that decrypts
+      /// is a DeliverMessage with the same id. A session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -819,8 +822,9 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
       /// the client's event handlers ran. whatsmeow dispatches UndecryptableMessage first and sends its retry receipt and
       /// ack only when every handler succeeded (message.go:324-337, 419-451); the fake records neither. One left
-      /// unanswered is delivered again at the device's next login, as DeliverMessage's is. A resend that decrypts is a
-      /// DeliverMessage with the same id. A session without a client is an error.
+      /// unanswered is delivered again at the device's next login, as DeliverMessage's is, which is [inferred] for an
+      /// undecryptable message and [observed] only for a decrypted one (ARCHITECTURE §14, ADR 0066). A resend that decrypts
+      /// is a DeliverMessage with the same id. A session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>

@@ -194,8 +194,11 @@ func (c *Client) deliver(parts []*events.Message) {
 }
 
 // deliverUndecryptable dispatches a message whatsmeow could not decrypt, which it answers, with an ack and a retry
-// receipt the fake does not record, only once every handler succeeded (message.go:324-337, 419-451); otherwise the
-// stanza is left unanswered for the next login.
+// receipt the fake does not record, only once every handler succeeded [observed: message.go:324-337, 419-451];
+// otherwise the stanza is left unanswered, and the fake has WhatsApp deliver it again at the next login. That
+// redelivery is [observed] for a decrypted message's withheld answer (ARCHITECTURE §14 Question 4, the #10 live runs)
+// and [inferred] for an undecryptable one: the server cannot tell whether a stanza was decryptable, but nobody has
+// measured it (ADR 0066).
 func (c *Client) deliverUndecryptable(evt *events.UndecryptableMessage) {
 	if !c.dispatch(evt) {
 		return

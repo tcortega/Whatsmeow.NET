@@ -233,8 +233,8 @@ namespace Whatsmeow.Protocol.V1 {
     /// </summary>
     [pbr::OriginalName("UNAVAILABLE_TYPE_UNSPECIFIED")] Unspecified = 0,
     /// <summary>
-    /// A view-once message. whatsmeow asks the phone for it (message.go:327-330) and dispatches an answer as a normal
-    /// message (message.go:879-886); whether the phone answers for a view-once is unknown, #36 checks it live.
+    /// A view-once message. whatsmeow asks the phone for it (message.go:333-336) and dispatches an answer as a normal
+    /// message (message.go:891-898); whether the phone answers for a view-once is unknown, #36 checks it live.
     /// </summary>
     [pbr::OriginalName("UNAVAILABLE_TYPE_VIEW_ONCE")] ViewOnce = 1,
   }
@@ -2546,8 +2546,9 @@ namespace Whatsmeow.Protocol.V1 {
     public const int UnavailableFieldNumber = 3;
     private bool unavailable_;
     /// <summary>
-    /// True when the sender's device sent this device no ciphertext at all. whatsmeow then asks the account's phone for
-    /// it, and acknowledges the message whatever the handler does (message.go:324-333), so it is best effort.
+    /// True when the sender's device sent this device no ciphertext at all. Once the sidecar recorded the event,
+    /// whatsmeow asks the account's phone for it and acknowledges the message (message.go:324-337); that WhatsApp sends
+    /// it again after a failed recording is not measured, so it is best effort (ADR 0066).
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
