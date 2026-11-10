@@ -4,7 +4,7 @@
 - Date: 2026-11-02
 - Evidence: issue #46, its plan review and two PR reviews, `build/release-test.sh` and its mutations (PR body), `build/release.sh verify` on a feed `dotnet pack` wrote at a local tag, and the docs, sources and settings cited below, read on 2026-11-02
 - Amends: ARCHITECTURE §11 (where the packaging jobs live) and §12 (the release)
-- Amended by: [ADR 0056](0056-aot-smoke-on-every-target-rid.md) (`packaging.yml` also runs AotSmoke on every target RID, and `ci.yml` calls it on main too), [ADR 0059](0059-install-the-release-from-nugetorg.md) (a `nuget-install` job after `publish`; the install and aot jobs live in `install.yml`)
+- Amended by: [ADR 0056](0056-aot-smoke-on-every-target-rid.md) (`packaging.yml` also runs AotSmoke on every target RID, and `ci.yml` calls it on main too), [ADR 0059](0059-install-the-release-from-nugetorg.md) (a `nuget-install` job after `publish`; the install and aot jobs live in `install.yml`), [ADR 0064](0064-a-rehearsal-at-a-candidate-version.md) (the rehearsal may take a candidate version, and packaging builds at the tag the guard passed)
 
 ## Context
 

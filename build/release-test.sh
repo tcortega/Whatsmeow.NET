@@ -2,7 +2,7 @@
 # Tests for build/release.sh (#46, ADR 0050): every guard, verify, release, push and wait check, each case run in a
 # git repository and a feed of its own under a temporary directory, with a local bare repository as origin. Nothing
 # here reaches GitHub or nuget.org: gh, dotnet and curl are stand-ins on PATH for the whole run, which record their
-# calls and answer from files.
+# calls and answer from files. Last, release.yml's wiring of the rehearsal's tag (ADR 0064), line by line.
 # build/ci.sh contract runs it; locally, bash build/release-test.sh.
 set -uo pipefail
 

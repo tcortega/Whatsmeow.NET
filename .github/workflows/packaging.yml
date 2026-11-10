@@ -9,7 +9,7 @@ on:
   workflow_call:
     inputs:
       rehearsal-tag:
-        description: A tag the package job makes in its runner only, never pushed, so a rehearsal builds at a tag's version.
+        description: A tag the package job makes in its runner only, never pushed, so a rehearsal builds at its tag's version, 0.0.0-rehearsal.<run> or a candidate version.
         type: string
         default: ""
       cache:
