@@ -10,7 +10,7 @@ namespace Whatsmeow.Sidecar;
 /// </summary>
 internal static class ProcessExit
 {
-	/// <summary>Returns once <paramref name="process"/> terminated; the caller disposes it only after.</summary>
+	/// <summary>Returns once <paramref name="process"/> terminated.</summary>
 	public static async Task WaitAsync(Process process)
 	{
 		if (!OperatingSystem.IsWindows())
@@ -19,16 +19,28 @@ internal static class ProcessExit
 			return;
 		}
 
-		var exited = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-		using var handle = new ProcessHandle(process.SafeHandle);
+		// Held for the whole wait, so a Process.Dispose meanwhile cannot close the raw handle, or let it be reused.
+		var processHandle = process.SafeHandle;
+		var added = false;
+		processHandle.DangerousAddRef(ref added);
+		try
+		{
+			var exited = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+			using var handle = new ProcessHandle(processHandle);
 #pragma warning disable RS0030 // Justification: no timeout here, only the one async wait a process handle has (#179)
-		var wait = ThreadPool.RegisterWaitForSingleObject(handle, static (state, _) => ((TaskCompletionSource)state!).SetResult(), exited, Timeout.Infinite, executeOnlyOnce: true);
+			var wait = ThreadPool.RegisterWaitForSingleObject(handle, static (state, _) => ((TaskCompletionSource)state!).SetResult(), exited, Timeout.Infinite, executeOnlyOnce: true);
 #pragma warning restore RS0030
-		await exited.Task.ConfigureAwait(false);
-		_ = wait.Unregister(waitObject: null);
+			await exited.Task.ConfigureAwait(false);
+			_ = wait.Unregister(waitObject: null);
+		}
+		finally
+		{
+			if (added)
+				processHandle.DangerousRelease();
+		}
 	}
 
-	/// <summary>The process handle as a <see cref="WaitHandle"/> that does not own it: the process still closes it.</summary>
+	/// <summary>The process handle as a <see cref="WaitHandle"/> that does not own it: the wait above holds a reference.</summary>
 	private sealed class ProcessHandle : WaitHandle
 	{
 		public ProcessHandle(SafeProcessHandle process) => SafeWaitHandle = new SafeWaitHandle(process.DangerousGetHandle(), ownsHandle: false);

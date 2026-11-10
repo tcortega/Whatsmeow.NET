@@ -107,6 +107,7 @@ public sealed class StandaloneSidecar : IAsyncDisposable
 		catch
 		{
 			process.Kill(entireProcessTree: true);
+			await ProcessExit.WaitAsync(process).ConfigureAwait(false);
 			process.Dispose();
 			throw;
 		}
@@ -114,7 +115,7 @@ public sealed class StandaloneSidecar : IAsyncDisposable
 		if (line is null)
 		{
 			var stderr = await process.StandardError.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
-			await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+			await ProcessExit.WaitAsync(process).ConfigureAwait(false);
 			process.Dispose();
 			Assert.Fail($"The standalone sidecar exited before its ready line:{Environment.NewLine}{stderr}");
 		}
