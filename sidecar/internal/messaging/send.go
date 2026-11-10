@@ -352,6 +352,18 @@ func (svc *Service) run(q *queue, j *job) outcome {
 		return outcome{err: fmt.Errorf("send: record it: %w", err), sentNothing: true}
 	}
 
+	if svc.onRecorded != nil {
+		svc.onRecorded()
+	}
+
+	// A write batch keeps a record whose call ended after it joined (ADR 0068). Nothing was handed to whatsmeow yet, so
+	// the record goes and the send ends with its call, never sent on a context that ended.
+	if err := j.ctx.Err(); err != nil {
+		svc.forget(j)
+
+		return outcome{err: fmt.Errorf("send: %w", err), sentNothing: true}
+	}
+
 	svc.spend(q)
 
 	for try := 0; ; try++ {

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"runtime"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -79,15 +80,13 @@ func TestTheGateHandsItselfOverInArrivalOrder(t *testing.T) {
 
 	w, ctx := openWriter(t)
 	entered := make(chan string)
-	all := make([]slowWriter, writers)
+	all := make(map[string]slowWriter, writers)
 	done := make(chan error, writers)
-
-	for i := range all {
-		all[i] = slowWriter{name: fmt.Sprintf("w%d", i), commit: make(chan struct{}), entered: entered}
-	}
 
 	// Each writer asks again as soon as its write committed, as the starved test's writers did (#89).
 	start := func(s slowWriter) {
+		all[s.name] = s
+
 		go func() {
 			for n := range rounds {
 				if err := s.write(ctx, w, n); err != nil {
@@ -102,50 +101,44 @@ func TestTheGateHandsItselfOverInArrivalOrder(t *testing.T) {
 	}
 
 	// w0 holds the gate; the others queue behind it in order.
-	start(all[0])
+	start(slowWriter{name: "w0", commit: make(chan struct{}), entered: entered})
 
 	if got := <-entered; got != "w0" {
 		t.Fatalf("%s entered first, want w0", got)
 	}
 
 	for i := 1; i < writers; i++ {
-		start(all[i])
+		start(slowWriter{name: fmt.Sprintf("w%d", i), commit: make(chan struct{}), entered: entered})
 		queued(ctx, t, w, i)
 	}
 
-	// Every commit hands the gate to the oldest waiter, so each writer waits for the other three, never more.
-	left := make([]int, writers) // writes not yet entered
-	for i := range left {
-		left[i] = rounds
-	}
+	// The writes enter in arrival order, so the first lap is w0 to w3, and a writer that asks again queues behind
+	// every writer waiting: none enters a lap ahead of one still waiting (ADR 0068 batches them, in that order).
+	entries := map[string]int{"w0": 1}
+	all["w0"].commit <- struct{}{}
 
-	left[0]--
-
-	holder := 0
-	for turn := 1; turn < writers*rounds; turn++ {
-		all[holder].commit <- struct{}{}
-
-		next := turn % writers
-		if got := <-entered; got != all[next].name {
-			t.Fatalf("turn %d went to %s, want %s: it waited longest", turn, got, all[next].name)
+	for i := 1; i < writers; i++ {
+		got := <-entered
+		if want := fmt.Sprintf("w%d", i); got != want {
+			t.Fatalf("entry %d went to %s, want %s: it waited longest", i, got, want)
 		}
 
-		left[next]--
+		entries[got]++
+		all[got].commit <- struct{}{}
+	}
 
-		// The one that committed asks again, if it has a write left, before the next commit.
-		waiting := 0
-		for i, n := range left {
-			if i != next && n > 0 {
-				waiting++
+	for range writers * (rounds - 1) {
+		got := <-entered
+		entries[got]++
+
+		for name, n := range entries {
+			if n < rounds && entries[got] > n+1 {
+				t.Fatalf("%s entered for the %dth time while %s, still waiting, entered %d times", got, entries[got], name, n)
 			}
 		}
 
-		queued(ctx, t, w, waiting)
-
-		holder = next
+		all[got].commit <- struct{}{}
 	}
-
-	all[holder].commit <- struct{}{}
 
 	for range writers {
 		if err := <-done; err != nil {
@@ -212,30 +205,48 @@ func TestACancelledWriterNeverKeepsTheGate(t *testing.T) {
 	t.Parallel()
 
 	w, ctx := openWriter(t)
-	gone, leave := context.WithCancel(ctx)
-	leave()
 
-	// Handed the gate as its context ended: a wait that sees both picks either at random, so 64 rounds take the
+	// One write a batch: every queued writer is handed the gate to lead the next batch, never taken into this one.
+	var ticks atomic.Int64
+
+	w.now = func() time.Time { return time.Unix(ticks.Add(1)*3600, 0) }
+
+	// Handed the gate as its context ends: a wait that sees both picks either at random, so 64 rounds take the
 	// cancelled branch all but surely. Either way the gate is free afterwards.
 	for n := range 64 {
-		if w.enqueue() != nil {
-			t.Fatalf("round %d: the gate was not free", n)
+		release, first := held(ctx, t, w)
+		gone, leave := context.WithCancel(ctx)
+		left := make(chan error, 1)
+
+		go func() { left <- w.Tx(gone, func(context.Context, *sql.Tx) error { return nil }) }()
+
+		queued(ctx, t, w, 1)
+
+		go leave()
+		release()
+
+		if err := <-first; err != nil {
+			t.Fatalf("round %d: the first write: %v", n, err)
 		}
 
-		turn := w.enqueue()
-		w.release()
+		if err := <-left; err != nil && !errors.Is(err, context.Canceled) {
+			t.Fatalf("round %d: the cancelled writer got %v, want nil or %v", n, err, context.Canceled)
+		}
 
-		if err := w.wait(gone, turn); err == nil {
-			w.release()
-		} else if !errors.Is(err, context.Canceled) {
-			t.Fatalf("round %d: the cancelled writer got %v, want %v", n, err, context.Canceled)
+		next, cancel := context.WithTimeout(ctx, 5*time.Second)
+		_, err := w.Exec(next, "INSERT INTO session (id) VALUES (?)", fmt.Sprintf("after-%d", n))
+
+		cancel()
+
+		if err != nil {
+			t.Fatalf("round %d: the next write got %v: a cancelled writer kept the gate", n, err)
 		}
 
 		w.mu.Lock()
-		held := w.held
+		kept := w.held
 		w.mu.Unlock()
 
-		if held {
+		if kept {
 			t.Fatalf("round %d: a cancelled writer kept the gate", n)
 		}
 	}
@@ -321,11 +332,11 @@ func TestAPanicInAWriteLeavesNoOpenTransaction(t *testing.T) {
 	}
 }
 
-// A write whose context ends is rolled back by Tx itself before it returns, its connection back in the pool: database/sql
-// would roll back a transaction whose own context ended on a goroutine of its own (Tx.awaitDone), which nobody waits
-// for, still holding the database file while the store closes (#124). After the cancel, fn gives that goroutine up to
-// 100 ms to take the transaction (a statement on it then fails with sql.ErrTxDone), so without the fix every round
-// takes its path.
+// A write runs on a context that never ends once it joined a batch (ADR 0068), so database/sql never rolls its
+// transaction back on a goroutine of its own (Tx.awaitDone), which nobody waits for, still holding the database file
+// while the store closes (#124): the write commits, its connection back in the pool before it returns. After the
+// cancel, fn gives that goroutine up to 100 ms to take the transaction (a statement on it then fails with
+// sql.ErrTxDone).
 func TestACancelledWriteGivesItsConnectionBackBeforeItReturns(t *testing.T) {
 	t.Parallel()
 
@@ -349,8 +360,8 @@ func TestACancelledWriteGivesItsConnectionBackBeforeItReturns(t *testing.T) {
 
 			return ctx.Err()
 		})
-		if !errors.Is(err, context.Canceled) {
-			t.Fatalf("round %d: the cancelled write got %v, want %v", n, err, context.Canceled)
+		if err != nil {
+			t.Fatalf("round %d: the write cancelled after it joined got %v, want its batch's outcome, committed", n, err)
 		}
 
 		if taken {
@@ -363,80 +374,36 @@ func TestACancelledWriteGivesItsConnectionBackBeforeItReturns(t *testing.T) {
 	}
 
 	var rows int
-	if err := w.db.QueryRowContext(ctx, "SELECT count(*) FROM session").Scan(&rows); err != nil || rows != 0 {
-		t.Fatalf("the cancelled writes' rows: %d, %v; want 0, rolled back", rows, err)
+	if err := w.db.QueryRowContext(ctx, "SELECT count(*) FROM session").Scan(&rows); err != nil || rows != 4 {
+		t.Fatalf("the cancelled writes' rows: %d, %v; want 4, committed", rows, err)
 	}
 }
 
-// A statement inside a write still ends with the write's context, and Tx has rolled the write back when it returns.
-func TestACancelledStatementInAWriteEndsAndTheWriteIsRolledBack(t *testing.T) {
-	t.Parallel()
-
-	w, ctx := openWriter(t)
-	write, cancel := context.WithCancel(ctx)
-	running := make(chan struct{})
-	done := make(chan error, 1)
-
-	go func() {
-		done <- w.Tx(write, func(ctx context.Context, tx *sql.Tx) error {
-			if _, err := tx.ExecContext(ctx, "INSERT INTO session (id) VALUES ('interrupted')"); err != nil {
-				return err //nolint:wrapcheck // the test's own write
-			}
-
-			close(running)
-
-			// Counts forever: only the context's end stops it.
-			var rows int
-
-			return tx.QueryRowContext(ctx, "WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM c) SELECT count(*) FROM c").Scan(&rows)
-		})
-	}()
-
-	<-running
-	cancel()
-
-	select {
-	case err := <-done:
-		if err == nil {
-			t.Fatal("the interrupted write committed")
-		}
-	case <-ctx.Done():
-		t.Fatal("the statement went on after its write's context ended")
-	}
-
-	if inUse := w.db.Stats().InUse; inUse != 0 {
-		t.Fatalf("%d connections are still in use after the interrupted write returned, want 0", inUse)
-	}
-
-	var rows int
-	if err := w.db.QueryRowContext(ctx, "SELECT count(*) FROM session WHERE id = 'interrupted'").Scan(&rows); err != nil || rows != 0 {
-		t.Fatalf("the interrupted write's row: %d, %v; want 0, rolled back", rows, err)
-	}
-}
-
-// A write whose context ended as its function returned does not commit, as before it ended its own transaction.
-func TestAWriteWhoseContextEndedDoesNotCommit(t *testing.T) {
+// A write whose context ends after it joined a batch runs to the batch's outcome: its statements run on, never
+// interrupted, which would roll back the whole batch's transaction, and it commits (ADR 0068).
+func TestAWriteWhoseContextEndsAfterItJoinedCommits(t *testing.T) {
 	t.Parallel()
 
 	w, ctx := openWriter(t)
 	write, cancel := context.WithCancel(ctx)
 
 	err := w.Tx(write, func(ctx context.Context, tx *sql.Tx) error {
-		if _, err := tx.ExecContext(ctx, "INSERT INTO session (id) VALUES ('ended')"); err != nil {
+		if _, err := tx.ExecContext(ctx, "INSERT INTO session (id) VALUES ('joined-1')"); err != nil {
 			return err //nolint:wrapcheck // the test's own write
 		}
 
 		cancel()
 
-		return nil
+		_, err := tx.ExecContext(ctx, "INSERT INTO session (id) VALUES ('joined-2')")
+
+		return err //nolint:wrapcheck // the test's own write
 	})
-	if !errors.Is(err, context.Canceled) {
-		t.Fatalf("the write got %v, want %v", err, context.Canceled)
+	if err != nil {
+		t.Fatalf("the write got %v, want nil", err)
 	}
 
-	var rows int
-	if err := w.db.QueryRowContext(ctx, "SELECT count(*) FROM session WHERE id = 'ended'").Scan(&rows); err != nil || rows != 0 {
-		t.Fatalf("the write's row: %d, %v; want 0, rolled back", rows, err)
+	if ids := sessions(ctx, t, w); fmt.Sprint(ids) != "[joined-1 joined-2]" {
+		t.Fatalf("the sessions are %v, want both statements committed", ids)
 	}
 }
 

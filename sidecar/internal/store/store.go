@@ -243,6 +243,9 @@ func migrate(ctx context.Context, db *sql.DB, all []string) (err error) {
 
 // Close closes the database, then releases the lock.
 func (s *Store) Close() error {
+	// The batch in flight first: its connection would stay open past the close (#124, ADR 0068).
+	s.Writer.close()
+
 	err := s.DB.Close()
 	if lockErr := s.lock.Close(); lockErr != nil {
 		err = errors.Join(err, lockErr)

@@ -261,7 +261,7 @@ func serve(ctx context.Context, log zerolog.Logger, redactor *wmlog.Redactor, op
 
 	newClient, fail := session.NewWhatsmeowClient(log), failing(nil)
 	if opts.fake {
-		newClient, fail = serveFake(srv, log, opts.database, box)
+		newClient, fail = serveFake(ctx, srv, log, opts.database, box)
 	}
 
 	events := eventsslice.New(box, log, mappers(db, log)...) //nolint:contextcheck // whatsmeow gives an event handler no context (events.Handler)

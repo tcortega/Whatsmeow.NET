@@ -4,7 +4,7 @@
 - Date: 2026-11-02
 - Evidence: issue #89; GitHub Actions runs 41488816188 (the loop), 41492555548 (the bench) and 41497698795 (the loop with the gate), win-x64 `windows-2025`; ARCHITECTURE §14 "Measured for writes under load (#89)"; the `internal/store` tests named below
 - Amends: ARCHITECTURE §7.3 (the handler's only wait)
-- Amended by: [ADR 0066](0066-the-core-ci-jobs-on-every-desktop-os.md) (the concurrent records test's own 2 minute bound; an idle Windows commit measured); issue #124, 2026-11-04 (a write ends its own transaction; its `BEGIN` no longer ends with its context, which amends ARCHITECTURE §7.3's bound on a handler's write)
+- Amended by: [ADR 0068](0068-group-commit-at-the-write-gate.md) (the writes queued behind a commit share the next one; a write's context counts only until it joins a batch); [ADR 0066](0066-the-core-ci-jobs-on-every-desktop-os.md) (the concurrent records test's own 2 minute bound; an idle Windows commit measured); issue #124, 2026-11-04 (a write ends its own transaction; its `BEGIN` no longer ends with its context, which amends ARCHITECTURE §7.3's bound on a handler's write)
 
 ## Context
 
