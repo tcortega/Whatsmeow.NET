@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Diagnostics.Metrics.Testing;
+using Microsoft.Extensions.Logging.Testing;
 using Whatsmeow.IntegrationTests.Sessions;
 
 namespace Whatsmeow.IntegrationTests.Sidecar;
@@ -7,6 +8,10 @@ namespace Whatsmeow.IntegrationTests.Sidecar;
 /// Calls made while the shared sidecar restarts (#85): from the crash until the client counts the next launch, which
 /// spans the next sidecar's listen and its ready line. In the <see cref="SidecarCrashes"/> collection, which never
 /// runs in parallel, so the error count, which no session id tells apart, hears no other test.
+/// A call in that gap fails unreachable where a refused connect is instant. On Windows a connect to a closed loopback
+/// port is refused after about 2 s [observed: #172], so in External mode, whose next sidecar listens at the same port
+/// after about 1 s, such a call may connect to it instead, with the same token from the same file (ADR 0046); in
+/// embedded mode the next launch listens elsewhere with a token of its own (ADR 0045).
 /// </summary>
 [Collection(nameof(SidecarCrashes))]
 public sealed class RestartTokenTests(FakeSidecar fixture)
@@ -30,13 +35,14 @@ public sealed class RestartTokenTests(FakeSidecar fixture)
 		for (var i = 0; i < Crashes; i++)
 		{
 			var launches = fixture.Sidecar.Launches;
-			var callers = Task.WhenAll(Enumerable.Range(0, Callers).Select(_ => Task.Run(() => CallUntilLaunchedAsync(launches, ct), ct)));
+			var lost = fixture.Logs.WaitForAsync(IsLost, fixture.Logs.Collector.GetSnapshot().Count(IsLost) + 1, ct);
+			var callers = Task.WhenAll(Enumerable.Range(0, Callers).Select(_ => Task.Run(() => CallUntilLaunchedAsync(launches, () => lost.IsCompleted, ct), ct)));
 			await fixture.CrashAsync(ct);
-			var crashFailures = (await callers).SelectMany(f => f).ToList();
+			var calls = await callers;
 
-			// Not vacuous: calls ran while no sidecar was ready.
-			Assert.True(crashFailures.Count > 0, $"No call failed while sidecar {i + 1} restarted.");
-			failures.AddRange(crashFailures);
+			// Not vacuous: calls started while no sidecar was ready, after the client saw this one go.
+			Assert.True(calls.Sum(c => c.InGap) > 0, $"No call started while sidecar {i + 1} restarted.");
+			failures.AddRange(calls.SelectMany(c => c.Failures));
 		}
 
 		// Unreachable, never refused: a call before the next launch is ready never gets to it, nor do the acks and streams.
@@ -44,12 +50,21 @@ public sealed class RestartTokenTests(FakeSidecar fixture)
 		Assert.DoesNotContain(errors.GetMeasurementSnapshot(), m => Equals(m.Tags["error.type"], nameof(WhatsmeowErrorCode.Unauthenticated)));
 	}
 
-	/// <summary>Calls until the next launch is counted, with a pause between calls, and returns the failures.</summary>
-	private async Task<List<SidecarUnavailableException>> CallUntilLaunchedAsync(int launches, CancellationToken ct)
+	/// <summary>The supervisor's record that the sidecar went, in either mode.</summary>
+	private static bool IsLost(FakeLogRecord record) => record.Id.Name is "SidecarExited" or "ExternalSidecarLost";
+
+	/// <summary>
+	/// Calls until the next launch is counted, with a pause between calls, and returns the failures and how many calls
+	/// started once <paramref name="lost"/> held.
+	/// </summary>
+	private async Task<(List<SidecarUnavailableException> Failures, int InGap)> CallUntilLaunchedAsync(int launches, Func<bool> lost, CancellationToken ct)
 	{
 		var failures = new List<SidecarUnavailableException>();
+		var inGap = 0;
 		while (fixture.Sidecar.Launches == launches)
 		{
+			if (lost())
+				inGap++;
 			try
 			{
 				_ = await fixture.Sidecar.GetInfoAsync(ct).ConfigureAwait(false);
@@ -62,6 +77,6 @@ public sealed class RestartTokenTests(FakeSidecar fixture)
 			await Task.Delay(s_pause, fixture.Sidecar.TimeProvider, ct).ConfigureAwait(false);
 		}
 
-		return failures;
+		return (failures, inGap);
 	}
 }
