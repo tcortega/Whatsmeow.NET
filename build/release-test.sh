@@ -13,6 +13,11 @@ trap 'rm -rf "$tmp"' EXIT
 
 failed=()
 
+if ! command -v zip >/dev/null && ! command -v 7z >/dev/null; then
+	echo "build/release-test.sh needs zip or 7z on PATH to build its test packages" >&2
+	exit 1
+fi
+
 # expect pass|fail MESSAGE NAME COMMAND...: run COMMAND, which must pass, or fail with MESSAGE in its output, so a
 # case proves the check it names and not another one that happens to fail first. A passing case may also name a
 # MESSAGE its output must hold.
@@ -270,10 +275,17 @@ expect pass "only v* tags deploy" "environment: the tag pattern is reported" in_
 version=1.2.3
 natives=(Whatsmeow.Sidecar.Native.Linux Whatsmeow.Sidecar.Native.MacOS Whatsmeow.Sidecar.Native.Windows)
 
+# zip_here ARCHIVE: the current directory into a new zip, with zip, or with 7-Zip where there is no zip, as on the
+# windows-2025 runner.
+zip_here() {
+	if command -v zip >/dev/null; then zip -qr "$1" .; return; fi
+	7z a -tzip -bso0 -bsp0 "$1" .
+}
+
 # nupkg DIR ID VERSION DEPENDENCY...: a package as dotnet pack writes one: its nuspec at the root, and for a native
-# package its two binaries. A DEPENDENCY is id=range.
+# package its two binaries, or the ones only_rids lists. A DEPENDENCY is id=range.
 nupkg() {
-	local dir="$1" id="$2" v="$3" work dep rid rids
+	local dir="$1" id="$2" v="$3" work dep rid rids exe
 	shift 3
 	work="$(mktemp -d "$tmp/pkg.XXXXXX")"
 	{
@@ -298,11 +310,15 @@ nupkg() {
 		*.Windows) rids=(win-x64 win-arm64) ;;
 		*) rids=() ;;
 	esac
-	for rid in "${rids[@]}"; do
+	if [ -n "${only_rids:-}" ]; then read -ra rids <<<"$only_rids"; fi
+	# Written for macOS's /bin/bash 3.2 too: an empty array is unbound under set -u, and a case in $(...) does not parse.
+	for rid in ${rids[@]+"${rids[@]}"}; do
 		mkdir -p "$work/runtimes/$rid/native"
-		echo "whatsmeow-net $v for $rid" >"$work/runtimes/$rid/native/whatsmeow-net$(case "$rid" in win-*) echo .exe ;; esac)"
+		exe=""
+		case "$rid" in win-*) exe=.exe ;; esac
+		echo "whatsmeow-net $v for $rid" >"$work/runtimes/$rid/native/whatsmeow-net$exe"
 	done
-	(cd "$work" && zip -qr "$dir/$id.$v.nupkg" .)
+	(cd "$work" && zip_here "$dir/$id.$v.nupkg")
 	rm -rf "$work"
 }
 
@@ -406,7 +422,8 @@ nupkg "$f" Whatsmeow.Protocol.WhatsApp "$version" "Whatsmeow.Sidecar.Native.Linu
 expect fail "is pushed in the first phase, so it may depend on no package of ours" "verify: a first-phase package with a dependency of ours" verify "$f"
 
 f="$(mutant five-binaries)"
-(cd "$f" && zip -qd Whatsmeow.Sidecar.Native.Windows.1.2.3.nupkg 'runtimes/win-arm64/*')
+rm "$f/Whatsmeow.Sidecar.Native.Windows.1.2.3.nupkg"
+only_rids=win-x64 nupkg "$f" Whatsmeow.Sidecar.Native.Windows "$version"
 expect fail "6 binaries" "verify: a native package without one of its binaries" verify "$f"
 
 assets_taken() {
@@ -550,7 +567,8 @@ asset() { # name state [digest]: one asset of the release, by default with the d
 release_with() { # draft asset-json...
 	local draft="$1"
 	shift
-	jq -n --argjson d "$draft" --slurpfile a <(printf '%s\n' "$@") '{isDraft: $d, assets: $a}'
+	# On stdin, not a process substitution: a native jq.exe cannot open Git Bash's /proc/<pid>/fd path.
+	printf '%s\n' "$@" | jq -s --argjson d "$draft" '{isDraft: $d, assets: .}'
 }
 gh_calls() { grep -c "^gh release $1" "$tmp/calls"; }
 draft() { reset_calls; in_repo as_push "v$version" bash "$release" draft "v$version" "$tmp/assets"; }

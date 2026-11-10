@@ -42,11 +42,15 @@ Or in configuration, `Whatsmeow:External:Address` and `Whatsmeow:External:TokenP
 
 The token never goes in an argument or an environment variable; both sides read it from a file, such as a mounted secret.
 To rotate it, rewrite the file on both sides: when a client presents the new token, the sidecar reads its file again and switches, and from then on refuses the old one.
-Rewrite each file in one step: write the new token to a file beside it, in the same directory, then rename that file over the old one, which replaces it at once on the same volume [inferred: rename(2) and MoveFileEx semantics].
+Rewrite each file in one step: write the new token to a file beside it, in the same directory, then rename that file over the old one, which replaces it at once on the same volume: a reader in a loop saw no partial token across 500 renames [observed: #174, on Linux, macOS and Windows].
 A file rewritten in place may be read half written [inferred: an in-place write is not atomic]; the client then treats it as unreadable and tries again with the restart backoff [observed: `ExternalTokenTests`, `SidecarSupervisorTests`].
 A .NET writer that copies over the file with `File.Copy` can throw `IOException` while the client reads it, because .NET locks files on Linux and macOS [observed: #132, on both].
-The client opens the file sharing write and delete, so a rename over it works while it reads: measured on Linux and macOS [observed: `ExternalTokenTests`], expected on Windows [inferred: not measured]; whether the sidecar's read allows it on Windows is [unknown].
-Until a client presents the new one, the old one is still accepted [inferred: ADR 0046].
+On Linux and macOS the rename lands while the client or the sidecar reads the file [observed: `ExternalTokenTests`; #174 for the sidecar's read].
+On Windows a rename over the file fails while either side has it open, the client at each connect or the sidecar at its start and after a refused token, each only for the read.
+`File.Move(next, path, overwrite: true)` fails with access denied (`UnauthorizedAccessException`, error 5) while either side does, and Go's `os.Rename` likewise while the client does [observed: `ExternalTokenTests` on win-x64, run 42865441309; #174 for the rest, Windows 11 on NTFS].
+A rename with `FILE_RENAME_FLAG_POSIX_SEMANTICS` lands while the client reads, but fails with a sharing violation (error 32) while the sidecar does [observed: #174].
+So on Windows retry the rename on error 5 or 32 only, about every 10 ms, for a few seconds, then fail loudly: against a client reading in a loop, 500 renames retried every 10 ms all landed, the slowest after 9 failures and 142 ms [observed: #174].
+Waiting is safe: the file keeps the old token whole while the rename fails [observed: `ExternalTokenTests`], and the sidecar keeps accepting the old token until a client presents the new one [inferred: ADR 0046].
 A client the sidecar refuses reads its own file again on its next connect.
 
 ## TCP is for a private network only

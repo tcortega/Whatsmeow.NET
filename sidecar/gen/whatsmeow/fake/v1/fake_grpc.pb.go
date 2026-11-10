@@ -270,7 +270,8 @@ type FakeWhatsAppServiceClient interface {
 	// CompleteOfflineSync makes WhatsApp tell the session's client that it sent everything the client missed while
 	// offline: the client dispatches OfflineSyncCompleted on its node queue, in order with the messages before it
 	// (connectionevents.go:72-90). It returns once the client's event handlers ran, with the index of the newest entry of
-	// the Sent log then. A session without a client is an error.
+	// the Sent log before the event, so whatever the handlers set off comes after it. A session without a client is an
+	// error.
 	CompleteOfflineSync(ctx context.Context, in *CompleteOfflineSyncRequest, opts ...grpc.CallOption) (*CompleteOfflineSyncResponse, error)
 	// DeliverHistorySync makes the phone send a history sync blob: the media server keeps the blob, zlib-compressed as
 	// WhatsApp's are, in a file that outlives the process (or the notification carries it inline), and the session's
@@ -952,7 +953,8 @@ type FakeWhatsAppServiceServer interface {
 	// CompleteOfflineSync makes WhatsApp tell the session's client that it sent everything the client missed while
 	// offline: the client dispatches OfflineSyncCompleted on its node queue, in order with the messages before it
 	// (connectionevents.go:72-90). It returns once the client's event handlers ran, with the index of the newest entry of
-	// the Sent log then. A session without a client is an error.
+	// the Sent log before the event, so whatever the handlers set off comes after it. A session without a client is an
+	// error.
 	CompleteOfflineSync(context.Context, *CompleteOfflineSyncRequest) (*CompleteOfflineSyncResponse, error)
 	// DeliverHistorySync makes the phone send a history sync blob: the media server keeps the blob, zlib-compressed as
 	// WhatsApp's are, in a file that outlives the process (or the notification carries it inline), and the session's

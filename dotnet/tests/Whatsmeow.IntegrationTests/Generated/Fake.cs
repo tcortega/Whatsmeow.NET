@@ -29348,7 +29348,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
     public const int IndexFieldNumber = 1;
     private ulong index_;
     /// <summary>
-    /// The index of the newest entry of the Sent log once the handlers ran; 0 when it is empty.
+    /// The index of the newest entry of the Sent log before the event; 0 when it was empty.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]

@@ -116,12 +116,14 @@ func (c *Control) CompleteOfflineSync(_ context.Context, req *fakev1.CompleteOff
 		return nil, fmt.Errorf("complete the offline sync: %w", err)
 	}
 
+	// Read before the event: a handler may set off a send that lands before a read after it would (#172).
+	c.whatsApp.mu.Lock()
+	index := uint64(len(c.whatsApp.sent))
+	c.whatsApp.mu.Unlock()
+
 	client.dispatch(&events.OfflineSyncCompleted{})
 
-	c.whatsApp.mu.Lock()
-	defer c.whatsApp.mu.Unlock()
-
-	return &fakev1.CompleteOfflineSyncResponse{Index: uint64(len(c.whatsApp.sent))}, nil
+	return &fakev1.CompleteOfflineSyncResponse{Index: index}, nil
 }
 
 // DeliverHistorySync keeps the blob and has the account's phone send its notification.

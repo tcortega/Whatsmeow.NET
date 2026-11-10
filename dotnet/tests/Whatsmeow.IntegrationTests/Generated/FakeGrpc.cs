@@ -3034,7 +3034,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// CompleteOfflineSync makes WhatsApp tell the session's client that it sent everything the client missed while
       /// offline: the client dispatches OfflineSyncCompleted on its node queue, in order with the messages before it
       /// (connectionevents.go:72-90). It returns once the client's event handlers ran, with the index of the newest entry of
-      /// the Sent log then. A session without a client is an error.
+      /// the Sent log before the event, so whatever the handlers set off comes after it. A session without a client is an
+      /// error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -3050,7 +3051,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// CompleteOfflineSync makes WhatsApp tell the session's client that it sent everything the client missed while
       /// offline: the client dispatches OfflineSyncCompleted on its node queue, in order with the messages before it
       /// (connectionevents.go:72-90). It returns once the client's event handlers ran, with the index of the newest entry of
-      /// the Sent log then. A session without a client is an error.
+      /// the Sent log before the event, so whatever the handlers set off comes after it. A session without a client is an
+      /// error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -3064,7 +3066,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// CompleteOfflineSync makes WhatsApp tell the session's client that it sent everything the client missed while
       /// offline: the client dispatches OfflineSyncCompleted on its node queue, in order with the messages before it
       /// (connectionevents.go:72-90). It returns once the client's event handlers ran, with the index of the newest entry of
-      /// the Sent log then. A session without a client is an error.
+      /// the Sent log before the event, so whatever the handlers set off comes after it. A session without a client is an
+      /// error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -3080,7 +3083,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// CompleteOfflineSync makes WhatsApp tell the session's client that it sent everything the client missed while
       /// offline: the client dispatches OfflineSyncCompleted on its node queue, in order with the messages before it
       /// (connectionevents.go:72-90). It returns once the client's event handlers ran, with the index of the newest entry of
-      /// the Sent log then. A session without a client is an error.
+      /// the Sent log before the event, so whatever the handlers set off comes after it. A session without a client is an
+      /// error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>

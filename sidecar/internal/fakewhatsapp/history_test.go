@@ -258,6 +258,35 @@ func TestCompleteOfflineSyncDispatchesItOnTheQueue(t *testing.T) {
 	}
 }
 
+// The index is the Sent log's before the event, so whatever its handlers set off, at once or later, comes after it.
+func TestCompleteOfflineSyncReturnsTheIndexFromBeforeTheEvent(t *testing.T) {
+	t.Parallel()
+
+	whatsApp, control, ctx, client := online(t)
+	client.AddEventHandlerWithSuccessStatus(func(evt any) bool {
+		if _, ok := evt.(*events.OfflineSyncCompleted); ok {
+			if err := client.SendPresence(ctx, types.PresenceAvailable); err != nil {
+				t.Errorf("SendPresence: %v", err)
+			}
+		}
+
+		return true
+	})
+
+	resp, err := control.CompleteOfflineSync(ctx, &fakev1.CompleteOfflineSyncRequest{SessionId: "s1"})
+	if err != nil {
+		t.Fatalf("CompleteOfflineSync: %v", err)
+	}
+
+	whatsApp.mu.Lock()
+	sent := len(whatsApp.sent)
+	whatsApp.mu.Unlock()
+
+	if sent != 1 || resp.GetIndex() != 0 {
+		t.Fatalf("index %d with %d entries sent, want 0 with the handler's presence after it", resp.GetIndex(), sent)
+	}
+}
+
 // Not parallel: it changes the process-wide store.DeviceProps, as cmd/whatsmeow-net does once at startup.
 func TestLinkDeviceKeepsTheDevicePropsThePairingSent(t *testing.T) { //nolint:paralleltest // see above
 	saved := proto.CloneOf(wastore.DeviceProps)

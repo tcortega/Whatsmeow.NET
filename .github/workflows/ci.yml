@@ -27,8 +27,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Linux only until the code is complete; osx-arm64 and win-x64 come back for the platform pass (issue log #11).
+          # Every trigger, pull requests included, on the three desktop OSes (ADR 0066).
           - { name: linux-x64, os: ubuntu-26.04 }
+          - { name: osx-arm64, os: macos-26 }
+          - { name: win-x64, os: windows-2025 }
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -71,8 +73,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Linux only until the code is complete; osx-arm64 and win-x64 come back for the platform pass (issue log #11).
+          # Every trigger, pull requests included, on the three desktop OSes (ADR 0066).
           - { name: linux-x64, os: ubuntu-26.04 }
+          - { name: osx-arm64, os: macos-26 }
+          - { name: win-x64, os: windows-2025 }
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -117,8 +121,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Linux only until the code is complete; osx-arm64 and win-x64 come back for the platform pass (issue log #11).
+          # Every trigger, pull requests included, on the three desktop OSes (ADR 0066).
           - { name: linux-x64, os: ubuntu-26.04 }
+          - { name: osx-arm64, os: macos-26 }
+          - { name: win-x64, os: windows-2025 }
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -162,7 +168,8 @@ jobs:
 
       # The shared fake sidecar's log (FakeSidecar.cs), so a failed or hung run leaves its evidence (#77).
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: failure()
+        # A cancelled job, such as one at its timeout, leaves its log too.
+        if: failure() || cancelled()
         with:
           name: fake-sidecar-log-${{ matrix.name }}
           path: dotnet/artifacts/TestResults/fake-sidecar.log
@@ -171,9 +178,16 @@ jobs:
 
   # The integration suite against a standalone sidecar (External mode, ADR 0046), beside the dotnet jobs, not after them.
   external:
-    name: external (linux-x64)
+    name: external (${{ matrix.name }})
     timeout-minutes: 30
-    runs-on: ubuntu-26.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: linux-x64, os: ubuntu-26.04 }
+          - { name: osx-arm64, os: macos-26 }
+          - { name: win-x64, os: windows-2025 }
+    runs-on: ${{ matrix.os }}
     defaults:
       run:
         shell: bash
@@ -216,15 +230,16 @@ jobs:
 
       # The shared fake sidecar's log (FakeSidecar.cs), so a failed or hung run leaves its evidence (#77).
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: failure()
+        # A cancelled job, such as one at its timeout, leaves its log too.
+        if: failure() || cancelled()
         with:
-          name: fake-sidecar-log-external
+          name: fake-sidecar-log-external-${{ matrix.name }}
           path: dotnet/artifacts/TestResults/fake-sidecar.log
           if-no-files-found: ignore
           retention-days: 7
 
   # Native packages (ADR 0023) and Native AOT on every target RID (ADR 0056), in packaging.yml, which the release
-  # workflow runs too. On main and on demand, never on a pull request, which keeps linux-x64 only.
+  # workflow runs too. On main and on demand, never on a pull request.
   packaging:
     name: packaging
     if: github.event_name != 'pull_request'
@@ -240,11 +255,16 @@ jobs:
       - name: every job passed
         env:
           RESULTS: ${{ join(needs.*.result, ' ') }}
+          CORE: ${{ needs.contract.result }} ${{ needs.go.result }} ${{ needs.dotnet.result }} ${{ needs.external.result }}
+          PACKAGING: ${{ needs.packaging.result }}
         run: |
           echo "results: $RESULTS"
-          for result in $RESULTS; do
-            # packaging is skipped on a pull request.
-            if [ "$result" != success ] && [ "$result" != skipped ]; then
+          for result in $CORE; do
+            if [ "$result" != success ]; then
               exit 1
             fi
           done
+          # packaging alone may be skipped: it never runs on a pull request.
+          if [ "$PACKAGING" != success ] && [ "$PACKAGING" != skipped ]; then
+            exit 1
+          fi

@@ -152,7 +152,7 @@ public sealed class FakeSidecar : IAsyncLifetime
 		{
 			// The orchestrator's part: the same database, address and token.
 			Logs.Note($"{crash.Test} restarts the standalone sidecar");
-			await standalone.DisposeAsync().ConfigureAwait(false);
+			await StopStandaloneAsync(standalone).ConfigureAwait(false);
 			_standalone = await StandaloneSidecar.StartAsync(Binary, DatabasePath, _listen, _tokenPath, StandaloneArguments(), cancellationToken).ConfigureAwait(false);
 		}
 
@@ -222,6 +222,17 @@ public sealed class FakeSidecar : IAsyncLifetime
 		Fake = new FakeWhatsAppService.FakeWhatsAppServiceClient(Sidecar.CallInvoker);
 	}
 
+	/// <summary>
+	/// Stops a standalone sidecar and writes its stderr to the log file, as embedded mode's sidecar output is: a run that
+	/// failed in External mode leaves the sidecar's side too.
+	/// </summary>
+	private async Task StopStandaloneAsync(StandaloneSidecar standalone)
+	{
+		var id = standalone.Id;
+		await standalone.DisposeAsync().ConfigureAwait(false);
+		Logs.Note($"standalone sidecar {id} stderr:{Environment.NewLine}{standalone.Stderr}");
+	}
+
 	private string[] StandaloneArguments()
 	{
 		var history = HistoryOptions;
@@ -244,7 +255,7 @@ public sealed class FakeSidecar : IAsyncLifetime
 		if (_metrics is not null)
 			await _metrics.DisposeAsync().ConfigureAwait(false);
 		if (_standalone is not null)
-			await _standalone.DisposeAsync().ConfigureAwait(false);
+			await StopStandaloneAsync(_standalone).ConfigureAwait(false);
 		Logs.Dispose();
 		if (_directory is not null)
 			Directory.Delete(_directory, recursive: true);
