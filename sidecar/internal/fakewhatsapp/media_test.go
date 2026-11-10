@@ -216,6 +216,116 @@ func TestHoldNextDownloadWaitsForTheCallToEnd(t *testing.T) {
 	}
 }
 
+func TestADownloadTakesTheHoldBeforeItShowsInWaitForSent(t *testing.T) {
+	t.Parallel()
+
+	whatsApp, client, control, ctx := mediaOnline(t)
+
+	resp, _, err := upload(t, client, content(10))
+	if err != nil {
+		t.Fatalf("UploadReader: %v", err)
+	}
+
+	if _, err := control.HoldNextDownload(ctx, &fakev1.HoldNextDownloadRequest{SessionId: "s1"}); err != nil {
+		t.Fatalf("HoldNextDownload: %v", err)
+	}
+
+	f, err := os.Create(filepath.Join(t.TempDir(), "download"))
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	defer func() { _ = f.Close() }()
+
+	held, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	ended := make(chan error, 1)
+
+	// The goroutine only reports what the download returned; the test goroutine fails on it.
+	go func() {
+		ended <- client.DownloadMediaWithPathToFile(held, resp.DirectPath, resp.FileEncSHA256, resp.FileSHA256, resp.MediaKey, whatsmeow.MediaImage, "", false, f)
+	}()
+
+	// Each look reads the log and the hold under one lock, so the first look that sees the download sees the hold
+	// as it was when the download showed (#182). The test's context bounds the looks.
+	for {
+		shown, holdLeft := downloadShown(whatsApp, "s1")
+		if !shown {
+			if ctx.Err() != nil {
+				t.Fatalf("the download never showed in WaitForSent: %v", ctx.Err())
+			}
+
+			continue
+		}
+
+		if holdLeft {
+			t.Fatal("the download showed in WaitForSent before it took the hold")
+		}
+
+		break
+	}
+
+	cancel()
+
+	if err := <-ended; !errors.Is(err, context.Canceled) {
+		t.Fatalf("the held download ended with %v, want its context's error", err)
+	}
+}
+
+// downloadShown reports whether the session's log has a download, and whether its hold is still left.
+func downloadShown(w *WhatsApp, sessionID string) (shown, holdLeft bool) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	for _, sent := range w.sent {
+		if sent.GetSessionId() == sessionID && sent.GetMediaDownload() != nil {
+			shown = true
+		}
+	}
+
+	s, ok := w.scripts[sessionID]
+
+	return shown, ok && s.holdDownload
+}
+
+func TestHoldNextDownloadIsTakenByTheNextDownloadEvenOneThatFails(t *testing.T) {
+	t.Parallel()
+
+	_, client, control, ctx := mediaOnline(t)
+
+	expired, _, err := upload(t, client, content(10))
+	if err != nil {
+		t.Fatalf("UploadReader: %v", err)
+	}
+
+	resp, _, err := upload(t, client, content(10))
+	if err != nil {
+		t.Fatalf("UploadReader: %v", err)
+	}
+
+	if _, err := control.ExpireMedia(ctx, &fakev1.ExpireMediaRequest{DirectPath: expired.DirectPath, Status: 410}); err != nil {
+		t.Fatalf("ExpireMedia: %v", err)
+	}
+
+	if _, err := control.HoldNextDownload(ctx, &fakev1.HoldNextDownloadRequest{SessionId: "s1"}); err != nil {
+		t.Fatalf("HoldNextDownload: %v", err)
+	}
+
+	// The next download shows in WaitForSent with the hold already taken, even one that then fails: a test that saw
+	// it there and scripts the next hold never has a late download take that one instead (#182).
+	if _, err := download(ctx, t, client, expired); !errors.Is(err, whatsmeow.ErrMediaDownloadFailedWith410) {
+		t.Fatalf("the expired download = %v, want ErrMediaDownloadFailedWith410", err)
+	}
+
+	cancelled, cancel := context.WithCancel(ctx)
+	cancel()
+
+	// A held download would end with its context's error; this one is not held.
+	if _, err := download(cancelled, t, client, resp); err != nil {
+		t.Fatalf("the download after the held one = %v, want no hold left", err)
+	}
+}
+
 func TestAnsweredMediaRetriesDecryptAsWhatsmeowDecryptsThem(t *testing.T) {
 	t.Parallel()
 

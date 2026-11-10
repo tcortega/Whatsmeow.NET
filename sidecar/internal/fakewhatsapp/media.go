@@ -181,7 +181,9 @@ func (c *Client) UploadReader(_ context.Context, plaintext io.Reader, tempFile i
 
 // DownloadMediaWithPathToFile downloads the ciphertext into file and verifies and decrypts it there, with
 // whatsmeow's checks in whatsmeow's order (download-to-file.go:121-161, 209-246), so a failed check leaves what
-// whatsmeow leaves in the file. ExpireMedia's statuses and HoldNextDownload come first.
+// whatsmeow leaves in the file. ExpireMedia's statuses and HoldNextDownload come first. The download takes the hold
+// before it shows in WaitForSent, so a test that saw it there and scripts the next hold never has this download take
+// that one instead (#182).
 func (c *Client) DownloadMediaWithPathToFile(ctx context.Context, directPath string, encFileHash, fileHash, mediaKey []byte, mediaType whatsmeow.MediaType,
 	_ string, _ bool, file whatsmeow.File,
 ) error {
@@ -189,6 +191,7 @@ func (c *Client) DownloadMediaWithPathToFile(ctx context.Context, directPath str
 		return fmt.Errorf("failed to refresh media connections: %w", whatsmeow.ErrNotConnected)
 	}
 
+	held := c.whatsApp.take(c.sessionID, func(s *script) bool { return s.holdDownload }, func(s *script) { s.holdDownload = false })
 	c.whatsApp.append(&fakev1.Sent{SessionId: c.sessionID, Kind: &fakev1.Sent_MediaDownload{MediaDownload: &fakev1.MediaDownload{DirectPath: directPath}}})
 
 	if err := c.whatsApp.expiredWith(directPath); err != nil {
@@ -206,7 +209,7 @@ func (c *Client) DownloadMediaWithPathToFile(ctx context.Context, directPath str
 	}
 	defer func() { _ = stored.Close() }()
 
-	if c.whatsApp.take(c.sessionID, func(s *script) bool { return s.holdDownload }, func(s *script) { s.holdDownload = false }) {
+	if held {
 		_, _ = io.CopyN(file, stored, macLength)
 		<-ctx.Done()
 
