@@ -417,7 +417,7 @@ job_dotnet() {
 }
 
 # The integration suite once more, its shared fixture's sidecar standalone over TCP, as an orchestrator runs it
-# (External mode, ADR 0046): every slice's FullCycle against an external sidecar. Its own CI job, on linux-x64.
+# (External mode, ADR 0046): every slice's FullCycle against an external sidecar. Its own CI job, on each OS (ADR 0066).
 job_external() {
 	# The noexec tests run in this pass too, and fail on linux-x64 CI without the mount.
 	check "noexec mount for the copy fallback test" noexec_mount

@@ -35,8 +35,9 @@ internal static class ExternalToken
 	}
 
 	/// <summary>
-	/// Opens the file sharing write and delete, so an orchestrator can rename a new token over it while it is read, on
-	/// Windows too (docs/guides/external-mode.md).
+	/// Opens the file for the read only, sharing write and delete: a rename over it lands meanwhile on Linux and macOS,
+	/// and on Windows only a POSIX-semantics one does, so a writer there retries until the read ends
+	/// (docs/guides/external-mode.md).
 	/// </summary>
 	internal static FileStream Open(string path) => new(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
 }

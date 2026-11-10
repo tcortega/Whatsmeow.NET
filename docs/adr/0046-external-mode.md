@@ -3,6 +3,7 @@
 - Status: Accepted
 - Date: 2026-11-02
 - Evidence: issue #49, its plan review and the PR's two reviews; grpc-go v1.85.0 and .NET 10.0.14 read as cited below; the tests named below
+- Amended by: [ADR 0066](0066-the-core-ci-jobs-on-every-desktop-os.md) (the `external` job runs on linux-x64, osx-arm64 and win-x64)
 - Amends: ARCHITECTURE §13 invariant 9 (scoped to embedded mode), §1, §7.8, §8.4, §8.5, §8.6 and §10; [ADR 0016](0016-sidecar-binary-gpl-3-corresponding-source-per-release.md) (its `[unknown]` on leaving the native assets out); [ADR 0034](0034-hosting-package.md) (which sessions a host's start connects); [ADR 0045](0045-a-channel-per-launch.md) ("every launch listens at an endpoint of its own" holds for embedded launches; an external launch is a connect epoch)
 
 ## Context

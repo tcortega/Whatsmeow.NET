@@ -5947,7 +5947,7 @@ func (x *CompleteOfflineSyncRequest) GetSessionId() string {
 // CompleteOfflineSyncResponse is where the Sent log was.
 type CompleteOfflineSyncResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The index of the newest entry of the Sent log once the handlers ran; 0 when it is empty.
+	// The index of the newest entry of the Sent log before the event; 0 when it was empty.
 	Index         uint64 `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

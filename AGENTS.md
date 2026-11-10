@@ -30,9 +30,10 @@ AGENTS.md              this file (CLAUDE.md is a symlink to it; nothing may depe
 ## Commands
 
 Setup once: the .NET SDK from `global.json` (10.0.403), then `mise trust && mise install` for Go, buf, golangci-lint, protoc, the protoc plugins and shellcheck.
+Every OS also needs jq and zip or 7z for `build/release-test.sh`, and unzip for `build/release.sh verify`; Windows also Git Bash, a C compiler on PATH for `go test -race` (gcc, as the runner has), and the Visual Studio Build Tools C++ workload, whose MSVC linker Native AOT needs.
 
 Everything CI runs is `build/ci.sh`, one subcommand per CI job; it also runs in Git Bash on Windows.
-`ci.yml` runs `contract`, `go`, `dotnet` and `external` on linux-x64 only, on every trigger.
+`ci.yml` runs `contract`, `go`, `dotnet` and `external` on linux-x64, osx-arm64 and win-x64, on every trigger (ADR 0066).
 On pushes to main and manual runs, it also runs `packaging.yml`: `package` builds the feed on win-x64, `install` runs fresh JIT consumers of it on six native hosts whose two Linux ones also cover both musl RIDs in Alpine, and `aot` publishes AotSmoke from it with Native AOT on each of the eight target RIDs (ADR 0056, 0058).
 `release.yml` runs none of the four core jobs; it runs `packaging.yml` before publishing, and after a publish runs `install` and `aot` again against nuget.org (`nuget.org:<version>`, ADR 0059).
 Before pushing, run only what covers your change: the packages and test classes you touched plus lint, or the one subcommand for that area; CI runs the rest.
