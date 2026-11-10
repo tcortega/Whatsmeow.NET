@@ -168,7 +168,8 @@ jobs:
 
       # The shared fake sidecar's log (FakeSidecar.cs), so a failed or hung run leaves its evidence (#77).
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: failure()
+        # A cancelled job, such as one at its timeout, leaves its log too.
+        if: failure() || cancelled()
         with:
           name: fake-sidecar-log-${{ matrix.name }}
           path: dotnet/artifacts/TestResults/fake-sidecar.log
@@ -229,7 +230,8 @@ jobs:
 
       # The shared fake sidecar's log (FakeSidecar.cs), so a failed or hung run leaves its evidence (#77).
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: failure()
+        # A cancelled job, such as one at its timeout, leaves its log too.
+        if: failure() || cancelled()
         with:
           name: fake-sidecar-log-external-${{ matrix.name }}
           path: dotnet/artifacts/TestResults/fake-sidecar.log
@@ -253,11 +255,16 @@ jobs:
       - name: every job passed
         env:
           RESULTS: ${{ join(needs.*.result, ' ') }}
+          CORE: ${{ needs.contract.result }} ${{ needs.go.result }} ${{ needs.dotnet.result }} ${{ needs.external.result }}
+          PACKAGING: ${{ needs.packaging.result }}
         run: |
           echo "results: $RESULTS"
-          for result in $RESULTS; do
-            # packaging is skipped on a pull request.
-            if [ "$result" != success ] && [ "$result" != skipped ]; then
+          for result in $CORE; do
+            if [ "$result" != success ]; then
               exit 1
             fi
           done
+          # packaging alone may be skipped: it never runs on a pull request.
+          if [ "$PACKAGING" != success ] && [ "$PACKAGING" != skipped ]; then
+            exit 1
+          fi

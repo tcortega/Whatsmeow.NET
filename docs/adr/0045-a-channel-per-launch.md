@@ -44,12 +44,12 @@ On main, `RestartTokenTests` failed in every run [observed: macOS]: 8 of 8 in it
 ## Consequences
 
 - A call made before the next launch is ready fails as unreachable, `SidecarUnavailableException` with `ErrorCode` `Unknown`, and never reaches the next launch; the internal retries no longer reach it either, so the next sidecar refuses none of them.
-- `RestartTokenTests` passes in every run [observed: 5 of 5, macOS]; it also asserts that calls failed during every restart, so it never passes with no call in the window. Mutations, 3 runs each:
+- `RestartTokenTests` passes in every run [observed: 5 of 5, macOS]; it also asserts that calls failed during every restart, so it never passes with no call in the window. ADR 0066 keeps that check for embedded mode and, in External mode only, asserts instead that calls started between the client logging the sidecar gone and the next launch; mutation 2 against that test was red in 3 of 3, 24 `Unauthenticated` each [observed: macOS, #174]. Mutations, 3 runs each:
   1. One channel again, the token read per call, with the sockets still unique: red in 2 of 3, 4 and 14 `Unauthenticated`.
   2. The fixed socket name `s`, with a channel per launch: red in 3 of 3, 23 to 32 `Unauthenticated`.
   3. The last channel disposed at the switch: red in 3 of 3, `TaskCanceledException`.
 - `TestListenNeverReusesAnEarlierLaunchsEndpoint` replaces `TestListenReplacesAStaleSocketFromACrashedRun`. It fails with the fixed name (the listen finds the address in use) and without the removal (the earlier socket is still there). `TestListenLeavesWhatIsNotASocket` fails when the removal does not check for a socket.
-- For the platform pass, not run in PR CI, which is linux-x64 only: the pipe transport's bound (a reopen before the next ready line fails `Unavailable` within 2 s and the session's events go on after the restart), and the earlier sockets' removal on Windows (`fs.ModeSocket` on a `ReadDir` entry).
+- The earlier sockets' removal on Windows (`fs.ModeSocket` on a `ReadDir` entry) passes in PR CI since ADR 0066: `TestListenNeverReusesAnEarlierLaunchsEndpoint` has no build constraint and the `go (win-x64)` job passes [observed: run 42873975065]. The pipe transport's bound (a reopen before the next ready line fails `Unavailable` within 2 s and the session's events go on after the restart) stays [unknown]: no test restarts a sidecar over the pipe, so the win-x64 legs do not reach it.
 - A hard-killed .NET process still leaves its socket directory behind (ADR 0017), now with the last launch's socket in it.
 - This also removes the refused calls that tripped grpc-go's ping policy in #77.
 - External mode keeps one address for every launch, so there a launch is a connect epoch, each with a channel and a token of its own; the rest of this decision holds ([ADR 0046](0046-external-mode.md)).

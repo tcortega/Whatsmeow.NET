@@ -4,7 +4,7 @@
 - Date: 2026-11-02
 - Evidence: issue #89; GitHub Actions runs 41488816188 (the loop), 41492555548 (the bench) and 41497698795 (the loop with the gate), win-x64 `windows-2025`; ARCHITECTURE §14 "Measured for writes under load (#89)"; the `internal/store` tests named below
 - Amends: ARCHITECTURE §7.3 (the handler's only wait)
-- Amended by: issue #124, 2026-11-04 (a write ends its own transaction; its `BEGIN` no longer ends with its context, which amends ARCHITECTURE §7.3's bound on a handler's write)
+- Amended by: [ADR 0066](0066-the-core-ci-jobs-on-every-desktop-os.md) (the concurrent records test's own 2 minute bound; an idle Windows commit measured); issue #124, 2026-11-04 (a write ends its own transaction; its `BEGIN` no longer ends with its context, which amends ARCHITECTURE §7.3's bound on a handler's write)
 
 ## Context
 
@@ -13,6 +13,7 @@ A temporary loop ran the sidecar's Go suite 48 times on six `windows-2025` runne
 Two things were behind it.
 
 - **Commits are slow on a loaded Windows disk.** Under the suite's load the outbox package's commits took p50 153 ms, p90 634 ms and up to 3.0 s in a failed run, against about 4 ms on the same runner idle; the goroutine dump of a failure shows a writer in `Tx.Commit` → `walFrames` → `_winSync` [observed]. That is the disk under `synchronous(FULL)`, which invariant 2 needs (§5), and it is not ours to change.
+  On an idle Windows 11 desktop (NTFS, the outbox test's `open`, 200 sequential `Record`s), commits took p50 2.1 ms, p90 3.0 ms, max 8.5 ms, and p50 1.7 ms, p90 3.3 ms, max 11.1 ms in a second run [observed: #174, 2026-11-10]; the loaded runner, not Windows itself, is what is slow [inferred]. `TestConcurrentRecordsNeverLetAReaderSkipASeq` hit its 30 s after 37 of 40 commits on `windows-2025` again, and keeps its bound as a hang guard only, 2 minutes ([ADR 0066](0066-the-core-ci-jobs-on-every-desktop-os.md)).
 - **A writer starves while the others commit.** Every writer of the sidecar takes SQLite's write lock with `BEGIN IMMEDIATE` (`_txlock=immediate`, §5) on its own pooled connection, and one that finds it taken waits in SQLite's busy handler, which sleeps 1, 2, 5 ... up to 100 ms between tries (`sqliteDefaultBusyCallback`, modernc v1.61.1, built with `HAVE_USLEEP`) [observed: source]. A writer that just committed begins again at once, so a sleeping one rarely finds the lock free [inferred: from the source and the waits below].
   In the suite's runs one `BeginTx` waited up to 27.6 s, near the 30 s `busy_timeout`, while the longest commit took 7.6 s (4.2 s in the tests' snapshots); even isolated, with no commit over 0.26 s, one waited up to 4.4 s [observed: 48 suite runs and 120 isolated runs].
 
