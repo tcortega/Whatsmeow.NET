@@ -3,6 +3,7 @@
 - Status: Accepted
 - Date: 2026-11-02
 - Evidence: issue #85; `Sidecar/RestartTokenTests.cs`, `TestListenNeverReusesAnEarlierLaunchsEndpoint` and `TestListenLeavesWhatIsNotASocket`, with the mutations below; grpc-dotnet v2.85.0 `GrpcChannel.cs` and `GrpcProtocolHelpers.cs`; .NET 10.0.14 `NamedPipeClientStream.cs`
+- Amended by: [ADR 0066](0066-the-core-ci-jobs-on-every-desktop-os.md) (`RestartTokenTests` counts the calls started in the gap instead of requiring one to fail; the platform pass runs in PR CI)
 - Amends: ARCHITECTURE §8.5 (socket directory), §8.6, §10; ADR 0017 (the socket's name); ADR 0037 (where errors are counted)
 
 ## Context

@@ -4,7 +4,7 @@
 * Date: 2026-11-05
 * Evidence: #52's install criterion, the consumer mutations below, and [GitHub Actions run 42092473537](https://github.com/tcortega/Whatsmeow.NET/actions/runs/42092473537) at 835ac8d
 * Amends: ARCHITECTURE §11, ADR 0023 (install coverage), ADR 0056 (shared host detection and reporting)
-* Amended by: [ADR 0059](0059-install-the-release-from-nugetorg.md) (the install jobs live in `install.yml`, win-x64 among them, and run against nuget.org after a publish)
+* Amended by: [ADR 0059](0059-install-the-release-from-nugetorg.md) (the install jobs live in `install.yml`, win-x64 among them, and run against nuget.org after a publish); [ADR 0066](0066-the-core-ci-jobs-on-every-desktop-os.md) (pull requests run the core jobs on osx-arm64 and win-x64 too)
 
 ## Context
 
