@@ -61,8 +61,11 @@ func TestASendAfterA300SessionRestartWaitsForFewCommits(t *testing.T) {
 	store.SetBeforeCommit(s.Writer, func() { commits.Add(1) })
 	store.StopTheClock(s.Writer)
 
-	// The restart's first write holds the gate while the rest queue behind it.
+	// The restart's first write holds the gate while the rest queue behind it, until the test lets it go or ended.
 	hold, holding := make(chan struct{}), make(chan struct{})
+	release := sync.OnceFunc(func() { close(hold) })
+	t.Cleanup(release)
+
 	first := make(chan error, 1)
 
 	go func() {
@@ -114,7 +117,7 @@ func TestASendAfterA300SessionRestartWaitsForFewCommits(t *testing.T) {
 	}()
 
 	store.WaitQueued(t, s.Writer, 3*sessions+1, deadline)
-	close(hold)
+	release()
 
 	waited := <-sent
 
