@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-11-10
-- Evidence: issue #172 (the Windows platform pass at `ca4915c`) and its PR's body (the rename measurements); `ci.yml` history (`e68dbd4`, PR #95); the tests named below
+- Evidence: issue #172 (the Windows platform pass at `ca4915c`) and PR #174's body (the rename measurements); `ci.yml` history (`e68dbd4`, PR #95); the tests named below
 - Amends: PR #95's Linux-only CI; [ADR 0056](0056-aot-smoke-on-every-target-rid.md) and [ADR 0058](0058-jit-install-on-every-target-rid.md) ("PR CI stays Linux only", for the core jobs); [ADR 0046](0046-external-mode.md) (the `external` job on linux-x64 only); [ADR 0045](0045-a-channel-per-launch.md) (what keeps `RestartTokenTests` from passing vacuously)
 
 ## Context
@@ -22,8 +22,8 @@ That pass ran on a Windows 11 desktop (10.0.26200, NTFS) at `ca4915c`: `go` and 
   The `ci` gate needs every leg.
   `packaging` stays on main and on demand (ADR 0056, 0058).
 - **Token rotation on Windows: the writer retries.**
-  Measured on the same desktop, .NET 10.0.14 [observed: the PR's body]: `File.Move` and Go's `os.Rename` (`MoveFileEx` [observed: Go 1.27.3 `internal/syscall/windows/syscall_windows.go:357`]) fail with access denied while the client holds the file, and `File.Move` also while a Go `os.Open` holds it; a rename with `FILE_RENAME_FLAG_POSIX_SEMANTICS` lands while the client holds it, but fails with a sharing violation while Go holds it, since Go opens without `FILE_SHARE_DELETE` [observed: `syscall_windows.go:395`]; a writer retrying `File.Move` every millisecond against a client reading in a loop landed 500 of 500 renames, the slowest after 15 failures and 237 ms, and the reader never saw a partial token.
-  On Linux and macOS the rename lands while either side holds the file, and the same loop saw no partial token [observed: the PR's body].
+  Measured on the same desktop, .NET 10.0.14 [observed: #174]: `File.Move` and Go's `os.Rename` (`MoveFileEx` [observed: Go 1.27.3 `internal/syscall/windows/syscall_windows.go:357`]) fail with access denied while the client holds the file, and `File.Move` also while a Go `os.Open` holds it; a rename with `FILE_RENAME_FLAG_POSIX_SEMANTICS` lands while the client holds it, but fails with a sharing violation while Go holds it, since Go opens without `FILE_SHARE_DELETE` [observed: `syscall_windows.go:395`]; a writer retrying `File.Move` every millisecond against a client reading in a loop landed 500 of 500 renames, the slowest after 15 failures and 237 ms, and the reader never saw a partial token.
+  On Linux and macOS the rename lands while either side holds the file, and the same loop saw no partial token [observed: #174].
   The client already opens the file only for the read, and an unreadable token already waits for the restart backoff; neither read can be shorter, and nothing in the product changes.
   The guide tells Windows writers to retry, and `ExternalTokenTests` pins per OS what holds: the rename lands while the client holds the file on Linux and macOS, and on Windows it fails, the old token stays whole, and it lands once the client's read ends.
 - `LiveHistoryBoundsTests` reads the file sharing write, as a reader beside a live writer must on Windows.
