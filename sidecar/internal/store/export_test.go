@@ -1,6 +1,7 @@
 package store
 
 import (
+	"database/sql"
 	"runtime"
 	"testing"
 	"time"
@@ -8,7 +9,17 @@ import (
 
 // SetBeforeCommit runs f before each batch's COMMIT: the tests' disk, which counts commits or holds one. Set it before
 // the first write.
-func SetBeforeCommit(w *Writer, f func()) { w.beforeCommit = f }
+func SetBeforeCommit(w *Writer, f func()) {
+	w.commit = func(tx *sql.Tx) error {
+		f()
+
+		return tx.Commit()
+	}
+}
+
+// SetCommit replaces each batch's COMMIT with commit, which may read the transaction, commit it, or fail it. Set it
+// before the first write.
+func SetCommit(w *Writer, commit func(*sql.Tx) error) { w.commit = commit }
 
 // StopTheClock freezes the gate's clock, so a batch's time budget never runs out and a batch's size is its count limit
 // alone. Set it before the first write.

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -227,7 +228,22 @@ func TestABatchTakesAtMost64Writes(t *testing.T) {
 	const writes = 130
 
 	w, ctx := openWriter(t)
-	commits := countCommits(w)
+
+	// The rows each commit makes durable, counted in its transaction: the first write inserts none.
+	var committed []int
+
+	SetCommit(w, func(tx *sql.Tx) error {
+		var n int
+		if err := tx.QueryRowContext(ctx, "SELECT count(*) FROM session").Scan(&n); err != nil {
+			return err //nolint:wrapcheck // the test's own read
+		}
+
+		committed = append(committed, n)
+
+		return tx.Commit()
+	})
+	StopTheClock(w)
+
 	release, first := held(ctx, t, w)
 	done := make(chan error, writes)
 
@@ -250,9 +266,207 @@ func TestABatchTakesAtMost64Writes(t *testing.T) {
 		t.Fatalf("write: %v", err)
 	}
 
-	// 131 writes, 64 a commit.
-	if n := commits.Load(); n != 3 {
-		t.Fatalf("%d commits, want 3", n)
+	// The first and 63 more, then 64, then the last 3.
+	if fmt.Sprint(committed) != "[63 127 130]" {
+		t.Fatalf("the rows durable after each commit: %v, want [63 127 130]", committed)
+	}
+}
+
+// A COMMIT that fails fails every write of its batch with its error, and keeps none of them.
+func TestACommitThatFailsFailsEveryWriteOfItsBatch(t *testing.T) {
+	t.Parallel()
+
+	w, ctx := openWriter(t)
+	full := errors.New("the disk is full")
+
+	var commits atomic.Int64
+
+	SetCommit(w, func(tx *sql.Tx) error {
+		if commits.Add(1) == 1 {
+			return full
+		}
+
+		return tx.Commit()
+	})
+	StopTheClock(w)
+
+	release, first := held(ctx, t, w)
+	done := make(chan error, 3)
+
+	for i := range 3 {
+		go func() {
+			_, err := w.Exec(ctx, "INSERT INTO session (id) VALUES (?)", fmt.Sprintf("lost-%d", i))
+			done <- err
+		}()
+
+		queued(ctx, t, w, i+1)
+	}
+
+	release()
+
+	for _, err := range []error{<-first, <-done, <-done, <-done} {
+		if !errors.Is(err, full) {
+			t.Fatalf("a write of the failed batch got %v, want %v", err, full)
+		}
+	}
+
+	if ids := sessions(ctx, t, w); len(ids) != 0 {
+		t.Fatalf("the sessions are %v, want none: the failed commit keeps nothing", ids)
+	}
+
+	if _, err := w.Exec(ctx, "INSERT INTO session (id) VALUES ('after')"); err != nil {
+		t.Fatalf("the next write: %v", err)
+	}
+
+	if inUse := w.db.Stats().InUse; inUse != 0 {
+		t.Fatalf("%d connections are still in use, want 0", inUse)
+	}
+}
+
+// A write that breaks the batch's transaction, ending it or its own savepoint, loses the batch: every write in it
+// fails, the others with an error that names why, none is kept, and the writes still queued commit in the next batch.
+func TestAWriteThatBreaksTheTransactionLosesItsBatch(t *testing.T) {
+	t.Parallel()
+
+	broke := errors.New("write b broke the transaction")
+
+	for name, c := range map[string]struct {
+		statement string
+		returns   error
+		cause     string
+	}{
+		"it ends the transaction":   {"ROLLBACK", broke, broke.Error()},
+		"it releases its savepoint": {"RELEASE write", nil, "savepoint"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			w, ctx := openWriter(t)
+			StopTheClock(w)
+
+			var batches atomic.Int64
+
+			SetBeforeCommit(w, func() { batches.Add(1) })
+
+			release, first := held(ctx, t, w)
+			a, b := make(chan error, 1), make(chan error, 1)
+
+			go func() {
+				_, err := w.Exec(ctx, "INSERT INTO session (id) VALUES ('a')")
+				a <- err
+			}()
+
+			queued(ctx, t, w, 1)
+
+			go func() {
+				b <- w.Tx(ctx, func(ctx context.Context, tx *sql.Tx) error {
+					if _, err := tx.ExecContext(ctx, c.statement); err != nil {
+						return err //nolint:wrapcheck // the test's own write
+					}
+
+					return c.returns
+				})
+			}()
+
+			queued(ctx, t, w, 2)
+
+			// Queued behind b: a lost batch takes no more writes, so it commits in the next.
+			after := make(chan error, 1)
+
+			go func() {
+				_, err := w.Exec(ctx, "INSERT INTO session (id) VALUES ('c')")
+				after <- err
+			}()
+
+			queued(ctx, t, w, 3)
+			release()
+
+			if err := <-b; c.returns != nil && !errors.Is(err, c.returns) {
+				t.Fatalf("b got %v, want its own %v", err, c.returns)
+			}
+
+			for writer, err := range map[string]error{"the first": <-first, "a": <-a} {
+				if err == nil || !strings.Contains(err.Error(), c.cause) {
+					t.Fatalf("%s got %v, want the lost batch's error naming %q", writer, err, c.cause)
+				}
+			}
+
+			if err := <-after; err != nil {
+				t.Fatalf("c, queued behind the lost batch: %v", err)
+			}
+
+			if ids := sessions(ctx, t, w); fmt.Sprint(ids) != "[c]" {
+				t.Fatalf("the sessions are %v, want [c]: nothing of the lost batch kept", ids)
+			}
+
+			if n := batches.Load(); n != 1 {
+				t.Fatalf("%d commits, want 1, c's", n)
+			}
+		})
+	}
+}
+
+// A write function that ends its goroutine (runtime.Goexit, as t.FailNow does) on the batch's leader still frees the
+// gate: the batch's writes get an error instead of waiting forever, none is kept, and the write queued behind them
+// leads the next batch.
+func TestAWriteThatEndsTheLeadersGoroutineFreesTheGate(t *testing.T) {
+	t.Parallel()
+
+	w, ctx := openWriter(t)
+	StopTheClock(w)
+	release, _ := held(ctx, t, w)
+	before, exits, after := make(chan error, 1), make(chan error, 1), make(chan error, 1)
+
+	go func() {
+		_, err := w.Exec(ctx, "INSERT INTO session (id) VALUES ('before')")
+		before <- err
+	}()
+
+	queued(ctx, t, w, 1)
+
+	go func() {
+		exits <- w.Tx(ctx, func(context.Context, *sql.Tx) error {
+			runtime.Goexit()
+
+			return nil
+		})
+	}()
+
+	queued(ctx, t, w, 2)
+
+	go func() {
+		_, err := w.Exec(ctx, "INSERT INTO session (id) VALUES ('after')")
+		after <- err
+	}()
+
+	queued(ctx, t, w, 3)
+	release()
+
+	wait := func(writer string, done chan error) error {
+		t.Helper()
+
+		select {
+		case err := <-done:
+			return err
+		case <-ctx.Done():
+			t.Fatalf("%s never returned: the batch's leader ended and nobody told it", writer)
+
+			return nil
+		}
+	}
+
+	for writer, done := range map[string]chan error{"the write before it": before, "the exiting write": exits} {
+		if err := wait(writer, done); !errors.Is(err, errAbandoned) {
+			t.Fatalf("%s got %v, want %v", writer, err, errAbandoned)
+		}
+	}
+
+	if err := wait("the write queued after it", after); err != nil {
+		t.Fatalf("the write queued after it got %v, want it committed in the next batch", err)
+	}
+
+	if ids := sessions(ctx, t, w); fmt.Sprint(ids) != "[after]" {
+		t.Fatalf("the sessions are %v, want [after]: nothing of the abandoned batch kept", ids)
 	}
 }
 

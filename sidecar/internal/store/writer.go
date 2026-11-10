@@ -16,6 +16,9 @@ var ErrNestedWrite = errors.New("a write inside a write")
 // errClosed is a write that asked once the store began to close.
 var errClosed = errors.New("the store is closed")
 
+// errAbandoned is a write whose batch's leader ended before the batch did: nothing of the batch was kept.
+var errAbandoned = errors.New("the batch's writer ended before its commit; nothing of it was kept")
+
 const (
 	// maxBatch is the most writes one commit holds (ADR 0068).
 	maxBatch = 64
@@ -43,9 +46,9 @@ type Writer struct {
 	running chan struct{}
 	closed  bool
 
-	// now and beforeCommit are the tests' clock and disk (export_test.go).
-	now          func() time.Time
-	beforeCommit func()
+	// now and commit are the tests' clock and disk (export_test.go); commit is tx.Commit when nil.
+	now    func() time.Time
+	commit func(*sql.Tx) error
 }
 
 func newWriter(db *sql.DB) *Writer { return &Writer{db: db, now: time.Now} }
@@ -70,6 +73,15 @@ type write struct {
 	err        error
 	panicked   bool
 	panicValue any
+}
+
+// failure is how wr failed, for the error of the writes its failure took with it.
+func (wr *write) failure() string {
+	if wr.panicked {
+		return fmt.Sprintf("panic: %v", wr.panicValue)
+	}
+
+	return wr.err.Error()
 }
 
 // outcome is the write's result on its caller's goroutine: its error, or its function's panic again.
@@ -205,32 +217,49 @@ func (w *Writer) lead(wr *write) error {
 	w.running = running
 	w.mu.Unlock()
 
-	batch, err := w.batch(wr)
+	var batch []*write
 
-	w.mu.Lock()
-	w.running = nil
-	close(running)
-	w.releaseLocked()
-	w.mu.Unlock()
+	ended := false
 
-	for _, other := range batch {
-		if other != wr {
-			close(other.done)
+	// Deferred, so a write function that ends the leader's goroutine (runtime.Goexit, as t.FailNow does) still frees
+	// the gate, lets Close go on, and tells the batch's other writes, none of which was kept.
+	defer func() {
+		if !ended {
+			for _, t := range batch {
+				if t.err == nil && !t.panicked {
+					t.err = errAbandoned
+				}
+			}
 		}
-	}
+
+		w.mu.Lock()
+		w.running = nil
+		close(running)
+		w.releaseLocked()
+		w.mu.Unlock()
+
+		for _, other := range batch {
+			if other != wr {
+				close(other.done)
+			}
+		}
+	}()
+
+	err := w.batch(wr, &batch)
+	ended = true
 
 	return err
 }
 
-// batch begins a transaction, runs wr's write and the oldest waiting ones in it, and commits. It returns the writes
-// it took, each with its outcome set, or the error that ended it before wr joined.
-func (w *Writer) batch(wr *write) ([]*write, error) {
+// batch begins a transaction, runs wr's write and the oldest waiting ones in it, and commits. It adds each write it
+// takes to joined, with its outcome set once it returns, or returns the error that ended it before wr joined.
+func (w *Writer) batch(wr *write, joined *[]*write) error {
 	// Begun on a context that never ends: database/sql rolls back a transaction whose own context ended on a goroutine
 	// of its own (Tx.awaitDone), which nobody waits for, and which still had the database file open as the store
 	// closed (#124). So BEGIN waits for whatsmeow's writes up to the busy_timeout, whatever ctx says (ADR 0040).
 	tx, err := w.db.BeginTx(context.WithoutCancel(wr.ctx), nil)
 	if err != nil {
-		return nil, fmt.Errorf("begin: %w", err)
+		return fmt.Errorf("begin: %w", err)
 	}
 
 	// Also when a statement of the batch's own fails, before the gate is handed on: an open transaction would keep
@@ -239,44 +268,45 @@ func (w *Writer) batch(wr *write) ([]*write, error) {
 
 	// A write joins when the batch takes it, after BEGIN: one whose context ended meanwhile never runs.
 	if err := wr.ctx.Err(); err != nil {
-		return nil, fmt.Errorf("begin: %w", err)
+		return fmt.Errorf("begin: %w", err)
 	}
 
 	wr.where = taken
-	batch := []*write{wr}
+	*joined = append(*joined, wr)
 	start := w.now()
 
 	err = w.run(tx, wr)
-	for err == nil && len(batch) < maxBatch && w.now().Sub(start) < batchTime {
+	for err == nil && len(*joined) < maxBatch && w.now().Sub(start) < batchTime {
 		next := w.take()
 		if next == nil {
 			break
 		}
 
-		batch = append(batch, next)
+		*joined = append(*joined, next)
 		err = w.run(tx, next)
 	}
 
 	if err == nil {
-		if w.beforeCommit != nil {
-			w.beforeCommit()
+		commit := (*sql.Tx).Commit
+		if w.commit != nil {
+			commit = w.commit
 		}
 
-		if cerr := tx.Commit(); cerr != nil {
+		if cerr := commit(tx); cerr != nil {
 			err = fmt.Errorf("commit: %w", cerr)
 		}
 	}
 
 	// The transaction is lost: no write of the batch is kept, and each that did not fail on its own gets why.
 	if err != nil {
-		for _, taken := range batch {
-			if taken.err == nil && !taken.panicked {
-				taken.err = err
+		for _, t := range *joined {
+			if t.err == nil && !t.panicked {
+				t.err = fmt.Errorf("the batch's transaction was lost, nothing of it kept: %w", err)
 			}
 		}
 	}
 
-	return batch, nil
+	return nil
 }
 
 // take takes the oldest waiting write into the batch, or returns nil when none waits. One whose context ended is told
@@ -316,12 +346,12 @@ func (w *Writer) run(tx *sql.Tx, wr *write) error {
 
 	if wr.err != nil || wr.panicked {
 		if _, err := tx.ExecContext(ctx, "ROLLBACK TO write"); err != nil {
-			return fmt.Errorf("undo a failed write: %w", err)
+			return fmt.Errorf("a write failed (%s) and took the transaction with it: %w", wr.failure(), err)
 		}
 	}
 
 	if _, err := tx.ExecContext(ctx, "RELEASE write"); err != nil {
-		return fmt.Errorf("release a write: %w", err)
+		return fmt.Errorf("a write left its savepoint unreleasable: %w", err)
 	}
 
 	return nil
@@ -352,8 +382,9 @@ func (w *Writer) releaseLocked() {
 	close(next.turn)
 }
 
-// close refuses the writes that would begin from now on and waits for the batch in flight, so the store never closes
-// with a write's connection open (#124).
+// close refuses the batches that would begin from now on and waits for the one in flight, which still takes the
+// writes queued behind it up to its limits, so the store never closes with a write's connection open (#124). Writes
+// still queued after it fail with errClosed.
 func (w *Writer) close() {
 	w.mu.Lock()
 	w.closed = true
