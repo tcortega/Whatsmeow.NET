@@ -398,12 +398,17 @@ func TestRecordWakesTheWatchAndDeleteEndsIt(t *testing.T) {
 func TestConcurrentRecordsNeverLetAReaderSkipASeq(t *testing.T) {
 	t.Parallel()
 
-	// 40 commits: 200 took up to 27 s of the 30 s bound on a loaded Windows disk (#89, ADR 0040). It still kills the
+	// 40 commits: 200 took up to 27 s of a 30 s bound on a loaded Windows disk (#89, ADR 0040). It still kills the
 	// mutation it is for, a seq taken from a counter in memory before the transaction instead of from SQLite inside
 	// it, in 9 of 20 runs (macOS arm64; 19 of 30 at either size before the write gate).
 	const writers, each = 4, 10
 
-	o, _, ctx := open(t, "s1")
+	o, _, _ := open(t, "s1")
+	// A bound of its own, a guard against a hang, not a speed check: one of three go test runs on the windows-2025
+	// runner hit open's 30 s after 37 of the 40 commits, 54.9 s for the package (#174).
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	t.Cleanup(cancel)
+
 	w, _, err := o.Watch(ctx, "s1")
 	if err != nil {
 		t.Fatalf("Watch: %v", err)

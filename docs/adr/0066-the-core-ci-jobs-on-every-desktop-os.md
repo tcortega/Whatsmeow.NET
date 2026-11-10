@@ -32,6 +32,10 @@ That pass ran on a Windows 11 desktop (10.0.26200, NTFS) at `ca4915c`: `go` and 
   In External mode on Windows such a call may wait out the slow refusal and reach the next sidecar at the same address, with the token from the same file; ADR 0046 already scoped "an endpoint of its own" to embedded launches.
   With the lost record's name misspelt, the test fails "No call started while sidecar 1 restarted" [observed: macOS, External mode].
 - `build/release-test.sh` gives jq its input on stdin, and builds its packages with `zip`, or with `7z` where there is no zip, and says so when neither is on PATH.
+  On macos-26 the jobs' `bash` is `/bin/bash` 3.2, where the script's empty array was unbound under `set -u`, a `case` inside `$(...)` did not parse, and the rehearsal guard's `*[A-Z]*` matched lowercase; they are rewritten for 3.2, `*[[:upper:]]*` for the last [observed: this PR's first macOS `contract` run, reproduced and then green with `/bin/bash` 3.2 on macOS].
+- The first win-x64 run of this PR found two more, both test-side [observed: #174's first CI run]:
+  the fake's `CompleteOfflineSync` read the Sent log's index after dispatching the event, so a history download the event released could land first and tie it (`HistoryTests` "downloaded at 498, before the offline sync completed at 498"); it now reads the index before the event, and `TestCompleteOfflineSyncReturnsTheIndexFromBeforeTheEvent`, whose handler sends at once, failed before the change.
+  And `TestConcurrentRecordsNeverLetAReaderSkipASeq` hit its 30 s bound after 37 of 40 commits on the runner's loaded disk (ADR 0040); the bound guards against a hang, so the test takes 2 minutes of its own.
 - AGENTS.md states the Windows host's prerequisites: Git Bash, jq, zip or 7z, a C compiler for `go test -race`, and the Visual Studio Build Tools C++ workload for Native AOT.
 
 ## Consequences

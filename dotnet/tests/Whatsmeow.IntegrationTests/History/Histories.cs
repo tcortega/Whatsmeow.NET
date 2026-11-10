@@ -84,7 +84,7 @@ internal static class Histories
 		return client;
 	}
 
-	/// <summary>Completes the session's offline sync, and returns where the fake's log was then.</summary>
+	/// <summary>Completes the session's offline sync, and returns where the fake's log was just before it.</summary>
 	public static async Task<ulong> CompleteOfflineSyncAsync(FakeSidecar fixture, IWhatsAppClient client, string session, CancellationToken cancellationToken)
 	{
 		var index = (await fixture.Fake.CompleteOfflineSyncAsync(new CompleteOfflineSyncRequest { SessionId = session }, cancellationToken: cancellationToken).ConfigureAwait(false)).Index;
