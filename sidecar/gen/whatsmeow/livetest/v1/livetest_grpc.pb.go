@@ -148,8 +148,10 @@ const (
 // LiveTestService: only by a sidecar built with -tags livetest, never in a release build.
 type LiveContactServiceClient interface {
 	// SetAbout sets the session's own account's about text with whatsmeow's SetStatusMessage (user.go:160-172), the text
-	// only: no emoji and no duration, which no read gives back (user.go:257-258). An empty text is refused. A GraphQL
-	// error comes back with its codes only, never its message. The session must be online.
+	// only: no emoji and no duration, which no read gives back (user.go:257-258). When WhatsApp answers that mutation
+	// with a GraphQL error, it sends the legacy status IQ upstream #1331 sends, the text alone (ADR 0067), and logs at
+	// info which path set it, the mutation's code and severity and the IQ's outcome, never a message. An empty text is
+	// refused. The session must be online.
 	SetAbout(ctx context.Context, in *SetAboutRequest, opts ...grpc.CallOption) (*SetAboutResponse, error)
 }
 
@@ -179,8 +181,10 @@ func (c *liveContactServiceClient) SetAbout(ctx context.Context, in *SetAboutReq
 // LiveTestService: only by a sidecar built with -tags livetest, never in a release build.
 type LiveContactServiceServer interface {
 	// SetAbout sets the session's own account's about text with whatsmeow's SetStatusMessage (user.go:160-172), the text
-	// only: no emoji and no duration, which no read gives back (user.go:257-258). An empty text is refused. A GraphQL
-	// error comes back with its codes only, never its message. The session must be online.
+	// only: no emoji and no duration, which no read gives back (user.go:257-258). When WhatsApp answers that mutation
+	// with a GraphQL error, it sends the legacy status IQ upstream #1331 sends, the text alone (ADR 0067), and logs at
+	// info which path set it, the mutation's code and severity and the IQ's outcome, never a message. An empty text is
+	// refused. The session must be online.
 	SetAbout(context.Context, *SetAboutRequest) (*SetAboutResponse, error)
 	mustEmbedUnimplementedLiveContactServiceServer()
 }

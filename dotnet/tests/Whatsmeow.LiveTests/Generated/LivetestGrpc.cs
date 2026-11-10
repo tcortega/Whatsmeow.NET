@@ -248,8 +248,10 @@ namespace Whatsmeow.LiveTests.Control {
 
       /// <summary>
       /// SetAbout sets the session's own account's about text with whatsmeow's SetStatusMessage (user.go:160-172), the text
-      /// only: no emoji and no duration, which no read gives back (user.go:257-258). An empty text is refused. A GraphQL
-      /// error comes back with its codes only, never its message. The session must be online.
+      /// only: no emoji and no duration, which no read gives back (user.go:257-258). When WhatsApp answers that mutation
+      /// with a GraphQL error, it sends the legacy status IQ upstream #1331 sends, the text alone (ADR 0067), and logs at
+      /// info which path set it, the mutation's code and severity and the IQ's outcome, never a message. An empty text is
+      /// refused. The session must be online.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -263,8 +265,10 @@ namespace Whatsmeow.LiveTests.Control {
       }
       /// <summary>
       /// SetAbout sets the session's own account's about text with whatsmeow's SetStatusMessage (user.go:160-172), the text
-      /// only: no emoji and no duration, which no read gives back (user.go:257-258). An empty text is refused. A GraphQL
-      /// error comes back with its codes only, never its message. The session must be online.
+      /// only: no emoji and no duration, which no read gives back (user.go:257-258). When WhatsApp answers that mutation
+      /// with a GraphQL error, it sends the legacy status IQ upstream #1331 sends, the text alone (ADR 0067), and logs at
+      /// info which path set it, the mutation's code and severity and the IQ's outcome, never a message. An empty text is
+      /// refused. The session must be online.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -276,8 +280,10 @@ namespace Whatsmeow.LiveTests.Control {
       }
       /// <summary>
       /// SetAbout sets the session's own account's about text with whatsmeow's SetStatusMessage (user.go:160-172), the text
-      /// only: no emoji and no duration, which no read gives back (user.go:257-258). An empty text is refused. A GraphQL
-      /// error comes back with its codes only, never its message. The session must be online.
+      /// only: no emoji and no duration, which no read gives back (user.go:257-258). When WhatsApp answers that mutation
+      /// with a GraphQL error, it sends the legacy status IQ upstream #1331 sends, the text alone (ADR 0067), and logs at
+      /// info which path set it, the mutation's code and severity and the IQ's outcome, never a message. An empty text is
+      /// refused. The session must be online.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -291,8 +297,10 @@ namespace Whatsmeow.LiveTests.Control {
       }
       /// <summary>
       /// SetAbout sets the session's own account's about text with whatsmeow's SetStatusMessage (user.go:160-172), the text
-      /// only: no emoji and no duration, which no read gives back (user.go:257-258). An empty text is refused. A GraphQL
-      /// error comes back with its codes only, never its message. The session must be online.
+      /// only: no emoji and no duration, which no read gives back (user.go:257-258). When WhatsApp answers that mutation
+      /// with a GraphQL error, it sends the legacy status IQ upstream #1331 sends, the text alone (ADR 0067), and logs at
+      /// info which path set it, the mutation's code and severity and the IQ's outcome, never a message. An empty text is
+      /// refused. The session must be online.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>

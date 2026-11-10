@@ -178,7 +178,7 @@ func startLogging(t *testing.T, log zerolog.Logger) *harness {
 	srv := server.New(token, log, sidecarlog.NewRedactor())
 	svc := New(h.sessions)
 	whatsmeowv1.RegisterContactServiceServer(srv, svc)
-	RegisterLive(srv, svc)
+	RegisterLive(srv, svc, log)
 
 	lis := bufconn.Listen(1 << 20)
 	served := make(chan error, 1)
