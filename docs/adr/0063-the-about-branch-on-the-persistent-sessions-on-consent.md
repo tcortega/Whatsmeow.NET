@@ -66,6 +66,7 @@ A restore through it can be checked only as "the text `GetUserInfo` reads equals
   It shows nothing about an emoji, an expiry, the time the about was set or what other contacts see; a text-only restore would lose an emoji or an expiry the original had [inferred], so the consent's statement that there are none is the owner's, not the test's.
 * On the pin, the branch measures which of #1219's and #1331's descriptions holds for this account: `about_not_applied` or `about_event_missing` fail it honestly.
   A later pin with #1331 would send the legacy IQ for a text-only call; the bump re-checks these facts (ARCHITECTURE §14).
+  Measured at `c88388f983b4` on 2026-11-10 (ARCHITECTURE §14 Contacts): the mutation is refused `400` `CRITICAL` on this account, as #1331 says, and the legacy IQ (ADR 0067) changes the text the account's own read sees; the peer got no about change within 240 s of either set, so whether contacts see it stays [unknown].
 * The live session's own profile read stores its own LID pair and business name in the live store (user.go:262-275); no branch reads the live store's rows of its own account [observed: `ContactsCycle`].
 * Every contact of the business account can see its about change while it lasts.
 * The branch runs only in ADR 0062's test, so only once a main pin carries #153's fix: the test refuses `contacts_pin_known_bad` before any network use.
