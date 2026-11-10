@@ -766,7 +766,20 @@ public sealed class LiveHistoryBoundsTests(FakeSidecar fixture, SidecarBinaries 
 		return blob;
 	}
 
-	private static string[] Lines(string path) => [.. File.ReadAllLines(path).Where(l => l.Length > 0)];
+	// Sharing write: the writer may still hold the file, with FileShare.Read, which Windows holds against a reader that
+	// does not share write (File.ReadAllLines).
+	private static string[] Lines(string path)
+	{
+		using var reader = new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+		var lines = new List<string>();
+		while (reader.ReadLine() is { } line)
+		{
+			if (line.Length > 0)
+				lines.Add(line);
+		}
+
+		return [.. lines];
+	}
 
 	// Every line but the options, which has a shape of its own.
 	private static List<Row> Rows(string path) =>
