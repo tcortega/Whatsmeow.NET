@@ -24,13 +24,14 @@ Best effort, because whatsmeow answers them before or whatever the handler does,
   whatsmeow acks one only after the sidecar recorded it [observed: source, §14 Question 4], but that WhatsApp sends it again after a failed recording is [inferred], so it stays best effort until a live run measures it (ADR 0066).
   The content is recovered by WhatsApp's retry protocol: the sender's resend comes later as a normal, at least once `MessageReceived`.
   It has the same id when the sender is whatsmeow [observed: source] and, for other senders, [inferred].
-  The copy the account's own phone sends back holds back its delivery receipt until the sidecar recorded it, but its `peer_msg` receipt goes out regardless [observed: source, §7.2], so it is best effort too.
+  The copy the account's own phone sends back holds back its receipt, of type `sender` or `peer_msg`, until the sidecar recorded it [observed: source, §7.2].
+  The phone's answer is [inferred] to be a `peer` stanza, which also gets a `peer_msg` receipt regardless [observed: source, §7.2], and whether that one differs from the held-back one is [unknown], so it is best effort too.
 * `ReceiptReceived` of type `Retry`.
 * `ContactUpdated`, `ChatStateChanged` and `MediaRetryReceived`.
 * `PresenceChanged`, `ChatPresenceChanged` (typing) and `EphemeralEventsDropped`, below.
 
 Best effort means that a crash at the wrong moment can lose one: once an event is recorded, it reaches your handlers at least once like any other.
-Calls and status updates are not delivered at all (§1).
+Calls and status updates are not delivered at all, nor are the receipts of status updates (§1, §14 Messaging).
 
 ## Handlers must be idempotent
 

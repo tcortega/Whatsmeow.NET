@@ -67,7 +67,7 @@ func New(box *outbox.Outbox, log zerolog.Logger, mappers ...Mapper) *Service {
 
 // Handler is the whatsmeow event handler of one session's client (ARCHITECTURE §7.3). It maps the event, records it
 // in one short transaction, and returns true only after the commit: whatsmeow answers a gated stanza only then
-// (message.go:459-497). It returns false when the write fails or anything panics, with its own recover, because
+// (message.go:473-511). It returns false when the write fails or anything panics, with its own recover, because
 // whatsmeow's dispatchEvent turns a panic into success (client.go:1001-1015). It never calls .NET, the network or
 // media, and never returns false because no consumer is connected. An event it does not record returns true.
 // account is the client's device, which names the account in what it maps.

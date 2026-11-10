@@ -318,9 +318,9 @@ public sealed class MessagingTests(FakeSidecar fixture)
 	}
 
 	/// <summary>
-	/// #119: a grouped receipt (one per member of a group's receipt) whose message id whatsmeow did not find, as it
-	/// dispatches one at the pin: <c>handleGroupedReceipt</c> reads the id from <c>key</c>, WhatsApp sends it in
-	/// <c>message_id</c> (receipt.go:45-62; tulir/whatsmeow#1270), so the receipt covers the empty id.
+	/// #119: a grouped receipt (one per member of a group's receipt) whose message id whatsmeow did not find:
+	/// <c>handleGroupedReceipt</c> reads the id from <c>key</c>, else <c>message_id</c> (receipt.go:49-50), so a
+	/// participants node with neither gives a receipt that covers the empty id.
 	/// </summary>
 	[Fact(Timeout = Timeout)]
 	public async Task AGroupedReceiptWithoutItsMessageId_IsNeverUnreadable()

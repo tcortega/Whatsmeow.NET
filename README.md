@@ -219,6 +219,7 @@ Both samples are built and run against a fake WhatsApp in CI, and the code above
 ## What it guarantees
 
 * Decrypted messages, receipts except retry receipts, group notifications and history reach your handlers at least once, through a crash of either process; undecryptable messages, presence, typing, contact and chat state changes are best effort.
+  whatsmeow answers an undecryptable message only once the sidecar's handler returned: an ack after it recorded the message, or without recording one the client could not read, and a nack for a bot message whose secret is missing; whether WhatsApp sends it again after a failed recording is not measured, so it stays best effort.
   [Delivery](docs/guides/delivery.md) has the full list.
 * So handlers must be idempotent, with `SessionId` plus `MessageId` as the key.
 * A send whose outcome is unknown is never retried for you, and repeating a `MessageId` never sends a message twice.

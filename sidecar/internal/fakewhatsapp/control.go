@@ -94,6 +94,12 @@ func (c *Control) DeliverUndecryptableMessage(_ context.Context, req *fakev1.Del
 		return nil, fmt.Errorf("deliver undecryptable message %q: %w", req.GetId(), err)
 	}
 
+	if req.GetWithholdFirstAnswer() {
+		c.whatsApp.mu.Lock()
+		c.whatsApp.withhold[marked{req.GetSessionId(), req.GetId()}] = true
+		c.whatsApp.mu.Unlock()
+	}
+
 	client.deliverUndecryptable(evt)
 
 	return &fakev1.DeliverUndecryptableMessageResponse{}, nil

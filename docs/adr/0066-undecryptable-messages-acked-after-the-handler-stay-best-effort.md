@@ -15,8 +15,8 @@ At `79dc2a8c33df`:
 
 - whatsmeow dispatches `UndecryptableMessage` first, and a failed handler returns before the retry receipt, the ack or nack and the request to the phone, for an undecryptable, an unavailable and a missing-secret bot message [observed: message.go:324-337, 419-451].
   The sidecar's handler fails only when its outbox write fails (ARCHITECTURE §7.3), so whatsmeow acks such a message only after the write returned.
-- A failed handler on a placeholder resend's message, the phone's copy, fails the phone's protocol message, which withholds that stanza's delivery receipt [observed: message.go:938, 1194-1197].
-  Its `peer_msg` receipt, sent for a stanza of category `peer`, still goes out on a goroutine regardless [observed: message.go:948-955].
+- A failed handler on a placeholder resend's message, the phone's copy, fails the phone's protocol message, which withholds that stanza's receipt, of type `sender`, or `peer_msg` for a stanza of that type [observed: message.go:938, 1194-1197; receipt.go:287-291].
+  A stanza of category `peer` also gets a `peer_msg` receipt on a goroutine regardless [observed: message.go:948-955]; that the phone's answer is such a stanza is [inferred], and whether that receipt differs from the withheld one is [unknown].
 - That WhatsApp delivers an unanswered stanza again at the next login is [observed] only for decrypted messages (ARCHITECTURE §14 Question 4, the #10 live runs).
   For an undecryptable message it is [inferred]: WhatsApp's server cannot tell whether a stanza was decryptable, so it should treat the missing ack the same way, but nobody has measured it.
   For the phone's copy it is [unknown], since one of its two receipts goes out anyway.
@@ -32,4 +32,5 @@ At `79dc2a8c33df`:
 
 - An undecryptable message whose write failed is now probably delivered again instead of lost, and it may then decrypt and arrive as `MessageReceived`; the application must not count on either until a live run measures it.
 - A live run that withholds the answer to an undecryptable message and sees it again at a login would let a later ADR widen the guarantee; the phone's copy would need its own measurement.
+- whatsmeow's own buffer failing (`ErrEventBufferDB`, message.go:420-422) dispatches nothing, so no handler fails and the sidecar's redelivery is not woken: whatsmeow answers nothing, and the stanza waits until the next login [inferred]. It takes a disk failure, so nothing covers it.
 - ADR 0022's "the phone's copy is not gated" holds for the guarantee, not for whatsmeow's delivery receipt at this pin.

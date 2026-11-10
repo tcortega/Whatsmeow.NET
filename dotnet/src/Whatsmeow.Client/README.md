@@ -124,7 +124,7 @@ Once pairing yields `Paired`, the session is connected and its events flow: ther
 ## Guarantees
 
 Decrypted messages, receipts except retry receipts, group notifications and history reach your handlers at least once, through a crash of either process; undecryptable messages, presence, typing, contact and chat state changes are best effort.
-whatsmeow now acks an undecryptable message only after the sidecar recorded it, but that WhatsApp sends it again after a failed recording is not measured yet, so it stays best effort.
+whatsmeow answers an undecryptable message only once the sidecar's handler returned: an ack after it recorded the message, or without recording one the client could not read, and a nack for a bot message whose secret is missing; whether WhatsApp sends it again after a failed recording is not measured, so it stays best effort.
 Handlers must be idempotent, with `SessionId` plus `MessageId` as the key.
 [Delivery](https://github.com/tcortega/Whatsmeow.NET/blob/main/docs/guides/delivery.md) has the details and the evidence.
 

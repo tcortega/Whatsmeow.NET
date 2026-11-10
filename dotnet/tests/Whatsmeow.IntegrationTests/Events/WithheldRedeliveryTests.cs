@@ -1,3 +1,4 @@
+using Google.Protobuf.WellKnownTypes;
 using Whatsmeow.Events;
 using Whatsmeow.IntegrationTests.Fake;
 using Whatsmeow.IntegrationTests.Sessions;
@@ -63,4 +64,49 @@ public sealed class WithheldRedeliveryTests(FakeSidecar fixture)
 
 		Assert.Equal(["M2", "M1"], receipts);
 	}
+
+	/// <summary>
+	/// whatsmeow acks an undecryptable message only after the sidecar recorded it (ADR 0066), so a failed recording
+	/// withholds its answer like a message's, and the sidecar's reset brings it again. That WhatsApp delivers it again
+	/// is the fake's model, [inferred] for real WhatsApp (ADR 0066).
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task FullCycle_AWithheldUndecryptableMessage_IsRecordedOnceAfterTheReset()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "events-withheld-undecryptable";
+		var client = await SessionSetup.LinkedAsync(fixture, Session, ct);
+		using var undecryptable = new Received<UndecryptableMessageReceived>(client);
+		using var received = new Received<MessageReceived>(client);
+		using var states = new Received<SessionStateChanged>(client);
+		await client.ConnectAsync(ct);
+		for (var state = (await states.NextAsync(ct)).State; state != new SessionState.Connected(); state = (await states.NextAsync(ct)).State)
+			Assert.True(state is SessionState.Disconnected or SessionState.Connecting, $"state {state} before Connected");
+
+		var start = s_wallClock.GetTimestamp();
+		_ = await fixture.Fake.DeliverUndecryptableMessageAsync(Undecryptable(Session, "U1", withhold: true), cancellationToken: ct);
+		await Deliveries.DeliverAsync(fixture.Fake, Session, ct, "M2");
+
+		// M2 was recorded on the same connection; U1 only once the sidecar reset it and WhatsApp delivered it again.
+		Assert.Equal(Deliveries.Received(Session, "M2"), await received.NextAsync(ct));
+		Assert.Equal(new SessionState.Reconnecting(), (await states.NextAsync(ct).WaitAsync(s_bound, s_wallClock, ct)).State);
+		Assert.Equal(new SessionState.Connected(), (await states.NextAsync(ct)).State);
+		Assert.Equal("U1", (await undecryptable.NextAsync(ct).WaitAsync(s_bound, s_wallClock, ct)).Id.Value);
+		Assert.True(s_wallClock.GetElapsedTime(start) < s_bound, $"U1 came again after {s_wallClock.GetElapsedTime(start)}");
+
+		// Recorded once: the next undecryptable message the application sees is a new one, not U1 again.
+		_ = await fixture.Fake.DeliverUndecryptableMessageAsync(Undecryptable(Session, "U2", withhold: false), cancellationToken: ct);
+		Assert.Equal("U2", (await undecryptable.NextAsync(ct)).Id.Value);
+	}
+
+	private static DeliverUndecryptableMessageRequest Undecryptable(string session, string id, bool withhold) =>
+		new()
+		{
+			SessionId = session,
+			Id = id,
+			Chat = Deliveries.Chat,
+			Sender = Deliveries.Chat,
+			MessageTime = Timestamp.FromDateTimeOffset(Deliveries.At),
+			WithholdFirstAnswer = withhold,
+		};
 }

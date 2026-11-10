@@ -49,7 +49,8 @@ type WhatsApp struct {
 	expired  map[string]int32
 	// retries are the media retry receipts the phone has not answered, by session and message id.
 	retries map[string]retryRequest
-	// withhold are the messages DeliverMessage marked to fail their first recording (Failing).
+	// withhold are the messages DeliverMessage or DeliverUndecryptableMessage marked to fail their first recording
+	// (Failing).
 	withhold map[marked]bool
 	// pairingProps is the store.DeviceProps each session's latest pairing sent (history.go).
 	pairingProps map[string]*waCompanionReg.DeviceProps
@@ -148,8 +149,8 @@ func (w *WhatsApp) NewClient(sessionID string) *Client {
 
 // deliverMessage has the session's client learn what the message's info carries (learn), dispatches the decrypted
 // parts of one message stanza to it, in order, and records what whatsmeow answers at the pin: nothing when a handler
-// of any part failed (message.go:459-462), and WhatsApp delivers it again at the next login (Client.logIn),
-// otherwise one receipt (message.go:489-495), of the type receiptType says.
+// of any part failed (message.go:473-476), and WhatsApp delivers it again at the next login (Client.logIn),
+// otherwise one receipt (message.go:503-509), of the type receiptType says.
 func (w *WhatsApp) deliverMessage(ctx context.Context, sessionID string, parts ...*events.Message) error {
 	w.mu.Lock()
 	c, ok := w.clients[sessionID]
@@ -283,13 +284,20 @@ func (w *WhatsApp) waiters() int {
 	return w.waiting
 }
 
-// Failing wraps a session's event handler h so that the first delivery of each message DeliverMessage marked
-// withhold_first_answer fails without running h, as a failed outbox write fails it; every later delivery runs h.
-// cmd/whatsmeow-net wraps the Events slice's handler with it in fake mode (ADR 0044).
+// Failing wraps a session's event handler h so that the first delivery of each message DeliverMessage or
+// DeliverUndecryptableMessage marked withhold_first_answer fails without running h, as a failed outbox write fails it;
+// every later delivery runs h. cmd/whatsmeow-net wraps the Events slice's handler with it in fake mode (ADR 0044).
 func (w *WhatsApp) Failing(sessionID string, h whatsmeow.EventHandlerWithSuccessStatus) whatsmeow.EventHandlerWithSuccessStatus {
 	return func(evt any) bool {
-		if msg, ok := evt.(*events.Message); ok && w.takeWithhold(sessionID, msg.Info.ID) {
-			return false
+		switch e := evt.(type) {
+		case *events.Message:
+			if w.takeWithhold(sessionID, e.Info.ID) {
+				return false
+			}
+		case *events.UndecryptableMessage:
+			if w.takeWithhold(sessionID, e.Info.ID) {
+				return false
+			}
 		}
 
 		return h(evt)

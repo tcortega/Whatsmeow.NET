@@ -15,7 +15,7 @@ import "waWeb/WAWebProtobufsWeb.proto";
 service FakeWhatsAppService {
   // DeliverMessage makes WhatsApp deliver a decrypted message to a session's client, and returns once the client's
   // event handlers ran. As whatsmeow does at the pin, the client answers with a receipt only when every handler
-  // succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A message left unanswered is delivered again
+  // succeeded (message.go:473-476, 503-509); that shows in WaitForSent. A message left unanswered is delivered again
   // at the device's next login, and never while the connection stays up, as measured live (ARCHITECTURE §14, #10).
   // A session without a client is an error: the fake never answers on behalf of a client the sidecar did not create.
   rpc DeliverMessage(DeliverMessageRequest) returns (DeliverMessageResponse);
@@ -158,8 +158,8 @@ service FakeWhatsAppService {
 
   // DeliverReceipt makes WhatsApp deliver a receipt to a session's client, and returns once the client's event
   // handlers ran. With SynchronousAck, whatsmeow acks a receipt only when every handler succeeded
-  // (maybeDeferredAck, receipt.go:21-43, 115-128); a retry receipt it acks inside its retry handler, before the
-  // dispatch, whatever the handlers return (receipt.go:34-38, retry.go:184-192). The ack shows in WaitForSent. A
+  // (maybeDeferredAck, receipt.go:22-44, 120-133); a retry receipt it acks inside its retry handler, before the
+  // dispatch, whatever the handlers return (receipt.go:35-39, retry.go:184-192). The ack shows in WaitForSent. A
   // session without a client is an error.
   rpc DeliverReceipt(DeliverReceiptRequest) returns (DeliverReceiptResponse);
 
@@ -189,7 +189,7 @@ service FakeWhatsAppService {
   // DeliverGroupNotification makes WhatsApp send the session's client a w:gp2 notification of a change to a group,
   // which need not be on WhatsApp's side. The client dispatches GroupInfo on its node queue, and returns once the
   // handlers ran; as whatsmeow does, it acks the notification only when every handler succeeded
-  // (notification.go:495-508, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
+  // (notification.go:495-508, maybeDeferredAck receipt.go:120-133), and the ack, of class "notification", the
   // request's id and type "w:gp2", shows in WaitForSent. The group calls' notifications are acked the same way. A
   // session without a client is an error.
   //
@@ -498,10 +498,10 @@ message DeliverMessageRequest {
   google.protobuf.Timestamp message_time = 10;
   // True for a group message as whatsmeow sends one with a new sender key (send.go:795-831): the stanza's pkmsg part
   // decrypts to only the sender key, and its skmsg part to the content. The client dispatches a Message for each, with
-  // the same info, in that order (message.go:355-497, 1181-1187), and answers once, after both.
+  // the same info, in that order (message.go:359-511, 1193-1199), and answers once, after both.
   bool sender_key = 11;
   // The message as WhatsApp sends it, wrappers included, instead of text: the client dispatches it unwrapped by
-  // whatsmeow's own events.Message.UnwrapRaw, as whatsmeow does (message.go:1181-1187). Unset sends text.
+  // whatsmeow's own events.Message.UnwrapRaw, as whatsmeow does (message.go:1193-1199). Unset sends text.
   WAWebProtobufsE2E.Message message = 12;
   // True to fail the sidecar's own recording of this message's first delivery, as a failed outbox write would: in
   // fake mode the sidecar's Events handler fails it without recording it, so its answer is withheld and the sidecar's
@@ -553,6 +553,10 @@ message DeliverUndecryptableMessageRequest {
   bool unavailable = 7;
   // The unavailable stanza's type attribute, whatsmeow's UnavailableType: "view_once", or empty for none.
   string unavailable_type = 8;
+  // True to fail the sidecar's own recording of this message's first delivery, as a failed outbox write would: in
+  // fake mode the sidecar's Events handler fails it without recording it, so its answer is withheld and the sidecar's
+  // redelivery runs (ADR 0044, ADR 0066). Every later delivery of it is recorded.
+  bool withhold_first_answer = 9;
 }
 
 // DeliverUndecryptableMessageResponse has no fields.
@@ -1022,8 +1026,8 @@ message DeliverGroupNotificationRequest {
   // The notification's stanza id, which its ack names.
   string id = 15;
   // The new member add mode, as WhatsApp names it ("admin_add", "all_member_add"): a member_add_mode child, which
-  // whatsmeow does not parse and leaves in UnknownChanges with the mode as its content (group.go:1006-1007)
-  // [inferred: the child is named and filled as the IQ that sets it, group.go:1084-1097].
+  // whatsmeow does not parse and leaves in UnknownChanges with the mode as its content (group.go:1008-1009)
+  // [inferred: the child is named and filled as the IQ that sets it, group.go:1086-1099].
   optional string member_add_mode = 16;
   // The new disappearing messages timer; zero turns them off.
   optional google.protobuf.Duration disappearing_timer = 17;
