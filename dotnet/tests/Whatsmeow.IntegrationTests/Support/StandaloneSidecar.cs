@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Whatsmeow.Sidecar;
 
 namespace Whatsmeow.IntegrationTests.Support;
 
@@ -144,7 +145,7 @@ public sealed class StandaloneSidecar : IAsyncDisposable
 			// Already gone.
 		}
 
-		await _process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
+		await ProcessExit.WaitAsync(_process).ConfigureAwait(false);
 		await _forwarding.ConfigureAwait(false);
 	}
 

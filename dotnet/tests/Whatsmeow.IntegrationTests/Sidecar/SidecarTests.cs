@@ -118,6 +118,21 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 	}
 
 	[Fact(Timeout = Timeout)]
+	public async Task Start_Fails_TheBinaryCanBeDeletedAtOnce()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var stub = binaries.Stage(binaries.WrongNonceStub);
+		var options = new WhatsmeowSidecarOptions { SidecarPath = stub, StartupTimeout = s_stubStartupTimeout };
+
+		_ = await Assert.ThrowsAsync<SidecarUnavailableException>(() => WhatsmeowSidecar.StartAsync(options, ct));
+
+		// The failed start killed the stub. On Windows its image stays mapped until it is gone, and deleting it fails
+		// until then (#179).
+		File.Delete(stub);
+		Assert.False(File.Exists(stub));
+	}
+
+	[Fact(Timeout = Timeout)]
 	public async Task Start_AReadyLineWithAnotherNonce_NeverUsesThatSidecar()
 	{
 		var ct = TestContext.Current.CancellationToken;
