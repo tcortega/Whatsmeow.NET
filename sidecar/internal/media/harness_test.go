@@ -60,6 +60,8 @@ type stub struct {
 	onReceipt func()
 	// uploadErr and downloadErr, when set, are what every upload attempt and download returns.
 	uploadErr, downloadErr error
+	// tee, when set, gets every byte an upload reads from the plaintext and a download writes to the file.
+	tee io.Writer
 }
 
 type receipt struct {
@@ -93,6 +95,12 @@ func (s *stub) UploadReader(_ context.Context, plaintext io.Reader, tempFile io.
 		s.temps = append(s.temps, f.Name())
 		s.mu.Unlock()
 	}
+
+	s.mu.Lock()
+	if s.tee != nil {
+		plaintext = io.TeeReader(plaintext, s.tee)
+	}
+	s.mu.Unlock()
 
 	plain, enc := sha256.New(), sha256.New()
 
@@ -157,7 +165,7 @@ func (s *stub) DownloadMediaWithPathToFile(ctx context.Context, directPath strin
 	_ string, _ bool, file whatsmeow.File,
 ) error {
 	s.mu.Lock()
-	key, expired, corrupt, badSHA, hold, held, downloadErr := s.keys[directPath], s.expired[directPath], s.corrupt[directPath], s.badSHA[directPath], s.hold, s.held, s.downloadErr
+	key, expired, corrupt, badSHA, hold, held, downloadErr, tee := s.keys[directPath], s.expired[directPath], s.corrupt[directPath], s.badSHA[directPath], s.hold, s.held, s.downloadErr, s.tee
 	s.hold = false
 	s.mu.Unlock()
 
@@ -183,8 +191,13 @@ func (s *stub) DownloadMediaWithPathToFile(ctx context.Context, directPath strin
 		return ctx.Err() //nolint:wrapcheck // as whatsmeow returns it
 	}
 
+	var from io.Reader = blob
+	if tee != nil {
+		from = io.TeeReader(blob, tee)
+	}
+
 	enc := sha256.New()
-	if _, err := io.Copy(io.MultiWriter(file, enc), blob); err != nil {
+	if _, err := io.Copy(io.MultiWriter(file, enc), from); err != nil {
 		return fmt.Errorf("download: %w", err)
 	}
 

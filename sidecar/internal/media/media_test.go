@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
 	"runtime/metrics"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -549,10 +551,11 @@ func TestAClientWithoutMediaIsInternal(t *testing.T) {
 	wantReason(t, err, codes.Internal, "INTERNAL", "")
 }
 
-// TestTransfersOfHundredsOfMiBKeepTheHeapFlat sends 256 MiB up in chunks and back down in chunks, and samples the
-// heap meanwhile: the slice holds a chunk at a time, never the file (ARCHITECTURE invariant 8).
+// TestTransfersOfHundredsOfMiBKeepTheHeapFlat sends 256 MiB up in chunks and back down in chunks, and measures the
+// live heap every 32 MiB of each leg: the client sending, the stub reading the spool, the stub writing the download's
+// file, and the client receiving. The slice holds a chunk at a time, never the file (ARCHITECTURE invariant 8).
 //
-// It is not parallel: the package's other tests would share the heap it samples. Go runs it before any parallel one.
+// It is not parallel: the package's other tests would share the heap it measures. Go runs it before any parallel one.
 func TestTransfersOfHundredsOfMiBKeepTheHeapFlat(t *testing.T) {
 	h := start(t)
 
@@ -561,25 +564,9 @@ func TestTransfersOfHundredsOfMiBKeepTheHeapFlat(t *testing.T) {
 	source := filepath.Join(t.TempDir(), "big.bin")
 	writeRandomFile(t, source, size)
 
-	runtime.GC()
-
-	baseline := heapInUse()
-	peak := baseline
-	done := make(chan struct{})
-	sampled := make(chan struct{})
-
-	go func() {
-		defer close(sampled)
-
-		for {
-			select {
-			case <-done:
-				return
-			case <-time.After(5 * time.Millisecond):
-				peak = max(peak, heapInUse())
-			}
-		}
-	}()
+	m := &meter{}
+	baseline := m.live()
+	h.stub.tee = m
 
 	in, err := os.Open(source) //nolint:gosec // G304: the test's own file
 	if err != nil {
@@ -587,29 +574,67 @@ func TestTransfersOfHundredsOfMiBKeepTheHeapFlat(t *testing.T) {
 	}
 	defer func() { _ = in.Close() }()
 
-	media, err := h.uploadChunks(h.ctx, in, 64<<10)
+	media, err := h.uploadChunks(h.ctx, io.TeeReader(in, m), 64<<10)
 	if err != nil {
 		t.Fatalf("UploadMedia: %v", err)
 	}
 
 	hash := sha256.New()
-	if _, err := h.downloadChunks(h.ctx, media, hash); err != nil {
+	if _, err := h.downloadChunks(h.ctx, media, io.MultiWriter(hash, m)); err != nil {
 		t.Fatalf("DownloadMedia: %v", err)
 	}
-
-	close(done)
-	<-sampled
 
 	if !bytes.Equal(hash.Sum(nil), media.GetFileSha256()) {
 		t.Fatal("the download differs from the upload")
 	}
 
+	if m.measures != 4*size/meterStep {
+		t.Fatalf("measured %d times, want once per 32 MiB of each leg", m.measures)
+	}
+
 	// The test's own client, the stub's server and gRPC's windows share this heap; a file's worth would be 256 MiB.
-	if growth := peak - baseline; growth > 64<<20 {
+	growth := max(m.peak, baseline) - baseline
+	if growth > 64<<20 {
 		t.Fatalf("the heap grew by %d MiB during a 256 MiB transfer", growth>>20)
 	}
 
-	t.Logf("heap growth during the 256 MiB transfer: %d MiB", (peak-baseline)>>20)
+	t.Logf("heap growth during the 256 MiB transfer: %d MiB", growth>>20)
+}
+
+// meterStep is how many bytes a meter lets through between measures.
+const meterStep = 32 << 20
+
+// meter measures the live heap each time another meterStep bytes are written to it, and keeps the highest. The
+// transfer waits while it measures: a GC counts what is allocated during its mark as live (runtime gcmarknewobject),
+// so on a starved runner a heap sampled while the transfer ran read 65 MiB of garbage that the next GC freed (#177).
+type meter struct {
+	mu       sync.Mutex
+	written  int
+	measures int
+	peak     uint64
+}
+
+func (m *meter) Write(p []byte) (int, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if (m.written+len(p))/meterStep > m.written/meterStep {
+		m.measures++
+		m.peak = max(m.peak, m.live())
+	}
+
+	m.written += len(p)
+
+	return len(p), nil
+}
+
+// live is the heap two GCs found live. The first lets what was in flight when the leg paused settle, at most gRPC's
+// windows; the second marks with the transfer still.
+func (*meter) live() uint64 {
+	runtime.GC()
+	runtime.GC()
+
+	return heapInUse()
 }
 
 func writeRandomFile(t *testing.T, path string, size int) {
