@@ -118,8 +118,8 @@ type UnavailableType int32
 const (
 	// No type, or a type this list does not have.
 	UnavailableType_UNAVAILABLE_TYPE_UNSPECIFIED UnavailableType = 0
-	// A view-once message. whatsmeow asks the phone for it (message.go:327-330) and dispatches an answer as a normal
-	// message (message.go:879-886); whether the phone answers for a view-once is unknown, #36 checks it live.
+	// A view-once message. whatsmeow asks the phone for it (message.go:333-336) and dispatches an answer as a normal
+	// message (message.go:891-898); whether the phone answers for a view-once is unknown, #36 checks it live.
 	UnavailableType_UNAVAILABLE_TYPE_VIEW_ONCE UnavailableType = 1
 )
 
@@ -791,8 +791,9 @@ type UndecryptableMessageEvent struct {
 	Info *MessageInfo `protobuf:"bytes,1,opt,name=info,proto3" json:"info,omitempty"`
 	// True when the sender asked not to show a "waiting for this message" placeholder.
 	HidePlaceholder bool `protobuf:"varint,2,opt,name=hide_placeholder,json=hidePlaceholder,proto3" json:"hide_placeholder,omitempty"`
-	// True when the sender's device sent this device no ciphertext at all. whatsmeow then asks the account's phone for
-	// it, and acknowledges the message whatever the handler does (message.go:324-333), so it is best effort.
+	// True when the sender's device sent this device no ciphertext at all. Once the sidecar recorded the event,
+	// whatsmeow asks the account's phone for it and acknowledges the message (message.go:324-337); that WhatsApp sends
+	// it again after a failed recording is not measured, so it is best effort (ADR 0065).
 	Unavailable bool `protobuf:"varint,3,opt,name=unavailable,proto3" json:"unavailable,omitempty"`
 	// Why it is unavailable, when WhatsApp said; unspecified when it did not, or for a message that is not unavailable.
 	UnavailableType UnavailableType `protobuf:"varint,4,opt,name=unavailable_type,json=unavailableType,proto3,enum=whatsmeow.v1.UnavailableType" json:"unavailable_type,omitempty"`

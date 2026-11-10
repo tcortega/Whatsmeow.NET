@@ -49,7 +49,8 @@ type WhatsApp struct {
 	expired  map[string]int32
 	// retries are the media retry receipts the phone has not answered, by session and message id.
 	retries map[string]retryRequest
-	// withhold are the messages DeliverMessage marked to fail their first recording (Failing).
+	// withhold are the messages DeliverMessage or DeliverUndecryptableMessage marked to fail their first recording
+	// (Failing).
 	withhold map[marked]bool
 	// pairingProps is the store.DeviceProps each session's latest pairing sent (history.go).
 	pairingProps map[string]*waCompanionReg.DeviceProps
@@ -148,8 +149,8 @@ func (w *WhatsApp) NewClient(sessionID string) *Client {
 
 // deliverMessage has the session's client learn what the message's info carries (learn), dispatches the decrypted
 // parts of one message stanza to it, in order, and records what whatsmeow answers at the pin: nothing when a handler
-// of any part failed (message.go:459-462), and WhatsApp delivers it again at the next login (Client.logIn),
-// otherwise one receipt (message.go:489-495), of the type receiptType says.
+// of any part failed (message.go:473-476), and WhatsApp delivers it again at the next login (Client.logIn),
+// otherwise one receipt (message.go:503-509), of the type receiptType says.
 func (w *WhatsApp) deliverMessage(ctx context.Context, sessionID string, parts ...*events.Message) error {
 	w.mu.Lock()
 	c, ok := w.clients[sessionID]
@@ -181,7 +182,7 @@ func (c *Client) deliver(parts []*events.Message) {
 	for _, part := range parts {
 		if c.dispatch(part) {
 			c.conn.Lock()
-			c.unanswered = append(c.unanswered, parts)
+			c.unanswered = append(c.unanswered, func() { c.deliver(parts) })
 			c.conn.Unlock()
 
 			return
@@ -191,6 +192,22 @@ func (c *Client) deliver(parts []*events.Message) {
 	info := &parts[len(parts)-1].Info
 	receipt := &fakev1.Receipt{Id: info.ID, Type: c.receiptType(info)}
 	c.whatsApp.append(&fakev1.Sent{SessionId: c.sessionID, Kind: &fakev1.Sent_Receipt{Receipt: receipt}})
+}
+
+// deliverUndecryptable dispatches a message whatsmeow could not decrypt, which it answers, with an ack and a retry
+// receipt the fake does not record, only once every handler succeeded [observed: message.go:324-337, 419-451];
+// otherwise the stanza is left unanswered, and the fake has WhatsApp deliver it again at the next login. That
+// redelivery is [observed] for a decrypted message's withheld answer (ARCHITECTURE §14 Question 4, the #10 live runs)
+// and [inferred] for an undecryptable one: the server cannot tell whether a stanza was decryptable, but nobody has
+// measured it (ADR 0065).
+func (c *Client) deliverUndecryptable(evt *events.UndecryptableMessage) {
+	if !c.dispatch(evt) {
+		return
+	}
+
+	c.conn.Lock()
+	c.unanswered = append(c.unanswered, func() { c.deliverUndecryptable(evt) })
+	c.conn.Unlock()
 }
 
 // client returns the session's client.
@@ -267,13 +284,20 @@ func (w *WhatsApp) waiters() int {
 	return w.waiting
 }
 
-// Failing wraps a session's event handler h so that the first delivery of each message DeliverMessage marked
-// withhold_first_answer fails without running h, as a failed outbox write fails it; every later delivery runs h.
-// cmd/whatsmeow-net wraps the Events slice's handler with it in fake mode (ADR 0044).
+// Failing wraps a session's event handler h so that the first delivery of each message DeliverMessage or
+// DeliverUndecryptableMessage marked withhold_first_answer fails without running h, as a failed outbox write fails it;
+// every later delivery runs h. cmd/whatsmeow-net wraps the Events slice's handler with it in fake mode (ADR 0044).
 func (w *WhatsApp) Failing(sessionID string, h whatsmeow.EventHandlerWithSuccessStatus) whatsmeow.EventHandlerWithSuccessStatus {
 	return func(evt any) bool {
-		if msg, ok := evt.(*events.Message); ok && w.takeWithhold(sessionID, msg.Info.ID) {
-			return false
+		switch e := evt.(type) {
+		case *events.Message:
+			if w.takeWithhold(sessionID, e.Info.ID) {
+				return false
+			}
+		case *events.UndecryptableMessage:
+			if w.takeWithhold(sessionID, e.Info.ID) {
+				return false
+			}
 		}
 
 		return h(evt)

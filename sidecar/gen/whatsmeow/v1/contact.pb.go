@@ -829,7 +829,8 @@ func (x *ListContactsResponse) GetContacts() []*Contact {
 	return nil
 }
 
-// Contact is one contact as WhatsApp synced it. An empty name is one WhatsApp did not sync.
+// Contact is one contact as WhatsApp synced it. An empty name is one WhatsApp did not sync; at the pin, removing a
+// contact clears its saved name (appstate.go:303-310).
 type Contact struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The contact's JID.

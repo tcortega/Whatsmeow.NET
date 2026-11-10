@@ -157,7 +157,8 @@ func historyVote(u *waWeb.PollUpdate, poll *types.MessageInfo, account *store.De
 
 // voter is who sent the message a history key names, as ParseWebMessage reads a history message's sender
 // (client.go:1045-1064): the account when the key says so, by its LID in a LID chat and by its phone number otherwise,
-// else the chat in a direct chat, else the key's participant as a user's JID. false for one that names none.
+// else the chat in a direct, newsletter or bot chat, else the key's participant as a user's JID. false for one that
+// names none.
 func voter(k *waCommon.MessageKey, chat types.JID, account *store.Device) (types.JID, bool) {
 	if k.GetFromMe() {
 		own := account.GetJID()
@@ -169,7 +170,7 @@ func voter(k *waCommon.MessageKey, chat types.JID, account *store.Device) (types
 	}
 
 	switch chat.Server {
-	case types.DefaultUserServer, types.HiddenUserServer, types.NewsletterServer:
+	case types.DefaultUserServer, types.HiddenUserServer, types.NewsletterServer, types.BotServer:
 		return chat, true
 	default:
 		return participant(k.GetParticipant())

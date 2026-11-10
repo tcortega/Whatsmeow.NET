@@ -629,7 +629,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// DeliverMessage makes WhatsApp deliver a decrypted message to a session's client, and returns once the client's
       /// event handlers ran. As whatsmeow does at the pin, the client answers with a receipt only when every handler
-      /// succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A message left unanswered is delivered again
+      /// succeeded (message.go:473-476, 503-509); that shows in WaitForSent. A message left unanswered is delivered again
       /// at the device's next login, and never while the connection stays up, as measured live (ARCHITECTURE §14, #10).
       /// A session without a client is an error: the fake never answers on behalf of a client the sidecar did not create.
       /// </summary>
@@ -646,7 +646,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// DeliverMessage makes WhatsApp deliver a decrypted message to a session's client, and returns once the client's
       /// event handlers ran. As whatsmeow does at the pin, the client answers with a receipt only when every handler
-      /// succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A message left unanswered is delivered again
+      /// succeeded (message.go:473-476, 503-509); that shows in WaitForSent. A message left unanswered is delivered again
       /// at the device's next login, and never while the connection stays up, as measured live (ARCHITECTURE §14, #10).
       /// A session without a client is an error: the fake never answers on behalf of a client the sidecar did not create.
       /// </summary>
@@ -661,7 +661,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// DeliverMessage makes WhatsApp deliver a decrypted message to a session's client, and returns once the client's
       /// event handlers ran. As whatsmeow does at the pin, the client answers with a receipt only when every handler
-      /// succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A message left unanswered is delivered again
+      /// succeeded (message.go:473-476, 503-509); that shows in WaitForSent. A message left unanswered is delivered again
       /// at the device's next login, and never while the connection stays up, as measured live (ARCHITECTURE §14, #10).
       /// A session without a client is an error: the fake never answers on behalf of a client the sidecar did not create.
       /// </summary>
@@ -678,7 +678,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// DeliverMessage makes WhatsApp deliver a decrypted message to a session's client, and returns once the client's
       /// event handlers ran. As whatsmeow does at the pin, the client answers with a receipt only when every handler
-      /// succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A message left unanswered is delivered again
+      /// succeeded (message.go:473-476, 503-509); that shows in WaitForSent. A message left unanswered is delivered again
       /// at the device's next login, and never while the connection stays up, as measured live (ARCHITECTURE §14, #10).
       /// A session without a client is an error: the fake never answers on behalf of a client the sidecar did not create.
       /// </summary>
@@ -768,9 +768,11 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
-      /// the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches
-      /// UndecryptableMessage, whatever the handlers return (message.go:418-437); the fake records neither. A resend that
-      /// decrypts is a DeliverMessage with the same id. A session without a client is an error.
+      /// the client's event handlers ran. whatsmeow dispatches UndecryptableMessage first and sends its retry receipt and
+      /// ack only when every handler succeeded (message.go:324-337, 419-451); the fake records neither. One left
+      /// unanswered is delivered again at the device's next login, as DeliverMessage's is, which is [inferred] for an
+      /// undecryptable message and [observed] only for a decrypted one (ARCHITECTURE §14, ADR 0065). A resend that decrypts
+      /// is a DeliverMessage with the same id. A session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -784,9 +786,11 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
-      /// the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches
-      /// UndecryptableMessage, whatever the handlers return (message.go:418-437); the fake records neither. A resend that
-      /// decrypts is a DeliverMessage with the same id. A session without a client is an error.
+      /// the client's event handlers ran. whatsmeow dispatches UndecryptableMessage first and sends its retry receipt and
+      /// ack only when every handler succeeded (message.go:324-337, 419-451); the fake records neither. One left
+      /// unanswered is delivered again at the device's next login, as DeliverMessage's is, which is [inferred] for an
+      /// undecryptable message and [observed] only for a decrypted one (ARCHITECTURE §14, ADR 0065). A resend that decrypts
+      /// is a DeliverMessage with the same id. A session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -798,9 +802,11 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
-      /// the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches
-      /// UndecryptableMessage, whatever the handlers return (message.go:418-437); the fake records neither. A resend that
-      /// decrypts is a DeliverMessage with the same id. A session without a client is an error.
+      /// the client's event handlers ran. whatsmeow dispatches UndecryptableMessage first and sends its retry receipt and
+      /// ack only when every handler succeeded (message.go:324-337, 419-451); the fake records neither. One left
+      /// unanswered is delivered again at the device's next login, as DeliverMessage's is, which is [inferred] for an
+      /// undecryptable message and [observed] only for a decrypted one (ARCHITECTURE §14, ADR 0065). A resend that decrypts
+      /// is a DeliverMessage with the same id. A session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -814,9 +820,11 @@ namespace Whatsmeow.IntegrationTests.Fake {
       }
       /// <summary>
       /// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
-      /// the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches
-      /// UndecryptableMessage, whatever the handlers return (message.go:418-437); the fake records neither. A resend that
-      /// decrypts is a DeliverMessage with the same id. A session without a client is an error.
+      /// the client's event handlers ran. whatsmeow dispatches UndecryptableMessage first and sends its retry receipt and
+      /// ack only when every handler succeeded (message.go:324-337, 419-451); the fake records neither. One left
+      /// unanswered is delivered again at the device's next login, as DeliverMessage's is, which is [inferred] for an
+      /// undecryptable message and [observed] only for a decrypted one (ARCHITECTURE §14, ADR 0065). A resend that decrypts
+      /// is a DeliverMessage with the same id. A session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -2205,8 +2213,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// DeliverReceipt makes WhatsApp deliver a receipt to a session's client, and returns once the client's event
       /// handlers ran. With SynchronousAck, whatsmeow acks a receipt only when every handler succeeded
-      /// (maybeDeferredAck, receipt.go:21-43, 115-128); a retry receipt it acks inside its retry handler, before the
-      /// dispatch, whatever the handlers return (receipt.go:34-38, retry.go:184-192). The ack shows in WaitForSent. A
+      /// (maybeDeferredAck, receipt.go:22-44, 120-133); a retry receipt it acks inside its retry handler, before the
+      /// dispatch, whatever the handlers return (receipt.go:35-39, retry.go:184-192). The ack shows in WaitForSent. A
       /// session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -2222,8 +2230,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// DeliverReceipt makes WhatsApp deliver a receipt to a session's client, and returns once the client's event
       /// handlers ran. With SynchronousAck, whatsmeow acks a receipt only when every handler succeeded
-      /// (maybeDeferredAck, receipt.go:21-43, 115-128); a retry receipt it acks inside its retry handler, before the
-      /// dispatch, whatever the handlers return (receipt.go:34-38, retry.go:184-192). The ack shows in WaitForSent. A
+      /// (maybeDeferredAck, receipt.go:22-44, 120-133); a retry receipt it acks inside its retry handler, before the
+      /// dispatch, whatever the handlers return (receipt.go:35-39, retry.go:184-192). The ack shows in WaitForSent. A
       /// session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -2237,8 +2245,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// DeliverReceipt makes WhatsApp deliver a receipt to a session's client, and returns once the client's event
       /// handlers ran. With SynchronousAck, whatsmeow acks a receipt only when every handler succeeded
-      /// (maybeDeferredAck, receipt.go:21-43, 115-128); a retry receipt it acks inside its retry handler, before the
-      /// dispatch, whatever the handlers return (receipt.go:34-38, retry.go:184-192). The ack shows in WaitForSent. A
+      /// (maybeDeferredAck, receipt.go:22-44, 120-133); a retry receipt it acks inside its retry handler, before the
+      /// dispatch, whatever the handlers return (receipt.go:35-39, retry.go:184-192). The ack shows in WaitForSent. A
       /// session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -2254,8 +2262,8 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// <summary>
       /// DeliverReceipt makes WhatsApp deliver a receipt to a session's client, and returns once the client's event
       /// handlers ran. With SynchronousAck, whatsmeow acks a receipt only when every handler succeeded
-      /// (maybeDeferredAck, receipt.go:21-43, 115-128); a retry receipt it acks inside its retry handler, before the
-      /// dispatch, whatever the handlers return (receipt.go:34-38, retry.go:184-192). The ack shows in WaitForSent. A
+      /// (maybeDeferredAck, receipt.go:22-44, 120-133); a retry receipt it acks inside its retry handler, before the
+      /// dispatch, whatever the handlers return (receipt.go:35-39, retry.go:184-192). The ack shows in WaitForSent. A
       /// session without a client is an error.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -2542,7 +2550,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// DeliverGroupNotification makes WhatsApp send the session's client a w:gp2 notification of a change to a group,
       /// which need not be on WhatsApp's side. The client dispatches GroupInfo on its node queue, and returns once the
       /// handlers ran; as whatsmeow does, it acks the notification only when every handler succeeded
-      /// (notification.go:495-508, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
+      /// (notification.go:495-508, maybeDeferredAck receipt.go:120-133), and the ack, of class "notification", the
       /// request's id and type "w:gp2", shows in WaitForSent. The group calls' notifications are acked the same way. A
       /// session without a client is an error.
       ///
@@ -2578,7 +2586,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// DeliverGroupNotification makes WhatsApp send the session's client a w:gp2 notification of a change to a group,
       /// which need not be on WhatsApp's side. The client dispatches GroupInfo on its node queue, and returns once the
       /// handlers ran; as whatsmeow does, it acks the notification only when every handler succeeded
-      /// (notification.go:495-508, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
+      /// (notification.go:495-508, maybeDeferredAck receipt.go:120-133), and the ack, of class "notification", the
       /// request's id and type "w:gp2", shows in WaitForSent. The group calls' notifications are acked the same way. A
       /// session without a client is an error.
       ///
@@ -2612,7 +2620,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// DeliverGroupNotification makes WhatsApp send the session's client a w:gp2 notification of a change to a group,
       /// which need not be on WhatsApp's side. The client dispatches GroupInfo on its node queue, and returns once the
       /// handlers ran; as whatsmeow does, it acks the notification only when every handler succeeded
-      /// (notification.go:495-508, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
+      /// (notification.go:495-508, maybeDeferredAck receipt.go:120-133), and the ack, of class "notification", the
       /// request's id and type "w:gp2", shows in WaitForSent. The group calls' notifications are acked the same way. A
       /// session without a client is an error.
       ///
@@ -2648,7 +2656,7 @@ namespace Whatsmeow.IntegrationTests.Fake {
       /// DeliverGroupNotification makes WhatsApp send the session's client a w:gp2 notification of a change to a group,
       /// which need not be on WhatsApp's side. The client dispatches GroupInfo on its node queue, and returns once the
       /// handlers ran; as whatsmeow does, it acks the notification only when every handler succeeded
-      /// (notification.go:495-508, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
+      /// (notification.go:495-508, maybeDeferredAck receipt.go:120-133), and the ack, of class "notification", the
       /// request's id and type "w:gp2", shows in WaitForSent. The group calls' notifications are acked the same way. A
       /// session without a client is an error.
       ///

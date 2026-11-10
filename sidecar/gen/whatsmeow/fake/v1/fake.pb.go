@@ -1487,10 +1487,10 @@ type DeliverMessageRequest struct {
 	MessageTime *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=message_time,json=messageTime,proto3" json:"message_time,omitempty"`
 	// True for a group message as whatsmeow sends one with a new sender key (send.go:795-831): the stanza's pkmsg part
 	// decrypts to only the sender key, and its skmsg part to the content. The client dispatches a Message for each, with
-	// the same info, in that order (message.go:355-497, 1181-1187), and answers once, after both.
+	// the same info, in that order (message.go:359-511, 1193-1199), and answers once, after both.
 	SenderKey bool `protobuf:"varint,11,opt,name=sender_key,json=senderKey,proto3" json:"sender_key,omitempty"`
 	// The message as WhatsApp sends it, wrappers included, instead of text: the client dispatches it unwrapped by
-	// whatsmeow's own events.Message.UnwrapRaw, as whatsmeow does (message.go:1181-1187). Unset sends text.
+	// whatsmeow's own events.Message.UnwrapRaw, as whatsmeow does (message.go:1193-1199). Unset sends text.
 	Message *waE2E.Message `protobuf:"bytes,12,opt,name=message,proto3" json:"message,omitempty"`
 	// True to fail the sidecar's own recording of this message's first delivery, as a failed outbox write would: in
 	// fake mode the sidecar's Events handler fails it without recording it, so its answer is withheld and the sidecar's
@@ -1792,12 +1792,16 @@ type DeliverUndecryptableMessageRequest struct {
 	// The message's WhatsApp timestamp; unset is the zero time.
 	MessageTime *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=message_time,json=messageTime,proto3" json:"message_time,omitempty"`
 	// True for a stanza with no ciphertext for this device, as WhatsApp sends a view-once message to a companion
-	// (message.go:324-333).
+	// (message.go:324-337).
 	Unavailable bool `protobuf:"varint,7,opt,name=unavailable,proto3" json:"unavailable,omitempty"`
 	// The unavailable stanza's type attribute, whatsmeow's UnavailableType: "view_once", or empty for none.
 	UnavailableType string `protobuf:"bytes,8,opt,name=unavailable_type,json=unavailableType,proto3" json:"unavailable_type,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// True to fail the sidecar's own recording of this message's first delivery, as a failed outbox write would: in
+	// fake mode the sidecar's Events handler fails it without recording it, so its answer is withheld and the sidecar's
+	// redelivery runs (ADR 0044, ADR 0065). Every later delivery of it is recorded.
+	WithholdFirstAnswer bool `protobuf:"varint,9,opt,name=withhold_first_answer,json=withholdFirstAnswer,proto3" json:"withhold_first_answer,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *DeliverUndecryptableMessageRequest) Reset() {
@@ -1884,6 +1888,13 @@ func (x *DeliverUndecryptableMessageRequest) GetUnavailableType() string {
 		return x.UnavailableType
 	}
 	return ""
+}
+
+func (x *DeliverUndecryptableMessageRequest) GetWithholdFirstAnswer() bool {
+	if x != nil {
+		return x.WithholdFirstAnswer
+	}
+	return false
 }
 
 // DeliverUndecryptableMessageResponse has no fields.
@@ -4901,8 +4912,8 @@ type DeliverGroupNotificationRequest struct {
 	// The notification's stanza id, which its ack names.
 	Id string `protobuf:"bytes,15,opt,name=id,proto3" json:"id,omitempty"`
 	// The new member add mode, as WhatsApp names it ("admin_add", "all_member_add"): a member_add_mode child, which
-	// whatsmeow does not parse and leaves in UnknownChanges with the mode as its content (group.go:1006-1007)
-	// [inferred: the child is named and filled as the IQ that sets it, group.go:1084-1097].
+	// whatsmeow does not parse and leaves in UnknownChanges with the mode as its content (group.go:1008-1009)
+	// [inferred: the child is named and filled as the IQ that sets it, group.go:1086-1099].
 	MemberAddMode *string `protobuf:"bytes,16,opt,name=member_add_mode,json=memberAddMode,proto3,oneof" json:"member_add_mode,omitempty"`
 	// The new disappearing messages timer; zero turns them off.
 	DisappearingTimer *durationpb.Duration `protobuf:"bytes,17,opt,name=disappearing_timer,json=disappearingTimer,proto3,oneof" json:"disappearing_timer,omitempty"`
@@ -7451,7 +7462,7 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"\n" +
 	"is_from_me\x18\b \x01(\bR\bisFromMe\x12=\n" +
 	"\fmessage_time\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\vmessageTime\"\x19\n" +
-	"\x17DeliverPollVoteResponse\"\xb6\x02\n" +
+	"\x17DeliverPollVoteResponse\"\xea\x02\n" +
 	"\"DeliverUndecryptableMessageRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x0e\n" +
@@ -7461,7 +7472,8 @@ const file_whatsmeow_fake_v1_fake_proto_rawDesc = "" +
 	"\x10hide_placeholder\x18\x05 \x01(\bR\x0fhidePlaceholder\x12=\n" +
 	"\fmessage_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\vmessageTime\x12 \n" +
 	"\vunavailable\x18\a \x01(\bR\vunavailable\x12)\n" +
-	"\x10unavailable_type\x18\b \x01(\tR\x0funavailableType\"%\n" +
+	"\x10unavailable_type\x18\b \x01(\tR\x0funavailableType\x122\n" +
+	"\x15withhold_first_answer\x18\t \x01(\bR\x13withholdFirstAnswer\"%\n" +
 	"#DeliverUndecryptableMessageResponse\"\x18\n" +
 	"\x16DeliverMessageResponse\"I\n" +
 	"\x12WaitForSentRequest\x12\x1d\n" +

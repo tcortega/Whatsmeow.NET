@@ -3903,7 +3903,8 @@ namespace Whatsmeow.Protocol.V1 {
   }
 
   /// <summary>
-  /// Contact is one contact as WhatsApp synced it. An empty name is one WhatsApp did not sync.
+  /// Contact is one contact as WhatsApp synced it. An empty name is one WhatsApp did not sync; at the pin, removing a
+  /// contact clears its saved name (appstate.go:303-310).
   /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   internal sealed partial class Contact : pb::IMessage<Contact>

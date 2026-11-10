@@ -27,7 +27,8 @@ public sealed record UndecryptableMessageReceived : WhatsAppEvent
 
 	/// <summary>
 	/// Null when a ciphertext came for this device and did not decrypt. Otherwise WhatsApp sent this device none, and
-	/// this is why. Such a message is best effort: whatsmeow acknowledges it whatever the handler does.
+	/// this is why. Such a message is best effort: whatsmeow acknowledges it once the sidecar recorded it, and whether
+	/// WhatsApp sends it again after a failed recording is not measured.
 	/// </summary>
 	public UnavailableType? Unavailable { get; init; }
 }

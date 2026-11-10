@@ -78,7 +78,7 @@ const (
 type FakeWhatsAppServiceClient interface {
 	// DeliverMessage makes WhatsApp deliver a decrypted message to a session's client, and returns once the client's
 	// event handlers ran. As whatsmeow does at the pin, the client answers with a receipt only when every handler
-	// succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A message left unanswered is delivered again
+	// succeeded (message.go:473-476, 503-509); that shows in WaitForSent. A message left unanswered is delivered again
 	// at the device's next login, and never while the connection stays up, as measured live (ARCHITECTURE §14, #10).
 	// A session without a client is an error: the fake never answers on behalf of a client the sidecar did not create.
 	DeliverMessage(ctx context.Context, in *DeliverMessageRequest, opts ...grpc.CallOption) (*DeliverMessageResponse, error)
@@ -92,9 +92,11 @@ type FakeWhatsAppServiceClient interface {
 	// DeliverMessage's, with a message of its own.
 	DeliverPollVote(ctx context.Context, in *DeliverPollVoteRequest, opts ...grpc.CallOption) (*DeliverPollVoteResponse, error)
 	// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
-	// the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches
-	// UndecryptableMessage, whatever the handlers return (message.go:418-437); the fake records neither. A resend that
-	// decrypts is a DeliverMessage with the same id. A session without a client is an error.
+	// the client's event handlers ran. whatsmeow dispatches UndecryptableMessage first and sends its retry receipt and
+	// ack only when every handler succeeded (message.go:324-337, 419-451); the fake records neither. One left
+	// unanswered is delivered again at the device's next login, as DeliverMessage's is, which is [inferred] for an
+	// undecryptable message and [observed] only for a decrypted one (ARCHITECTURE §14, ADR 0065). A resend that decrypts
+	// is a DeliverMessage with the same id. A session without a client is an error.
 	DeliverUndecryptableMessage(ctx context.Context, in *DeliverUndecryptableMessageRequest, opts ...grpc.CallOption) (*DeliverUndecryptableMessageResponse, error)
 	// WaitForSent returns the first thing the session's client sent to WhatsApp after the entry `after`, and waits
 	// until there is one. Only the call's deadline or cancellation ends the wait. The log lives in the sidecar process,
@@ -192,8 +194,8 @@ type FakeWhatsAppServiceClient interface {
 	AnswerMediaRetry(ctx context.Context, in *AnswerMediaRetryRequest, opts ...grpc.CallOption) (*AnswerMediaRetryResponse, error)
 	// DeliverReceipt makes WhatsApp deliver a receipt to a session's client, and returns once the client's event
 	// handlers ran. With SynchronousAck, whatsmeow acks a receipt only when every handler succeeded
-	// (maybeDeferredAck, receipt.go:21-43, 115-128); a retry receipt it acks inside its retry handler, before the
-	// dispatch, whatever the handlers return (receipt.go:34-38, retry.go:184-192). The ack shows in WaitForSent. A
+	// (maybeDeferredAck, receipt.go:22-44, 120-133); a retry receipt it acks inside its retry handler, before the
+	// dispatch, whatever the handlers return (receipt.go:35-39, retry.go:184-192). The ack shows in WaitForSent. A
 	// session without a client is an error.
 	DeliverReceipt(ctx context.Context, in *DeliverReceiptRequest, opts ...grpc.CallOption) (*DeliverReceiptResponse, error)
 	// RateLimitNextSends makes the session's next count sends fail as WhatsApp's rate limit fails them: an IQ before the
@@ -217,7 +219,7 @@ type FakeWhatsAppServiceClient interface {
 	// DeliverGroupNotification makes WhatsApp send the session's client a w:gp2 notification of a change to a group,
 	// which need not be on WhatsApp's side. The client dispatches GroupInfo on its node queue, and returns once the
 	// handlers ran; as whatsmeow does, it acks the notification only when every handler succeeded
-	// (notification.go:495-508, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
+	// (notification.go:495-508, maybeDeferredAck receipt.go:120-133), and the ack, of class "notification", the
 	// request's id and type "w:gp2", shows in WaitForSent. The group calls' notifications are acked the same way. A
 	// session without a client is an error.
 	//
@@ -758,7 +760,7 @@ func (c *fakeWhatsAppServiceClient) RecordEvent(ctx context.Context, in *RecordE
 type FakeWhatsAppServiceServer interface {
 	// DeliverMessage makes WhatsApp deliver a decrypted message to a session's client, and returns once the client's
 	// event handlers ran. As whatsmeow does at the pin, the client answers with a receipt only when every handler
-	// succeeded (message.go:459-462, 489-495); that shows in WaitForSent. A message left unanswered is delivered again
+	// succeeded (message.go:473-476, 503-509); that shows in WaitForSent. A message left unanswered is delivered again
 	// at the device's next login, and never while the connection stays up, as measured live (ARCHITECTURE §14, #10).
 	// A session without a client is an error: the fake never answers on behalf of a client the sidecar did not create.
 	DeliverMessage(context.Context, *DeliverMessageRequest) (*DeliverMessageResponse, error)
@@ -772,9 +774,11 @@ type FakeWhatsAppServiceServer interface {
 	// DeliverMessage's, with a message of its own.
 	DeliverPollVote(context.Context, *DeliverPollVoteRequest) (*DeliverPollVoteResponse, error)
 	// DeliverUndecryptableMessage makes WhatsApp deliver a message the session's client cannot decrypt, and returns once
-	// the client's event handlers ran. whatsmeow sends its retry receipt and ack before it dispatches
-	// UndecryptableMessage, whatever the handlers return (message.go:418-437); the fake records neither. A resend that
-	// decrypts is a DeliverMessage with the same id. A session without a client is an error.
+	// the client's event handlers ran. whatsmeow dispatches UndecryptableMessage first and sends its retry receipt and
+	// ack only when every handler succeeded (message.go:324-337, 419-451); the fake records neither. One left
+	// unanswered is delivered again at the device's next login, as DeliverMessage's is, which is [inferred] for an
+	// undecryptable message and [observed] only for a decrypted one (ARCHITECTURE §14, ADR 0065). A resend that decrypts
+	// is a DeliverMessage with the same id. A session without a client is an error.
 	DeliverUndecryptableMessage(context.Context, *DeliverUndecryptableMessageRequest) (*DeliverUndecryptableMessageResponse, error)
 	// WaitForSent returns the first thing the session's client sent to WhatsApp after the entry `after`, and waits
 	// until there is one. Only the call's deadline or cancellation ends the wait. The log lives in the sidecar process,
@@ -872,8 +876,8 @@ type FakeWhatsAppServiceServer interface {
 	AnswerMediaRetry(context.Context, *AnswerMediaRetryRequest) (*AnswerMediaRetryResponse, error)
 	// DeliverReceipt makes WhatsApp deliver a receipt to a session's client, and returns once the client's event
 	// handlers ran. With SynchronousAck, whatsmeow acks a receipt only when every handler succeeded
-	// (maybeDeferredAck, receipt.go:21-43, 115-128); a retry receipt it acks inside its retry handler, before the
-	// dispatch, whatever the handlers return (receipt.go:34-38, retry.go:184-192). The ack shows in WaitForSent. A
+	// (maybeDeferredAck, receipt.go:22-44, 120-133); a retry receipt it acks inside its retry handler, before the
+	// dispatch, whatever the handlers return (receipt.go:35-39, retry.go:184-192). The ack shows in WaitForSent. A
 	// session without a client is an error.
 	DeliverReceipt(context.Context, *DeliverReceiptRequest) (*DeliverReceiptResponse, error)
 	// RateLimitNextSends makes the session's next count sends fail as WhatsApp's rate limit fails them: an IQ before the
@@ -897,7 +901,7 @@ type FakeWhatsAppServiceServer interface {
 	// DeliverGroupNotification makes WhatsApp send the session's client a w:gp2 notification of a change to a group,
 	// which need not be on WhatsApp's side. The client dispatches GroupInfo on its node queue, and returns once the
 	// handlers ran; as whatsmeow does, it acks the notification only when every handler succeeded
-	// (notification.go:495-508, maybeDeferredAck receipt.go:115-128), and the ack, of class "notification", the
+	// (notification.go:495-508, maybeDeferredAck receipt.go:120-133), and the ack, of class "notification", the
 	// request's id and type "w:gp2", shows in WaitForSent. The group calls' notifications are acked the same way. A
 	// session without a client is an error.
 	//

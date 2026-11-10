@@ -8,7 +8,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.4
 	github.com/rs/zerolog v1.35.1
 	go.mau.fi/libsignal v0.2.2
-	go.mau.fi/whatsmeow v0.0.0-20261105212532-307a2edf117d
+	go.mau.fi/whatsmeow v0.0.0-20261110152934-c88388f983b4
 	golang.org/x/net v0.61.0
 	golang.org/x/sys v0.49.0
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260817212433-ac3dfec99bb1

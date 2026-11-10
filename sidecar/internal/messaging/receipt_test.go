@@ -94,9 +94,23 @@ func TestOnlyAReceiptWithMessagesIsMapped(t *testing.T) {
 	}
 }
 
-// TestAnEmptyMessageIdIsLeftOut: whatsmeow reads a grouped receipt's message id from the participants' key, and WhatsApp
-// sends it in message_id (receipt.go:45-62 at the pin; tulir/whatsmeow#1270), so each member's receipt covers the empty
-// id. The client cannot read one (#119); a receipt with no other id covers no message.
+// TestAStatusReceiptIsNotRecorded: whatsmeow reads a grouped receipt's message id from the participants' key, else
+// their message_id (receipt.go:49-50), so a status update's receipts (tulir/whatsmeow#1270) now carry their ids. Status
+// updates are a non-goal (ARCHITECTURE §1), so their receipts are not recorded, and whatsmeow answers them (ADR 0057).
+func TestAStatusReceiptIsNotRecorded(t *testing.T) {
+	t.Parallel()
+
+	e := receiptEvent(types.ReceiptTypeRead, "S1")
+	e.Chat, e.Sender, e.IsGroup = types.StatusBroadcastJID, jid("111@lid"), true
+
+	if _, got, ok := Receipt("s1", e); ok {
+		t.Errorf("a status update's receipt was mapped: %v", got)
+	}
+}
+
+// TestAnEmptyMessageIdIsLeftOut: whatsmeow reads a grouped receipt's message id from the participants' key, else their
+// message_id (receipt.go:49-50), so a member's receipt covers the empty id only when a node has neither. The client
+// cannot read one (#119); a receipt with no other id covers no message.
 func TestAnEmptyMessageIdIsLeftOut(t *testing.T) {
 	t.Parallel()
 
