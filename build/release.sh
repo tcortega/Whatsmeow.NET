@@ -126,7 +126,7 @@ guard() { # tag
 		if [[ "$tag" == *+* ]]; then die "$tag has build metadata, which NuGet ignores; a release tag is v<major>.<minor>.<patch>[-<pre-release>]"; fi
 		die "$tag is not a release tag: v<major>.<minor>.<patch>[-<pre-release>], SemVer 2.0.0"
 	fi
-	if [ "${GITHUB_EVENT_NAME:-}" = workflow_dispatch ] && [[ "$tag" == *[A-Z]* ]]; then
+	if [ "${GITHUB_EVENT_NAME:-}" = workflow_dispatch ] && [[ "$tag" == *[[:upper:]]* ]]; then
 		die "$tag has uppercase; a rehearsal's version is lowercase (ADR 0064)"
 	fi
 	commit="$(git rev-parse -q --verify "refs/tags/$tag^{commit}")" || die "no tag $tag in this clone"

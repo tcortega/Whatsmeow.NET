@@ -285,7 +285,7 @@ zip_here() {
 # nupkg DIR ID VERSION DEPENDENCY...: a package as dotnet pack writes one: its nuspec at the root, and for a native
 # package its two binaries, or the ones only_rids lists. A DEPENDENCY is id=range.
 nupkg() {
-	local dir="$1" id="$2" v="$3" work dep rid rids
+	local dir="$1" id="$2" v="$3" work dep rid rids exe
 	shift 3
 	work="$(mktemp -d "$tmp/pkg.XXXXXX")"
 	{
@@ -311,9 +311,12 @@ nupkg() {
 		*) rids=() ;;
 	esac
 	if [ -n "${only_rids:-}" ]; then read -ra rids <<<"$only_rids"; fi
-	for rid in "${rids[@]}"; do
+	# Written for macOS's /bin/bash 3.2 too: an empty array is unbound under set -u, and a case in $(...) does not parse.
+	for rid in ${rids[@]+"${rids[@]}"}; do
 		mkdir -p "$work/runtimes/$rid/native"
-		echo "whatsmeow-net $v for $rid" >"$work/runtimes/$rid/native/whatsmeow-net$(case "$rid" in win-*) echo .exe ;; esac)"
+		exe=""
+		case "$rid" in win-*) exe=.exe ;; esac
+		echo "whatsmeow-net $v for $rid" >"$work/runtimes/$rid/native/whatsmeow-net$exe"
 	done
 	(cd "$work" && zip_here "$dir/$id.$v.nupkg")
 	rm -rf "$work"
