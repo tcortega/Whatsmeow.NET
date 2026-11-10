@@ -230,19 +230,31 @@ func TestADownloadTakesTheHoldBeforeItShowsInWaitForSent(t *testing.T) {
 		t.Fatalf("HoldNextDownload: %v", err)
 	}
 
+	f, err := os.Create(filepath.Join(t.TempDir(), "download"))
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	defer func() { _ = f.Close() }()
+
 	held, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	ended := make(chan error, 1)
 
+	// The goroutine only reports what the download returned; the test goroutine fails on it.
 	go func() {
-		_, err := download(held, t, client, resp)
-		ended <- err
+		ended <- client.DownloadMediaWithPathToFile(held, resp.DirectPath, resp.FileEncSHA256, resp.FileSHA256, resp.MediaKey, whatsmeow.MediaImage, "", false, f)
 	}()
 
 	// Each look reads the log and the hold under one lock, so the first look that sees the download sees the hold
-	// as it was when the download showed (#182).
+	// as it was when the download showed (#182). The test's context bounds the looks.
 	for {
 		shown, holdLeft := downloadShown(whatsApp, "s1")
 		if !shown {
+			if ctx.Err() != nil {
+				t.Fatalf("the download never showed in WaitForSent: %v", ctx.Err())
+			}
+
 			continue
 		}
 
