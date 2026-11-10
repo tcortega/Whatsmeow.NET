@@ -1,4 +1,4 @@
-# 0064. GetUserInfo's verified name through whatsmeow's own usync, until the pin carries tulir/whatsmeow#1334
+# 0065. GetUserInfo's verified name through whatsmeow's own usync, until the pin carries tulir/whatsmeow#1334
 
 * Status: Accepted
 * Date: 2026-11-10

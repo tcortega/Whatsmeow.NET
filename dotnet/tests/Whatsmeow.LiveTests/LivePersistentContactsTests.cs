@@ -30,7 +30,7 @@ namespace Whatsmeow.LiveTests;
 /// <para>
 /// Before any WhatsApp network use it reads both accounts and logs the live sidecar's whatsmeow version, local calls that
 /// create no session, and refuses the same account in both roles (<c>contacts_same_account</c>). The sidecar sets the
-/// verified business name whatsmeow's <c>GetUserInfo</c> drops at the pin (#153, ADR 0064), so no version is refused.
+/// verified business name whatsmeow's <c>GetUserInfo</c> drops at the pin (#153, ADR 0065), so no version is refused.
 /// It runs alone, with a filter on this one method (docs/guidelines/tests.md),
 /// failing <c>contacts_not_alone</c> before anything starts when a test of the run already used the peer.
 /// </para>

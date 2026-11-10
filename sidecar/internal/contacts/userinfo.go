@@ -1,7 +1,7 @@
 package contacts
 
 // This file works around #153: at the pin, whatsmeow's GetUserInfo parses the verified business name and never sets it
-// on its answer (user.go:253, 269-272). The upstream fix is tulir/whatsmeow#1334 (ADR 0064). Delete this file, and call
+// on its answer (user.go:253, 269-272). The upstream fix is tulir/whatsmeow#1334 (ADR 0065). Delete this file, and call
 // client.GetUserInfo again, once the pin's GetUserInfo sets VerifiedName (ARCHITECTURE §14, Contacts).
 
 import (
