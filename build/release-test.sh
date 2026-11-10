@@ -172,6 +172,9 @@ tag_at v2.0.0 side
 at main
 expect pass "" "guard: a v<semver> tag at HEAD on main" guard v1.2.3
 expect pass "" "guard: a pre-release tag at HEAD on main" guard v1.0.0-rc.1
+# A rehearsal at a candidate version (ADR 0064): the tag is in the runner only, so origin has none.
+dispatch_guard() { in_repo as_dispatch bash "$release" guard "$1"; }
+expect pass "points at HEAD" "guard: a rehearsal at a candidate version, its tag in the runner only" dispatch_guard v1.0.0-rc.1
 expect pass "" "guard: numeric pre-release identifiers" guard v1.0.0-0.3.7
 expect pass "" "guard: hyphens and a digit-led alphanumeric identifier" guard v1.0.0-x-y.0a
 expect fail "is not a release tag" "guard: vfoo is no release tag" guard vfoo
@@ -785,6 +788,71 @@ ids_line() { bash "$release" ids | paste -sd' ' -; }
 expect pass "Whatsmeow.Sidecar.Native.Linux Whatsmeow.Sidecar.Native.MacOS Whatsmeow.Sidecar.Native.Windows Whatsmeow.Protocol.WhatsApp Whatsmeow.Protocol Whatsmeow.Client Whatsmeow.Extensions.Hosting Whatsmeow.Testing" \
 	"ids: the eight packages, phase 1 then phase 2" ids_line
 expect fail "every package id a release publishes" "ids: takes no argument, and prints the usage" bash "$release" ids extra
+
+# --- release.yml wiring (ADR 0064) -----------------------------------------------------------------------------
+
+# The workflow's text, not GitHub's evaluation of it: a rehearsal may take a candidate version, the guard exports the tag
+# it guarded, packaging builds at that tag, and only a tag push publishes. Exact lines, so a reformat fails loudly.
+workflow="$root/.github/workflows/release.yml"
+# block KEY: the lines of the key at two spaces (a job, or workflow_dispatch under on:), up to the next line indented two
+# spaces or less.
+block() {
+	awk -v key="  $1:" '
+		$0 == key { inside = 1; print; next }
+		inside && $0 ~ /[^ ]/ { match($0, /^ */); if (RLENGTH <= 2) exit }
+		inside { print }
+	' "$workflow"
+}
+# once NAME TEXT LINE...: each LINE occurs in TEXT exactly once.
+once() {
+	local name="$1" text="$2" line rc=0
+	shift 2
+	for line in "$@"; do
+		[ "$(grep -cxF -- "$line" <<<"$text")" -eq 1 ] || { echo "not exactly once in $name: $line"; rc=1; }
+	done
+	return "$rc"
+}
+tag_line="  TAG: \${{ github.event_name == 'push' && github.ref_name || (inputs.version != '' && format('v{0}', inputs.version) || format('v0.0.0-rehearsal.{0}', github.run_number)) }}"
+# The workflow's own lines, so ${{ }} and $TAG stay text.
+# shellcheck disable=SC2016
+guard_step='        run: bash build/release.sh guard "$TAG"'
+# shellcheck disable=SC2016
+export_step='        run: echo "tag=$TAG" >>"$GITHUB_OUTPUT"'
+# shellcheck disable=SC2016
+output_line='      tag: ${{ steps.tag.outputs.tag }}'
+packaging_tag="      rehearsal-tag: \${{ github.event_name == 'workflow_dispatch' && needs.guard.outputs.tag || '' }}"
+
+dispatch_takes_version() {
+	once workflow_dispatch "$(block workflow_dispatch)" '    inputs:' '      version:' '        type: string' '        default: ""'
+}
+tag_chosen() { once release.yml "$(cat "$workflow")" "$tag_line"; }
+guard_exports() {
+	local text guarded exported
+	text="$(block guard)"
+	once guard "$text" '    outputs:' "$output_line" '        id: tag' "$export_step" "$guard_step" || return
+	guarded="$(grep -nxF -- "$guard_step" <<<"$text" | cut -d: -f1)"
+	exported="$(grep -nxF -- '        id: tag' <<<"$text" | cut -d: -f1)"
+	[ "$exported" -gt "$guarded" ] || { echo "the step id: tag (line $exported) comes before the guard (line $guarded)"; return 1; }
+}
+packaging_at_guarded() { once packaging "$(block packaging)" "$packaging_tag"; }
+rehearsal_tag_once() {
+	local count
+	count="$(grep -oF 'v0.0.0-rehearsal.' "$workflow" | wc -l | tr -d ' ')"
+	[ "$count" -eq 1 ] || { echo "v0.0.0-rehearsal. occurs $count times in release.yml"; return 1; }
+}
+only_push_publishes() {
+	local push="    if: github.event_name == 'push'" rc=0
+	once publish "$(block publish)" "$push" '    environment: release' '      id-token: write' || rc=1
+	once nuget-install "$(block nuget-install)" "$push" || rc=1
+	[ "$(grep -cE '^ *(environment|id-token):' "$workflow")" -eq 2 ] || { echo "environment or id-token outside publish"; rc=1; }
+	return "$rc"
+}
+expect pass "" "workflow: workflow_dispatch takes an optional version" dispatch_takes_version
+expect pass "" "workflow: TAG is the push's tag, the candidate's, or the rehearsal's" tag_chosen
+expect pass "" "workflow: guard exports the tag it guarded" guard_exports
+expect pass "" "workflow: packaging builds at the guarded tag" packaging_at_guarded
+expect pass "" "workflow: the rehearsal tag is chosen in one place" rehearsal_tag_once
+expect pass "" "workflow: only a tag push publishes" only_push_publishes
 
 if [ "${#failed[@]}" -gt 0 ]; then
 	echo
