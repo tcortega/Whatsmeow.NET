@@ -214,8 +214,8 @@ internal static class AboutChange
 #pragma warning restore CA1031, MA0054
 	}
 
-	/// <summary>A failure's type name, and WhatsApp's code when it refused, never its message (ADR 0067).</summary>
-	private static string Failure(Exception e) => e is WhatsAppErrorException refused ? $"{e.GetType().Name} code {refused.Code}" : e.GetType().Name;
+	/// <summary>A failure's type name, and WhatsApp's code when it refused with one (0 is none), never its message (ADR 0067).</summary>
+	private static string Failure(Exception e) => e is WhatsAppErrorException { Code: not 0 } refused ? $"{e.GetType().Name} code {refused.Code}" : e.GetType().Name;
 
 	private static Task<bool> CallAsync(AboutRun run, string reason, string what, Func<CancellationToken, Task> call, CancellationToken cancellationToken) =>
 		CallAsync(

@@ -379,6 +379,20 @@ public sealed class AboutChangeTests(FakeSidecar fixture)
 		NoText(h, failed);
 	}
 
+	/// <summary>WhatsApp sent no code (0): the outcome is the type name alone.</summary>
+	[Fact(Timeout = Timeout)]
+	public async Task Run_WhatsAppRefusesTheSetWithoutACode_ThrowsTheTypeNameAlone()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var h = await Harness.StartAsync(fixture, "about-whatsapp-no-code", subject: 21, Original, ct);
+		h.FailsAfter = t => t == Stimulus ? new WhatsAppErrorException($"WhatsApp refused {t}") : null;
+
+		var failed = await Assert.ThrowsAnyAsync<XunitException>(() => AboutChange.RunAsync(h.Run(), ct));
+
+		Assert.Equal("about_set_failed: branch 5's set failed, WhatsAppErrorException", failed.Message);
+		NoText(h, failed);
+	}
+
 	/// <summary>The restore's read failed after the body passed: the restore is unverified, with the read's outcome, no text.</summary>
 	[Fact(Timeout = Timeout)]
 	public async Task Run_TheRestoresReadFails_FailsUnverified_WithoutItsText()
