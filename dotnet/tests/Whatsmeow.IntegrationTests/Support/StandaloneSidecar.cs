@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Whatsmeow.Sidecar;
 
 namespace Whatsmeow.IntegrationTests.Support;
 
@@ -106,6 +107,7 @@ public sealed class StandaloneSidecar : IAsyncDisposable
 		catch
 		{
 			process.Kill(entireProcessTree: true);
+			await ProcessExit.WaitAsync(process).ConfigureAwait(false);
 			process.Dispose();
 			throw;
 		}
@@ -113,7 +115,7 @@ public sealed class StandaloneSidecar : IAsyncDisposable
 		if (line is null)
 		{
 			var stderr = await process.StandardError.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
-			await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+			await ProcessExit.WaitAsync(process).ConfigureAwait(false);
 			process.Dispose();
 			Assert.Fail($"The standalone sidecar exited before its ready line:{Environment.NewLine}{stderr}");
 		}
@@ -144,7 +146,7 @@ public sealed class StandaloneSidecar : IAsyncDisposable
 			// Already gone.
 		}
 
-		await _process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
+		await ProcessExit.WaitAsync(_process).ConfigureAwait(false);
 		await _forwarding.ConfigureAwait(false);
 	}
 

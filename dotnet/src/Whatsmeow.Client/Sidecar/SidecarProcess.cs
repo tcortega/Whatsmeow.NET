@@ -179,7 +179,7 @@ internal sealed class SidecarProcess
 	public async Task KillAsync()
 	{
 		KillTree(_process);
-		await _process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
+		await ProcessExit.WaitAsync(_process).ConfigureAwait(false);
 		await _stderr.ConfigureAwait(false);
 		await _stdout.ConfigureAwait(false);
 		_job?.Dispose();

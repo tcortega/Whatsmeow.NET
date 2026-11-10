@@ -69,6 +69,7 @@ So do the External-mode tests (`Sidecar/ExternalTests.cs`): what happens to a si
 So is the media transfer per transport (`Media/MediaTransferTests.cs`): it runs over the named pipe too, and measures the sidecar's memory alone, in the `MediaTransfers` collection, which never runs in parallel.
 So are the meter source tests (`Telemetry/MeterTests.cs`): where the meter comes from is decided at the start.
 So are the fresh companion's tests (`Support/FreshCompanionTests.cs`): a database the run creates for one session is their behaviour (ADR 0060).
+So is the standalone sidecar's teardown test (`Support/StandaloneSidecarTests.cs`): that its binary can be deleted once it stopped is its behaviour (#179).
 Metrics on the shared sidecar are read with a `MetricCollector` on `fixture.MeterFactory`, which sees that sidecar only, and told apart by the `whatsmeow.session.id` tag.
 A test that listens to spans, or reads a count no session id tells apart (`whatsmeow.errors`), sits in the `TelemetryListeners` collection, which never runs in parallel: an `ActivityListener` is process-wide ([ADR 0037](../adr/0037-traces-and-metrics.md)).
 The shared sidecar has a media root (`fixture.MediaRoot`); a test that hands files over puts them under a directory of its own there.
