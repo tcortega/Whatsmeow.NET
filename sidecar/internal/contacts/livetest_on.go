@@ -49,8 +49,9 @@ type live struct {
 
 // SetAbout sets the session's account's about text, the text only (user.go:160-172): no emoji and no duration, which no
 // read gives back (user.go:257-258), so the live test never sets what it cannot restore (ADR 0063). When WhatsApp
-// answers the mutation with a GraphQL error, it sends the legacy status IQ #1331 sends, the text alone, as WhatsApp Web
-// does after the mutation (ADR 0067). One info line says which path set it and both outcomes, codes only.
+// refuses the mutation with a CRITICAL GraphQL error, the refusal #1331 names, it sends the legacy status IQ #1331
+// sends, the text alone; #1331 says WhatsApp Web sends this IQ after the mutation (ADR 0067). One info line per set
+// says which path set it and each call's outcome, codes only.
 func (l *live) SetAbout(ctx context.Context, req *livetestv1.SetAboutRequest) (*livetestv1.SetAboutResponse, error) {
 	if err := checkSession(req.GetSessionId()); err != nil {
 		return nil, err
@@ -66,31 +67,55 @@ func (l *live) SetAbout(ctx context.Context, req *livetestv1.SetAboutRequest) (*
 		return nil, err
 	}
 
+	line := l.log.Info()
+	path, err := setAbout(ctx, client, text, line)
+	line.Str("path", path).Msg("live control: set the about text")
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &livetestv1.SetAboutResponse{}, nil
+}
+
+// setAbout sets text through client, the mutation and then, after a CRITICAL refusal, the legacy IQ, and adds each
+// call's outcome to line: the mutation's as mex (or its refusal's mex_code and mex_severity), the IQ's as legacy. It
+// returns the path that set the text: mex or legacy, none when nothing did, unknown when the last call may have.
+// Never a GraphQL error's message: it may echo the text [unknown] (ADR 0063).
+func setAbout(ctx context.Context, client Client, text string, line *zerolog.Event) (string, error) {
 	setter, ok := client.(statuses)
 	if !ok {
-		return nil, fmt.Errorf("session %q: its client %T cannot set the about text", req.GetSessionId(), client)
+		return "none", fmt.Errorf("its client %T cannot set the about text", client)
 	}
 
-	err = setter.SetStatusMessage(ctx, types.SetStatusInput{Text: &text})
+	err := setter.SetStatusMessage(ctx, types.SetStatusInput{Text: &text})
 	if err == nil {
-		l.log.Info().Str("path", "mex").Msg("live control: set the about text")
-
-		return &livetestv1.SetAboutResponse{}, nil
+		return "mex", nil
 	}
 
-	// Only a refusal: a mutation with no answer may have been made, and its wait used whatsmeow's IQ timeout.
 	var graphQL types.GraphQLErrors
 	if !errors.As(err, &graphQL) || len(graphQL) == 0 {
-		return nil, classify("set the about text", err, true)
+		// A mutation with no answer may have been made, and its wait used whatsmeow's IQ timeout: no IQ after it.
+		failed := classify("set the about text", err, true)
+		line.Str("mex", failed.Error())
+
+		return pathOf(failed), failed
+	}
+
+	refusal := graphQL[0].Extensions
+	line.Int("mex_code", refusal.ErrorCode).Str("mex_severity", refusal.Severity)
+
+	if refusal.Severity != "CRITICAL" {
+		return "none", fmt.Errorf("set the about text: %w", server.WithMetadata(server.ErrWhatsAppError, "code", fmt.Sprint(refusal.ErrorCode)))
 	}
 
 	sender, ok := legacy(client)
 	if !ok {
-		return nil, fmt.Errorf("session %q: its client %T cannot send the legacy about IQ", req.GetSessionId(), client)
-	}
+		failed := fmt.Errorf("its client %T cannot send the legacy about IQ", client)
+		line.Str("legacy", failed.Error())
 
-	// Never the GraphQL error's message: it may echo the text [unknown] (ADR 0063).
-	line := l.log.Info().Int("mex_code", graphQL[0].Extensions.ErrorCode).Str("mex_severity", graphQL[0].Extensions.Severity)
+		return "none", failed
+	}
 
 	_, err = sender.SendIQ(ctx, whatsmeow.DangerousInfoQuery{
 		Namespace: "status",
@@ -101,14 +126,23 @@ func (l *live) SetAbout(ctx context.Context, req *livetestv1.SetAboutRequest) (*
 	if err != nil {
 		// classify keeps an IQ error's code and keyword, without its nodes.
 		failed := classify("set the about text by the legacy IQ", err, true)
-		line.Str("path", "none").Str("legacy", failed.Error()).Msg("live control: set the about text")
+		line.Str("legacy", failed.Error())
 
-		return nil, failed
+		return pathOf(failed), failed
 	}
 
-	line.Str("path", "legacy").Str("legacy", "answered").Msg("live control: set the about text")
+	line.Str("legacy", "answered")
 
-	return &livetestv1.SetAboutResponse{}, nil
+	return "legacy", nil
+}
+
+// pathOf is the path of a set whose last call failed: unknown when that call may have been made, none otherwise.
+func pathOf(failed error) string {
+	if errors.Is(failed, server.ErrOutcomeUnknown) || errors.Is(failed, context.Canceled) || errors.Is(failed, context.DeadlineExceeded) {
+		return "unknown"
+	}
+
+	return "none"
 }
 
 // legacy is what sends client's legacy status IQ: whatsmeow's internals for a real client, the client itself for a

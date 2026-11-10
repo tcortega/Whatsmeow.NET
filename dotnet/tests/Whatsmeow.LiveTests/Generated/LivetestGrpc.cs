@@ -248,9 +248,9 @@ namespace Whatsmeow.LiveTests.Control {
 
       /// <summary>
       /// SetAbout sets the session's own account's about text with whatsmeow's SetStatusMessage (user.go:160-172), the text
-      /// only: no emoji and no duration, which no read gives back (user.go:257-258). When WhatsApp answers that mutation
-      /// with a GraphQL error, it sends the legacy status IQ upstream #1331 sends, the text alone (ADR 0067), and logs at
-      /// info which path set it, the mutation's code and severity and the IQ's outcome, never a message. An empty text is
+      /// only: no emoji and no duration, which no read gives back (user.go:257-258). When WhatsApp refuses that mutation
+      /// with a CRITICAL GraphQL error, it sends the legacy status IQ upstream #1331 sends, the text alone (ADR 0067); one
+      /// info line per set says which path set it and each call's outcome, codes only, never a message. An empty text is
       /// refused. The session must be online.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -265,9 +265,9 @@ namespace Whatsmeow.LiveTests.Control {
       }
       /// <summary>
       /// SetAbout sets the session's own account's about text with whatsmeow's SetStatusMessage (user.go:160-172), the text
-      /// only: no emoji and no duration, which no read gives back (user.go:257-258). When WhatsApp answers that mutation
-      /// with a GraphQL error, it sends the legacy status IQ upstream #1331 sends, the text alone (ADR 0067), and logs at
-      /// info which path set it, the mutation's code and severity and the IQ's outcome, never a message. An empty text is
+      /// only: no emoji and no duration, which no read gives back (user.go:257-258). When WhatsApp refuses that mutation
+      /// with a CRITICAL GraphQL error, it sends the legacy status IQ upstream #1331 sends, the text alone (ADR 0067); one
+      /// info line per set says which path set it and each call's outcome, codes only, never a message. An empty text is
       /// refused. The session must be online.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -280,9 +280,9 @@ namespace Whatsmeow.LiveTests.Control {
       }
       /// <summary>
       /// SetAbout sets the session's own account's about text with whatsmeow's SetStatusMessage (user.go:160-172), the text
-      /// only: no emoji and no duration, which no read gives back (user.go:257-258). When WhatsApp answers that mutation
-      /// with a GraphQL error, it sends the legacy status IQ upstream #1331 sends, the text alone (ADR 0067), and logs at
-      /// info which path set it, the mutation's code and severity and the IQ's outcome, never a message. An empty text is
+      /// only: no emoji and no duration, which no read gives back (user.go:257-258). When WhatsApp refuses that mutation
+      /// with a CRITICAL GraphQL error, it sends the legacy status IQ upstream #1331 sends, the text alone (ADR 0067); one
+      /// info line per set says which path set it and each call's outcome, codes only, never a message. An empty text is
       /// refused. The session must be online.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -297,9 +297,9 @@ namespace Whatsmeow.LiveTests.Control {
       }
       /// <summary>
       /// SetAbout sets the session's own account's about text with whatsmeow's SetStatusMessage (user.go:160-172), the text
-      /// only: no emoji and no duration, which no read gives back (user.go:257-258). When WhatsApp answers that mutation
-      /// with a GraphQL error, it sends the legacy status IQ upstream #1331 sends, the text alone (ADR 0067), and logs at
-      /// info which path set it, the mutation's code and severity and the IQ's outcome, never a message. An empty text is
+      /// only: no emoji and no duration, which no read gives back (user.go:257-258). When WhatsApp refuses that mutation
+      /// with a CRITICAL GraphQL error, it sends the legacy status IQ upstream #1331 sends, the text alone (ADR 0067); one
+      /// info line per set says which path set it and each call's outcome, codes only, never a message. An empty text is
       /// refused. The session must be online.
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
