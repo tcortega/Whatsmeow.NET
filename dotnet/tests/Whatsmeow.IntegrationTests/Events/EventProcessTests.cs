@@ -16,6 +16,10 @@ public sealed class EventProcessTests(FakeSidecar fixture, SidecarBinaries binar
 {
 	private const int Timeout = 120_000;
 
+#pragma warning disable RS0030 // Justification: a wait the test bounds with the real clock, so a stop that never cancels a handler fails fast instead of at the test's timeout
+	private static readonly TimeProvider s_wallClock = TimeProvider.System;
+#pragma warning restore RS0030
+
 	[Fact(Timeout = Timeout)]
 	public async Task Dispose_AcksTheHandledEvents_SoTheNextProcessGetsOnlyNewOnes()
 	{
@@ -78,6 +82,72 @@ public sealed class EventProcessTests(FakeSidecar fixture, SidecarBinaries binar
 		await again.ConnectAsync(ct);
 
 		Assert.Equal([Deliveries.Received("events-held", "M2"), Deliveries.Received("events-held", "M3")], await next.NextAsync(2, ct));
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Dispose_WhileTwoSessionsHandlersRun_BothSeeTheirCancellationBeforeEitherEnds()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var options = new WhatsmeowSidecarOptions { SidecarPath = fixture.Binary, DatabasePath = binaries.NewDatabase() };
+		var sidecar = await WhatsmeowSidecar.StartFakeWhatsAppAsync(options, logs.Factory, ct);
+		await using (sidecar)
+		{
+			var fake = new FakeWhatsAppService.FakeWhatsAppServiceClient(sidecar.CallInvoker);
+			var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+			string[] ids = ["events-stop-a", "events-stop-b"];
+			var held = ids.ToDictionary(id => id, _ => new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously), StringComparer.Ordinal);
+			var cancelled = ids.ToDictionary(id => id, _ => new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously), StringComparer.Ordinal);
+			var registrations = new List<IDisposable>();
+			try
+			{
+				foreach (var id in ids)
+				{
+					var client = await LinkAsync(sidecar, fake, id, ct);
+					// Each handler stays in its stop until the test lets it go: a stop that waits for one session's
+					// handlers before it cancels the next session's never cancels the second.
+					registrations.Add(
+						new Received<MessageReceived>(
+							client,
+							async (_, token) =>
+							{
+								held[id].SetResult();
+								try
+								{
+									await new TaskCompletionSource().Task.WaitAsync(token).ConfigureAwait(false);
+								}
+								catch (OperationCanceledException)
+								{
+									cancelled[id].SetResult();
+									await release.Task.ConfigureAwait(false);
+								}
+							}
+						)
+					);
+					await client.ConnectAsync(ct);
+					await Deliveries.DeliverAsync(fake, id, ct, "M1");
+				}
+
+				await Task.WhenAll(held.Values.Select(h => h.Task)).WaitAsync(ct);
+
+				var stopping = sidecar.DisposeAsync().AsTask();
+				try
+				{
+					// Its own short bound: a stop that waits for one session's handlers before it cancels the next fails here, not at the test's timeout.
+					await Task.WhenAll(cancelled.Values.Select(c => c.Task)).WaitAsync(TimeSpan.FromSeconds(15), s_wallClock, ct);
+				}
+				finally
+				{
+					release.SetResult();
+					await stopping.WaitAsync(ct);
+				}
+			}
+			finally
+			{
+				foreach (var registration in registrations)
+					registration.Dispose();
+			}
+		}
 	}
 
 	[Fact(Timeout = Timeout)]
