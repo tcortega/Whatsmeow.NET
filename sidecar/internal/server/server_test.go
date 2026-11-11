@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"strings"
 	"sync"
@@ -83,6 +84,13 @@ func startLogging(t *testing.T, handlerErr error, log zerolog.Logger) (*Server, 
 	whatsmeowv1.RegisterMessageServiceServer(srv, msgs)
 	whatsmeowv1.RegisterSidecarServiceServer(srv, whatsmeowv1.UnimplementedSidecarServiceServer{})
 
+	return srv, serve(t, srv), msgs
+}
+
+// serve serves srv over an in-memory listener until the test ends and returns a client connection to it.
+func serve(t *testing.T, srv *Server) *grpc.ClientConn {
+	t.Helper()
+
 	lis := bufconn.Listen(1 << 20)
 	served := make(chan error, 1)
 
@@ -106,7 +114,7 @@ func startLogging(t *testing.T, handlerErr error, log zerolog.Logger) (*Server, 
 
 	t.Cleanup(func() { _ = conn.Close() })
 
-	return srv, conn, msgs
+	return conn
 }
 
 func withToken(value string) context.Context {
@@ -381,5 +389,101 @@ func TestServeAfterStopReturnsNil(t *testing.T) {
 
 	if err := srv.Serve(bufconn.Listen(1 << 20)); err != nil {
 		t.Fatalf("serve after stop = %v, want nil", err)
+	}
+}
+
+// panicValue is what a handler's panic could carry: a JID, whose user part is a phone number.
+const panicValue = "no device for 5511987654321@s.whatsapp.net"
+
+// panicking panics with panicValue in both handlers for the session "panics", and answers every other session.
+type panicking struct {
+	whatsmeowv1.UnimplementedMessageServiceServer
+	whatsmeowv1.UnimplementedEventServiceServer
+}
+
+func (panicking) SendMessage(_ context.Context, req *whatsmeowv1.SendMessageRequest) (*whatsmeowv1.SendMessageResponse, error) {
+	if req.GetSessionId() == "panics" {
+		panic(panicValue)
+	}
+
+	return &whatsmeowv1.SendMessageResponse{}, nil
+}
+
+func (panicking) StreamEvents(req *whatsmeowv1.StreamEventsRequest, _ grpc.ServerStreamingServer[whatsmeowv1.StreamEventsResponse]) error {
+	if req.GetSessionId() == "panics" {
+		panic(panicValue)
+	}
+
+	return nil
+}
+
+// startPanicking serves the panicking handlers and returns a client connection and the server's log.
+func startPanicking(t *testing.T) (*grpc.ClientConn, *syncBuffer) {
+	t.Helper()
+
+	logs := &syncBuffer{}
+	srv := New(token, zerolog.New(logs), sidecarlog.NewRedactor())
+	whatsmeowv1.RegisterMessageServiceServer(srv, panicking{})
+	whatsmeowv1.RegisterEventServiceServer(srv, panicking{})
+
+	return serve(t, srv), logs
+}
+
+// wantPanicFailed fails unless err is INTERNAL without the panic's value, and logs hold one error line that names
+// method and the panic's type but not its value.
+func wantPanicFailed(t *testing.T, err error, logs *syncBuffer, method string) {
+	t.Helper()
+
+	wantErrorInfo(t, err, codes.Internal, "INTERNAL")
+
+	if message := status.Convert(err).Message(); strings.Contains(message, "5511987654321") {
+		t.Fatalf("status message = %q, want it without the panic's value", message)
+	}
+
+	got := logs.String()
+	if strings.Count(got, `"level":"error"`) != 1 || !strings.Contains(got, method) || !strings.Contains(got, `"panic":"string"`) {
+		t.Fatalf("logs = %s, want one error line naming %s and the panic's type", got, method)
+	}
+
+	if strings.Contains(got, "5511987654321") {
+		t.Fatalf("logs = %s, want them without the panic's value", got)
+	}
+}
+
+func TestAPanickingUnaryHandlerFailsItsCallWithInternal(t *testing.T) {
+	t.Parallel()
+
+	conn, logs := startPanicking(t)
+	client := whatsmeowv1.NewMessageServiceClient(conn)
+
+	_, err := client.SendMessage(withToken("Bearer "+token), &whatsmeowv1.SendMessageRequest{SessionId: "panics"})
+	wantPanicFailed(t, err, logs, whatsmeowv1.MessageService_SendMessage_FullMethodName)
+
+	if _, err := client.SendMessage(withToken("Bearer "+token), &whatsmeowv1.SendMessageRequest{SessionId: "s1"}); err != nil {
+		t.Fatalf("a call after the panic = %v, want it answered", err)
+	}
+}
+
+func TestAPanickingStreamHandlerFailsItsCallWithInternal(t *testing.T) {
+	t.Parallel()
+
+	conn, logs := startPanicking(t)
+	client := whatsmeowv1.NewEventServiceClient(conn)
+
+	stream, err := client.StreamEvents(withToken("Bearer "+token), &whatsmeowv1.StreamEventsRequest{SessionId: "panics"})
+	if err != nil {
+		t.Fatalf("stream: %v", err)
+	}
+
+	_, err = stream.Recv()
+	wantPanicFailed(t, err, logs, whatsmeowv1.EventService_StreamEvents_FullMethodName)
+
+	stream, err = client.StreamEvents(withToken("Bearer "+token), &whatsmeowv1.StreamEventsRequest{SessionId: "s1"})
+	if err != nil {
+		t.Fatalf("stream after the panic: %v", err)
+	}
+
+	if _, err := stream.Recv(); !errors.Is(err, io.EOF) {
+		t.Fatalf("a stream after the panic = %v, want it to end normally", err)
 	}
 }

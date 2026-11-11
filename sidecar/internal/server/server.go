@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -140,12 +141,14 @@ func (s *Server) Stop() {
 	}
 }
 
-func (s *Server) unary(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+func (s *Server) unary(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 	if err := s.admit(info.FullMethod); err != nil {
 		return nil, err
 	}
 
-	resp, err := handler(ctx, req)
+	defer s.recovered(info.FullMethod, &err)
+
+	resp, err = handler(ctx, req)
 	if err != nil {
 		return nil, s.toStatus(info.FullMethod, err)
 	}
@@ -153,10 +156,12 @@ func (s *Server) unary(ctx context.Context, req any, info *grpc.UnaryServerInfo,
 	return resp, nil
 }
 
-func (s *Server) stream(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+func (s *Server) stream(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
 	if err := s.admit(info.FullMethod); err != nil {
 		return err
 	}
+
+	defer s.recovered(info.FullMethod, &err)
 
 	ctx, cancel := context.WithCancel(ss.Context())
 	defer cancel()
@@ -164,7 +169,7 @@ func (s *Server) stream(srv any, ss grpc.ServerStream, info *grpc.StreamServerIn
 	stop := context.AfterFunc(s.lifetime, cancel)
 	defer stop()
 
-	err := handler(srv, &serverStream{ServerStream: ss, ctx: ctx})
+	err = handler(srv, &serverStream{ServerStream: ss, ctx: ctx})
 
 	select {
 	case <-s.done:
@@ -177,6 +182,21 @@ func (s *Server) stream(srv any, ss grpc.ServerStream, info *grpc.StreamServerIn
 	}
 
 	return nil
+}
+
+// recovered, deferred in an interceptor, fails a call whose handler panicked with INTERNAL, so the panic ends that
+// call and not the process with every session in it: grpc-go calls the interceptors and handlers without a recover
+// (grpc server.go:1284 and 1457, at v1.85.0). The log line carries the panic's type and the stack, never its value, which may
+// carry a JID (ADR 0039), and the status message says only that the call panicked.
+func (s *Server) recovered(method string, err *error) {
+	r := recover()
+	if r == nil {
+		return
+	}
+
+	s.log.Error().Str("method", method).Str("panic", fmt.Sprintf("%T", r)).Bytes("stack", debug.Stack()).Msg("the call panicked")
+
+	*err = errorInfo(codes.Internal, whatsmeowv1.ErrorReason_ERROR_REASON_INTERNAL, "the call panicked")
 }
 
 // serverStream is a stream whose context also ends when the server shuts down.
