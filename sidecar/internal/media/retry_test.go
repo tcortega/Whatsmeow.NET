@@ -130,6 +130,33 @@ func TestARejectedRetryJIDIsNeverEchoed(t *testing.T) {
 	}
 }
 
+// whatsmeow parses a chat with no user without an error (types/jid.go:160-165) and would send the receipt for it; the
+// request is refused as presence refuses such a chat, and nothing is stored or sent.
+func TestARetryForAChatOrSenderWithNoUserIsRefused(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+
+	for _, chat := range []string{"s.whatsapp.net", "@s.whatsapp.net", "@g.us"} {
+		_, err := h.client.RequestMediaRetry(h.ctx, &whatsmeowv1.RequestMediaRetryRequest{SessionId: "s1", MessageId: "M1", Chat: chat, Media: expiredRef()})
+		wantReason(t, err, codes.InvalidArgument, "INVALID_ARGUMENT", "chat")
+	}
+
+	for _, sender := range []string{"s.whatsapp.net", "@s.whatsapp.net"} {
+		_, err := h.client.RequestMediaRetry(h.ctx, &whatsmeowv1.RequestMediaRetryRequest{SessionId: "s1", MessageId: "M1", Chat: "120363000000000001@g.us", Sender: sender, Media: expiredRef()})
+		wantReason(t, err, codes.InvalidArgument, "INVALID_ARGUMENT", "sender")
+	}
+
+	var requests int
+	if err := h.db.DB.QueryRowContext(context.Background(), "SELECT count(*) FROM media_retry").Scan(&requests); err != nil || requests != 0 {
+		t.Fatalf("media_retry rows %d, %v; want 0", requests, err)
+	}
+
+	if len(h.stub.receipts) != 0 {
+		t.Fatalf("a refused request sent %v", h.stub.receipts)
+	}
+}
+
 // answer is the phone's answer as whatsmeow parses it (mediaretry.go:139-176), encrypted as the phone encrypts it:
 // AES-GCM under the media key's retry key, with the message id as additional data (mediaretry.go:24-41, 130).
 func answer(t *testing.T, mediaKey []byte, notif *waMmsRetry.MediaRetryNotification, at time.Time) *events.MediaRetry {
