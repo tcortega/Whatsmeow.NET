@@ -297,9 +297,9 @@ func TestEveryWhatsmeowEventMapsToOneOutboxEventOrNone(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		key, got, ok := toEvent(c.evt, nil, nil)
-		if ok != (c.want != nil) || key != c.key || !proto.Equal(got, c.want) {
-			t.Errorf("%T: key %q, %v, %v; want %q, %v", c.evt, key, got, ok, c.key, c.want)
+		key, got, ok, err := toEvent(c.evt, nil, nil)
+		if err != nil || ok != (c.want != nil) || key != c.key || !proto.Equal(got, c.want) {
+			t.Errorf("%T: key %q, %v, %v, %v; want %q, %v", c.evt, key, got, ok, err, c.key, c.want)
 		}
 	}
 }
@@ -810,8 +810,8 @@ func TestAViewOnceMessageAndAnUnavailableOneSayWhatTheyAre(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		if _, got, ok := toEvent(c.evt, nil, nil); !ok || !proto.Equal(got, c.want) {
-			t.Errorf("%+v: %v, %v; want %v", c.evt, got, ok, c.want)
+		if _, got, ok, err := toEvent(c.evt, nil, nil); err != nil || !ok || !proto.Equal(got, c.want) {
+			t.Errorf("%+v: %v, %v, %v; want %v", c.evt, got, ok, err, c.want)
 		}
 	}
 }
@@ -850,8 +850,8 @@ func TestAMessagesWrappersSayWhatTheyWere_AndTheRawMessageIsKeptWhenUnwrapped(t 
 	}
 
 	for _, c := range cases {
-		if _, got, ok := toEvent(c.evt, nil, nil); !ok || !proto.Equal(got, c.want) {
-			t.Errorf("%v: %v, %v; want %v", c.evt.RawMessage, got, ok, c.want)
+		if _, got, ok, err := toEvent(c.evt, nil, nil); err != nil || !ok || !proto.Equal(got, c.want) {
+			t.Errorf("%v: %v, %v, %v; want %v", c.evt.RawMessage, got, ok, err, c.want)
 		}
 	}
 }
