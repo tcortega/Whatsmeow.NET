@@ -198,6 +198,11 @@ public sealed class WhatsmeowSessions
 				SessionLog.ReconnectFailed(_log, e, id.Value);
 			return;
 		}
+		catch (ObjectDisposedException) when (_sidecar.IsDisposed)
+		{
+			// The sidecar is stopping, so there is nothing to connect again, and this is not a failed launch.
+			return;
+		}
 
 		// Checked again now, not only in the snapshot: the application may have disconnected one meanwhile.
 		string[] ids = [.. sessions.Where(session => session is { State: SessionState.Disconnected } && IsRemembered(session.Id)).Select(session => session.Id.Value)];
