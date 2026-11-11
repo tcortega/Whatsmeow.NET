@@ -48,8 +48,11 @@ public sealed class TelemetryCrashTests(FakeSidecar fixture)
 		await fixture.CrashAsync(ct);
 		var failure = await Assert.ThrowsAsync<SidecarUnavailableException>(() => download);
 
-		// A call the sidecar cut off is a failure: the span says so, and it is counted by its error code.
+		// gRPC ends the cut call with a cancellation; the caller gets SidecarUnavailableException, with no reason.
+		_ = Assert.IsType<TaskCanceledException>(failure.InnerException);
 		Assert.Equal(WhatsmeowErrorCode.Unknown, failure.ErrorCode);
+
+		// A call the sidecar cut off is a failure: the span says so, and it is counted by the code its caller got.
 		var type = nameof(WhatsmeowErrorCode.Unknown);
 		var span = Assert.Single(spans.Of("whatsmeow.media.download", Session));
 		Assert.Equal(
@@ -57,6 +60,10 @@ public sealed class TelemetryCrashTests(FakeSidecar fixture)
 			Tags.Of(span)
 		);
 		Assert.Equal(ActivityStatusCode.Error, span.Status);
-		Assert.Contains(errors.GetMeasurementSnapshot(), measurement => Equals(measurement.Tags["error.type"], type));
+		// The crash cuts the session's other calls too, and the count has no session tag to tell the download's apart: each
+		// is counted Unknown, so a cut call counted by its exception's type again fails this.
+		var counted = errors.GetMeasurementSnapshot();
+		Assert.NotEmpty(counted);
+		Assert.All(counted, measurement => Assert.Equal(type, measurement.Tags["error.type"]));
 	}
 }

@@ -28,7 +28,7 @@ internal sealed class ClientMetrics : IDisposable
 		_meter = meterFactory?.Create(options) ?? new Meter(options);
 		_ownsMeter = meterFactory is null;
 		_sent = _meter.CreateCounter<long>("whatsmeow.messages.sent", "{message}", "Messages WhatsApp accepted from a send.");
-		_errors = _meter.CreateCounter<long>("whatsmeow.errors", "{error}", "Failed calls to the sidecar, by error code, or by exception type for a cancellation the caller did not cause; those the caller cancelled are not counted.");
+		_errors = _meter.CreateCounter<long>("whatsmeow.errors", "{error}", "Failed calls to the sidecar, by error code, a call the sidecar's crash or stop cut off as Unknown; those the caller cancelled are not counted.");
 		_restarts = _meter.CreateCounter<long>("whatsmeow.sidecar.restarts", "{restart}", "Sidecars started again after one exited on its own.");
 		_received = _meter.CreateCounter<long>("whatsmeow.messages.received", "{message}", "Message events that arrived from the sidecar; a redelivery counts again.");
 		_handlerDuration = _meter.CreateHistogram(

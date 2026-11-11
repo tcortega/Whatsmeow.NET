@@ -112,7 +112,8 @@ internal sealed class MediaTransfer(MediaService.MediaServiceClient client, Sess
 						Media = MediaMapping.ToProto(media),
 					},
 					cancellationToken: cancellationToken
-				)
+				),
+				cancellationToken
 			)
 			.ConfigureAwait(false);
 	}
@@ -161,11 +162,11 @@ internal sealed class MediaTransfer(MediaService.MediaServiceClient client, Sess
 			// has completed, grpc-dotnet throws its status as an RpcException
 			// (StreamExtensions.TryCreateCallCompleteException); the other two are for a write that fails before that.
 			// Either way the status says why.
-			_ = await ResponseAsync(call).ConfigureAwait(false);
+			_ = await ResponseAsync(call, cancellationToken).ConfigureAwait(false);
 			throw;
 		}
 
-		return MediaMapping.ToRef((await ResponseAsync(call).ConfigureAwait(false)).Media);
+		return MediaMapping.ToRef((await ResponseAsync(call, cancellationToken).ConfigureAwait(false)).Media);
 	}
 
 	/// <summary>Sends the header, then the content in chunks of one rented buffer, reused once each write returned.</summary>
@@ -193,7 +194,11 @@ internal sealed class MediaTransfer(MediaService.MediaServiceClient client, Sess
 		await requests.CompleteAsync().ConfigureAwait(false);
 	}
 
-	private static async Task<UploadMediaResponse> ResponseAsync(AsyncClientStreamingCall<UploadMediaRequest, UploadMediaResponse> call)
+	/// <summary>
+	/// Awaits the upload's response and maps the call's failure. A write the call's end cut short comes here too, so a
+	/// call the sidecar's crash or stop cut off is mapped here whether a write or the response saw it first.
+	/// </summary>
+	private static async Task<UploadMediaResponse> ResponseAsync(AsyncClientStreamingCall<UploadMediaRequest, UploadMediaResponse> call, CancellationToken cancellationToken)
 	{
 		try
 		{
@@ -202,6 +207,11 @@ internal sealed class MediaTransfer(MediaService.MediaServiceClient client, Sess
 		catch (RpcException e)
 		{
 			RpcErrors.Throw(e);
+			throw;
+		}
+		catch (OperationCanceledException e) when (!cancellationToken.IsCancellationRequested)
+		{
+			SidecarUnavailableException.ThrowCallCut(e);
 			throw;
 		}
 	}
@@ -213,13 +223,19 @@ internal sealed class MediaTransfer(MediaService.MediaServiceClient client, Sess
 			new DownloadMediaRequest { SessionId = sessionId.Value, Media = MediaMapping.ToProto(media), Path = path },
 			cancellationToken: cancellationToken
 		);
+		while (await NextAsync(call.ResponseStream, cancellationToken).ConfigureAwait(false))
+		{
+			if (destination is not null)
+				await destination.WriteAsync(call.ResponseStream.Current.Chunk.Memory, cancellationToken).ConfigureAwait(false);
+		}
+	}
+
+	/// <summary>Reads the next chunk and maps the call's failure; the destination's own failures stay its own.</summary>
+	private static async Task<bool> NextAsync(IAsyncStreamReader<DownloadMediaResponse> stream, CancellationToken cancellationToken)
+	{
 		try
 		{
-			while (await call.ResponseStream.MoveNext(cancellationToken).ConfigureAwait(false))
-			{
-				if (destination is not null)
-					await destination.WriteAsync(call.ResponseStream.Current.Chunk.Memory, cancellationToken).ConfigureAwait(false);
-			}
+			return await stream.MoveNext(cancellationToken).ConfigureAwait(false);
 		}
 		catch (RpcException e)
 		{

@@ -48,7 +48,7 @@ public sealed class WhatsmeowSessions
 	{
 		ObjectDisposedException.ThrowIf(_sidecar.IsDisposed, _sidecar);
 		_ = await RpcErrors
-			.CallAsync(_client.CreateSessionAsync(new CreateSessionRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken))
+			.CallAsync(_client.CreateSessionAsync(new CreateSessionRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken), cancellationToken)
 			.ConfigureAwait(false);
 		return Client(sessionId);
 	}
@@ -79,7 +79,7 @@ public sealed class WhatsmeowSessions
 	public async Task<ImmutableArray<SessionInfo>> ListAsync(CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(_sidecar.IsDisposed, _sidecar);
-		var response = await RpcErrors.CallAsync(_client.ListSessionsAsync(new ListSessionsRequest(), cancellationToken: cancellationToken)).ConfigureAwait(false);
+		var response = await RpcErrors.CallAsync(_client.ListSessionsAsync(new ListSessionsRequest(), cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 		return [.. response.Sessions.Select(SessionMapping.ToInfo)];
 	}
 
@@ -100,7 +100,7 @@ public sealed class WhatsmeowSessions
 			throw new InvalidOperationException($"Session {sessionId.Value} is declared with AddSession, so it cannot be deleted while the host runs: its keyed client would stay behind.");
 
 		_ = await RpcErrors
-			.CallAsync(_client.DeleteSessionAsync(new DeleteSessionRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken))
+			.CallAsync(_client.DeleteSessionAsync(new DeleteSessionRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken), cancellationToken)
 			.ConfigureAwait(false);
 
 		// Forgotten only once it is gone: a delete that failed leaves a session the application still connected.
@@ -169,7 +169,7 @@ public sealed class WhatsmeowSessions
 	}
 
 	private Task<ConnectSessionsResponse> ConnectSessionsAsync(IEnumerable<string> ids, CancellationToken cancellationToken) =>
-		RpcErrors.CallAsync(_client.ConnectSessionsAsync(new ConnectSessionsRequest { SessionIds = { ids } }, cancellationToken: cancellationToken));
+		RpcErrors.CallAsync(_client.ConnectSessionsAsync(new ConnectSessionsRequest { SessionIds = { ids } }, cancellationToken: cancellationToken), cancellationToken);
 
 	/// <summary>
 	/// After a sidecar restart, connects again the sessions the application had connected that came back

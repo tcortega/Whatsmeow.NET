@@ -8,9 +8,9 @@ namespace Whatsmeow.Core.Errors;
 
 /// <summary>
 /// Maps a failed sidecar call to the public exceptions (ARCHITECTURE §8.7). It maps on the ErrorInfo reason only,
-/// never on the message, so <see cref="RpcException"/> never escapes the public API. A public stream call the sidecar's
-/// crash or stop cuts off ends with a cancellation its caller did not cause; each one maps it next to its
-/// <see cref="RpcException"/> catch (<see cref="SidecarUnavailableException.ThrowCallCut"/>).
+/// never on the message, so <see cref="RpcException"/> never escapes the public API. A call the sidecar's crash or stop
+/// cuts off can end with a cancellation its caller did not cause instead; <see cref="CallAsync"/> and each public stream
+/// call map it next to their <see cref="RpcException"/> catch (<see cref="SidecarUnavailableException.ThrowCallCut"/>).
 /// </summary>
 internal static class RpcErrors
 {
@@ -22,8 +22,8 @@ internal static class RpcErrors
 		.FindTypeByName<Google.Protobuf.Reflection.EnumDescriptor>(nameof(ErrorReason))
 		.Values.ToFrozenDictionary(value => value.Name[Prefix.Length..], value => (ErrorReason)value.Number, StringComparer.Ordinal);
 
-	/// <summary>Awaits a unary call and maps its failure.</summary>
-	public static async Task<T> CallAsync<T>(AsyncUnaryCall<T> call)
+	/// <summary>Awaits a unary call made with <paramref name="cancellationToken"/> and maps its failure.</summary>
+	public static async Task<T> CallAsync<T>(AsyncUnaryCall<T> call, CancellationToken cancellationToken)
 	{
 		using (call)
 		{
@@ -34,6 +34,11 @@ internal static class RpcErrors
 			catch (RpcException e)
 			{
 				Throw(e);
+				throw;
+			}
+			catch (OperationCanceledException e) when (!cancellationToken.IsCancellationRequested)
+			{
+				SidecarUnavailableException.ThrowCallCut(e);
 				throw;
 			}
 		}

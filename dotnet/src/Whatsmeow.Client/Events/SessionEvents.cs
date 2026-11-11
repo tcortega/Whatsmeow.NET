@@ -201,7 +201,7 @@ internal sealed class SessionEvents : IAsyncDisposable
 	private async Task AckAsync(ulong seq, CancellationToken cancellationToken)
 	{
 		_ = await RpcErrors
-			.CallAsync(_client.AckEventsAsync(new AckEventsRequest { SessionId = _sessionId.Value, Consumer = _sidecar.Consumer, UpToSeq = seq }, cancellationToken: cancellationToken))
+			.CallAsync(_client.AckEventsAsync(new AckEventsRequest { SessionId = _sessionId.Value, Consumer = _sidecar.Consumer, UpToSeq = seq }, cancellationToken: cancellationToken), cancellationToken)
 			.ConfigureAwait(false);
 		EventLog.Acked(_log, _sessionId.Value, seq);
 	}

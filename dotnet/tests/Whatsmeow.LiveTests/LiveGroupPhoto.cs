@@ -33,12 +33,12 @@ internal static class LiveGroupPhoto
 				var set = client.WaitForAsync<ContactUpdated>(e => e.Jid == jid && e.Change is ContactChange.Picture { Id: not null }, LiveChecks.Watch, ct);
 				// Set before the call: an answer lost on the way may still have set the photo.
 				photoSet = true;
-				var answer = await RpcErrors.CallAsync(control.SetGroupPhotoAsync(setPhoto, cancellationToken: ct)).ConfigureAwait(false);
+				var answer = await RpcErrors.CallAsync(control.SetGroupPhotoAsync(setPhoto, cancellationToken: ct), ct).ConfigureAwait(false);
 				Assert.NotEmpty(answer.PictureId);
 				LiveChecks.Equal(ContactChecks.Picture(client.SessionId, jid, answer.PictureId), await LiveChecks.WithinAsync(set, "the group photo change").ConfigureAwait(false));
 
 				var removed = client.WaitForAsync<ContactUpdated>(e => e.Jid == jid && e.Change is ContactChange.Picture { Id: null }, LiveChecks.Watch, ct);
-				_ = await RpcErrors.CallAsync(control.SetGroupPhotoAsync(removePhoto, cancellationToken: ct)).ConfigureAwait(false);
+				_ = await RpcErrors.CallAsync(control.SetGroupPhotoAsync(removePhoto, cancellationToken: ct), ct).ConfigureAwait(false);
 				photoSet = false;
 				LiveChecks.Equal(ContactChecks.Picture(client.SessionId, jid, id: null), await LiveChecks.WithinAsync(removed, "the group photo removal").ConfigureAwait(false));
 			},
@@ -47,7 +47,7 @@ internal static class LiveGroupPhoto
 				async t =>
 				{
 					if (photoSet)
-						_ = await RpcErrors.CallAsync(control.SetGroupPhotoAsync(removePhoto, cancellationToken: t)).ConfigureAwait(false);
+						_ = await RpcErrors.CallAsync(control.SetGroupPhotoAsync(removePhoto, cancellationToken: t), t).ConfigureAwait(false);
 				}
 		)
 		).ConfigureAwait(false);

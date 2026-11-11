@@ -12,9 +12,10 @@ namespace Whatsmeow;
 /// full type name of any other exception; a failed span gets the error status with no description, never the message.
 /// A cancellation the caller's own token caused is no error: its span keeps the unset status and no
 /// <c>error.type</c>, it is not counted in <c>whatsmeow.errors</c>, and a handler the stop cancelled records no
-/// duration. Any other cancellation is a failure, by its exception's type: a call cut by a sidecar that died, or a
-/// handler's own timeout. <see cref="IWhatsAppClient.WaitForAsync{TEvent}"/> is no handler: it makes no span and
-/// records no duration.
+/// duration. Any other cancellation is a failure: a call the sidecar's crash or stop cut off throws
+/// <see cref="SidecarUnavailableException"/>, so its <c>error.type</c> is <c>Unknown</c>, and a handler's own timeout
+/// is tagged by its exception's type. <see cref="IWhatsAppClient.WaitForAsync{TEvent}"/> is no handler: it makes no
+/// span and records no duration.
 /// </para>
 /// <para>
 /// Spans, created only while something listens:
@@ -31,7 +32,7 @@ namespace Whatsmeow;
 /// <item><c>whatsmeow.messages.received</c> (counter, <c>{message}</c>): <see cref="Events.MessageReceived"/> events as they arrive, before their handlers; a redelivery counts again; <c>whatsmeow.session.id</c>.</item>
 /// <item><c>whatsmeow.handler.duration</c> (histogram, <c>s</c>): how long one handler ran for one event of its type, a handler that threw included; <c>whatsmeow.session.id</c>, <c>whatsmeow.event.type</c>, and <c>error.type</c> when it threw.</item>
 /// <item><c>whatsmeow.dispatcher.queue.length</c> (up/down counter, <c>{event}</c>): events a session's dispatchers received and have not finished; up to 64 more may wait in the channel between the sidecar's stream and each dispatcher, which this does not count; <c>whatsmeow.session.id</c>.</item>
-/// <item><c>whatsmeow.errors</c> (counter, <c>{error}</c>): failed calls to the sidecar, the library's own included, but not those the caller cancelled; <c>error.type</c>, the error code, or the exception's type for a cancellation the caller did not cause.</item>
+/// <item><c>whatsmeow.errors</c> (counter, <c>{error}</c>): failed calls to the sidecar, the library's own included, but not those the caller cancelled; <c>error.type</c>, the error code, <c>Unknown</c> for a call the sidecar's crash or stop cut off.</item>
 /// <item><c>whatsmeow.sidecar.restarts</c> (counter, <c>{restart}</c>): sidecars started again after one exited on its own.</item>
 /// </list>
 /// </para>

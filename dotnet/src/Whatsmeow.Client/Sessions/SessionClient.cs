@@ -169,7 +169,7 @@ internal sealed class SessionClient(
 				messageId,
 				async () =>
 				{
-					var response = await RpcErrors.CallAsync(_messages.SendTextAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+					var response = await RpcErrors.CallAsync(_messages.SendTextAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime, "SendTextResponse.chat");
 				},
 				cancellationToken
@@ -268,7 +268,7 @@ internal sealed class SessionClient(
 				messageId,
 				async () =>
 				{
-					var response = await RpcErrors.CallAsync(_messages.SendMediaAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+					var response = await RpcErrors.CallAsync(_messages.SendMediaAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime, "SendMediaResponse.chat");
 				},
 				cancellationToken
@@ -300,7 +300,8 @@ internal sealed class SessionClient(
 									Emoji = emoji,
 								},
 								cancellationToken: cancellationToken
-							)
+							),
+							cancellationToken
 						)
 						.ConfigureAwait(false);
 					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime, "SendReactionResponse.chat");
@@ -332,7 +333,8 @@ internal sealed class SessionClient(
 									Text = text,
 								},
 								cancellationToken: cancellationToken
-							)
+							),
+							cancellationToken
 						)
 						.ConfigureAwait(false);
 					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime, "SendEditResponse.chat");
@@ -364,7 +366,8 @@ internal sealed class SessionClient(
 									TargetSender = target.Sender?.ToString() ?? "",
 								},
 								cancellationToken: cancellationToken
-							)
+							),
+							cancellationToken
 						)
 						.ConfigureAwait(false);
 					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime, "SendRevokeResponse.chat");
@@ -397,7 +400,7 @@ internal sealed class SessionClient(
 				messageId,
 				async () =>
 				{
-					var response = await RpcErrors.CallAsync(_messages.SendPollAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+					var response = await RpcErrors.CallAsync(_messages.SendPollAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime, "SendPollResponse.chat");
 				},
 				cancellationToken
@@ -425,7 +428,7 @@ internal sealed class SessionClient(
 				messageId,
 				async () =>
 				{
-					var response = await RpcErrors.CallAsync(_messages.SendPollVoteAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+					var response = await RpcErrors.CallAsync(_messages.SendPollVoteAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime, "SendPollVoteResponse.chat");
 				},
 				cancellationToken
@@ -442,7 +445,7 @@ internal sealed class SessionClient(
 		if (chat.Server == GroupServer)
 		{
 			var request = new SetGroupDisappearingTimerRequest { SessionId = sessionId.Value, Group = chat.ToString(), Timer = duration };
-			_ = await RpcErrors.CallAsync(_groups.SetGroupDisappearingTimerAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+			_ = await RpcErrors.CallAsync(_groups.SetGroupDisappearingTimerAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 			return;
 		}
 
@@ -459,7 +462,7 @@ internal sealed class SessionClient(
 						ClientMessageId = messageId.Value,
 						Timer = duration,
 					};
-					var response = await RpcErrors.CallAsync(_messages.SendDisappearingTimerAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+					var response = await RpcErrors.CallAsync(_messages.SendDisappearingTimerAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime, "SendDisappearingTimerResponse.chat");
 				},
 				cancellationToken
@@ -482,7 +485,8 @@ internal sealed class SessionClient(
 							_messages.SendMessageAsync(
 								new SendMessageRequest { SessionId = sessionId.Value, Chat = chat.ToString(), ClientMessageId = messageId.Value, Message = message },
 								cancellationToken: cancellationToken
-							)
+							),
+							cancellationToken
 						)
 						.ConfigureAwait(false);
 					return MessagingMapping.ToResult(messageId, response.Chat, response.MessageTime, "SendMessageResponse.chat");
@@ -514,7 +518,7 @@ internal sealed class SessionClient(
 		ArgumentNullException.ThrowIfNull(messageIds);
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		_ = await RpcErrors
-			.CallAsync(_messages.MarkReadAsync(MessagingMapping.ToMarkRead(sessionId, chat, messageIds, sender), cancellationToken: cancellationToken))
+			.CallAsync(_messages.MarkReadAsync(MessagingMapping.ToMarkRead(sessionId, chat, messageIds, sender), cancellationToken: cancellationToken), cancellationToken)
 			.ConfigureAwait(false);
 	}
 
@@ -523,7 +527,7 @@ internal sealed class SessionClient(
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		ObjectDisposedException.ThrowIf(_events.IsDisposed, this);
 		_ = await RpcErrors
-			.CallAsync(client.ConnectAsync(new ConnectRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken))
+			.CallAsync(client.ConnectAsync(new ConnectRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken), cancellationToken)
 			.ConfigureAwait(false);
 		ConnectSucceeded();
 	}
@@ -544,7 +548,7 @@ internal sealed class SessionClient(
 		// Forgotten first, so a restart in between does not connect it again.
 		sessions.Forget(sessionId);
 		_ = await RpcErrors
-			.CallAsync(client.DisconnectAsync(new DisconnectRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken))
+			.CallAsync(client.DisconnectAsync(new DisconnectRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken), cancellationToken)
 			.ConfigureAwait(false);
 	}
 
@@ -553,7 +557,7 @@ internal sealed class SessionClient(
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 
 		// Forgotten only once it happened: a logout that failed leaves a session the application still connected.
-		_ = await RpcErrors.CallAsync(client.LogoutAsync(new LogoutRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		_ = await RpcErrors.CallAsync(client.LogoutAsync(new LogoutRequest { SessionId = sessionId.Value }, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 		sessions.Forget(sessionId);
 	}
 
@@ -565,7 +569,8 @@ internal sealed class SessionClient(
 				_presence.SendPresenceAsync(
 					new SendPresenceRequest { SessionId = sessionId.Value, State = PresenceMapping.ToProto(state) },
 					cancellationToken: cancellationToken
-				)
+				),
+				cancellationToken
 			)
 			.ConfigureAwait(false);
 	}
@@ -575,7 +580,8 @@ internal sealed class SessionClient(
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		_ = await RpcErrors
 			.CallAsync(
-				_presence.SubscribePresenceAsync(new SubscribePresenceRequest { SessionId = sessionId.Value, User = user.ToString() }, cancellationToken: cancellationToken)
+				_presence.SubscribePresenceAsync(new SubscribePresenceRequest { SessionId = sessionId.Value, User = user.ToString() }, cancellationToken: cancellationToken),
+				cancellationToken
 			)
 			.ConfigureAwait(false);
 	}
@@ -588,7 +594,8 @@ internal sealed class SessionClient(
 				_presence.SendChatPresenceAsync(
 					new SendChatPresenceRequest { SessionId = sessionId.Value, Chat = chat.ToString(), State = PresenceMapping.ToProto(state) },
 					cancellationToken: cancellationToken
-				)
+				),
+				cancellationToken
 			)
 			.ConfigureAwait(false);
 	}
@@ -728,7 +735,7 @@ internal sealed class SessionClient(
 		ArgumentNullException.ThrowIfNull(phoneNumbers);
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new IsOnWhatsAppRequest { SessionId = sessionId.Value, PhoneNumbers = { phoneNumbers } };
-		return ContactMapping.ToChecks(await RpcErrors.CallAsync(_contacts.IsOnWhatsAppAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false));
+		return ContactMapping.ToChecks(await RpcErrors.CallAsync(_contacts.IsOnWhatsAppAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false));
 	}
 
 	public async Task<ImmutableArray<UserInfo>> GetUserInfoAsync(IReadOnlyList<Jid> users, CancellationToken cancellationToken = default)
@@ -736,14 +743,14 @@ internal sealed class SessionClient(
 		ArgumentNullException.ThrowIfNull(users);
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new GetUserInfoRequest { SessionId = sessionId.Value, Jids = { users.Select(jid => jid.ToString()) } };
-		return ContactMapping.ToUsers(await RpcErrors.CallAsync(_contacts.GetUserInfoAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false));
+		return ContactMapping.ToUsers(await RpcErrors.CallAsync(_contacts.GetUserInfoAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false));
 	}
 
 	public async Task<ProfilePicture> GetProfilePictureAsync(Jid jid, CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new GetProfilePictureRequest { SessionId = sessionId.Value, Jid = jid.ToString() };
-		return ContactMapping.ToPicture(await RpcErrors.CallAsync(_contacts.GetProfilePictureAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false));
+		return ContactMapping.ToPicture(await RpcErrors.CallAsync(_contacts.GetProfilePictureAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false));
 	}
 
 	public async Task<ImmutableArray<ResolvedJid>> ResolveJidsAsync(IReadOnlyList<Jid> jids, CancellationToken cancellationToken = default)
@@ -751,21 +758,21 @@ internal sealed class SessionClient(
 		ArgumentNullException.ThrowIfNull(jids);
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new ResolveJidsRequest { SessionId = sessionId.Value, Jids = { jids.Select(jid => jid.ToString()) } };
-		return ContactMapping.ToResolved(await RpcErrors.CallAsync(_contacts.ResolveJidsAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false));
+		return ContactMapping.ToResolved(await RpcErrors.CallAsync(_contacts.ResolveJidsAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false));
 	}
 
 	public async Task<ImmutableArray<Contact>> GetContactsAsync(CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new ListContactsRequest { SessionId = sessionId.Value };
-		return ContactMapping.ToContacts(await RpcErrors.CallAsync(_contacts.ListContactsAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false));
+		return ContactMapping.ToContacts(await RpcErrors.CallAsync(_contacts.ListContactsAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false));
 	}
 
 	public async Task<ImmutableArray<BlockedUser>> GetBlocklistAsync(CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new GetBlocklistRequest { SessionId = sessionId.Value };
-		return ContactMapping.ToBlocked(await RpcErrors.CallAsync(_contacts.GetBlocklistAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false));
+		return ContactMapping.ToBlocked(await RpcErrors.CallAsync(_contacts.GetBlocklistAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false));
 	}
 
 	public Task BlockAsync(Jid user, CancellationToken cancellationToken = default) => UpdateBlocklistAsync(user, BlocklistAction.Block, cancellationToken);
@@ -776,21 +783,21 @@ internal sealed class SessionClient(
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new UpdateBlocklistRequest { SessionId = sessionId.Value, Jid = user.ToString(), Action = action };
-		_ = await RpcErrors.CallAsync(_contacts.UpdateBlocklistAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		_ = await RpcErrors.CallAsync(_contacts.UpdateBlocklistAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<ImmutableArray<GroupInfo>> GetGroupsAsync(CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new ListGroupsRequest { SessionId = sessionId.Value };
-		return GroupMapping.ToGroups(await RpcErrors.CallAsync(_groups.ListGroupsAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false));
+		return GroupMapping.ToGroups(await RpcErrors.CallAsync(_groups.ListGroupsAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false));
 	}
 
 	public async Task<GroupInfo> GetGroupInfoAsync(Jid group, CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new GetGroupRequest { SessionId = sessionId.Value, Group = group.ToString() };
-		return GroupMapping.ToGroup((await RpcErrors.CallAsync(_groups.GetGroupAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false)).Group);
+		return GroupMapping.ToGroup((await RpcErrors.CallAsync(_groups.GetGroupAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false)).Group);
 	}
 
 	public async Task<CreatedGroup> CreateGroupAsync(string name, IReadOnlyList<Jid> participants, CancellationToken cancellationToken = default)
@@ -799,7 +806,7 @@ internal sealed class SessionClient(
 		ArgumentNullException.ThrowIfNull(participants);
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new CreateGroupRequest { SessionId = sessionId.Value, Name = name, Participants = { participants.Select(jid => jid.ToString()) } };
-		return GroupMapping.ToCreated(await RpcErrors.CallAsync(_groups.CreateGroupAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false));
+		return GroupMapping.ToCreated(await RpcErrors.CallAsync(_groups.CreateGroupAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false));
 	}
 
 	public Task<ImmutableArray<ParticipantResult>> AddParticipantsAsync(Jid group, IReadOnlyList<Jid> users, CancellationToken cancellationToken = default) =>
@@ -825,7 +832,7 @@ internal sealed class SessionClient(
 			Participants = { users.Select(jid => jid.ToString()) },
 			Action = action,
 		};
-		var response = await RpcErrors.CallAsync(_groups.UpdateParticipantsAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		var response = await RpcErrors.CallAsync(_groups.UpdateParticipantsAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 		return GroupMapping.ToResults(response.Participants);
 	}
 
@@ -834,42 +841,42 @@ internal sealed class SessionClient(
 		ArgumentNullException.ThrowIfNull(name);
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new SetGroupNameRequest { SessionId = sessionId.Value, Group = group.ToString(), Name = name };
-		_ = await RpcErrors.CallAsync(_groups.SetGroupNameAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		_ = await RpcErrors.CallAsync(_groups.SetGroupNameAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task SetGroupTopicAsync(Jid group, string? topic, CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new SetGroupTopicRequest { SessionId = sessionId.Value, Group = group.ToString(), Topic = topic ?? "" };
-		_ = await RpcErrors.CallAsync(_groups.SetGroupTopicAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		_ = await RpcErrors.CallAsync(_groups.SetGroupTopicAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task SetGroupAnnounceAsync(Jid group, bool announce, CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new SetGroupAnnounceRequest { SessionId = sessionId.Value, Group = group.ToString(), Announce = announce };
-		_ = await RpcErrors.CallAsync(_groups.SetGroupAnnounceAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		_ = await RpcErrors.CallAsync(_groups.SetGroupAnnounceAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task SetGroupLockedAsync(Jid group, bool locked, CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new SetGroupLockedRequest { SessionId = sessionId.Value, Group = group.ToString(), Locked = locked };
-		_ = await RpcErrors.CallAsync(_groups.SetGroupLockedAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		_ = await RpcErrors.CallAsync(_groups.SetGroupLockedAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task SetGroupMemberAddModeAsync(Jid group, GroupMemberAddMode mode, CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new SetGroupMemberAddModeRequest { SessionId = sessionId.Value, Group = group.ToString(), Mode = GroupMapping.ToProto(mode) };
-		_ = await RpcErrors.CallAsync(_groups.SetGroupMemberAddModeAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		_ = await RpcErrors.CallAsync(_groups.SetGroupMemberAddModeAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<Uri> GetGroupInviteLinkAsync(Jid group, CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new GetInviteLinkRequest { SessionId = sessionId.Value, Group = group.ToString() };
-		var response = await RpcErrors.CallAsync(_groups.GetInviteLinkAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		var response = await RpcErrors.CallAsync(_groups.GetInviteLinkAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 		return new Uri(response.Link, UriKind.RelativeOrAbsolute);
 	}
 
@@ -877,7 +884,7 @@ internal sealed class SessionClient(
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new ResetInviteLinkRequest { SessionId = sessionId.Value, Group = group.ToString() };
-		var response = await RpcErrors.CallAsync(_groups.ResetInviteLinkAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		var response = await RpcErrors.CallAsync(_groups.ResetInviteLinkAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 		return new Uri(response.Link, UriKind.RelativeOrAbsolute);
 	}
 
@@ -886,7 +893,7 @@ internal sealed class SessionClient(
 		ArgumentNullException.ThrowIfNull(link);
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new JoinGroupWithLinkRequest { SessionId = sessionId.Value, Link = link.OriginalString };
-		var response = await RpcErrors.CallAsync(_groups.JoinGroupWithLinkAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		var response = await RpcErrors.CallAsync(_groups.JoinGroupWithLinkAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 		return SidecarValues.Jid(response.Group, "JoinGroupWithLinkResponse.group");
 	}
 
@@ -895,14 +902,14 @@ internal sealed class SessionClient(
 		ArgumentNullException.ThrowIfNull(link);
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new GetGroupInfoFromLinkRequest { SessionId = sessionId.Value, Link = link.OriginalString };
-		return GroupMapping.ToGroup((await RpcErrors.CallAsync(_groups.GetGroupInfoFromLinkAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false)).Group);
+		return GroupMapping.ToGroup((await RpcErrors.CallAsync(_groups.GetGroupInfoFromLinkAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false)).Group);
 	}
 
 	public async Task LeaveGroupAsync(Jid group, CancellationToken cancellationToken = default)
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new LeaveGroupRequest { SessionId = sessionId.Value, Group = group.ToString() };
-		_ = await RpcErrors.CallAsync(_groups.LeaveGroupAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		_ = await RpcErrors.CallAsync(_groups.LeaveGroupAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 	}
 
 	public Task MuteChatAsync(Jid chat, DateTimeOffset? until = null, CancellationToken cancellationToken = default) =>
@@ -944,7 +951,7 @@ internal sealed class SessionClient(
 	{
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		request.SessionId = sessionId.Value;
-		_ = await RpcErrors.CallAsync(_chatState.SetChatStateAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		_ = await RpcErrors.CallAsync(_chatState.SetChatStateAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task RequestHistoryAsync(MessageId oldest, Events.MessageSource source, DateTimeOffset oldestTimestamp, int count = 50, CancellationToken cancellationToken = default)
@@ -953,6 +960,6 @@ internal sealed class SessionClient(
 		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = HistoryMapping.ToRequest(sessionId, oldest, source, oldestTimestamp, count);
-		_ = await RpcErrors.CallAsync(_history.RequestHistoryAsync(request, cancellationToken: cancellationToken)).ConfigureAwait(false);
+		_ = await RpcErrors.CallAsync(_history.RequestHistoryAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 	}
 }

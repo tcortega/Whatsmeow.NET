@@ -34,6 +34,7 @@ Messages never carry a phone number, a JID's user part, or a URL's query: the si
 ## Cancellation and timeouts
 
 Cancelling a call's token throws `OperationCanceledException`.
+A call the sidecar's crash or stop cuts off throws `SidecarUnavailableException`, never `OperationCanceledException`, and a send cut off so may have reached WhatsApp, so a repeat of its id throws `OutcomeUnknownException` and never sends it twice [observed: a crash, `MessagingCrashTests`, `TelemetryCrashTests`; a stop is [inferred] from the same mapping].
 The library sets no deadline on any call, so a call that should not wait forever needs a token that you cancel, `CancelAfter` included.
 A send cancelled while it waits for its paced turn sent nothing.
 `TimeoutException` comes only from `WaitForAsync`'s own `timeout`.
