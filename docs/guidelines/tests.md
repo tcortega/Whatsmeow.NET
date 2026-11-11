@@ -166,6 +166,9 @@ Any of these in a diff is a failed slice, green or not:
 * weakening `Assert.Equal(expected, actual)` to `NotNull` or dropping fields
 * special-casing chats, ids, or payloads that exist only in the test
 * retries or loops to get past a failure
+  The declared exception: `Support/Deletion.cs`, which deletes a test's files and waits out a sharing violation only, for at most 10 s, and throws any other error at once.
+  On the hosted Windows runner, GitHub's `provjobd`, a child of its `hosted-compute-agent`, opens the binary of a process that just exited, and deleting it fails with a sharing violation for up to about 200 ms: 9 of 5934 deletes right after a stop in three External-mode runs, with the Restart Manager and handle.exe naming it at each failure, and Defender off on the runner (#187).
+  The access denied of a binary its dead process still maps (#179) still fails at once.
 * deriving expected values by running the code under test and pasting the output
 
 ## Determinism

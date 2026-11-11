@@ -128,7 +128,7 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 
 		// The failed start killed the stub. On Windows its image stays mapped until it is gone, and deleting it fails
 		// until then (#179).
-		File.Delete(stub);
+		await Deletion.DeleteFileAsync(stub);
 		Assert.False(File.Exists(stub));
 	}
 

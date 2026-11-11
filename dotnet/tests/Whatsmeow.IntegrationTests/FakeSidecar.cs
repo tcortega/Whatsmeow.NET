@@ -258,7 +258,7 @@ public sealed class FakeSidecar : IAsyncLifetime
 			await StopStandaloneAsync(_standalone).ConfigureAwait(false);
 		Logs.Dispose();
 		if (_directory is not null)
-			Directory.Delete(_directory, recursive: true);
+			await Deletion.DeleteDirectoryAsync(_directory).ConfigureAwait(false);
 	}
 }
 

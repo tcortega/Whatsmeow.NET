@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Whatsmeow.IntegrationTests.Support;
 
 [assembly: AssemblyFixture(typeof(Whatsmeow.IntegrationTests.SidecarBinaries))]
 
@@ -70,11 +71,10 @@ public sealed partial class SidecarBinaries : IAsyncLifetime
 		};
 	}
 
-	public ValueTask DisposeAsync()
+	public async ValueTask DisposeAsync()
 	{
 		foreach (var directory in _directories)
-			Directory.Delete(directory, recursive: true);
-		return ValueTask.CompletedTask;
+			await Deletion.DeleteDirectoryAsync(directory).ConfigureAwait(false);
 	}
 
 	/// <summary>
