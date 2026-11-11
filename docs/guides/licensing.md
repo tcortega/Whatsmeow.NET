@@ -24,3 +24,4 @@ Releases are never deleted, so the source stays where the packages point.
 
 An app can leave the native package out (`ExcludeAssets="all"` on `Whatsmeow.Sidecar.Native`) and use [External mode](external-mode.md) with a `whatsmeow-net` it runs separately, so the app itself carries no GPL binary [observed: `build/ci.sh install`, ADR 0046].
 Whoever distributes the sidecar then, a container image of it for instance, takes on the obligations above.
+An app that excluded the three packages of `1.0.0-rc.1` moves the exclusion to `Whatsmeow.Sidecar.Native` when it upgrades, or the binaries land in its output again ([External mode](external-mode.md#shipping-no-binary)) [inferred: NuGet applies `ExcludeAssets` to the package it names].

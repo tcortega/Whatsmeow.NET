@@ -176,7 +176,7 @@ Any of these in a diff is a failed slice, green or not:
 A flaky test is a failing test.
 Fix it or delete it on sight.
 
-No `Thread.Sleep`, no `Task.Delay` to wait for something.
+No `Thread.Sleep`, no `Task.Delay` to wait for something, except the bounded sharing-violation wait in `Support/Deletion.cs` declared under Banned above (#187).
 No public network in the default suite.
 No order dependence between facts beyond what the shared fixture already owns.
 Wait on a condition, not a duration.

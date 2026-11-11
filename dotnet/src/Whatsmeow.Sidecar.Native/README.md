@@ -26,4 +26,5 @@ It holds the whole tagged repository plus the `go mod vendor` output for `sideca
 - Redistributing it, for example in an installer, a desktop app or a container image, conveys it, and you take on GPLv3 §6 for `whatsmeow-net` [inferred].
 - Shipping it in a consumer device also owes Installation Information [inferred: GPLv3 §6 "User Product"].
 - An app can leave this package's assets out (NuGet `ExcludeAssets="all"` on this package) and use External mode with a `whatsmeow-net` it runs itself, which ships no binary in the app [observed: `build/ci.sh install`, ADR 0046].
+  Up to `1.0.0-rc.1` the binaries came in `Whatsmeow.Sidecar.Native.Linux`, `.MacOS` and `.Windows`; an app that excluded those three moves its exclusion to this package when it upgrades, or the binaries land in its output again [inferred: NuGet applies `ExcludeAssets` to the package it names].
 - Legal review of all of the above is [unknown]: this is the project's reading of the licences, not legal advice.

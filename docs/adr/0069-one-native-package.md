@@ -43,3 +43,4 @@ Measured on `1.0.0-rc.1`, the first published release:
 - The checker on main can no longer re-check rc.1 from nuget.org (`build/ci.sh install nuget.org:1.0.0-rc.1`, `nuget-install.yml`): it expects one native package, and rc.1 has three [observed: that run, red on the pin, the files, the notices, the licences and the READMEs].
   That is accepted: rc.1 was checked green on every target host and RID when it shipped, from the feed and from nuget.org [observed: run 42946072313, every install and aot job], and nothing is frozen before a stable 1.0.0.
 - An app that left the native binaries out for External mode now sets `ExcludeAssets="all"` on one package instead of three (ADR 0046).
+  One that excluded the three rc.1 ids and upgrades without moving the exclusion gets the six binaries in its output again, with no error [inferred: `ExcludeAssets` applies to the id it names]; the External-mode and licensing guides and the package README say to move it.
