@@ -572,6 +572,8 @@ func TestWhatsAppsErrorsBecomeTheirReasons(t *testing.T) {
 		{"another IQ error", &whatsmeow.IQError{Code: 500, Text: "internal-server-error", RawNode: node}, false, codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "500"}},
 		{"an IQ error without a code, which prints its node", &whatsmeow.IQError{RawNode: node}, false, codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "0"}},
 		{"not connected", whatsmeow.ErrNotConnected, false, codes.Unavailable, "NOT_CONNECTED", nil},
+		// The bare value comes before the IQ was written and after (client.go:976-985, request.go:198-208).
+		{"not connected, an update that may have been sent", whatsmeow.ErrNotConnected, true, codes.Unknown, "OUTCOME_UNKNOWN", nil},
 		{"not connected, an update that was never sent", fmt.Errorf("failed to get user info for %s to fill LID cache: failed to send usync query: %w", pn, whatsmeow.ErrNotConnected), true, codes.Unavailable, "NOT_CONNECTED", nil},
 		{"disconnected while waiting", disconnected, false, codes.Unavailable, "NOT_CONNECTED", nil},
 		{"an update disconnected while waiting", disconnected, true, codes.Unknown, "OUTCOME_UNKNOWN", nil},

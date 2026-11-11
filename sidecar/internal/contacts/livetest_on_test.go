@@ -301,7 +301,8 @@ func TestTheLiveControlSendsNoLegacyIQUnlessTheMutationIsRefused(t *testing.T) {
 		path string
 	}{
 		{"disconnected", &whatsmeow.DisconnectedError{Action: "info query"}, "unknown"},
-		{"not connected", whatsmeow.ErrNotConnected, "none"},
+		// The bare value can come after the mutation was written (request.go:198-208).
+		{"not connected", whatsmeow.ErrNotConnected, "unknown"},
 		{"cancelled", context.Canceled, "unknown"},
 		// WhatsApp answered the mutation, without its result (newsletter.go:183-201): it may have been made.
 		{"no result", &whatsmeow.ElementMissingError{Tag: "result", In: "mex response"}, "unknown"},
@@ -314,7 +315,9 @@ func TestTheLiveControlSendsNoLegacyIQUnlessTheMutationIsRefused(t *testing.T) {
 			var logged bytes.Buffer
 
 			h, about, live := startLiveContactsLogging(t, zerolog.New(&logged).Level(zerolog.InfoLevel))
-			about.err = fmt.Errorf("mex: %w", tc.err)
+			// As SetStatusMessage returns it at the pin: sendIQ's error, or sendMexIQ's own, unwrapped
+			// (user.go:166-171, newsletter.go:172-209).
+			about.err = tc.err
 
 			_, _ = live.SetAbout(h.ctx, &livetestv1.SetAboutRequest{SessionId: "s1", Text: "wmn about 20261108120000"})
 
@@ -325,11 +328,6 @@ func TestTheLiveControlSendsNoLegacyIQUnlessTheMutationIsRefused(t *testing.T) {
 			line := aboutLog(t, &logged)
 			if line["path"] != tc.path || line["mex"] == nil || line["legacy"] != nil {
 				t.Fatalf("the about line is %v; want path %s with the mutation's outcome alone", line, tc.path)
-			}
-
-			// The mutation's error comes wrapped: its outcome names whatsmeow's type, not the wrapper's.
-			if mex, _ := line["mex"].(string); strings.Contains(mex, "wrapError") {
-				t.Fatalf("the mutation's outcome %q names the wrapper", mex)
 			}
 		})
 	}

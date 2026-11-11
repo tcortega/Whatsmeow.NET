@@ -664,7 +664,10 @@ func TestWhatsAppsErrorsBecomeTheirReasons(t *testing.T) {
 		{"not an admin", &whatsmeow.IQError{Code: 403, Text: "forbidden", RawNode: node}, true, codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "403"}},
 		{"not in the group, as whatsmeow wraps it", fmt.Errorf("%w: %w", whatsmeow.ErrNotInGroup, whatsmeow.ErrIQForbidden), false, codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "403"}},
 		{"an IQ error without a code", &whatsmeow.IQError{RawNode: node}, false, codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "0"}},
-		{"not connected", whatsmeow.ErrNotConnected, true, codes.Unavailable, "NOT_CONNECTED", nil},
+		// The bare value comes before the IQ was written and after (client.go:976-985, request.go:198-208).
+		{"a write not connected", whatsmeow.ErrNotConnected, true, codes.Unknown, "OUTCOME_UNKNOWN", nil},
+		{"a read not connected", whatsmeow.ErrNotConnected, false, codes.Unavailable, "NOT_CONNECTED", nil},
+		{"a write not connected, wrapped", fmt.Errorf("wrapped: %w", whatsmeow.ErrNotConnected), true, codes.Unavailable, "NOT_CONNECTED", nil},
 		{"a read disconnected while waiting", disconnected, false, codes.Unavailable, "NOT_CONNECTED", nil},
 		{"a write disconnected while waiting", disconnected, true, codes.Unknown, "OUTCOME_UNKNOWN", nil},
 		{"a read that timed out", whatsmeow.ErrIQTimedOut, false, codes.Unavailable, "WHATSAPP_TIMED_OUT", nil},
