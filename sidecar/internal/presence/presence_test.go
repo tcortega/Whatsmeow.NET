@@ -239,7 +239,8 @@ func TestWhatsmeowsErrorsBecomeTheirReasons(t *testing.T) {
 		{whatsmeow.ErrNotConnected, codes.Unavailable, "NOT_CONNECTED"},
 		{fmt.Errorf("send: %w", socket.ErrSocketClosed), codes.Unavailable, "NOT_CONNECTED"},
 		{whatsmeow.ErrNoPushName, codes.FailedPrecondition, "NO_PUSH_NAME"},
-		{fmt.Errorf("failed to get privacy token: %w", whatsmeow.ErrNotLoggedIn), codes.FailedPrecondition, "NOT_LOGGED_IN"},
+		// The session was online, so its device was deleted meanwhile (ADR 0025).
+		{fmt.Errorf("failed to get privacy token: %w", whatsmeow.ErrNotLoggedIn), codes.FailedPrecondition, "LOGGED_OUT"},
 		{errors.New("websocket: write failed"), codes.Internal, "INTERNAL"},
 	}
 

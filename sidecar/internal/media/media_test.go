@@ -538,6 +538,28 @@ func TestOfflineSessionsFailEveryTransfer(t *testing.T) {
 	wantReason(t, err, codes.Unavailable, "NOT_CONNECTED", "")
 }
 
+// A session that was online, whose device was deleted meanwhile, is logged out, not never paired (ADR 0025).
+func TestALogoutDuringATransferIsLoggedOut(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+
+	media, err := h.uploadChunks(h.ctx, bytes.NewReader([]byte("a")), 64<<10)
+	if err != nil {
+		t.Fatalf("UploadMedia: %v", err)
+	}
+
+	h.stub.mu.Lock()
+	h.stub.uploadErr, h.stub.downloadErr = whatsmeow.ErrNotLoggedIn, whatsmeow.ErrNotLoggedIn
+	h.stub.mu.Unlock()
+
+	_, err = h.uploadChunks(h.ctx, bytes.NewReader([]byte("a")), 64<<10)
+	wantReason(t, err, codes.FailedPrecondition, "LOGGED_OUT", "")
+
+	_, err = h.downloadChunks(h.ctx, media, &bytes.Buffer{})
+	wantReason(t, err, codes.FailedPrecondition, "LOGGED_OUT", "")
+}
+
 func TestAClientWithoutMediaIsInternal(t *testing.T) {
 	t.Parallel()
 

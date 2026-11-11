@@ -158,7 +158,8 @@ func sendFailed(what, id string, err error) error {
 	case errors.Is(err, whatsmeow.ErrNoPushName):
 		return fmt.Errorf("%s for session %q: %w: %w", what, id, server.ErrNoPushName, err)
 	case errors.Is(err, whatsmeow.ErrNotLoggedIn):
-		return fmt.Errorf("%s for session %q: %w: %w", what, id, server.ErrNotLoggedIn, err)
+		// Logged out, not never paired: the session was online, so its device was deleted meanwhile (ADR 0025).
+		return fmt.Errorf("%s for session %q: %w: %w", what, id, server.ErrLoggedOut, err)
 	default:
 		return fmt.Errorf("%s for session %q: %w", what, id, err)
 	}

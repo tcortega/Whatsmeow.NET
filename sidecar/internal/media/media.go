@@ -171,7 +171,8 @@ func sessionError(err error) error {
 	case errors.Is(err, whatsmeow.ErrNotConnected):
 		return fmt.Errorf("%w: %w", server.ErrNotConnected, err)
 	case errors.Is(err, whatsmeow.ErrNotLoggedIn):
-		return fmt.Errorf("%w: %w", server.ErrNotLoggedIn, err)
+		// Logged out, not never paired: the session was online, so its device was deleted meanwhile (ADR 0025).
+		return fmt.Errorf("%w: %w", server.ErrLoggedOut, err)
 	default:
 		return err
 	}
