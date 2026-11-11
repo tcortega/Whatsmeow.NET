@@ -1,7 +1,7 @@
 # Windows SmartScreen on the packaged sidecar, 2026-11-10
 
 Evidence for [#45](https://github.com/tcortega/Whatsmeow.NET/issues/45), its Windows half, measured on one real laptop.
-Its macOS half is [evidence 0045, macOS](0045-macos-gatekeeper-2026-11-06.md); a restore of `whatsmeow-net` from nuget.org is still unmeasured, and waits for the first publish (#52).
+Its macOS half is [evidence 0045, macOS](0045-macos-gatekeeper-2026-11-06.md); a restore of `whatsmeow-net` from nuget.org was still unmeasured, and waited for the first publish (#52); it was measured on hosted runners after it, in [Restore from nuget.org, 2026-11-11](#restore-from-nugetorg-2026-11-11).
 The owner authorized his own laptop, driven over SSH with nobody at it, in place of the desktop run #45 planned, so this record has no desktop session: everything below ran in session 0, and what an interactive desktop does is [unknown].
 Every claim is scoped to this host, this session type and these packages; an [inferred] or [unknown] claim is an open question, not a result.
 This record is authoritative over the raw results it draws on; the raw claims it corrects are listed under [Corrections to the raw record](#corrections-to-the-raw-record).
@@ -247,6 +247,7 @@ The probe directory was deleted after `icacls` read it, and no `wmn-*` directory
 
 * The unsigned `whatsmeow-net.exe` from these packages, restored from a loopback HTTP feed whose source nupkgs carried Mark-of-the-Web, reached the packages folder, the build output, every publish and both copies without a `Zone.Identifier`, and each of D1 to D8 started it [observed: M2 to M10, D1 to D8].
   For this path, NuGet's restore never carried the mark onto the package or the binary [observed]; for a restore from nuget.org it is [unknown] until #52 publishes, though the `protoc.exe` that `dotnet restore` pulled from nuget.org had none ([ARCHITECTURE §14](../ARCHITECTURE.md#spike-results-2026-10-31) question 2).
+  After the publishes, a restore from nuget.org on hosted runners put no mark on either ([below](#restore-from-nugetorg-2026-11-11)).
 * The same sidecar with a `Zone.Identifier` of zone 3, and, in Z2, an apphost with one too, was started through `CreateProcess` by the consumer in a session 0 batch logon, and ran, with no SmartScreen process, no CodeIntegrity, Defender or AppLocker event, and no measurable delay [observed: Z1, Z2].
   So on this path Mark-of-the-Web alone did not block or slow the sidecar.
   That SmartScreen's app reputation check runs on a shell launch, not on `CreateProcess`, would explain it [inferred]; it was not measured.
@@ -257,13 +258,23 @@ The probe directory was deleted after `icacls` read it, and no `wmn-*` directory
 Unmeasured, so no claim covers them:
 
 * any interactive desktop session: whether SmartScreen, or anything else, checks or prompts when a desktop user's app starts a marked sidecar, and the Explorer double-click (Z3), are [unknown];
-* a restore from nuget.org (#52);
+* a restore from nuget.org (#52) on this laptop; hosted runners measured one on 2026-11-11 ([below](#restore-from-nugetorg-2026-11-11));
 * Smart App Control in enforcement or evaluation mode: it was off on this laptop, so whether it blocks an unsigned sidecar is [unknown];
 * the mark a real browser download and Explorer's Extract All write, which the harness imitated [inferred];
 * win-arm64 on a desktop, other Windows editions and builds, and a clean install;
 * the measured launches without the dry run's launches of the same bytes 7 to 8 minutes earlier;
 * the SmartScreen debug channel, which stayed disabled, and the Security log, which needs an administrator;
 * which tools, transfers or user actions put Mark-of-the-Web on a consumer's sidecar, beyond the paths measured here.
+
+## Restore from nuget.org, 2026-11-11
+
+Measured after the first publishes, on GitHub-hosted `windows-2025` (Windows Server 2025 Datacenter, 10.0.26100, x64) and `windows-11-arm` runners, in run [42967186957](https://github.com/tcortega/Whatsmeow.NET/actions/runs/42967186957) on a temporary branch since deleted [observed: its log].
+Each ran `dotnet add package Whatsmeow.Client --version 1.0.0-rc.2` with nuget.org as the only source, into a new `NUGET_PACKAGES` in the runner's temp directory [observed: its log].
+No nupkg, and none of the six binaries under `whatsmeow.sidecar.native/1.0.0-rc.2/runtimes/*/native/`, carried a `Zone.Identifier` stream, and the first `whatsmeow-net.exe` the probe found was Authenticode `NotSigned` [observed: its log].
+The log is kept in the owner's evidence store as `rc2-nugetorg-motw-windows-runners.log`.
+The release workflow's installs from nuget.org after each publish, on hosted win-x64 and win-arm64 runners among others, started the unsigned sidecar for `1.0.0-rc.1` (run [42946072313](https://github.com/tcortega/Whatsmeow.NET/actions/runs/42946072313)) and `1.0.0-rc.2` (run [42961886336](https://github.com/tcortega/Whatsmeow.NET/actions/runs/42961886336)) [observed].
+A hosted runner is not a desktop session, so SmartScreen there, as on a desktop, is [unknown]; that a desktop's restore from nuget.org writes no mark either is [inferred].
+So no measured supported delivery path, a restore from nuget.org included, marked or blocked the sidecar, and ADR 0007's decision stands.
 
 ## Redaction review
 

@@ -2,7 +2,7 @@
 
 - Status: Accepted; amended by [0016](0016-sidecar-binary-gpl-3-corresponding-source-per-release.md), which settles the licences in the last two Consequences, and by [0023](0023-native-packages-build-pin-and-find.md), which builds the packages and measures them; its macOS and Windows evidence amended in place by [evidence 0045](../evidence/0045-macos-gatekeeper-2026-11-06.md) and [its Windows record](../evidence/0045-windows-smartscreen-2026-11-10.md) (#45), with the decision unchanged; and by [0069](0069-one-native-package.md), which puts all six binaries in one package, `Whatsmeow.Sidecar.Native`, since `Whatsmeow.Client` depends on all three and the cap never applied
 - Date: 2026-10-31
-- Evidence: [ARCHITECTURE §14](../ARCHITECTURE.md#spike-results-2026-10-31) question 6, the Mark-of-the-Web result in question 2, and, for macOS, [evidence 0045](../evidence/0045-macos-gatekeeper-2026-11-06.md) (one daily-use Mac, 2026-11-06), and for Windows [its Windows record](../evidence/0045-windows-smartscreen-2026-11-10.md) (one laptop, session 0, 2026-11-10)
+- Evidence: [ARCHITECTURE §14](../ARCHITECTURE.md#spike-results-2026-10-31) question 6, the Mark-of-the-Web result in question 2, and, for macOS, [evidence 0045](../evidence/0045-macos-gatekeeper-2026-11-06.md) (one daily-use Mac, 2026-11-06), and for Windows [its Windows record](../evidence/0045-windows-smartscreen-2026-11-10.md) (one laptop, session 0, 2026-11-10), and both records' restore from nuget.org (2026-11-11)
 
 ## Context
 
@@ -26,7 +26,7 @@ Evidence 0045, macOS 26.5.2 on one daily-use Apple Silicon Mac, not a clean one,
 - This arm64 sidecar with its ad-hoc signature removed was refused at exec, AMFI logging "Attempt to execute completely unsigned code", with no prompt and no quarantine (S1).
 - A quarantined, unsigned x64 sidecar (x86_64 on Apple silicon, Rosetta [inferred]), spawned by an unquarantined app after launches and an assessment of the same code earlier that day, raised a prompt, its process never printed its ready line, and the client gave up at its startup timeout before the prompt was answered (Q1b).
 - S1, Q1a and Q1b are synthetic controls, not delivery paths.
-  A quarantined app directory, a restore from nuget.org, a clean Mac, a native Intel desktop, and osx-x64 framework-dependent on that Mac were not measured; CI's native osx-x64 install and AOT runs passed ([ARCHITECTURE §11](../ARCHITECTURE.md#11-testing-strategy)), and their quarantine metadata and Gatekeeper state are [unknown].
+  A quarantined app directory, a clean Mac, a native Intel desktop, and osx-x64 framework-dependent on that Mac were not measured; CI's native osx-x64 install and AOT runs passed ([ARCHITECTURE §11](../ARCHITECTURE.md#11-testing-strategy)), and their quarantine metadata and Gatekeeper state are [unknown].
 
 Question 2, Windows [observed: §14 Spike results, Question 2]: the `protoc.exe` that `dotnet restore` pulled from nuget.org has no `Zone.Identifier` stream, and the unsigned spike `sidecar.exe` (Authenticode `NotSigned`) starts.
 
@@ -35,7 +35,13 @@ Evidence 0045's Windows record, Windows 11 Home 25H2 (build 26200) on one x64 la
 - The feed's nupkgs carried a browser-style Mark-of-the-Web, applied by the harness; the nupkg NuGet installed, the binaries it extracted, the portable build, the portable, framework-dependent, self-contained and single-file publishes, and `Copy-Item` and `robocopy` copies carried none, and each started the unsigned sidecar (M1 to M10, D1 to D8).
 - The sidecar with a synthetic `Zone.Identifier` of zone 3, alone (Z1) or with every file of the app marked (Z2), started through the consumer's `CreateProcess` too, with no SmartScreen process, no CodeIntegrity, Defender or AppLocker event, and no measurable delay.
 - Z1 and Z2 are synthetic controls, not delivery paths.
-  An interactive desktop session (so the Explorer double-click, Z3), a restore from nuget.org, Smart App Control in enforcement (off on that laptop) and win-arm64 on a desktop were not measured.
+  An interactive desktop session (so the Explorer double-click, Z3), Smart App Control in enforcement (off on that laptop) and win-arm64 on a desktop were not measured.
+
+Evidence 0045's restore from nuget.org, 2026-11-11, after the first publishes [observed: the "Restore from nuget.org" section of [each](../evidence/0045-macos-gatekeeper-2026-11-06.md#restore-from-nugetorg-2026-11-11) [record](../evidence/0045-windows-smartscreen-2026-11-10.md#restore-from-nugetorg-2026-11-11)]:
+
+- On the same Mac, `1.0.0-rc.1` and `1.0.0-rc.2` restored from nuget.org into an empty `NUGET_PACKAGES` put no `com.apple.quarantine` on any of the six binaries, only `com.apple.provenance`, and `build/ci.sh install` and `aot` from nuget.org started the rc.1 sidecar there with no prompt.
+- On hosted `windows-2025` (x64) and `windows-11-arm` runners, `1.0.0-rc.2` restored from nuget.org put no `Zone.Identifier` on any nupkg or binary, and `whatsmeow-net.exe` was `NotSigned`; a hosted runner is not a desktop session, so SmartScreen there is [unknown].
+- The release workflow's installs from nuget.org (six hosts, both musl RIDs in Alpine, and AOT on all eight RIDs) started the unsigned sidecar for rc.1 (run 42946072313) and rc.2 (run 42961886336).
 
 ## Decision
 
@@ -56,10 +62,12 @@ Why no signing, with the evidence level of each step:
 
 - The `protoc` that `dotnet restore` pulled from nuget.org carries no quarantine attribute, and runs although it is only ad-hoc signed and `spctl` rejects it [observed: Question 6].
   This was first explained as Gatekeeper assessing only quarantined launches [inferred]; on one daily-use Mac a scan with the sidecar's signing identifier appeared in every ad-hoc arm64 launch, quarantined or not, and of those sidecars only the quarantined one raised a prompt, while the measured restore, build, publish and copy paths set no quarantine and started it [observed: evidence 0045; attribution inferred].
-  `whatsmeow-net` restored from nuget.org, a clean Mac and a native Intel desktop are [unknown].
+  `whatsmeow-net` restored from nuget.org got no quarantine on that Mac and started [observed: evidence 0045, 2026-11-11]; a clean Mac and a native Intel desktop are [unknown].
 - This arm64 sidecar must be signed at all to run on the one Apple Silicon Mac measured [observed: evidence 0045 S1; first inferred as an Apple platform rule, and beyond that Mac still inferred], and the Go linker ad-hoc signs `darwin/arm64` itself [observed: Question 6], which was enough there without quarantine [observed: evidence 0045 D].
 - So no Authenticode signing is needed either: on one laptop the measured restore, build, publish and copy paths put no Mark-of-the-Web on the sidecar and started it, and a marked sidecar started by the app through `CreateProcess` in a session 0 batch logon ran with no SmartScreen check visible [observed: evidence 0045's Windows record, M, D, Z1, Z2].
-  This was first explained as SmartScreen keying on Mark-of-the-Web [inferred]; that its app reputation check runs on shell launches, not on `CreateProcess`, is [inferred], and an interactive desktop session, a restore from nuget.org and Smart App Control in enforcement are [unknown].
+  This was first explained as SmartScreen keying on Mark-of-the-Web [inferred]; that its app reputation check runs on shell launches, not on `CreateProcess`, is [inferred], and an interactive desktop session and Smart App Control in enforcement are [unknown].
+  A restore from nuget.org on hosted runners put no Mark-of-the-Web on it either [observed: evidence 0045's Windows record, 2026-11-11].
+- So every measured supported delivery path, a restore from nuget.org included, started the sidecar unblocked with no signing [observed: above], and the decision stands.
 - An app that embeds us and ships as a notarized `.app` signs its embedded binaries as part of its own release [inferred: standard macOS app signing, not our concern].
 
 ## Consequences

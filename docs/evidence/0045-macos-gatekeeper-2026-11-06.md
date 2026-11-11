@@ -1,7 +1,7 @@
 # macOS Gatekeeper on the packaged sidecar, 2026-11-06
 
 Evidence for [#45](https://github.com/tcortega/Whatsmeow.NET/issues/45), its macOS half, measured on one daily-use Mac.
-It does not complete #45: Windows and a restore of `whatsmeow-net` from nuget.org are unmeasured here; Windows has [its own record](0045-windows-smartscreen-2026-11-10.md), measured 2026-11-10.
+It does not complete #45: Windows and a restore of `whatsmeow-net` from nuget.org were unmeasured here; Windows has [its own record](0045-windows-smartscreen-2026-11-10.md), measured 2026-11-10, and the restore from nuget.org was measured after the first publishes, in [Restore from nuget.org, 2026-11-11](#restore-from-nugetorg-2026-11-11).
 The owner authorized this Mac in place of the clean Mac #45 names (#11), so this record stands in for that run without being evidence about a clean Mac; a clean Mac, a native Intel desktop, other macOS versions and Q2a to Q2c are unmeasured extras, not #45 gates.
 Every claim is scoped to this host and these packages; an [inferred] or [unknown] claim is an open question, not a result.
 This record is authoritative over the raw results it draws on; the raw claims it corrects are listed under [Superseded raw claims](#superseded-raw-claims).
@@ -242,7 +242,7 @@ Whether it would have run if the prompt had been allowed in time, and whether qu
 
 Unmeasured, so no claim covers them:
 
-* a restore from nuget.org, since nothing is published yet;
+* a restore from nuget.org, since nothing was published yet (measured 2026-11-11, [below](#restore-from-nugetorg-2026-11-11));
 * a clean Mac, a native Intel desktop, and other macOS versions (extras, not #45 gates);
 * osx-x64 framework-dependent on this Mac;
 * Q1a and Q1b without a prior assessment or launch of the same code, and a repeat launch of one file from one path, such as Q1b's copy, which now has a denial breadcrumb;
@@ -253,6 +253,16 @@ Unmeasured, so no claim covers them:
 * the launching terminal's Developer Tools exemption;
 * Windows: SmartScreen, Mark-of-the-Web, Smart App Control, and §10's Temp ACL for a non-administrator, since measured in [the Windows record](0045-windows-smartscreen-2026-11-10.md), except a desktop session and Smart App Control in enforcement;
 * the notarized `.app` claim, which stays [inferred] (#51).
+
+## Restore from nuget.org, 2026-11-11
+
+Measured after the first publishes, on the same Mac, macOS 26.5.2 (25F84) [observed: `sw_vers`].
+`dotnet add package Whatsmeow.Client --version 1.0.0-rc.1` from nuget.org into an empty `NUGET_PACKAGES` extracted the six binaries of its three native packages, and none carried `com.apple.quarantine`; each carried only `com.apple.provenance` [observed: `xattr -l`].
+`bash build/ci.sh install nuget.org:1.0.0-rc.1` and `bash build/ci.sh aot nuget.org:1.0.0-rc.1 osx-arm64` passed on this Mac, and the sidecar started natively with no prompt [observed: local run].
+The same restore of `1.0.0-rc.2` put the six binaries under `whatsmeow.sidecar.native/1.0.0-rc.2/runtimes/*/native/`, and neither they nor that nupkg carried `com.apple.quarantine`; each carried only `com.apple.provenance`, and the osx-arm64 binary was `flags=0x20002(adhoc,linker-signed)`, `Identifier=a.out` [observed: `xattr -l` and `codesign -dvv` in a temporary directory, since deleted; the output was not kept].
+What `com.apple.provenance` records is [unknown], as above; it is not the quarantine attribute.
+The release workflow's installs from nuget.org after each publish, on hosted osx-arm64 and osx-x64 runners among others, passed for `1.0.0-rc.1` (run [42946072313](https://github.com/tcortega/Whatsmeow.NET/actions/runs/42946072313)) and `1.0.0-rc.2` (run [42961886336](https://github.com/tcortega/Whatsmeow.NET/actions/runs/42961886336)) [observed]; those runners' quarantine metadata is [unknown].
+So a restore from nuget.org sets no quarantine on this Mac, the restored sidecar starts, and ADR 0007's decision stands; a clean Mac and a native Intel desktop stay unmeasured.
 
 ## Superseded raw claims
 
