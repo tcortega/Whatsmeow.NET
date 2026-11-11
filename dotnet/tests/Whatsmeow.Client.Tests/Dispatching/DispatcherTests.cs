@@ -145,6 +145,38 @@ public sealed class DispatcherTests : IAsyncDisposable
 	}
 
 	[Fact(Timeout = 10_000)]
+	public async Task Stop_AHandlerThatReturnsOnceTheStopBegan_HasNotHandledItsEvent()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		Post(1, "a");
+		_ = _input.Writer.TryWrite(
+			new Work
+			{
+				Seq = 2,
+				Lane = "a",
+				RunAsync = async token =>
+				{
+					Log("start 2");
+					try
+					{
+						await Task.Delay(Timeout.InfiniteTimeSpan, _time, token).ConfigureAwait(false);
+					}
+					catch (OperationCanceledException)
+					{
+						// A handler that swallows its own cancellation and returns.
+					}
+				},
+			}
+		);
+		Assert.Equal(["start 1", "end 1", "start 2"], await NextAsync(3, ct));
+
+		await _dispatcher.DisposeAsync();
+
+		Assert.Equal(1UL, (await _acks.Reader.ReadAsync(ct)).Seq);
+		Assert.False(_acks.Reader.TryRead(out _));
+	}
+
+	[Fact(Timeout = 10_000)]
 	public async Task Ack_ThatFailsWithAnyException_IsTriedAgainOnTheNextTickAndAtTheStop()
 	{
 		var ct = TestContext.Current.CancellationToken;

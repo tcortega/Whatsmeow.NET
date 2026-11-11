@@ -301,6 +301,10 @@ internal sealed class Dispatcher(
 					_ = _running.Release();
 				}
 
+				// The stop began while the handler ran: returned or thrown, its event is not handled and comes again (ADR 0022).
+				if (cancellationToken.IsCancellationRequested)
+					return;
+
 				Finish(lane, next);
 				depthChanged?.Invoke(-1);
 				_ = _pending.Release();
