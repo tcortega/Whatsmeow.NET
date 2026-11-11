@@ -44,7 +44,8 @@ The x64 sidecar, quarantined the same way and run under Rosetta [inferred] on th
 On one Windows 11 Home laptop, as a standard account in a background (batch) logon with no desktop, the packaged sidecar restored from a local HTTP feed got no Mark of the Web through restore, build, publish, or a `Copy-Item` or `robocopy` copy of the publish output, although the packages it came from had one, and it started each time [observed: §12, [evidence 0045, Windows](../evidence/0045-windows-smartscreen-2026-11-10.md)].
 There the sidecar given a Mark of the Web by hand, alone or with your whole app, started too, with no SmartScreen check visible; that is a synthetic case, and what a signed-in desktop session does, an Explorer double-click included, is [unknown] [observed: evidence 0045 Windows, Z1 and Z2].
 Smart App Control was off on that laptop, so whether it blocks the unsigned sidecar is [unknown].
-That `whatsmeow-net` restored from nuget.org also gets no quarantine or Mark of the Web, and that Gatekeeper and SmartScreen then leave it alone, is [inferred].
+The sidecar restored from nuget.org got no quarantine on that Mac, and no Mark of the Web on GitHub's hosted Windows runners, and the release's installs from nuget.org started it on every supported RID [observed: §12, evidence 0045, 2026-11-11].
+That a Windows desktop's restore from nuget.org writes no mark either is [inferred], and what SmartScreen does in a desktop session is [unknown].
 A way of shipping your app that sets quarantine on the sidecar is not covered: if one becomes a supported delivery path, signing is reconsidered by a new ADR (ADR 0007).
 An app you ship as a notarized macOS `.app` signs its embedded binaries in its own release, the sidecar included [inferred: standard macOS app signing, not measured yet].
 On Windows a Job Object kills the sidecar when your process dies (§8.5).
