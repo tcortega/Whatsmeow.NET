@@ -386,6 +386,7 @@ func classify(op string, err error, write bool) error {
 	var (
 		iqErr        *whatsmeow.IQError
 		disconnected *whatsmeow.DisconnectedError
+		missing      *whatsmeow.ElementMissingError
 	)
 
 	switch {
@@ -417,6 +418,10 @@ func classify(op string, err error, write bool) error {
 		}
 
 		return fmt.Errorf("%s: %w: %w", op, server.ErrNotConnected, bare)
+	case write && errors.As(err, &missing):
+		// WhatsApp answered the write without the list whatsmeow reads from the answer (user.go:1081-1084): it may
+		// have taken effect.
+		return fmt.Errorf("%s: %w: whatsmeow could not read WhatsApp's answer (a %T)", op, server.ErrOutcomeUnknown, missing)
 	default:
 		return fmt.Errorf("%s: %w", op, cause(err))
 	}

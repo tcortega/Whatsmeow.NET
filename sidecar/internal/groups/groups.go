@@ -659,10 +659,13 @@ func classify(op string, err error, write bool) error {
 		}
 
 		return fmt.Errorf("%s: %w: %w", op, server.ErrNotConnected, bare)
-	case write && (errors.As(err, &missing) || errors.As(err, &unparsed)):
+	case write && errors.As(err, &missing):
 		// WhatsApp answered the write without what whatsmeow reads from the answer (group.go:151-155, 245-248,
-		// 530-533, 809): it may have taken effect.
-		return fmt.Errorf("%s: %w: whatsmeow could not read WhatsApp's answer (a %T)", op, server.ErrOutcomeUnknown, err)
+		// 530-533): it may have taken effect.
+		return fmt.Errorf("%s: %w: whatsmeow could not read WhatsApp's answer (a %T)", op, server.ErrOutcomeUnknown, missing)
+	case write && errors.As(err, &unparsed):
+		// WhatsApp answered the write with a group whatsmeow could not parse (group.go:809): it may have taken effect.
+		return fmt.Errorf("%s: %w: whatsmeow could not read WhatsApp's answer (a %T)", op, server.ErrOutcomeUnknown, unparsed)
 	default:
 		return fmt.Errorf("%s: whatsmeow failed with a %T", op, err) //nolint:err113 // only the type: its text may name a JID
 	}

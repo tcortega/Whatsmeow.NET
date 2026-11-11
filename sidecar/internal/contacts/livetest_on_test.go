@@ -303,7 +303,8 @@ func TestTheLiveControlSendsNoLegacyIQUnlessTheMutationIsRefused(t *testing.T) {
 		{"disconnected", &whatsmeow.DisconnectedError{Action: "info query"}, "unknown"},
 		{"not connected", whatsmeow.ErrNotConnected, "none"},
 		{"cancelled", context.Canceled, "unknown"},
-		{"no result", &whatsmeow.ElementMissingError{Tag: "result", In: "mex response"}, "none"},
+		// WhatsApp answered the mutation, without its result (newsletter.go:183-201): it may have been made.
+		{"no result", &whatsmeow.ElementMissingError{Tag: "result", In: "mex response"}, "unknown"},
 		// The mex answer in argo, which whatsmeow does not decode at the pin (newsletter.go:206-209).
 		{"argo", errors.New("argo decoding is currently broken"), "none"},
 	} {
@@ -324,6 +325,11 @@ func TestTheLiveControlSendsNoLegacyIQUnlessTheMutationIsRefused(t *testing.T) {
 			line := aboutLog(t, &logged)
 			if line["path"] != tc.path || line["mex"] == nil || line["legacy"] != nil {
 				t.Fatalf("the about line is %v; want path %s with the mutation's outcome alone", line, tc.path)
+			}
+
+			// The mutation's error comes wrapped: its outcome names whatsmeow's type, not the wrapper's.
+			if mex, _ := line["mex"].(string); strings.Contains(mex, "wrapError") {
+				t.Fatalf("the mutation's outcome %q names the wrapper", mex)
 			}
 		})
 	}

@@ -576,6 +576,7 @@ func TestWhatsAppsErrorsBecomeTheirReasons(t *testing.T) {
 		{"disconnected while waiting", disconnected, false, codes.Unavailable, "NOT_CONNECTED", nil},
 		{"an update disconnected while waiting", disconnected, true, codes.Unknown, "OUTCOME_UNKNOWN", nil},
 		{"an update that timed out", whatsmeow.ErrIQTimedOut, true, codes.Unknown, "OUTCOME_UNKNOWN", nil},
+		{"an update WhatsApp answered without its list", &whatsmeow.ElementMissingError{Tag: "list", In: "response to blocklist update"}, true, codes.Unknown, "OUTCOME_UNKNOWN", nil},
 		{"a read that timed out", fmt.Errorf("failed to send usync query: %w", whatsmeow.ErrIQTimedOut), false, codes.Unavailable, "WHATSAPP_TIMED_OUT", nil},
 		{"a number without a LID", fmt.Errorf("%w: no LID found for %s from server", whatsmeow.ErrRecipientNotOnWhatsApp, pn), true, codes.NotFound, "RECIPIENT_NOT_ON_WHATSAPP", nil},
 		{"a store failure", fmt.Errorf("failed to get LID for PN %s: %w", pn, errors.New("database is locked")), true, codes.Internal, "INTERNAL", nil},

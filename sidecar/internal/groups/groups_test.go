@@ -750,7 +750,17 @@ func TestAWriteWhoseAnswerLacksItsDataIsOutcomeUnknown(t *testing.T) {
 			h := start(t)
 			h.stub.err, h.stub.joined = tc.err, tc.joined
 
-			wantReason(t, tc.call(h), codes.Unknown, "OUTCOME_UNKNOWN", nil)
+			if tc.err != nil {
+				// Wrapped once: the message names whatsmeow's type, not the wrapper's.
+				h.stub.err = fmt.Errorf("group: %w", tc.err)
+			}
+
+			err := tc.call(h)
+			wantReason(t, err, codes.Unknown, "OUTCOME_UNKNOWN", nil)
+
+			if msg := status.Convert(err).Message(); tc.err != nil && !strings.Contains(msg, fmt.Sprintf("(a %T)", tc.err)) {
+				t.Fatalf("the message %q does not name a %T", msg, tc.err)
+			}
 		})
 	}
 }
