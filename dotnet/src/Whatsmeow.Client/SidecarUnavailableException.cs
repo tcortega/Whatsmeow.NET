@@ -57,4 +57,12 @@ public sealed class SidecarUnavailableException : WhatsmeowException
 	[DoesNotReturn]
 	internal static void ThrowUnreachable(RpcException exception, WhatsmeowErrorCode code) =>
 		throw new SidecarUnavailableException($"The sidecar cannot be reached: {exception.Status.Detail}", exception) { ErrorCode = code };
+
+	/// <summary>
+	/// The sidecar's crash or stop cut a call off, which grpc-dotnet ends with a cancellation the caller did not cause;
+	/// no reason came with it, as with a transport failure (<c>RpcErrors.IsUnreachable</c>).
+	/// </summary>
+	[DoesNotReturn]
+	internal static void ThrowCallCut(OperationCanceledException exception) =>
+		throw new SidecarUnavailableException("The sidecar stopped during the call.", exception) { ErrorCode = WhatsmeowErrorCode.Unknown };
 }

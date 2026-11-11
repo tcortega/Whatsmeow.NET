@@ -4,6 +4,7 @@
 - Date: 2026-11-02
 - Evidence: issue #40, its plan review and the PR review; throwaway measurements at SDK 10.0.403 with Microsoft.Extensions.* 10.0.14, listed below; `Telemetry/SpanTests.cs`, `Telemetry/MeterTests.cs`, `Telemetry/TelemetryCrashTests.cs`, `Hosting/HostingTests.HostWithAMeterFactory_TheSidecarsMeterComesFromIt`, `DispatcherDepthTests`, `ErrorCounterTests`, `Whatsmeow.Testing.Tests/TelemetryTests.cs`
 - Amends: issue #40's "an `IMeterFactory` from DI or the options", now from DI or a `StartAsync` parameter
+- Amended in place: 2026-11-11 (a call the sidecar's crash or stop cuts off is SidecarUnavailableException, tagged Unknown on its span and in the error count)
 
 ## Context
 
@@ -46,7 +47,7 @@ What .NET and the conventions do decided the design:
   The caller is the call's own token for a send, a transfer and the error count (`CallOptions.CancellationToken`, and a stream read's token), and the stop's token for a handler.
   Any other cancellation is a failure, because nobody asked for it: a call cut by a sidecar that died ends with a `TaskCanceledException` the caller did not cause [observed: `TelemetryCrashTests.Download_TheSidecarDiesMidway_...`], and a handler's own `OperationCanceledException`, as an HTTP timeout inside it, records its duration with its `error.type` and marks the process span.
   Only the stop's cancellation of a handler stays out: no duration, no error on the span.
-  The error count tags a cancellation by its exception's type, as a span does, and a status by its error code.
+  The library maps that cut call: it throws `SidecarUnavailableException` (code `Unknown`), and the span and the error count both tag it `Unknown` [observed: `TelemetryCrashTests.Download_TheSidecarDiesMidway_...`]; the error count tags a status by its error code.
   A handler's cancellation is still logged and raised on `OnHandlerError`, as before: that is the handler contract, not telemetry.
 - **Instruments.** `whatsmeow.messages.sent` (counter, `{message}`, session id) once WhatsApp accepted a send; `whatsmeow.errors` (counter, `{error}`, `error.type`); `whatsmeow.sidecar.restarts` (counter, `{restart}`, no tag) once a sidecar started again after one exited on its own.
   `whatsmeow.messages.received` (counter, `{message}`, session id) as each `MessageReceived` arrives, before its handlers, so a redelivery counts again.

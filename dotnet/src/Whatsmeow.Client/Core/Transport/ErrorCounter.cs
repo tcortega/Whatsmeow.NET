@@ -6,8 +6,9 @@ namespace Whatsmeow.Core.Transport;
 
 /// <summary>
 /// Counts every failed sidecar call in the one place every call passes, the library's own calls included. A status is
-/// counted by its error code, as <see cref="RpcErrors"/> maps it; a cancellation the caller's token did not cause, as a
-/// call cut by a sidecar that died, by its exception's type. The caller's own cancellation is not counted (ADR 0037).
+/// counted by its error code, as <see cref="RpcErrors"/> maps it; a cancellation the caller's token did not cause, a
+/// call cut by a sidecar that crashed or stopped, as <see cref="WhatsmeowErrorCode.Unknown"/>, the code of the
+/// <see cref="SidecarUnavailableException"/> its caller gets. The caller's own cancellation is not counted (ADR 0037).
 /// </summary>
 internal sealed class ErrorCounter(ClientMetrics metrics) : FailureInterceptor
 {
@@ -19,8 +20,7 @@ internal sealed class ErrorCounter(ClientMetrics metrics) : FailureInterceptor
 		var type = exception switch
 		{
 			RpcException e => Tracing.Name(RpcErrors.Code(e)),
-			OperationCanceledException e => Tracing.ErrorType(e),
-			null => typeof(TaskCanceledException).FullName,
+			OperationCanceledException or null => Tracing.Name(WhatsmeowErrorCode.Unknown),
 			_ => null,
 		};
 		if (type is not null)

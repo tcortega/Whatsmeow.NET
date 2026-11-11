@@ -73,9 +73,9 @@ public sealed class ErrorCounterTests : IDisposable
 		_ = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => thrown.ResponseAsync.WaitAsync(ct));
 		_ = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => abandoned.ResponseAsync.WaitAsync(ct));
 
-		// A status by its code, as every failed call; an exception by its type, as on a span.
+		// A status by its code, as every failed call; a cancellation as the code its caller gets, a cut call's.
 		Assert.Equal(
-			[nameof(WhatsmeowErrorCode.Unknown), "System.OperationCanceledException", "System.Threading.Tasks.TaskCanceledException"],
+			[nameof(WhatsmeowErrorCode.Unknown), nameof(WhatsmeowErrorCode.Unknown), nameof(WhatsmeowErrorCode.Unknown)],
 			_errors.GetMeasurementSnapshot().Select(measurement => (string?)measurement.Tags["error.type"]),
 			StringComparer.Ordinal
 		);
@@ -135,7 +135,7 @@ public sealed class ErrorCounterTests : IDisposable
 			_ = await Assert.ThrowsAsync<OperationCanceledException>(() => dropped.ResponseStream.MoveNext(ct));
 		_ = await Assert.ThrowsAsync<OperationCanceledException>(() => stopped.ResponseStream.MoveNext(ct));
 
-		Assert.Equal(["System.OperationCanceledException"], _errors.GetMeasurementSnapshot().Select(measurement => (string?)measurement.Tags["error.type"]), StringComparer.Ordinal);
+		Assert.Equal([nameof(WhatsmeowErrorCode.Unknown)], _errors.GetMeasurementSnapshot().Select(measurement => (string?)measurement.Tags["error.type"]), StringComparer.Ordinal);
 	}
 
 	public void Dispose()

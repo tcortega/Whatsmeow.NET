@@ -5,6 +5,7 @@
 - Evidence: issue #85; `Sidecar/RestartTokenTests.cs`, `TestListenNeverReusesAnEarlierLaunchsEndpoint` and `TestListenLeavesWhatIsNotASocket`, with the mutations below; grpc-dotnet v2.85.0 `GrpcChannel.cs` and `GrpcProtocolHelpers.cs`; .NET 10.0.14 `NamedPipeClientStream.cs`
 - Amended by: [ADR 0066](0066-the-core-ci-jobs-on-every-desktop-os.md) (`RestartTokenTests` counts the calls started in the gap instead of requiring one to fail; the platform pass runs in PR CI)
 - Amends: ARCHITECTURE §8.5 (socket directory), §8.6, §10; ADR 0017 (the socket's name); ADR 0037 (where errors are counted)
+- Amended in place: 2026-11-11 (a call still running when the sidecar is disposed, or one a crash ends with no status, is SidecarUnavailableException, code Unknown)
 
 ## Context
 
@@ -39,7 +40,7 @@ On main, `RestartTokenTests` failed in every run [observed: macOS]: 8 of 8 in it
   Disposing a `GrpcChannel` cancels its active calls (grpc-dotnet v2.85.0 `GrpcChannel.Dispose`), and a call made on the dead launch just before the switch was still running then: disposing at the switch ended it as `TaskCanceledException` in every run [observed: mutation 3].
   A call to a dead launch fails fast instead, over the Unix socket: no `GetInfoAsync` in `RestartTokenTests` took over 20 ms with the channel never disposed [observed: one run, macOS]. Over the pipe it fails within the 2 s bound [inferred: not run on Windows]. Both are far shorter than a launch, so by the next switch none is left [inferred].
   At most two channels are open at a time.
-- **A cancellation from the dispose stays.** A call still running when the sidecar is disposed, or one a crash ends with no status, ends as `OperationCanceledException`, as a call to a dead sidecar did before this ADR [observed: `Sessions/WatchDownTests.cs`, `Telemetry/TelemetryCrashTests.cs`]. No behaviour of that kind changes.
+- **A cancellation from the dispose is a cut call.** In grpc-dotnet, a call still running when the sidecar is disposed, or one a crash ends with no status, ends as `OperationCanceledException`, as a call to a dead sidecar did before this ADR [observed: `Sessions/WatchDownTests.cs`, `Telemetry/TelemetryCrashTests.cs`]. The library throws it to the caller as `SidecarUnavailableException` (code `Unknown`), with that cancellation as the inner exception [observed: `TelemetryCrashTests`, for a crash]; the internal readers still open their call again.
 
 ## Consequences
 
