@@ -462,6 +462,47 @@ public sealed class MessageActionTests(FakeSidecar fixture)
 		Assert.Empty(sticker.Mentions);
 	}
 
+	[Fact(Timeout = Timeout)]
+	public async Task Receive_ALocationOrAContactCardInReply_HasTheQuoteTheMentionsAndTheExpiration()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "message-actions-receive-location-reply";
+		var client = await SessionSetup.LinkedAsync(fixture, Session, ct);
+		using var received = new Received<MessageReceived>(client);
+		await ConnectAsync(client, ct);
+		var context = new E2E.ContextInfo
+		{
+			StanzaID = "Q1",
+			Participant = s_admin.ToString(),
+			QuotedMessage = new E2E.Message { Conversation = "where?" },
+			MentionedJID = { s_admin.ToString() },
+			Expiration = 604_800,
+		};
+
+		(E2E.Message Message, MessageContent Content)[] cases =
+		[
+			(
+				new() { LocationMessage = new E2E.LocationMessage { DegreesLatitude = 51.5, DegreesLongitude = -0.1, ContextInfo = context } },
+				new LocationContent { Latitude = 51.5, Longitude = -0.1 }
+			),
+			(new() { ContactMessage = new E2E.ContactMessage { DisplayName = "Ana", Vcard = "BEGIN:VCARD", ContextInfo = context } }, new ContactCardContent { DisplayName = "Ana", VCard = "BEGIN:VCARD" }),
+		];
+
+		for (var i = 0; i < cases.Length; i++)
+		{
+			await DeliverAsync(Session, $"L{i}", s_group, s_member, cases[i].Message, ct);
+			Assert.Equal(
+				Received(Session, $"L{i}", s_group, s_member, cases[i].Content) with
+				{
+					ReplyTo = new QuotedMessage { Id = MessageId.From("Q1"), Sender = s_admin, Content = new TextContent { Text = "where?" } },
+					Mentions = [s_admin],
+					IsEphemeral = true,
+				},
+				await received.NextAsync(ct)
+			);
+		}
+	}
+
 	/// <summary>
 	/// A quote of the account's own message has no sender, however its context names the account, as a received action's
 	/// target has none: null always means the account's. A quote that names no user, without a participant or with one

@@ -246,6 +246,8 @@ internal static class ContentMapping
 			{ AudioMessage.ContextInfo: { } context } => context,
 			{ DocumentMessage.ContextInfo: { } context } => context,
 			{ StickerMessage.ContextInfo: { } context } => context,
+			{ LocationMessage.ContextInfo: { } context } => context,
+			{ ContactMessage.ContextInfo: { } context } => context,
 			_ when PollOf(message)?.ContextInfo is { } context => context,
 			_ => null,
 		};

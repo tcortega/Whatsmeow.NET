@@ -304,6 +304,8 @@ func contextOf(m *waE2E.Message) *waE2E.ContextInfo {
 		m.GetAudioMessage().GetContextInfo(),
 		m.GetDocumentMessage().GetContextInfo(),
 		m.GetStickerMessage().GetContextInfo(),
+		m.GetLocationMessage().GetContextInfo(),
+		m.GetContactMessage().GetContextInfo(),
 		pollCreation(m).GetContextInfo(),
 	} {
 		if c != nil {
