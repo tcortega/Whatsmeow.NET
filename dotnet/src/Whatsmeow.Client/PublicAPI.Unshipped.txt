@@ -1,1 +1,33 @@
 #nullable enable
+override sealed Whatsmeow.Events.ContactCardContent.Equals(Whatsmeow.Events.MessageContent? other) -> bool
+override sealed Whatsmeow.Events.LocationContent.Equals(Whatsmeow.Events.MessageContent? other) -> bool
+override Whatsmeow.Events.ContactCardContent.<Clone>$() -> Whatsmeow.Events.ContactCardContent!
+override Whatsmeow.Events.ContactCardContent.Equals(object? obj) -> bool
+override Whatsmeow.Events.ContactCardContent.GetHashCode() -> int
+override Whatsmeow.Events.ContactCardContent.ToString() -> string!
+override Whatsmeow.Events.LocationContent.<Clone>$() -> Whatsmeow.Events.LocationContent!
+override Whatsmeow.Events.LocationContent.Equals(object? obj) -> bool
+override Whatsmeow.Events.LocationContent.GetHashCode() -> int
+override Whatsmeow.Events.LocationContent.ToString() -> string!
+static Whatsmeow.Events.ContactCardContent.operator !=(Whatsmeow.Events.ContactCardContent? left, Whatsmeow.Events.ContactCardContent? right) -> bool
+static Whatsmeow.Events.ContactCardContent.operator ==(Whatsmeow.Events.ContactCardContent? left, Whatsmeow.Events.ContactCardContent? right) -> bool
+static Whatsmeow.Events.LocationContent.operator !=(Whatsmeow.Events.LocationContent? left, Whatsmeow.Events.LocationContent? right) -> bool
+static Whatsmeow.Events.LocationContent.operator ==(Whatsmeow.Events.LocationContent? left, Whatsmeow.Events.LocationContent? right) -> bool
+Whatsmeow.Events.ContactCardContent
+Whatsmeow.Events.ContactCardContent.ContactCardContent() -> void
+Whatsmeow.Events.ContactCardContent.DisplayName.get -> string!
+Whatsmeow.Events.ContactCardContent.DisplayName.init -> void
+Whatsmeow.Events.ContactCardContent.Equals(Whatsmeow.Events.ContactCardContent? other) -> bool
+Whatsmeow.Events.ContactCardContent.VCard.get -> string!
+Whatsmeow.Events.ContactCardContent.VCard.init -> void
+Whatsmeow.Events.LocationContent
+Whatsmeow.Events.LocationContent.Address.get -> string?
+Whatsmeow.Events.LocationContent.Address.init -> void
+Whatsmeow.Events.LocationContent.Equals(Whatsmeow.Events.LocationContent? other) -> bool
+Whatsmeow.Events.LocationContent.Latitude.get -> double
+Whatsmeow.Events.LocationContent.Latitude.init -> void
+Whatsmeow.Events.LocationContent.LocationContent() -> void
+Whatsmeow.Events.LocationContent.Longitude.get -> double
+Whatsmeow.Events.LocationContent.Longitude.init -> void
+Whatsmeow.Events.LocationContent.Name.get -> string?
+Whatsmeow.Events.LocationContent.Name.init -> void

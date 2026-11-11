@@ -20,7 +20,7 @@ namespace Whatsmeow.IntegrationTests.Messaging;
 /// <summary>
 /// Media messages through the public client, on the shared fake-mode sidecar: sends of each kind from a
 /// <see cref="MediaRef"/> and the caller's metadata, and received media as typed content whose <see cref="MediaRef"/>
-/// downloads. What WhatsApp got is read from the fake's log by condition; "nothing was uploaded" and "nothing was sent"
+/// downloads; received locations and contact cards are typed content too. What WhatsApp got is read from the fake's log by condition; "nothing was uploaded" and "nothing was sent"
 /// show by order.
 /// </summary>
 public sealed class MediaMessageTests(FakeSidecar fixture)
@@ -367,6 +367,60 @@ public sealed class MediaMessageTests(FakeSidecar fixture)
 		{
 			await DeliverAsync(Session, $"V{i}", cases[i].Message, ct);
 			Assert.Equal(Received(Session, $"V{i}", cases[i].Content), await received.NextAsync(ct));
+		}
+	}
+
+	[Fact(Timeout = Timeout)]
+	public async Task Receive_ALocationOrAContactCard_IsItsContentCase()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const string Session = "media-messages-location-contact";
+		var client = await SessionSetup.LinkedAsync(fixture, Session, ct);
+		using var received = new Received<MessageReceived>(client);
+		await ConnectAsync(client, ct);
+		const string VCard = "BEGIN:VCARD\nVERSION:3.0\nFN:Ana\nTEL;type=CELL;waid=900000203:+900000203\nEND:VCARD";
+
+		(E2E.Message Message, MessageContent Content)[] cases =
+		[
+			(
+				new()
+				{
+					LocationMessage = new E2E.LocationMessage
+					{
+						DegreesLatitude = -23.5505,
+						DegreesLongitude = -46.6333,
+						Name = "Praça da Sé",
+						Address = "Sé, São Paulo",
+						URL = "https://example.com/se",
+					},
+				},
+				new LocationContent { Latitude = -23.5505, Longitude = -46.6333, Name = "Praça da Sé", Address = "Sé, São Paulo" }
+			),
+			// A dropped pin names no place.
+			(
+				new() { LocationMessage = new E2E.LocationMessage { DegreesLatitude = 51.5, DegreesLongitude = -0.1 } },
+				new LocationContent { Latitude = 51.5, Longitude = -0.1 }
+			),
+			(new() { ContactMessage = new E2E.ContactMessage { DisplayName = "Ana", Vcard = VCard } }, new ContactCardContent { DisplayName = "Ana", VCard = VCard }),
+			// A live location and several cards in one message are other kinds, which this version does not map.
+			(new() { LiveLocationMessage = new E2E.LiveLocationMessage { DegreesLatitude = 51.5, DegreesLongitude = -0.1 } }, new UnknownContent()),
+			(
+				new()
+				{
+					ContactsArrayMessage = new E2E.ContactsArrayMessage
+					{
+						DisplayName = "2 contacts",
+						Contacts = { new E2E.ContactMessage { DisplayName = "Ana", Vcard = VCard }, new E2E.ContactMessage { DisplayName = "Bia", Vcard = VCard } },
+					},
+				},
+				new UnknownContent()
+			),
+		];
+
+		for (var i = 0; i < cases.Length; i++)
+		{
+			await DeliverAsync(Session, $"L{i}", cases[i].Message, ct);
+			Assert.Equal(Received(Session, $"L{i}", cases[i].Content), await received.NextAsync(ct));
 		}
 	}
 
