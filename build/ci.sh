@@ -282,6 +282,24 @@ parity_report() {
 	return 0
 }
 
+# Known vulnerabilities in what a module calls, from the Go standard library and every dependency, whatsmeow or not.
+# It reports only, never failing the job, until a maintainer decides to gate on it: then return 1 on exit code 3.
+govulncheck_report() { # module
+	local report rc ids
+	report="$(cd "$1" && govulncheck ./... 2>&1)"
+	rc=$?
+	echo "$report"
+	case "$rc" in
+		0) ;;
+		3)
+			ids="$(sed -n 's/^Vulnerability #[0-9]*: \(GO-[0-9-]*\).*/\1/p' <<<"$report" | tr '\n' ' ')"
+			annotate warning "govulncheck" "$1 calls code with known vulnerabilities: ${ids% }; the check's output names the fixed versions"
+			;;
+		*) annotate warning "govulncheck" "govulncheck did not run on $1 (exit code $rc); the vulnerability report is not shown" ;;
+	esac
+	return 0
+}
+
 job_go() {
 	local before module tags label tagsets
 	before="$(tree_state)"
@@ -303,6 +321,7 @@ job_go() {
 			# With cgo on, so a cgo file is visible (its import "C" is reported as unsafe).
 			check "$label: golangci-lint" bash -c "cd '$module' && CGO_ENABLED=1 golangci-lint run --build-tags '$tags' ./..."
 		done
+		check "$module: govulncheck (report only)" govulncheck_report "$module"
 	done
 	check "sidecar: the release build links no fake WhatsApp (ADR 0019)" release_links_no_fake
 	check "sidecar: the release build links no live test seam or control (ADR 0032, 0060)" release_links_no_livetest
