@@ -44,7 +44,10 @@ namespace Whatsmeow.Testing;
 /// <see cref="PairingUpdate.Paired"/>; the state watch yields <see cref="SessionState.Connected"/>, then waits until it
 /// is cancelled. A call whose token is already cancelled throws <see cref="OperationCanceledException"/>, and every call
 /// once the fake is disposed throws <see cref="ObjectDisposedException"/>, as the client's do once its sidecar is
-/// disposed; neither is recorded.
+/// disposed; neither is recorded. A send or a mark-read every session refuses before WhatsApp is involved throws
+/// <see cref="WhatsmeowValidationException"/> and is not recorded either: a chat that is not a user without a device or a
+/// group, an empty text, a mark-read with no ids or, in a group, without the sender, and a poll or vote that breaks a
+/// poll's rules.
 /// </para>
 /// </summary>
 public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
@@ -457,7 +460,7 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 	public Task<SendResult> SendTextAsync(Jid chat, string text, MessageId? id = null, SendOptions? options = null, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		return SendAsync(nameof(SendTextAsync), [(nameof(chat), chat), (nameof(text), text), (nameof(id), id), (nameof(options), options)], chat, id, cancellationToken);
+		return SendAsync(nameof(SendTextAsync), [(nameof(chat), chat), (nameof(text), text), (nameof(id), id), (nameof(options), options)], chat, id, TextRefusal(text), cancellationToken);
 	}
 
 	/// <inheritdoc/>
@@ -522,7 +525,7 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 	public Task<SendResult> EditMessageAsync(Jid chat, MessageId target, string text, MessageId? id = null, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		return SendAsync(nameof(EditMessageAsync), [(nameof(chat), chat), (nameof(target), target), (nameof(text), text), (nameof(id), id)], chat, id, cancellationToken);
+		return SendAsync(nameof(EditMessageAsync), [(nameof(chat), chat), (nameof(target), target), (nameof(text), text), (nameof(id), id)], chat, id, TextRefusal(text), cancellationToken);
 	}
 
 	/// <inheritdoc/>
@@ -536,7 +539,7 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 	public Task<SendResult> SendPollAsync(Jid chat, Poll poll, MessageId? id = null, SendOptions? options = null, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(poll);
-		return SendAsync(nameof(SendPollAsync), [(nameof(chat), chat), (nameof(poll), poll), (nameof(id), id), (nameof(options), options)], chat, id, cancellationToken);
+		return SendAsync(nameof(SendPollAsync), [(nameof(chat), chat), (nameof(poll), poll), (nameof(id), id), (nameof(options), options)], chat, id, PollRefusal(poll), cancellationToken);
 	}
 
 	/// <inheritdoc/>
@@ -545,7 +548,14 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 		ArgumentNullException.ThrowIfNull(poll);
 		ArgumentNullException.ThrowIfNull(selectedOptions);
 		ImmutableArray<string> copy = [.. selectedOptions];
-		return SendAsync(nameof(SendPollVoteAsync), [(nameof(chat), chat), (nameof(poll), poll), (nameof(selectedOptions), copy), (nameof(id), id)], chat, id, cancellationToken);
+		return SendAsync(
+			nameof(SendPollVoteAsync),
+			[(nameof(chat), chat), (nameof(poll), poll), (nameof(selectedOptions), copy), (nameof(id), id)],
+			chat,
+			id,
+			OptionRefusal(copy),
+			cancellationToken
+		);
 	}
 
 	/// <inheritdoc/>
@@ -565,7 +575,11 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 	{
 		ArgumentNullException.ThrowIfNull(messageIds);
 		ImmutableArray<MessageId> ids = [.. messageIds];
-		return CallAsync(nameof(MarkReadAsync), [(nameof(chat), chat), (nameof(messageIds), ids), (nameof(sender), sender)], cancellationToken);
+		var refusal =
+			ChatRefusal(chat)
+			?? (ids.IsEmpty ? "message_ids: no message ids" : null)
+			?? (sender is null && chat.Server == "g.us" ? "sender: a group chat needs the messages' sender" : null);
+		return CallAsync(nameof(MarkReadAsync), [(nameof(chat), chat), (nameof(messageIds), ids), (nameof(sender), sender)], refusal, cancellationToken);
 	}
 
 	/// <inheritdoc/>
@@ -718,6 +732,56 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 			ExceptionDispatchInfo.Throw(failure);
 	}
 
+	/// <summary>
+	/// Why every session refuses <paramref name="chat"/> as the chat of a send or a mark-read, as the sidecar does
+	/// (<c>recipient</c>, messaging.go): a user without a device, by phone number or LID, or a group; <see langword="null"/>
+	/// when it takes it. The text names the rule, never the JID (ADR 0039).
+	/// </summary>
+	private static string? ChatRefusal(Jid chat) =>
+		chat switch
+		{
+			{ User.Length: 0 } => "chat: not a JID",
+			{ Device: > 0 } => "chat: names a device; send to the user",
+			{ Server: "s.whatsapp.net" or "lid" or "g.us" } => null,
+			_ => "chat: not a user or a group",
+		};
+
+	/// <summary>Why every session refuses the text of a send or an edit (messaging.go, action.go); <see langword="null"/> when it takes it.</summary>
+	private static string? TextRefusal(string text) => text.Length == 0 ? "text: the text is empty" : null;
+
+	/// <summary>Why every session refuses <paramref name="poll"/> (poll.go); <see langword="null"/> when it takes it.</summary>
+	private static string? PollRefusal(Poll poll)
+	{
+		var options = poll.Options.IsDefault ? [] : poll.Options;
+		if (string.IsNullOrEmpty(poll.Question))
+			return "question: the question is empty";
+
+		if (options.Length < 2)
+			return "options: a poll needs at least two options";
+
+		return OptionRefusal(options)
+			?? (poll.MaxSelectable < 1 || poll.MaxSelectable > options.Length ? Invariant($"max_selectable: {poll.MaxSelectable} is not from 1 to the {options.Length} options") : null);
+	}
+
+	/// <summary>Why every session refuses a poll's or a vote's options: one is empty or repeated (poll.go); <see langword="null"/> when it takes them.</summary>
+	private static string? OptionRefusal(ImmutableArray<string> options)
+	{
+		var seen = new HashSet<string>(StringComparer.Ordinal);
+		foreach (var option in options)
+		{
+			if (string.IsNullOrEmpty(option))
+				return "options: an option is empty";
+
+			if (!seen.Add(option))
+				return "options: an option is repeated";
+		}
+
+		return null;
+	}
+
+	/// <summary>What a call every session refuses throws: the sidecar's <c>INVALID_ARGUMENT</c>, as the client maps it.</summary>
+	private static WhatsmeowValidationException Refused(string refusal) => new($"The request is invalid: {refusal}");
+
 	private static ImmutableArray<UserInfo> ToUserInfo(ImmutableArray<Jid> users) =>
 		[
 			.. users.Select(static user => new UserInfo
@@ -772,6 +836,17 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 	}
 
 	private Task<SendResult> SendAsync(string member, ReadOnlySpan<(string Name, object? Value)> arguments, Jid chat, MessageId? id, CancellationToken cancellationToken) =>
+		SendAsync(member, arguments, chat, id, refusal: null, cancellationToken);
+
+	/// <summary>A send: refused for its chat, or for <paramref name="refusal"/>, as every session refuses it; recorded otherwise.</summary>
+	private Task<SendResult> SendAsync(
+		string member,
+		ReadOnlySpan<(string Name, object? Value)> arguments,
+		Jid chat,
+		MessageId? id,
+		string? refusal,
+		CancellationToken cancellationToken
+	) =>
 		CallAsync(
 			member,
 			arguments,
@@ -781,6 +856,7 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 				Chat = chat,
 				Timestamp = _time.GetUtcNow(),
 			},
+			refusal ?? ChatRefusal(chat),
 			cancellationToken
 		);
 
@@ -835,21 +911,41 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 	}
 
 	/// <summary>Records the call; it fails with what <see cref="FailNext"/> gave, and does nothing when the fake is disposed or the token is cancelled.</summary>
-	private Task CallAsync(string member, ReadOnlySpan<(string Name, object? Value)> arguments, CancellationToken cancellationToken)
+	private Task CallAsync(string member, ReadOnlySpan<(string Name, object? Value)> arguments, CancellationToken cancellationToken) =>
+		CallAsync(member, arguments, refusal: null, cancellationToken);
+
+	/// <summary>
+	/// Records the call; it fails with what <see cref="FailNext"/> gave, and does nothing when the fake is disposed, the
+	/// token is cancelled, or every session refuses it for <paramref name="refusal"/>.
+	/// </summary>
+	private Task CallAsync(string member, ReadOnlySpan<(string Name, object? Value)> arguments, string? refusal, CancellationToken cancellationToken)
 	{
 		ObjectDisposedException.ThrowIf(_pipeline.IsDisposed, this);
 		if (cancellationToken.IsCancellationRequested)
 			return Task.FromCanceled(cancellationToken);
 
+		if (refusal is not null)
+			return Task.FromException(Refused(refusal));
+
 		return Record(member, arguments) is { } failure ? Task.FromException(failure) : Task.CompletedTask;
 	}
 
 	/// <summary>Records the call and returns <paramref name="result"/>'s, or what <see cref="FailNext"/> gave; nothing when the fake is disposed or the token is cancelled.</summary>
-	private Task<T> CallAsync<T>(string member, ReadOnlySpan<(string Name, object? Value)> arguments, Func<T> result, CancellationToken cancellationToken)
+	private Task<T> CallAsync<T>(string member, ReadOnlySpan<(string Name, object? Value)> arguments, Func<T> result, CancellationToken cancellationToken) =>
+		CallAsync(member, arguments, result, refusal: null, cancellationToken);
+
+	/// <summary>
+	/// Records the call and returns <paramref name="result"/>'s, or what <see cref="FailNext"/> gave; nothing when the fake
+	/// is disposed, the token is cancelled, or every session refuses it for <paramref name="refusal"/>.
+	/// </summary>
+	private Task<T> CallAsync<T>(string member, ReadOnlySpan<(string Name, object? Value)> arguments, Func<T> result, string? refusal, CancellationToken cancellationToken)
 	{
 		ObjectDisposedException.ThrowIf(_pipeline.IsDisposed, this);
 		if (cancellationToken.IsCancellationRequested)
 			return Task.FromCanceled<T>(cancellationToken);
+
+		if (refusal is not null)
+			return Task.FromException<T>(Refused(refusal));
 
 		return Record(member, arguments) is { } failure ? Task.FromException<T>(failure) : Task.FromResult(result());
 	}
