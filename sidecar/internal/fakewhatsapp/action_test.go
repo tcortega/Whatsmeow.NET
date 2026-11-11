@@ -133,6 +133,70 @@ func TestAHeldAndRefusedSendIsRefusedAndLeavesNeither(t *testing.T) {
 	}
 }
 
+// A send takes the refusal before it shows in WaitForSent, so a test that saw it there and scripts the next refusal
+// never has this send take that one instead.
+func TestASendTakesTheRefusalBeforeItShowsInWaitForSent(t *testing.T) {
+	t.Parallel()
+
+	whatsApp, control, ctx, client, _, _ := linked(t)
+	if err := client.ConnectContext(ctx); err != nil {
+		t.Fatalf("ConnectContext: %v", err)
+	}
+
+	if _, err := control.RefuseNextSend(ctx, &fakev1.RefuseNextSendRequest{SessionId: "s1", Code: 479}); err != nil {
+		t.Fatalf("RefuseNextSend: %v", err)
+	}
+
+	to := parse(t, "900000002@lid")
+	ended := make(chan error, 1)
+
+	// The goroutine only reports what the send returned; the test goroutine fails on it.
+	go func() {
+		_, err := send(ctx, client, to, "3EB0000000000000000001")
+		ended <- err
+	}()
+
+	// Each look reads the log and the refusal under one lock, so the first look that sees the send sees the refusal
+	// as it was when the send showed. The test's context bounds the looks.
+	for {
+		shown, refusalLeft := sendShown(whatsApp, "s1")
+		if !shown {
+			if ctx.Err() != nil {
+				t.Fatalf("the send never showed in WaitForSent: %v", ctx.Err())
+			}
+
+			continue
+		}
+
+		if refusalLeft {
+			t.Fatal("the send showed in WaitForSent before it took the refusal")
+		}
+
+		break
+	}
+
+	if err := <-ended; !errors.Is(err, whatsmeow.ErrServerReturnedError) || err.Error() != "server returned error 479" {
+		t.Fatalf("the refused send = %v, want whatsmeow's server error 479", err)
+	}
+}
+
+// sendShown reports, under the fake's lock, whether the session's log has a message node and whether its refusal is
+// still scripted.
+func sendShown(w *WhatsApp, sessionID string) (shown, refusalLeft bool) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	for _, sent := range w.sent {
+		if sent.GetSessionId() == sessionID && sent.GetMessage() != nil {
+			shown = true
+		}
+	}
+
+	s, ok := w.scripts[sessionID]
+
+	return shown, ok && s.refuseSend != 0
+}
+
 func TestADeliveredReceiptCarriesTheSenderOfItsMessages(t *testing.T) {
 	t.Parallel()
 
