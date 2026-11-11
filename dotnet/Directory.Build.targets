@@ -107,9 +107,9 @@
 		<Error Condition="'@(_WhatsmeowRuleSwitch)' != ''" Code="WMN0003" Text="$(MSBuildProjectName) turns off a build rule: @(_WhatsmeowRuleSwitch, '; '). Rules are set centrally; a suppression is a justified pragma (docs/guidelines/csharp.md Suppressions)." />
 	</Target>
 
-	<!-- Test results stay under dotnet/artifacts/, wherever dotnet test runs from. -->
+	<!-- Test results stay under dotnet/artifacts/, wherever dotnet test runs from, with xunit's TRX report of every test, which CI keeps when a run fails. -->
 	<PropertyGroup Condition="'$(IsTestingPlatformApplication)' == 'true'">
-		<TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --results-directory &quot;$(ArtifactsPath)/TestResults/$(MSBuildProjectName)&quot;</TestingPlatformCommandLineArguments>
+		<TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --results-directory &quot;$(ArtifactsPath)/TestResults/$(MSBuildProjectName)&quot; --report-xunit-trx</TestingPlatformCommandLineArguments>
 	</PropertyGroup>
 
 	<!--
