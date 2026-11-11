@@ -16,12 +16,15 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// held is a write that holds the gate in its function until release is called, so the writes after it queue: the
-// test is the disk.
+// held is a write that holds the gate in its function until release is called, or the test ended, before the store
+// closes, so the writes after it queue: the test is the disk.
 func held(ctx context.Context, t *testing.T, w *Writer) (release func(), done <-chan error) {
 	t.Helper()
 
 	hold, holding := make(chan struct{}), make(chan struct{})
+	release = sync.OnceFunc(func() { close(hold) })
+	t.Cleanup(release)
+
 	result := make(chan error, 1)
 
 	go func() {
@@ -35,7 +38,7 @@ func held(ctx context.Context, t *testing.T, w *Writer) (release func(), done <-
 
 	<-holding
 
-	return func() { close(hold) }, result
+	return release, result
 }
 
 // countCommits counts the batches' commits, and freezes the clock, so a batch is cut by its count limit alone.
@@ -536,6 +539,9 @@ func TestCloseWaitsForTheBatchInFlight(t *testing.T) {
 	t.Cleanup(cancel)
 
 	hold, holding := make(chan struct{}), make(chan struct{})
+	release := sync.OnceFunc(func() { close(hold) })
+	t.Cleanup(release)
+
 	written := make(chan error, 1)
 
 	go func() {
@@ -563,7 +569,7 @@ func TestCloseWaitsForTheBatchInFlight(t *testing.T) {
 	case <-time.After(200 * time.Millisecond):
 	}
 
-	close(hold)
+	release()
 
 	if err := <-written; err != nil {
 		t.Fatalf("the write in flight: %v", err)

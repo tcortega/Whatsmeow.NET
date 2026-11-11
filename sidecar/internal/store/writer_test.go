@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"path/filepath"
 	"runtime"
+	"slices"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -53,32 +55,98 @@ func queued(ctx context.Context, t *testing.T, w *Writer, n int) {
 }
 
 // slowWriter writes one session row per turn, and holds each transaction open until the test lets it commit: the
-// test is the disk.
+// test is the disk. Its write lets go once the test ended, so a failed test never leaves it holding the gate, with
+// Store.Close waiting for its batch.
 type slowWriter struct {
 	name    string
 	commit  chan struct{}
 	entered chan<- string
+	ended   <-chan struct{}
+}
+
+// errTestEnded is a slowWriter's write that the test ended before it let it commit.
+var errTestEnded = errors.New("the test ended before it let the write commit")
+
+// writerName is a slowWriter's name on its write's context, so the test reads the gate's queue by name.
+type writerName struct{}
+
+// newSlowWriter returns a slowWriter whose write lets go when the test ends, before the store closes: call it after
+// openWriter, whose cleanups then run after its own.
+func newSlowWriter(t *testing.T, name string, entered chan<- string) slowWriter {
+	t.Helper()
+
+	ended := make(chan struct{})
+	t.Cleanup(func() { close(ended) })
+
+	return slowWriter{name: name, commit: make(chan struct{}), entered: entered, ended: ended}
 }
 
 func (s slowWriter) write(ctx context.Context, w *Writer, n int) error {
-	return w.Tx(ctx, func(ctx context.Context, tx *sql.Tx) error {
+	return w.Tx(context.WithValue(ctx, writerName{}, s.name), func(ctx context.Context, tx *sql.Tx) error {
 		if _, err := tx.ExecContext(ctx, "INSERT INTO session (id) VALUES (?)", fmt.Sprintf("%s-%d", s.name, n)); err != nil {
 			return fmt.Errorf("insert: %w", err)
 		}
 
-		s.entered <- s.name
-		<-s.commit
+		select {
+		case s.entered <- s.name:
+		case <-s.ended:
+			return errTestEnded
+		}
 
-		return nil
+		select {
+		case <-s.commit:
+			return nil
+		case <-s.ended:
+			return errTestEnded
+		}
 	})
 }
 
+// enter waits for the next slowWriter to enter its write, and returns its name.
+func enter(ctx context.Context, t *testing.T, entered <-chan string) string {
+	t.Helper()
+
+	select {
+	case name := <-entered:
+		return name
+	case <-ctx.Done():
+		t.Fatal("no writer entered its write")
+
+		return ""
+	}
+}
+
+// waitingNames is the gate's queue, oldest first, by slowWriter name.
+func waitingNames(w *Writer) []string {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	names := make([]string, 0, len(w.waiting))
+	for _, wr := range w.waiting {
+		name, _ := wr.ctx.Value(writerName{}).(string)
+		names = append(names, name)
+	}
+
+	return names
+}
+
+// The gate hands itself over in arrival order (ADR 0040, 0068): each write that enters is the oldest waiting, so a
+// writer that asks again queues behind every writer waiting and none starves (#89). The gate's queue is the arrival
+// order, so the test checks that it only grows at its tail, and that each write that enters is its head. A writer
+// between two writes has not asked: when a batch ends, its writers ask again in any order, and the gate may be free.
 func TestTheGateHandsItselfOverInArrivalOrder(t *testing.T) {
 	t.Parallel()
 
 	const writers, rounds = 4, 3
 
 	w, ctx := openWriter(t)
+
+	// Each reading of the clock is 150 ms after the last: a batch takes one write after its leader's, then its 250 ms
+	// are spent. So each batch hands the gate on with writers waiting, and its writers ask again behind them.
+	var ticks atomic.Int64
+
+	w.now = func() time.Time { return time.Unix(0, 0).Add(time.Duration(ticks.Add(1)) * 150 * time.Millisecond) }
+
 	entered := make(chan string)
 	all := make(map[string]slowWriter, writers)
 	done := make(chan error, writers)
@@ -90,7 +158,7 @@ func TestTheGateHandsItselfOverInArrivalOrder(t *testing.T) {
 		go func() {
 			for n := range rounds {
 				if err := s.write(ctx, w, n); err != nil {
-					done <- err
+					done <- fmt.Errorf("%s's write %d: %w", s.name, n, err)
 
 					return
 				}
@@ -101,42 +169,39 @@ func TestTheGateHandsItselfOverInArrivalOrder(t *testing.T) {
 	}
 
 	// w0 holds the gate; the others queue behind it in order.
-	start(slowWriter{name: "w0", commit: make(chan struct{}), entered: entered})
+	start(newSlowWriter(t, "w0", entered))
 
-	if got := <-entered; got != "w0" {
+	if got := enter(ctx, t, entered); got != "w0" {
 		t.Fatalf("%s entered first, want w0", got)
 	}
 
 	for i := 1; i < writers; i++ {
-		start(slowWriter{name: fmt.Sprintf("w%d", i), commit: make(chan struct{}), entered: entered})
+		start(newSlowWriter(t, fmt.Sprintf("w%d", i), entered))
 		queued(ctx, t, w, i)
 	}
 
-	// The writes enter in arrival order, so the first lap is w0 to w3, and a writer that asks again queues behind
-	// every writer waiting: none enters a lap ahead of one still waiting (ADR 0068 batches them, in that order).
-	entries := map[string]int{"w0": 1}
+	// The queue as last seen, while a write held the gate: the next write to enter is its head, and the queue keeps
+	// the rest in front of the writers that ask meanwhile.
+	ahead := waitingNames(w)
 	all["w0"].commit <- struct{}{}
 
-	for i := 1; i < writers; i++ {
-		got := <-entered
-		if want := fmt.Sprintf("w%d", i); got != want {
-			t.Fatalf("entry %d went to %s, want %s: it waited longest", i, got, want)
-		}
+	for range writers*rounds - 1 {
+		got := enter(ctx, t, entered)
+		queue := waitingNames(w)
 
-		entries[got]++
-		all[got].commit <- struct{}{}
-	}
-
-	for range writers * (rounds - 1) {
-		got := <-entered
-		entries[got]++
-
-		for name, n := range entries {
-			if n < rounds && entries[got] > n+1 {
-				t.Fatalf("%s entered for the %dth time while %s, still waiting, entered %d times", got, entries[got], name, n)
+		if len(ahead) > 0 {
+			if got != ahead[0] {
+				t.Fatalf("%s entered while %s waited longest: the queue was %v", got, ahead[0], ahead)
 			}
+
+			ahead = ahead[1:]
 		}
 
+		if len(queue) < len(ahead) || !slices.Equal(queue[:len(ahead)], ahead) {
+			t.Fatalf("the queue is %v, want %v first: a writer that asked queued ahead of one waiting", queue, ahead)
+		}
+
+		ahead = queue
 		all[got].commit <- struct{}{}
 	}
 
@@ -152,14 +217,14 @@ func TestAWriterWhoseContextEndsLeavesTheQueue(t *testing.T) {
 
 	w, ctx := openWriter(t)
 	entered := make(chan string)
-	first := slowWriter{name: "first", commit: make(chan struct{}), entered: entered}
-	last := slowWriter{name: "last", commit: make(chan struct{}), entered: entered}
+	first := newSlowWriter(t, "first", entered)
+	last := newSlowWriter(t, "last", entered)
 
 	firstDone := make(chan error, 1)
 
 	go func() { firstDone <- first.write(ctx, w, 0) }()
 
-	<-entered
+	enter(ctx, t, entered)
 
 	gone, leave := context.WithCancel(ctx)
 	goneDone := make(chan error, 1)
@@ -190,7 +255,7 @@ func TestAWriterWhoseContextEndsLeavesTheQueue(t *testing.T) {
 
 	first.commit <- struct{}{}
 
-	if got := <-entered; got != "last" {
+	if got := enter(ctx, t, entered); got != "last" {
 		t.Fatalf("%s entered after the first, want last", got)
 	}
 
@@ -408,7 +473,7 @@ func TestAWriteWhoseContextEndsAfterItJoinedCommits(t *testing.T) {
 }
 
 // holdWriteLock takes SQLite's write lock on a connection of its own, as a whatsmeow store write would, until the
-// returned function lets it go.
+// returned function lets it go, or the test ended, before the store closes.
 func holdWriteLock(ctx context.Context, t *testing.T, w *Writer) func() {
 	t.Helper()
 
@@ -421,10 +486,13 @@ func holdWriteLock(ctx context.Context, t *testing.T, w *Writer) func() {
 		t.Fatalf("take the write lock: %v", err)
 	}
 
-	return func() {
+	release := sync.OnceFunc(func() {
 		_, _ = conn.ExecContext(context.WithoutCancel(ctx), "ROLLBACK")
 		_ = conn.Close()
-	}
+	})
+	t.Cleanup(release)
+
+	return release
 }
 
 // A write whose context already ended never begins: BEGIN does not stop when its context ends, and would wait out the
@@ -433,8 +501,7 @@ func TestAWriteWhoseContextAlreadyEndedNeverBegins(t *testing.T) {
 	t.Parallel()
 
 	w, ctx := openWriter(t)
-	release := holdWriteLock(ctx, t, w)
-	defer release()
+	holdWriteLock(ctx, t, w)
 
 	write, cancel := context.WithCancel(ctx)
 	cancel()
