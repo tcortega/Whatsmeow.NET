@@ -3,11 +3,13 @@ package session
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"math"
 	"net"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -384,6 +386,132 @@ func TestCreateSessionReturnsTheExistingSession(t *testing.T) {
 	want := &whatsmeowv1.Session{Id: "s1", State: disconnected(), Jid: "1555:1@s.whatsapp.net"}
 	if !proto.Equal(again, want) || !proto.Equal(first, &whatsmeowv1.Session{Id: "s1", State: created()}) {
 		t.Fatalf("CreateSession = %v then %v, want Created then %v", first, again, want)
+	}
+}
+
+// atTheGate is a context that tells when a write waits on it for the gate: store.Writer's wait is the first to ask for
+// its Done.
+type atTheGate struct {
+	context.Context //nolint:containedctx // the create's context, which the writer waits on
+
+	waiting chan struct{}
+	once    sync.Once
+}
+
+func (c *atTheGate) Done() <-chan struct{} {
+	c.once.Do(func() { close(c.waiting) })
+
+	return c.Context.Done()
+}
+
+func TestCreateSessionDoesNotHoldTheSessionsLockAtTheWriteGate(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.create("a")
+
+	// The disk is slow: a write holds the gate until the test lets it go, also when the test failed, before the store
+	// closes.
+	hold, holding := make(chan struct{}), make(chan struct{})
+	release := sync.OnceFunc(func() { close(hold) })
+	t.Cleanup(release)
+
+	held := make(chan error, 1)
+
+	go func() {
+		held <- h.db.Writer.Tx(h.ctx, func(context.Context, *sql.Tx) error {
+			close(holding)
+			<-hold
+
+			return nil
+		})
+	}()
+
+	<-holding
+
+	ctx := &atTheGate{Context: h.ctx, waiting: make(chan struct{})}
+	made := make(chan error, 1)
+
+	var resp *whatsmeowv1.CreateSessionResponse
+
+	go func() {
+		var err error
+
+		resp, err = h.svc.CreateSession(ctx, &whatsmeowv1.CreateSessionRequest{SessionId: "b"})
+		made <- err
+	}()
+
+	select {
+	case <-ctx.waiting:
+	case err := <-made:
+		t.Fatalf("CreateSession(b) = %v before it waited at the gate", err)
+	case <-h.ctx.Done():
+		t.Fatal("CreateSession(b) never waited at the gate")
+	}
+
+	// A call of another session, while the create waits its turn at the gate.
+	watchCtx, cancel := context.WithTimeout(h.ctx, 5*time.Second)
+	defer cancel()
+
+	stream, err := h.client.WatchSessionState(watchCtx, &whatsmeowv1.WatchSessionStateRequest{SessionId: "a"})
+	if err != nil {
+		t.Fatalf("WatchSessionState(a): %v", err)
+	}
+
+	state, err := stream.Recv()
+	if err != nil {
+		t.Fatalf("WatchSessionState(a) while CreateSession(b) waits at the gate: %v", err)
+	}
+
+	if !proto.Equal(state.GetState(), created()) {
+		t.Fatalf("WatchSessionState(a) = %v, want Created", state.GetState())
+	}
+
+	release()
+
+	if err := <-held; err != nil {
+		t.Fatalf("the held write: %v", err)
+	}
+
+	if err := <-made; err != nil {
+		t.Fatalf("CreateSession(b): %v", err)
+	}
+
+	if want := (&whatsmeowv1.Session{Id: "b", State: created()}); !proto.Equal(resp.GetSession(), want) {
+		t.Fatalf("CreateSession(b) = %v, want %v", resp.GetSession(), want)
+	}
+}
+
+func TestConcurrentCreatesOfOneIDMakeOneSession(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+
+	const creates = 8
+
+	errs := make(chan error, creates)
+
+	for range creates {
+		go func() {
+			_, err := h.client.CreateSession(h.ctx, &whatsmeowv1.CreateSessionRequest{SessionId: "s1"})
+			errs <- err
+		}()
+	}
+
+	for range creates {
+		if err := <-errs; err != nil {
+			t.Fatalf("CreateSession(s1): %v", err)
+		}
+	}
+
+	list, err := h.client.ListSessions(h.ctx, &whatsmeowv1.ListSessionsRequest{})
+	if err != nil {
+		t.Fatalf("ListSessions: %v", err)
+	}
+
+	want := []*whatsmeowv1.Session{{Id: "s1", State: created()}}
+	if !slices.EqualFunc(list.GetSessions(), want, func(a, b *whatsmeowv1.Session) bool { return proto.Equal(a, b) }) {
+		t.Fatalf("ListSessions = %v, want %v", list.GetSessions(), want)
 	}
 }
 

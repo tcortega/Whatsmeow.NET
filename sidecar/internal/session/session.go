@@ -71,6 +71,8 @@ type Service struct {
 
 	mu       sync.Mutex
 	sessions map[string]*session
+	// creating serializes creates only, so they wait for each other at the gate but no other call waits for them.
+	creating sync.Mutex
 
 	// background runs the goroutines the Service owns, the waits for a login after a link (pair.go), the
 	// disconnects of retired clients and the sessions' redeliveries (redelivery.go); Close waits for them. spawning
@@ -565,20 +567,28 @@ func (svc *Service) CreateSession(ctx context.Context, req *whatsmeowv1.CreateSe
 		return nil, err
 	}
 
+	svc.creating.Lock()
+	defer svc.creating.Unlock()
+
 	svc.mu.Lock()
-	defer svc.mu.Unlock()
+	s, ok := svc.sessions[id]
+	svc.mu.Unlock()
 
-	if s, ok := svc.sessions[id]; ok {
-		return &whatsmeowv1.CreateSessionResponse{Session: s.proto()}, nil
+	if !ok {
+		// Not under svc.mu: the write waits its turn at the gate, and every call of every session needs svc.mu. Under
+		// svc.creating, no entry means no row: a delete starts only on a session in svc.sessions, and deletes its row
+		// before its entry.
+		if _, err := svc.w.Exec(ctx, "INSERT INTO session (id) VALUES (?)", id); err != nil {
+			return nil, fmt.Errorf("create session %q: %w", id, err)
+		}
+
+		svc.mu.Lock()
+		s = svc.add(id, svc.devices.NewDevice(), created(), "", "")
+		svc.sessions[id] = s
+		svc.mu.Unlock()
 	}
 
-	if _, err := svc.w.Exec(ctx, "INSERT INTO session (id) VALUES (?)", id); err != nil {
-		return nil, fmt.Errorf("create session %q: %w", id, err)
-	}
-
-	s := svc.add(id, svc.devices.NewDevice(), created(), "", "")
-	svc.sessions[id] = s
-
+	// Not under svc.mu either: proto takes s.mu, which the event handler holds across an outbox write.
 	return &whatsmeowv1.CreateSessionResponse{Session: s.proto()}, nil
 }
 
