@@ -269,9 +269,7 @@
           "Microsoft.Extensions.Options": "[10.0.14, )",
           "Vogen": "[8.0.7, )",
           "Whatsmeow.Protocol": "[1.0.0, )",
-          "Whatsmeow.Sidecar.Native.Linux": "[1.0.0, )",
-          "Whatsmeow.Sidecar.Native.MacOS": "[1.0.0, )",
-          "Whatsmeow.Sidecar.Native.Windows": "[1.0.0, )"
+          "Whatsmeow.Sidecar.Native": "[1.0.0, )"
         }
       },
       "whatsmeow.protocol": {
@@ -288,13 +286,7 @@
           "Google.Protobuf": "[3.36.2, )"
         }
       },
-      "whatsmeow.sidecar.native.linux": {
-        "type": "Project"
-      },
-      "whatsmeow.sidecar.native.macos": {
-        "type": "Project"
-      },
-      "whatsmeow.sidecar.native.windows": {
+      "whatsmeow.sidecar.native": {
         "type": "Project"
       },
       "Google.Protobuf": {

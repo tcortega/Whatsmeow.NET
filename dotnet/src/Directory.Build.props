@@ -9,13 +9,13 @@
 		<!-- Library delta: public members of shipped code need XML docs (CS1591 is an error in /.editorconfig for dotnet/src). -->
 		<NoWarn>$(NoWarn.Replace(',1591', ''))</NoWarn>
 
-		<!-- The repository and the .NET packages are MPL-2.0 (ADR 0016); the native packages override it below. -->
+		<!-- The repository and the .NET packages are MPL-2.0 (ADR 0016); the native package overrides it below. -->
 		<PackageLicenseExpression>MPL-2.0</PackageLicenseExpression>
 	</PropertyGroup>
 
 	<!--
 		Every package's nuget.org page (ADR 0054): Authors and Copyright as NOTICE says, the repository, the tags, and the
-		README.md next to each project (the native packages' is below). Each csproj sets its own Description.
+		README.md next to each project. Each csproj sets its own Description.
 		build/ci.sh install checks each of these in the packages.
 	-->
 	<PropertyGroup>
@@ -28,21 +28,20 @@
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
-	<ItemGroup Condition="!$(MSBuildProjectName.StartsWith('Whatsmeow.Sidecar.Native.'))">
+	<ItemGroup>
 		<None Include="$(MSBuildProjectDirectory)/README.md" Pack="true" PackagePath="" />
 	</ItemGroup>
 
 	<!--
-		The native packages hold whatsmeow-net, which links GPL-3.0-or-later libsignal and is conveyed under GPL-3.0-only
-		as a whole (ADR 0016). Each carries the GPL-3.0 text, NOTICE, every licence file sidecar/licenses.allow lists, and a
+		The native package holds whatsmeow-net, which links GPL-3.0-or-later libsignal and is conveyed under GPL-3.0-only
+		as a whole (ADR 0016). It carries the GPL-3.0 text, NOTICE, every licence file sidecar/licenses.allow lists, and a
 		README saying where the Corresponding Source is (ADR 0029). build/ci.sh install checks each file and expression.
 	-->
-	<PropertyGroup Condition="$(MSBuildProjectName.StartsWith('Whatsmeow.Sidecar.Native.'))">
+	<PropertyGroup Condition="'$(MSBuildProjectName)' == 'Whatsmeow.Sidecar.Native'">
 		<PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
 	</PropertyGroup>
 
-	<ItemGroup Condition="$(MSBuildProjectName.StartsWith('Whatsmeow.Sidecar.Native.'))">
-		<None Include="$(MSBuildThisFileDirectory)Whatsmeow.Sidecar.Native.md" Pack="true" PackagePath="README.md" />
+	<ItemGroup Condition="'$(MSBuildProjectName)' == 'Whatsmeow.Sidecar.Native'">
 		<None Include="$(MSBuildThisFileDirectory)../../sidecar/COPYING" Pack="true" PackagePath="" />
 		<None Include="$(MSBuildThisFileDirectory)../../NOTICE" Pack="true" PackagePath="" />
 		<None Include="$(MSBuildThisFileDirectory)../../sidecar/THIRD-PARTY-NOTICES.txt" Pack="true" PackagePath="" />
