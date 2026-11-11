@@ -46,10 +46,11 @@ public sealed class TelemetryCrashTests(FakeSidecar fixture)
 		var download = client.DownloadMediaAsync(media, Stream.Null, ct);
 		Assert.NotNull((await fixture.Fake.WaitForSentAsync(new WaitForSentRequest { SessionId = Session, After = uploaded.Index }, cancellationToken: ct)).Sent.MediaDownload);
 		await fixture.CrashAsync(ct);
-		var failure = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => download);
+		var failure = await Assert.ThrowsAsync<SidecarUnavailableException>(() => download);
 
-		// A cancellation the caller did not cause is a failure: the span says so, and it is counted by its type.
-		var type = failure.GetType().FullName;
+		// A call the sidecar cut off is a failure: the span says so, and it is counted by its error code.
+		Assert.Equal(WhatsmeowErrorCode.Unknown, failure.ErrorCode);
+		var type = nameof(WhatsmeowErrorCode.Unknown);
 		var span = Assert.Single(spans.Of("whatsmeow.media.download", Session));
 		Assert.Equal(
 			Tags.Of(("whatsmeow.session.id", Session), ("whatsmeow.media.type", "document"), ("whatsmeow.media.size", 100L * 1024), ("error.type", type)),

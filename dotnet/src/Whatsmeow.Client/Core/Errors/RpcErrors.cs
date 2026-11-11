@@ -8,7 +8,9 @@ namespace Whatsmeow.Core.Errors;
 
 /// <summary>
 /// Maps a failed sidecar call to the public exceptions (ARCHITECTURE §8.7). It maps on the ErrorInfo reason only,
-/// never on the message, so <see cref="RpcException"/> never escapes the public API.
+/// never on the message, so <see cref="RpcException"/> never escapes the public API. A public stream call the sidecar's
+/// crash or stop cuts off ends with a cancellation its caller did not cause; each one maps it next to its
+/// <see cref="RpcException"/> catch (<see cref="SidecarUnavailableException.ThrowCallCut"/>).
 /// </summary>
 internal static class RpcErrors
 {

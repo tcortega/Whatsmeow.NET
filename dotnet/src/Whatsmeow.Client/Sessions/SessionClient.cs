@@ -647,6 +647,11 @@ internal sealed class SessionClient(
 			RpcErrors.Throw(e);
 			throw;
 		}
+		catch (OperationCanceledException e) when (!cancellationToken.IsCancellationRequested)
+		{
+			SidecarUnavailableException.ThrowCallCut(e);
+			throw;
+		}
 	}
 
 	public async IAsyncEnumerable<SessionState> WatchStateAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)

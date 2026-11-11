@@ -226,6 +226,11 @@ internal sealed class MediaTransfer(MediaService.MediaServiceClient client, Sess
 			RpcErrors.Throw(e);
 			throw;
 		}
+		catch (OperationCanceledException e) when (!cancellationToken.IsCancellationRequested)
+		{
+			SidecarUnavailableException.ThrowCallCut(e);
+			throw;
+		}
 	}
 
 	private void Remove(string partial)
