@@ -29,6 +29,8 @@ const (
 	GroupService_SetGroupLocked_FullMethodName            = "/whatsmeow.v1.GroupService/SetGroupLocked"
 	GroupService_SetGroupMemberAddMode_FullMethodName     = "/whatsmeow.v1.GroupService/SetGroupMemberAddMode"
 	GroupService_SetGroupDisappearingTimer_FullMethodName = "/whatsmeow.v1.GroupService/SetGroupDisappearingTimer"
+	GroupService_SetGroupPhoto_FullMethodName             = "/whatsmeow.v1.GroupService/SetGroupPhoto"
+	GroupService_RemoveGroupPhoto_FullMethodName          = "/whatsmeow.v1.GroupService/RemoveGroupPhoto"
 	GroupService_GetInviteLink_FullMethodName             = "/whatsmeow.v1.GroupService/GetInviteLink"
 	GroupService_ResetInviteLink_FullMethodName           = "/whatsmeow.v1.GroupService/ResetInviteLink"
 	GroupService_JoinGroupWithLink_FullMethodName         = "/whatsmeow.v1.GroupService/JoinGroupWithLink"
@@ -101,6 +103,20 @@ type GroupServiceClient interface {
 	// timer is a message instead, MessageService.SendDisappearingTimer.
 	// Errors: as CreateGroup; INVALID_ARGUMENT (field "group", or "timer").
 	SetGroupDisappearingTimer(ctx context.Context, in *SetGroupDisappearingTimerRequest, opts ...grpc.CallOption) (*SetGroupDisappearingTimerResponse, error)
+	// SetGroupPhoto sets the group's photo; in a locked group only an admin may. The first message is the header, the
+	// photo follows in chunks of at most 65536 bytes, and the client ends the stream (ARCHITECTURE invariant 8). The
+	// sidecar holds the whole photo in memory, as whatsmeow takes it as one value, and refuses one over 15 MiB as the
+	// chunks arrive: whatsmeow sends the bytes themselves in one frame, which it refuses at 16 MiB (ADR 0070).
+	// WhatsApp's own limit, and which images it accepts, are [unknown]: the sidecar neither decodes nor resizes the
+	// image, and whatsmeow says only that it should be a JPEG. Members get a ContactEvent with the picture.
+	// An answer WhatsApp sends without the new photo's id is OUTCOME_UNKNOWN: the photo may be set.
+	// Errors: as CreateGroup; INVALID_ARGUMENT (a missing or repeated header, field "header"; no photo, a chunk over
+	// 65536 bytes or a photo over 15 MiB, field "chunk"; field "group"; an image WhatsApp refused, field "photo", after
+	// it was asked: nothing was changed).
+	SetGroupPhoto(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[SetGroupPhotoRequest, SetGroupPhotoResponse], error)
+	// RemoveGroupPhoto removes the group's photo, as SetGroupPhoto sets it. Members get a ContactEvent with no picture.
+	// Errors: as CreateGroup; INVALID_ARGUMENT (field "group").
+	RemoveGroupPhoto(ctx context.Context, in *RemoveGroupPhotoRequest, opts ...grpc.CallOption) (*RemoveGroupPhotoResponse, error)
 	// GetInviteLink reads the group's invite link.
 	// Errors: as GetGroup.
 	GetInviteLink(ctx context.Context, in *GetInviteLinkRequest, opts ...grpc.CallOption) (*GetInviteLinkResponse, error)
@@ -229,6 +245,29 @@ func (c *groupServiceClient) SetGroupDisappearingTimer(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *groupServiceClient) SetGroupPhoto(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[SetGroupPhotoRequest, SetGroupPhotoResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &GroupService_ServiceDesc.Streams[0], GroupService_SetGroupPhoto_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[SetGroupPhotoRequest, SetGroupPhotoResponse]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type GroupService_SetGroupPhotoClient = grpc.ClientStreamingClient[SetGroupPhotoRequest, SetGroupPhotoResponse]
+
+func (c *groupServiceClient) RemoveGroupPhoto(ctx context.Context, in *RemoveGroupPhotoRequest, opts ...grpc.CallOption) (*RemoveGroupPhotoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoveGroupPhotoResponse)
+	err := c.cc.Invoke(ctx, GroupService_RemoveGroupPhoto_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *groupServiceClient) GetInviteLink(ctx context.Context, in *GetInviteLinkRequest, opts ...grpc.CallOption) (*GetInviteLinkResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetInviteLinkResponse)
@@ -344,6 +383,20 @@ type GroupServiceServer interface {
 	// timer is a message instead, MessageService.SendDisappearingTimer.
 	// Errors: as CreateGroup; INVALID_ARGUMENT (field "group", or "timer").
 	SetGroupDisappearingTimer(context.Context, *SetGroupDisappearingTimerRequest) (*SetGroupDisappearingTimerResponse, error)
+	// SetGroupPhoto sets the group's photo; in a locked group only an admin may. The first message is the header, the
+	// photo follows in chunks of at most 65536 bytes, and the client ends the stream (ARCHITECTURE invariant 8). The
+	// sidecar holds the whole photo in memory, as whatsmeow takes it as one value, and refuses one over 15 MiB as the
+	// chunks arrive: whatsmeow sends the bytes themselves in one frame, which it refuses at 16 MiB (ADR 0070).
+	// WhatsApp's own limit, and which images it accepts, are [unknown]: the sidecar neither decodes nor resizes the
+	// image, and whatsmeow says only that it should be a JPEG. Members get a ContactEvent with the picture.
+	// An answer WhatsApp sends without the new photo's id is OUTCOME_UNKNOWN: the photo may be set.
+	// Errors: as CreateGroup; INVALID_ARGUMENT (a missing or repeated header, field "header"; no photo, a chunk over
+	// 65536 bytes or a photo over 15 MiB, field "chunk"; field "group"; an image WhatsApp refused, field "photo", after
+	// it was asked: nothing was changed).
+	SetGroupPhoto(grpc.ClientStreamingServer[SetGroupPhotoRequest, SetGroupPhotoResponse]) error
+	// RemoveGroupPhoto removes the group's photo, as SetGroupPhoto sets it. Members get a ContactEvent with no picture.
+	// Errors: as CreateGroup; INVALID_ARGUMENT (field "group").
+	RemoveGroupPhoto(context.Context, *RemoveGroupPhotoRequest) (*RemoveGroupPhotoResponse, error)
 	// GetInviteLink reads the group's invite link.
 	// Errors: as GetGroup.
 	GetInviteLink(context.Context, *GetInviteLinkRequest) (*GetInviteLinkResponse, error)
@@ -401,6 +454,12 @@ func (UnimplementedGroupServiceServer) SetGroupMemberAddMode(context.Context, *S
 }
 func (UnimplementedGroupServiceServer) SetGroupDisappearingTimer(context.Context, *SetGroupDisappearingTimerRequest) (*SetGroupDisappearingTimerResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetGroupDisappearingTimer not implemented")
+}
+func (UnimplementedGroupServiceServer) SetGroupPhoto(grpc.ClientStreamingServer[SetGroupPhotoRequest, SetGroupPhotoResponse]) error {
+	return status.Error(codes.Unimplemented, "method SetGroupPhoto not implemented")
+}
+func (UnimplementedGroupServiceServer) RemoveGroupPhoto(context.Context, *RemoveGroupPhotoRequest) (*RemoveGroupPhotoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RemoveGroupPhoto not implemented")
 }
 func (UnimplementedGroupServiceServer) GetInviteLink(context.Context, *GetInviteLinkRequest) (*GetInviteLinkResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetInviteLink not implemented")
@@ -618,6 +677,31 @@ func _GroupService_SetGroupDisappearingTimer_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GroupService_SetGroupPhoto_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(GroupServiceServer).SetGroupPhoto(&grpc.GenericServerStream[SetGroupPhotoRequest, SetGroupPhotoResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type GroupService_SetGroupPhotoServer = grpc.ClientStreamingServer[SetGroupPhotoRequest, SetGroupPhotoResponse]
+
+func _GroupService_RemoveGroupPhoto_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveGroupPhotoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GroupServiceServer).RemoveGroupPhoto(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GroupService_RemoveGroupPhoto_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GroupServiceServer).RemoveGroupPhoto(ctx, req.(*RemoveGroupPhotoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _GroupService_GetInviteLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetInviteLinkRequest)
 	if err := dec(in); err != nil {
@@ -756,6 +840,10 @@ var GroupService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _GroupService_SetGroupDisappearingTimer_Handler,
 		},
 		{
+			MethodName: "RemoveGroupPhoto",
+			Handler:    _GroupService_RemoveGroupPhoto_Handler,
+		},
+		{
 			MethodName: "GetInviteLink",
 			Handler:    _GroupService_GetInviteLink_Handler,
 		},
@@ -776,6 +864,12 @@ var GroupService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _GroupService_LeaveGroup_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "SetGroupPhoto",
+			Handler:       _GroupService_SetGroupPhoto_Handler,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "whatsmeow/v1/group.proto",
 }

@@ -11,8 +11,8 @@ import (
 )
 
 // Protocol is the contract revision: 1 until the first published v<semver> tag, then incremented by every
-// additive change (ADR 0015).
-const Protocol = 1
+// additive change (ADR 0015): 2 adds GroupService's SetGroupPhoto and RemoveGroupPhoto (ADR 0070).
+const Protocol = 2
 
 const whatsmeowModule = "go.mau.fi/whatsmeow"
 

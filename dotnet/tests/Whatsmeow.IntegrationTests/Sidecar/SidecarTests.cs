@@ -112,7 +112,7 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 		var options = new WhatsmeowSidecarOptions { SidecarPath = binaries.Stage(binaries.Sidecar), DatabasePath = binaries.NewDatabase() };
 
 		// The one internal seam: the real sidecar cannot be made to report another protocol (tests.md).
-		_ = await Assert.ThrowsAsync<SidecarVersionMismatchException>(() => WhatsmeowSidecar.StartAsync(options, logs.Factory, minProtocol: 2, maxProtocol: 3, ct));
+		_ = await Assert.ThrowsAsync<SidecarVersionMismatchException>(() => WhatsmeowSidecar.StartAsync(options, logs.Factory, minProtocol: 3, maxProtocol: 4, ct));
 
 		Processes.AssertGone((await logs.StartedAsync(1, ct)).ProcessId);
 	}

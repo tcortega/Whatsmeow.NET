@@ -181,10 +181,6 @@ public sealed class LiveSidecar : IAsyncLifetime
 		return client;
 	}
 
-	/// <summary>The live tests' control on the live sidecar, which a livetest build serves (ADR 0060).</summary>
-	internal async Task<LiveTestService.LiveTestServiceClient> ControlAsync(CancellationToken cancellationToken) =>
-		new((await StartAsync(cancellationToken).ConfigureAwait(false)).CallInvoker);
-
 	/// <summary>The contacts slice's part of the live tests' control on the live sidecar, which a livetest build serves (ADR 0063).</summary>
 	internal async Task<LiveContactService.LiveContactServiceClient> ContactControlAsync(CancellationToken cancellationToken) =>
 		new((await StartAsync(cancellationToken).ConfigureAwait(false)).CallInvoker);

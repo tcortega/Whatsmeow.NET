@@ -58,7 +58,6 @@ JoinGroupWithInvite: invite messages are not in the groups slice (ADR 0030)
 LinkGroup: communities are not in the groups slice (ADR 0030)
 SetGroupDescription: deprecated upstream as a duplicate of SetGroupTopic (group.go:1099), which SetGroupTopic covers
 SetGroupJoinApprovalMode: join-request approval is not in the groups slice (ADR 0030)
-SetGroupPhoto: group photos are not in the groups slice (ADR 0030); only the live tests' control calls it, in a livetest build (ADR 0060)
 UnlinkGroup: communities are not in the groups slice (ADR 0030)
 UpdateGroupRequestParticipants: join-request approval is not in the groups slice (ADR 0030)
 

@@ -31,3 +31,5 @@ Whatsmeow.Events.LocationContent.Longitude.get -> double
 Whatsmeow.Events.LocationContent.Longitude.init -> void
 Whatsmeow.Events.LocationContent.Name.get -> string?
 Whatsmeow.Events.LocationContent.Name.init -> void
+Whatsmeow.IWhatsAppClient.RemoveGroupPhotoAsync(Whatsmeow.Jid group, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+Whatsmeow.IWhatsAppClient.SetGroupPhotoAsync(Whatsmeow.Jid group, System.IO.Stream! photo, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!

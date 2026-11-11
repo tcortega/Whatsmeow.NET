@@ -5,6 +5,7 @@ using Whatsmeow.ChatState;
 using Whatsmeow.Contacts;
 using Whatsmeow.Core.Errors;
 using Whatsmeow.Core.Telemetry;
+using Whatsmeow.Core.Transport;
 using Whatsmeow.Events;
 using Whatsmeow.Groups;
 using Whatsmeow.History;
@@ -875,6 +876,30 @@ internal sealed class SessionClient(
 		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
 		var request = new SetGroupMemberAddModeRequest { SessionId = sessionId.Value, Group = group.ToString(), Mode = GroupMapping.ToProto(mode) };
 		_ = await RpcErrors.CallAsync(_groups.SetGroupMemberAddModeAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
+	}
+
+	public async Task<string> SetGroupPhotoAsync(Jid group, Stream photo, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(photo);
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var header = new SetGroupPhotoRequest.Types.Header { SessionId = sessionId.Value, Group = group.ToString() };
+		var response = await ChunkedCall
+			.SendAsync(
+				_groups.SetGroupPhoto(cancellationToken: cancellationToken),
+				new SetGroupPhotoRequest { Header = header },
+				photo,
+				static chunk => new SetGroupPhotoRequest { Chunk = chunk },
+				cancellationToken
+			)
+			.ConfigureAwait(false);
+		return response.PictureId;
+	}
+
+	public async Task RemoveGroupPhotoAsync(Jid group, CancellationToken cancellationToken = default)
+	{
+		ObjectDisposedException.ThrowIf(sidecar.IsDisposed, sidecar);
+		var request = new RemoveGroupPhotoRequest { SessionId = sessionId.Value, Group = group.ToString() };
+		_ = await RpcErrors.CallAsync(_groups.RemoveGroupPhotoAsync(request, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<Uri> GetGroupInviteLinkAsync(Jid group, CancellationToken cancellationToken = default)

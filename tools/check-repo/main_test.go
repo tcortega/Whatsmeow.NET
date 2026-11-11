@@ -300,6 +300,7 @@ func TestCheckLiveTestLivesInTheLiveSeamsOnly(t *testing.T) {
 		"sidecar/internal/contacts/contacts_live.go:1: [build-tag]",
 		"sidecar/internal/events/events_live.go:1: [build-tag]",
 		"sidecar/internal/groups/groups_live.go:1: [build-tag]",
+		"sidecar/internal/groups/livetest_on.go:1: [build-tag]",
 		"sidecar/internal/session/livetest_on.go:1: [build-tag]",
 	})
 }

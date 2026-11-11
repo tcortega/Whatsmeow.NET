@@ -552,3 +552,70 @@ func TestDeliverGroupNotificationDispatchesAModeATimerAndAnApprovalChange(t *tes
 		t.Fatalf("the client got %+v", change)
 	}
 }
+
+func TestAGroupPhotoIsStoredAndEveryMemberGetsItsPictureNotification(t *testing.T) {
+	t.Parallel()
+
+	whatsApp, control, ctx, owner, ownerGot, db := linked(t)
+	member, memberGot := second(ctx, t, whatsApp, control, db)
+
+	created, err := owner.CreateGroup(ctx, whatsmeow.ReqCreateGroup{Name: "Team", Participants: []types.JID{parse(t, "1666@s.whatsapp.net")}})
+	if err != nil {
+		t.Fatalf("CreateGroup: %v", err)
+	}
+
+	_ = next[*events.JoinedGroup](t, memberGot)
+
+	id, err := owner.SetGroupPhoto(ctx, created.JID, []byte("\xff\xd8\xff\xe0 photo"))
+	if err != nil || id == "" || id == "remove" {
+		t.Fatalf("SetGroupPhoto = %q, %v; want a picture id", id, err)
+	}
+
+	// Every member, the one who set it too [inferred], as whatsmeow parses the notification (notification.go:93-117).
+	for _, got := range []chan any{ownerGot, memberGot} {
+		if picture := next[*events.Picture](t, got); picture.JID != created.JID || picture.PictureID != id || picture.Remove || picture.Author.String() != "1555@s.whatsapp.net" {
+			t.Fatalf("a member got %+v", picture)
+		}
+	}
+
+	if info, err := member.GetProfilePictureInfo(ctx, created.JID, nil); err != nil || info.ID != id {
+		t.Fatalf("the member reads the picture %+v, %v; want %q", info, err, id)
+	}
+
+	// Not a JPEG: 406, as whatsmeow wraps it (group.go:341-342) [inferred]; nothing changes.
+	if _, err := owner.SetGroupPhoto(ctx, created.JID, []byte("\x89PNG")); !errors.Is(err, whatsmeow.ErrInvalidImageFormat) || !errors.Is(err, whatsmeow.ErrIQNotAcceptable) {
+		t.Fatalf("a PNG = %v, want ErrInvalidImageFormat wrapping the 406", err)
+	}
+
+	if err := owner.SetGroupLocked(ctx, created.JID, true); err != nil {
+		t.Fatalf("SetGroupLocked: %v", err)
+	}
+
+	for _, got := range []chan any{ownerGot, memberGot} {
+		_ = next[*events.GroupInfo](t, got)
+	}
+
+	// Only an admin of a locked group [inferred: 401, as its other info changes].
+	if _, err := member.SetGroupPhoto(ctx, created.JID, nil); !errors.Is(err, whatsmeow.ErrIQNotAuthorized) {
+		t.Fatalf("a member's removal in a locked group = %v, want 401", err)
+	}
+
+	if info, err := member.GetProfilePictureInfo(ctx, created.JID, nil); err != nil || info.ID != id {
+		t.Fatalf("after the refusals the member reads %+v, %v; want %q", info, err, id)
+	}
+
+	// A removal answers "remove" (group.go:345-347).
+	if id, err := owner.SetGroupPhoto(ctx, created.JID, nil); err != nil || id != "remove" {
+		t.Fatalf("the removal = %q, %v", id, err)
+	}
+
+	for _, got := range []chan any{ownerGot, memberGot} {
+		if picture := next[*events.Picture](t, got); picture.JID != created.JID || picture.PictureID != "" || !picture.Remove {
+			t.Fatalf("a member got %+v", picture)
+		}
+	}
+
+	if _, err := member.GetProfilePictureInfo(ctx, created.JID, nil); !errors.Is(err, whatsmeow.ErrProfilePictureNotSet) {
+		t.Fatalf("after the removal the member reads %v; want none", err)
+	}
+}

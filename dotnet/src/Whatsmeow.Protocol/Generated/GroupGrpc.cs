@@ -103,6 +103,14 @@ namespace Whatsmeow.Protocol.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SetGroupDisappearingTimerResponse> __Marshaller_whatsmeow_v1_SetGroupDisappearingTimerResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SetGroupDisappearingTimerResponse.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SetGroupPhotoRequest> __Marshaller_whatsmeow_v1_SetGroupPhotoRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SetGroupPhotoRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.SetGroupPhotoResponse> __Marshaller_whatsmeow_v1_SetGroupPhotoResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.SetGroupPhotoResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.RemoveGroupPhotoRequest> __Marshaller_whatsmeow_v1_RemoveGroupPhotoRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.RemoveGroupPhotoRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.RemoveGroupPhotoResponse> __Marshaller_whatsmeow_v1_RemoveGroupPhotoResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.RemoveGroupPhotoResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.GetInviteLinkRequest> __Marshaller_whatsmeow_v1_GetInviteLinkRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.GetInviteLinkRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::Whatsmeow.Protocol.V1.GetInviteLinkResponse> __Marshaller_whatsmeow_v1_GetInviteLinkResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::Whatsmeow.Protocol.V1.GetInviteLinkResponse.Parser));
@@ -202,6 +210,22 @@ namespace Whatsmeow.Protocol.V1 {
         "SetGroupDisappearingTimer",
         __Marshaller_whatsmeow_v1_SetGroupDisappearingTimerRequest,
         __Marshaller_whatsmeow_v1_SetGroupDisappearingTimerResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.Protocol.V1.SetGroupPhotoRequest, global::Whatsmeow.Protocol.V1.SetGroupPhotoResponse> __Method_SetGroupPhoto = new grpc::Method<global::Whatsmeow.Protocol.V1.SetGroupPhotoRequest, global::Whatsmeow.Protocol.V1.SetGroupPhotoResponse>(
+        grpc::MethodType.ClientStreaming,
+        __ServiceName,
+        "SetGroupPhoto",
+        __Marshaller_whatsmeow_v1_SetGroupPhotoRequest,
+        __Marshaller_whatsmeow_v1_SetGroupPhotoResponse);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::Whatsmeow.Protocol.V1.RemoveGroupPhotoRequest, global::Whatsmeow.Protocol.V1.RemoveGroupPhotoResponse> __Method_RemoveGroupPhoto = new grpc::Method<global::Whatsmeow.Protocol.V1.RemoveGroupPhotoRequest, global::Whatsmeow.Protocol.V1.RemoveGroupPhotoResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "RemoveGroupPhoto",
+        __Marshaller_whatsmeow_v1_RemoveGroupPhotoRequest,
+        __Marshaller_whatsmeow_v1_RemoveGroupPhotoResponse);
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::Whatsmeow.Protocol.V1.GetInviteLinkRequest, global::Whatsmeow.Protocol.V1.GetInviteLinkResponse> __Method_GetInviteLink = new grpc::Method<global::Whatsmeow.Protocol.V1.GetInviteLinkRequest, global::Whatsmeow.Protocol.V1.GetInviteLinkResponse>(
@@ -855,6 +879,98 @@ namespace Whatsmeow.Protocol.V1 {
       public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.SetGroupDisappearingTimerResponse> SetGroupDisappearingTimerAsync(global::Whatsmeow.Protocol.V1.SetGroupDisappearingTimerRequest request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_SetGroupDisappearingTimer, null, options, request);
+      }
+      /// <summary>
+      /// SetGroupPhoto sets the group's photo; in a locked group only an admin may. The first message is the header, the
+      /// photo follows in chunks of at most 65536 bytes, and the client ends the stream (ARCHITECTURE invariant 8). The
+      /// sidecar holds the whole photo in memory, as whatsmeow takes it as one value, and refuses one over 15 MiB as the
+      /// chunks arrive: whatsmeow sends the bytes themselves in one frame, which it refuses at 16 MiB (ADR 0070).
+      /// WhatsApp's own limit, and which images it accepts, are [unknown]: the sidecar neither decodes nor resizes the
+      /// image, and whatsmeow says only that it should be a JPEG. Members get a ContactEvent with the picture.
+      /// An answer WhatsApp sends without the new photo's id is OUTCOME_UNKNOWN: the photo may be set.
+      /// Errors: as CreateGroup; INVALID_ARGUMENT (a missing or repeated header, field "header"; no photo, a chunk over
+      /// 65536 bytes or a photo over 15 MiB, field "chunk"; field "group"; an image WhatsApp refused, field "photo", after
+      /// it was asked: nothing was changed).
+      /// </summary>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncClientStreamingCall<global::Whatsmeow.Protocol.V1.SetGroupPhotoRequest, global::Whatsmeow.Protocol.V1.SetGroupPhotoResponse> SetGroupPhoto(grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return SetGroupPhoto(new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// SetGroupPhoto sets the group's photo; in a locked group only an admin may. The first message is the header, the
+      /// photo follows in chunks of at most 65536 bytes, and the client ends the stream (ARCHITECTURE invariant 8). The
+      /// sidecar holds the whole photo in memory, as whatsmeow takes it as one value, and refuses one over 15 MiB as the
+      /// chunks arrive: whatsmeow sends the bytes themselves in one frame, which it refuses at 16 MiB (ADR 0070).
+      /// WhatsApp's own limit, and which images it accepts, are [unknown]: the sidecar neither decodes nor resizes the
+      /// image, and whatsmeow says only that it should be a JPEG. Members get a ContactEvent with the picture.
+      /// An answer WhatsApp sends without the new photo's id is OUTCOME_UNKNOWN: the photo may be set.
+      /// Errors: as CreateGroup; INVALID_ARGUMENT (a missing or repeated header, field "header"; no photo, a chunk over
+      /// 65536 bytes or a photo over 15 MiB, field "chunk"; field "group"; an image WhatsApp refused, field "photo", after
+      /// it was asked: nothing was changed).
+      /// </summary>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncClientStreamingCall<global::Whatsmeow.Protocol.V1.SetGroupPhotoRequest, global::Whatsmeow.Protocol.V1.SetGroupPhotoResponse> SetGroupPhoto(grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncClientStreamingCall(__Method_SetGroupPhoto, null, options);
+      }
+      /// <summary>
+      /// RemoveGroupPhoto removes the group's photo, as SetGroupPhoto sets it. Members get a ContactEvent with no picture.
+      /// Errors: as CreateGroup; INVALID_ARGUMENT (field "group").
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.RemoveGroupPhotoResponse RemoveGroupPhoto(global::Whatsmeow.Protocol.V1.RemoveGroupPhotoRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return RemoveGroupPhoto(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// RemoveGroupPhoto removes the group's photo, as SetGroupPhoto sets it. Members get a ContactEvent with no picture.
+      /// Errors: as CreateGroup; INVALID_ARGUMENT (field "group").
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::Whatsmeow.Protocol.V1.RemoveGroupPhotoResponse RemoveGroupPhoto(global::Whatsmeow.Protocol.V1.RemoveGroupPhotoRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_RemoveGroupPhoto, null, options, request);
+      }
+      /// <summary>
+      /// RemoveGroupPhoto removes the group's photo, as SetGroupPhoto sets it. Members get a ContactEvent with no picture.
+      /// Errors: as CreateGroup; INVALID_ARGUMENT (field "group").
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.RemoveGroupPhotoResponse> RemoveGroupPhotoAsync(global::Whatsmeow.Protocol.V1.RemoveGroupPhotoRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return RemoveGroupPhotoAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// RemoveGroupPhoto removes the group's photo, as SetGroupPhoto sets it. Members get a ContactEvent with no picture.
+      /// Errors: as CreateGroup; INVALID_ARGUMENT (field "group").
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual grpc::AsyncUnaryCall<global::Whatsmeow.Protocol.V1.RemoveGroupPhotoResponse> RemoveGroupPhotoAsync(global::Whatsmeow.Protocol.V1.RemoveGroupPhotoRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_RemoveGroupPhoto, null, options, request);
       }
       /// <summary>
       /// GetInviteLink reads the group's invite link.

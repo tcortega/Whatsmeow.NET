@@ -21,10 +21,13 @@ namespace Whatsmeow;
 /// </summary>
 public sealed class WhatsmeowSidecar : IAsyncDisposable
 {
-	/// <summary>The contract revisions this client speaks (ADR 0015).</summary>
+	/// <summary>
+	/// The contract revisions this client speaks (ADR 0015). Protocol 2 adds the group photo calls; an external
+	/// sidecar of protocol 1 is still accepted, and answers those two calls as calls it does not have (ADR 0070).
+	/// </summary>
 	internal const int MinProtocol = 1;
 
-	internal const int MaxProtocol = 1;
+	internal const int MaxProtocol = 2;
 
 	private readonly WhatsmeowSidecarOptions _options;
 	private readonly int _minProtocol;

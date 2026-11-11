@@ -3,6 +3,7 @@
 package fakewhatsapp
 
 import (
+	"bytes"
 	"cmp"
 	"context"
 	"errors"
@@ -700,4 +701,59 @@ func (c *Client) LeaveGroup(_ context.Context, jid types.JID) error {
 	w.deliver(notices)
 
 	return nil
+}
+
+// SetGroupPhoto sets the group's photo, or removes it given no bytes, as SetGroupName may: any member of an unlocked
+// group, only an admin of a locked one [inferred: as the other info changes, 401 otherwise]. Bytes that do not start
+// as a JPEG does, FF D8 FF, are 406, wrapped as whatsmeow wraps it (group.go:341-342) [inferred: whatsmeow's comment
+// says only that other formats may be refused, group.go:322-324; WhatsApp's own rule is unknown]. The picture is
+// stored, so GetProfilePictureInfo answers it, and each member, the one who changed it included [inferred], gets a
+// picture notification, which whatsmeow acks whatever the handlers return (notification.go:474); a removal answers
+// "remove", as whatsmeow does (group.go:345-347), whether or not the group had a photo [inferred: WhatsApp's answer
+// then is unknown].
+func (c *Client) SetGroupPhoto(_ context.Context, jid types.JID, avatar []byte) (string, error) {
+	if err := c.groupQuery(); err != nil {
+		return "", err
+	}
+
+	w := c.whatsApp
+	w.mu.Lock()
+
+	self := c.self()
+
+	g, i, err := w.find(jid, self)
+	if err == nil && g.locked && admin(g, i) != nil {
+		err = whatsmeow.ErrIQNotAuthorized
+	}
+
+	if err == nil && avatar != nil && !bytes.HasPrefix(avatar, []byte{0xff, 0xd8, 0xff}) {
+		err = fmt.Errorf("%w: %w", whatsmeow.ErrInvalidImageFormat, whatsmeow.ErrIQNotAcceptable)
+	}
+
+	if err != nil {
+		w.mu.Unlock()
+
+		return "", err
+	}
+
+	evt := &events.Picture{JID: g.jid, Author: w.participant(g, member{id: self}).JID, Timestamp: now(), Remove: avatar == nil}
+	id := "remove"
+
+	if avatar == nil {
+		delete(w.pictures, g.jid)
+	} else {
+		w.serial++
+		id = fmt.Sprintf("PICTURE%d", w.serial)
+		evt.PictureID = id
+		w.pictures[g.jid] = picture{id: id, url: "https://pps.whatsapp.net/fake/" + id}
+	}
+
+	notices := w.noticesTo(ids(g), evt)
+	w.mu.Unlock()
+
+	for _, n := range notices {
+		n.client.dispatch(n.evt)
+	}
+
+	return id, nil
 }

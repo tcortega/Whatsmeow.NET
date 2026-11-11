@@ -33,6 +33,7 @@ Or in configuration, `Whatsmeow:External:Address` and `Whatsmeow:External:TokenP
 
 * The client waits up to `StartupTimeout` for the sidecar to answer, then watches it, and reconnects with the restart backoff when the connection drops, connecting its sessions again as after a crash.
 * It checks only the protocol version, so the sidecar can be a different release of the same protocol.
+  It accepts protocols 1 and 2: a protocol 1 sidecar lacks the group photo calls, which then throw `WhatsmeowException` with `ErrorCode` `Unknown` [observed: ADR 0070, a run against a protocol 1 sidecar].
 * Disposing the client stops reading events and acks them, but never stops the sidecar.
 * `SidecarPath`, `DatabasePath`, `Transport`, `History` and `SendPacing` fail validation here: they configure a sidecar the client starts, and this one has its flags.
 * `MediaRoot` is your process's path to the sidecar's `--media-root`, and must be the same absolute path on both sides, such as a volume mounted at the same place.

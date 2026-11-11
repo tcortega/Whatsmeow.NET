@@ -47,7 +47,7 @@ bash build/ci.sh go         # or: setup, contract, dotnet, external, package, al
 
 One Go package: `go -C sidecar test -race -count=1 ./internal/<pkg>/`.
 The fake builds only with its tag, so a plain `./...` skips it: `go -C sidecar test -race -count=1 -tags fakewhatsapp ./internal/fakewhatsapp/`.
-The live seams likewise: `go -C sidecar test -race -count=1 -tags livetest ./internal/events/ ./internal/messaging/ ./internal/groups/ ./internal/contacts/`.
+The live seams likewise: `go -C sidecar test -race -count=1 -tags livetest ./internal/events/ ./internal/messaging/ ./internal/contacts/`.
 One .NET test class: `dotnet test --project dotnet/tests/<Project> -c Release -- --filter-class '*<Class>'` (`--filter-method '*<Method>'` for one method).
 Lint one package: `(cd sidecar && golangci-lint run --build-tags '<tags>' ./internal/<pkg>/)`, with empty tags for an untagged package.
 A .NET build in a git worktree nested in the checkout (`.claude/worktrees/...`) fails WMN0003, since the SDK also reads the checkout's `.editorconfig`; build from a worktree or copy outside the checkout.
@@ -123,7 +123,7 @@ Sidecar (#4). Copy it for the next slice; do not invent a second pattern.
 | Consumer fakes | `dotnet/src/Whatsmeow.Testing/`; their tests, public API only, in `dotnet/tests/Whatsmeow.Testing.Tests/` (ADR 0036) |
 | Integration test (default) | `dotnet/tests/Whatsmeow.IntegrationTests/<Slice>/`, on the `FakeSidecar` fixture |
 | Live test (real WhatsApp, opt-in) | `dotnet/tests/Whatsmeow.LiveTests/`, `[LiveFact]` in the `Live` collection, with the fake-mode checks (ADR 0021, 0032) |
-| A live-only sidecar seam | a `livetest_*.go` pair in the slice, behind `-tags livetest`, never in a release binary; a slice other than events, messaging, groups and contacts needs its directory added to `tools/check-repo` first (ADR 0032, 0060, 0063) |
+| A live-only sidecar seam | a `livetest_*.go` pair in the slice, behind `-tags livetest`, never in a release binary; a slice other than events, messaging and contacts needs its directory added to `tools/check-repo` first (ADR 0032, 0063, 0070) |
 | Fake WhatsApp control for a slice | `proto/whatsmeow/fake/v1/fake.proto` + `sidecar/internal/fakewhatsapp/` (ADR 0019) |
 | Dispatcher / supervisor / request body fence unit test | `dotnet/tests/Whatsmeow.Client.Tests/` |
 | A new module linked into the sidecar | read its licence, then its lines in `sidecar/licenses.allow` (ADR 0016) |
