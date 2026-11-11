@@ -1,6 +1,6 @@
 name: packaging
 
-# Native packages (ADR 0023): the package job on Windows builds every binary and packs every package; install.yml installs
+# The native package (ADR 0023, 0069) and the rest of the feed: the package job on Windows builds every binary and packs every package; install.yml installs
 # that same feed on every native host, including both Alpine architectures, and publishes AotSmoke from it with Native
 # AOT on every target RID (ADR 0056, 0058). ci.yml calls it on main and on workflow_dispatch, and release.yml on every
 # release and rehearsal (ADR 0050), so a release publishes the feed these checks passed. Every check lives in build/ci.sh.

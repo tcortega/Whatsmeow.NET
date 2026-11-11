@@ -20,13 +20,11 @@
 	</ItemGroup>
 
 	<!--
-		The sidecar binaries, at exactly this package's version (§13 invariant 12, ADR 0023). A plain reference: one with
+		The sidecar binaries, at exactly this package's version (§13 invariant 12, ADR 0023, ADR 0069). A plain reference: one with
 		ReferenceOutputAssembly="false" never reaches restore, so pack would drop the dependency.
 	-->
 	<ItemGroup>
-		<ProjectReference Include="../Whatsmeow.Sidecar.Native.Linux/Whatsmeow.Sidecar.Native.Linux.csproj" PackExactVersion="true" />
-		<ProjectReference Include="../Whatsmeow.Sidecar.Native.MacOS/Whatsmeow.Sidecar.Native.MacOS.csproj" PackExactVersion="true" />
-		<ProjectReference Include="../Whatsmeow.Sidecar.Native.Windows/Whatsmeow.Sidecar.Native.Windows.csproj" PackExactVersion="true" />
+		<ProjectReference Include="../Whatsmeow.Sidecar.Native/Whatsmeow.Sidecar.Native.csproj" PackExactVersion="true" />
 	</ItemGroup>
 
 	<!-- Stable package: its public API is tracked in PublicAPI.*.txt (RS0016/RS0017 are errors, dotnet/.globalconfig); the analyzer package adds both files as AdditionalFiles itself. -->

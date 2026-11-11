@@ -53,6 +53,13 @@ So on Windows retry the rename on error 5 or 32 only, about every 10 ms, for a f
 Waiting is safe: the file keeps the old token whole while the rename fails [observed: `ExternalTokenTests`], and the sidecar keeps accepting the old token until a client presents the new one [inferred: ADR 0046].
 A client the sidecar refuses reads its own file again on its next connect.
 
+## Shipping no binary
+
+`Whatsmeow.Client` brings the sidecar binaries in `Whatsmeow.Sidecar.Native`.
+An app that runs only in External mode can leave them out with a `PackageReference` to `Whatsmeow.Sidecar.Native` at exactly its `Whatsmeow.Client` version, with `ExcludeAssets="all"`; it then builds and runs with no `whatsmeow-net` in its output [observed: `build/ci.sh install`, ADR 0046].
+Up to `1.0.0-rc.1` the binaries came in three packages, `Whatsmeow.Sidecar.Native.Linux`, `.MacOS` and `.Windows`; since then they are one, `Whatsmeow.Sidecar.Native` ([ADR 0069](../adr/0069-one-native-package.md)).
+An app that excluded the three moves its exclusion to `Whatsmeow.Sidecar.Native` when it upgrades: an exclusion on the old ids does not reach the new package, so its binaries would land in the app's output again [inferred: NuGet applies `ExcludeAssets` to the package it names].
+
 ## TCP is for a private network only
 
 Over TCP the token travels in clear text, and there is no TLS.

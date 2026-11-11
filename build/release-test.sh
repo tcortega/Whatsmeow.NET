@@ -273,7 +273,7 @@ expect pass "only v* tags deploy" "environment: the tag pattern is reported" in_
 # --- verify ----------------------------------------------------------------------------------------------------
 
 version=1.2.3
-natives=(Whatsmeow.Sidecar.Native.Linux Whatsmeow.Sidecar.Native.MacOS Whatsmeow.Sidecar.Native.Windows)
+native=Whatsmeow.Sidecar.Native
 
 # zip_here ARCHIVE: the current directory into a new zip, with zip, or with 7-Zip where there is no zip, as on the
 # windows-2025 runner.
@@ -283,7 +283,7 @@ zip_here() {
 }
 
 # nupkg DIR ID VERSION DEPENDENCY...: a package as dotnet pack writes one: its nuspec at the root, and for a native
-# package its two binaries, or the ones only_rids lists. A DEPENDENCY is id=range.
+# package its six binaries, or the ones only_rids lists. A DEPENDENCY is id=range.
 nupkg() {
 	local dir="$1" id="$2" v="$3" work dep rid rids exe
 	shift 3
@@ -305,9 +305,7 @@ nupkg() {
 		echo '</package>'
 	} >"$work/$id.nuspec"
 	case "$id" in
-		*.Linux) rids=(linux-x64 linux-arm64) ;;
-		*.MacOS) rids=(osx-x64 osx-arm64) ;;
-		*.Windows) rids=(win-x64 win-arm64) ;;
+		"$native") rids=(linux-x64 linux-arm64 osx-x64 osx-arm64 win-x64 win-arm64) ;;
 		*) rids=() ;;
 	esac
 	if [ -n "${only_rids:-}" ]; then read -ra rids <<<"$only_rids"; fi
@@ -326,10 +324,9 @@ nupkg() {
 feed() {
 	local dir="$tmp/feeds/$1" id
 	mkdir -p "$dir"
-	for id in "${natives[@]}" Whatsmeow.Protocol.WhatsApp; do nupkg "$dir" "$id" "$version"; done
+	for id in "$native" Whatsmeow.Protocol.WhatsApp; do nupkg "$dir" "$id" "$version"; done
 	nupkg "$dir" Whatsmeow.Protocol "$version" "Whatsmeow.Protocol.WhatsApp=$version" "Google.Protobuf=3.33.0"
-	nupkg "$dir" Whatsmeow.Client "$version" "Whatsmeow.Protocol=$version" \
-		"Whatsmeow.Sidecar.Native.Linux=[$version]" "Whatsmeow.Sidecar.Native.MacOS=[$version]" "Whatsmeow.Sidecar.Native.Windows=[$version]"
+	nupkg "$dir" Whatsmeow.Client "$version" "Whatsmeow.Protocol=$version" "$native=[$version]"
 	nupkg "$dir" Whatsmeow.Extensions.Hosting "$version" "Whatsmeow.Client=[$version]"
 	nupkg "$dir" Whatsmeow.Testing "$version" "Whatsmeow.Client=[$version]" "Whatsmeow.Extensions.Hosting=[$version]"
 	echo "$version" >"$dir/version"
@@ -373,7 +370,7 @@ mv "$f/Whatsmeow.Client.1.2.3.nupkg" "$f/Whatsmeow.Client.1.2.4.nupkg"
 expect fail "does not hold exactly" "verify: a package at another version than the tag" verify "$f"
 
 f="$(mutant missing)"
-rm "$f/Whatsmeow.Sidecar.Native.MacOS.1.2.3.nupkg"
+rm "$f/Whatsmeow.Sidecar.Native.1.2.3.nupkg"
 expect fail "does not hold exactly" "verify: a package is missing" verify "$f"
 
 f="$(mutant extra)"
@@ -402,9 +399,8 @@ expect fail "is not Whatsmeow.Testing" "verify: a nuspec id differs from its fil
 
 f="$(mutant dep-version)"
 rm "$f/Whatsmeow.Client.1.2.3.nupkg"
-nupkg "$f" Whatsmeow.Client "$version" "Whatsmeow.Protocol=$version" \
-	"Whatsmeow.Sidecar.Native.Linux=[1.2.2]" "Whatsmeow.Sidecar.Native.MacOS=[$version]" "Whatsmeow.Sidecar.Native.Windows=[$version]"
-expect fail "depends on Whatsmeow.Sidecar.Native.Linux at [1.2.2]" "verify: a dependency on a package of ours at another version" verify "$f"
+nupkg "$f" Whatsmeow.Client "$version" "Whatsmeow.Protocol=$version" "$native=[1.2.2]"
+expect fail "depends on Whatsmeow.Sidecar.Native at [1.2.2]" "verify: a dependency on a package of ours at another version" verify "$f"
 
 f="$(mutant dep-unknown)"
 rm "$f/Whatsmeow.Extensions.Hosting.1.2.3.nupkg"
@@ -418,13 +414,13 @@ expect fail "depends on Whatsmeow.Client, which is pushed after it" "verify: a d
 
 f="$(mutant dep-first-phase)"
 rm "$f/Whatsmeow.Protocol.WhatsApp.1.2.3.nupkg"
-nupkg "$f" Whatsmeow.Protocol.WhatsApp "$version" "Whatsmeow.Sidecar.Native.Linux=[$version]"
+nupkg "$f" Whatsmeow.Protocol.WhatsApp "$version" "$native=[$version]"
 expect fail "is pushed in the first phase, so it may depend on no package of ours" "verify: a first-phase package with a dependency of ours" verify "$f"
 
 f="$(mutant five-binaries)"
-rm "$f/Whatsmeow.Sidecar.Native.Windows.1.2.3.nupkg"
-only_rids=win-x64 nupkg "$f" Whatsmeow.Sidecar.Native.Windows "$version"
-expect fail "6 binaries" "verify: a native package without one of its binaries" verify "$f"
+rm "$f/Whatsmeow.Sidecar.Native.1.2.3.nupkg"
+only_rids="linux-x64 linux-arm64 osx-x64 osx-arm64 win-x64" nupkg "$f" "$native" "$version"
+expect fail "6 binaries" "verify: the native package without one of its binaries" verify "$f"
 
 assets_taken() {
 	rm -rf "$tmp/assets" && mkdir -p "$tmp/assets" && echo old >"$tmp/assets/old"
@@ -442,10 +438,10 @@ push_order() {
 		env NUGET_API_KEY=secret bash "$release" push "v$version" "$good" 2 --dry-run)" || return 1
 	echo "$out"
 	[ "$(grep -o 'Whatsmeow\.[A-Za-z.]*\.1\.2\.3\.nupkg' <<<"$out" | tr '\n' ' ')" = \
-		"Whatsmeow.Sidecar.Native.Linux.1.2.3.nupkg Whatsmeow.Sidecar.Native.MacOS.1.2.3.nupkg Whatsmeow.Sidecar.Native.Windows.1.2.3.nupkg Whatsmeow.Protocol.WhatsApp.1.2.3.nupkg Whatsmeow.Protocol.1.2.3.nupkg Whatsmeow.Client.1.2.3.nupkg Whatsmeow.Extensions.Hosting.1.2.3.nupkg Whatsmeow.Testing.1.2.3.nupkg " ] &&
-		[ "$(grep -c -- '--skip-duplicate' <<<"$out")" = 8 ] && ! grep -qF 'secret' <<<"$out"
+		"Whatsmeow.Sidecar.Native.1.2.3.nupkg Whatsmeow.Protocol.WhatsApp.1.2.3.nupkg Whatsmeow.Protocol.1.2.3.nupkg Whatsmeow.Client.1.2.3.nupkg Whatsmeow.Extensions.Hosting.1.2.3.nupkg Whatsmeow.Testing.1.2.3.nupkg " ] &&
+		[ "$(grep -c -- '--skip-duplicate' <<<"$out")" = 6 ] && ! grep -qF 'secret' <<<"$out"
 }
-expect pass "" "push --dry-run: the native packages first, every package once, with --skip-duplicate, never the key" push_order
+expect pass "" "push --dry-run: the native package first, every package once, with --skip-duplicate, never the key" push_order
 
 pushed() { # phase: the packages dotnet was given, in order
 	reset_calls
@@ -460,8 +456,8 @@ push_phase() { # phase expected
 	echo "$out"
 	[ "$(tail -n1 <<<"$out")" = "$2" ]
 }
-expect pass "" "push 1: the native packages, then Whatsmeow.Protocol.WhatsApp, each with the key and --skip-duplicate" push_phase 1 \
-	"Whatsmeow.Sidecar.Native.Linux.1.2.3.nupkg Whatsmeow.Sidecar.Native.MacOS.1.2.3.nupkg Whatsmeow.Sidecar.Native.Windows.1.2.3.nupkg Whatsmeow.Protocol.WhatsApp.1.2.3.nupkg "
+expect pass "" "push 1: the native package, then Whatsmeow.Protocol.WhatsApp, each with the key and --skip-duplicate" push_phase 1 \
+	"Whatsmeow.Sidecar.Native.1.2.3.nupkg Whatsmeow.Protocol.WhatsApp.1.2.3.nupkg "
 expect pass "" "push 2: the packages that depend on them, in dependency order" push_phase 2 \
 	"Whatsmeow.Protocol.1.2.3.nupkg Whatsmeow.Client.1.2.3.nupkg Whatsmeow.Extensions.Hosting.1.2.3.nupkg Whatsmeow.Testing.1.2.3.nupkg "
 
@@ -482,7 +478,7 @@ wait_urls() { # phase count
 	echo "$out"
 	[ "$(grep -c 'https://api.nuget.org/v3-flatcontainer/whatsmeow\.[a-z.]*/index.json' <<<"$out")" = "$2" ]
 }
-expect pass "whatsmeow.sidecar.native.windows/index.json" "wait 1 --dry-run: the four first-phase packages, lowercased" wait_urls 1 4
+expect pass "whatsmeow.sidecar.native/index.json" "wait 1 --dry-run: the two first-phase packages, lowercased" wait_urls 1 2
 expect pass "whatsmeow.testing/index.json" "wait 2 --dry-run: the four second-phase packages" wait_urls 2 4
 
 served() { # ids...: the flat container lists 1.2.3 for these
@@ -494,20 +490,20 @@ waited() { # phase
 	reset_calls
 	RELEASE_WAIT_MINUTES=0 bash "$release" wait "v$version" "$good" "$1"
 }
-served whatsmeow.sidecar.native.linux whatsmeow.sidecar.native.macos whatsmeow.sidecar.native.windows whatsmeow.protocol.whatsapp
-expect pass "serves every package of phase 1" "wait 1: nuget.org serves all four" waited 1
-curl_bounded() { waited 1 >/dev/null && [ "$(grep -c '^curl .*--max-time 30 ' "$tmp/calls")" = 4 ]; }
+served whatsmeow.sidecar.native whatsmeow.protocol.whatsapp
+expect pass "serves every package of phase 1" "wait 1: nuget.org serves both" waited 1
+curl_bounded() { waited 1 >/dev/null && [ "$(grep -c '^curl .*--max-time 30 ' "$tmp/calls")" = 2 ]; }
 expect pass "" "wait: every request is bounded by --max-time 30" curl_bounded
-served whatsmeow.sidecar.native.linux whatsmeow.sidecar.native.macos whatsmeow.protocol.whatsapp
+served whatsmeow.protocol.whatsapp
 expect fail "a re-run will not help" "wait 1: a package nuget.org does not serve fails, naming a validation e-mail" waited 1
-expect fail "Whatsmeow.Sidecar.Native.Windows" "wait 1: the timeout names the package" waited 1
+expect fail "Whatsmeow.Sidecar.Native" "wait 1: the timeout names the package" waited 1
 served whatsmeow.protocol whatsmeow.client whatsmeow.extensions.hosting
 expect pass "does not serve Whatsmeow.Testing at 1.2.3 yet" "wait 2: only warns, since not indexed yet is not a failure" waited 2
 
 # --- owners ----------------------------------------------------------------------------------------------------
 
-# Each of the eight ids is absent on nuget.org, or NUGET_USER owns it, before the release goes public.
-ids=(Whatsmeow.Sidecar.Native.Linux Whatsmeow.Sidecar.Native.MacOS Whatsmeow.Sidecar.Native.Windows Whatsmeow.Protocol.WhatsApp
+# Each of the six ids is absent on nuget.org, or NUGET_USER owns it, before the release goes public.
+ids=(Whatsmeow.Sidecar.Native Whatsmeow.Protocol.WhatsApp
 	Whatsmeow.Protocol Whatsmeow.Client Whatsmeow.Extensions.Hosting Whatsmeow.Testing)
 nothing_on_nuget() { rm -f "$tmp/flat/"* "$tmp/search/"* "$tmp/nuget.down"; }
 on_nuget() { # id owners-json: the id exists, and search lists it with those owners
@@ -518,12 +514,12 @@ on_nuget() { # id owners-json: the id exists, and search lists it with those own
 }
 owners() { reset_calls; env NUGET_USER="${1:-someone}" bash "$release" owners "v$version"; }
 nothing_on_nuget
-expect pass "absent on nuget.org" "owners: eight ids nobody has" owners
+expect pass "absent on nuget.org" "owners: six ids nobody has" owners
 expect pass "absent on nuget.org" "owners: absent ids need no NUGET_USER (a rehearsal)" env -u NUGET_USER bash "$release" owners "v$version"
 all_bounded() { owners >/dev/null && [ "$(grep -c '^curl ' "$tmp/calls")" -gt 0 ] && ! grep '^curl ' "$tmp/calls" | grep -qvF -- '--max-time 30'; }
 expect pass "" "owners: every request is bounded by --max-time 30" all_bounded
 for id in "${ids[@]}"; do on_nuget "$id" '["SomeOne","an-org"]'; done
-expect pass "owned by someone" "owners: eight ids NUGET_USER owns, matched without case (a re-run)" owners
+expect pass "owned by someone" "owners: six ids NUGET_USER owns, matched without case (a re-run)" owners
 on_nuget Whatsmeow.Testing '"someone"'
 expect pass "owned by someone" "owners: owners as one string" owners
 on_nuget Whatsmeow.Client '["mallory"]'
@@ -536,7 +532,7 @@ rm -f "$tmp/flat/whatsmeow.testing.json"
 expect fail "owned by mallory, not someone" "owners: an id search lists while the flat container says 404 is not absent" owners
 nothing_on_nuget
 touch "$tmp/search.down"
-expect fail "cannot search nuget.org for Whatsmeow.Sidecar.Native.Linux" "owners: a search failure fails closed" owners
+expect fail "cannot search nuget.org for Whatsmeow.Sidecar.Native" "owners: a search failure fails closed" owners
 rm -f "$tmp/search.down"
 nothing_on_nuget
 echo '{"versions":["1.0.0"]}' >"$tmp/flat/whatsmeow.protocol.json"
@@ -553,7 +549,7 @@ echo '{"resources":[]}' >"$tmp/index.json"
 expect fail "no SearchQueryService" "owners: a service index without search fails closed" owners
 cp "$tmp/index.good" "$tmp/index.json"
 flat_error() { echo 500 >"$tmp/flat.status"; owners; local rc=$?; rm -f "$tmp/flat.status"; return "$rc"; }
-expect fail "nuget.org answered 500 for Whatsmeow.Sidecar.Native.Linux" "owners: a flat container error is no absent id" flat_error
+expect fail "nuget.org answered 500 for Whatsmeow.Sidecar.Native" "owners: a flat container error is no absent id" flat_error
 
 # --- the GitHub release ----------------------------------------------------------------------------------------
 
@@ -817,8 +813,8 @@ expect fail "shallow" "shipped-api: a shallow clone fails" shallow_shipped
 # --- ids -------------------------------------------------------------------------------------------------------
 
 ids_line() { bash "$release" ids | paste -sd' ' -; }
-expect pass "Whatsmeow.Sidecar.Native.Linux Whatsmeow.Sidecar.Native.MacOS Whatsmeow.Sidecar.Native.Windows Whatsmeow.Protocol.WhatsApp Whatsmeow.Protocol Whatsmeow.Client Whatsmeow.Extensions.Hosting Whatsmeow.Testing" \
-	"ids: the eight packages, phase 1 then phase 2" ids_line
+expect pass "Whatsmeow.Sidecar.Native Whatsmeow.Protocol.WhatsApp Whatsmeow.Protocol Whatsmeow.Client Whatsmeow.Extensions.Hosting Whatsmeow.Testing" \
+	"ids: the six packages, phase 1 then phase 2" ids_line
 expect fail "every package id a release publishes" "ids: takes no argument, and prints the usage" bash "$release" ids extra
 
 # --- release.yml wiring (ADR 0064) -----------------------------------------------------------------------------

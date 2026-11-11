@@ -5,7 +5,7 @@ name: release
 # and checks the feed, without caches. After approval in the release environment, the publish job checks that no
 # package id is someone else's on nuget.org, drafts the GitHub release with
 # the binaries, their checksums and the Corresponding Source, gets a nuget.org key through Trusted Publishing (no
-# stored API key), publishes the release, then pushes the packages, the native packages first. A re-run pushes and
+# stored API key), publishes the release, then pushes the packages, the native package first. A re-run pushes and
 # uploads only what is missing; nothing is ever deleted or unlisted. Then nuget-install runs install.yml against
 # nuget.org on every target host and RID (#52, ADR 0059): a version nuget.org does not serve yet fails it, and re-running
 # its failed jobs retries; a fault in the checker itself is fixed in a later commit, which nuget-install.yml runs
@@ -144,7 +144,7 @@ jobs:
       - name: build/release.sh publish
         run: bash build/release.sh publish "$TAG" "$RUNNER_TEMP/assets"
 
-      - name: build/release.sh push 1 (the native packages and Whatsmeow.Protocol.WhatsApp)
+      - name: build/release.sh push 1 (the native package and Whatsmeow.Protocol.WhatsApp)
         env:
           NUGET_API_KEY: ${{ steps.login-1.outputs.NUGET_API_KEY }}
         run: bash build/release.sh push "$TAG" "$RUNNER_TEMP/feed" 1

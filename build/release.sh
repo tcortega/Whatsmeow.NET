@@ -32,12 +32,13 @@ nuget_source=https://api.nuget.org/v3/index.json
 flat_container=https://api.nuget.org/v3-flatcontainer
 
 # The push order, in two phases. Phase 1 depends on no package of ours, and the second phase starts only once
-# nuget.org serves all of it, so it never lists a Whatsmeow.Client whose native packages are missing. Phase 2 pushes
+# nuget.org serves all of it, so it never lists a Whatsmeow.Client whose native package is missing. Phase 2 pushes
 # each package after its dependencies. verify fails when a nuspec breaks either rule.
-phase1=(Whatsmeow.Sidecar.Native.Linux Whatsmeow.Sidecar.Native.MacOS Whatsmeow.Sidecar.Native.Windows Whatsmeow.Protocol.WhatsApp)
+native_id=Whatsmeow.Sidecar.Native
+phase1=("$native_id" Whatsmeow.Protocol.WhatsApp)
 phase2=(Whatsmeow.Protocol Whatsmeow.Client Whatsmeow.Extensions.Hosting Whatsmeow.Testing)
 
-# The six release targets (tools/check-licenses -targets); build/ci.sh install checks which binaries each native
+# The six release targets (tools/check-licenses -targets); build/ci.sh install checks which binaries the native
 # package holds, so this only counts them.
 binaries=6
 
@@ -166,7 +167,7 @@ nuspec_of() { # nupkg: the nuspec at its root
 
 verify() { # tag feed assets
 	local tag="$1" feed="$2" assets="$3" version expected actual id nuspec dep dep_id dep_range i j phase
-	local entry rid name count=0
+	local native entry rid name count=0
 	version="$(version_of "$tag")"
 	[ -d "$feed" ] || die "no feed $feed"
 	actual="$(tr -d '\r' <"$feed/version" 2>/dev/null)"
@@ -209,17 +210,15 @@ verify() { # tag feed assets
 
 	if [ -e "$assets" ]; then die "the assets directory $assets already exists"; fi
 	mkdir -p "$assets" || die "cannot create $assets"
-	for id in "${phase1[@]}"; do
-		[[ "$id" == Whatsmeow.Sidecar.Native.* ]] || continue
-		while IFS= read -r entry; do
-			rid="$(cut -d/ -f2 <<<"$entry")"
-			name="whatsmeow-net_${version}_$rid"
-			[[ "$entry" == *.exe ]] && name="$name.exe"
-			unzip -p "$feed/$id.$version.nupkg" "$entry" >"$assets/$name" || die "cannot extract $entry from $id"
-			count=$((count + 1))
-		done < <(unzip -Z1 "$feed/$id.$version.nupkg" | grep -E '^runtimes/[^/]+/native/whatsmeow-net(\.exe)?$')
-	done
-	if [ "$count" -ne "$binaries" ]; then die "the native packages hold $count binaries, not the $binaries binaries of the release targets"; fi
+	native="$feed/$native_id.$version.nupkg"
+	while IFS= read -r entry; do
+		rid="$(cut -d/ -f2 <<<"$entry")"
+		name="whatsmeow-net_${version}_$rid"
+		[[ "$entry" == *.exe ]] && name="$name.exe"
+		unzip -p "$native" "$entry" >"$assets/$name" || die "cannot extract $entry from $native_id"
+		count=$((count + 1))
+	done < <(unzip -Z1 "$native" | grep -E '^runtimes/[^/]+/native/whatsmeow-net(\.exe)?$')
+	if [ "$count" -ne "$binaries" ]; then die "the native package holds $count binaries, not the $binaries binaries of the release targets"; fi
 	# sha256sum's format, so sha256sum -c checks a download. Written beside the directory first, or the glob counts it.
 	(
 		cd "$assets" || exit 1
@@ -266,7 +265,7 @@ check_asset() {
 }
 
 # The GitHub release is a draft until every asset is on it, since an immutable release takes no asset once published;
-# it is published only after the nuget.org login worked, and before any package, so the Corresponding Source every
+# it is published only after the nuget.org login worked, and before any package, so the Corresponding Source the
 # native package points to is there first (ADR 0029). A re-run uploads only what the release lacks, and never replaces
 # an asset.
 draft() { # tag assets [--dry-run]

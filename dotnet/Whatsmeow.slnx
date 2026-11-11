@@ -8,9 +8,7 @@
 		<Project Path="src/Whatsmeow.Extensions.Hosting/Whatsmeow.Extensions.Hosting.csproj" />
 		<Project Path="src/Whatsmeow.Protocol.WhatsApp/Whatsmeow.Protocol.WhatsApp.csproj" />
 		<Project Path="src/Whatsmeow.Protocol/Whatsmeow.Protocol.csproj" />
-		<Project Path="src/Whatsmeow.Sidecar.Native.Linux/Whatsmeow.Sidecar.Native.Linux.csproj" />
-		<Project Path="src/Whatsmeow.Sidecar.Native.MacOS/Whatsmeow.Sidecar.Native.MacOS.csproj" />
-		<Project Path="src/Whatsmeow.Sidecar.Native.Windows/Whatsmeow.Sidecar.Native.Windows.csproj" />
+		<Project Path="src/Whatsmeow.Sidecar.Native/Whatsmeow.Sidecar.Native.csproj" />
 		<Project Path="src/Whatsmeow.Testing/Whatsmeow.Testing.csproj" />
 	</Folder>
 	<Folder Name="/tests/">

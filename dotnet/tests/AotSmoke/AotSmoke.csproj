@@ -34,7 +34,7 @@
 		<ProjectReference Include="../../src/Whatsmeow.Testing/Whatsmeow.Testing.csproj" />
 	</ItemGroup>
 
-	<!-- Whatsmeow.Client brings Whatsmeow.Protocol, Whatsmeow.Protocol.WhatsApp and the native package of each OS. -->
+	<!-- Whatsmeow.Client brings Whatsmeow.Protocol, Whatsmeow.Protocol.WhatsApp and the native package. -->
 	<ItemGroup Condition="'$(AotSmokeFromFeed)' == 'true'">
 		<PackageReference Include="Whatsmeow.Client" />
 		<PackageReference Include="Whatsmeow.Extensions.Hosting" />

@@ -127,13 +127,7 @@
           "Google.Protobuf": "[3.36.2, )"
         }
       },
-      "whatsmeow.sidecar.native.linux": {
-        "type": "Project"
-      },
-      "whatsmeow.sidecar.native.macos": {
-        "type": "Project"
-      },
-      "whatsmeow.sidecar.native.windows": {
+      "whatsmeow.sidecar.native": {
         "type": "Project"
       },
       "Google.Protobuf": {

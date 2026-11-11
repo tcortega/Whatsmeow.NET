@@ -563,11 +563,10 @@ pack_feed() {
 	rm -rf "$package_feed"
 	dotnet pack dotnet/Whatsmeow.slnx -c Release --no-restore -p:ContinuousIntegrationBuild=true ${baseline:+-p:PackageValidationBaselineVersion="$baseline"} -o "$package_feed" || return
 	echo "$version" >"$package_feed/version"
-	for nupkg in "$package_feed"/Whatsmeow.Sidecar.Native.*.nupkg; do
-		line="$(basename "$nupkg"): $(wc -c <"$nupkg" | tr -d ' ') bytes"
-		echo "$line"
-		if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then echo "- $line" >>"$GITHUB_STEP_SUMMARY"; fi
-	done
+	nupkg="$package_feed/Whatsmeow.Sidecar.Native.$version.nupkg"
+	line="$(basename "$nupkg"): $(wc -c <"$nupkg" | tr -d ' ') bytes"
+	echo "$line"
+	if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then echo "- $line" >>"$GITHUB_STEP_SUMMARY"; fi
 }
 
 # The Corresponding Source of the binaries (ADR 0016, ADR 0029): the commit, as git archive gives it, plus the output
@@ -734,14 +733,8 @@ in_consumer() {
 	(unset WHATSMEOW_NET_SIDECAR_PATH && cd "$work" && NUGET_PACKAGES="$(native_path "$packages")" NUGET_HTTP_CACHE_PATH="$(native_path "$work/http-cache")" UseSharedCompilation=false "$@")
 }
 
-# The native package of a RID's OS (ADR 0023). A packages folder names it in lowercase.
-native_id() { # linux|osx|win
-	case "$1" in
-		linux) echo Whatsmeow.Sidecar.Native.Linux ;;
-		osx) echo Whatsmeow.Sidecar.Native.MacOS ;;
-		win) echo Whatsmeow.Sidecar.Native.Windows ;;
-	esac
-}
+# The native package, which holds the binary of every RID (ADR 0069). A packages folder names it in lowercase.
+native_id=Whatsmeow.Sidecar.Native
 
 lowercase() {
 	tr '[:upper:]' '[:lower:]' <<<"$1"
@@ -801,59 +794,50 @@ packaged_protocol_pins() {
 	return "$rc"
 }
 
-native_package() { # linux|osx|win
-	echo "$packages/$(lowercase "$(native_id "$1")")/$version"
+native_package() {
+	echo "$packages/$(lowercase "$native_id")/$version"
 }
 
 packaged_pins() {
-	local nuspec="$packages/whatsmeow.client/$version/whatsmeow.client.nuspec" os id rc=0
+	local nuspec="$packages/whatsmeow.client/$version/whatsmeow.client.nuspec"
 	if [ ! -f "$nuspec" ]; then
 		annotate error "exact pins" "the consumer restored no $nuspec"
 		return 1
 	fi
-	for os in linux osx win; do
-		id="$(native_id "$os")"
-		if ! grep -qF "<dependency id=\"$id\" version=\"[$version]\"" "$nuspec"; then
-			annotate error "exact pins" "Whatsmeow.Client does not depend on $id at exactly [$version] (§13 invariant 12). _WhatsmeowExactProjectVersions in dotnet/Directory.Build.targets makes the pin by rewriting NuGet's internal _ProjectReferencesWithVersions item; after an SDK bump, check that NuGet.Build.Tasks.Pack.targets still fills it in _GetProjectReferenceVersions (ADR 0023)"
-			rc=1
-		fi
-	done
+	if ! grep -qF "<dependency id=\"$native_id\" version=\"[$version]\"" "$nuspec"; then
+		annotate error "exact pins" "Whatsmeow.Client does not depend on $native_id at exactly [$version] (§13 invariant 12). _WhatsmeowExactProjectVersions in dotnet/Directory.Build.targets makes the pin by rewriting NuGet's internal _ProjectReferencesWithVersions item; after an SDK bump, check that NuGet.Build.Tasks.Pack.targets still fills it in _GetProjectReferenceVersions (ADR 0023)"
+		grep -F 'Whatsmeow.Sidecar.Native' "$nuspec"
+		return 1
+	fi
 	grep -F 'Whatsmeow.Sidecar.Native' "$nuspec"
-	return "$rc"
 }
 
-# Each native package holds exactly its binaries, one per release target of its OS, its buildTransitive targets, its
-# README and the GPL files, beside the files NuGet writes when it extracts a package: no build output, nothing else
-# (ADR 0023, ADR 0029).
+# The native package holds exactly the binaries, one per release target, its buildTransitive targets, its README and the
+# GPL files, beside the files NuGet writes when it extracts a package: no build output, nothing else (ADR 0023, ADR
+# 0029, ADR 0069).
 packaged_files() {
-	local targets target r os id name expected actual rc=0
+	local targets target name expected actual
 	targets="$(release_targets)" || return
-	for os in linux osx win; do
-		id="$(native_id "$os")" name="$(lowercase "$(native_id "$os")")"
-		expected="$({
-			for target in $targets; do
-				r="$(rid "$target")"
-				if [ "${r%-*}" = "$os" ]; then echo "runtimes/$r/native/whatsmeow-net$(exe_of "$target")"; fi
-			done
-			printf '%s\n' "buildTransitive/$id.targets" README.md "${native_notices[@]}" \
-				.nupkg.metadata "$name.$version.nupkg" "$name.$version.nupkg.sha512" "$name.nuspec"
-			# nuget.org adds a repository signature, extracted at the package root [observed: every package restored from
-			# nuget.org in a local packages folder, 2026-11-06; inferred for ours, whose first publish decides]. A presence
-			# check of the served file, not a cryptographic verification.
-			if [ -n "$published" ]; then echo .signature.p7s; fi
-		} | LC_ALL=C sort)"
-		actual="$(cd "$(native_package "$os")" && find . -type f | sed 's#^\./##' | LC_ALL=C sort)" || return
-		if [ "$expected" != "$actual" ]; then
-			annotate error "packaged files" "$id does not hold exactly its binaries for the release targets (go -C tools run ./check-licenses -targets), buildTransitive/$id.targets, README.md and ${native_notices[*]}"
-			diff <(echo "$expected") <(echo "$actual")
-			rc=1
-		fi
-	done
-	[ "$rc" -eq 0 ] && echo "each native package holds exactly its binaries, its buildTransitive targets, its README and ${native_notices[*]}"
-	return "$rc"
+	name="$(lowercase "$native_id")"
+	expected="$({
+		for target in $targets; do echo "runtimes/$(rid "$target")/native/whatsmeow-net$(exe_of "$target")"; done
+		printf '%s\n' "buildTransitive/$native_id.targets" README.md "${native_notices[@]}" \
+			.nupkg.metadata "$name.$version.nupkg" "$name.$version.nupkg.sha512" "$name.nuspec"
+		# nuget.org adds a repository signature, extracted at the package root [observed: every package restored from
+		# nuget.org in a local packages folder, 2026-11-06; inferred for ours, whose first publish decides]. A presence
+		# check of the served file, not a cryptographic verification.
+		if [ -n "$published" ]; then echo .signature.p7s; fi
+	} | LC_ALL=C sort)"
+	actual="$(cd "$(native_package)" && find . -type f | sed 's#^\./##' | LC_ALL=C sort)" || return
+	if [ "$expected" != "$actual" ]; then
+		annotate error "packaged files" "$native_id does not hold exactly the binaries for the release targets (go -C tools run ./check-licenses -targets), buildTransitive/$native_id.targets, README.md and ${native_notices[*]}"
+		diff <(echo "$expected") <(echo "$actual")
+		return 1
+	fi
+	echo "the native package holds exactly the binaries, its buildTransitive targets, its README and ${native_notices[*]}"
 }
 
-# The GPL files at the root of each native package (ADR 0016, ADR 0029), and the repository file each must equal.
+# The GPL files at the root of the native package (ADR 0016, ADR 0029), and the repository file each must equal.
 native_notices=(COPYING NOTICE THIRD-PARTY-NOTICES.txt)
 notice_source() { # packaged file
 	printf '%s/' "${release_tree:-.}"
@@ -861,7 +845,7 @@ notice_source() { # packaged file
 		COPYING) echo sidecar/COPYING ;;
 		NOTICE) echo NOTICE ;;
 		THIRD-PARTY-NOTICES.txt) echo sidecar/THIRD-PARTY-NOTICES.txt ;;
-		README.md) echo dotnet/src/Whatsmeow.Sidecar.Native.md ;;
+		README.md) echo dotnet/src/Whatsmeow.Sidecar.Native/README.md ;;
 	esac
 }
 # sha256 of https://www.gnu.org/licenses/gpl-3.0.txt, the GPL-3.0 text unmodified [observed 2026-11-02]. libsignal's LICENSE
@@ -878,48 +862,46 @@ readme_tags=('[inferred: GPLv3 §5(c) and §14, ADR 0016]' '[inferred: FSF FAQ #
 	"conveys it, and you take on GPLv3 §6 for \`whatsmeow-net\` [inferred]" '[inferred: GPLv3 §6 "User Product"]'
 	"which ships no binary in the app [observed: \`build/ci.sh install\`, ADR 0046]" 'Legal review of all of the above is [unknown]')
 
-# Each native package's README and GPL files equal the repository's, so they ship exactly what was reviewed; its
+# The native package's README and GPL files equal the repository's, so they ship exactly what was reviewed; its
 # COPYING is the GPL-3.0 text itself, its NOTICE and README name the source archive, and its README keeps the tags.
 packaged_notices() {
-	local os id file packaged tag rc=0
-	for os in linux osx win; do
-		id="$(native_id "$os")"
-		for file in README.md "${native_notices[@]}"; do
-			packaged="$(native_package "$os")/$file"
-			if ! cmp -s "$packaged" "$(notice_source "$file")"; then
-				annotate error "packaged notices" "$id/$file is not $(notice_source "$file")"
-				rc=1
-			fi
-		done
-		if [ -f "$(native_package "$os")/COPYING" ] && [ "$(sha256_of "$(native_package "$os")/COPYING")" != "$gpl3_sha256" ]; then
-			annotate error "packaged notices" "$id/COPYING is not the GPL-3.0 text (sha256 $gpl3_sha256, gnu.org/licenses/gpl-3.0.txt)"
+	local dir file tag rc=0
+	dir="$(native_package)"
+	for file in README.md "${native_notices[@]}"; do
+		if ! cmp -s "$dir/$file" "$(notice_source "$file")"; then
+			annotate error "packaged notices" "$native_id/$file is not $(notice_source "$file")"
 			rc=1
 		fi
-		for file in NOTICE README.md; do
-			if ! grep -qF 'whatsmeow-net_<version>_source.tar.gz' "$(native_package "$os")/$file" 2>/dev/null; then
-				annotate error "packaged notices" "$id/$file does not name the source archive, whatsmeow-net_<version>_source.tar.gz"
-				rc=1
-			fi
-		done
-		for tag in "${readme_tags[@]}"; do
-			if ! grep -qF -- "$tag" "$(native_package "$os")/README.md" 2>/dev/null; then
-				annotate error "packaged notices" "$id/README.md lost ADR 0016's evidence tag: $tag"
-				rc=1
-			fi
-		done
 	done
-	[ "$rc" -eq 0 ] && echo "each native package ships the repository's README.md and ${native_notices[*]}, and COPYING is the GPL-3.0 text"
+	if [ -f "$dir/COPYING" ] && [ "$(sha256_of "$dir/COPYING")" != "$gpl3_sha256" ]; then
+		annotate error "packaged notices" "$native_id/COPYING is not the GPL-3.0 text (sha256 $gpl3_sha256, gnu.org/licenses/gpl-3.0.txt)"
+		rc=1
+	fi
+	for file in NOTICE README.md; do
+		if ! grep -qF 'whatsmeow-net_<version>_source.tar.gz' "$dir/$file" 2>/dev/null; then
+			annotate error "packaged notices" "$native_id/$file does not name the source archive, whatsmeow-net_<version>_source.tar.gz"
+			rc=1
+		fi
+	done
+	for tag in "${readme_tags[@]}"; do
+		if ! grep -qF -- "$tag" "$dir/README.md" 2>/dev/null; then
+			annotate error "packaged notices" "$native_id/README.md lost ADR 0016's evidence tag: $tag"
+			rc=1
+		fi
+	done
+	[ "$rc" -eq 0 ] && echo "the native package ships the repository's README.md and ${native_notices[*]}, and COPYING is the GPL-3.0 text"
 	return "$rc"
 }
 
 # Every package in the feed restored into the consumer, with its licence expression: GPL-3.0-only for the native
-# packages, which hold whatsmeow-net, and MPL-2.0 for the .NET packages (ADR 0016).
+# package, which holds whatsmeow-net, and MPL-2.0 for the .NET packages (ADR 0016).
 packaged_licences() {
 	local nupkg id name nuspec want rc=0
 	for nupkg in "$package_source"/*.nupkg; do
 		id="$(basename "$nupkg" ".$version.nupkg")" name="$(lowercase "$id")"
 		nuspec="$packages/$name/$version/$name.nuspec"
-		case "$id" in Whatsmeow.Sidecar.Native.*) want=GPL-3.0-only ;; *) want=MPL-2.0 ;; esac
+		want=MPL-2.0
+		if [ "$id" = "$native_id" ]; then want=GPL-3.0-only; fi
 		if [ ! -f "$nuspec" ]; then
 			annotate error "packaged licences" "$id from ${published:-the feed} was not restored, so its licence is unchecked"
 			rc=1
@@ -935,8 +917,7 @@ packaged_licences() {
 }
 
 # Every package's nuget.org page (ADR 0054): a description of its own, the tags, the project and repository URLs,
-# NOTICE's author, and an embedded README that is the repository's: the project's README.md, or for a native package
-# the one packaged_notices checks.
+# NOTICE's author, and an embedded README that is the repository's: the project's README.md.
 repository_url=https://github.com/tcortega/Whatsmeow.NET
 packaged_metadata() {
 	local nupkg id name dir nuspec field readme rc=0
@@ -959,8 +940,7 @@ packaged_metadata() {
 			annotate error "package metadata" "$id has the SDK's default description; set Description in its csproj"
 			rc=1
 		fi
-		case "$id" in Whatsmeow.Sidecar.Native.*) readme=dotnet/src/Whatsmeow.Sidecar.Native.md ;; *) readme="dotnet/src/$id/README.md" ;; esac
-		readme="$release_tree/$readme"
+		readme="$release_tree/dotnet/src/$id/README.md"
 		if ! cmp -s "$dir/README.md" "$readme"; then
 			annotate error "package metadata" "$id's README.md is not $readme"
 			rc=1
@@ -977,7 +957,7 @@ packaged_binaries() {
 	targets="$(release_targets)" || return
 	for target in $targets; do
 		goos="${target%/*}" goarch="${target#*/}" r="$(rid "$target")"
-		binary="$(native_package "${r%-*}")/runtimes/$r/native/whatsmeow-net$(exe_of "$target")"
+		binary="$(native_package)/runtimes/$r/native/whatsmeow-net$(exe_of "$target")"
 		info="$(go version -m "$binary")" || return
 		for setting in "GOOS=$goos" "GOARCH=$goarch" CGO_ENABLED=0 -trimpath=true; do
 			if ! grep -qE "^[[:space:]]+build[[:space:]]+$setting\$" <<<"$info"; then
@@ -1000,7 +980,7 @@ packaged_binaries() {
 
 packaged_refuses_fake() {
 	local binary stderr rc=0
-	binary="$(native_package "${host_rid%-*}")/runtimes/$host_rid/native/whatsmeow-net$exe"
+	binary="$(native_package)/runtimes/$host_rid/native/whatsmeow-net$exe"
 	stderr="$("$binary" --nonce n --fake-whatsapp --database "$work/refuse.db" </dev/null 2>&1 >/dev/null)" || rc=$?
 	if [ "$rc" -ne 2 ] || [[ "$stderr" != *"never fakes WhatsApp"* ]]; then
 		annotate error "fake in a packaged binary" "the packaged $host_rid binary did not refuse --fake-whatsapp with exit code 2 (exit $rc)"
@@ -1215,7 +1195,7 @@ source_corresponds() {
 	targets="$(release_targets)" || return
 	for target in $targets; do
 		r="$(rid "$target")"
-		packaged="$(native_package "${r%-*}")/runtimes/$r/native/whatsmeow-net$(exe_of "$target")"
+		packaged="$(native_package)/runtimes/$r/native/whatsmeow-net$(exe_of "$target")"
 		built="$source_out/$r/whatsmeow-net$(exe_of "$target")"
 		packaged_deps="$(linked_deps "$packaged")" built_deps="$(linked_deps "$built")"
 		if ! grep -q '^go\.mau\.fi/libsignal ' <<<"$packaged_deps" || ! grep -q '^go\.mau\.fi/libsignal ' <<<"$built_deps"; then
@@ -1260,33 +1240,30 @@ install_noexec() {
 	echo "the sidecar ran from $copy"
 }
 
-# External mode (ADR 0046): a consumer that leaves every native package's assets out has no sidecar binary in its
+# External mode (ADR 0046): a consumer that leaves the native package's assets out has no sidecar binary in its
 # publish output, and reaches a sidecar the feed's own binary runs standalone, as an orchestrator would. Linux and
 # macOS: the background process and its kill are POSIX.
 install_external() {
 	local path="External mode, the native assets excluded" app="$work/external-app" output="$work/external" dir="$work/standalone"
-	local os="${host_rid%%-*}" id binary pid rc=0
+	local os="${host_rid%%-*}" binary pid rc=0
 	if [ "$os" = win ]; then
 		echo "Windows: External mode's consumer runs on Linux and macOS"
 		return 0
 	fi
 	cp -R "$work/app" "$app" && rm -rf "${app:?}/bin" "${app:?}/obj" || return
-	for id in Whatsmeow.Sidecar.Native.Linux Whatsmeow.Sidecar.Native.MacOS Whatsmeow.Sidecar.Native.Windows; do
-		sed -i.bak "s|</Project>|  <ItemGroup><PackageReference Include=\"$id\" Version=\"[$version]\" ExcludeAssets=\"all\" /></ItemGroup>\n</Project>|" "$app/Consumer.csproj" || return
-	done
+	sed -i.bak "s|</Project>|  <ItemGroup><PackageReference Include=\"$native_id\" Version=\"[$version]\" ExcludeAssets=\"all\" /></ItemGroup>\n</Project>|" "$app/Consumer.csproj" || return
 	rm -f "$app/Consumer.csproj.bak"
 	if ! in_consumer dotnet publish external-app -c Release -warnaserror -r "$host_rid" --self-contained false -o "$output"; then
 		annotate error "consumer: $path" "dotnet publish failed"
 		return 1
 	fi
 	if [ -n "$(find "$output" -name 'whatsmeow-net*')" ]; then
-		annotate error "consumer: $path" "the publish output holds a sidecar binary although every native package's assets are excluded"
+		annotate error "consumer: $path" "the publish output holds a sidecar binary although the native package's assets are excluded"
 		find "$output" -name 'whatsmeow-net*'
 		return 1
 	fi
 
-	id="$(native_id "$os")"
-	binary="$packages/$(lowercase "$id")/$version/runtimes/$host_rid/native/whatsmeow-net"
+	binary="$(native_package)/runtimes/$host_rid/native/whatsmeow-net"
 	mkdir -p "$dir" && cp "$binary" "$dir/whatsmeow-net" && chmod 0755 "$dir/whatsmeow-net" || return
 	od -An -tx1 -N32 /dev/urandom | tr -d ' \n' >"$dir/token" && chmod 0600 "$dir/token" || return
 	"$dir/whatsmeow-net" --database "$dir/whatsmeow-net.db" --listen "unix:$dir/s" --token-file "$dir/token" </dev/null >"$dir/stdout" 2>"$dir/stderr" &
@@ -1344,13 +1321,13 @@ install_check() { # rid where path command...
 
 job_install() { # feed
 	check "install: a new consumer of $1" consumer_setup "$1" || { fail_rows JIT "consumer setup" "$work/restore.log"; return; }
-	check "install: Whatsmeow.Client pins each native package at exactly its version" packaged_pins
+	check "install: Whatsmeow.Client pins the native package at exactly its version" packaged_pins
 	check "install: Whatsmeow.Extensions.Hosting pins Whatsmeow.Client at exactly its version" packaged_hosting_pin
 	check "install: Whatsmeow.Testing pins Whatsmeow.Client and Whatsmeow.Extensions.Hosting at exactly its version" packaged_testing_pins
 	check "install: Whatsmeow.Client pins Whatsmeow.Protocol, and Whatsmeow.Protocol pins Whatsmeow.Protocol.WhatsApp, at exactly its version" packaged_protocol_pins
-	check "install: each native package holds exactly its binaries, its buildTransitive targets, its README and the GPL files" packaged_files
-	check "install: each native package's README and GPL files are the repository's, and COPYING is the GPL-3.0 text (ADR 0016)" packaged_notices
-	check "install: GPL-3.0-only on the native packages, MPL-2.0 on the .NET packages (ADR 0016)" packaged_licences
+	check "install: the native package holds exactly the binaries, its buildTransitive targets, its README and the GPL files" packaged_files
+	check "install: the native package's README and GPL files are the repository's, and COPYING is the GPL-3.0 text (ADR 0016)" packaged_notices
+	check "install: GPL-3.0-only on the native package, MPL-2.0 on the .NET packages (ADR 0016)" packaged_licences
 	check "install: every package's description, tags, URLs, author and README (ADR 0054)" packaged_metadata
 	check "install: every packaged binary is a CGO-free -trimpath release build of its target, none with -tags fakewhatsapp or livetest (ADR 0019, 0032)" packaged_binaries
 	check "install: the packaged binary refuses --fake-whatsapp" packaged_refuses_fake
