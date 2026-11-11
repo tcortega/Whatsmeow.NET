@@ -14,6 +14,7 @@ whatsmeow-net --database /data/whatsmeow-net.db --listen tcp:0.0.0.0:7777 --toke
   On Windows the path needs a drive or a UNC root, such as `unix:C:\run\whatsmeow-net.sock`; `unix:\run\s`, with no drive, is refused.
 * `--token-file` holds the shared secret: 32 bytes as 64 hex digits, on one line.
 * Optional: `--media-root`, `--send-burst`, `--send-interval`, and the history flags `--history-full-sync`, `--history-days-limit`, `--history-size-limit-mb` and `--history-storage-quota-mb`, the same settings as the embedded options.
+* A proxy for WhatsApp traffic goes in the sidecar's environment ([Deployment](deployment.md#proxy)).
 
 It runs until SIGTERM, SIGINT, or a `Shutdown` call from any client holding the token; nothing ties it to a client's life.
 A Unix socket is created `0660`, so run both sides as the same user or with a shared group, such as a Kubernetes `fsGroup` [inferred: not measured in a pod].
