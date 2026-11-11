@@ -2,7 +2,7 @@
 # Go must equal the toolchain line in sidecar/go.mod; CI fails if they differ. .NET is pinned by global.json.
 # Versions verified as latest stable on 2026-10-31 (ARCHITECTURE §5).
 [tools]
-go = "1.27.3"
+go = "1.27.4"
 buf = "1.75.0"
 golangci-lint = "2.15.0"
 protoc = "36.2"
