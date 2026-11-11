@@ -77,6 +77,21 @@ go_toolchain() { # [release commit]
 	echo "go is $got, as sidecar/go.mod pins$at"
 }
 
+# The Alpine SDK images the package job runs the musl consumers in carry global.json's SDK, which pull requests check
+# here, since the package job never runs on one.
+alpine_images_follow_sdk() {
+	local sdk image rc=0
+	sdk="$(jq -r .sdk.version global.json | tr -d '\r')" || return
+	for image in "$alpine_image" "$alpine_image_arm64"; do
+		if [[ "$image" != "mcr.microsoft.com/dotnet/sdk:$sdk-"* ]]; then
+			annotate error "Alpine SDK image" "global.json pins SDK $sdk, but build/ci.sh's Alpine image is ${image%@*}; move both together"
+			rc=1
+		fi
+	done
+	[ "$rc" -eq 0 ] && echo "both Alpine SDK images carry SDK $sdk, as global.json pins"
+	return "$rc"
+}
+
 # A published release's version as its tag names it, v<major>.<minor>.<patch>[-<pre-release>], so the tag is never a
 # revision expression or an option; and the tag's commit, in release_commit, which must be on HEAD's line (ADR 0059).
 release_commit_of() { # version
@@ -170,6 +185,7 @@ job_contract() {
 	local before
 	before="$(tree_state)"
 	check "shellcheck build/*.sh" shellcheck build/*.sh
+	check "the Alpine SDK images carry global.json's SDK" alpine_images_follow_sdk
 	check "build/release.sh refuses every tag and feed it must not publish (build/release-test.sh, ADR 0050)" bash build/release-test.sh
 	check "every member the last stable release shipped is still shipped (ADR 0055)" bash build/release.sh shipped-api
 	check "third_party/whatsmeow matches the pinned module" go -C tools run ./sync-protos
