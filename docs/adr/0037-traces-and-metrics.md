@@ -4,7 +4,7 @@
 - Date: 2026-11-02
 - Evidence: issue #40, its plan review and the PR review; throwaway measurements at SDK 10.0.403 with Microsoft.Extensions.* 10.0.14, listed below; `Telemetry/SpanTests.cs`, `Telemetry/MeterTests.cs`, `Telemetry/TelemetryCrashTests.cs`, `Hosting/HostingTests.HostWithAMeterFactory_TheSidecarsMeterComesFromIt`, `DispatcherDepthTests`, `ErrorCounterTests`, `Whatsmeow.Testing.Tests/TelemetryTests.cs`
 - Amends: issue #40's "an `IMeterFactory` from DI or the options", now from DI or a `StartAsync` parameter
-- Amended by: plans/009, 2026-11-11 (a call the sidecar's crash or stop cuts off is `SidecarUnavailableException`, tagged `Unknown` on its span and in the error count)
+- Amended in place: 2026-11-11 (a call the sidecar's crash or stop cuts off is SidecarUnavailableException, tagged Unknown on its span and in the error count)
 
 ## Context
 

@@ -654,6 +654,11 @@ internal sealed class SessionClient(
 			RpcErrors.Throw(e);
 			throw;
 		}
+		catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && sidecar.IsDisposed)
+		{
+			ObjectDisposedException.ThrowIf(condition: true, sidecar);
+			throw;
+		}
 		catch (OperationCanceledException e) when (!cancellationToken.IsCancellationRequested)
 		{
 			SidecarUnavailableException.ThrowCallCut(e);
