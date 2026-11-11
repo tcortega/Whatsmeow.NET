@@ -59,6 +59,7 @@ func (svc *Service) RequestMediaRetry(ctx context.Context, req *whatsmeowv1.Requ
 }
 
 // retryTarget is the message SendMediaRetryReceipt names (mediaretry.go:81-96): its id, chat, and in a group its sender.
+// Its texts name the field, never the JID, which names a person (ADR 0039).
 func retryTarget(req *whatsmeowv1.RequestMediaRetryRequest) (*types.MessageInfo, error) {
 	if req.GetMessageId() == "" {
 		return nil, invalid("message_id", "no message id")
@@ -66,14 +67,14 @@ func retryTarget(req *whatsmeowv1.RequestMediaRetryRequest) (*types.MessageInfo,
 
 	chat, err := types.ParseJID(req.GetChat())
 	if err != nil || chat.IsEmpty() {
-		return nil, invalid("chat", "%q is not a JID", req.GetChat())
+		return nil, invalid("chat", "not a JID")
 	}
 
 	info := &types.MessageInfo{ID: req.GetMessageId(), MessageSource: types.MessageSource{Chat: chat, IsFromMe: req.GetIsFromMe(), IsGroup: chat.Server == types.GroupServer}}
 
 	if req.GetSender() != "" {
 		if info.Sender, err = types.ParseJID(req.GetSender()); err != nil {
-			return nil, invalid("sender", "%q is not a JID", req.GetSender())
+			return nil, invalid("sender", "not a JID")
 		}
 	}
 
