@@ -3,6 +3,7 @@
 - Status: Accepted
 - Date: 2026-11-01
 - Evidence: issue #33, its plan review, ARCHITECTURE §14 "Measured for Contacts (#33)", and the tests named below
+- Amended in place: 2026-11-11 (a write that got whatsmeow's bare not connected, or an answer without its list, is OUTCOME_UNKNOWN)
 
 ## Context
 
@@ -30,6 +31,7 @@ Reading whatsmeow at the pin for it showed facts the design had to follow [obser
 - **Blocklist items.** Every item WhatsApp lists is returned with its JID and its other form. At the pin whatsmeow reads `active` only to store the pairs of the active items (user.go:975-980), so what an inactive item means is [unknown]: it is not exposed, and inactive items are not filtered out. The live check is #10's.
 - **Block and unblock take the user without its device.** whatsmeow sends the JID as given, and the LID it stores for a phone number keeps the device (user.go:1027-1066), so the slice drops the device first.
 - **A read without an answer is `WHATSAPP_TIMED_OUT`.** whatsmeow gives up on a request after 75 s (`ErrIQTimedOut`, request.go:152-182). A read did nothing, so it is the new `WHATSAPP_TIMED_OUT` (UNAVAILABLE), safe to repeat, on `WhatsmeowException` with its `ErrorCode`; no existing reason fits: `NOT_CONNECTED` says the session is not logged in, which a slow answer does not show, and `OUTCOME_UNKNOWN` is for writes. A write without an answer stays `OUTCOME_UNKNOWN`.
+- **A write that got whatsmeow's bare `ErrNotConnected` is `OUTCOME_UNKNOWN`.** whatsmeow returns that same unwrapped value before the IQ is written (client.go:976-985) and after it, when the socket dropped and came back (request.go:198-208), so a block, unblock or about write that got it may have taken effect. A wrapped one comes from a call before the IQ, and a read did nothing, so both stay `NOT_CONNECTED`. A write WhatsApp answered without the list whatsmeow reads (`ElementMissingError`, user.go:1081-1084) is `OUTCOME_UNKNOWN` too [observed: `TestWhatsAppsErrorsBecomeTheirReasons` in `contacts_test.go`].
 - **A LID answer without a phone number.** When `IsOnWhatsApp` answers a number with a LID and no `pn_jid` (user.go:194-204), the check's JID is the number asked for.
 - **PII.** The slice logs no number or JID, and no error it returns carries one: `classify` keeps whatsmeow's sentinel, or a copy of its typed error without the nodes, never the text whatsmeow wraps around it, so neither the status message the application sees nor the error line `server.toStatus` writes for an INTERNAL one has the JID. The fake WhatsApp returns whatsmeow's texts, JID included, so the tests see them. The residual is whatsmeow's own warn and error lines above, which reach stderr; ARCHITECTURE §7.8 lists them, and redacting them is a follow-up.
 

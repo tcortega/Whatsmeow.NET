@@ -243,6 +243,7 @@ func classify(op string, err error) error {
 	case errors.Is(err, whatsmeow.ErrNotConnected), errors.Is(err, socket.ErrSocketClosed):
 		// The write did not go out (request.go:133-141, framesocket.go:128), or it was taken and the sync after it could
 		// not go out: whatsmeow wraps that sync's error without a sentinel to tell the two apart (appstate.go:638).
+		// Unlike a group or contact write, that stays NOT_CONNECTED: every write here sets a state, so repeating it is safe.
 		return fmt.Errorf("%s: %w: %w", op, server.ErrNotConnected, cause(err))
 	case errors.Is(err, whatsmeow.ErrIQTimedOut):
 		// Also a write taken whose sync after it got no answer (appstate.go:638).

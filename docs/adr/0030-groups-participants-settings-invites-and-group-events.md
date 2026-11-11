@@ -3,6 +3,7 @@
 - Status: Accepted
 - Date: 2026-11-02
 - Evidence: issue #34, its plan review, ARCHITECTURE §14 "Measured for Groups (#34)", and the tests named below
+- Amended in place: 2026-11-11 (a write that got whatsmeow's bare not connected is OUTCOME_UNKNOWN)
 
 ## Context
 
@@ -35,6 +36,7 @@ Reading whatsmeow at the pin for it showed facts the design had to follow [obser
   Missing admin rights, a group the session is not in and an unknown group have no reason of their own: they are `WHATSAPP_ERROR` with WhatsApp's code.
 - **`WhatsAppErrorException`.** `WHATSAPP_ERROR` now maps to a subtype with `int Code`, read from the `code` metadata every slice already sends, for every slice: it is still a `WhatsmeowException` with `ErrorCode` `WhatsAppError`, so the change is additive. ARCHITECTURE §8.7's table says so.
 - **Timeouts.** A read without an answer (`ListGroups`, `GetGroup`, `GetInviteLink`, and the read `SetGroupTopic` makes first) is `WHATSAPP_TIMED_OUT`; a write is `OUTCOME_UNKNOWN`.
+- **A write that got whatsmeow's bare `ErrNotConnected`** is `OUTCOME_UNKNOWN`: whatsmeow returns that same unwrapped value before the IQ is written (client.go:976-985) and after it (request.go:198-208). A wrapped one comes from a call before the IQ and stays `NOT_CONNECTED`, as a read does [observed: `TestWhatsAppsErrorsBecomeTheirReasons` in `groups_test.go`].
 - **A write's answer without its data** is `OUTCOME_UNKNOWN`, not `INTERNAL`: the write went out and may have taken effect. That is an `ElementMissingError` or a `binary.ErrorList` from a write, and a join whose JID is not a group's; .NET would otherwise fail to parse the JID after the session joined [observed: `TestAWriteWhoseAnswerLacksItsDataIsOutcomeUnknown`].
 - **A group JID has no agent or device.** `120363...:3@g.us` parses (types/jid.go:160-200), so the slice rejects an agent or device on a group with `INVALID_ARGUMENT` [observed: `TestAMalformedArgumentIsInvalidArgumentAndAsksNothing`].
 - **The topic's read is the slice's.** `SetGroupTopic` reads the group itself for the topic it replaces and passes its id, so a failed read keeps its type and its reason.
