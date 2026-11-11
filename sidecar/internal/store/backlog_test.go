@@ -34,27 +34,29 @@ func TestASendAfterA300SessionRestartWaitsForFewCommits(t *testing.T) {
 
 	t.Cleanup(func() { _ = s.Close() })
 
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-	t.Cleanup(cancel)
-
 	box := outbox.New(s.DB, s.Writer)
 	ids := make([]string, sessions)
 	seqs := make([]uint64, sessions)
 
+	// The setup commits once a write, 600 times, so it keeps its own context: on a slow disk it must not spend the
+	// restart's deadline.
 	for i := range ids {
 		ids[i] = fmt.Sprintf("restarted-%03d", i)
-		if _, err := s.DB.ExecContext(ctx, "INSERT INTO session (id) VALUES (?)", ids[i]); err != nil {
+		if _, err := s.DB.ExecContext(t.Context(), "INSERT INTO session (id) VALUES (?)", ids[i]); err != nil {
 			t.Fatalf("create session %s: %v", ids[i], err)
 		}
 
-		if _, err := box.Record(ctx, ids[i], "", connected()); err != nil {
+		if _, err := box.Record(t.Context(), ids[i], "", connected()); err != nil {
 			t.Fatalf("record session %s's state: %v", ids[i], err)
 		}
 
-		if seqs[i], err = box.Highest(ctx, ids[i]); err != nil {
+		if seqs[i], err = box.Highest(t.Context(), ids[i]); err != nil {
 			t.Fatalf("session %s's seq: %v", ids[i], err)
 		}
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	t.Cleanup(cancel)
 
 	var commits atomic.Int64
 
