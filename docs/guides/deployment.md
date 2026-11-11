@@ -46,7 +46,8 @@ The sidecar reads the variables once, the first time it connects, so set them be
 * External mode: set it on the sidecar's container or process ([External mode](external-mode.md)).
 
 One proxy serves every session of a sidecar, since they share its environment; a proxy per session is not supported (#36) [observed: `session.NewWhatsmeowClient` sets no proxy].
-The client's own channel to the sidecar is `http://localhost` [observed: `LocalChannel`], which `HTTPS_PROXY` does not reach [inferred: .NET reads it for `https` only]; whether `HTTP_PROXY` or `ALL_PROXY` in your app's environment disturbs that channel is [unknown], so set only `HTTPS_PROXY`.
+The client's own channel to the sidecar never goes through a proxy, so `HTTP_PROXY`, `HTTPS_PROXY` or `ALL_PROXY` in your app's environment does not disturb it [observed: `LocalChannel` sets `UseProxy = false`; `SidecarTests.Start_WithAProxyInTheEnvironment_ReachesTheSidecar` in embedded mode, `GetInfoTests` with all of them set in embedded and External mode over TCP, on macOS].
+Up to v1.0.0-rc.2 the channel took the environment's proxy: `HTTP_PROXY` or `ALL_PROXY` there failed every call to the sidecar `Internal`, while `HTTPS_PROXY` alone did not [observed: the same runs without the fix, each variable alone in embedded mode].
 A proxied session has not been run against real WhatsApp, and whether WhatsApp treats one differently is [unknown].
 
 ## macOS and Windows
