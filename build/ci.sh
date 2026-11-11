@@ -433,6 +433,17 @@ live_tests_contained() {
 	return "$rc"
 }
 
+# without_live COMMAND...: COMMAND with no WHATSMEOW_LIVE_* variable, so dotnet test never runs the live tests (or
+# reads their settings), even with them exported in the shell that runs this.
+without_live() {
+	(
+		for name in $(compgen -e); do
+			case "$name" in WHATSMEOW_LIVE_*) unset "$name" ;; esac
+		done
+		exec "$@"
+	)
+}
+
 job_dotnet() {
 	local before
 	before="$(tree_state)"
@@ -447,7 +458,7 @@ job_dotnet() {
 			check "no shipped assembly contains the live tests' control (ADR 0060)" shipped_have_no_livetest
 			# Never the live tests, even with their variables exported in the shell that runs this.
 			rm -f dotnet/artifacts/TestResults/media-transfers.txt dotnet/artifacts/TestResults/fake-sidecar.log
-			check "dotnet test" env -u WHATSMEOW_LIVE_DATABASE -u WHATSMEOW_LIVE_PHONE_NUMBER -u WHATSMEOW_LIVE_PEER_DATABASE -u WHATSMEOW_LIVE_OWNER -u WHATSMEOW_LIVE_MEDIA_REFS -u WHATSMEOW_LIVE_MEDIA_SIZES -u WHATSMEOW_LIVE_FRESH_DATABASE -u WHATSMEOW_LIVE_HISTORY_BOUNDS -u WHATSMEOW_LIVE_KNOWN_DEVICES -u WHATSMEOW_LIVE_PUSHNAME_FIRST_SIGHT -u WHATSMEOW_LIVE_CONTACTS_FULLCYCLE -u WHATSMEOW_LIVE_PEER_SAVED_NAME -u WHATSMEOW_LIVE_ABOUT_CONSENT dotnet test --solution dotnet/Whatsmeow.slnx -c Release --no-build
+			check "dotnet test" without_live dotnet test --solution dotnet/Whatsmeow.slnx -c Release --no-build
 			# The media transfer test's throughput and memory on each transport, for ARCHITECTURE §8.6 (ADR 0026).
 			if [ -f dotnet/artifacts/TestResults/media-transfers.txt ]; then
 				cat dotnet/artifacts/TestResults/media-transfers.txt
@@ -466,8 +477,7 @@ job_external() {
 	check "dotnet restore (locked)" dotnet restore dotnet/Whatsmeow.slnx --locked-mode &&
 		check "dotnet build" dotnet build dotnet/tests/Whatsmeow.IntegrationTests -c Release --no-restore -p:ContinuousIntegrationBuild=true &&
 		rm -f dotnet/artifacts/TestResults/fake-sidecar.log &&
-		check "dotnet test, External mode" env -u WHATSMEOW_LIVE_DATABASE -u WHATSMEOW_LIVE_PHONE_NUMBER -u WHATSMEOW_LIVE_PEER_DATABASE -u WHATSMEOW_LIVE_OWNER \
-			WHATSMEOW_NET_TEST_SIDECAR=external dotnet test --project dotnet/tests/Whatsmeow.IntegrationTests -c Release --no-build
+		check "dotnet test, External mode" without_live env WHATSMEOW_NET_TEST_SIDECAR=external dotnet test --project dotnet/tests/Whatsmeow.IntegrationTests -c Release --no-build
 }
 
 # Native packages (ADR 0023). The package job builds whatsmeow-net for every release target at the client's version and
