@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Time.Testing;
@@ -303,6 +304,68 @@ public sealed class DispatcherTests : IAsyncDisposable
 	}
 
 	[Fact(Timeout = 10_000)]
+	public async Task NoMoreThanMaxPending_AreReadWhileNoneFinishes()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		for (ulong seq = 1; seq <= Dispatcher.MaxPending; seq++)
+			Post(seq, $"lane {seq}", blocked: true);
+		var ran = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+		const ulong Over = Dispatcher.MaxPending + 1;
+		_ = _input.Writer.TryWrite(
+			new Work
+			{
+				Seq = Over,
+				Lane = $"lane {Over}",
+				RunAsync = _ =>
+				{
+					ran.SetResult();
+					return ValueTask.CompletedTask;
+				},
+			}
+		);
+
+		// Every one read, and as many running as may: none finished, so the one over the bound stays unread.
+		await ReceivedAsync(Dispatcher.MaxPending, ct);
+		var started = await NextAsync(Dispatcher.MaxConcurrentLanes, ct);
+		Assert.Equal(1, _input.Reader.Count);
+
+		var first = StartedSeq(started[0]);
+		Release(first);
+		await ReceivedAsync(1, ct);
+		Assert.Equal(0, _input.Reader.Count);
+
+		for (ulong seq = 1; seq <= Dispatcher.MaxPending; seq++)
+		{
+			if (seq != first)
+				Release(seq);
+		}
+
+		await ran.Task.WaitAsync(ct);
+	}
+
+	[Fact(Timeout = 10_000)]
+	public async Task NoMoreThanMaxConcurrentLanes_RunAtOnce()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		const int Lanes = Dispatcher.MaxConcurrentLanes + 1;
+		for (ulong seq = 1; seq <= Lanes; seq++)
+			Post(seq, $"lane {seq}", blocked: true);
+
+		// Every lane has its event, and as many started as may: the last one waits for a lane to finish.
+		await ReceivedAsync(Lanes, ct);
+		var started = (await NextAsync(Dispatcher.MaxConcurrentLanes, ct)).Select(StartedSeq).ToHashSet();
+		Assert.False(_log.Reader.TryRead(out _));
+		var waiting = Enumerable.Range(1, Lanes).Select(seq => (ulong)seq).Single(seq => !started.Contains(seq));
+
+		var first = started.First();
+		Release(first);
+		Assert.Equal([$"end {first}", $"start {waiting}"], await NextAsync(2, ct));
+
+		foreach (var seq in started.Where(seq => seq != first).Append(waiting))
+			Release(seq);
+	}
+
+	[Fact(Timeout = 10_000)]
 	public async Task Watermark_AnEventWhoseHandlerThrowsCountsAsHandled()
 	{
 		_ = _input.Writer.TryWrite(new Work { Seq = 1, Lane = "a", RunAsync = _ => throw new InvalidOperationException("the handler failed") });
@@ -422,6 +485,19 @@ public sealed class DispatcherTests : IAsyncDisposable
 				count--;
 		}
 	}
+
+	/// <summary>Waits until <paramref name="count"/> more events were read: the dispatcher reports +1 for each.</summary>
+	private async Task ReceivedAsync(int count, CancellationToken cancellationToken)
+	{
+		while (count > 0)
+		{
+			if (await _depth.Reader.ReadAsync(cancellationToken).ConfigureAwait(false) > 0)
+				count--;
+		}
+	}
+
+	/// <summary>The seq of a <c>start N</c> line.</summary>
+	private static ulong StartedSeq(string line) => ulong.Parse(line.AsSpan("start ".Length), CultureInfo.InvariantCulture);
 
 	private void Log(string line) => _ = _log.Writer.TryWrite(line);
 
