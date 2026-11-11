@@ -19,8 +19,8 @@ public sealed class StandaloneSidecarTests(SidecarBinaries binaries)
 
 		await standalone.DisposeAsync();
 
-		// On Windows a process's image stays mapped until the process is gone, and deleting it fails until then.
-		File.Delete(binary);
+		// On Windows a process's image stays mapped until the process is gone, and deleting it fails until then (#179).
+		await Deletion.DeleteFileAsync(binary);
 		Assert.False(File.Exists(binary));
 	}
 }
