@@ -3,6 +3,7 @@
 - Status: Accepted
 - Date: 2026-11-02
 - Evidence: issue #47, its plan review and its PR review, `build/ci.sh package` and `install` locally on osx-arm64 and in CI (GitHub Actions run 41399997318 at f1eaace), and the sources named below
+- Amended by: [ADR 0069](0069-one-native-package.md) (one package, `Whatsmeow.Sidecar.Native`, carries the GPL files; its README sits in its project)
 - Amends: [ADR 0016](0016-sidecar-binary-gpl-3-corresponding-source-per-release.md) (its Phase 4 obligations, now built), [ADR 0023](0023-native-packages-build-pin-and-find.md) (what each native package holds)
 
 ## Context
@@ -37,7 +38,7 @@ Measured while building it:
   The default run, which `build/ci.sh go` makes, fails when the file is missing or differs; a bump that changes a licence file fails twice, first in the allowlist, then in the notices, until a reviewer edits the allowlist and regenerates.
   The file is committed, marked `-text linguist-generated`, and never edited by hand.
 - **The GPL files.** `sidecar/COPYING` is the gnu.org GPL-3.0 text, kept beside the sidecar so the root stays the MPL-2.0 `LICENSE` alone.
-  Each `Whatsmeow.Sidecar.Native.*` package carries `COPYING`, the root `NOTICE` and `THIRD-PARTY-NOTICES.txt` at its root, and `dotnet/src/Whatsmeow.Sidecar.Native.md` as its `README.md`; all four come from one conditional block in `dotnet/src/Directory.Build.props`.
+  `Whatsmeow.Sidecar.Native` carries `COPYING`, the root `NOTICE` and `THIRD-PARTY-NOTICES.txt` at its root, from one conditional block in `dotnet/src/Directory.Build.props`, and `dotnet/src/Whatsmeow.Sidecar.Native/README.md` as its `README.md`, picked up like every other package's.
   `NOTICE` and the README name the release by rule (the tag is `v` followed by the package version), not by a version written in at pack time.
   The README keeps ADR 0016's `[inferred]` and `[unknown]` tags.
 - **Licence expressions.** `PackageLicenseExpression` is `MPL-2.0` for everything under `dotnet/src`, and `GPL-3.0-only` for the native packages.
