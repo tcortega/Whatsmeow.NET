@@ -301,7 +301,7 @@ govulncheck_report() { # module
 }
 
 job_go() {
-	local before module tags label tagsets
+	local before module tags label tagsets tested
 	before="$(tree_state)"
 	for module in tools sidecar; do
 		check "$module: go.mod and go.sum are tidy" go -C "$module" mod tidy -diff
@@ -315,9 +315,16 @@ job_go() {
 		if [ "$module" = sidecar ]; then tagsets+=(fakewhatsapp livetest); fi
 		for tags in "${tagsets[@]}"; do
 			label="$module${tags:+ (-tags $tags)}"
+			# A tag's test pass tests only the packages the tag changes: tools/check-repo's allowlist for it, which fails
+			# the build if the tag appears anywhere else. Change these lists with it.
+			case "$tags" in
+				fakewhatsapp) tested=(./internal/fakewhatsapp/... ./cmd/whatsmeow-net/...) ;;
+				livetest) tested=(./internal/events ./internal/messaging ./internal/groups ./internal/contacts) ;;
+				*) tested=(./...) ;;
+			esac
 			check "$label: no cgo files" no_cgo "$module" "$tags"
 			check "$label: go build (no cgo)" env CGO_ENABLED=0 go -C "$module" build -tags "$tags" ./...
-			check "$label: go test -race" go -C "$module" test -race -count=1 -tags "$tags" ./...
+			check "$label: go test -race ${tested[*]}" go -C "$module" test -race -count=1 -tags "$tags" "${tested[@]}"
 			# With cgo on, so a cgo file is visible (its import "C" is reported as unsafe).
 			check "$label: golangci-lint" bash -c "cd '$module' && CGO_ENABLED=1 golangci-lint run --build-tags '$tags' ./..."
 		done
