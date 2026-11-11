@@ -7,6 +7,7 @@
 - Amends: [ADR 0007](0007-per-os-native-nuget-packages-exact-pins.md) (the sizes, the build), [ADR 0016](0016-sidecar-binary-gpl-3-corresponding-source-per-release.md) (`.goreleaser.yaml`)
 - Supersedes: the GoReleaser lines of ARCHITECTURE §5 and §12, and ADR 0016's ".goreleaser.yaml builds exactly the targets in `tools/check-licenses`"
 - Amended by: [ADR 0029](0029-gpl-release-obligations.md) (each native package also holds its README, `COPYING`, `NOTICE` and `THIRD-PARTY-NOTICES.txt`)
+- Amended by: [ADR 0069](0069-one-native-package.md) (one package, `Whatsmeow.Sidecar.Native`, holds all six binaries; its README and targets sit in its project)
 
 ## Context
 

@@ -50,7 +50,7 @@ Update third_party after a pin change with `go -C tools run ./sync-protos -write
 The weekly whatsmeow bump is `build/bump.sh`; `bash build/bump.sh --dry-run` runs it in the working tree and prints the PR body (ADR 0043).
 A `v<semver>` tag on main releases (`release.yml`, ADR 0050); only Antonio pushes one.
 A manual run of `release.yml` on main rehearses it without publishing; `-f version=<v>` rehearses at that version (ADR 0064).
-After a reviewed `sidecar/licenses.allow` edit, regenerate the native packages' notices with `go -C tools run ./check-licenses -write` (ADR 0029).
+After a reviewed `sidecar/licenses.allow` edit, regenerate the native package's notices with `go -C tools run ./check-licenses -write` (ADR 0029).
 
 ## .NET rules
 

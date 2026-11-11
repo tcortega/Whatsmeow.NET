@@ -12,13 +12,13 @@
 // is a human verdict: for a new or changed file it prints the line to add with <licence> left for the
 // reviewer, and the parser rejects that placeholder.
 //
-// When the allowlist matches, it also checks sidecar/THIRD-PARTY-NOTICES.txt, which the native packages ship: every
+// When the allowlist matches, it also checks sidecar/THIRD-PARTY-NOTICES.txt, which the native package ships: every
 // file the allowlist lists, verbatim and in its order, under a header naming the module, its version, the file and
 // the verdict. With -write it regenerates that file instead, and only from licence files the allowlist approved.
 //
 // Findings print as path:line: [rule] message. Run it from the tools module: go -C tools run ./check-licenses.
 // With -targets it only prints the release targets, one GOOS/GOARCH per line: build/ci.sh builds exactly those
-// for the native packages, so the binaries and this check cover the same six (ADR 0023).
+// for the native package, so the binaries and this check cover the same six (ADR 0023, ADR 0069).
 package main
 
 import (
@@ -55,7 +55,7 @@ const (
 	regenerate  = "run go -C tools run ./check-licenses -write"
 )
 
-// targets are the GOOS/GOARCH pairs the native packages ship (ADR 0007). build/ci.sh builds the binaries from this
+// targets are the GOOS/GOARCH pairs the native package ships (ADR 0007, ADR 0069). build/ci.sh builds the binaries from this
 // list (-targets) and fails when the packaged binaries are not exactly these (ADR 0023).
 func targets() []string {
 	return []string{"darwin/amd64", "darwin/arm64", "linux/amd64", "linux/arm64", "windows/amd64", "windows/arm64"}

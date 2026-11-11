@@ -232,7 +232,7 @@ Both samples are built and run against a fake WhatsApp in CI, and the code above
 | `Whatsmeow.Extensions.Hosting` | `AddWhatsmeow()`, configuration, keyed sessions and DI handlers |
 | `Whatsmeow.Testing` | `FakeWhatsAppClient`, to test your handlers without WhatsApp; use it, or a mocking library, rather than implementing `IWhatsAppClient`, which gains members in minor versions |
 | `Whatsmeow.Protocol`, `Whatsmeow.Protocol.WhatsApp` | generated protobuf code the others use; no stability promise |
-| `Whatsmeow.Sidecar.Native.Linux`, `.MacOS`, `.Windows` | the `whatsmeow-net` binaries; `Whatsmeow.Client` brings them |
+| `Whatsmeow.Sidecar.Native` | the `whatsmeow-net` binaries; `Whatsmeow.Client` brings it |
 
 ## Guides
 

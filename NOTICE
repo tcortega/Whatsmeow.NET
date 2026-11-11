@@ -4,7 +4,7 @@ Copyright (c) 2026 Tarcisio Ortega
 The Whatsmeow.NET source code and its .NET assemblies are licensed under the Mozilla Public License 2.0 (LICENSE).
 The .NET assemblies are separate programs that talk to whatsmeow-net only through gRPC over a local socket.
 
-whatsmeow-net, the sidecar binary in the Whatsmeow.Sidecar.Native.* packages, statically links go.mau.fi/libsignal, which is licensed under the GNU General Public License version 3 or (at your option) any later version (GPL-3.0-or-later).
+whatsmeow-net, the sidecar binary in the Whatsmeow.Sidecar.Native package, statically links go.mau.fi/libsignal, which is licensed under the GNU General Public License version 3 or (at your option) any later version (GPL-3.0-or-later).
 whatsmeow-net is distributed under GPL-3.0-only as a whole.
 Each release attaches its Corresponding Source, whatsmeow-net_<version>_source.tar.gz, to the GitHub release whose tag is v followed by the package version, https://github.com/tcortega/Whatsmeow.NET/releases/tag/v<version>.
 That archive holds the whole tagged repository plus the output of go mod vendor for sidecar/, the source of every module the binary links.
@@ -18,5 +18,5 @@ Whatsmeow.Protocol.WhatsApp contains files generated from whatsmeow's MPL-2.0 pr
 Their source is third_party/whatsmeow and dotnet/src/Whatsmeow.Protocol.WhatsApp/Generated in this repository.
 
 Every module linked into whatsmeow-net, and each of its licence files, is listed in sidecar/licenses.allow.
-Each native package carries COPYING (the GPL-3.0 text), this NOTICE, and THIRD-PARTY-NOTICES.txt (sidecar/THIRD-PARTY-NOTICES.txt in the repository), which holds every licence file that sidecar/licenses.allow lists, verbatim.
+The native package carries COPYING (the GPL-3.0 text), this NOTICE, and THIRD-PARTY-NOTICES.txt (sidecar/THIRD-PARTY-NOTICES.txt in the repository), which holds every licence file that sidecar/licenses.allow lists, verbatim.
 The reasons and the evidence are in docs/adr/0016-sidecar-binary-gpl-3-corresponding-source-per-release.md.
