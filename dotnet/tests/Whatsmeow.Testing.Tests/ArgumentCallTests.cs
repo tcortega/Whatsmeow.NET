@@ -169,4 +169,16 @@ public sealed class ArgumentCallTests : IAsyncDisposable
 			StringComparer.Ordinal
 		);
 	}
+
+	[Fact(Timeout = 10_000)]
+	public async Task AnEmptyGroupPhoto_IsRefused_AndNotRecorded()
+	{
+		var ct = TestContext.Current.CancellationToken;
+
+		var error = await Assert.ThrowsAsync<WhatsmeowValidationException>(() => _fake.SetGroupPhotoAsync(Team, new MemoryStream(), ct));
+
+		Assert.Equal(WhatsmeowErrorCode.InvalidArgument, error.ErrorCode);
+		Assert.Contains("the photo is empty", error.Message, StringComparison.Ordinal);
+		Assert.Empty(_fake.Calls);
+	}
 }

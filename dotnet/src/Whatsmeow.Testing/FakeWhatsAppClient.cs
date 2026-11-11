@@ -47,7 +47,7 @@ namespace Whatsmeow.Testing;
 /// <see cref="ObjectDisposedException"/>, as the client's do once its sidecar is disposed; neither is recorded. A send
 /// or a mark-read every session refuses before WhatsApp is involved throws <see cref="WhatsmeowValidationException"/>
 /// and is not recorded either: a chat that is not a user without a device or a group, an empty text, a mark-read with no
-/// ids or, in a group, without the sender, and a poll or vote that breaks a poll's rules.
+/// ids or, in a group, without the sender, a poll or vote that breaks a poll's rules, and an empty group photo.
 /// </para>
 /// </summary>
 public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
@@ -655,7 +655,8 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 		{
 			await photo.CopyToAsync(read, cancellationToken).ConfigureAwait(false);
 			ImmutableArray<byte> bytes = [.. read.ToArray()];
-			return await CallAsync(nameof(SetGroupPhotoAsync), [(nameof(group), group), (nameof(photo), bytes)], NewPictureId, cancellationToken).ConfigureAwait(false);
+			var refusal = bytes.IsEmpty ? "chunk: the photo is empty" : null;
+			return await CallAsync(nameof(SetGroupPhotoAsync), [(nameof(group), group), (nameof(photo), bytes)], NewPictureId, refusal, cancellationToken).ConfigureAwait(false);
 		}
 	}
 
