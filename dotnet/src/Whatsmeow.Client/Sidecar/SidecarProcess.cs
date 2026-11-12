@@ -4,7 +4,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Grpc.Core;
-using Microsoft.Win32.SafeHandles;
 using Whatsmeow.History;
 using Whatsmeow.Messaging;
 
@@ -20,7 +19,6 @@ internal sealed class SidecarProcess
 	private static readonly UTF8Encoding s_utf8 = new(encoderShouldEmitUTF8Identifier: false);
 
 	private readonly Process _process;
-	private readonly SafeWaitHandle? _job;
 	private readonly ILogger _sidecarLog;
 	private readonly Lock _tailLock = new();
 	private readonly Queue<string> _tail = new();
@@ -28,10 +26,9 @@ internal sealed class SidecarProcess
 	private Task _stdout = Task.CompletedTask;
 	private int _stopped;
 
-	private SidecarProcess(Process process, Task<int> exited, SafeWaitHandle? job, string token, ILogger sidecarLog)
+	private SidecarProcess(Process process, Task<int> exited, string token, ILogger sidecarLog)
 	{
 		_process = process;
-		_job = job;
 		_sidecarLog = sidecarLog;
 		Id = process.Id;
 		Token = token;
@@ -82,8 +79,8 @@ internal sealed class SidecarProcess
 	{
 		var token = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(32));
 		var nonce = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(16));
-		var (process, exited, job) = Spawn(StartInfo(binary, transport, socketDirectory, database, mediaRoot, history, sendPacing, fakeWhatsApp, nonce), clientLog);
-		var sidecar = new SidecarProcess(process, exited, job, token, sidecarLog);
+		var (process, exited) = Spawn(StartInfo(binary, transport, socketDirectory, database, mediaRoot, history, sendPacing, fakeWhatsApp, nonce), clientLog);
+		var sidecar = new SidecarProcess(process, exited, token, sidecarLog);
 
 		string failure;
 		Exception? cause = null;
@@ -174,7 +171,7 @@ internal sealed class SidecarProcess
 	}
 
 	/// <summary>
-	/// Kills the process tree if it still runs, waits until it and its stderr are done, and closes its job on Windows.
+	/// Kills the process tree if it still runs, and waits until it and its stderr are done.
 	/// </summary>
 	public async Task KillAsync()
 	{
@@ -182,7 +179,6 @@ internal sealed class SidecarProcess
 		await ProcessExit.WaitAsync(_process).ConfigureAwait(false);
 		await _stderr.ConfigureAwait(false);
 		await _stdout.ConfigureAwait(false);
-		_job?.Dispose();
 	}
 
 	private static ProcessStartInfo StartInfo(
@@ -207,7 +203,14 @@ internal sealed class SidecarProcess
 			StandardInputEncoding = s_utf8,
 			StandardOutputEncoding = s_utf8,
 			StandardErrorEncoding = s_utf8,
+			// Only its stdin, stdout and stderr: no other handle of this process reaches the sidecar.
+			InheritedHandles = [],
 		};
+
+		// The tether backup on Windows: .NET starts the sidecar in a kill-on-close Job Object, so Windows kills it when
+		// this process dies (§8.5, ADR 0024). Not on Linux, where it is a SIGKILL that would cut a graceful stop short.
+		if (OperatingSystem.IsWindows())
+			info.KillOnParentExit = true;
 
 		info.ArgumentList.Add("--database");
 		info.ArgumentList.Add(database);
@@ -261,7 +264,7 @@ internal sealed class SidecarProcess
 	/// Starts the process. On Unix the binary is made executable first; when it still cannot run (it cannot be
 	/// chmodded, or it is on a <c>noexec</c> mount), a cached copy runs instead (ARCHITECTURE §8.5).
 	/// </summary>
-	private static (Process Process, Task<int> Exited, SafeWaitHandle? Job) Spawn(ProcessStartInfo info, ILogger clientLog)
+	private static (Process Process, Task<int> Exited) Spawn(ProcessStartInfo info, ILogger clientLog)
 	{
 		if (OperatingSystem.IsWindows())
 			return StartOrThrow(info);
@@ -289,11 +292,11 @@ internal sealed class SidecarProcess
 	}
 
 	/// <summary>
-	/// Starts the process; its exit code is captured when it exits, so it never depends on a later read. On Windows the
-	/// process goes into its kill-on-close job right away (§8.5); if Windows refuses, it is killed and the start fails,
-	/// because without the job it could outlive this process (§13 invariant 9).
+	/// Starts the process; its exit code is captured when it exits, so it never depends on a later read. On Windows a
+	/// start that cannot join the kill-on-close job fails here too (§8.5): without the job the process could outlive
+	/// this one (§13 invariant 9).
 	/// </summary>
-	private static (Process Process, Task<int> Exited, SafeWaitHandle? Job) StartOrThrow(ProcessStartInfo info)
+	private static (Process Process, Task<int> Exited) StartOrThrow(ProcessStartInfo info)
 	{
 		var exited = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
 		var process = new Process { StartInfo = info, EnableRaisingEvents = true };
@@ -309,20 +312,7 @@ internal sealed class SidecarProcess
 			return default;
 		}
 
-		if (!OperatingSystem.IsWindows())
-			return (process, exited.Task, null);
-
-		try
-		{
-			return (process, exited.Task, KillOnCloseJob.Assign(process));
-		}
-		catch (Win32Exception e)
-		{
-			KillTree(process);
-			process.Dispose();
-			SidecarUnavailableException.ThrowStartFailed($"{info.FileName} could not be put in a kill-on-close job ({e.Message})", [], e);
-			return default;
-		}
+		return (process, exited.Task);
 	}
 
 	/// <summary>Kills the process tree if it still runs.</summary>

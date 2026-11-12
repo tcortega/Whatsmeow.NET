@@ -11,8 +11,8 @@ namespace SidecarHost;
 /// The parent of the kill-parent test whose sidecar's stdin stays open after the parent dies: it starts the sidecar,
 /// makes every handle it has inheritable, the write end of the sidecar's stdin among them, and starts a holder (this
 /// program with <c>hold</c>) that inherits them and waits forever. It prints the sidecar's process id and then the
-/// holder's, and waits on stdin. .NET 10 cannot pass one chosen handle to a child (ProcessStartInfo.InheritedHandles
-/// is .NET 11), so every handle goes.
+/// holder's, and waits on stdin. The client owns the sidecar's stdin, so the host has no handle to name for
+/// ProcessStartInfo.InheritedHandles, and every handle goes.
 /// </summary>
 internal static partial class HeldTetherHost
 {
