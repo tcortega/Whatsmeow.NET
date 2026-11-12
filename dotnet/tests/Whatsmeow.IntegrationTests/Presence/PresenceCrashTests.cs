@@ -9,7 +9,10 @@ namespace Whatsmeow.IntegrationTests.Presence;
 [Collection(nameof(SidecarCrashes))]
 public sealed class PresenceCrashTests(FakeSidecar fixture)
 {
-	private const int Timeout = 120_000;
+	// The one test that crashes the sidecar twice. Late in the crash collection each crash waits out the supervisor's
+	// 30 s maximum backoff, as the crashes come less than its healthy minute apart, so two of them and a slow relaunch
+	// overran two minutes on win-x64 (#213).
+	private const int Timeout = 240_000;
 
 	[Fact(Timeout = Timeout)]
 	public async Task Restart_EphemeralEventsFromBeforeAreGone_DurableOnesResumeAndNewOnesFlow()
