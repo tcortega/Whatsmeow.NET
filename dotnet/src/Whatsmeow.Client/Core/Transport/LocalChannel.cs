@@ -53,7 +53,9 @@ internal sealed class LocalChannel : IDisposable
 	private LocalChannel(Func<CancellationToken, ValueTask<Stream>> connect, string token, TimeSpan? keepAlive, CancellationTokenSource? refused, ILoggerFactory loggerFactory)
 	{
 		_refused = refused;
-		var sockets = new SocketsHttpHandler { ConnectCallback = (_, ct) => connect(ct) };
+		// No proxy: this channel only reaches its sidecar, and a proxy from the environment (HTTP_PROXY, ALL_PROXY) made
+		// SocketsHttpHandler send the call as HTTP/1.1, which fails every call (SidecarTests).
+		var sockets = new SocketsHttpHandler { ConnectCallback = (_, ct) => connect(ct), UseProxy = false };
 		if (keepAlive is { } delay)
 		{
 			sockets.KeepAlivePingDelay = delay;

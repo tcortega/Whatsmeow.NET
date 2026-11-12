@@ -231,6 +231,44 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 		Assert.Equal(binaries.Expected, await sidecar.GetInfoAsync(ct));
 	}
 
+	/// <summary>
+	/// An app whose environment names a proxy still reaches its sidecar: the channel never goes through one. With it,
+	/// SocketsHttpHandler sent the start's GetInfo as HTTP/1.1 for the proxy and failed it <c>Internal</c>. A child
+	/// process, because .NET reads the environment's proxy once per process (<c>HttpClient.DefaultProxy</c>).
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task Start_WithAProxyInTheEnvironment_ReachesTheSidecar()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		var host = Path.Combine(AppContext.BaseDirectory, OperatingSystem.IsWindows() ? "SidecarHost.exe" : "SidecarHost");
+		var info = new ProcessStartInfo(host) { UseShellExecute = false, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
+		info.ArgumentList.Add(binaries.Stage(binaries.Sidecar));
+		info.ArgumentList.Add(binaries.NewDatabase());
+		foreach (var name in (string[])["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy"])
+			info.Environment[name] = "http://127.0.0.1:9";
+
+		using var parent = Process.Start(info)!;
+		var sidecar = 0;
+		try
+		{
+			var line = await parent.StandardOutput.ReadLineAsync(ct);
+			if (!int.TryParse(line, System.Globalization.CultureInfo.InvariantCulture, out sidecar))
+				Assert.Fail($"the host printed no sidecar process id: {await parent.StandardError.ReadToEndAsync(ct)}");
+
+			// EOF on its stdin disposes the sidecar and ends the host.
+			parent.StandardInput.Close();
+			await parent.WaitForExitAsync(ct);
+			Assert.Equal(0, parent.ExitCode);
+
+			await Processes.WaitUntilGoneAsync(sidecar, ct);
+			sidecar = 0;
+		}
+		finally
+		{
+			KillLeftovers(parent, sidecar);
+		}
+	}
+
 	[Fact(Timeout = Timeout)]
 	public async Task ParentKilledHard_SidecarExitsOnItsOwn()
 	{
