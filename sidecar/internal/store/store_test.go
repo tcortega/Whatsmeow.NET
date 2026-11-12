@@ -88,3 +88,43 @@ func TestTheBusyTimeoutIsTheOneSQLiteGets(t *testing.T) {
 		t.Fatalf("pragmas are %s, want %s", pragmas, want)
 	}
 }
+
+func TestTheOutboxReadOfASessionIsARangeScanOfItsIndex(t *testing.T) {
+	t.Parallel()
+
+	s, err := openT(t, filepath.Join(t.TempDir(), "whatsmeow-net.db"))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+
+	// The query of outbox.Read, copied: without the index SQLite walks every row the session keeps and sorts them for
+	// each batch.
+	rows, err := s.DB.QueryContext(context.Background(),
+		"EXPLAIN QUERY PLAN SELECT seq, payload FROM outbox WHERE session_id = ? AND seq > ? ORDER BY seq LIMIT ?", "s1", 0, 100)
+	if err != nil {
+		t.Fatalf("explain: %v", err)
+	}
+	defer func() { _ = rows.Close() }()
+
+	var plan []string
+	for rows.Next() {
+		var (
+			id, parent, notUsed int
+			detail              string
+		)
+		if err := rows.Scan(&id, &parent, &notUsed, &detail); err != nil {
+			t.Fatalf("scan the plan: %v", err)
+		}
+
+		plan = append(plan, detail)
+	}
+
+	if err := rows.Err(); err != nil {
+		t.Fatalf("read the plan: %v", err)
+	}
+
+	joined := strings.Join(plan, "; ")
+	if !strings.Contains(joined, "outbox_session_seq") || strings.Contains(joined, "TEMP B-TREE") {
+		t.Fatalf("plan %q, want a search of outbox_session_seq with no temp b-tree", joined)
+	}
+}

@@ -119,8 +119,12 @@ CREATE TABLE history_blob (
 	UNIQUE (session_id, message_id)
 )`
 
+// schemaV6 indexes the outbox by session and seq: a stream reads a session's events after a seq, in seq order
+// (outbox.Read), and without it SQLite walks every row the session keeps and sorts them for each batch.
+const schemaV6 = `CREATE INDEX outbox_session_seq ON outbox (session_id, seq)`
+
 // steps is every schema step, in order: steps()[n-1] is version n.
-func steps() []string { return []string{schemaV1, schemaV2, schemaV3, schemaV4, schemaV5} }
+func steps() []string { return []string{schemaV1, schemaV2, schemaV3, schemaV4, schemaV5, schemaV6} }
 
 // ErrInUse is returned when another whatsmeow-net holds the database.
 var ErrInUse = errors.New("in use by another whatsmeow-net")
