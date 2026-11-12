@@ -88,7 +88,8 @@ func (svc *Service) Handler(sessionID string, account *store.Device) whatsmeow.E
 	return func(evt any) (ok bool) {
 		defer func() {
 			if r := recover(); r != nil {
-				svc.log.Error().Str("session_id", sessionID).Interface("panic", r).Msgf("recording a %T panicked; its answer is withheld", evt)
+				// The panic's type only: its value may carry a JID.
+				svc.log.Error().Str("session_id", sessionID).Str("panic", fmt.Sprintf("%T", r)).Msgf("recording a %T panicked; its answer is withheld", evt)
 
 				ok = false
 			}

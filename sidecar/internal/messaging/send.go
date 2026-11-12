@@ -207,7 +207,8 @@ func (svc *Service) recorded(ctx context.Context, sessionID, id string) (outcome
 	}
 }
 
-// enqueue adds j to its session's queue and starts the queue if it is idle.
+// enqueue adds j to its session's queue and starts the queue if it is idle. After Close it starts none, as Close
+// waited for the workers already: j stays queued, and its await fails it with NOT_CONNECTED, as one queued at Close.
 func (svc *Service) enqueue(j *job) {
 	svc.mu.Lock()
 	svc.sweep()
@@ -221,7 +222,7 @@ func (svc *Service) enqueue(j *job) {
 	q.jobs = append(q.jobs, j)
 	waits := q.running
 
-	if !q.running {
+	if !q.running && svc.lifetime.Err() == nil {
 		q.running = true
 
 		svc.workers.Go(func() { svc.work(q) })

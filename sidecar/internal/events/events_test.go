@@ -340,6 +340,27 @@ func TestTheHandlerWithholdsTheAnswerWhenItPanics(t *testing.T) {
 	}
 }
 
+// A panic's value may carry a JID, so its error line names the value's type only (ADR 0039).
+func TestTheHandlersPanicLogNamesNoOne(t *testing.T) {
+	t.Parallel()
+
+	var log strings.Builder
+
+	h := start(t, "s1")
+	h.svc = New(h.box, zerolog.New(&log), func(string, any) (string, *whatsmeowv1.StreamEventsResponse, bool) {
+		panic("cannot map the pin of 5511900000001@s.whatsapp.net")
+	})
+
+	if h.deliver("s1", &waevents.Pin{}) {
+		t.Fatal("the handler answered after a panic")
+	}
+
+	line := log.String()
+	if !strings.Contains(line, `"level":"error"`) || !strings.Contains(line, `"panic":"string"`) || strings.Contains(line, "5511900000001") {
+		t.Fatalf("log = %s; want an error line naming the panic's type, and no number", line)
+	}
+}
+
 func TestTheHandlerAnswersWithNoConsumerAndNeverWaitsForOne(t *testing.T) {
 	t.Parallel()
 
