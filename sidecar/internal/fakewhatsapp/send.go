@@ -84,12 +84,15 @@ func (c *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E.M
 		return whatsmeow.SendResponse{}, fmt.Errorf("failed to send message node: %w", whatsmeow.ErrNotConnected)
 	}
 
+	// The refusal is taken before the node shows in WaitForSent, so a test that saw it there and scripts the next
+	// refusal never has this send take that one instead.
+	refused := c.whatsApp.take(c.sessionID, func(s *script) bool { return s.refuseSend != 0 }, func(s *script) { refusal, s.refuseSend = s.refuseSend, 0 })
 	at := time.Now().Truncate(time.Second)
 	c.whatsApp.append(&fakev1.Sent{SessionId: c.sessionID, Kind: &fakev1.Sent_Message{Message: &fakev1.SentMessage{
 		Id: req.ID, Chat: to.String(), Message: message, MessageTime: timestamppb.New(at),
 	}}})
 
-	if c.whatsApp.take(c.sessionID, func(s *script) bool { return s.refuseSend != 0 }, func(s *script) { refusal, s.refuseSend = s.refuseSend, 0 }) {
+	if refused {
 		// An answer with an error attribute, as whatsmeow reads it (send.go:468-470), at once: a held send's hold goes
 		// with it.
 		return whatsmeow.SendResponse{ID: req.ID, Timestamp: at, Chat: to}, fmt.Errorf("%w %d", whatsmeow.ErrServerReturnedError, refusal)
