@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-11-02
 - Evidence: issue #49, its plan review and the PR's two reviews; grpc-go v1.85.0 and .NET 10.0.14 read as cited below; the tests named below
-- Amended by: [ADR 0066](0066-the-core-ci-jobs-on-every-desktop-os.md) (the `external` job runs on linux-x64, osx-arm64 and win-x64)
+- Amended by: [ADR 0066](0066-the-core-ci-jobs-on-every-desktop-os.md) (the `external` job runs on linux-x64, osx-arm64 and win-x64), [ADR 0069](0069-one-native-package.md) (the binaries are in one package, `Whatsmeow.Sidecar.Native`, so a consumer excludes that one)
 - Amends: ARCHITECTURE §13 invariant 9 (scoped to embedded mode), §1, §7.8, §8.4, §8.5, §8.6 and §10; [ADR 0016](0016-sidecar-binary-gpl-3-corresponding-source-per-release.md) (its `[unknown]` on leaving the native assets out); [ADR 0034](0034-hosting-package.md) (which sessions a host's start connects); [ADR 0045](0045-a-channel-per-launch.md) ("every launch listens at an endpoint of its own" holds for embedded launches; an external launch is a connect epoch)
 
 ## Context
@@ -79,7 +79,7 @@ An external sidecar's lifetime is its orchestrator's; the client never starts, s
 
 ## Consequences
 
-- A consumer that leaves the native packages' assets out (`ExcludeAssets="all"` on each of the three) builds and runs with no sidecar binary in its output and reaches an external sidecar: `build/ci.sh install` publishes such a consumer and runs it against the feed's binary started standalone, so ADR 0016's `[unknown]` is `[observed]` there.
+- A consumer that leaves the native package's assets out (`ExcludeAssets="all"` on `Whatsmeow.Sidecar.Native`) builds and runs with no sidecar binary in its output and reaches an external sidecar: `build/ci.sh install` publishes such a consumer and runs it against the feed's binary started standalone, so ADR 0016's `[unknown]` is `[observed]` there.
 - The whole integration suite runs a second time with the shared fixture's sidecar standalone over TCP, as its own CI job on linux-x64 (`build/ci.sh external`); the fixture restarts it itself for the crash tests.
 - A sidecar may be shut down by any holder of its token; in External mode that is every client.
 - A consumer name no client uses any more keeps its sessions' events in the sidecar's database (ADR 0022's known cost).

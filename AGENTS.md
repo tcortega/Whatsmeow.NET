@@ -1,7 +1,7 @@
 # Whatsmeow.NET agent notes
 
 .NET wrapper over the Go library whatsmeow: a CGO-free Go sidecar (`whatsmeow-net`) serves the `whatsmeow.v1` gRPC contract over a private local socket, and `Whatsmeow.Client` supervises it behind an idiomatic, AOT-safe C# API.
-Phase 1: the walking skeleton (#4) starts, checks, restarts and stops the sidecar; Sessions (#6) adds the store, sessions and their state machine.
+1.0 release candidates are tagged, so `whatsmeow.v1` changes only additively, each change with a `protocol` bump (Contract rules).
 Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) before changing the contract, the delivery path, supervision, transport, or packaging.
 [docs/RESEARCH.md](docs/RESEARCH.md) is the why with sources; reference only.
 
@@ -44,6 +44,13 @@ A subcommand runs from anywhere, keeps running its independent checks after one 
 ```sh
 bash build/ci.sh go         # or: setup, contract, dotnet, external, package, all; install <feed>|nuget.org:<version> installs a feed built elsewhere or a published release; aot <feed>|nuget.org:<version> <rid> publishes AotSmoke from it; release-pins v<version> first overwrites the tracked mise.toml and global.json with a release's
 ```
+
+One Go package: `go -C sidecar test -race -count=1 ./internal/<pkg>/`.
+The fake builds only with its tag, so a plain `./...` skips it: `go -C sidecar test -race -count=1 -tags fakewhatsapp ./internal/fakewhatsapp/`.
+The live seams likewise: `go -C sidecar test -race -count=1 -tags livetest ./internal/events/ ./internal/messaging/ ./internal/groups/ ./internal/contacts/`.
+One .NET test class: `dotnet test --project dotnet/tests/<Project> -c Release -- --filter-class '*<Class>'` (`--filter-method '*<Method>'` for one method).
+Lint one package: `(cd sidecar && golangci-lint run --build-tags '<tags>' ./internal/<pkg>/)`, with empty tags for an untagged package.
+A .NET build in a git worktree nested in the checkout (`.claude/worktrees/...`) fails WMN0003, since the SDK also reads the checkout's `.editorconfig`; build from a worktree or copy outside the checkout.
 
 A package change regenerates `packages.lock.json` with a plain `dotnet restore dotnet/Whatsmeow.slnx`; commit it.
 Update third_party after a pin change with `go -C tools run ./sync-protos -write`, and generated code with `buf generate` (whatsmeow.v1) and `buf generate --template buf.gen.whatsapp.yaml` (upstream).
