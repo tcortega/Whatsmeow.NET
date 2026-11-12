@@ -77,6 +77,21 @@ go_toolchain() { # [release commit]
 	echo "go is $got, as sidecar/go.mod pins$at"
 }
 
+# The Alpine SDK images the package job runs the musl consumers in carry global.json's SDK, which pull requests check
+# here, since the package job never runs on one.
+alpine_images_follow_sdk() {
+	local sdk image rc=0
+	sdk="$(jq -r .sdk.version global.json | tr -d '\r')" || return
+	for image in "$alpine_image" "$alpine_image_arm64"; do
+		if [[ "$image" != "mcr.microsoft.com/dotnet/sdk:$sdk-"* ]]; then
+			annotate error "Alpine SDK image" "global.json pins SDK $sdk, but build/ci.sh's Alpine image is ${image%@*}; move both together"
+			rc=1
+		fi
+	done
+	[ "$rc" -eq 0 ] && echo "both Alpine SDK images carry SDK $sdk, as global.json pins"
+	return "$rc"
+}
+
 # A published release's version as its tag names it, v<major>.<minor>.<patch>[-<pre-release>], so the tag is never a
 # revision expression or an option; and the tag's commit, in release_commit, which must be on HEAD's line (ADR 0059).
 release_commit_of() { # version
@@ -170,6 +185,7 @@ job_contract() {
 	local before
 	before="$(tree_state)"
 	check "shellcheck build/*.sh" shellcheck build/*.sh
+	check "the Alpine SDK images carry global.json's SDK" alpine_images_follow_sdk
 	check "build/release.sh refuses every tag and feed it must not publish (build/release-test.sh, ADR 0050)" bash build/release-test.sh
 	check "every member the last stable release shipped is still shipped (ADR 0055)" bash build/release.sh shipped-api
 	check "third_party/whatsmeow matches the pinned module" go -C tools run ./sync-protos
@@ -266,8 +282,26 @@ parity_report() {
 	return 0
 }
 
+# Known vulnerabilities in what a module calls, from the Go standard library and every dependency, whatsmeow or not.
+# It reports only, never failing the job, until a maintainer decides to gate on it: then return 1 on exit code 3.
+govulncheck_report() { # module
+	local report rc ids
+	report="$(cd "$1" && govulncheck ./... 2>&1)"
+	rc=$?
+	echo "$report"
+	case "$rc" in
+		0) ;;
+		3)
+			ids="$(sed -n 's/^Vulnerability #[0-9]*: \(GO-[0-9-]*\).*/\1/p' <<<"$report" | tr '\n' ' ')"
+			annotate warning "govulncheck" "$1 calls code with known vulnerabilities: ${ids% }; the check's output names the fixed versions"
+			;;
+		*) annotate warning "govulncheck" "govulncheck did not run on $1 (exit code $rc); the vulnerability report is not shown" ;;
+	esac
+	return 0
+}
+
 job_go() {
-	local before module tags label tagsets
+	local before module tags label tagsets tested
 	before="$(tree_state)"
 	for module in tools sidecar; do
 		check "$module: go.mod and go.sum are tidy" go -C "$module" mod tidy -diff
@@ -281,12 +315,20 @@ job_go() {
 		if [ "$module" = sidecar ]; then tagsets+=(fakewhatsapp livetest); fi
 		for tags in "${tagsets[@]}"; do
 			label="$module${tags:+ (-tags $tags)}"
+			# A tag's test pass tests only the packages the tag changes: tools/check-repo's allowlist for it, which fails
+			# the build if the tag appears anywhere else. Change these lists with it.
+			case "$tags" in
+				fakewhatsapp) tested=(./internal/fakewhatsapp/... ./cmd/whatsmeow-net/...) ;;
+				livetest) tested=(./internal/events ./internal/messaging ./internal/groups ./internal/contacts) ;;
+				*) tested=(./...) ;;
+			esac
 			check "$label: no cgo files" no_cgo "$module" "$tags"
 			check "$label: go build (no cgo)" env CGO_ENABLED=0 go -C "$module" build -tags "$tags" ./...
-			check "$label: go test -race" go -C "$module" test -race -count=1 -tags "$tags" ./...
+			check "$label: go test -race ${tested[*]}" go -C "$module" test -race -count=1 -tags "$tags" "${tested[@]}"
 			# With cgo on, so a cgo file is visible (its import "C" is reported as unsafe).
 			check "$label: golangci-lint" bash -c "cd '$module' && CGO_ENABLED=1 golangci-lint run --build-tags '$tags' ./..."
 		done
+		check "$module: govulncheck (report only)" govulncheck_report "$module"
 	done
 	check "sidecar: the release build links no fake WhatsApp (ADR 0019)" release_links_no_fake
 	check "sidecar: the release build links no live test seam or control (ADR 0032, 0060)" release_links_no_livetest
@@ -391,6 +433,17 @@ live_tests_contained() {
 	return "$rc"
 }
 
+# without_live COMMAND...: COMMAND with no WHATSMEOW_LIVE_* variable, so dotnet test never runs the live tests (or
+# reads their settings), even with them exported in the shell that runs this.
+without_live() {
+	(
+		for name in $(compgen -e); do
+			case "$name" in WHATSMEOW_LIVE_*) unset "$name" ;; esac
+		done
+		exec "$@"
+	)
+}
+
 job_dotnet() {
 	local before
 	before="$(tree_state)"
@@ -405,7 +458,7 @@ job_dotnet() {
 			check "no shipped assembly contains the live tests' control (ADR 0060)" shipped_have_no_livetest
 			# Never the live tests, even with their variables exported in the shell that runs this.
 			rm -f dotnet/artifacts/TestResults/media-transfers.txt dotnet/artifacts/TestResults/fake-sidecar.log
-			check "dotnet test" env -u WHATSMEOW_LIVE_DATABASE -u WHATSMEOW_LIVE_PHONE_NUMBER -u WHATSMEOW_LIVE_PEER_DATABASE -u WHATSMEOW_LIVE_OWNER -u WHATSMEOW_LIVE_MEDIA_REFS -u WHATSMEOW_LIVE_MEDIA_SIZES -u WHATSMEOW_LIVE_FRESH_DATABASE -u WHATSMEOW_LIVE_HISTORY_BOUNDS -u WHATSMEOW_LIVE_KNOWN_DEVICES -u WHATSMEOW_LIVE_PUSHNAME_FIRST_SIGHT -u WHATSMEOW_LIVE_CONTACTS_FULLCYCLE -u WHATSMEOW_LIVE_PEER_SAVED_NAME -u WHATSMEOW_LIVE_ABOUT_CONSENT dotnet test --solution dotnet/Whatsmeow.slnx -c Release --no-build
+			check "dotnet test" without_live dotnet test --solution dotnet/Whatsmeow.slnx -c Release --no-build
 			# The media transfer test's throughput and memory on each transport, for ARCHITECTURE §8.6 (ADR 0026).
 			if [ -f dotnet/artifacts/TestResults/media-transfers.txt ]; then
 				cat dotnet/artifacts/TestResults/media-transfers.txt
@@ -424,8 +477,7 @@ job_external() {
 	check "dotnet restore (locked)" dotnet restore dotnet/Whatsmeow.slnx --locked-mode &&
 		check "dotnet build" dotnet build dotnet/tests/Whatsmeow.IntegrationTests -c Release --no-restore -p:ContinuousIntegrationBuild=true &&
 		rm -f dotnet/artifacts/TestResults/fake-sidecar.log &&
-		check "dotnet test, External mode" env -u WHATSMEOW_LIVE_DATABASE -u WHATSMEOW_LIVE_PHONE_NUMBER -u WHATSMEOW_LIVE_PEER_DATABASE -u WHATSMEOW_LIVE_OWNER \
-			WHATSMEOW_NET_TEST_SIDECAR=external dotnet test --project dotnet/tests/Whatsmeow.IntegrationTests -c Release --no-build
+		check "dotnet test, External mode" without_live env WHATSMEOW_NET_TEST_SIDECAR=external dotnet test --project dotnet/tests/Whatsmeow.IntegrationTests -c Release --no-build
 }
 
 # Native packages (ADR 0023). The package job builds whatsmeow-net for every release target at the client's version and

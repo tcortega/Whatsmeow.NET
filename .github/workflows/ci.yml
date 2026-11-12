@@ -176,6 +176,15 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+      # Every test project's TRX report (dotnet/Directory.Build.targets), so a failed run shows which tests failed and how long each took.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure() || cancelled()
+        with:
+          name: test-results-${{ matrix.name }}
+          path: dotnet/artifacts/TestResults/**
+          if-no-files-found: ignore
+          retention-days: 7
+
   # The integration suite against a standalone sidecar (External mode, ADR 0046), beside the dotnet jobs, not after them.
   external:
     name: external (${{ matrix.name }})
@@ -235,6 +244,15 @@ jobs:
         with:
           name: fake-sidecar-log-external-${{ matrix.name }}
           path: dotnet/artifacts/TestResults/fake-sidecar.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      # Every test project's TRX report (dotnet/Directory.Build.targets), so a failed run shows which tests failed and how long each took.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure() || cancelled()
+        with:
+          name: test-results-external-${{ matrix.name }}
+          path: dotnet/artifacts/TestResults/**
           if-no-files-found: ignore
           retention-days: 7
 
