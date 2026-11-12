@@ -3,8 +3,12 @@ package events
 import (
 	"bytes"
 	"context"
+	"errors"
+	"fmt"
+	"strings"
 	"testing"
 
+	"github.com/rs/zerolog"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/proto/waAdv"
 	"go.mau.fi/whatsmeow/proto/waCommon"
@@ -127,9 +131,97 @@ func TestOnlyAVoteHasAPollVote(t *testing.T) {
 	for _, m := range []*waE2E.Message{{Conversation: proto.String("hi")}, poll} {
 		e := &waevents.Message{Info: types.MessageInfo{MessageSource: types.MessageSource{Chat: jid("222@lid"), Sender: jid("222:2@lid")}, ID: "M1"}, Message: m}
 
-		_, event, _ := toEvent(e, device, whatsmeow.NewClient(device, nil))
-		if got := event.GetMessage().GetPollVote(); got != nil {
-			t.Errorf("%v has poll vote %v, want none", m, got)
+		_, event, _, err := toEvent(e, device, whatsmeow.NewClient(device, nil))
+		if got := event.GetMessage().GetPollVote(); err != nil || got != nil {
+			t.Errorf("%v has poll vote %v, %v; want none", m, got, err)
 		}
+	}
+}
+
+// A vote whose poll secret cannot be read from the store is withheld, never recorded as undecryptable: recording it
+// would lose its selection for good, because WhatsApp never redelivers an answered stanza; withheld, it comes again at
+// the next login, when the read can succeed (ADR 0041).
+func TestAPollVoteWhoseSecretCannotBeReadIsWithheld(t *testing.T) {
+	t.Parallel()
+
+	var log bytes.Buffer
+
+	h := start(t, "s1")
+	h.svc = New(h.box, zerolog.New(&log))
+
+	// The device's store is another one, closed, so its read fails while the outbox's write still works.
+	closed := start(t)
+	device := closed.savedAccount()
+	closed.stop()
+
+	if h.svc.Handler("s1", device)(unreadVote()) {
+		t.Fatal("the handler answered a vote whose poll secret it could not read")
+	}
+
+	if highest, err := h.box.Highest(h.ctx, "s1"); err != nil || highest != 0 {
+		t.Fatalf("the highest recorded seq is %d, %v; want 0, nothing recorded", highest, err)
+	}
+
+	line := log.String()
+	if strings.Count(line, "\n") != 1 || !strings.Contains(line, `"level":"error"`) || strings.Contains(line, "222") || strings.Contains(line, "900000001") {
+		t.Fatalf("log = %s; want one error line, naming no one", line)
+	}
+}
+
+// failingDecrypter fails every vote with err.
+type failingDecrypter struct{ err error }
+
+func (d failingDecrypter) DecryptPollVote(context.Context, *waevents.Message) (*waE2E.PollVoteMessage, error) {
+	return nil, d.err
+}
+
+// Only a failed read of the poll's secret fails the mapping, and its error names no one: every other failure is
+// permanent, so the vote is recorded undecryptable.
+func TestOnlyAFailedSecretReadFailsAVotesMapping(t *testing.T) {
+	t.Parallel()
+
+	read := fmt.Errorf("failed to decrypt poll vote: %w", fmt.Errorf("failed to get original message secret key: %w", errors.New("disk I/O error 222")))
+
+	_, event, ok, err := toEvent(unreadVote(), nil, failingDecrypter{read})
+	if err == nil || ok || event != nil || strings.Contains(err.Error(), "222") {
+		t.Fatalf("a failed read: %v, %v, %v; want an error naming no one", event, ok, err)
+	}
+
+	for _, permanent := range []error{
+		fmt.Errorf("failed to decrypt poll vote: %w", whatsmeow.ErrOriginalMessageSecretNotFound),
+		errors.New("failed to decrypt poll vote: failed to decrypt secret message: cipher: message authentication failed"),
+		errors.New("failed to decode poll vote protobuf: proto: cannot parse invalid wire-format data"),
+	} {
+		_, event, ok, err := toEvent(unreadVote(), nil, failingDecrypter{permanent})
+		if err != nil || !ok || !proto.Equal(event.GetMessage().GetPollVote(), &whatsmeowv1.PollVote{Undecryptable: true}) {
+			t.Errorf("%v: %v, %v, %v; want it recorded undecryptable", permanent, event, ok, err)
+		}
+	}
+}
+
+// whatsmeow names a failed read of the poll's secret only by its text (msgsecret.go:167), which pollVote matches: this
+// fails at a bump that rewords it.
+func TestWhatsmeowNamesAFailedSecretReadByItsText(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	device := h.savedAccount()
+	h.stop()
+
+	_, err := whatsmeow.NewClient(device, nil).DecryptPollVote(context.Background(), unreadVote())
+	if err == nil || !strings.Contains(err.Error(), secretReadFailed) {
+		t.Fatalf("DecryptPollVote on a closed store: %v; want its text to contain %q", err, secretReadFailed)
+	}
+}
+
+// unreadVote is a vote on the poll POLL1 in a direct chat; its payload is never read, because each test fails or
+// stubs the read of the poll's secret before it.
+func unreadVote() *waevents.Message {
+	return &waevents.Message{
+		Info: types.MessageInfo{MessageSource: types.MessageSource{Chat: jid("222@lid"), Sender: jid("222:2@lid")}, ID: "V1"},
+		Message: &waE2E.Message{PollUpdateMessage: &waE2E.PollUpdateMessage{
+			PollCreationMessageKey: &waCommon.MessageKey{RemoteJID: proto.String("900000001@lid"), FromMe: proto.Bool(false), ID: proto.String("POLL1")},
+			Vote:                   &waE2E.PollEncValue{EncPayload: []byte{1, 2, 3}, EncIV: make([]byte, 12)},
+		}},
 	}
 }

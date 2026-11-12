@@ -67,10 +67,11 @@ func New(box *outbox.Outbox, log zerolog.Logger, mappers ...Mapper) *Service {
 
 // Handler is the whatsmeow event handler of one session's client (ARCHITECTURE §7.3). It maps the event, records it
 // in one short transaction, and returns true only after the commit: whatsmeow answers a gated stanza only then
-// (message.go:473-511). It returns false when the write fails or anything panics, with its own recover, because
-// whatsmeow's dispatchEvent turns a panic into success (client.go:1001-1015). It never calls .NET, the network or
-// media, and never returns false because no consumer is connected. An event it does not record returns true.
-// account is the client's device, which names the account in what it maps.
+// (message.go:473-511). It returns false when the write fails, when a poll vote's secret cannot be read from the store
+// (pollVote), or when anything panics, with its own recover, because whatsmeow's dispatchEvent turns a panic into
+// success (client.go:1001-1015). It never calls .NET, the network or media, and never returns false because no
+// consumer is connected. An event it does not record returns true. account is the client's device, which names the
+// account in what it maps.
 func (svc *Service) Handler(sessionID string, account *store.Device) whatsmeow.EventHandlerWithSuccessStatus {
 	// Bound now, so a client still running after its session was deleted pushes only into its own dead ring, never
 	// into the ring of a session created again with the same id.
@@ -110,7 +111,13 @@ func (svc *Service) Handler(sessionID string, account *store.Device) whatsmeow.E
 			return false
 		}
 
-		key, event, record := svc.toEvent(sessionID, evt, account, votes)
+		key, event, record, err := svc.toEvent(sessionID, evt, account, votes)
+		if err != nil {
+			svc.log.Error().Err(err).Str("session_id", sessionID).Msgf("mapping a %T failed; its answer is withheld", evt)
+
+			return false
+		}
+
 		if !record {
 			return true
 		}
@@ -140,34 +147,36 @@ func (svc *Service) Handler(sessionID string, account *store.Device) whatsmeow.E
 // toEvent maps evt with this slice's own mapping, then with each slice's mapper, and keeps the event only when the
 // client can read it (Unreadable): one it cannot is not recorded, and is answered, so it is lost, as the client's skip
 // and ack of it would lose it, but visibly, by its kind and field and never a value (ARCHITECTURE §8.7, ADR 0057).
-func (svc *Service) toEvent(sessionID string, evt any, account *store.Device, votes voteDecrypter) (string, *whatsmeowv1.StreamEventsResponse, bool) {
-	key, event, ok := svc.mapped(sessionID, evt, account, votes)
-	if !ok {
-		return "", nil, false
+// It fails when this slice's mapping does (the package's toEvent): the event is then withheld, not answered.
+func (svc *Service) toEvent(sessionID string, evt any, account *store.Device, votes voteDecrypter) (string, *whatsmeowv1.StreamEventsResponse, bool, error) {
+	key, event, ok, err := svc.mapped(sessionID, evt, account, votes)
+	if err != nil || !ok {
+		return "", nil, false, err
 	}
 
 	if field := Unreadable(event); field != "" {
 		svc.log.Warn().Str("session_id", sessionID).Str("kind", kind(event)).Str("field", field).Msg("an event the client cannot read is not recorded")
 
-		return "", nil, false
+		return "", nil, false, nil
 	}
 
-	return key, event, true
+	return key, event, true, nil
 }
 
 // mapped is evt mapped with this slice's own mapping, then with each slice's mapper.
-func (svc *Service) mapped(sessionID string, evt any, account *store.Device, votes voteDecrypter) (string, *whatsmeowv1.StreamEventsResponse, bool) {
-	if key, event, ok := toEvent(evt, account, votes); ok {
-		return key, event, true
+func (svc *Service) mapped(sessionID string, evt any, account *store.Device, votes voteDecrypter) (string, *whatsmeowv1.StreamEventsResponse, bool, error) {
+	key, event, ok, err := toEvent(evt, account, votes)
+	if err != nil || ok {
+		return key, event, ok, err
 	}
 
 	for _, mapper := range svc.mappers {
 		if key, event, ok := mapper(sessionID, evt); ok {
-			return key, event, true
+			return key, event, true, nil
 		}
 	}
 
-	return "", nil, false
+	return "", nil, false, nil
 }
 
 // kind is the event's payload case as events.proto names it.

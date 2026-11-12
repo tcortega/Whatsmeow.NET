@@ -2,6 +2,8 @@ package events
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -26,20 +28,28 @@ import (
 //
 // The key ties a repeated event to its first recording, so it keeps its seq: whatsmeow dispatches a message again
 // from its decrypted-event buffer after a crash between our commit and its buffer clear (message.go:459-477).
-func toEvent(evt any, account *store.Device, votes voteDecrypter) (string, *whatsmeowv1.StreamEventsResponse, bool) {
+//
+// It fails only when a poll vote's secret could not be read from the store (pollVote): the event is then neither
+// recorded nor answered.
+func toEvent(evt any, account *store.Device, votes voteDecrypter) (string, *whatsmeowv1.StreamEventsResponse, bool, error) {
 	switch e := evt.(type) {
 	case *waevents.Message:
 		// A history sync notification is the History slice's (internal/history): never a live message.
 		if onlySenderKey(e.Message) || e.Message.GetProtocolMessage().GetHistorySyncNotification() != nil {
-			return "", nil, false
+			return "", nil, false, nil
+		}
+
+		vote, err := pollVote(e, votes)
+		if err != nil {
+			return "", nil, false, err
 		}
 
 		event := MessageEvent(e, account)
-		event.PollVote = pollVote(e, votes)
+		event.PollVote = vote
 
 		return key("m", &e.Info), &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_Message{
 			Message: event,
-		}}, true
+		}}, true, nil
 	case *waevents.UndecryptableMessage:
 		return key("u", &e.Info), &whatsmeowv1.StreamEventsResponse{Payload: &whatsmeowv1.StreamEventsResponse_UndecryptableMessage{
 			UndecryptableMessage: &whatsmeowv1.UndecryptableMessageEvent{
@@ -48,9 +58,9 @@ func toEvent(evt any, account *store.Device, votes voteDecrypter) (string, *what
 				Unavailable:     e.IsUnavailable,
 				UnavailableType: unavailableType(e.UnavailableType),
 			},
-		}}, true
+		}}, true, nil
 	default:
-		return "", nil, false
+		return "", nil, false, nil
 	}
 }
 
@@ -60,26 +70,44 @@ type voteDecrypter interface {
 	DecryptPollVote(ctx context.Context, vote *waevents.Message) (*waE2E.PollVoteMessage, error)
 }
 
+// secretReadFailed is the text whatsmeow wraps a failed read of a poll's secret from the store with
+// (msgsecret.go:167); it gives that failure no sentinel, so only the text tells it from a missing secret or a failed
+// check. TestWhatsmeowNamesAFailedSecretReadByItsText fails at a bump that rewords it.
+const secretReadFailed = "failed to get original message secret key"
+
 // pollVote is a poll vote's selection, decrypted with votes; nil for every other message. A vote that does not decrypt
 // (no secret for its poll here, one that fails its check, or no decrypter) is marked undecryptable and still recorded,
-// so it is answered and delivered (events.proto PollVote). whatsmeow's error is dropped: the event says the vote is
-// undecryptable, and the error's text names the voter and the poll's sender (msgsecret.go:191).
-func pollVote(e *waevents.Message, votes voteDecrypter) *whatsmeowv1.PollVote {
+// so it is answered and delivered (events.proto PollVote): those failures are permanent, and a withheld one would come
+// again forever. A vote whose secret could not be read from the store fails instead, so it is withheld: recorded, it
+// would lose its selection for good, since WhatsApp never redelivers an answered stanza, and withheld, it comes again
+// at the next login, when the read can succeed (ADR 0041). whatsmeow's error is never returned: its text can name the
+// voter and the poll's sender (msgsecret.go:191), so the returned one names only the store error's Go type.
+func pollVote(e *waevents.Message, votes voteDecrypter) (*whatsmeowv1.PollVote, error) {
 	if e.Message.GetPollUpdateMessage() == nil {
-		return nil
+		return nil, nil
 	}
 
 	if votes == nil {
-		return &whatsmeowv1.PollVote{Undecryptable: true}
+		return &whatsmeowv1.PollVote{Undecryptable: true}, nil
 	}
 
 	// No caller's context: whatsmeow gives the handler none. SQLite's busy_timeout bounds the read.
 	vote, err := votes.DecryptPollVote(context.Background(), e)
-	if err != nil {
-		return &whatsmeowv1.PollVote{Undecryptable: true}
+	if err != nil && strings.Contains(err.Error(), secretReadFailed) {
+		// The store's own error is named, under whatsmeow's two wrappings (msgsecret.go:167, 311).
+		cause := err
+		for errors.Unwrap(cause) != nil {
+			cause = errors.Unwrap(cause)
+		}
+
+		return nil, fmt.Errorf("read a poll vote's secret from the store: it failed with a %T", cause) //nolint:err113 // only the type: whatsmeow's text may name a JID
 	}
 
-	return &whatsmeowv1.PollVote{SelectedOptionHashes: vote.GetSelectedOptions()}
+	if err != nil {
+		return &whatsmeowv1.PollVote{Undecryptable: true}, nil
+	}
+
+	return &whatsmeowv1.PollVote{SelectedOptionHashes: vote.GetSelectedOptions()}, nil
 }
 
 // unavailableType is why WhatsApp sent no ciphertext, as events.proto has it; unspecified for none and for a type
