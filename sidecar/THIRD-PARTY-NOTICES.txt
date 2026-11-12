@@ -5045,7 +5045,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ================================================================================
-std go1.27.3 LICENSE (BSD-3-Clause)
+std go1.27.4 LICENSE (BSD-3-Clause)
 ================================================================================
 Copyright 2009 The Go Authors.
 
@@ -5076,7 +5076,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ================================================================================
-std go1.27.3 PATENTS (LicenseRef-Google-Patents)
+std go1.27.4 PATENTS (LicenseRef-Google-Patents)
 ================================================================================
 Additional IP Rights Grant (Patents)
 
@@ -5102,7 +5102,7 @@ rights granted to you under this License for this implementation of Go
 shall terminate as of the date such litigation is filed.
 
 ================================================================================
-std go1.27.3 src/vendor/golang.org/x/crypto/LICENSE (BSD-3-Clause)
+std go1.27.4 src/vendor/golang.org/x/crypto/LICENSE (BSD-3-Clause)
 ================================================================================
 Copyright 2009 The Go Authors.
 
@@ -5133,7 +5133,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ================================================================================
-std go1.27.3 src/vendor/golang.org/x/crypto/PATENTS (LicenseRef-Google-Patents)
+std go1.27.4 src/vendor/golang.org/x/crypto/PATENTS (LicenseRef-Google-Patents)
 ================================================================================
 Additional IP Rights Grant (Patents)
 
@@ -5159,7 +5159,7 @@ rights granted to you under this License for this implementation of Go
 shall terminate as of the date such litigation is filed.
 
 ================================================================================
-std go1.27.3 src/vendor/golang.org/x/net/LICENSE (BSD-3-Clause)
+std go1.27.4 src/vendor/golang.org/x/net/LICENSE (BSD-3-Clause)
 ================================================================================
 Copyright 2009 The Go Authors.
 
@@ -5190,7 +5190,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ================================================================================
-std go1.27.3 src/vendor/golang.org/x/net/PATENTS (LicenseRef-Google-Patents)
+std go1.27.4 src/vendor/golang.org/x/net/PATENTS (LicenseRef-Google-Patents)
 ================================================================================
 Additional IP Rights Grant (Patents)
 
@@ -5216,7 +5216,7 @@ rights granted to you under this License for this implementation of Go
 shall terminate as of the date such litigation is filed.
 
 ================================================================================
-std go1.27.3 src/vendor/golang.org/x/sys/LICENSE (BSD-3-Clause)
+std go1.27.4 src/vendor/golang.org/x/sys/LICENSE (BSD-3-Clause)
 ================================================================================
 Copyright 2009 The Go Authors.
 
@@ -5247,7 +5247,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ================================================================================
-std go1.27.3 src/vendor/golang.org/x/sys/PATENTS (LicenseRef-Google-Patents)
+std go1.27.4 src/vendor/golang.org/x/sys/PATENTS (LicenseRef-Google-Patents)
 ================================================================================
 Additional IP Rights Grant (Patents)
 
@@ -5273,7 +5273,7 @@ rights granted to you under this License for this implementation of Go
 shall terminate as of the date such litigation is filed.
 
 ================================================================================
-std go1.27.3 src/vendor/golang.org/x/text/LICENSE (BSD-3-Clause)
+std go1.27.4 src/vendor/golang.org/x/text/LICENSE (BSD-3-Clause)
 ================================================================================
 Copyright 2009 The Go Authors.
 
@@ -5304,7 +5304,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ================================================================================
-std go1.27.3 src/vendor/golang.org/x/text/PATENTS (LicenseRef-Google-Patents)
+std go1.27.4 src/vendor/golang.org/x/text/PATENTS (LicenseRef-Google-Patents)
 ================================================================================
 Additional IP Rights Grant (Patents)
 
