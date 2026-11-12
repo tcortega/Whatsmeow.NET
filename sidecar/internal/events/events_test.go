@@ -1018,3 +1018,23 @@ func TestAQuoteIsNamedAsATargetIs_AndTheAccountsOwnMessageHasNoSender(t *testing
 		}
 	}
 }
+
+// A location or a contact card that quotes a message names its quote as a text does: the client maps both kinds
+// (ContentMapping.ToContent), and reads the quote from reply_to.
+func TestALocationOrAContactCardNamesItsQuote(t *testing.T) {
+	t.Parallel()
+
+	c := &waE2E.ContextInfo{StanzaID: proto.String("Q1"), Participant: proto.String("333:2@lid"), QuotedMessage: &waE2E.Message{Conversation: proto.String("where?")}}
+	want := &whatsmeowv1.MessageTarget{Id: "Q1", Sender: "333@lid"}
+
+	for name, m := range map[string]*waE2E.Message{
+		"a location":     {LocationMessage: &waE2E.LocationMessage{DegreesLatitude: proto.Float64(51.5), DegreesLongitude: proto.Float64(-0.1), ContextInfo: c}},
+		"a contact card": {ContactMessage: &waE2E.ContactMessage{DisplayName: proto.String("Ana"), ContextInfo: c}},
+	} {
+		src := types.MessageSource{Chat: jid("120363000000000000@g.us"), Sender: jid("444:1@lid")}
+		e := &waevents.Message{Info: types.MessageInfo{MessageSource: src, ID: "M1"}, Message: m}
+		if got := MessageEvent(e, account()).GetReplyTo(); !proto.Equal(got, want) {
+			t.Errorf("%s: reply to %v, want %v", name, got, want)
+		}
+	}
+}
