@@ -241,14 +241,23 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 		info.ArgumentList.Add(binaries.NewDatabase());
 
 		using var parent = Process.Start(info)!;
-		var line = await parent.StandardOutput.ReadLineAsync(ct);
-		if (!int.TryParse(line, System.Globalization.CultureInfo.InvariantCulture, out var sidecar))
-			Assert.Fail($"the host printed no sidecar process id: {await parent.StandardError.ReadToEndAsync(ct)}");
+		var sidecar = 0;
+		try
+		{
+			var line = await parent.StandardOutput.ReadLineAsync(ct);
+			if (!int.TryParse(line, System.Globalization.CultureInfo.InvariantCulture, out sidecar))
+				Assert.Fail($"the host printed no sidecar process id: {await parent.StandardError.ReadToEndAsync(ct)}");
 
-		parent.Kill();
-		await parent.WaitForExitAsync(ct);
+			parent.Kill();
+			await parent.WaitForExitAsync(ct);
 
-		await Processes.WaitUntilGoneAsync(sidecar, ct);
+			await Processes.WaitUntilGoneAsync(sidecar, ct);
+			sidecar = 0;
+		}
+		finally
+		{
+			KillLeftovers(parent, sidecar);
+		}
 	}
 
 	/// <summary>
@@ -267,14 +276,16 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 		info.ArgumentList.Add(binaries.NewDatabase());
 
 		using var parent = Process.Start(info)!;
-		var sidecarLine = await parent.StandardOutput.ReadLineAsync(ct);
-		var holderLine = await parent.StandardOutput.ReadLineAsync(ct);
-
-		// The holder is parsed first and killed in the finally, so no failure below can leak it.
-		using var holder = int.TryParse(holderLine, System.Globalization.CultureInfo.InvariantCulture, out var holderId) ? Process.GetProcessById(holderId) : null;
+		Process? holder = null;
+		var sidecar = 0;
 		try
 		{
-			if (!int.TryParse(sidecarLine, System.Globalization.CultureInfo.InvariantCulture, out var sidecar) || holder is null)
+			var sidecarLine = await parent.StandardOutput.ReadLineAsync(ct);
+			var holderLine = await parent.StandardOutput.ReadLineAsync(ct);
+
+			// The holder is parsed first and killed in the finally, so no failure below can leak it.
+			holder = int.TryParse(holderLine, System.Globalization.CultureInfo.InvariantCulture, out var holderId) ? Process.GetProcessById(holderId) : null;
+			if (!int.TryParse(sidecarLine, System.Globalization.CultureInfo.InvariantCulture, out sidecar) || holder is null)
 			{
 				// The holder keeps the host's stderr open too, so both go before it is read.
 				parent.Kill();
@@ -286,11 +297,37 @@ public sealed class SidecarTests(SidecarBinaries binaries)
 			await parent.WaitForExitAsync(ct);
 
 			await Processes.WaitUntilGoneAsync(sidecar, ct);
+			sidecar = 0;
 			Assert.False(holder.HasExited);
 		}
 		finally
 		{
 			holder?.Kill();
+			holder?.Dispose();
+			KillLeftovers(parent, sidecar);
+		}
+	}
+
+	/// <summary>
+	/// What a failed hard-kill test leaves running: the host, with what it started, and the sidecar, which the host's
+	/// kill orphaned. Left behind, they hold the fixture's files, and on Windows its teardown then fails as well. A
+	/// sidecar the test saw exit is 0 here, so a process id reused since is never killed.
+	/// </summary>
+	private static void KillLeftovers(Process parent, int sidecar)
+	{
+		if (!parent.HasExited)
+			parent.Kill(entireProcessTree: true);
+		if (sidecar == 0)
+			return;
+
+		try
+		{
+			using var process = Process.GetProcessById(sidecar);
+			process.Kill();
+		}
+		catch (ArgumentException)
+		{
+			// Gone already.
 		}
 	}
 }

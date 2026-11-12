@@ -1,7 +1,10 @@
+using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Threading.Channels;
+using Grpc.Core;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
+using Whatsmeow.Core.Errors;
 using Whatsmeow.Events;
 using Whatsmeow.IntegrationTests.Events;
 using Whatsmeow.IntegrationTests.Fake;
@@ -324,6 +327,51 @@ public sealed class ExternalTests(FakeSidecar fixture, SidecarBinaries binaries)
 		var expected = new[] { Deliveries.Received("external-consumers", "M1"), Deliveries.Received("external-consumers", "M2") };
 		Assert.Equal(expected, await firstReceived.NextAsync(2, ct));
 		Assert.Equal(expected, await secondReceived.NextAsync(2, ct));
+	}
+
+	/// <summary>
+	/// Two clients with one consumer name, as two replicas on the default: the newer stream replaces the older, whose
+	/// client logs the end and never opens it again, so it gets none of the events that follow.
+	/// </summary>
+	[Fact(Timeout = Timeout)]
+	public async Task TwoClients_OfOneConsumer_TheNewerTakesTheStreamAndTheOlderEnds()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		using var logs = new LogCapture();
+		var token = StandaloneSidecar.NewTokenFile(binaries.NewDirectory());
+		await using var standalone = await StartFakeAsync("tcp:127.0.0.1:0", token, ct);
+		await using var first = await WhatsmeowSidecar.StartAsync(Options(standalone, token, "first"), logs.Factory, ct);
+		await using var second = await WhatsmeowSidecar.StartAsync(Options(standalone, token, "first"), ct);
+		var fake = new FakeWhatsAppService.FakeWhatsAppServiceClient(first.CallInvoker);
+		var one = await LinkAsync(first, fake, "external-replaced", ct);
+		var other = await second.Sessions.GetOrCreateAsync(SessionId.From("external-replaced"), ct);
+		var firstIds = new ConcurrentQueue<MessageId>();
+		using var firstRecorded = one.On<MessageReceived>((e, _) =>
+		{
+			firstIds.Enqueue(e.Id);
+			return ValueTask.CompletedTask;
+		});
+		using var firstReceived = new Received<MessageReceived>(one);
+		using var secondReceived = new Received<MessageReceived>(other);
+
+		// The first client's stream is open once M0 reached it, so the second's is the newer one.
+		await one.ConnectAsync(ct);
+		await Deliveries.DeliverAsync(fake, "external-replaced", ct, "M0");
+		_ = await firstReceived.NextAsync(ct);
+		await other.ConnectAsync(ct);
+
+		// Final: the first client's stream is over before M1 and M2 are delivered, so neither can reach it.
+		var ended = await logs.WaitForAsync(r => r.Id.Name == "StreamEnded", ct);
+		await Deliveries.DeliverAsync(fake, "external-replaced", ct, "M1", "M2");
+
+		// M0 may come to the second too, from the cursor, if the first had not acked it yet.
+		var secondIds = new List<MessageId>();
+		while (!secondIds.Contains(MessageId.From("M2")))
+			secondIds.Add((await secondReceived.NextAsync(ct)).Id);
+		Assert.Equal([MessageId.From("M1"), MessageId.From("M2")], secondIds.Where(id => id != MessageId.From("M0")));
+		Assert.Equal([MessageId.From("M0")], firstIds);
+		Assert.Equal(WhatsmeowErrorCode.ConsumerReplaced, RpcErrors.Code(Assert.IsType<RpcException>(ended.Exception)));
+		Assert.Equal("external-replaced", ended.GetStructuredStateValue("SessionId"));
 	}
 
 	[Fact(Timeout = Timeout)]

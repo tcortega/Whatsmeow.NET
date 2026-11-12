@@ -48,4 +48,28 @@ public sealed class JidParseTests
 		Assert.True(table.RootElement.GetArrayLength() > 0);
 		Assert.Empty(disagreeing);
 	}
+
+	/// <summary>
+	/// Each part lands in its own field, and the text comes back in whatsmeow's canonical form, which parses to the same
+	/// JID. The canonical forms are what whatsmeow's <c>types.JID.String</c> writes for the same text at the pin: an agent
+	/// always with its device, a device without its leading zeros.
+	/// </summary>
+	[Theory]
+	[InlineData("5511900000001@s.whatsapp.net", "5511900000001", 0, 0, "s.whatsapp.net", "5511900000001@s.whatsapp.net")]
+	[InlineData("111:2@lid", "111", 0, 2, "lid", "111:2@lid")]
+	[InlineData("5511900000001.1:2@s.whatsapp.net", "5511900000001", 1, 2, "s.whatsapp.net", "5511900000001.1:2@s.whatsapp.net")]
+	[InlineData("5511900000001.1@s.whatsapp.net", "5511900000001", 1, 0, "s.whatsapp.net", "5511900000001.1:0@s.whatsapp.net")]
+	[InlineData("5511900000001:002@s.whatsapp.net", "5511900000001", 0, 2, "s.whatsapp.net", "5511900000001:2@s.whatsapp.net")]
+	[InlineData("120363000000000000@g.us", "120363000000000000", 0, 0, "g.us", "120363000000000000@g.us")]
+	[InlineData("status@broadcast", "status", 0, 0, "broadcast", "status@broadcast")]
+	public void Parse_EachPartInItsField_AndTheCanonicalFormRoundTrips(string text, string user, byte agent, ushort device, string server, string canonical)
+	{
+		var jid = Jid.Parse(text);
+
+		Assert.Equal((user, agent, device, server), (jid.User, jid.Agent, jid.Device, jid.Server));
+		Assert.Equal(canonical, jid.ToString());
+		var again = Jid.Parse(jid.ToString());
+		Assert.Equal(jid, again);
+		Assert.Equal(jid.GetHashCode(), again.GetHashCode());
+	}
 }
