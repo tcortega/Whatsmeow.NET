@@ -64,6 +64,13 @@ The library refuses any other value: whether WhatsApp takes one is [unknown] (§
 A direct chat's timer goes out as a message, paced like one; a group's is a group setting.
 Your later messages do not carry the timer: the library sets none on a send.
 
+## Locations and contact cards
+
+A received location arrives as `LocationContent`: its latitude and longitude, and the place's name and address when the message gives them.
+A received contact card arrives as `ContactCardContent`, with its display name and vCard.
+A live location and a message with several contact cards still arrive as `UnknownContent`; read them from `Raw` (§8.3).
+The library has no send for either; `SendRawAsync` sends any message (below).
+
 ## Receipts and marking as read
 
 `ReceiptReceived` tells you a message was delivered, read or played, with the message ids and the `ReceiptType`.

@@ -51,6 +51,14 @@ internal static class ContentMapping
 			({ AudioMessage: { } audio }, _) => ToAudio(audio, viewOnce),
 			({ DocumentMessage: { } document }, _) => ToDocument(document),
 			({ StickerMessage: { } sticker }, _) => ToSticker(sticker),
+			({ LocationMessage: { } location }, _) => new LocationContent
+			{
+				Latitude = location.DegreesLatitude,
+				Longitude = location.DegreesLongitude,
+				Name = NullIfEmpty(location.Name),
+				Address = NullIfEmpty(location.Address),
+			},
+			({ ContactMessage: { } contact }, _) => new ContactCardContent { DisplayName = contact.DisplayName, VCard = contact.Vcard },
 			_ when PollOf(message) is { PollType: E2E.PollType.Poll } poll => ToPoll(poll),
 			_ => new UnknownContent(),
 		};
