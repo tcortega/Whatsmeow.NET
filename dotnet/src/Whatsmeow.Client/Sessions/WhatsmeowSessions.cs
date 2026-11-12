@@ -113,21 +113,22 @@ public sealed class WhatsmeowSessions
 
 	/// <summary>Stops every session's events and acks what was handled, while the sidecar still runs.</summary>
 	/// <param name="stopWaiting">Once cancelled, no session waits for handlers that ignore their cancellation (ADR 0034).</param>
-	internal async Task StopEventsAsync(CancellationToken stopWaiting)
+	/// <remarks>All at once: every session's handlers see their cancellation together, and the stop takes the slowest session's time, not their sum.</remarks>
+	internal async Task StopEventsAsync(CancellationToken stopWaiting) =>
+		await Task.WhenAll(_clients.Values.Select(client => StopOneAsync(client, stopWaiting))).ConfigureAwait(false);
+
+	private async Task StopOneAsync(SessionClient client, CancellationToken stopWaiting)
 	{
-		foreach (var client in _clients.Values)
+		// Each on its own: one client's failure must not leave the others' handlers running and their acks unsent.
+		try
 		{
-			// Each on its own: one client's failure must not leave the others' handlers running and their acks unsent.
-			try
-			{
-				await client.StopEventsAsync(stopWaiting).ConfigureAwait(false);
-			}
+			await client.StopEventsAsync(stopWaiting).ConfigureAwait(false);
+		}
 #pragma warning disable CA1031 // Justification: logged; the sidecar's stop goes on
-			catch (Exception e)
+		catch (Exception e)
 #pragma warning restore CA1031
-			{
-				SessionLog.StopEventsFailed(_log, e, client.SessionId.Value);
-			}
+		{
+			SessionLog.StopEventsFailed(_log, e, client.SessionId.Value);
 		}
 	}
 
@@ -195,6 +196,11 @@ public sealed class WhatsmeowSessions
 		{
 			foreach (var id in connected)
 				SessionLog.ReconnectFailed(_log, e, id.Value);
+			return;
+		}
+		catch (ObjectDisposedException) when (_sidecar.IsDisposed)
+		{
+			// The sidecar is stopping, so there is nothing to connect again, and this is not a failed launch.
 			return;
 		}
 
