@@ -141,10 +141,11 @@ func (svc *Service) client(id string) (Client, error) {
 }
 
 // parseJID parses a JID in whatsmeow's string form that has a user and a server.
+// Its text names the field, never the JID, which names a person (ADR 0039).
 func parseJID(field, value string) (types.JID, error) {
 	jid, err := types.ParseJID(value)
 	if err != nil || jid.User == "" || jid.Server == "" {
-		return types.JID{}, fmt.Errorf("parse the %s: %w", field, server.InvalidArgument(field, "%q is not a JID", value))
+		return types.JID{}, fmt.Errorf("parse the %s: %w", field, server.InvalidArgument(field, "not a JID"))
 	}
 
 	return jid, nil
@@ -158,7 +159,8 @@ func sendFailed(what, id string, err error) error {
 	case errors.Is(err, whatsmeow.ErrNoPushName):
 		return fmt.Errorf("%s for session %q: %w: %w", what, id, server.ErrNoPushName, err)
 	case errors.Is(err, whatsmeow.ErrNotLoggedIn):
-		return fmt.Errorf("%s for session %q: %w: %w", what, id, server.ErrNotLoggedIn, err)
+		// Logged out, not never paired: the session was online, so its device was deleted meanwhile (ADR 0025).
+		return fmt.Errorf("%s for session %q: %w: %w", what, id, server.ErrLoggedOut, err)
 	default:
 		return fmt.Errorf("%s for session %q: %w", what, id, err)
 	}

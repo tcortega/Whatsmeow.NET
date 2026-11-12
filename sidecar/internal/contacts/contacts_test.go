@@ -572,10 +572,13 @@ func TestWhatsAppsErrorsBecomeTheirReasons(t *testing.T) {
 		{"another IQ error", &whatsmeow.IQError{Code: 500, Text: "internal-server-error", RawNode: node}, false, codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "500"}},
 		{"an IQ error without a code, which prints its node", &whatsmeow.IQError{RawNode: node}, false, codes.FailedPrecondition, "WHATSAPP_ERROR", map[string]string{"code": "0"}},
 		{"not connected", whatsmeow.ErrNotConnected, false, codes.Unavailable, "NOT_CONNECTED", nil},
+		// The bare value comes before the IQ was written and after (client.go:976-985, request.go:198-208).
+		{"not connected, an update that may have been sent", whatsmeow.ErrNotConnected, true, codes.Unknown, "OUTCOME_UNKNOWN", nil},
 		{"not connected, an update that was never sent", fmt.Errorf("failed to get user info for %s to fill LID cache: failed to send usync query: %w", pn, whatsmeow.ErrNotConnected), true, codes.Unavailable, "NOT_CONNECTED", nil},
 		{"disconnected while waiting", disconnected, false, codes.Unavailable, "NOT_CONNECTED", nil},
 		{"an update disconnected while waiting", disconnected, true, codes.Unknown, "OUTCOME_UNKNOWN", nil},
 		{"an update that timed out", whatsmeow.ErrIQTimedOut, true, codes.Unknown, "OUTCOME_UNKNOWN", nil},
+		{"an update WhatsApp answered without its list", &whatsmeow.ElementMissingError{Tag: "list", In: "response to blocklist update"}, true, codes.Unknown, "OUTCOME_UNKNOWN", nil},
 		{"a read that timed out", fmt.Errorf("failed to send usync query: %w", whatsmeow.ErrIQTimedOut), false, codes.Unavailable, "WHATSAPP_TIMED_OUT", nil},
 		{"a number without a LID", fmt.Errorf("%w: no LID found for %s from server", whatsmeow.ErrRecipientNotOnWhatsApp, pn), true, codes.NotFound, "RECIPIENT_NOT_ON_WHATSAPP", nil},
 		{"a store failure", fmt.Errorf("failed to get LID for PN %s: %w", pn, errors.New("database is locked")), true, codes.Internal, "INTERNAL", nil},

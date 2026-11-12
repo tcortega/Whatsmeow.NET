@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"slices"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -228,6 +229,28 @@ func TestACallFailsWithItsReasonAndAsksWhatsmeowForNothingWhenRefused(t *testing
 	}
 }
 
+// A rejected JID names a person: the status message names the field, never the text, which the redactor misses
+// when its digits are split by separators.
+func TestARejectedJIDIsNeverEchoed(t *testing.T) {
+	t.Parallel()
+
+	presence, ctx := serve(t, sessions{"s1": {client: &stub{}}})
+
+	const number = "+55 11 90000-0001"
+
+	for _, req := range []proto.Message{
+		&whatsmeowv1.SubscribePresenceRequest{SessionId: "s1", User: number},
+		&whatsmeowv1.SendChatPresenceRequest{SessionId: "s1", Chat: number, State: whatsmeowv1.ChatPresenceState_CHAT_PRESENCE_STATE_TYPING},
+	} {
+		err := call(ctx, presence, req)
+		wantReason(t, fmt.Sprintf("%T", req), err, codes.InvalidArgument, "INVALID_ARGUMENT")
+
+		if msg := status.Convert(err).Message(); strings.Contains(msg, "90000") {
+			t.Errorf("%T: the message %q echoes the JID", req, msg)
+		}
+	}
+}
+
 func TestWhatsmeowsErrorsBecomeTheirReasons(t *testing.T) {
 	t.Parallel()
 
@@ -239,7 +262,8 @@ func TestWhatsmeowsErrorsBecomeTheirReasons(t *testing.T) {
 		{whatsmeow.ErrNotConnected, codes.Unavailable, "NOT_CONNECTED"},
 		{fmt.Errorf("send: %w", socket.ErrSocketClosed), codes.Unavailable, "NOT_CONNECTED"},
 		{whatsmeow.ErrNoPushName, codes.FailedPrecondition, "NO_PUSH_NAME"},
-		{fmt.Errorf("failed to get privacy token: %w", whatsmeow.ErrNotLoggedIn), codes.FailedPrecondition, "NOT_LOGGED_IN"},
+		// The session was online, so its device was deleted meanwhile (ADR 0025).
+		{fmt.Errorf("failed to get privacy token: %w", whatsmeow.ErrNotLoggedIn), codes.FailedPrecondition, "LOGGED_OUT"},
 		{errors.New("websocket: write failed"), codes.Internal, "INTERNAL"},
 	}
 

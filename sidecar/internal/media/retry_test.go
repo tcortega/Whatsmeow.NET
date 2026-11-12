@@ -3,6 +3,7 @@ package media
 import (
 	"bytes"
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	"go.mau.fi/whatsmeow/util/gcmutil"
 	"go.mau.fi/whatsmeow/util/hkdfutil"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -102,6 +104,29 @@ func TestAnInvalidRetryRequestIsRefused(t *testing.T) {
 
 	if len(h.stub.receipts) != 0 {
 		t.Fatalf("an invalid request sent %v", h.stub.receipts)
+	}
+}
+
+// A rejected JID names a person: the status message names the field, never the text, which the redactor misses
+// when its digits are split by separators.
+func TestARejectedRetryJIDIsNeverEchoed(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+
+	// The device part makes whatsmeow's parse fail (types/jid.go:189-198).
+	const number = "+55 11 90000-0001:x@s.whatsapp.net"
+
+	for name, req := range map[string]*whatsmeowv1.RequestMediaRetryRequest{
+		"chat":   {SessionId: "s1", MessageId: "M1", Chat: number, Media: expiredRef()},
+		"sender": {SessionId: "s1", MessageId: "M1", Chat: group, Sender: number, Media: expiredRef()},
+	} {
+		_, err := h.client.RequestMediaRetry(h.ctx, req)
+		wantReason(t, err, codes.InvalidArgument, "INVALID_ARGUMENT", name)
+
+		if msg := status.Convert(err).Message(); strings.Contains(msg, "90000") {
+			t.Errorf("%s: the message %q echoes the JID", name, msg)
+		}
 	}
 }
 

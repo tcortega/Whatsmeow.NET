@@ -301,9 +301,11 @@ func TestTheLiveControlSendsNoLegacyIQUnlessTheMutationIsRefused(t *testing.T) {
 		path string
 	}{
 		{"disconnected", &whatsmeow.DisconnectedError{Action: "info query"}, "unknown"},
-		{"not connected", whatsmeow.ErrNotConnected, "none"},
+		// The bare value can come after the mutation was written (request.go:198-208).
+		{"not connected", whatsmeow.ErrNotConnected, "unknown"},
 		{"cancelled", context.Canceled, "unknown"},
-		{"no result", &whatsmeow.ElementMissingError{Tag: "result", In: "mex response"}, "none"},
+		// WhatsApp answered the mutation, without its result (newsletter.go:183-201): it may have been made.
+		{"no result", &whatsmeow.ElementMissingError{Tag: "result", In: "mex response"}, "unknown"},
 		// The mex answer in argo, which whatsmeow does not decode at the pin (newsletter.go:206-209).
 		{"argo", errors.New("argo decoding is currently broken"), "none"},
 	} {
@@ -313,7 +315,9 @@ func TestTheLiveControlSendsNoLegacyIQUnlessTheMutationIsRefused(t *testing.T) {
 			var logged bytes.Buffer
 
 			h, about, live := startLiveContactsLogging(t, zerolog.New(&logged).Level(zerolog.InfoLevel))
-			about.err = fmt.Errorf("mex: %w", tc.err)
+			// As SetStatusMessage returns it at the pin: sendIQ's error, or sendMexIQ's own, unwrapped
+			// (user.go:166-171, newsletter.go:172-209).
+			about.err = tc.err
 
 			_, _ = live.SetAbout(h.ctx, &livetestv1.SetAboutRequest{SessionId: "s1", Text: "wmn about 20261108120000"})
 

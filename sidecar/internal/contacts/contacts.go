@@ -386,6 +386,7 @@ func classify(op string, err error, write bool) error {
 	var (
 		iqErr        *whatsmeow.IQError
 		disconnected *whatsmeow.DisconnectedError
+		missing      *whatsmeow.ElementMissingError
 	)
 
 	switch {
@@ -403,8 +404,13 @@ func classify(op string, err error, write bool) error {
 		}
 
 		return fmt.Errorf("%s: %w: %w", op, server.WithMetadata(server.ErrWhatsAppError, "code", fmt.Sprint(iqErr.Code)), bare)
+	case write && err == whatsmeow.ErrNotConnected: //nolint:errorlint // the unwrapped one may come after the write
+		// whatsmeow returns this same bare value before the IQ was written (client.go:976-985) and after it, when the
+		// socket dropped, came back and was gone again (request.go:198-208), and sendIQ wraps neither: a write that got
+		// it may have taken effect.
+		return fmt.Errorf("%s: %w: %w", op, server.ErrOutcomeUnknown, whatsmeow.ErrNotConnected)
 	case errors.Is(err, whatsmeow.ErrNotConnected):
-		// Never sent (request.go:133-141).
+		// A read that got it did nothing, and a wrapped one came from a call before the IQ, which was never sent.
 		return fmt.Errorf("%s: %w: %w", op, server.ErrNotConnected, whatsmeow.ErrNotConnected)
 	case errors.Is(err, whatsmeow.ErrIQTimedOut) && write:
 		return fmt.Errorf("%s: %w: %w", op, server.ErrOutcomeUnknown, whatsmeow.ErrIQTimedOut)
@@ -417,6 +423,10 @@ func classify(op string, err error, write bool) error {
 		}
 
 		return fmt.Errorf("%s: %w: %w", op, server.ErrNotConnected, bare)
+	case write && errors.As(err, &missing):
+		// WhatsApp answered the write without the list whatsmeow reads from the answer (user.go:1081-1084): it may
+		// have taken effect.
+		return fmt.Errorf("%s: %w: whatsmeow could not read WhatsApp's answer (a %T)", op, server.ErrOutcomeUnknown, missing)
 	default:
 		return fmt.Errorf("%s: %w", op, cause(err))
 	}
