@@ -653,7 +653,10 @@ source_archive() {
 # empty HTTP cache, so it gets exactly what that place holds, never a cached package of the same version: a feed
 # directory, or nuget.org for a published release (nuget.org:<version>, #52).
 consumer_setup() { # feed | nuget.org:<version>
-	work="$(mktemp -d)" || return
+	# The physical path: macOS's temporary directory is under /var, a symlink to /private/var, and there
+	# `dotnet add package` fails with "The project does not support adding package references through the add package
+	# command" [observed: SDK 11.0.100, macOS; the same command passes from /private/var].
+	work="$(cd "$(mktemp -d)" && pwd -P)" || return
 	packages="$work/packages"
 	package_origin "$1" || return
 	native_host || return
