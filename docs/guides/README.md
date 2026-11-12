@@ -13,7 +13,7 @@ The [README](../../README.md) has the install and the quick start.
 * [Hosting and testing](hosting.md): `AddWhatsmeow()`, configuration, keyed sessions, DI handlers, `Whatsmeow.Testing`.
 * [Errors and telemetry](errors-and-telemetry.md): every exception and its code, cancellation, logs, traces and metrics.
 * [External mode](external-mode.md): a sidecar your orchestrator runs, in another container or process.
-* [Deployment](deployment.md): platforms, Native AOT, single file, containers, macOS and Windows, capacity, troubleshooting.
+* [Deployment](deployment.md): platforms, Native AOT, single file, containers, macOS and Windows, a proxy, capacity, troubleshooting.
 * [Security](security.md): the database's keys, backups, the socket and token, personal data in logs.
 * [Licensing](licensing.md): MPL-2.0 and GPL-3.0-only, and what redistributing the sidecar owes.
 

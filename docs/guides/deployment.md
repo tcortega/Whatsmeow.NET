@@ -34,6 +34,21 @@ The experimental `Raw` members work under AOT too, but their types change with w
   To run it as its own container, use [External mode](external-mode.md).
 * Keep the database on a persistent volume, local to the node ([Security](security.md)).
 
+## Proxy
+
+The library has no proxy option: the sidecar never calls whatsmeow's `SetProxy` or HTTP client setters, out of v1 scope (#36) [observed: `sidecar/parity.excluded`].
+whatsmeow then takes its proxy from the sidecar's environment, as Go's `net/http` does: `HTTPS_PROXY` or `https_proxy`, with `NO_PROXY` or `no_proxy` for exceptions [observed: whatsmeow `client.go:273-279`, `:373` at the pin; Go's `http.ProxyFromEnvironment`].
+That covers the WhatsApp websocket, before and after pairing, and media uploads and downloads, all of which are `https` [observed: whatsmeow `client.go:581-584`, `socket/dialopts.go`, `download.go`, `upload.go`; `coder/websocket` dials `wss` as `https`].
+The sidecar reads the variables once, the first time it connects, so set them before it starts [observed: Go's `envProxyFunc`, a `sync.Once`].
+
+* Embedded mode: the client starts the sidecar without touching its environment, so it inherits your app's [observed: `SidecarProcess.StartInfo` sets no `Environment`; .NET's `ProcessStartInfo` copies the parent's].
+  Set the variable where your app is launched, such as the container's `env`.
+* External mode: set it on the sidecar's container or process ([External mode](external-mode.md)).
+
+One proxy serves every session of a sidecar, since they share its environment; a proxy per session is not supported (#36) [observed: `session.NewWhatsmeowClient` sets no proxy].
+The client's own channel to the sidecar is `http://localhost` [observed: `LocalChannel`], which `HTTPS_PROXY` does not reach [inferred: .NET reads it for `https` only]; whether `HTTP_PROXY` or `ALL_PROXY` in your app's environment disturbs that channel is [unknown], so set only `HTTPS_PROXY`.
+A proxied session has not been run against real WhatsApp, and whether WhatsApp treats one differently is [unknown].
+
 ## macOS and Windows
 
 The binaries are not notarized or Authenticode signed (§12).
