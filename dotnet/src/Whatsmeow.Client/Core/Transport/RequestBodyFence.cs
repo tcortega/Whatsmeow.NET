@@ -16,8 +16,8 @@ namespace Whatsmeow.Core.Transport;
 /// under the credit lock, and <c>SendDataAsync</c>, out of flow-control credit, reads it again after leaving that lock,
 /// so the write throws a <see cref="NullReferenceException"/>; a write that takes the lock after <c>Complete</c> waits
 /// on a new waiter nothing completes:
-/// https://github.com/dotnet/runtime/blob/v10.0.14/src/libraries/System.Net.Http/src/System/Net/Http/SocketsHttpHandler/Http2Stream.cs#L1294-L1312
-/// https://github.com/dotnet/runtime/blob/v10.0.14/src/libraries/System.Net.Http/src/System/Net/Http/SocketsHttpHandler/Http2Stream.cs#L391-L399
+/// https://github.com/dotnet/runtime/blob/v11.0.0/src/libraries/System.Net.Http/src/System/Net/Http/SocketsHttpHandler/Http2Stream.cs#L1294-L1312
+/// https://github.com/dotnet/runtime/blob/v11.0.0/src/libraries/System.Net.Http/src/System/Net/Http/SocketsHttpHandler/Http2Stream.cs#L391-L399
 /// </para>
 /// <para>
 /// The fence holds the content open until the write in flight returned, cancelling it first so it cannot wait for

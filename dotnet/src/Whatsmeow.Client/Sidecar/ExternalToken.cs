@@ -26,8 +26,8 @@ internal static class ExternalToken
 			throw;
 		}
 
-		var token = content.EndsWith('\n') ? content[..^1] : content;
-		token = token.EndsWith('\r') ? token[..^1] : token;
+		var token = content is [.., '\n'] ? content[..^1] : content;
+		token = token is [.., '\r'] ? token[..^1] : token;
 		if (token.Length != HexLength || token.AsSpan().ContainsAnyExcept(s_hex))
 			SidecarUnavailableException.ThrowTokenUnreadable(path, "it must hold one line, 32 bytes as hex", innerException: null);
 

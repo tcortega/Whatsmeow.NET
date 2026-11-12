@@ -63,7 +63,7 @@ internal sealed class Dispatcher(
 	/// <summary>Every received event not yet under the watermark, in seq order.</summary>
 	private readonly Queue<Entry> _order = new();
 
-	private readonly Dictionary<string, Lane> _lanes = new(StringComparer.Ordinal);
+	private readonly Dictionary<string, Lane> _lanes = [with(StringComparer.Ordinal)];
 	private readonly List<Lane> _started = [];
 	private ulong _watermark;
 	private ulong _acked;

@@ -56,7 +56,7 @@ public static class Echo
 				await foreach (var update in client.PairWithQrCodeAsync(cancellationToken).ConfigureAwait(false))
 				{
 					if (update is PairingUpdate.QrCode code)
-						await console.WriteLineAsync(AsciiQRCodeHelper.GetQRCode(code.Code, QRCodeGenerator.ECCLevel.L, drawQuietZones: true, invert: true)).ConfigureAwait(false);
+						await console.WriteLineAsync(AsciiQRCodeHelper.GetQRCode(code.Code, QRCodeGenerator.ECCLevel.L, drawQuietZones: true, invert: true), cancellationToken).ConfigureAwait(false);
 				}
 
 				break;
@@ -64,7 +64,7 @@ public static class Echo
 				await client.ConnectAsync(cancellationToken).ConfigureAwait(false);
 				break;
 			default:
-				await console.WriteLineAsync($"The session is {state}, so it neither pairs nor connects.").ConfigureAwait(false);
+				await console.WriteLineAsync($"The session is {state}, so it neither pairs nor connects.", cancellationToken).ConfigureAwait(false);
 				break;
 		}
 	}

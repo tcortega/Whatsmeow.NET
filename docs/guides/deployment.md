@@ -7,6 +7,8 @@ The Linux binaries have no C dependencies and also serve linux-musl-x64 and linu
 CI installs the packages into a new app on all eight target RIDs: portable build/run and publish, and RID-specific framework-dependent and self-contained JIT publishes [observed: `build/ci.sh job_install`, `install.yml`; ADR 0058].
 Both musl RIDs run in their architecture's Alpine container, and Native AOT is a separate RID-specific publish on every target RID [observed: `build/ci.sh job_aot`; ADR 0056, 0058].
 Other targets, win-x86 included, have no binary, and the start fails naming the paths it tried.
+The packages target `net11.0` only (ADR 0071), so the app needs the .NET 11 runtime.
+That runtime needs an x64 CPU with x86-64-v2, and on Windows Arm64 one with LSE [observed: learn.microsoft.com, What's new in the .NET 11 runtime]; no run here was on an older CPU [unknown].
 
 ## Where the binary comes from
 

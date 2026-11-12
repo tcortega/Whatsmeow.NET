@@ -9,7 +9,7 @@ WhatsApp can ban accounts it sees as automated, and which sending rates are safe
 
 ## Install
 
-It targets .NET 10 on Linux (glibc and musl), macOS and Windows, x64 and arm64.
+It targets .NET 11 on Linux (glibc and musl), macOS and Windows, x64 and arm64.
 
 ```sh
 dotnet add package Whatsmeow.Client
@@ -112,7 +112,7 @@ public static class Echo
 				await foreach (var update in client.PairWithQrCodeAsync(cancellationToken).ConfigureAwait(false))
 				{
 					if (update is PairingUpdate.QrCode code)
-						await console.WriteLineAsync(AsciiQRCodeHelper.GetQRCode(code.Code, QRCodeGenerator.ECCLevel.L, drawQuietZones: true, invert: true)).ConfigureAwait(false);
+						await console.WriteLineAsync(AsciiQRCodeHelper.GetQRCode(code.Code, QRCodeGenerator.ECCLevel.L, drawQuietZones: true, invert: true), cancellationToken).ConfigureAwait(false);
 				}
 
 				break;
@@ -120,7 +120,7 @@ public static class Echo
 				await client.ConnectAsync(cancellationToken).ConfigureAwait(false);
 				break;
 			default:
-				await console.WriteLineAsync($"The session is {state}, so it neither pairs nor connects.").ConfigureAwait(false);
+				await console.WriteLineAsync($"The session is {state}, so it neither pairs nor connects.", cancellationToken).ConfigureAwait(false);
 				break;
 		}
 	}

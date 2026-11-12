@@ -135,7 +135,7 @@ internal sealed class LocalChannel : IDisposable
 	/// <summary>
 	/// Connects to the pipe within <see cref="s_connectTimeout"/>. Without a bound, a connect to a launch that is gone
 	/// would wait forever: a missing pipe makes <see cref="NamedPipeClientStream"/> try again until its timeout, infinite
-	/// by default (.NET 10.0.14 NamedPipeClientStream.cs:131-162, NamedPipeClientStream.Windows.cs:113-129).
+	/// by default (.NET 11.0.0 NamedPipeClientStream.cs:135-166, NamedPipeClientStream.Windows.cs:113-129).
 	/// </summary>
 	private static async ValueTask<Stream> ConnectPipeAsync(string? name, TimeProvider timeProvider, CancellationToken cancellationToken)
 	{
@@ -158,7 +158,7 @@ internal sealed class LocalChannel : IDisposable
 			await pipe.DisposeAsync().ConfigureAwait(false);
 
 			// An IOException, so gRPC reports the call Unavailable; a TimeoutException would be Internal (grpc-dotnet
-			// v2.85.0 GrpcProtocolHelpers.cs:450-462). The token is checked every 50 ms (NamedPipeClientStream.cs:137-145).
+			// v2.85.0 GrpcProtocolHelpers.cs:450-462). The token is checked every 50 ms (NamedPipeClientStream.cs:141-149).
 			throw new IOException($"The sidecar's pipe {name} accepted no connection within {s_connectTimeout}; that sidecar is gone.", e);
 		}
 		catch

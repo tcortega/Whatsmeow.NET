@@ -11,7 +11,7 @@ namespace Whatsmeow.Sessions;
 [SuppressMessage(
 	"Naming",
 	"CA1724:Type names should not match namespaces",
-	Justification = "The match is System.Web.SessionState, a .NET Framework namespace; this library targets net10.0 only, where it does not exist, and SessionState is the contract's name (session.proto)."
+	Justification = "The match is System.Web.SessionState, a .NET Framework namespace; this library targets net11.0 only, where it does not exist, and SessionState is the contract's name (session.proto)."
 )]
 public abstract record SessionState
 {

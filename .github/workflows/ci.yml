@@ -181,7 +181,9 @@ jobs:
         if: failure() || cancelled()
         with:
           name: test-results-${{ matrix.name }}
-          path: dotnet/artifacts/TestResults/**
+          path: |
+            dotnet/artifacts/TestResults/**
+            dotnet/artifacts/test/**
           if-no-files-found: ignore
           retention-days: 7
 
@@ -252,7 +254,9 @@ jobs:
         if: failure() || cancelled()
         with:
           name: test-results-external-${{ matrix.name }}
-          path: dotnet/artifacts/TestResults/**
+          path: |
+            dotnet/artifacts/TestResults/**
+            dotnet/artifacts/test/**
           if-no-files-found: ignore
           retention-days: 7
 

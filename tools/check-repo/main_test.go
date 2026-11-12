@@ -624,7 +624,7 @@ func TestCheckCompatibilitySuppressionsOnlyLetIWhatsAppClientGrowAndRawChange(t 
 			"  <Suppression><DiagnosticId>CP0006</DiagnosticId></Suppression>\n" +
 			"  <Suppression><DiagnosticId>CP0006</DiagnosticId><DiagnosticId>CP0002</DiagnosticId><Target>M:Whatsmeow.IWhatsAppClient.X</Target></Suppression>\n" +
 			"  <Suppression><DiagnosticId>CP0006</DiagnosticId><Target>M:Whatsmeow.IWhatsAppClient.X</Target>" +
-			"<Left>lib/net10.0/Whatsmeow.Client.dll</Left><IsBaselineSuppression>true</IsBaselineSuppression></Suppression>\n" +
+			"<Left>lib/net11.0/Whatsmeow.Client.dll</Left><IsBaselineSuppression>true</IsBaselineSuppression></Suppression>\n" +
 			"</Suppressions>\n")},
 	}, []string{
 		"dotnet/src/Whatsmeow.Client/CompatibilitySuppressions.xml:2: [compat-suppression]",
