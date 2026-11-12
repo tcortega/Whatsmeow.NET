@@ -1,6 +1,7 @@
 # 0024. Tether backups
 
 - Status: Accepted
+- Amended in place: 2026-11-12, the Windows job comes from .NET 11's `ProcessStartInfo.KillOnParentExit` (ADR 0071)
 - Date: 2026-11-01
 - Evidence: issue #22, its plan review, the primary sources named below, and the tests named below
 - Amends: [ADR 0017](0017-sidecar-process-conventions.md) (the tether backups it left for later)
@@ -35,15 +36,18 @@ Measured while building it:
   A signal with the parent alive is logged at info ("a parent-death signal came; the parent lives"): a thread of the parent exited, or a subreaper above it did (the man page).
   A SIGUSR1 after the handler is stopped does nothing: the Go runtime has no default kill for it and drops a signal nobody is notified of [observed: go1.27.3 `runtime/sigtab_linux_generic.go:20`, `signal_unix.go:735-759`].
 - **macOS.** The parent check right away and every second. Not kqueue `NOTE_EXIT`: it would still need the check, for more code.
-- **Windows.** The client puts the sidecar in a new Job Object with `KILL_ON_JOB_CLOSE` right after the start, one job per launch (`Sidecar/KillOnCloseJob.cs`), and closes it after the process is gone.
-  The handle is created without security attributes, so it cannot be inherited [observed: CreateJobObjectW docs], and no other child keeps the job alive.
-  Windows 8 and later nest jobs, so a client that already runs in a job works [observed: AssignProcessToJobObject docs].
-  If Windows refuses the job, the sidecar is killed and the start fails with `SidecarUnavailableException`: without the job it could outlive the client.
+- **Windows.** The client starts the sidecar with `ProcessStartInfo.KillOnParentExit` (`Sidecar/SidecarProcess.cs`), and .NET puts it in a Job Object with `KILL_ON_JOB_CLOSE`, one job for the process's children, as the process is created or while it is still suspended [observed: dotnet/runtime `v11.0.0` `SafeProcessHandle.Windows.cs`, `CreateKillOnParentExitJob`, `PROC_THREAD_ATTRIBUTE_JOB_LIST`, `AssignJobAndResumeThread`].
+  The handle is created without security attributes, so it cannot be inherited [observed: the same file; CreateJobObjectW docs], and no other child keeps the job alive.
+  Windows 8 and later nest jobs, so a client that already runs in a job works [observed: AssignProcessToJobObject docs]; .NET makes a new job when the client joined another one since [observed: `ReplaceKillOnParentExitJob`].
+  If Windows refuses the job, the start fails with `SidecarUnavailableException`: without the job the sidecar could outlive the client.
+  Until .NET 11 the client made the job itself, one per launch, with three hand-written `[LibraryImport]` calls (`Sidecar/KillOnCloseJob.cs`, removed).
+  The option is set on Windows only: on Linux it is `PR_SET_PDEATHSIG` with SIGKILL [observed: `v11.0.0` `ProcessStartInfo.cs`, `pal_process.c`], which would cut short the graceful stop the sidecar's own backup gives, and macOS has none.
+- **Inherited handles.** The sidecar inherits only its stdin, stdout and stderr (`ProcessStartInfo.InheritedHandles` empty), so no other handle of the app reaches it [observed: `v11.0.0` `ProcessStartInfo.cs`; Linux `close_range`, macOS `POSIX_SPAWN_CLOEXEC_DEFAULT` in `pal_process.c`].
 - **The Windows backup is a hard kill, by design.** When the client dies, the kernel terminates the sidecar as the job closes; the stop is graceful only when stdin EOF reaches the sidecar first.
   That is safe because a hard kill is already a case the sidecar must survive: the store is SQLite in WAL mode, delivery is at-least-once through the outbox (ADR 0003), and the kill-either-process tests kill it mid-stream.
   The issue's edge case "every backup uses the same graceful shutdown path" holds on Linux and macOS; on Windows it was amended to this.
 - **`SidecarPath` is the binary itself.** A wrapper script that starts it no longer works on Linux and macOS: the sidecar's parent is then the script, not `--parent-pid`, so it stops at once. The option's XML doc says so.
-- **Interop.** Hand-written `[LibraryImport]` for three functions and their structs, in that one internal file.
+- **Interop (until .NET 11; the library now has none).** Hand-written `[LibraryImport]` for three functions and their structs, in that one internal file.
   `[DllImport]` is banned (`dotnet/BannedSymbols.txt`), and CsWin32 emits `[LibraryImport]` only as a build task with assembly-wide `DisableRuntimeMarshalling` [observed: CsWin32 getting-started, "Support for trimming, AOT"], which is more than three functions need.
   `[LibraryImport]` needs `AllowUnsafeBlocks` in `Whatsmeow.Client`: without it the build fails with `SYSLIB1062: LibraryImportAttribute requires unsafe code. Project must be updated with '<AllowUnsafeBlocks>true</AllowUnsafeBlocks>'` [observed: SDK 10.0.403]. The library has no `unsafe` code of its own; the generator's stubs are the only users.
 - **SIGPIPE** is ignored, with SIGINT, so a write to a dead parent's pipe fails instead of killing the sidecar.
@@ -51,9 +55,9 @@ Measured while building it:
 ## Consequences
 
 - On Linux and macOS, every way the parent goes (stdin EOF, a dead parent, SIGTERM, Shutdown) stops the sidecar gracefully, whichever comes first.
-- On Windows the client's death kills the sidecar at once, a hard kill, even when stdin EOF would have stopped it gracefully (see the Decision); the normal stop is unchanged, because the job is closed only after the process exited.
-- A window remains on Windows between `Process.Start` and `AssignProcessToJobObject`: microseconds [inferred: two calls in a row on the starting thread]. A client that dies inside it leaves the sidecar outside any job, and only stdin EOF stops it, which fails only if another process already holds a leaked write end of its stdin. No mechanism covers it: `Process.Start` in .NET 10 cannot start a process suspended [inferred: no such `ProcessStartInfo` option].
+- On Windows the client's death kills the sidecar at once, a hard kill, even when stdin EOF would have stopped it gracefully (see the Decision); the normal stop is unchanged, because the job closes only when the client is gone.
+- The window on Windows between `Process.Start` and `AssignProcessToJobObject`, which .NET 10 could not close, is gone: the sidecar never runs outside the job [observed: `v11.0.0` `SafeProcessHandle.Windows.cs`, as above].
 - The stop reason a signal logs is the context's cause, "terminated signal received", instead of "signal".
 - A Linux `strace` shows a SIGUSR1 each time the thread that started the sidecar exits; it is expected.
-- Tests: `TestTheSidecarStopsWhenItsParentDiesWithStdinOpen` (Linux, macOS), `TestAThreadOfTheParentExitingDoesNotStopTheSidecar` (Linux), `TestTheSidecarStopsWhenItStartsWithAnotherParent` (Linux, macOS), `TestABrokenStderrStillStopsGracefully` (Linux, macOS), and `ParentKilledHard_StdinHeldOpenElsewhere_SidecarExitsOnItsOwn` on all three OSes, whose host makes every handle inheritable for a holder process because .NET 10 cannot pass one chosen handle to a child.
-- When the library moves to .NET 11, `ProcessStartInfo.KillOnParentExit` could replace the job; it kills with SIGKILL on Linux and has no macOS support [observed: dotnet/runtime main `ProcessStartInfo.cs`, `pal_process.c:894`], so the sidecar's own backups stay.
+- Tests: `TestTheSidecarStopsWhenItsParentDiesWithStdinOpen` (Linux, macOS), `TestAThreadOfTheParentExitingDoesNotStopTheSidecar` (Linux), `TestTheSidecarStopsWhenItStartsWithAnotherParent` (Linux, macOS), `TestABrokenStderrStillStopsGracefully` (Linux, macOS), and `ParentKilledHard_StdinHeldOpenElsewhere_SidecarExitsOnItsOwn` on all three OSes, whose host makes every handle inheritable for a holder process, because the client owns the sidecar's stdin and the host has no handle to name.
+- The sidecar's own backups on Linux and macOS stay.
