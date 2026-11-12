@@ -244,8 +244,9 @@ func startLogging(t *testing.T, path string, log zerolog.Logger) *harness {
 	t.Cleanup(stop)
 	h.stop = stop
 
-	// A bound for a broken slice, never a wait: every wait below ends on a condition.
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	// A bound for a broken slice, never a wait: every wait below ends on a condition. It spans the whole test, whose
+	// commits on a slow disk can take more than half a minute (#195's 20 connected sessions on win-x64), so it is wide.
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	t.Cleanup(cancel)
 
 	h.ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
