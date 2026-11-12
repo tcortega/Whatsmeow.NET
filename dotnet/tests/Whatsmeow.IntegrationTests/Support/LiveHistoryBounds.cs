@@ -57,7 +57,7 @@ internal sealed partial class LiveHistoryBounds : IDisposable
 	private readonly TimeProvider _time;
 	private readonly long _origin;
 	private readonly string _path;
-	private readonly SortedDictionary<string, TypeSummary> _types = new(StringComparer.Ordinal);
+	private readonly SortedDictionary<string, TypeSummary> _types = [with(StringComparer.Ordinal)];
 	private readonly List<IDisposable> _registrations = [];
 	private readonly CancellationTokenSource _deadline = new();
 	private readonly TaskCompletionSource<string> _closed = new(TaskCreationOptions.RunContinuationsAsynchronously);

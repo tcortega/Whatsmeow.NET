@@ -39,13 +39,13 @@ internal sealed record SidecarAddress
 			return null;
 
 		var hostPort = address[TcpPrefix.Length..];
-		var colon = hostPort.LastIndexOf(':');
+		var colon = hostPort.LastIndexOf(':', StringComparison.Ordinal);
 		if (colon <= 0 || !int.TryParse(hostPort[(colon + 1)..], NumberStyles.None, CultureInfo.InvariantCulture, out var port) || port is < 1 or > 65535)
 			return null;
 
 		// An IPv6 host is bracketed, as in a URI, so its own colons never read as the port's.
 		var host = hostPort[..colon];
-		var bracketed = host.StartsWith('[') && host.EndsWith(']');
+		var bracketed = host is ['[', .., ']'];
 		if (bracketed)
 			host = host[1..^1];
 

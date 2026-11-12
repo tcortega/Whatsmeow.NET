@@ -375,7 +375,7 @@ public sealed class HostingTests(FakeSidecar fixture, SidecarBinaries binaries)
 	{
 		using var logs = new LogCapture();
 		var contentRoot = binaries.NewDirectory();
-		var builder = Hosts.Builder(logs, new(StringComparer.Ordinal), contentRoot);
+		var builder = Hosts.Builder(logs, [with(StringComparer.Ordinal)], contentRoot);
 		_ = builder.Services.AddWhatsmeow();
 		using var host = builder.Build();
 

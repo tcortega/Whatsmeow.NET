@@ -10,7 +10,7 @@ namespace Whatsmeow.LiveTests;
 /// </summary>
 internal static class LiveRedaction
 {
-	private static ImmutableHashSet<string> s_users = [];
+	private static ImmutableHashSet<string> s_users = [with(StringComparer.Ordinal)];
 
 	/// <summary>Redacts <paramref name="jid"/>'s user part from now on; <see cref="LiveSidecar.AccountOfAsync"/> adds both accounts'.</summary>
 	public static void Add(Jid? jid)

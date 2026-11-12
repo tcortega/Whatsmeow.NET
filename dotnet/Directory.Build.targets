@@ -87,8 +87,8 @@
 			<_WhatsmeowRuleSwitch Include="WarningsNotAsErrors is set ($(WarningsNotAsErrors))" Condition="'$(WarningsNotAsErrors)' != ''" />
 			<_WhatsmeowRuleSwitch Include="WarningsAsErrors drops Nullable" Condition="!$(WarningsAsErrors.Contains('Nullable'))" />
 			<_WhatsmeowRuleSwitch Include="TreatWarningsAsErrors is off in a CI build" Condition="('$(GITHUB_ACTIONS)' == 'true' OR '$(ContinuousIntegrationBuild)' == 'true') AND '$(TreatWarningsAsErrors)' != 'true'" />
-			<!-- 10 is the net10.0 default [observed: dotnet msbuild -getProperty:WarningLevel]. -->
-			<_WhatsmeowRuleSwitch Include="WarningLevel is $(WarningLevel), below 10" Condition="'$(WarningLevel)' == '' OR $(WarningLevel) &lt; 10" />
+			<!-- 11 is the net11.0 default [observed: dotnet msbuild -getProperty:WarningLevel]. -->
+			<_WhatsmeowRuleSwitch Include="WarningLevel is $(WarningLevel), below 11" Condition="'$(WarningLevel)' == '' OR $(WarningLevel) &lt; 11" />
 			<_WhatsmeowRuleSwitch Include="CodeAnalysisRuleSet is set" Condition="'$(CodeAnalysisRuleSet)' != ''" />
 			<_WhatsmeowRuleSwitch Include="EnableNETAnalyzers is not true" Condition="'$(EnableNETAnalyzers)' != 'true'" />
 			<_WhatsmeowRuleSwitch Include="GenerateDocumentationFile is not true" Condition="'$(GenerateDocumentationFile)' != 'true'" />
@@ -107,9 +107,12 @@
 		<Error Condition="'@(_WhatsmeowRuleSwitch)' != ''" Code="WMN0003" Text="$(MSBuildProjectName) turns off a build rule: @(_WhatsmeowRuleSwitch, '; '). Rules are set centrally; a suppression is a justified pragma (docs/guidelines/csharp.md Suppressions)." />
 	</Target>
 
-	<!-- Test results stay under dotnet/artifacts/, wherever dotnet test runs from, with xunit's TRX report of every test, which CI keeps when a run fails. -->
+	<!--
+		xunit's TRX report of every test, which CI keeps when a run fails. dotnet test itself passes the results directory,
+		dotnet/artifacts/test/<project>/release, and a second one is refused [observed: SDK 11.0.100, exit code 5].
+	-->
 	<PropertyGroup Condition="'$(IsTestingPlatformApplication)' == 'true'">
-		<TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --results-directory &quot;$(ArtifactsPath)/TestResults/$(MSBuildProjectName)&quot; --report-xunit-trx</TestingPlatformCommandLineArguments>
+		<TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --report-xunit-trx</TestingPlatformCommandLineArguments>
 	</PropertyGroup>
 
 	<!--

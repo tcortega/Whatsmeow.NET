@@ -134,7 +134,7 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 #pragma warning restore CA2213
 	private readonly Lock _lock = new();
 	private readonly List<FakeCall> _calls = [];
-	private readonly Dictionary<string, Queue<Exception>> _failures = new(StringComparer.Ordinal);
+	private readonly Dictionary<string, Queue<Exception>> _failures = [with(StringComparer.Ordinal)];
 
 	/// <summary>The lane whose handlers run on this flow, so a raise into it from one of them fails instead of waiting forever.</summary>
 	private readonly AsyncLocal<RunningLane?> _runningLane = new();

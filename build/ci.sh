@@ -486,8 +486,8 @@ job_external() {
 # packages run on all of them; after a release, the same jobs install it from nuget.org (#52).
 package_feed=dotnet/artifacts/package
 sidecar_binaries=dotnet/artifacts/sidecar
-alpine_image=mcr.microsoft.com/dotnet/sdk:10.0.403-alpine3.24-amd64@sha256:60a079c9d3ffc98b2968c3153b995ede679f7d6504e3ae7d2b68225a7fd84f5a
-alpine_image_arm64=mcr.microsoft.com/dotnet/sdk:10.0.403-alpine3.24-arm64v8@sha256:bf500481e8dac63987f2b1e617938f72a77bcfb9b310a234f39483abf35c9bff
+alpine_image=mcr.microsoft.com/dotnet/sdk:11.0.100-alpine3.24-amd64@sha256:8234f4b51a16ff4416c013729616bd5df1211ced20e746067ddc66be7f526063
+alpine_image_arm64=mcr.microsoft.com/dotnet/sdk:11.0.100-alpine3.24-arm64v8@sha256:0de9ddd207f8aeb52aa36e4d8b54a22e06b26d1f8c4159264912900772c88d93
 
 # rid GOOS/GOARCH: the .NET RID of a Go target.
 rid() {

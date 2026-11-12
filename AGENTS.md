@@ -29,7 +29,7 @@ AGENTS.md              this file (CLAUDE.md is a symlink to it; nothing may depe
 
 ## Commands
 
-Setup once: the .NET SDK from `global.json` (10.0.403), then `mise trust && mise install` for Go, buf, golangci-lint, protoc, the protoc plugins and shellcheck.
+Setup once: the .NET SDK from `global.json` (11.0.100), then `mise trust && mise install` for Go, buf, golangci-lint, protoc, the protoc plugins and shellcheck.
 Every OS also needs jq and zip or 7z for `build/release-test.sh`, and unzip for `build/release.sh verify`; Windows also Git Bash, a C compiler on PATH for `go test -race` (gcc, as the runner has), and the Visual Studio Build Tools C++ workload, whose MSVC linker Native AOT needs.
 
 Everything CI runs is `build/ci.sh`, one subcommand per CI job; it also runs in Git Bash on Windows.

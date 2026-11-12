@@ -30,7 +30,7 @@ public sealed class WhatsmeowBuilder
 		_ = Services.AddSingleton(new DeclaredSession(id));
 		Services.TryAddKeyedSingleton<IWhatsAppClient>(
 			sessionKey,
-			static (services, key) => services.GetRequiredService<WhatsmeowSidecar>().Sessions.Client(SessionId.From((string)key!))
+			static (services, key) => services.GetRequiredService<WhatsmeowSidecar>().Sessions.Client(SessionId.From((string)key))
 		);
 		return this;
 	}

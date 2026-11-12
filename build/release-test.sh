@@ -295,7 +295,7 @@ nupkg() {
 		echo "    <id>$id</id>"
 		echo "    <version>$v</version>"
 		echo '    <dependencies>'
-		echo '      <group targetFramework="net10.0">'
+		echo '      <group targetFramework="net11.0">'
 		for dep in "$@"; do
 			echo "        <dependency id=\"${dep%%=*}\" version=\"${dep#*=}\" exclude=\"Build,Analyzers\" />"
 		done

@@ -237,5 +237,13 @@ public sealed class EchoConsoleTests(FakeSidecar fixture, SidecarBinaries binari
 			_ = _written.TrySetResult();
 			return Task.CompletedTask;
 		}
+
+		// What the sample's WriteLineAsync(string, CancellationToken) reaches [observed: .NET 11.0.0, a run without this override].
+		public override Task WriteLineAsync(ReadOnlyMemory<char> buffer, CancellationToken cancellationToken = default)
+		{
+			WriteLine(buffer.Span);
+			_ = _written.TrySetResult();
+			return Task.CompletedTask;
+		}
 	}
 }
