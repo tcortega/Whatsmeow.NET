@@ -30,7 +30,7 @@ func TestGetInfoReportsTheBuild(t *testing.T) {
 
 	want := &whatsmeowv1.GetInfoResponse{
 		Version:          "1.2.3",
-		Protocol:         1,
+		Protocol:         2,
 		WhatsmeowVersion: "v0.0.0-20261030195514-56e5ad0581ce",
 		WaWebVersion:     store.GetWAVersion().String(),
 		GoVersion:        "go1.27.3",

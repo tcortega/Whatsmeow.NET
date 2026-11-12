@@ -132,5 +132,5 @@ static async Task<List<string>> InfoAsync(string path, WhatsmeowSidecar sidecar,
 {
 	var info = await sidecar.GetInfoAsync(CancellationToken.None).ConfigureAwait(false);
 	await Console.Out.WriteLineAsync($"{path}: sidecar {info.Version}, protocol {info.Protocol}, whatsmeow {info.WhatsmeowVersion}, app in {AppContext.BaseDirectory}").ConfigureAwait(false);
-	return info.Version == version && info.Protocol == 1 ? [] : [$"{path}: the sidecar reports version {info.Version} and protocol {info.Protocol}, expected {version} and 1"];
+	return info.Version == version && info.Protocol == 2 ? [] : [$"{path}: the sidecar reports version {info.Version} and protocol {info.Protocol}, expected {version} and 2"];
 }

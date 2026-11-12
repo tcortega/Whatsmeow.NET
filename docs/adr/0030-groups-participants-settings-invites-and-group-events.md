@@ -4,6 +4,7 @@
 - Date: 2026-11-02
 - Evidence: issue #34, its plan review, ARCHITECTURE §14 "Measured for Groups (#34)", and the tests named below
 - Amended in place: 2026-11-11 (a write that got whatsmeow's bare not connected is OUTCOME_UNKNOWN)
+- Amended by: [ADR 0070](0070-group-photos.md) (group photos join the slice)
 
 ## Context
 
@@ -52,5 +53,5 @@ Reading whatsmeow at the pin for it showed facts the design had to follow [obser
 - A group change can reach a handler twice, equal to the first; applying it again is harmless, and there is no id to dedupe on. When WhatsApp's redelivery comes is [unknown], so a consumer orders a group's changes by their time.
 - A notification whatsmeow cannot parse is lost: whatsmeow acks it without dispatching.
 - WhatsApp's codes for refusals, whether the create answer lists refused participants, whether the creator gets a `JoinedGroup`, and how WhatsApp answers a join that needs approval are [unknown] and modelled by the fake as [inferred]; the live checks are #10's.
-- Communities, sub-groups, join-request approval, invite messages and group photos are not here.
+- Communities, sub-groups, join-request approval and invite messages are not here; group photos joined the slice with [ADR 0070](0070-group-photos.md).
 - Tests: `internal/groups` (whatsmeow-free, over bufconn through the real `server.Server`), `internal/fakewhatsapp/groups_test.go`, `internal/server/reasons_test.go`, `Groups/GroupTests.cs` on the shared fixture, and the kill-either-process tests `EventCrashTests.GroupEvents_...` and `EventProcessTests.GroupEvents_...`.

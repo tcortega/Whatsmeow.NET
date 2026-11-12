@@ -57,7 +57,7 @@ public sealed class ExternalTests(FakeSidecar fixture, SidecarBinaries binaries)
 		await using var sidecar = await WhatsmeowSidecar.StartAsync(Options(standalone, token), ct);
 
 		var info = await sidecar.GetInfoAsync(ct);
-		Assert.Equal(("0.0.0-other", 1), (info.Version, info.Protocol));
+		Assert.Equal(("0.0.0-other", 2), (info.Version, info.Protocol));
 		Assert.NotEqual(SidecarBinaries.ClientVersion, info.Version, StringComparer.Ordinal);
 	}
 
@@ -69,13 +69,13 @@ public sealed class ExternalTests(FakeSidecar fixture, SidecarBinaries binaries)
 		await using var standalone = await StandaloneSidecar.StartAsync(binaries.Sidecar, binaries.NewDatabase(), "tcp:127.0.0.1:0", token, [], ct);
 
 		var error = await Assert.ThrowsAsync<SidecarVersionMismatchException>(() =>
-			WhatsmeowSidecar.StartAsync(Options(standalone, token), NullLoggerFactory.Instance, minProtocol: 2, maxProtocol: 3, ct)
+			WhatsmeowSidecar.StartAsync(Options(standalone, token), NullLoggerFactory.Instance, minProtocol: 3, maxProtocol: 4, ct)
 		);
 
-		Assert.Equal($"The external sidecar is version {SidecarBinaries.ClientVersion} with protocol 1; this client needs a protocol from 2 to 3.", error.Message);
+		Assert.Equal($"The external sidecar is version {SidecarBinaries.ClientVersion} with protocol 2; this client needs a protocol from 3 to 4.", error.Message);
 		Assert.False(standalone.HasExited);
 		await using var another = await WhatsmeowSidecar.StartAsync(Options(standalone, token), ct);
-		Assert.Equal(1, (await another.GetInfoAsync(ct)).Protocol);
+		Assert.Equal(2, (await another.GetInfoAsync(ct)).Protocol);
 	}
 
 	[Fact(Timeout = Timeout)]

@@ -76,6 +76,22 @@ service GroupService {
   // Errors: as CreateGroup; INVALID_ARGUMENT (field "group", or "timer").
   rpc SetGroupDisappearingTimer(SetGroupDisappearingTimerRequest) returns (SetGroupDisappearingTimerResponse);
 
+  // SetGroupPhoto sets the group's photo; in a locked group only an admin may. The first message is the header, the
+  // photo follows in chunks of at most 65536 bytes, and the client ends the stream (ARCHITECTURE invariant 8). The
+  // sidecar holds the whole photo in memory, as whatsmeow takes it as one value, and refuses one over 15 MiB as the
+  // chunks arrive: whatsmeow sends the bytes themselves in one frame, which it refuses at 16 MiB (ADR 0070).
+  // WhatsApp's own limit, and which images it accepts, are [unknown]: the sidecar neither decodes nor resizes the
+  // image, and whatsmeow says only that it should be a JPEG. Members get a ContactEvent with the picture.
+  // An answer WhatsApp sends without the new photo's id is OUTCOME_UNKNOWN: the photo may be set.
+  // Errors: as CreateGroup; INVALID_ARGUMENT (a missing or repeated header, field "header"; no photo, a chunk over
+  // 65536 bytes or a photo over 15 MiB, field "chunk"; field "group"; an image WhatsApp refused, field "photo", after
+  // it was asked: nothing was changed).
+  rpc SetGroupPhoto(stream SetGroupPhotoRequest) returns (SetGroupPhotoResponse);
+
+  // RemoveGroupPhoto removes the group's photo, as SetGroupPhoto sets it. Members get a ContactEvent with no picture.
+  // Errors: as CreateGroup; INVALID_ARGUMENT (field "group").
+  rpc RemoveGroupPhoto(RemoveGroupPhotoRequest) returns (RemoveGroupPhotoResponse);
+
   // GetInviteLink reads the group's invite link.
   // Errors: as GetGroup.
   rpc GetInviteLink(GetInviteLinkRequest) returns (GetInviteLinkResponse);
@@ -330,6 +346,42 @@ message SetGroupDisappearingTimerRequest {
 
 // SetGroupDisappearingTimerResponse has no fields.
 message SetGroupDisappearingTimerResponse {}
+
+// SetGroupPhotoRequest is one message of a photo's set: the header first, then the chunks.
+message SetGroupPhotoRequest {
+  // Whose photo is set.
+  message Header {
+    // The session id.
+    string session_id = 1;
+    // The group's JID.
+    string group = 2;
+  }
+
+  // The part.
+  oneof part {
+    // The first message.
+    Header header = 1;
+    // The next at most 65536 bytes of the photo.
+    bytes chunk = 2;
+  }
+}
+
+// SetGroupPhotoResponse is the new photo.
+message SetGroupPhotoResponse {
+  // The new photo's id, the one ContactEvent.Picture and GetProfilePictureResponse.Picture carry.
+  string picture_id = 1;
+}
+
+// RemoveGroupPhotoRequest names the group.
+message RemoveGroupPhotoRequest {
+  // The session id.
+  string session_id = 1;
+  // The group's JID.
+  string group = 2;
+}
+
+// RemoveGroupPhotoResponse has no fields: whatsmeow answers a removal with no id.
+message RemoveGroupPhotoResponse {}
 
 // GetInviteLinkRequest names the group.
 message GetInviteLinkRequest {

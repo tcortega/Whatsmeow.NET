@@ -1,22 +1,18 @@
-using System.Buffers;
 using System.Security.Cryptography;
-using Google.Protobuf;
 using Grpc.Core;
 using Whatsmeow.Core.Errors;
+using Whatsmeow.Core.Transport;
 using Whatsmeow.Protocol.V1;
 
 namespace Whatsmeow.Media;
 
 /// <summary>
 /// A session's media calls (media.proto). A path under the media root is handed to the sidecar, which reads or writes
-/// it in place; anything else travels in 64 KiB chunks, never as one message (ARCHITECTURE invariant 8). One rented
-/// 64 KiB buffer is in use at a time, so memory does not grow with the file.
+/// it in place; anything else travels in 64 KiB chunks, never as one message (ARCHITECTURE invariant 8): an upload
+/// through <see cref="ChunkedCall"/>, a download one chunk at a time, so memory does not grow with the file.
 /// </summary>
 internal sealed class MediaTransfer(MediaService.MediaServiceClient client, SessionId sessionId, string? mediaRoot, ILogger log)
 {
-	/// <summary>The most bytes one chunk carries (media.proto), below the large object heap's 85,000 bytes.</summary>
-	private const int ChunkSize = 64 * 1024;
-
 	public async Task<MediaRef> UploadAsync(string path, MediaType type, CancellationToken cancellationToken)
 	{
 		ArgumentException.ThrowIfNullOrEmpty(path);
@@ -151,69 +147,16 @@ internal sealed class MediaTransfer(MediaService.MediaServiceClient client, Sess
 
 	private async Task<MediaRef> UploadAsync(UploadMediaRequest.Types.Header header, Stream? content, CancellationToken cancellationToken)
 	{
-		using var call = client.UploadMedia(cancellationToken: cancellationToken);
-		try
-		{
-			await SendAsync(call.RequestStream, header, content, cancellationToken).ConfigureAwait(false);
-		}
-		catch (Exception e) when (e is RpcException or InvalidOperationException or OperationCanceledException && !cancellationToken.IsCancellationRequested)
-		{
-			// The sidecar ended the call while chunks were still going out, which cuts the write short. Once the call
-			// has completed, grpc-dotnet throws its status as an RpcException
-			// (StreamExtensions.TryCreateCallCompleteException); the other two are for a write that fails before that.
-			// Either way the status says why.
-			_ = await ResponseAsync(call, cancellationToken).ConfigureAwait(false);
-			throw;
-		}
-
-		return MediaMapping.ToRef((await ResponseAsync(call, cancellationToken).ConfigureAwait(false)).Media);
-	}
-
-	/// <summary>Sends the header, then the content in chunks of one rented buffer, reused once each write returned.</summary>
-	private static async Task SendAsync(IClientStreamWriter<UploadMediaRequest> requests, UploadMediaRequest.Types.Header header, Stream? content, CancellationToken cancellationToken)
-	{
-		await requests.WriteAsync(new UploadMediaRequest { Header = header }, cancellationToken).ConfigureAwait(false);
-		if (content is not null)
-		{
-			var buffer = ArrayPool<byte>.Shared.Rent(ChunkSize);
-			try
-			{
-				int read;
-				while ((read = await content.ReadAtLeastAsync(buffer.AsMemory(0, ChunkSize), ChunkSize, throwOnEndOfStream: false, cancellationToken).ConfigureAwait(false)) > 0)
-				{
-					// The write serializes the message before it returns, so the buffer is free again after it.
-					await requests.WriteAsync(new UploadMediaRequest { Chunk = UnsafeByteOperations.UnsafeWrap(buffer.AsMemory(0, read)) }, cancellationToken).ConfigureAwait(false);
-				}
-			}
-			finally
-			{
-				ArrayPool<byte>.Shared.Return(buffer);
-			}
-		}
-
-		await requests.CompleteAsync().ConfigureAwait(false);
-	}
-
-	/// <summary>
-	/// Awaits the upload's response and maps the call's failure. A write the call's end cut short comes here too, so a
-	/// call the sidecar's crash or stop cut off is mapped here whether a write or the response saw it first.
-	/// </summary>
-	private static async Task<UploadMediaResponse> ResponseAsync(AsyncClientStreamingCall<UploadMediaRequest, UploadMediaResponse> call, CancellationToken cancellationToken)
-	{
-		try
-		{
-			return await call.ResponseAsync.ConfigureAwait(false);
-		}
-		catch (RpcException e)
-		{
-			RpcErrors.Throw(e);
-			throw;
-		}
-		catch (OperationCanceledException e) when (!cancellationToken.IsCancellationRequested)
-		{
-			SidecarUnavailableException.ThrowCallCut(e);
-			throw;
-		}
+		var response = await ChunkedCall
+			.SendAsync(
+				client.UploadMedia(cancellationToken: cancellationToken),
+				new UploadMediaRequest { Header = header },
+				content,
+				static chunk => new UploadMediaRequest { Chunk = chunk },
+				cancellationToken
+			)
+			.ConfigureAwait(false);
+		return MediaMapping.ToRef(response.Media);
 	}
 
 	/// <summary>Downloads to <paramref name="path"/> by handoff when it is set, else writes the chunks to <paramref name="destination"/>.</summary>

@@ -241,6 +241,28 @@ public sealed partial class CallTests : IAsyncDisposable
 	}
 
 	[Fact(Timeout = 10_000)]
+	public async Task GroupPhoto_IsRecordedWithItsBytes_AndEachSetGetsAPictureIdOfItsOwn()
+	{
+		var ct = TestContext.Current.CancellationToken;
+		byte[] photo = [0xFF, 0xD8, 0xFF, 0xE0, 1, 2, 3];
+
+		var first = await _fake.SetGroupPhotoAsync(Team, new MemoryStream(photo), ct);
+		var second = await _fake.SetGroupPhotoAsync(Team, new MemoryStream(photo), ct);
+		await _fake.RemoveGroupPhotoAsync(Team, ct);
+
+		Assert.Equal(
+			[
+				(nameof(IWhatsAppClient.SetGroupPhotoAsync), new Dictionary<string, object?>(StringComparer.Ordinal) { ["group"] = Team, ["photo"] = ImmutableArray.Create(photo) }),
+				(nameof(IWhatsAppClient.SetGroupPhotoAsync), new Dictionary<string, object?>(StringComparer.Ordinal) { ["group"] = Team, ["photo"] = ImmutableArray.Create(photo) }),
+				(nameof(IWhatsAppClient.RemoveGroupPhotoAsync), new Dictionary<string, object?>(StringComparer.Ordinal) { ["group"] = Team }),
+			],
+			_fake.Calls.Select(static call => (call.Member, new Dictionary<string, object?>(call.Arguments, StringComparer.Ordinal)))
+		);
+		Assert.NotEmpty(first);
+		Assert.NotEqual(first, second, StringComparer.Ordinal);
+	}
+
+	[Fact(Timeout = 10_000)]
 	public async Task Results_ArePlausible()
 	{
 		var ct = TestContext.Current.CancellationToken;

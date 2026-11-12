@@ -37,17 +37,17 @@ namespace Whatsmeow.Testing;
 /// <para>
 /// Every other member is recorded and returns a plausible result at once; the fake enforces no WhatsApp rule, paces
 /// nothing, and fails only when told to. A send reports the requested chat, the given message id (a new one when none
-/// is given) and the time of the fake's <see cref="TimeProvider"/>. Groups and invite links get JIDs and links of their
-/// own, numbered in the order they are made; participant changes succeed; every phone number is on WhatsApp; contacts,
-/// the blocklist and the groups are empty; an upload reads its content and returns a reference with its length and
-/// SHA-256; a download writes nothing (to a path, an empty file); pairing yields one code, then
-/// <see cref="PairingUpdate.Paired"/>; the state watch yields <see cref="SessionState.Connected"/>, then waits until it
-/// is cancelled. A call whose token is already cancelled throws <see cref="OperationCanceledException"/>, and every call
-/// once the fake is disposed throws <see cref="ObjectDisposedException"/>, as the client's do once its sidecar is
-/// disposed; neither is recorded. A send or a mark-read every session refuses before WhatsApp is involved throws
-/// <see cref="WhatsmeowValidationException"/> and is not recorded either: a chat that is not a user without a device or a
-/// group, an empty text, a mark-read with no ids or, in a group, without the sender, and a poll or vote that breaks a
-/// poll's rules.
+/// is given) and the time of the fake's <see cref="TimeProvider"/>. Groups, invite links and group photos get JIDs,
+/// links and ids of their own, numbered in the order they are made; participant changes succeed; every phone number is
+/// on WhatsApp; contacts, the blocklist and the groups are empty; an upload reads its content and returns a reference
+/// with its length and SHA-256, and a group photo's set reads the photo and records its bytes; a download writes
+/// nothing (to a path, an empty file); pairing yields one code, then <see cref="PairingUpdate.Paired"/>; the state watch
+/// yields <see cref="SessionState.Connected"/>, then waits until it is cancelled. A call whose token is already
+/// cancelled throws <see cref="OperationCanceledException"/>, and every call once the fake is disposed throws
+/// <see cref="ObjectDisposedException"/>, as the client's do once its sidecar is disposed; neither is recorded. A send
+/// or a mark-read every session refuses before WhatsApp is involved throws <see cref="WhatsmeowValidationException"/>
+/// and is not recorded either: a chat that is not a user without a device or a group, an empty text, a mark-read with no
+/// ids or, in a group, without the sender, a poll or vote that breaks a poll's rules, and an empty group photo.
 /// </para>
 /// </summary>
 public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
@@ -105,6 +105,8 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 		nameof(SetGroupAnnounceAsync),
 		nameof(SetGroupLockedAsync),
 		nameof(SetGroupMemberAddModeAsync),
+		nameof(SetGroupPhotoAsync),
+		nameof(RemoveGroupPhotoAsync),
 		nameof(GetGroupInviteLinkAsync),
 		nameof(ResetGroupInviteLinkAsync),
 		nameof(JoinGroupWithLinkAsync),
@@ -644,6 +646,25 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 		CallAsync(nameof(SetGroupMemberAddModeAsync), [(nameof(group), group), (nameof(mode), mode)], cancellationToken);
 
 	/// <inheritdoc/>
+	public async Task<string> SetGroupPhotoAsync(Jid group, Stream photo, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(photo);
+		ObjectDisposedException.ThrowIf(_pipeline.IsDisposed, this);
+		var read = new MemoryStream();
+		await using (read.ConfigureAwait(false))
+		{
+			await photo.CopyToAsync(read, cancellationToken).ConfigureAwait(false);
+			ImmutableArray<byte> bytes = [.. read.ToArray()];
+			var refusal = bytes.IsEmpty ? "chunk: the photo is empty" : null;
+			return await CallAsync(nameof(SetGroupPhotoAsync), [(nameof(group), group), (nameof(photo), bytes)], NewPictureId, refusal, cancellationToken).ConfigureAwait(false);
+		}
+	}
+
+	/// <inheritdoc/>
+	public Task RemoveGroupPhotoAsync(Jid group, CancellationToken cancellationToken = default) =>
+		CallAsync(nameof(RemoveGroupPhotoAsync), [(nameof(group), group)], cancellationToken);
+
+	/// <inheritdoc/>
 	public Task<Uri> GetGroupInviteLinkAsync(Jid group, CancellationToken cancellationToken = default) =>
 		CallAsync(nameof(GetGroupInviteLinkAsync), [(nameof(group), group)], NewInviteLink, cancellationToken);
 
@@ -810,12 +831,14 @@ public sealed class FakeWhatsAppClient : IWhatsAppClient, IAsyncDisposable
 			Participants = [.. participants.Select(static user => new GroupParticipant { Jid = user, JidAlt = null, Role = GroupRole.Member })],
 		};
 
-	/// <summary>The next number of what the fake makes: groups, invite links, media, pairing codes.</summary>
+	/// <summary>The next number of what the fake makes: groups, invite links, media, group photos, pairing codes.</summary>
 	private long Make() => Interlocked.Increment(ref _made);
 
 	private Jid NewGroup() => new() { User = (FirstGroup + Make() - 1).ToString(CultureInfo.InvariantCulture), Server = "g.us" };
 
 	private Uri NewInviteLink() => new(Invariant($"https://chat.whatsapp.com/FakeInvite{Make()}"));
+
+	private string NewPictureId() => Invariant($"FakePicture{Make()}");
 
 	private MediaRef ToRef(MediaType type, ReadOnlySpan<byte> content)
 	{

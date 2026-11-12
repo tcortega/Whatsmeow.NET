@@ -2,33 +2,11 @@ syntax = "proto3";
 
 package whatsmeow.livetest.v1;
 
-// LiveTestService is the live tests' control: what a live test needs its sidecar to do that the whatsmeow.v1 contract
-// does not offer. Only a sidecar built with -tags livetest serves it, next to whatsmeow.v1 on the same socket, with the
-// same token; a release build answers UNIMPLEMENTED. It is not part of the contract and never ships (ADR 0060).
-//
-// Errors are those of whatsmeow.v1 (the server's one mapping): it adds no ErrorReason.
-service LiveTestService {
-  // SetGroupPhoto sets the photo of a group the session is an admin of, from a JPEG file on the sidecar's machine, or
-  // removes it when jpeg_path is empty, with whatsmeow's SetGroupPhoto (group.go:325-354). The session must be online.
-  rpc SetGroupPhoto(SetGroupPhotoRequest) returns (SetGroupPhotoResponse);
-}
-
-message SetGroupPhotoRequest {
-  // The session that changes the photo.
-  string session_id = 1;
-  // The group's JID, @g.us.
-  string group = 2;
-  // An absolute path to a JPEG file, read whole by the sidecar; empty removes the photo.
-  string jpeg_path = 3;
-}
-
-message SetGroupPhotoResponse {
-  // The new photo's id as WhatsApp answered it; empty when the photo was removed.
-  string picture_id = 1;
-}
-
-// LiveContactService is the contacts slice's part of the live tests' control (ADR 0063), served the same way as
-// LiveTestService: only by a sidecar built with -tags livetest, never in a release build.
+// LiveContactService is the live tests' control (ADR 0063): what a live test needs its sidecar to do that the
+// whatsmeow.v1 contract does not offer. Only a sidecar built with -tags livetest serves it, next to whatsmeow.v1 on the
+// same socket, with the same token; a release build answers UNIMPLEMENTED. It is not part of the contract and never
+// ships (ADR 0060). Its errors are those of whatsmeow.v1 (the server's one mapping): it adds no ErrorReason. Its first
+// service, LiveTestService, set a group's photo until ADR 0070 put that in the contract.
 service LiveContactService {
   // SetAbout sets the session's own account's about text with whatsmeow's SetStatusMessage (user.go:160-172), the text
   // only: no emoji and no duration, which no read gives back (user.go:257-258). When WhatsApp refuses that mutation

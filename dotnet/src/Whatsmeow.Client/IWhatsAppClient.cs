@@ -1027,6 +1027,60 @@ public interface IWhatsAppClient
 	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
 	Task SetGroupMemberAddModeAsync(Jid group, GroupMemberAddMode mode, CancellationToken cancellationToken = default);
 
+	/// <summary>
+	/// Sets a group's photo from what <paramref name="photo"/> holds from its position to its end, sent in 64 KiB chunks
+	/// as <see cref="UploadMediaAsync"/> sends, and returns WhatsApp's id of the new photo, the one
+	/// <see cref="ContactChange.Picture"/> and <see cref="ProfilePicture.Set"/> carry. The members get
+	/// <see cref="ContactUpdated"/> with that picture. In a locked group only an admin may. The stream is read, not
+	/// disposed.
+	/// </summary>
+	/// <remarks>
+	/// The library neither decodes nor resizes the image: whatsmeow says only that it should be a JPEG, and which images
+	/// WhatsApp accepts is unknown. A photo over 15 MiB is refused, since whatsmeow sends it in one frame, which it refuses
+	/// at 16 MiB; WhatsApp's own limit is unknown. The sidecar holds the whole photo in memory for the call.
+	/// </remarks>
+	/// <param name="group">The group's JID.</param>
+	/// <param name="photo">The photo, a JPEG.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">
+	/// The group is malformed, or the photo is empty or over 15 MiB, and nothing was asked; or WhatsApp refused the
+	/// image, and nothing was changed.
+	/// </exception>
+	/// <exception cref="WhatsAppErrorException">As for <see cref="SetGroupNameAsync"/>.</exception>
+	/// <exception cref="OutcomeUnknownException">The request went out and no answer, or one without the photo's id, came back: the photo may or may not be set.</exception>
+	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotConnectedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotLoggedInException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="WhatsmeowException">An external sidecar of protocol 1 does not have the call, with <see cref="WhatsmeowErrorCode.Unknown"/>.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	/// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="photo"/> is null.</exception>
+	Task<string> SetGroupPhotoAsync(Jid group, Stream photo, CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Removes a group's photo, as <see cref="SetGroupPhotoAsync"/> sets it. The members get <see cref="ContactUpdated"/>
+	/// with a picture of no id. What WhatsApp answers for a group with no photo is unknown.
+	/// </summary>
+	/// <param name="group">The group's JID.</param>
+	/// <param name="cancellationToken">Cancels the call.</param>
+	/// <exception cref="WhatsmeowValidationException">The group is malformed; nothing was asked.</exception>
+	/// <exception cref="WhatsAppErrorException">As for <see cref="SetGroupNameAsync"/>.</exception>
+	/// <exception cref="OutcomeUnknownException">The request went out and no answer came back: the photo may or may not be removed.</exception>
+	/// <exception cref="RateLimitedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotConnectedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="NotLoggedInException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionLoggedOutException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="TemporarilyBannedException">As for <see cref="IsOnWhatsAppAsync"/>.</exception>
+	/// <exception cref="SessionNotFoundException">The session was deleted.</exception>
+	/// <exception cref="WhatsmeowException">As for <see cref="SetGroupPhotoAsync"/>.</exception>
+	/// <exception cref="SidecarUnavailableException">The sidecar cannot be reached.</exception>
+	/// <exception cref="ObjectDisposedException">The sidecar was disposed.</exception>
+	Task RemoveGroupPhotoAsync(Jid group, CancellationToken cancellationToken = default);
+
 	/// <summary>Reads a group's invite link, as an admin.</summary>
 	/// <param name="group">The group's JID.</param>
 	/// <param name="cancellationToken">Cancels the call.</param>

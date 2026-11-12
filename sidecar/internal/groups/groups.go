@@ -11,12 +11,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"slices"
 	"time"
 
 	"go.mau.fi/whatsmeow"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -33,6 +35,16 @@ const rateOverLimit = 429
 // [observed: #36 and #120 live runs 2026-11-04], which whatsmeow maps to nothing (group.go:497-502, 516-521). The code
 // alone is matched, as for rateOverLimit.
 const badRequest = 400
+
+// chunkSize is the most bytes one chunk of a photo carries: a copy of the media slice's (media.proto), since no slice
+// imports another (ADR 0033, ADR 0070).
+const chunkSize = 64 << 10
+
+// maxPhoto is the largest photo the slice passes on. whatsmeow sends the bytes themselves in one IQ (group.go:325-340)
+// and its frame socket refuses a frame of 16 MiB or more (socket/constants.go:35, framesocket.go:130-131), after the
+// noise socket already moved its write counter (noisesocket.go:97-101); 15 MiB keeps the IQ's own nodes and the
+// cipher's tag clear of that. It is no policy: WhatsApp's own limit is [unknown] (ADR 0070).
+const maxPhoto = 15 << 20
 
 // Client is what the slice needs of a whatsmeow client. *whatsmeow.Client and the fake WhatsApp's client both
 // satisfy it (ADR 0019).
@@ -51,6 +63,7 @@ type Client interface {
 	SetGroupMemberAddMode(ctx context.Context, jid types.JID, mode types.GroupMemberAddMode) error
 	SetDisappearingTimer(ctx context.Context, chat types.JID, timer time.Duration, settingTS time.Time) error
 	GetGroupInfoFromLink(ctx context.Context, code string) (*types.GroupInfo, error)
+	SetGroupPhoto(ctx context.Context, jid types.JID, avatar []byte) (string, error)
 }
 
 var _ Client = (*whatsmeow.Client)(nil)
@@ -369,6 +382,88 @@ func (svc *Service) SetGroupDisappearingTimer(ctx context.Context, req *whatsmeo
 	return &whatsmeowv1.SetGroupDisappearingTimerResponse{}, nil
 }
 
+// SetGroupPhoto sets a group's photo from the header and the chunks that follow it (group.proto). whatsmeow takes the
+// photo as one value (group.go:325), so the chunks gather in memory, up to maxPhoto; a removal is RemoveGroupPhoto's,
+// so an empty photo is refused, never sent as one.
+func (svc *Service) SetGroupPhoto(stream grpc.ClientStreamingServer[whatsmeowv1.SetGroupPhotoRequest, whatsmeowv1.SetGroupPhotoResponse]) error {
+	first, err := stream.Recv()
+	if errors.Is(err, io.EOF) {
+		return fmt.Errorf("set a group's photo: %w", server.InvalidArgument("header", "the call sent no header"))
+	}
+
+	if err != nil {
+		return fmt.Errorf("set a group's photo: %w", err)
+	}
+
+	header := first.GetHeader()
+	if header == nil {
+		return fmt.Errorf("set a group's photo: %w", server.InvalidArgument("header", "the first message is not the header"))
+	}
+
+	client, jid, err := svc.clientFor(header.GetSessionId(), header.GetGroup())
+	if err != nil {
+		return err
+	}
+
+	photo, err := gather(stream)
+	if err != nil {
+		return err
+	}
+
+	id, err := client.SetGroupPhoto(stream.Context(), jid, photo)
+	if err != nil {
+		return classifyPhoto("set a group's photo", err)
+	}
+
+	if err := stream.SendAndClose(&whatsmeowv1.SetGroupPhotoResponse{PictureId: server.Text(id)}); err != nil {
+		return fmt.Errorf("set a group's photo: %w", err)
+	}
+
+	return nil
+}
+
+// gather reads the chunks until the client ends the stream, refusing a second header, a chunk over chunkSize and a
+// photo over maxPhoto as they arrive, and an empty photo at the end.
+func gather(stream grpc.ClientStreamingServer[whatsmeowv1.SetGroupPhotoRequest, whatsmeowv1.SetGroupPhotoResponse]) ([]byte, error) {
+	var photo []byte
+
+	for {
+		part, err := stream.Recv()
+
+		switch {
+		case errors.Is(err, io.EOF) && len(photo) == 0:
+			return nil, fmt.Errorf("set a group's photo: %w", server.InvalidArgument("chunk", "the photo is empty"))
+		case errors.Is(err, io.EOF):
+			return photo, nil
+		case err != nil:
+			return nil, fmt.Errorf("set a group's photo: %w", err)
+		case part.GetHeader() != nil:
+			return nil, fmt.Errorf("set a group's photo: %w", server.InvalidArgument("header", "a second header"))
+		case len(part.GetChunk()) > chunkSize:
+			return nil, fmt.Errorf("set a group's photo: %w", server.InvalidArgument("chunk", "a chunk of %d bytes; at most %d", len(part.GetChunk()), chunkSize))
+		case len(photo)+len(part.GetChunk()) > maxPhoto:
+			return nil, fmt.Errorf("set a group's photo: %w", server.InvalidArgument("chunk", "the photo is over %d bytes", maxPhoto))
+		}
+
+		photo = append(photo, part.GetChunk()...)
+	}
+}
+
+// RemoveGroupPhoto removes a group's photo (group.proto): whatsmeow's SetGroupPhoto without bytes, which answers
+// "remove", not an id (group.go:345-347).
+func (svc *Service) RemoveGroupPhoto(ctx context.Context, req *whatsmeowv1.RemoveGroupPhotoRequest) (*whatsmeowv1.RemoveGroupPhotoResponse, error) {
+	client, jid, err := svc.clientFor(req.GetSessionId(), req.GetGroup())
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := client.SetGroupPhoto(ctx, jid, nil); err != nil {
+		return nil, classify("remove a group's photo", err, true)
+	}
+
+	return &whatsmeowv1.RemoveGroupPhotoResponse{}, nil
+}
+
 // GetInviteLink reads a group's invite link (group.proto).
 func (svc *Service) GetInviteLink(ctx context.Context, req *whatsmeowv1.GetInviteLinkRequest) (*whatsmeowv1.GetInviteLinkResponse, error) {
 	client, jid, err := svc.clientFor(req.GetSessionId(), req.GetGroup())
@@ -621,6 +716,33 @@ func classifyInvite(op string, err error, write bool) error {
 // (group.go:71, 84, 221, 229), and an IQ error's node names the group (errors.go:217-227). The status message reaches
 // the application, and an INTERNAL one the error log (server.toStatus).
 func classify(op string, err error, write bool) error {
+	if typed := classifyTyped(op, err, write); typed != nil {
+		return typed
+	}
+
+	return fmt.Errorf("%s: whatsmeow failed with a %T", op, err) //nolint:err113 // only the type: its text may name a JID
+}
+
+// classifyPhoto is classify for a photo's set (ADR 0070), with two cases of its own. whatsmeow wraps a 406 as
+// ErrInvalidImageFormat (group.go:341-342), which still unwraps to the IQError (errors.go:158-177): it is the
+// caller's image, so INVALID_ARGUMENT, though WhatsApp was asked [inferred: a 406 is a refusal that changed nothing].
+// An error classify leaves untyped is OUTCOME_UNKNOWN, not INTERNAL: the one after WhatsApp answered is the answer
+// without the picture's id (group.go:349-352), when the photo may be set, and the ones before the send are rare
+// [inferred].
+func classifyPhoto(op string, err error) error {
+	if errors.Is(err, whatsmeow.ErrInvalidImageFormat) {
+		return fmt.Errorf("%s: %w: %w", op, server.InvalidArgument("photo", "WhatsApp refused the image"), whatsmeow.ErrInvalidImageFormat)
+	}
+
+	if typed := classifyTyped(op, err, true); typed != nil {
+		return typed
+	}
+
+	return fmt.Errorf("%s: %w: whatsmeow failed with a %T", op, server.ErrOutcomeUnknown, err)
+}
+
+// classifyTyped is classify for the errors it knows, and nil for any other.
+func classifyTyped(op string, err error, write bool) error {
 	var (
 		iqErr        *whatsmeow.IQError
 		disconnected *whatsmeow.DisconnectedError
@@ -672,6 +794,6 @@ func classify(op string, err error, write bool) error {
 		// WhatsApp answered the write with a group whatsmeow could not parse (group.go:809): it may have taken effect.
 		return fmt.Errorf("%s: %w: whatsmeow could not read WhatsApp's answer (a %T)", op, server.ErrOutcomeUnknown, unparsed)
 	default:
-		return fmt.Errorf("%s: whatsmeow failed with a %T", op, err) //nolint:err113 // only the type: its text may name a JID
+		return nil
 	}
 }

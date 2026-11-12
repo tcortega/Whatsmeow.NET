@@ -19,124 +19,6 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	LiveTestService_SetGroupPhoto_FullMethodName = "/whatsmeow.livetest.v1.LiveTestService/SetGroupPhoto"
-)
-
-// LiveTestServiceClient is the client API for LiveTestService service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-//
-// LiveTestService is the live tests' control: what a live test needs its sidecar to do that the whatsmeow.v1 contract
-// does not offer. Only a sidecar built with -tags livetest serves it, next to whatsmeow.v1 on the same socket, with the
-// same token; a release build answers UNIMPLEMENTED. It is not part of the contract and never ships (ADR 0060).
-//
-// Errors are those of whatsmeow.v1 (the server's one mapping): it adds no ErrorReason.
-type LiveTestServiceClient interface {
-	// SetGroupPhoto sets the photo of a group the session is an admin of, from a JPEG file on the sidecar's machine, or
-	// removes it when jpeg_path is empty, with whatsmeow's SetGroupPhoto (group.go:325-354). The session must be online.
-	SetGroupPhoto(ctx context.Context, in *SetGroupPhotoRequest, opts ...grpc.CallOption) (*SetGroupPhotoResponse, error)
-}
-
-type liveTestServiceClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewLiveTestServiceClient(cc grpc.ClientConnInterface) LiveTestServiceClient {
-	return &liveTestServiceClient{cc}
-}
-
-func (c *liveTestServiceClient) SetGroupPhoto(ctx context.Context, in *SetGroupPhotoRequest, opts ...grpc.CallOption) (*SetGroupPhotoResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SetGroupPhotoResponse)
-	err := c.cc.Invoke(ctx, LiveTestService_SetGroupPhoto_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// LiveTestServiceServer is the server API for LiveTestService service.
-// All implementations must embed UnimplementedLiveTestServiceServer
-// for forward compatibility.
-//
-// LiveTestService is the live tests' control: what a live test needs its sidecar to do that the whatsmeow.v1 contract
-// does not offer. Only a sidecar built with -tags livetest serves it, next to whatsmeow.v1 on the same socket, with the
-// same token; a release build answers UNIMPLEMENTED. It is not part of the contract and never ships (ADR 0060).
-//
-// Errors are those of whatsmeow.v1 (the server's one mapping): it adds no ErrorReason.
-type LiveTestServiceServer interface {
-	// SetGroupPhoto sets the photo of a group the session is an admin of, from a JPEG file on the sidecar's machine, or
-	// removes it when jpeg_path is empty, with whatsmeow's SetGroupPhoto (group.go:325-354). The session must be online.
-	SetGroupPhoto(context.Context, *SetGroupPhotoRequest) (*SetGroupPhotoResponse, error)
-	mustEmbedUnimplementedLiveTestServiceServer()
-}
-
-// UnimplementedLiveTestServiceServer must be embedded to have
-// forward compatible implementations.
-//
-// NOTE: this should be embedded by value instead of pointer to avoid a nil
-// pointer dereference when methods are called.
-type UnimplementedLiveTestServiceServer struct{}
-
-func (UnimplementedLiveTestServiceServer) SetGroupPhoto(context.Context, *SetGroupPhotoRequest) (*SetGroupPhotoResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method SetGroupPhoto not implemented")
-}
-func (UnimplementedLiveTestServiceServer) mustEmbedUnimplementedLiveTestServiceServer() {}
-func (UnimplementedLiveTestServiceServer) testEmbeddedByValue()                         {}
-
-// UnsafeLiveTestServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to LiveTestServiceServer will
-// result in compilation errors.
-type UnsafeLiveTestServiceServer interface {
-	mustEmbedUnimplementedLiveTestServiceServer()
-}
-
-func RegisterLiveTestServiceServer(s grpc.ServiceRegistrar, srv LiveTestServiceServer) {
-	// If the following call panics, it indicates UnimplementedLiveTestServiceServer was
-	// embedded by pointer and is nil.  This will cause panics if an
-	// unimplemented method is ever invoked, so we test this at initialization
-	// time to prevent it from happening at runtime later due to I/O.
-	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
-		t.testEmbeddedByValue()
-	}
-	s.RegisterService(&LiveTestService_ServiceDesc, srv)
-}
-
-func _LiveTestService_SetGroupPhoto_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SetGroupPhotoRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(LiveTestServiceServer).SetGroupPhoto(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: LiveTestService_SetGroupPhoto_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LiveTestServiceServer).SetGroupPhoto(ctx, req.(*SetGroupPhotoRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-// LiveTestService_ServiceDesc is the grpc.ServiceDesc for LiveTestService service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var LiveTestService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "whatsmeow.livetest.v1.LiveTestService",
-	HandlerType: (*LiveTestServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "SetGroupPhoto",
-			Handler:    _LiveTestService_SetGroupPhoto_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "whatsmeow/livetest/v1/livetest.proto",
-}
-
-const (
 	LiveContactService_SetAbout_FullMethodName = "/whatsmeow.livetest.v1.LiveContactService/SetAbout"
 )
 
@@ -144,8 +26,11 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// LiveContactService is the contacts slice's part of the live tests' control (ADR 0063), served the same way as
-// LiveTestService: only by a sidecar built with -tags livetest, never in a release build.
+// LiveContactService is the live tests' control (ADR 0063): what a live test needs its sidecar to do that the
+// whatsmeow.v1 contract does not offer. Only a sidecar built with -tags livetest serves it, next to whatsmeow.v1 on the
+// same socket, with the same token; a release build answers UNIMPLEMENTED. It is not part of the contract and never
+// ships (ADR 0060). Its errors are those of whatsmeow.v1 (the server's one mapping): it adds no ErrorReason. Its first
+// service, LiveTestService, set a group's photo until ADR 0070 put that in the contract.
 type LiveContactServiceClient interface {
 	// SetAbout sets the session's own account's about text with whatsmeow's SetStatusMessage (user.go:160-172), the text
 	// only: no emoji and no duration, which no read gives back (user.go:257-258). When WhatsApp refuses that mutation
@@ -177,8 +62,11 @@ func (c *liveContactServiceClient) SetAbout(ctx context.Context, in *SetAboutReq
 // All implementations must embed UnimplementedLiveContactServiceServer
 // for forward compatibility.
 //
-// LiveContactService is the contacts slice's part of the live tests' control (ADR 0063), served the same way as
-// LiveTestService: only by a sidecar built with -tags livetest, never in a release build.
+// LiveContactService is the live tests' control (ADR 0063): what a live test needs its sidecar to do that the
+// whatsmeow.v1 contract does not offer. Only a sidecar built with -tags livetest serves it, next to whatsmeow.v1 on the
+// same socket, with the same token; a release build answers UNIMPLEMENTED. It is not part of the contract and never
+// ships (ADR 0060). Its errors are those of whatsmeow.v1 (the server's one mapping): it adds no ErrorReason. Its first
+// service, LiveTestService, set a group's photo until ADR 0070 put that in the contract.
 type LiveContactServiceServer interface {
 	// SetAbout sets the session's own account's about text with whatsmeow's SetStatusMessage (user.go:160-172), the text
 	// only: no emoji and no duration, which no read gives back (user.go:257-258). When WhatsApp refuses that mutation

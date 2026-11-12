@@ -54,6 +54,9 @@ type stub struct {
 	results                    []types.GroupParticipant
 	link                       string
 	joined                     types.JID
+	// pictureID is what SetGroupPhoto answers a set; photo is the last photo it got.
+	pictureID string
+	photo     []byte
 }
 
 func (s *stub) call(format string, args ...any) {
@@ -192,6 +195,24 @@ func (s *stub) GetGroupInfoFromLink(_ context.Context, code string) (*types.Grou
 	return s.info, s.err
 }
 
+// SetGroupPhoto answers a removal "remove", as whatsmeow does (group.go:345-347).
+func (s *stub) SetGroupPhoto(_ context.Context, jid types.JID, avatar []byte) (string, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.call("photo %s of %d bytes, removal %v", jid, len(avatar), avatar == nil)
+	s.photo = avatar
+
+	switch {
+	case s.err != nil:
+		return "", s.err
+	case avatar == nil:
+		return "remove", nil
+	default:
+		return s.pictureID, nil
+	}
+}
+
 func (s *stub) LeaveGroup(_ context.Context, jid types.JID) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -241,9 +262,7 @@ func startLogging(t *testing.T, log zerolog.Logger) *harness {
 	h.sessions = &sessions{client: h.stub}
 
 	srv := server.New(token, log, sidecarlog.NewRedactor())
-	svc := New(h.sessions)
-	whatsmeowv1.RegisterGroupServiceServer(srv, svc)
-	RegisterLive(srv, svc)
+	whatsmeowv1.RegisterGroupServiceServer(srv, New(h.sessions))
 
 	lis := bufconn.Listen(1 << 20)
 	served := make(chan error, 1)

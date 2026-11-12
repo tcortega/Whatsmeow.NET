@@ -319,7 +319,7 @@ job_go() {
 			# the build if the tag appears anywhere else. Change these lists with it.
 			case "$tags" in
 				fakewhatsapp) tested=(./internal/fakewhatsapp/... ./cmd/whatsmeow-net/...) ;;
-				livetest) tested=(./internal/events ./internal/messaging ./internal/groups ./internal/contacts) ;;
+				livetest) tested=(./internal/events ./internal/messaging ./internal/contacts) ;;
 				*) tested=(./...) ;;
 			esac
 			check "$label: no cgo files" no_cgo "$module" "$tags"

@@ -21,114 +21,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type SetGroupPhotoRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The session that changes the photo.
-	SessionId string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	// The group's JID, @g.us.
-	Group string `protobuf:"bytes,2,opt,name=group,proto3" json:"group,omitempty"`
-	// An absolute path to a JPEG file, read whole by the sidecar; empty removes the photo.
-	JpegPath      string `protobuf:"bytes,3,opt,name=jpeg_path,json=jpegPath,proto3" json:"jpeg_path,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SetGroupPhotoRequest) Reset() {
-	*x = SetGroupPhotoRequest{}
-	mi := &file_whatsmeow_livetest_v1_livetest_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SetGroupPhotoRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SetGroupPhotoRequest) ProtoMessage() {}
-
-func (x *SetGroupPhotoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_livetest_v1_livetest_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SetGroupPhotoRequest.ProtoReflect.Descriptor instead.
-func (*SetGroupPhotoRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_livetest_v1_livetest_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *SetGroupPhotoRequest) GetSessionId() string {
-	if x != nil {
-		return x.SessionId
-	}
-	return ""
-}
-
-func (x *SetGroupPhotoRequest) GetGroup() string {
-	if x != nil {
-		return x.Group
-	}
-	return ""
-}
-
-func (x *SetGroupPhotoRequest) GetJpegPath() string {
-	if x != nil {
-		return x.JpegPath
-	}
-	return ""
-}
-
-type SetGroupPhotoResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The new photo's id as WhatsApp answered it; empty when the photo was removed.
-	PictureId     string `protobuf:"bytes,1,opt,name=picture_id,json=pictureId,proto3" json:"picture_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SetGroupPhotoResponse) Reset() {
-	*x = SetGroupPhotoResponse{}
-	mi := &file_whatsmeow_livetest_v1_livetest_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SetGroupPhotoResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SetGroupPhotoResponse) ProtoMessage() {}
-
-func (x *SetGroupPhotoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_livetest_v1_livetest_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SetGroupPhotoResponse.ProtoReflect.Descriptor instead.
-func (*SetGroupPhotoResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_livetest_v1_livetest_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *SetGroupPhotoResponse) GetPictureId() string {
-	if x != nil {
-		return x.PictureId
-	}
-	return ""
-}
-
 type SetAboutRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The session whose account's about text changes.
@@ -141,7 +33,7 @@ type SetAboutRequest struct {
 
 func (x *SetAboutRequest) Reset() {
 	*x = SetAboutRequest{}
-	mi := &file_whatsmeow_livetest_v1_livetest_proto_msgTypes[2]
+	mi := &file_whatsmeow_livetest_v1_livetest_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -153,7 +45,7 @@ func (x *SetAboutRequest) String() string {
 func (*SetAboutRequest) ProtoMessage() {}
 
 func (x *SetAboutRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_livetest_v1_livetest_proto_msgTypes[2]
+	mi := &file_whatsmeow_livetest_v1_livetest_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -166,7 +58,7 @@ func (x *SetAboutRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetAboutRequest.ProtoReflect.Descriptor instead.
 func (*SetAboutRequest) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_livetest_v1_livetest_proto_rawDescGZIP(), []int{2}
+	return file_whatsmeow_livetest_v1_livetest_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *SetAboutRequest) GetSessionId() string {
@@ -192,7 +84,7 @@ type SetAboutResponse struct {
 
 func (x *SetAboutResponse) Reset() {
 	*x = SetAboutResponse{}
-	mi := &file_whatsmeow_livetest_v1_livetest_proto_msgTypes[3]
+	mi := &file_whatsmeow_livetest_v1_livetest_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -204,7 +96,7 @@ func (x *SetAboutResponse) String() string {
 func (*SetAboutResponse) ProtoMessage() {}
 
 func (x *SetAboutResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_whatsmeow_livetest_v1_livetest_proto_msgTypes[3]
+	mi := &file_whatsmeow_livetest_v1_livetest_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -217,29 +109,19 @@ func (x *SetAboutResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetAboutResponse.ProtoReflect.Descriptor instead.
 func (*SetAboutResponse) Descriptor() ([]byte, []int) {
-	return file_whatsmeow_livetest_v1_livetest_proto_rawDescGZIP(), []int{3}
+	return file_whatsmeow_livetest_v1_livetest_proto_rawDescGZIP(), []int{1}
 }
 
 var File_whatsmeow_livetest_v1_livetest_proto protoreflect.FileDescriptor
 
 const file_whatsmeow_livetest_v1_livetest_proto_rawDesc = "" +
 	"\n" +
-	"$whatsmeow/livetest/v1/livetest.proto\x12\x15whatsmeow.livetest.v1\"h\n" +
-	"\x14SetGroupPhotoRequest\x12\x1d\n" +
-	"\n" +
-	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
-	"\x05group\x18\x02 \x01(\tR\x05group\x12\x1b\n" +
-	"\tjpeg_path\x18\x03 \x01(\tR\bjpegPath\"6\n" +
-	"\x15SetGroupPhotoResponse\x12\x1d\n" +
-	"\n" +
-	"picture_id\x18\x01 \x01(\tR\tpictureId\"D\n" +
+	"$whatsmeow/livetest/v1/livetest.proto\x12\x15whatsmeow.livetest.v1\"D\n" +
 	"\x0fSetAboutRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x12\n" +
 	"\x04text\x18\x02 \x01(\tR\x04text\"\x12\n" +
-	"\x10SetAboutResponse2}\n" +
-	"\x0fLiveTestService\x12j\n" +
-	"\rSetGroupPhoto\x12+.whatsmeow.livetest.v1.SetGroupPhotoRequest\x1a,.whatsmeow.livetest.v1.SetGroupPhotoResponse2q\n" +
+	"\x10SetAboutResponse2q\n" +
 	"\x12LiveContactService\x12[\n" +
 	"\bSetAbout\x12&.whatsmeow.livetest.v1.SetAboutRequest\x1a'.whatsmeow.livetest.v1.SetAboutResponseB\xf6\x01\n" +
 	"\x19com.whatsmeow.livetest.v1B\rLivetestProtoP\x01ZNgithub.com/tcortega/Whatsmeow.NET/sidecar/gen/whatsmeow/livetest/v1;livetestv1\xa2\x02\x03WLX\xaa\x02\x1bWhatsmeow.LiveTests.Control\xca\x02\x15Whatsmeow\\Livetest\\V1\xe2\x02!Whatsmeow\\Livetest\\V1\\GPBMetadata\xea\x02\x17Whatsmeow::Livetest::V1b\x06proto3"
@@ -256,20 +138,16 @@ func file_whatsmeow_livetest_v1_livetest_proto_rawDescGZIP() []byte {
 	return file_whatsmeow_livetest_v1_livetest_proto_rawDescData
 }
 
-var file_whatsmeow_livetest_v1_livetest_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_whatsmeow_livetest_v1_livetest_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_whatsmeow_livetest_v1_livetest_proto_goTypes = []any{
-	(*SetGroupPhotoRequest)(nil),  // 0: whatsmeow.livetest.v1.SetGroupPhotoRequest
-	(*SetGroupPhotoResponse)(nil), // 1: whatsmeow.livetest.v1.SetGroupPhotoResponse
-	(*SetAboutRequest)(nil),       // 2: whatsmeow.livetest.v1.SetAboutRequest
-	(*SetAboutResponse)(nil),      // 3: whatsmeow.livetest.v1.SetAboutResponse
+	(*SetAboutRequest)(nil),  // 0: whatsmeow.livetest.v1.SetAboutRequest
+	(*SetAboutResponse)(nil), // 1: whatsmeow.livetest.v1.SetAboutResponse
 }
 var file_whatsmeow_livetest_v1_livetest_proto_depIdxs = []int32{
-	0, // 0: whatsmeow.livetest.v1.LiveTestService.SetGroupPhoto:input_type -> whatsmeow.livetest.v1.SetGroupPhotoRequest
-	2, // 1: whatsmeow.livetest.v1.LiveContactService.SetAbout:input_type -> whatsmeow.livetest.v1.SetAboutRequest
-	1, // 2: whatsmeow.livetest.v1.LiveTestService.SetGroupPhoto:output_type -> whatsmeow.livetest.v1.SetGroupPhotoResponse
-	3, // 3: whatsmeow.livetest.v1.LiveContactService.SetAbout:output_type -> whatsmeow.livetest.v1.SetAboutResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
+	0, // 0: whatsmeow.livetest.v1.LiveContactService.SetAbout:input_type -> whatsmeow.livetest.v1.SetAboutRequest
+	1, // 1: whatsmeow.livetest.v1.LiveContactService.SetAbout:output_type -> whatsmeow.livetest.v1.SetAboutResponse
+	1, // [1:2] is the sub-list for method output_type
+	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -286,9 +164,9 @@ func file_whatsmeow_livetest_v1_livetest_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_whatsmeow_livetest_v1_livetest_proto_rawDesc), len(file_whatsmeow_livetest_v1_livetest_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   2,
 			NumExtensions: 0,
-			NumServices:   2,
+			NumServices:   1,
 		},
 		GoTypes:           file_whatsmeow_livetest_v1_livetest_proto_goTypes,
 		DependencyIndexes: file_whatsmeow_livetest_v1_livetest_proto_depIdxs,

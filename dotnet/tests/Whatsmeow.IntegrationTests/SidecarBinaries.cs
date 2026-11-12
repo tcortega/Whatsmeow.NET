@@ -63,7 +63,7 @@ public sealed partial class SidecarBinaries : IAsyncLifetime
 		Expected = new SidecarInfo
 		{
 			Version = ClientVersion,
-			Protocol = 1,
+			Protocol = 2,
 			WhatsmeowVersion = (await File.ReadAllTextAsync(Path.Combine(Root, "third_party", "whatsmeow", "VERSION"), ct).ConfigureAwait(false)).Split(' ')[1],
 			WhatsAppWebVersion = await WhatsAppWebVersionAsync(ct).ConfigureAwait(false),
 			GoVersion = (await RunAsync("go", Path.Combine(Root, "sidecar"), ["env", "GOVERSION"], ct).ConfigureAwait(false)).Trim(),
