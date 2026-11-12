@@ -9,6 +9,7 @@ import (
 	"net"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -265,6 +266,7 @@ func TestStopEndsAStreamThatIgnoresShutdownAfterTheGrace(t *testing.T) {
 
 	srv := New(token, zerolog.Nop(), sidecarlog.NewRedactor())
 	srv.stopGrace = 50 * time.Millisecond
+	srv.handlerGrace = 50 * time.Millisecond
 	handler := &stuck{opened: make(chan struct{}), release: make(chan struct{})}
 	whatsmeowv1.RegisterEventServiceServer(srv, handler)
 
@@ -294,6 +296,64 @@ func TestStopEndsAStreamThatIgnoresShutdownAfterTheGrace(t *testing.T) {
 	<-handler.opened
 	srv.Shutdown()
 	srv.Stop()
+
+	if err := <-served; err != nil {
+		t.Fatalf("serve: %v", err)
+	}
+}
+
+// lingering is a unary handler that, once its call is cancelled, still runs a moment to clean up, as a download
+// removes its partial file.
+type lingering struct {
+	whatsmeowv1.UnimplementedMessageServiceServer
+
+	started  chan struct{}
+	cleanup  time.Duration
+	returned atomic.Bool
+}
+
+func (l *lingering) SendMessage(ctx context.Context, _ *whatsmeowv1.SendMessageRequest) (*whatsmeowv1.SendMessageResponse, error) {
+	close(l.started)
+	<-ctx.Done()
+	time.Sleep(l.cleanup)
+	l.returned.Store(true)
+
+	return nil, fmt.Errorf("send: %w", ctx.Err())
+}
+
+func TestStopAfterTheGraceWaitsForACancelledHandlerToReturn(t *testing.T) {
+	t.Parallel()
+
+	srv := New(token, zerolog.Nop(), sidecarlog.NewRedactor())
+	srv.stopGrace = 50 * time.Millisecond
+	handler := &lingering{started: make(chan struct{}), cleanup: 100 * time.Millisecond}
+	whatsmeowv1.RegisterMessageServiceServer(srv, handler)
+
+	lis := bufconn.Listen(1 << 20)
+	served := make(chan error, 1)
+
+	go func() { served <- srv.Serve(lis) }()
+
+	conn, err := grpc.NewClient("passthrough:///bufnet",
+		grpc.WithContextDialer(func(ctx context.Context, _ string) (net.Conn, error) { return lis.DialContext(ctx) }),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		t.Fatalf("dial: %v", err)
+	}
+
+	t.Cleanup(func() { _ = conn.Close() })
+
+	go func() {
+		_, _ = whatsmeowv1.NewMessageServiceClient(conn).SendMessage(withToken("Bearer "+token), &whatsmeowv1.SendMessageRequest{})
+	}()
+
+	<-handler.started
+	srv.Shutdown()
+	srv.Stop()
+
+	if !handler.returned.Load() {
+		t.Fatal("Stop returned while the cancelled handler was still cleaning up")
+	}
 
 	if err := <-served; err != nil {
 		t.Fatalf("serve: %v", err)

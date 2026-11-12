@@ -996,6 +996,45 @@ func TestACancelWhileItsRecordIsWrittenSendsNothingAndLeavesNoRecord(t *testing.
 	}
 }
 
+// A send that reaches its queue after Close, which waited for the workers already, starts none: it fails with
+// NOT_CONNECTED as a send queued at Close does, and sends nothing.
+func TestASendQueuedAfterCloseStartsNoWorkerAndFailsNotConnected(t *testing.T) {
+	t.Parallel()
+
+	h := start(t)
+	h.svc.Close()
+
+	client, left, err := h.svc.sessions.Online("s1")
+	if err != nil {
+		t.Fatalf("online: %v", err)
+	}
+
+	j := &job{
+		ctx: h.ctx, session: "s1", client: client.(whatsApp), left: left, chat: jid("111@lid"), id: id(1),
+		build: as(&waE2E.Message{Conversation: proto.String("hi")}), done: make(chan struct{}),
+	}
+	h.svc.enqueue(j)
+	// A worker started anyway would take the job, as nothing takes it back yet; this waits for it.
+	h.svc.workers.Wait()
+
+	h.svc.mu.Lock()
+	started := j.started
+	h.svc.mu.Unlock()
+
+	if started {
+		t.Fatal("a worker started after Close and took the send")
+	}
+
+	o := h.svc.await(j)
+	if !errors.Is(o.err, server.ErrNotConnected) || !o.sentNothing {
+		t.Fatalf("the send after Close = %v, sent nothing %v; want NOT_CONNECTED, nothing sent", o.err, o.sentNothing)
+	}
+
+	if got := h.stub.ids(); len(got) != 0 {
+		t.Fatalf("whatsmeow got %v, want nothing", got)
+	}
+}
+
 func TestACancelWhileQueuedSendsNothingAndLeavesNoRecord(t *testing.T) {
 	t.Parallel()
 

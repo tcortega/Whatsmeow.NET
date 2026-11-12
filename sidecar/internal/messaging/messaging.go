@@ -114,7 +114,10 @@ func New(db *sql.DB, w *sidecarstore.Writer, sessions Sessions, log zerolog.Logg
 
 // Close fails the sends still queued with NOT_CONNECTED, as nothing of them was sent, and waits for the queues.
 func (svc *Service) Close() {
+	// Under svc.mu, so enqueue's lifetime check and its workers.Go see the same answer.
+	svc.mu.Lock()
 	svc.end()
+	svc.mu.Unlock()
 	svc.workers.Wait()
 }
 

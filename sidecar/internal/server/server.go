@@ -36,6 +36,9 @@ const (
 	stopGrace = 3 * time.Second
 	// keepaliveMinTime is the shortest ping interval the server accepts, far below the External-mode client's (ADR 0046).
 	keepaliveMinTime = time.Second
+	// handlerGrace bounds Stop's wait for our own handlers once grpc stopped them, so a cancelled one can clean up (a
+	// download's partial file) before main closes what it uses.
+	handlerGrace = time.Second
 )
 
 // Server is the sidecar's gRPC server.
@@ -53,6 +56,12 @@ type Server struct {
 	lifetime  context.Context //nolint:containedctx // the server's own lifetime, not a request's
 	end       context.CancelFunc
 	stopGrace time.Duration
+	// handlers counts the calls in our interceptors, so Stop can wait for them (handlerGrace). Under handlersMu, a
+	// call adds itself only until stopping is set, so no Add races Stop's Wait.
+	handlers     sync.WaitGroup
+	handlersMu   sync.Mutex
+	stopping     bool
+	handlerGrace time.Duration
 	// reload reads the token file again; nil for a token from stdin, which never changes. reloadMu serializes the
 	// reads, and reloaded is when the last one was.
 	reload   func() (string, error)
@@ -76,7 +85,7 @@ func (s *Server) ReloadToken(read func() (string, error)) {
 // the process's, the one its log writer has, so a status message and a log line give a user the same token.
 func New(token string, log zerolog.Logger, redactor *sidecarlog.Redactor) *Server {
 	lifetime, end := context.WithCancel(context.Background())
-	s := &Server{log: log, redactor: redactor, done: make(chan struct{}), lifetime: lifetime, end: end, stopGrace: stopGrace, now: time.Now}
+	s := &Server{log: log, redactor: redactor, done: make(chan struct{}), lifetime: lifetime, end: end, stopGrace: stopGrace, handlerGrace: handlerGrace, now: time.Now}
 	s.setToken(token)
 	s.grpc = grpc.NewServer(
 		grpc.ForceServerCodecV2(lenientCodec{}),
@@ -120,8 +129,13 @@ func (s *Server) Shutdown() {
 // ShuttingDown is closed once Shutdown was called.
 func (s *Server) ShuttingDown() <-chan struct{} { return s.done }
 
-// Stop waits for the calls in flight, at most the stop grace, then stops serving and closes the listener.
+// Stop waits for the calls in flight, at most the stop grace, then stops serving and closes the listener, and then
+// waits for our handlers to return, at most the handler grace.
 func (s *Server) Stop() {
+	s.handlersMu.Lock()
+	s.stopping = true
+	s.handlersMu.Unlock()
+
 	stopped := make(chan struct{})
 
 	go func() {
@@ -136,9 +150,46 @@ func (s *Server) Stop() {
 	case <-stopped:
 	case <-timer.C:
 		s.log.Warn().Dur("grace", s.stopGrace).Msg("calls still running after the grace; stopping them")
-		// Stop closes every connection; a handler that ignores its context may still run, and ends with the process.
+		// Stop closes every connection and cancels the calls' contexts, but returns without waiting for their handlers.
 		s.grpc.Stop()
 	}
+
+	s.waitHandlers()
+}
+
+// waitHandlers waits for our own handlers after grpc stopped them, at most the handler grace, so a cancelled handler
+// can clean up (a download's partial file) before main closes what it uses. A handler that ignores its context still
+// ends with the process: grpc's Serve does not wait for it, so neither does main.
+func (s *Server) waitHandlers() {
+	returned := make(chan struct{})
+
+	go func() {
+		s.handlers.Wait()
+		close(returned)
+	}()
+
+	timer := time.NewTimer(s.handlerGrace)
+	defer timer.Stop()
+
+	select {
+	case <-returned:
+	case <-timer.C:
+		s.log.Warn().Dur("grace", s.handlerGrace).Msg("handlers still running after the stop; leaving them")
+	}
+}
+
+// enter counts a call in handlers, or refuses it once Stop began, so no Add races Stop's Wait.
+func (s *Server) enter() error {
+	s.handlersMu.Lock()
+	defer s.handlersMu.Unlock()
+
+	if s.stopping {
+		return errorInfo(codes.Unavailable, whatsmeowv1.ErrorReason_ERROR_REASON_SIDECAR_SHUTTING_DOWN, "the sidecar is shutting down")
+	}
+
+	s.handlers.Add(1)
+
+	return nil
 }
 
 func (s *Server) unary(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
@@ -146,6 +197,11 @@ func (s *Server) unary(ctx context.Context, req any, info *grpc.UnaryServerInfo,
 		return nil, err
 	}
 
+	if err := s.enter(); err != nil {
+		return nil, err
+	}
+
+	defer s.handlers.Done()
 	defer s.recovered(info.FullMethod, &err)
 
 	resp, err = handler(ctx, req)
@@ -161,6 +217,11 @@ func (s *Server) stream(srv any, ss grpc.ServerStream, info *grpc.StreamServerIn
 		return err
 	}
 
+	if err := s.enter(); err != nil {
+		return err
+	}
+
+	defer s.handlers.Done()
 	defer s.recovered(info.FullMethod, &err)
 
 	ctx, cancel := context.WithCancel(ss.Context())
