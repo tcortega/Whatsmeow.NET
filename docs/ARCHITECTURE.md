@@ -564,6 +564,11 @@ gRPC StreamEvents ─► reader loop ─► bounded Channel<Envelope> ─► dis
   In 100 of those runs, 75 of 2,000 uploads ended with a write in flight, and in both timed-out runs that write never returned [observed: an observe-only fence]; that it waits on a credit waiter created after `Complete` is [inferred: from the source].
   With the fence the write in flight is cancelled and awaited first, and a later write throws `ObjectDisposedException` before it reaches the handler; grpc-dotnet turns either into the call's status `RpcException` once the call completed (`StreamExtensions.TryCreateCallCompleteException`, v2.85.0) [observed: source], so the upload throws the sidecar's reason.
 - External mode connects to `unix:<path>` or over TCP (`tcp:<host>:<port>`, without Nagle), and pings a connection silent for 15 s, dropping it when the answer takes 15 s more, so a peer that vanished without closing its end fails the calls on it; the sidecar accepts a ping a second (grpc-go's default policy closes the connection after the third ping within 5 minutes) (ADR 0046).
+- One HTTP/2 connection carries every call and every long-lived stream of every session (two event streams each, plus its state watches and pairings), with no concurrent stream limit.
+  The sidecar sets no `grpc.MaxConcurrentStreams`, and grpc-go then advertises none (v1.85.0 `server.go:189`, `internal/transport/http2_server.go:186-191`) [observed: source].
+  With 300 state watches open a unary call answers [observed: `Sidecar/ConcurrentStreamsTests.cs`, macOS, Unix socket].
+  The client never opens a second connection: the channel has its own handler, so grpc-dotnet does not set `EnableMultipleHttp2Connections`, and with the sidecar limited to 100 streams the same test's watches past the limit never open [observed: mutation, the test times out].
+  So never give the sidecar a stream limit without `EnableMultipleHttp2Connections` on the client's handler.
 - Never call `GrpcChannel.ConnectAsync` or read `GrpcChannel.State`; both throw `InvalidOperationException` ("doesn't support client-side load balancing or connectivity state tracking") when `ConnectCallback` is set (§14 transport spike). Readiness comes from the handshake.
 
 ### 8.7 Errors

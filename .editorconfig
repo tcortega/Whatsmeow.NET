@@ -369,7 +369,7 @@ dotnet_diagnostic.MA0142.severity = warning             # MA0142: Use pattern ma
 dotnet_diagnostic.MA0147.severity = error               # MA0147: Avoid async void method for delegate
 dotnet_diagnostic.MA0154.severity = warning             # MA0154: Use langword in XML comment
 dotnet_diagnostic.MA0155.severity = error               # MA0155: Do not use async void methods
-dotnet_diagnostic.MA0158.severity = warning             # MA0154: Use System.Threading.Lock
+dotnet_diagnostic.MA0158.severity = warning             # MA0158: Use System.Threading.Lock
 
 
 # Shipped library code (this repo's delta): trim, AOT and single-file analysis are errors locally too, and

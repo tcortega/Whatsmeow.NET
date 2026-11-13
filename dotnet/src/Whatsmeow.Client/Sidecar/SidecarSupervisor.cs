@@ -5,6 +5,7 @@ namespace Whatsmeow.Sidecar;
 /// to 1 s after a run that stayed up 60 s (ADR 0017). Every wait is on the injected <see cref="TimeProvider"/>.
 /// </summary>
 /// <param name="launchAsync">Starts a sidecar and returns its process id and a task that completes with its exit code.</param>
+/// <param name="maxDelay">The backoff's cap, <see cref="MaxDelay"/> outside the integration tests' shared fixture.</param>
 /// <param name="external">
 /// The address of an external sidecar, which <paramref name="launchAsync"/> connects to instead (ADR 0046): its task
 /// completes when the sidecar went away. Null for one the client starts.
@@ -12,6 +13,7 @@ namespace Whatsmeow.Sidecar;
 internal sealed class SidecarSupervisor(
 	Func<CancellationToken, Task<(int ProcessId, Task<int> Exited)>> launchAsync,
 	TimeProvider timeProvider,
+	TimeSpan maxDelay,
 	ILogger logger,
 	string? external = null
 ) : IAsyncDisposable
@@ -91,5 +93,5 @@ internal sealed class SidecarSupervisor(
 		}
 	}
 
-	private static TimeSpan Next(TimeSpan delay) => delay * 2 > MaxDelay ? MaxDelay : delay * 2;
+	private TimeSpan Next(TimeSpan delay) => delay * 2 > maxDelay ? maxDelay : delay * 2;
 }

@@ -21,6 +21,13 @@ public sealed class FakeSidecar : IAsyncLifetime
 	/// <summary>The fixture's mode, read here only: <c>external</c>, or embedded when unset.</summary>
 	private const string ModeVariable = "WHATSMEOW_NET_TEST_SIDECAR";
 
+	/// <summary>
+	/// The restart backoff's cap here: the crash tests kill the sidecar every few seconds, so the backoff never goes
+	/// back to its start (it needs a run of 60 s), and with the cap of 30 s the 26 restarts of a run waited 11 of its
+	/// 14 minutes [observed: osx-arm64, one run]. The backoff itself is the supervisor's unit tests'.
+	/// </summary>
+	private static readonly TimeSpan s_restartDelay = Whatsmeow.Sidecar.SidecarSupervisor.InitialDelay;
+
 	private string? _directory;
 	private ServiceProvider? _metrics;
 	private StandaloneSidecar? _standalone;
@@ -124,6 +131,7 @@ public sealed class FakeSidecar : IAsyncLifetime
 			DatabasePath = DatabasePath,
 			MediaRoot = MediaRoot,
 			History = HistoryOptions,
+			MaxRestartDelay = s_restartDelay,
 		};
 		Sidecar = await WhatsmeowSidecar.StartFakeWhatsAppWithMeterFactoryAsync(Options, Logs.Factory, MeterFactory, ct).ConfigureAwait(false);
 		Fake = new FakeWhatsAppService.FakeWhatsAppServiceClient(Sidecar.CallInvoker);
@@ -217,6 +225,7 @@ public sealed class FakeSidecar : IAsyncLifetime
 		{
 			MediaRoot = MediaRoot,
 			External = new ExternalSidecarOptions { Address = _listen, TokenPath = _tokenPath },
+			MaxRestartDelay = s_restartDelay,
 		};
 		Sidecar = await WhatsmeowSidecar.StartAsync(Options, Logs.Factory, MeterFactory, cancellationToken).ConfigureAwait(false);
 		Fake = new FakeWhatsAppService.FakeWhatsAppServiceClient(Sidecar.CallInvoker);

@@ -19,7 +19,7 @@ public sealed class SidecarSupervisorTests : IAsyncDisposable
 	private readonly SidecarSupervisor _supervisor;
 
 	public SidecarSupervisorTests() =>
-		_supervisor = new SidecarSupervisor(LaunchAsync, _time, new FakeLogger(_logs, "Whatsmeow.Client"));
+		_supervisor = new SidecarSupervisor(LaunchAsync, _time, SidecarSupervisor.MaxDelay, new FakeLogger(_logs, "Whatsmeow.Client"));
 
 	public async ValueTask DisposeAsync() => await _supervisor.DisposeAsync().ConfigureAwait(false);
 
@@ -152,6 +152,7 @@ public sealed class SidecarSupervisorTests : IAsyncDisposable
 				throw new SidecarUnavailableException("refused the token");
 			},
 			_time,
+			SidecarSupervisor.MaxDelay,
 			new FakeLogger(_logs, "Whatsmeow.Client")
 		);
 		var exit = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
