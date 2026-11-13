@@ -81,7 +81,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 		CallInvoker = _launchInvoker.Intercept(new ErrorCounter(Metrics));
 		_client = new SidecarService.SidecarServiceClient(CallInvoker);
 		_external = SidecarAddress.Parse(options.External?.Address);
-		_supervisor = new SidecarSupervisor(_external is null ? LaunchAsync : ConnectAsync, timeProvider, _log, _external?.ToString());
+		_supervisor = new SidecarSupervisor(_external is null ? LaunchAsync : ConnectAsync, timeProvider, options.MaxRestartDelay, _log, _external?.ToString());
 		Sessions = new WhatsmeowSessions(this, CallInvoker, _log, clientCreated, declared);
 	}
 
@@ -465,6 +465,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 			SidecarVersionMismatchException.Throw(ClientVersion.Current, info.Version, protocol, _minProtocol, _maxProtocol);
 		}
 
+		// Not on the startup timeout: a slow reconnect never fails the launch (ADR 0053).
 		await Sessions.ReconnectAsync(cancellationToken).ConfigureAwait(false);
 
 		CountLaunch();
@@ -522,6 +523,7 @@ public sealed class WhatsmeowSidecar : IAsyncDisposable
 
 			_watching = watching;
 			SidecarLog.ExternalSidecarConnected(_log, address, info.Version);
+			// Not on the startup timeout, as for a launch (ADR 0053).
 			await Sessions.ReconnectAsync(cancellationToken).ConfigureAwait(false);
 
 			CountLaunch();

@@ -61,6 +61,12 @@ public sealed class WhatsmeowSidecarOptions
 	public ExternalSidecarOptions? External { get; set; }
 
 	/// <summary>
+	/// The restart backoff's cap (ADR 0017). Only the integration tests' shared fixture lowers it: its tests kill the
+	/// sidecar every few seconds, so the backoff never went back to its start and each restart waited the full cap.
+	/// </summary>
+	internal TimeSpan MaxRestartDelay { get; set; } = Sidecar.SidecarSupervisor.MaxDelay;
+
+	/// <summary>
 	/// A copy with copies of <see cref="History"/>, <see cref="SendPacing"/> and <see cref="External"/>, so changing the
 	/// caller's instance later changes nothing, a restart included. Member-wise, so a property added later is copied too; a
 	/// member-wise copy shares a reference, so a property added later whose type is a mutable class must be deep-copied

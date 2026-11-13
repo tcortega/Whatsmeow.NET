@@ -57,6 +57,7 @@ The Pairing tests pair through the public API, with the fake WhatsApp as the pho
 A test that starts a sidecar of its own gives it a database of its own (`binaries.NewDatabase()`): one sidecar owns a database file.
 A test that crashes the sidecar calls `fixture.CrashAsync` and sits in the `SidecarCrashes` collection, which never runs in parallel; `CrashAsync` throws anywhere else.
 `CrashAsync` returns once the supervisor restarted the sidecar, and fails the test at once with the reason when a restart attempt fails, since the next attempt is a backoff away.
+The fixture caps that backoff at its first step, 1 s (`WhatsmeowSidecarOptions.MaxRestartDelay`, internal): its crashes come seconds apart, so the backoff would stay at 30 s for each one.
 Until the sidecar is back, any other test that reaches for `fixture.Sidecar` or `fixture.Fake` fails with the crash, and with the last attempt's reason once one failed, not with a refused socket (#77).
 The fixture writes the client's and the sidecar's records to `dotnet/artifacts/TestResults/fake-sidecar.log` as they come, and the CI dotnet job uploads that file when it fails.
 To read a hung test build's goroutines, where Windows has no SIGQUIT, set `WHATSMEOW_NET_TEST_DUMP_DIR` to a directory and create `dump-<pid>` in it: the sidecar writes `goroutines-<pid>-<n>.txt` there (`cmd/whatsmeow-net/fake_dump.go`, test builds only).
