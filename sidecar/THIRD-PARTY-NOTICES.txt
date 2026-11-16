@@ -238,7 +238,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ================================================================================
-github.com/petermattis/goid v0.0.0-20260918085751-abfca077860b LICENSE (Apache-2.0)
+github.com/petermattis/goid v0.0.0-20261109124353-7cfa343ad0ab LICENSE (Apache-2.0)
 ================================================================================
 Apache License
                            Version 2.0, January 2004
@@ -584,7 +584,7 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ================================================================================
-go.mau.fi/libsignal v0.2.2 LICENSE (GPL-3.0-or-later)
+go.mau.fi/libsignal v0.2.3 LICENSE (GPL-3.0-or-later)
 ================================================================================
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
@@ -1262,7 +1262,7 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 
 ================================================================================
-go.mau.fi/util v0.11.0 LICENSE (MPL-2.0)
+go.mau.fi/util v0.11.1 LICENSE (MPL-2.0)
 ================================================================================
 Mozilla Public License Version 2.0
 ==================================
@@ -1639,7 +1639,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
   defined by the Mozilla Public License, v. 2.0.
 
 ================================================================================
-go.mau.fi/whatsmeow v0.0.0-20261110152934-c88388f983b4 LICENSE (MPL-2.0)
+go.mau.fi/whatsmeow v0.0.0-20261116124925-2ecca2c913b9 LICENSE (MPL-2.0)
 ================================================================================
 Mozilla Public License Version 2.0
 ==================================
@@ -2074,7 +2074,7 @@ rights granted to you under this License for this implementation of Go
 shall terminate as of the date such litigation is filed.
 
 ================================================================================
-golang.org/x/exp v0.0.0-20261014143641-f0251eb4aa3e LICENSE (BSD-3-Clause)
+golang.org/x/exp v0.0.0-20261113113407-e3970619a1a4 LICENSE (BSD-3-Clause)
 ================================================================================
 Copyright 2009 The Go Authors.
 
@@ -2105,7 +2105,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ================================================================================
-golang.org/x/exp v0.0.0-20261014143641-f0251eb4aa3e PATENTS (LicenseRef-Google-Patents)
+golang.org/x/exp v0.0.0-20261113113407-e3970619a1a4 PATENTS (LicenseRef-Google-Patents)
 ================================================================================
 Additional IP Rights Grant (Patents)
 

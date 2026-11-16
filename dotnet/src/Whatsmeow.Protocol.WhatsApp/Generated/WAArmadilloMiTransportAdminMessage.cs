@@ -26,7 +26,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
           string.Concat(
             "Ckt3YUFybWFkaWxsb01pVHJhbnNwb3J0QWRtaW5NZXNzYWdlL1dBQXJtYWRp",
             "bGxvTWlUcmFuc3BvcnRBZG1pbk1lc3NhZ2UucHJvdG8SIldBQXJtYWRpbGxv",
-            "TWlUcmFuc3BvcnRBZG1pbk1lc3NhZ2Uih20KF01pVHJhbnNwb3J0QWRtaW5N",
+            "TWlUcmFuc3BvcnRBZG1pbk1lc3NhZ2UiyW8KF01pVHJhbnNwb3J0QWRtaW5N",
             "ZXNzYWdlEnoKEGNoYXRUaGVtZUNoYW5nZWQYASABKAsyTC5XQUFybWFkaWxs",
             "b01pVHJhbnNwb3J0QWRtaW5NZXNzYWdlLk1pVHJhbnNwb3J0QWRtaW5NZXNz",
             "YWdlLkNoYXRUaGVtZUNoYW5nZWRIAFIQY2hhdFRoZW1lQ2hhbmdlZBJ3Cg9u",
@@ -170,191 +170,199 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
             "Rm9udENoYW5nZRgwIAEoCzJXLldBQXJtYWRpbGxvTWlUcmFuc3BvcnRBZG1p",
             "bk1lc3NhZ2UuTWlUcmFuc3BvcnRBZG1pbk1lc3NhZ2UuWG1hdE1lc3Nlbmdl",
             "ckNoYXRGb250Q2hhbmdlSABSG3htYXRNZXNzZW5nZXJDaGF0Rm9udENoYW5n",
-            "ZRImCg5za2lwQnVtcFRocmVhZBgiIAEoCFIOc2tpcEJ1bXBUaHJlYWQSLAoR",
-            "c2tpcFNuaXBwZXRVcGRhdGUYIyABKAhSEXNraXBTbmlwcGV0VXBkYXRlEjwK",
-            "GXJlYWRvbmx5TWV0YWRhdGFEYXRhY2xhc3MYJCABKAlSGXJlYWRvbmx5TWV0",
-            "YWRhdGFEYXRhY2xhc3MayQEKE0xpbWl0U2hhcmluZ0NoYW5nZWQSfQoLc2hh",
-            "cmluZ1R5cGUYASABKA4yWy5XQUFybWFkaWxsb01pVHJhbnNwb3J0QWRtaW5N",
-            "ZXNzYWdlLk1pVHJhbnNwb3J0QWRtaW5NZXNzYWdlLkxpbWl0U2hhcmluZ0No",
-            "YW5nZWQuU2hhcmluZ1R5cGVSC3NoYXJpbmdUeXBlIjMKC1NoYXJpbmdUeXBl",
-            "EgkKBVVOU0VUEAASDAoIRElTQUJMRUQQARILCgdFTkFCTEVEEAIasAEKEUdy",
-            "b3VwSW1hZ2VDaGFuZ2VkEmwKBmFjdGlvbhgBIAEoDjJULldBQXJtYWRpbGxv",
+            "ZRKVAQoZeG1hdEhvbWViYXNlU3RhdHVzQ2hhbmdlZBgxIAEoCzJVLldBQXJt",
+            "YWRpbGxvTWlUcmFuc3BvcnRBZG1pbk1lc3NhZ2UuTWlUcmFuc3BvcnRBZG1p",
+            "bk1lc3NhZ2UuWG1hdEhvbWViYXNlU3RhdHVzQ2hhbmdlZEgAUhl4bWF0SG9t",
+            "ZWJhc2VTdGF0dXNDaGFuZ2VkEiYKDnNraXBCdW1wVGhyZWFkGCIgASgIUg5z",
+            "a2lwQnVtcFRocmVhZBIsChFza2lwU25pcHBldFVwZGF0ZRgjIAEoCFIRc2tp",
+            "cFNuaXBwZXRVcGRhdGUSPAoZcmVhZG9ubHlNZXRhZGF0YURhdGFjbGFzcxgk",
+            "IAEoCVIZcmVhZG9ubHlNZXRhZGF0YURhdGFjbGFzcxrJAQoTTGltaXRTaGFy",
+            "aW5nQ2hhbmdlZBJ9CgtzaGFyaW5nVHlwZRgBIAEoDjJbLldBQXJtYWRpbGxv",
             "TWlUcmFuc3BvcnRBZG1pbk1lc3NhZ2UuTWlUcmFuc3BvcnRBZG1pbk1lc3Nh",
-            "Z2UuR3JvdXBJbWFnZUNoYW5nZWQuQWN0aW9uUgZhY3Rpb24iLQoGQWN0aW9u",
-            "EgkKBVVOU0VUEAASCwoHQ0hBTkdFRBABEgsKB1JFTU9WRUQQAhqoAQoNTWVz",
-            "c2FnZVBpbm5lZBJoCgZhY3Rpb24YASABKA4yUC5XQUFybWFkaWxsb01pVHJh",
-            "bnNwb3J0QWRtaW5NZXNzYWdlLk1pVHJhbnNwb3J0QWRtaW5NZXNzYWdlLk1l",
-            "c3NhZ2VQaW5uZWQuQWN0aW9uUgZhY3Rpb24iLQoGQWN0aW9uEgkKBVVOU0VU",
-            "EAASCgoGUElOTkVEEAESDAoIVU5QSU5ORUQQAhrIAQodR3JvdXBNZW1iZXJz",
-            "aGlwQWRkTW9kZUNoYW5nZWQScgoEbW9kZRgBIAEoDjJeLldBQXJtYWRpbGxv",
-            "TWlUcmFuc3BvcnRBZG1pbk1lc3NhZ2UuTWlUcmFuc3BvcnRBZG1pbk1lc3Nh",
-            "Z2UuR3JvdXBNZW1iZXJzaGlwQWRkTW9kZUNoYW5nZWQuTW9kZVIEbW9kZSIz",
-            "CgRNb2RlEgkKBVVOU0VUEAASDwoLQUxMX01FTUJFUlMQARIPCgtBRE1JTlNf",
-            "T05MWRACGtIBChFHcm91cEFkbWluQ2hhbmdlZBIiCgx0YXJnZXRVc2VySUQY",
-            "ASADKAlSDHRhcmdldFVzZXJJRBJsCgZhY3Rpb24YAiABKA4yVC5XQUFybWFk",
-            "aWxsb01pVHJhbnNwb3J0QWRtaW5NZXNzYWdlLk1pVHJhbnNwb3J0QWRtaW5N",
-            "ZXNzYWdlLkdyb3VwQWRtaW5DaGFuZ2VkLkFjdGlvblIGYWN0aW9uIisKBkFj",
-            "dGlvbhIJCgVVTlNFVBAAEgkKBUFEREVEEAESCwoHUkVNT1ZFRBACGt4BChdH",
-            "cm91cFBhcnRpY2lwYW50Q2hhbmdlZBIiCgx0YXJnZXRVc2VySUQYASADKAlS",
-            "DHRhcmdldFVzZXJJRBJyCgZhY3Rpb24YAiABKA4yWi5XQUFybWFkaWxsb01p",
-            "VHJhbnNwb3J0QWRtaW5NZXNzYWdlLk1pVHJhbnNwb3J0QWRtaW5NZXNzYWdl",
-            "Lkdyb3VwUGFydGljaXBhbnRDaGFuZ2VkLkFjdGlvblIGYWN0aW9uIisKBkFj",
-            "dGlvbhIJCgVVTlNFVBAAEgkKBUFEREVEEAESCwoHUkVNT1ZFRBACGjcKG1ht",
-            "YXRNZXNzZW5nZXJDaGF0Rm9udENoYW5nZRIYCgdhY3RvcklEGAEgASgDUgdh",
-            "Y3RvcklEGvUCChlYbWF0SG9tZWJhc2VBY3Rpb25TdW1tYXJ5EhIKBHRleHQY",
-            "ASABKAlSBHRleHQSGgoIZnVsbFRleHQYAiABKAlSCGZ1bGxUZXh0EhgKB2N0",
-            "YVRleHQYAyABKAlSB2N0YVRleHQSIAoLaG91c2Vob2xkSUQYBCABKANSC2hv",
-            "dXNlaG9sZElEEiwKEWRlc3RpbmF0aW9uVmlld0lEGAUgASgJUhFkZXN0aW5h",
-            "dGlvblZpZXdJRBIwChNkZXN0aW5hdGlvblZpZXdOYW1lGAYgASgJUhNkZXN0",
-            "aW5hdGlvblZpZXdOYW1lEjQKFWRlc3RpbmF0aW9uV2lkZ2V0VHlwZRgHIAEo",
-            "CVIVZGVzdGluYXRpb25XaWRnZXRUeXBlEigKD3NvdXJjZU1lc3NhZ2VJRBgI",
-            "IAEoCVIPc291cmNlTWVzc2FnZUlEEiwKEWFjdGlvbkNvbnRlbnRCbG9iGAkg",
-            "ASgJUhFhY3Rpb25Db250ZW50QmxvYhpMChJYbWF0UGV0SW50ZXJhY3Rpb24S",
-            "GAoHcGV0TmFtZRgBIAEoCVIHcGV0TmFtZRIcCglhY3Rpb25LZXkYAiABKAlS",
-            "CWFjdGlvbktleRqnAQolWG1hdE1lc3Nlbmdlck1lc3NhZ2VSZW1pbmRlclRy",
-            "aWdnZXJlZBIuChJvZmZsaW5lVGhyZWFkaW5nSUQYASABKANSEm9mZmxpbmVU",
-            "aHJlYWRpbmdJRBIkCg1zY2hlZHVsZWRUaW1lGAIgASgJUg1zY2hlZHVsZWRU",
-            "aW1lEigKD3NjaGVkdWxlZFRpbWVNUxgDIAEoA1IPc2NoZWR1bGVkVGltZU1T",
-            "GqEBCh9YbWF0TWVzc2VuZ2VyTWVzc2FnZVJlbWluZGVyU2V0Ei4KEm9mZmxp",
-            "bmVUaHJlYWRpbmdJRBgBIAEoA1ISb2ZmbGluZVRocmVhZGluZ0lEEiQKDXNj",
-            "aGVkdWxlZFRpbWUYAiABKAlSDXNjaGVkdWxlZFRpbWUSKAoPc2NoZWR1bGVk",
-            "VGltZU1TGAMgASgDUg9zY2hlZHVsZWRUaW1lTVMaogEKHFhtYXRTZXRQYXJ0",
-            "aWNpcGFudFVwZGF0ZU1vZGUSNAoVcGFydGljaXBhbnRVcGRhdGVNb2RlGAEg",
-            "ASgJUhVwYXJ0aWNpcGFudFVwZGF0ZU1vZGUSGgoIc2V0dGVySUQYAiABKANS",
-            "CHNldHRlcklEEjAKE3RyYW5zcG9ydFRocmVhZEZiaWQYAyABKANSE3RyYW5z",
-            "cG9ydFRocmVhZEZiaWQaPgoWWG1hdEdyb3VwVGhyZWFkQ3JlYXRlZBIkCg10",
-            "aHJlYWRTdWJ0eXBlGAEgASgJUg10aHJlYWRTdWJ0eXBlGjwKFFhtYXRDaGFu",
-            "Z2VUaHJlYWROYW1lEiQKDW5ld1RocmVhZE5hbWUYASABKAlSDW5ld1RocmVh",
-            "ZE5hbWUamgEKFlhtYXRDaGFuZ2VUaHJlYWRBZG1pbnMSHgoKYWRtaW5FdmVu",
-            "dBgBIAEoCVIKYWRtaW5FdmVudBIaCgh0YXJnZXRJRBgCIAEoA1IIdGFyZ2V0",
-            "SUQSJgoOdGhyZWFkQ2F0ZWdvcnkYAyABKAlSDnRocmVhZENhdGVnb3J5EhwK",
-            "CWFkbWluVHlwZRgEIAEoCVIJYWRtaW5UeXBlGk8KFVhtYXRSZW1vdmVQYXJ0",
-            "aWNpcGFudBI2ChZyZW1vdmVkUGFydGljaXBhbnRGYmlkGAEgASgDUhZyZW1v",
-            "dmVkUGFydGljaXBhbnRGYmlkGoMBChNYbWF0QWRkUGFydGljaXBhbnRzEjAK",
-            "EXBhcnRpY2lwYW50c0FkZGVkGAEgAygDQgIQAVIRcGFydGljaXBhbnRzQWRk",
-            "ZWQSOgoYYWRkZWRUaHJvdWdoSm9pblJlcXVlc3RzGAIgASgIUhhhZGRlZFRo",
-            "cm91Z2hKb2luUmVxdWVzdHMaZgoYWG1hdEdlbkFJUmF0ZUxpbWl0VXBzZWxs",
-            "EhwKCWFkbWluVGV4dBgBIAEoCVIJYWRtaW5UZXh0EiwKEXJhdGVMaW1pdFVu",
-            "dGlsU2VjGAIgASgDUhFyYXRlTGltaXRVbnRpbFNlYxoqChBYbWF0R2VuQUlU",
-            "YXNrQWRkEhYKBnRhc2tJRBgBIAEoA1IGdGFza0lEGj4KElhtYXRVbnBpbk1l",
-            "c3NhZ2VWMhIoCg9waW5uZWRNZXNzYWdlSUQYASABKAlSD3Bpbm5lZE1lc3Nh",
-            "Z2VJRBo8ChBYbWF0UGluTWVzc2FnZVYyEigKD3Bpbm5lZE1lc3NhZ2VJRBgB",
-            "IAEoCVIPcGlubmVkTWVzc2FnZUlEGsQBChJYbWF0VXBkYXRlUGF5bWVudHMS",
-            "IgoMcmVjZWl2ZXJOYW1lGAEgASgJUgxyZWNlaXZlck5hbWUSHgoKc2VuZGVy",
-            "TmFtZRgCIAEoCVIKc2VuZGVyTmFtZRIWCgZhbW91bnQYAyABKAJSBmFtb3Vu",
-            "dBIkCg10cmFuc2FjdGlvbklEGAQgASgDUg10cmFuc2FjdGlvbklEEiwKEXRy",
-            "YW5zYWN0aW9uU3RhdHVzGAUgASgFUhF0cmFuc2FjdGlvblN0YXR1cxqnAQoX",
-            "WG1hdFRocmVhZFF1aWNrUmVhY3Rpb24SOgoYdGhyZWFkUXVpY2tSZWFjdGlv",
-            "bkVtb2ppGAEgASgJUhh0aHJlYWRRdWlja1JlYWN0aW9uRW1vamkSUAojdGhy",
-            "ZWFkUXVpY2tSZWFjdGlvbkluc3RydWN0aW9uS2V5SUQYAiABKAlSI3RocmVh",
-            "ZFF1aWNrUmVhY3Rpb25JbnN0cnVjdGlvbktleUlEGlYKElhtYXRUaHJlYWRO",
-            "aWNrbmFtZRIkCg1wYXJ0aWNpcGFudElEGAEgASgDUg1wYXJ0aWNpcGFudElE",
-            "EhoKCG5pY2tuYW1lGAIgASgJUghuaWNrbmFtZRowCg5YbWF0VGhyZWFkSWNv",
-            "bhIeCgp0aHJlYWRJY29uGAEgASgJUgp0aHJlYWRJY29uGrICCg5YbWF0VGhl",
-            "bWVDb2xvchIYCgd0aGVtZUlEGAEgASgJUgd0aGVtZUlEEh4KCnRoZW1lQ29s",
-            "b3IYAiABKAlSCnRoZW1lQ29sb3ISGgoIZ3JhZGllbnQYAyADKAlSCGdyYWRp",
-            "ZW50EiYKDnNob3VsZFNob3dJY29uGAQgASgIUg5zaG91bGRTaG93SWNvbhIc",
-            "Cgl0aGVtZVR5cGUYBSABKAVSCXRoZW1lVHlwZRIuChJhY2Nlc3NpYmlsaXR5",
-            "TGFiZWwYBiABKAlSEmFjY2Vzc2liaWxpdHlMYWJlbBI0ChV0aGVtZU5hbWVX",
-            "aXRoU3VidGl0bGUYByABKAlSFXRoZW1lTmFtZVdpdGhTdWJ0aXRsZRIeCgp0",
-            "aGVtZUVtb2ppGAggASgJUgp0aGVtZUVtb2ppGj4KGFhtYXRNZXNzZW5nZXJT",
-            "aGFyZWRBbGJ1bRIiCgx4bWFEYXRhY2xhc3MYASABKAlSDHhtYURhdGFjbGFz",
-            "cxqSAQoeWG1hdE1lc3NlbmdlclNoYXJlZEFsYnVtUmVuYW1lEiQKDXNoYXJl",
-            "ZEFsYnVtSUQYASABKANSDXNoYXJlZEFsYnVtSUQSJAoNb2xkQWxidW1UaXRs",
-            "ZRgCIAEoCVINb2xkQWxidW1UaXRsZRIkCg1uZXdBbGJ1bVRpdGxlGAMgASgJ",
-            "Ug1uZXdBbGJ1bVRpdGxlGmgKIFhtYXRNZXNzZW5nZXJTaGFyZWRBbGJ1bURl",
-            "bGV0aW9uEiQKDXNoYXJlZEFsYnVtSUQYASABKANSDXNoYXJlZEFsYnVtSUQS",
-            "HgoKYWxidW1UaXRsZRgCIAEoCVIKYWxidW1UaXRsZRqGAwomWG1hdE1lc3Nl",
-            "bmdlclNoYXJlZEFsYnVtQ29udGVudFJlbW92YWwSJAoNc2hhcmVkQWxidW1J",
-            "RBgBIAEoA1INc2hhcmVkQWxidW1JRBKkAQoRcmVtb3ZlZENvbnRlbnRNYXAY",
-            "AiADKAsydi5XQUFybWFkaWxsb01pVHJhbnNwb3J0QWRtaW5NZXNzYWdlLk1p",
-            "VHJhbnNwb3J0QWRtaW5NZXNzYWdlLlhtYXRNZXNzZW5nZXJTaGFyZWRBbGJ1",
-            "bUNvbnRlbnRSZW1vdmFsLlJlbW92ZWRDb250ZW50VHVwbGVSEXJlbW92ZWRD",
-            "b250ZW50TWFwEjAKE3JlbW92ZWRDb250ZW50Q291bnQYAyABKANSE3JlbW92",
-            "ZWRDb250ZW50Q291bnQSHgoKYWxidW1UaXRsZRgEIAEoCVIKYWxidW1UaXRs",
-            "ZRo9ChNSZW1vdmVkQ29udGVudFR1cGxlEhAKA2tleRgBIAEoA1IDa2V5EhQK",
-            "BXZhbHVlGAIgASgJUgV2YWx1ZRq+AQogWG1hdE1lc3NlbmdlclNoYXJlZEFs",
-            "YnVtQWRkaXRpb24SJAoNc2hhcmVkQWxidW1JRBgBIAEoA1INc2hhcmVkQWxi",
-            "dW1JRBIeCgphbGJ1bVRpdGxlGAIgASgJUgphbGJ1bVRpdGxlEioKEG51bU9m",
-            "QXR0YWNobWVudHMYAyABKANSEG51bU9mQXR0YWNobWVudHMSKAoPaXNBbGJ1",
-            "bUNyZWF0aW9uGAQgASgIUg9pc0FsYnVtQ3JlYXRpb24aYAoaWG1hdE1lc3Nl",
-            "bmdlclFSQ29kZVNjYW5uZWQSIgoMcmVjZWl2ZXJOYW1lGAEgASgJUgxyZWNl",
-            "aXZlck5hbWUSHgoKc2VuZGVyTmFtZRgCIAEoCVIKc2VuZGVyTmFtZRqDAQoZ",
-            "WG1hdE1lc3NhZ2luZ0xpbWl0U2hhcmluZxIeCgpzZW5kZXJOYW1lGAEgASgJ",
-            "UgpzZW5kZXJOYW1lEhoKCHNlbmRlcklEGAIgASgJUghzZW5kZXJJRBIqChBs",
-            "aW1pdFNoYXJpbmdUeXBlGAMgASgJUhBsaW1pdFNoYXJpbmdUeXBlGvQBCg5Y",
-            "bWF0TWFnaWNXb3JkcxIsChFuZXdNYWdpY1dvcmRDb3VudBgBIAEoA1IRbmV3",
-            "TWFnaWNXb3JkQ291bnQSNAoVcmVtb3ZlZE1hZ2ljV29yZENvdW50GAIgASgD",
-            "UhVyZW1vdmVkTWFnaWNXb3JkQ291bnQSHAoJbWFnaWNXb3JkGAMgASgJUglt",
-            "YWdpY1dvcmQSIAoLZW1vamlFZmZlY3QYBCABKAlSC2Vtb2ppRWZmZWN0EiAK",
-            "C2lzQWxsRWRpdGVkGAUgASgIUgtpc0FsbEVkaXRlZBIcCgl0aGVtZU5hbWUY",
-            "BiABKAlSCXRoZW1lTmFtZRrfBQoLWG1hdExpbmtDVEESNgoWbGlua0N0YVht",
-            "YXRQcmltYXJ5VGV4dBgBIAEoCVIWbGlua0N0YVhtYXRQcmltYXJ5VGV4dBIu",
-            "ChJsaW5rQ3RhWG1hdEN0YVRleHQYAiABKAlSEmxpbmtDdGFYbWF0Q3RhVGV4",
-            "dBIsChFsaW5rQ3RhWG1hdEN0YVVSTBgDIAEoCVIRbGlua0N0YVhtYXRDdGFV",
-            "UkwSMgoUbGlua0N0YVhtYXRDdGFJb3NVUkwYBCABKAlSFGxpbmtDdGFYbWF0",
-            "Q3RhSW9zVVJMEh4KCmFuZHJvaWRVcmkYBSABKAlSCmFuZHJvaWRVcmkSGgoI",
-            "YXN5bmNVUkwYBiABKAlSCGFzeW5jVVJMEiQKDXd3d0lzQXN5bmNVUkwYByAB",
-            "KAhSDXd3d0lzQXN5bmNVUkwSIgoMbXNpdGVFbmFibGVkGAggASgIUgxtc2l0",
-            "ZUVuYWJsZWQSLAoRaGlkZVVyaUluRmFsbGJhY2sYCSABKAhSEWhpZGVVcmlJ",
-            "bkZhbGxiYWNrEjYKFnNob3dDb25maXJtYXRpb25EaWFsb2cYCiABKAhSFnNo",
-            "b3dDb25maXJtYXRpb25EaWFsb2cSIgoMZ3JhcGhQYXlsb2FkGAsgASgJUgxn",
-            "cmFwaFBheWxvYWQSJgoOaWRlbnRpZmllck5hbWUYDCABKAlSDmlkZW50aWZp",
-            "ZXJOYW1lEhoKCHRocmVhZElEGA0gASgJUgh0aHJlYWRJRBIsChFoaWRlQ3Rh",
-            "SW5GYWxsYmFjaxgOIAEoCFIRaGlkZUN0YUluRmFsbGJhY2sSQgocY3R4QWRD",
-            "b252ZXJzYXRpb25TdGFydGVySW5mbxgPIAEoCVIcY3R4QWRDb252ZXJzYXRp",
-            "b25TdGFydGVySW5mbxIWCgZmYm1VcmkYECABKAlSBmZibVVyaRIoCg9pbml0",
-            "aWF0b3JVc2VySUQYESABKAlSD2luaXRpYXRvclVzZXJJRBqrAQorWG1hdElu",
-            "c3RhbnRHYW1lRW5jcnlwdGVkRHluYW1pY0N1c3RvbVVwZGF0ZRIeCgpzZW5k",
-            "ZXJOYW1lGAEgASgJUgpzZW5kZXJOYW1lEkAKG211dGVNYW5hZ2VtZW50QWRt",
-            "aW5UZXh0VHlwZRgCIAEoCVIbbXV0ZU1hbmFnZW1lbnRBZG1pblRleHRUeXBl",
-            "EhoKCGdhbWVOYW1lGAMgASgJUghnYW1lTmFtZRq3AQojWG1hdEZyaWVuZFJl",
-            "cXVlc3RDb25maXJtZWRFbmNyeXB0ZWQSJAoNb3RoZXJVc2VyTmFtZRgBIAEo",
-            "CVINb3RoZXJVc2VyTmFtZRImCg5pc1R1cm5PbkNvaG9ydBgCIAEoCVIOaXNU",
-            "dXJuT25Db2hvcnQSQgocdXNlcldob0FjY2VwdGVkRnJpZW5kUmVxdWVzdBgD",
-            "IAEoCVIcdXNlcldob0FjY2VwdGVkRnJpZW5kUmVxdWVzdBq7AgoXWG1hdERp",
-            "c2FwcGVhcmluZ1NldHRpbmcSOAoXZGlzYXBwZWFyaW5nU2V0dGluZ1RpbWUY",
-            "ASABKANSF2Rpc2FwcGVhcmluZ1NldHRpbmdUaW1lEj4KGm9sZERpc2FwcGVh",
-            "cmluZ1NldHRpbmdUaW1lGAIgASgDUhpvbGREaXNhcHBlYXJpbmdTZXR0aW5n",
-            "VGltZRJCChxkaXNhcHBlYXJpbmdTZXR0aW5nQWN0b3JGYmlkGAMgASgDUhxk",
-            "aXNhcHBlYXJpbmdTZXR0aW5nQWN0b3JGYmlkEjAKE25ld0VwaGVtZXJhbGl0",
-            "eVR5cGUYBCABKANSE25ld0VwaGVtZXJhbGl0eVR5cGUSMAoTb2xkRXBoZW1l",
-            "cmFsaXR5VHlwZRgFIAEoA1ITb2xkRXBoZW1lcmFsaXR5VHlwZRrCAQoaRGlz",
-            "YXBwZWFyaW5nU2V0dGluZ0NoYW5nZWQSTgoiZGlzYXBwZWFyaW5nU2V0dGlu",
-            "Z0R1cmF0aW9uU2Vjb25kcxgBIAEoBVIiZGlzYXBwZWFyaW5nU2V0dGluZ0R1",
-            "cmF0aW9uU2Vjb25kcxJUCiVvbGREaXNhcHBlYXJpbmdTZXR0aW5nRHVyYXRp",
-            "b25TZWNvbmRzGAIgASgFUiVvbGREaXNhcHBlYXJpbmdTZXR0aW5nRHVyYXRp",
-            "b25TZWNvbmRzGi0KC0ljb25DaGFuZ2VkEh4KCnRocmVhZEljb24YASABKAlS",
-            "CnRocmVhZEljb24azgEKB0xpbmtDdGESfAoOdWtPc2FBZG1pblRleHQYASAB",
-            "KAsyUi5XQUFybWFkaWxsb01pVHJhbnNwb3J0QWRtaW5NZXNzYWdlLk1pVHJh",
-            "bnNwb3J0QWRtaW5NZXNzYWdlLkxpbmtDdGEuVWtPc2FBZG1pblRleHRIAFIO",
-            "dWtPc2FBZG1pblRleHQaOgoOVWtPc2FBZG1pblRleHQSKAoPaW5pdGlhdG9y",
-            "VXNlcklEGAIgASgJUg9pbml0aWF0b3JVc2VySURCCQoHY29udGVudBo0ChRR",
-            "dWlja1JlYWN0aW9uQ2hhbmdlZBIcCgllbW9qaU5hbWUYASABKAlSCWVtb2pp",
-            "TmFtZRowChBHcm91cE5hbWVDaGFuZ2VkEhwKCWdyb3VwTmFtZRgBIAEoCVIJ",
-            "Z3JvdXBOYW1lGlEKD05pY2tuYW1lQ2hhbmdlZBIiCgx0YXJnZXRVc2VySUQY",
-            "ASABKAlSDHRhcmdldFVzZXJJRBIaCghuaWNrbmFtZRgCIAEoCVIIbmlja25h",
-            "bWUabgoQQ2hhdFRoZW1lQ2hhbmdlZBIcCgl0aGVtZU5hbWUYASABKAlSCXRo",
-            "ZW1lTmFtZRIeCgp0aGVtZUVtb2ppGAIgASgJUgp0aGVtZUVtb2ppEhwKCXRo",
-            "ZW1lVHlwZRgDIAEoBVIJdGhlbWVUeXBlQgkKB2NvbnRlbnRCxwIKJmNvbS5X",
-            "QUFybWFkaWxsb01pVHJhbnNwb3J0QWRtaW5NZXNzYWdlQidXQUFybWFkaWxs",
-            "b01pVHJhbnNwb3J0QWRtaW5NZXNzYWdlUHJvdG9QAVo8Z28ubWF1LmZpL3do",
-            "YXRzbWVvdy9wcm90by93YUFybWFkaWxsb01pVHJhbnNwb3J0QWRtaW5NZXNz",
-            "YWdlogIDV1hYqgIyV2hhdHNtZW93LlByb3RvLldBQXJtYWRpbGxvTWlUcmFu",
-            "c3BvcnRBZG1pbk1lc3NhZ2XKAiJXQUFybWFkaWxsb01pVHJhbnNwb3J0QWRt",
-            "aW5NZXNzYWdl4gIuV0FBcm1hZGlsbG9NaVRyYW5zcG9ydEFkbWluTWVzc2Fn",
-            "ZVxHUEJNZXRhZGF0YeoCIldBQXJtYWRpbGxvTWlUcmFuc3BvcnRBZG1pbk1l",
-            "c3NhZ2U="));
+            "Z2UuTGltaXRTaGFyaW5nQ2hhbmdlZC5TaGFyaW5nVHlwZVILc2hhcmluZ1R5",
+            "cGUiMwoLU2hhcmluZ1R5cGUSCQoFVU5TRVQQABIMCghESVNBQkxFRBABEgsK",
+            "B0VOQUJMRUQQAhqwAQoRR3JvdXBJbWFnZUNoYW5nZWQSbAoGYWN0aW9uGAEg",
+            "ASgOMlQuV0FBcm1hZGlsbG9NaVRyYW5zcG9ydEFkbWluTWVzc2FnZS5NaVRy",
+            "YW5zcG9ydEFkbWluTWVzc2FnZS5Hcm91cEltYWdlQ2hhbmdlZC5BY3Rpb25S",
+            "BmFjdGlvbiItCgZBY3Rpb24SCQoFVU5TRVQQABILCgdDSEFOR0VEEAESCwoH",
+            "UkVNT1ZFRBACGqgBCg1NZXNzYWdlUGlubmVkEmgKBmFjdGlvbhgBIAEoDjJQ",
+            "LldBQXJtYWRpbGxvTWlUcmFuc3BvcnRBZG1pbk1lc3NhZ2UuTWlUcmFuc3Bv",
+            "cnRBZG1pbk1lc3NhZ2UuTWVzc2FnZVBpbm5lZC5BY3Rpb25SBmFjdGlvbiIt",
+            "CgZBY3Rpb24SCQoFVU5TRVQQABIKCgZQSU5ORUQQARIMCghVTlBJTk5FRBAC",
+            "GsgBCh1Hcm91cE1lbWJlcnNoaXBBZGRNb2RlQ2hhbmdlZBJyCgRtb2RlGAEg",
+            "ASgOMl4uV0FBcm1hZGlsbG9NaVRyYW5zcG9ydEFkbWluTWVzc2FnZS5NaVRy",
+            "YW5zcG9ydEFkbWluTWVzc2FnZS5Hcm91cE1lbWJlcnNoaXBBZGRNb2RlQ2hh",
+            "bmdlZC5Nb2RlUgRtb2RlIjMKBE1vZGUSCQoFVU5TRVQQABIPCgtBTExfTUVN",
+            "QkVSUxABEg8KC0FETUlOU19PTkxZEAIa0gEKEUdyb3VwQWRtaW5DaGFuZ2Vk",
+            "EiIKDHRhcmdldFVzZXJJRBgBIAMoCVIMdGFyZ2V0VXNlcklEEmwKBmFjdGlv",
+            "bhgCIAEoDjJULldBQXJtYWRpbGxvTWlUcmFuc3BvcnRBZG1pbk1lc3NhZ2Uu",
+            "TWlUcmFuc3BvcnRBZG1pbk1lc3NhZ2UuR3JvdXBBZG1pbkNoYW5nZWQuQWN0",
+            "aW9uUgZhY3Rpb24iKwoGQWN0aW9uEgkKBVVOU0VUEAASCQoFQURERUQQARIL",
+            "CgdSRU1PVkVEEAIa3gEKF0dyb3VwUGFydGljaXBhbnRDaGFuZ2VkEiIKDHRh",
+            "cmdldFVzZXJJRBgBIAMoCVIMdGFyZ2V0VXNlcklEEnIKBmFjdGlvbhgCIAEo",
+            "DjJaLldBQXJtYWRpbGxvTWlUcmFuc3BvcnRBZG1pbk1lc3NhZ2UuTWlUcmFu",
+            "c3BvcnRBZG1pbk1lc3NhZ2UuR3JvdXBQYXJ0aWNpcGFudENoYW5nZWQuQWN0",
+            "aW9uUgZhY3Rpb24iKwoGQWN0aW9uEgkKBVVOU0VUEAASCQoFQURERUQQARIL",
+            "CgdSRU1PVkVEEAIaNwobWG1hdE1lc3NlbmdlckNoYXRGb250Q2hhbmdlEhgK",
+            "B2FjdG9ySUQYASABKANSB2FjdG9ySUQapwEKGVhtYXRIb21lYmFzZVN0YXR1",
+            "c0NoYW5nZWQSHgoKc3RhdHVzVHlwZRgBIAEoCVIKc3RhdHVzVHlwZRIYCgdh",
+            "Y3RvcklEGAIgASgDUgdhY3RvcklEEhwKCWFjdG9yTmFtZRgDIAEoCVIJYWN0",
+            "b3JOYW1lEjIKFHBhdXNlRHVyYXRpb25TZWNvbmRzGAQgASgDUhRwYXVzZUR1",
+            "cmF0aW9uU2Vjb25kcxr1AgoZWG1hdEhvbWViYXNlQWN0aW9uU3VtbWFyeRIS",
+            "CgR0ZXh0GAEgASgJUgR0ZXh0EhoKCGZ1bGxUZXh0GAIgASgJUghmdWxsVGV4",
+            "dBIYCgdjdGFUZXh0GAMgASgJUgdjdGFUZXh0EiAKC2hvdXNlaG9sZElEGAQg",
+            "ASgDUgtob3VzZWhvbGRJRBIsChFkZXN0aW5hdGlvblZpZXdJRBgFIAEoCVIR",
+            "ZGVzdGluYXRpb25WaWV3SUQSMAoTZGVzdGluYXRpb25WaWV3TmFtZRgGIAEo",
+            "CVITZGVzdGluYXRpb25WaWV3TmFtZRI0ChVkZXN0aW5hdGlvbldpZGdldFR5",
+            "cGUYByABKAlSFWRlc3RpbmF0aW9uV2lkZ2V0VHlwZRIoCg9zb3VyY2VNZXNz",
+            "YWdlSUQYCCABKAlSD3NvdXJjZU1lc3NhZ2VJRBIsChFhY3Rpb25Db250ZW50",
+            "QmxvYhgJIAEoCVIRYWN0aW9uQ29udGVudEJsb2IaTAoSWG1hdFBldEludGVy",
+            "YWN0aW9uEhgKB3BldE5hbWUYASABKAlSB3BldE5hbWUSHAoJYWN0aW9uS2V5",
+            "GAIgASgJUglhY3Rpb25LZXkapwEKJVhtYXRNZXNzZW5nZXJNZXNzYWdlUmVt",
+            "aW5kZXJUcmlnZ2VyZWQSLgoSb2ZmbGluZVRocmVhZGluZ0lEGAEgASgDUhJv",
+            "ZmZsaW5lVGhyZWFkaW5nSUQSJAoNc2NoZWR1bGVkVGltZRgCIAEoCVINc2No",
+            "ZWR1bGVkVGltZRIoCg9zY2hlZHVsZWRUaW1lTVMYAyABKANSD3NjaGVkdWxl",
+            "ZFRpbWVNUxqhAQofWG1hdE1lc3Nlbmdlck1lc3NhZ2VSZW1pbmRlclNldBIu",
+            "ChJvZmZsaW5lVGhyZWFkaW5nSUQYASABKANSEm9mZmxpbmVUaHJlYWRpbmdJ",
+            "RBIkCg1zY2hlZHVsZWRUaW1lGAIgASgJUg1zY2hlZHVsZWRUaW1lEigKD3Nj",
+            "aGVkdWxlZFRpbWVNUxgDIAEoA1IPc2NoZWR1bGVkVGltZU1TGqIBChxYbWF0",
+            "U2V0UGFydGljaXBhbnRVcGRhdGVNb2RlEjQKFXBhcnRpY2lwYW50VXBkYXRl",
+            "TW9kZRgBIAEoCVIVcGFydGljaXBhbnRVcGRhdGVNb2RlEhoKCHNldHRlcklE",
+            "GAIgASgDUghzZXR0ZXJJRBIwChN0cmFuc3BvcnRUaHJlYWRGYmlkGAMgASgD",
+            "UhN0cmFuc3BvcnRUaHJlYWRGYmlkGj4KFlhtYXRHcm91cFRocmVhZENyZWF0",
+            "ZWQSJAoNdGhyZWFkU3VidHlwZRgBIAEoCVINdGhyZWFkU3VidHlwZRo8ChRY",
+            "bWF0Q2hhbmdlVGhyZWFkTmFtZRIkCg1uZXdUaHJlYWROYW1lGAEgASgJUg1u",
+            "ZXdUaHJlYWROYW1lGpoBChZYbWF0Q2hhbmdlVGhyZWFkQWRtaW5zEh4KCmFk",
+            "bWluRXZlbnQYASABKAlSCmFkbWluRXZlbnQSGgoIdGFyZ2V0SUQYAiABKANS",
+            "CHRhcmdldElEEiYKDnRocmVhZENhdGVnb3J5GAMgASgJUg50aHJlYWRDYXRl",
+            "Z29yeRIcCglhZG1pblR5cGUYBCABKAlSCWFkbWluVHlwZRpPChVYbWF0UmVt",
+            "b3ZlUGFydGljaXBhbnQSNgoWcmVtb3ZlZFBhcnRpY2lwYW50RmJpZBgBIAEo",
+            "A1IWcmVtb3ZlZFBhcnRpY2lwYW50RmJpZBqDAQoTWG1hdEFkZFBhcnRpY2lw",
+            "YW50cxIwChFwYXJ0aWNpcGFudHNBZGRlZBgBIAMoA0ICEAFSEXBhcnRpY2lw",
+            "YW50c0FkZGVkEjoKGGFkZGVkVGhyb3VnaEpvaW5SZXF1ZXN0cxgCIAEoCFIY",
+            "YWRkZWRUaHJvdWdoSm9pblJlcXVlc3RzGmYKGFhtYXRHZW5BSVJhdGVMaW1p",
+            "dFVwc2VsbBIcCglhZG1pblRleHQYASABKAlSCWFkbWluVGV4dBIsChFyYXRl",
+            "TGltaXRVbnRpbFNlYxgCIAEoA1IRcmF0ZUxpbWl0VW50aWxTZWMaKgoQWG1h",
+            "dEdlbkFJVGFza0FkZBIWCgZ0YXNrSUQYASABKANSBnRhc2tJRBo+ChJYbWF0",
+            "VW5waW5NZXNzYWdlVjISKAoPcGlubmVkTWVzc2FnZUlEGAEgASgJUg9waW5u",
+            "ZWRNZXNzYWdlSUQaPAoQWG1hdFBpbk1lc3NhZ2VWMhIoCg9waW5uZWRNZXNz",
+            "YWdlSUQYASABKAlSD3Bpbm5lZE1lc3NhZ2VJRBrEAQoSWG1hdFVwZGF0ZVBh",
+            "eW1lbnRzEiIKDHJlY2VpdmVyTmFtZRgBIAEoCVIMcmVjZWl2ZXJOYW1lEh4K",
+            "CnNlbmRlck5hbWUYAiABKAlSCnNlbmRlck5hbWUSFgoGYW1vdW50GAMgASgC",
+            "UgZhbW91bnQSJAoNdHJhbnNhY3Rpb25JRBgEIAEoA1INdHJhbnNhY3Rpb25J",
+            "RBIsChF0cmFuc2FjdGlvblN0YXR1cxgFIAEoBVIRdHJhbnNhY3Rpb25TdGF0",
+            "dXMapwEKF1htYXRUaHJlYWRRdWlja1JlYWN0aW9uEjoKGHRocmVhZFF1aWNr",
+            "UmVhY3Rpb25FbW9qaRgBIAEoCVIYdGhyZWFkUXVpY2tSZWFjdGlvbkVtb2pp",
+            "ElAKI3RocmVhZFF1aWNrUmVhY3Rpb25JbnN0cnVjdGlvbktleUlEGAIgASgJ",
+            "UiN0aHJlYWRRdWlja1JlYWN0aW9uSW5zdHJ1Y3Rpb25LZXlJRBpWChJYbWF0",
+            "VGhyZWFkTmlja25hbWUSJAoNcGFydGljaXBhbnRJRBgBIAEoA1INcGFydGlj",
+            "aXBhbnRJRBIaCghuaWNrbmFtZRgCIAEoCVIIbmlja25hbWUaMAoOWG1hdFRo",
+            "cmVhZEljb24SHgoKdGhyZWFkSWNvbhgBIAEoCVIKdGhyZWFkSWNvbhqyAgoO",
+            "WG1hdFRoZW1lQ29sb3ISGAoHdGhlbWVJRBgBIAEoCVIHdGhlbWVJRBIeCgp0",
+            "aGVtZUNvbG9yGAIgASgJUgp0aGVtZUNvbG9yEhoKCGdyYWRpZW50GAMgAygJ",
+            "UghncmFkaWVudBImCg5zaG91bGRTaG93SWNvbhgEIAEoCFIOc2hvdWxkU2hv",
+            "d0ljb24SHAoJdGhlbWVUeXBlGAUgASgFUgl0aGVtZVR5cGUSLgoSYWNjZXNz",
+            "aWJpbGl0eUxhYmVsGAYgASgJUhJhY2Nlc3NpYmlsaXR5TGFiZWwSNAoVdGhl",
+            "bWVOYW1lV2l0aFN1YnRpdGxlGAcgASgJUhV0aGVtZU5hbWVXaXRoU3VidGl0",
+            "bGUSHgoKdGhlbWVFbW9qaRgIIAEoCVIKdGhlbWVFbW9qaRo+ChhYbWF0TWVz",
+            "c2VuZ2VyU2hhcmVkQWxidW0SIgoMeG1hRGF0YWNsYXNzGAEgASgJUgx4bWFE",
+            "YXRhY2xhc3MakgEKHlhtYXRNZXNzZW5nZXJTaGFyZWRBbGJ1bVJlbmFtZRIk",
+            "Cg1zaGFyZWRBbGJ1bUlEGAEgASgDUg1zaGFyZWRBbGJ1bUlEEiQKDW9sZEFs",
+            "YnVtVGl0bGUYAiABKAlSDW9sZEFsYnVtVGl0bGUSJAoNbmV3QWxidW1UaXRs",
+            "ZRgDIAEoCVINbmV3QWxidW1UaXRsZRpoCiBYbWF0TWVzc2VuZ2VyU2hhcmVk",
+            "QWxidW1EZWxldGlvbhIkCg1zaGFyZWRBbGJ1bUlEGAEgASgDUg1zaGFyZWRB",
+            "bGJ1bUlEEh4KCmFsYnVtVGl0bGUYAiABKAlSCmFsYnVtVGl0bGUahgMKJlht",
+            "YXRNZXNzZW5nZXJTaGFyZWRBbGJ1bUNvbnRlbnRSZW1vdmFsEiQKDXNoYXJl",
+            "ZEFsYnVtSUQYASABKANSDXNoYXJlZEFsYnVtSUQSpAEKEXJlbW92ZWRDb250",
+            "ZW50TWFwGAIgAygLMnYuV0FBcm1hZGlsbG9NaVRyYW5zcG9ydEFkbWluTWVz",
+            "c2FnZS5NaVRyYW5zcG9ydEFkbWluTWVzc2FnZS5YbWF0TWVzc2VuZ2VyU2hh",
+            "cmVkQWxidW1Db250ZW50UmVtb3ZhbC5SZW1vdmVkQ29udGVudFR1cGxlUhFy",
+            "ZW1vdmVkQ29udGVudE1hcBIwChNyZW1vdmVkQ29udGVudENvdW50GAMgASgD",
+            "UhNyZW1vdmVkQ29udGVudENvdW50Eh4KCmFsYnVtVGl0bGUYBCABKAlSCmFs",
+            "YnVtVGl0bGUaPQoTUmVtb3ZlZENvbnRlbnRUdXBsZRIQCgNrZXkYASABKANS",
+            "A2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWUavgEKIFhtYXRNZXNzZW5nZXJT",
+            "aGFyZWRBbGJ1bUFkZGl0aW9uEiQKDXNoYXJlZEFsYnVtSUQYASABKANSDXNo",
+            "YXJlZEFsYnVtSUQSHgoKYWxidW1UaXRsZRgCIAEoCVIKYWxidW1UaXRsZRIq",
+            "ChBudW1PZkF0dGFjaG1lbnRzGAMgASgDUhBudW1PZkF0dGFjaG1lbnRzEigK",
+            "D2lzQWxidW1DcmVhdGlvbhgEIAEoCFIPaXNBbGJ1bUNyZWF0aW9uGmAKGlht",
+            "YXRNZXNzZW5nZXJRUkNvZGVTY2FubmVkEiIKDHJlY2VpdmVyTmFtZRgBIAEo",
+            "CVIMcmVjZWl2ZXJOYW1lEh4KCnNlbmRlck5hbWUYAiABKAlSCnNlbmRlck5h",
+            "bWUagwEKGVhtYXRNZXNzYWdpbmdMaW1pdFNoYXJpbmcSHgoKc2VuZGVyTmFt",
+            "ZRgBIAEoCVIKc2VuZGVyTmFtZRIaCghzZW5kZXJJRBgCIAEoCVIIc2VuZGVy",
+            "SUQSKgoQbGltaXRTaGFyaW5nVHlwZRgDIAEoCVIQbGltaXRTaGFyaW5nVHlw",
+            "ZRr0AQoOWG1hdE1hZ2ljV29yZHMSLAoRbmV3TWFnaWNXb3JkQ291bnQYASAB",
+            "KANSEW5ld01hZ2ljV29yZENvdW50EjQKFXJlbW92ZWRNYWdpY1dvcmRDb3Vu",
+            "dBgCIAEoA1IVcmVtb3ZlZE1hZ2ljV29yZENvdW50EhwKCW1hZ2ljV29yZBgD",
+            "IAEoCVIJbWFnaWNXb3JkEiAKC2Vtb2ppRWZmZWN0GAQgASgJUgtlbW9qaUVm",
+            "ZmVjdBIgCgtpc0FsbEVkaXRlZBgFIAEoCFILaXNBbGxFZGl0ZWQSHAoJdGhl",
+            "bWVOYW1lGAYgASgJUgl0aGVtZU5hbWUa3wUKC1htYXRMaW5rQ1RBEjYKFmxp",
+            "bmtDdGFYbWF0UHJpbWFyeVRleHQYASABKAlSFmxpbmtDdGFYbWF0UHJpbWFy",
+            "eVRleHQSLgoSbGlua0N0YVhtYXRDdGFUZXh0GAIgASgJUhJsaW5rQ3RhWG1h",
+            "dEN0YVRleHQSLAoRbGlua0N0YVhtYXRDdGFVUkwYAyABKAlSEWxpbmtDdGFY",
+            "bWF0Q3RhVVJMEjIKFGxpbmtDdGFYbWF0Q3RhSW9zVVJMGAQgASgJUhRsaW5r",
+            "Q3RhWG1hdEN0YUlvc1VSTBIeCgphbmRyb2lkVXJpGAUgASgJUgphbmRyb2lk",
+            "VXJpEhoKCGFzeW5jVVJMGAYgASgJUghhc3luY1VSTBIkCg13d3dJc0FzeW5j",
+            "VVJMGAcgASgIUg13d3dJc0FzeW5jVVJMEiIKDG1zaXRlRW5hYmxlZBgIIAEo",
+            "CFIMbXNpdGVFbmFibGVkEiwKEWhpZGVVcmlJbkZhbGxiYWNrGAkgASgIUhFo",
+            "aWRlVXJpSW5GYWxsYmFjaxI2ChZzaG93Q29uZmlybWF0aW9uRGlhbG9nGAog",
+            "ASgIUhZzaG93Q29uZmlybWF0aW9uRGlhbG9nEiIKDGdyYXBoUGF5bG9hZBgL",
+            "IAEoCVIMZ3JhcGhQYXlsb2FkEiYKDmlkZW50aWZpZXJOYW1lGAwgASgJUg5p",
+            "ZGVudGlmaWVyTmFtZRIaCgh0aHJlYWRJRBgNIAEoCVIIdGhyZWFkSUQSLAoR",
+            "aGlkZUN0YUluRmFsbGJhY2sYDiABKAhSEWhpZGVDdGFJbkZhbGxiYWNrEkIK",
+            "HGN0eEFkQ29udmVyc2F0aW9uU3RhcnRlckluZm8YDyABKAlSHGN0eEFkQ29u",
+            "dmVyc2F0aW9uU3RhcnRlckluZm8SFgoGZmJtVXJpGBAgASgJUgZmYm1VcmkS",
+            "KAoPaW5pdGlhdG9yVXNlcklEGBEgASgJUg9pbml0aWF0b3JVc2VySUQaqwEK",
+            "K1htYXRJbnN0YW50R2FtZUVuY3J5cHRlZER5bmFtaWNDdXN0b21VcGRhdGUS",
+            "HgoKc2VuZGVyTmFtZRgBIAEoCVIKc2VuZGVyTmFtZRJAChttdXRlTWFuYWdl",
+            "bWVudEFkbWluVGV4dFR5cGUYAiABKAlSG211dGVNYW5hZ2VtZW50QWRtaW5U",
+            "ZXh0VHlwZRIaCghnYW1lTmFtZRgDIAEoCVIIZ2FtZU5hbWUatwEKI1htYXRG",
+            "cmllbmRSZXF1ZXN0Q29uZmlybWVkRW5jcnlwdGVkEiQKDW90aGVyVXNlck5h",
+            "bWUYASABKAlSDW90aGVyVXNlck5hbWUSJgoOaXNUdXJuT25Db2hvcnQYAiAB",
+            "KAlSDmlzVHVybk9uQ29ob3J0EkIKHHVzZXJXaG9BY2NlcHRlZEZyaWVuZFJl",
+            "cXVlc3QYAyABKAlSHHVzZXJXaG9BY2NlcHRlZEZyaWVuZFJlcXVlc3QauwIK",
+            "F1htYXREaXNhcHBlYXJpbmdTZXR0aW5nEjgKF2Rpc2FwcGVhcmluZ1NldHRp",
+            "bmdUaW1lGAEgASgDUhdkaXNhcHBlYXJpbmdTZXR0aW5nVGltZRI+ChpvbGRE",
+            "aXNhcHBlYXJpbmdTZXR0aW5nVGltZRgCIAEoA1Iab2xkRGlzYXBwZWFyaW5n",
+            "U2V0dGluZ1RpbWUSQgocZGlzYXBwZWFyaW5nU2V0dGluZ0FjdG9yRmJpZBgD",
+            "IAEoA1IcZGlzYXBwZWFyaW5nU2V0dGluZ0FjdG9yRmJpZBIwChNuZXdFcGhl",
+            "bWVyYWxpdHlUeXBlGAQgASgDUhNuZXdFcGhlbWVyYWxpdHlUeXBlEjAKE29s",
+            "ZEVwaGVtZXJhbGl0eVR5cGUYBSABKANSE29sZEVwaGVtZXJhbGl0eVR5cGUa",
+            "wgEKGkRpc2FwcGVhcmluZ1NldHRpbmdDaGFuZ2VkEk4KImRpc2FwcGVhcmlu",
+            "Z1NldHRpbmdEdXJhdGlvblNlY29uZHMYASABKAVSImRpc2FwcGVhcmluZ1Nl",
+            "dHRpbmdEdXJhdGlvblNlY29uZHMSVAolb2xkRGlzYXBwZWFyaW5nU2V0dGlu",
+            "Z0R1cmF0aW9uU2Vjb25kcxgCIAEoBVIlb2xkRGlzYXBwZWFyaW5nU2V0dGlu",
+            "Z0R1cmF0aW9uU2Vjb25kcxotCgtJY29uQ2hhbmdlZBIeCgp0aHJlYWRJY29u",
+            "GAEgASgJUgp0aHJlYWRJY29uGs4BCgdMaW5rQ3RhEnwKDnVrT3NhQWRtaW5U",
+            "ZXh0GAEgASgLMlIuV0FBcm1hZGlsbG9NaVRyYW5zcG9ydEFkbWluTWVzc2Fn",
+            "ZS5NaVRyYW5zcG9ydEFkbWluTWVzc2FnZS5MaW5rQ3RhLlVrT3NhQWRtaW5U",
+            "ZXh0SABSDnVrT3NhQWRtaW5UZXh0GjoKDlVrT3NhQWRtaW5UZXh0EigKD2lu",
+            "aXRpYXRvclVzZXJJRBgCIAEoCVIPaW5pdGlhdG9yVXNlcklEQgkKB2NvbnRl",
+            "bnQaNAoUUXVpY2tSZWFjdGlvbkNoYW5nZWQSHAoJZW1vamlOYW1lGAEgASgJ",
+            "UgllbW9qaU5hbWUaMAoQR3JvdXBOYW1lQ2hhbmdlZBIcCglncm91cE5hbWUY",
+            "ASABKAlSCWdyb3VwTmFtZRpRCg9OaWNrbmFtZUNoYW5nZWQSIgoMdGFyZ2V0",
+            "VXNlcklEGAEgASgJUgx0YXJnZXRVc2VySUQSGgoIbmlja25hbWUYAiABKAlS",
+            "CG5pY2tuYW1lGm4KEENoYXRUaGVtZUNoYW5nZWQSHAoJdGhlbWVOYW1lGAEg",
+            "ASgJUgl0aGVtZU5hbWUSHgoKdGhlbWVFbW9qaRgCIAEoCVIKdGhlbWVFbW9q",
+            "aRIcCgl0aGVtZVR5cGUYAyABKAVSCXRoZW1lVHlwZUIJCgdjb250ZW50QscC",
+            "CiZjb20uV0FBcm1hZGlsbG9NaVRyYW5zcG9ydEFkbWluTWVzc2FnZUInV0FB",
+            "cm1hZGlsbG9NaVRyYW5zcG9ydEFkbWluTWVzc2FnZVByb3RvUAFaPGdvLm1h",
+            "dS5maS93aGF0c21lb3cvcHJvdG8vd2FBcm1hZGlsbG9NaVRyYW5zcG9ydEFk",
+            "bWluTWVzc2FnZaICA1dYWKoCMldoYXRzbWVvdy5Qcm90by5XQUFybWFkaWxs",
+            "b01pVHJhbnNwb3J0QWRtaW5NZXNzYWdlygIiV0FBcm1hZGlsbG9NaVRyYW5z",
+            "cG9ydEFkbWluTWVzc2FnZeICLldBQXJtYWRpbGxvTWlUcmFuc3BvcnRBZG1p",
+            "bk1lc3NhZ2VcR1BCTWV0YWRhdGHqAiJXQUFybWFkaWxsb01pVHJhbnNwb3J0",
+            "QWRtaW5NZXNzYWdl"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage), global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Parser, new[]{ "ChatThemeChanged", "NicknameChanged", "GroupParticipantChanged", "GroupAdminChanged", "GroupNameChanged", "GroupMembershipAddModeChanged", "MessagePinned", "GroupImageChanged", "QuickReactionChanged", "LinkCta", "IconChanged", "DisappearingSettingChanged", "LimitSharingChanged", "XmatDisappearingSetting", "XmatFriendRequestConfirmedEncrypted", "XmatInstantGameEncryptedDynamicCustomUpdate", "XmatLinkCta", "XmatMagicWords", "XmatMessagingLimitSharing", "XmatMessengerQrCodeScanned", "XmatMessengerSharedAlbumAddition", "XmatMessengerSharedAlbumContentRemoval", "XmatMessengerSharedAlbumDeletion", "XmatMessengerSharedAlbumRename", "XmatMessengerSharedAlbum", "XmatThemeColor", "XmatThreadIcon", "XmatThreadNickname", "XmatThreadQuickReaction", "XmatUpdatePayments", "XmatPinMessageV2", "XmatUnpinMessageV2", "XmatGenaiTaskAdd", "XmatAddParticipants", "XmatRemoveParticipant", "XmatChangeThreadAdmins", "XmatChangeThreadName", "XmatGroupThreadCreated", "XmatSetParticipantUpdateMode", "XmatMessengerMessageReminderSet", "XmatMessengerMessageReminderTriggered", "XmatGenaiRateLimitUpsell", "XmatPetInteraction", "XmatHomebaseActionSummary", "XmatMessengerChatFontChange", "SkipBumpThread", "SkipSnippetUpdate", "ReadonlyMetadataDataclass" }, new[]{ "Content" }, null, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.LimitSharingChanged), global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.LimitSharingChanged.Parser, new[]{ "SharingType" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.LimitSharingChanged.Types.SharingType) }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage), global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Parser, new[]{ "ChatThemeChanged", "NicknameChanged", "GroupParticipantChanged", "GroupAdminChanged", "GroupNameChanged", "GroupMembershipAddModeChanged", "MessagePinned", "GroupImageChanged", "QuickReactionChanged", "LinkCta", "IconChanged", "DisappearingSettingChanged", "LimitSharingChanged", "XmatDisappearingSetting", "XmatFriendRequestConfirmedEncrypted", "XmatInstantGameEncryptedDynamicCustomUpdate", "XmatLinkCta", "XmatMagicWords", "XmatMessagingLimitSharing", "XmatMessengerQrCodeScanned", "XmatMessengerSharedAlbumAddition", "XmatMessengerSharedAlbumContentRemoval", "XmatMessengerSharedAlbumDeletion", "XmatMessengerSharedAlbumRename", "XmatMessengerSharedAlbum", "XmatThemeColor", "XmatThreadIcon", "XmatThreadNickname", "XmatThreadQuickReaction", "XmatUpdatePayments", "XmatPinMessageV2", "XmatUnpinMessageV2", "XmatGenaiTaskAdd", "XmatAddParticipants", "XmatRemoveParticipant", "XmatChangeThreadAdmins", "XmatChangeThreadName", "XmatGroupThreadCreated", "XmatSetParticipantUpdateMode", "XmatMessengerMessageReminderSet", "XmatMessengerMessageReminderTriggered", "XmatGenaiRateLimitUpsell", "XmatPetInteraction", "XmatHomebaseActionSummary", "XmatMessengerChatFontChange", "XmatHomebaseStatusChanged", "SkipBumpThread", "SkipSnippetUpdate", "ReadonlyMetadataDataclass" }, new[]{ "Content" }, null, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.LimitSharingChanged), global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.LimitSharingChanged.Parser, new[]{ "SharingType" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.LimitSharingChanged.Types.SharingType) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.GroupImageChanged), global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.GroupImageChanged.Parser, new[]{ "Action" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.GroupImageChanged.Types.Action) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.MessagePinned), global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.MessagePinned.Parser, new[]{ "Action" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.MessagePinned.Types.Action) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.GroupMembershipAddModeChanged), global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.GroupMembershipAddModeChanged.Parser, new[]{ "Mode" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.GroupMembershipAddModeChanged.Types.Mode) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.GroupAdminChanged), global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.GroupAdminChanged.Parser, new[]{ "TargetUserID", "Action" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.GroupAdminChanged.Types.Action) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.GroupParticipantChanged), global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.GroupParticipantChanged.Parser, new[]{ "TargetUserID", "Action" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.GroupParticipantChanged.Types.Action) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.XmatMessengerChatFontChange), global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.XmatMessengerChatFontChange.Parser, new[]{ "ActorID" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.XmatHomebaseStatusChanged), global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.XmatHomebaseStatusChanged.Parser, new[]{ "StatusType", "ActorID", "ActorName", "PauseDurationSeconds" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.XmatHomebaseActionSummary), global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.XmatHomebaseActionSummary.Parser, new[]{ "Text", "FullText", "CtaText", "HouseholdID", "DestinationViewID", "DestinationViewName", "DestinationWidgetType", "SourceMessageID", "ActionContentBlob" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.XmatPetInteraction), global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.XmatPetInteraction.Parser, new[]{ "PetName", "ActionKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.XmatMessengerMessageReminderTriggered), global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.XmatMessengerMessageReminderTriggered.Parser, new[]{ "OfflineThreadingID", "ScheduledTime", "ScheduledTimeMS" }, null, null, null, null),
@@ -574,6 +582,9 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
           break;
         case ContentOneofCase.XmatMessengerChatFontChange:
           XmatMessengerChatFontChange = other.XmatMessengerChatFontChange.Clone();
+          break;
+        case ContentOneofCase.XmatHomebaseStatusChanged:
+          XmatHomebaseStatusChanged = other.XmatHomebaseStatusChanged.Clone();
           break;
       }
 
@@ -1126,6 +1137,18 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
       }
     }
 
+    /// <summary>Field number for the "xmatHomebaseStatusChanged" field.</summary>
+    public const int XmatHomebaseStatusChangedFieldNumber = 49;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.XmatHomebaseStatusChanged XmatHomebaseStatusChanged {
+      get { return contentCase_ == ContentOneofCase.XmatHomebaseStatusChanged ? (global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.XmatHomebaseStatusChanged) content_ : null; }
+      set {
+        content_ = value;
+        contentCase_ = value == null ? ContentOneofCase.None : ContentOneofCase.XmatHomebaseStatusChanged;
+      }
+    }
+
     /// <summary>Field number for the "skipBumpThread" field.</summary>
     public const int SkipBumpThreadFieldNumber = 34;
     private readonly static bool SkipBumpThreadDefaultValue = false;
@@ -1255,6 +1278,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
       XmatPetInteraction = 46,
       XmatHomebaseActionSummary = 47,
       XmatMessengerChatFontChange = 48,
+      XmatHomebaseStatusChanged = 49,
     }
     private ContentOneofCase contentCase_ = ContentOneofCase.None;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1330,6 +1354,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
       if (!object.Equals(XmatPetInteraction, other.XmatPetInteraction)) return false;
       if (!object.Equals(XmatHomebaseActionSummary, other.XmatHomebaseActionSummary)) return false;
       if (!object.Equals(XmatMessengerChatFontChange, other.XmatMessengerChatFontChange)) return false;
+      if (!object.Equals(XmatHomebaseStatusChanged, other.XmatHomebaseStatusChanged)) return false;
       if (SkipBumpThread != other.SkipBumpThread) return false;
       if (SkipSnippetUpdate != other.SkipSnippetUpdate) return false;
       if (ReadonlyMetadataDataclass != other.ReadonlyMetadataDataclass) return false;
@@ -1386,6 +1411,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
       if (contentCase_ == ContentOneofCase.XmatPetInteraction) hash ^= XmatPetInteraction.GetHashCode();
       if (contentCase_ == ContentOneofCase.XmatHomebaseActionSummary) hash ^= XmatHomebaseActionSummary.GetHashCode();
       if (contentCase_ == ContentOneofCase.XmatMessengerChatFontChange) hash ^= XmatMessengerChatFontChange.GetHashCode();
+      if (contentCase_ == ContentOneofCase.XmatHomebaseStatusChanged) hash ^= XmatHomebaseStatusChanged.GetHashCode();
       if (HasSkipBumpThread) hash ^= SkipBumpThread.GetHashCode();
       if (HasSkipSnippetUpdate) hash ^= SkipSnippetUpdate.GetHashCode();
       if (HasReadonlyMetadataDataclass) hash ^= ReadonlyMetadataDataclass.GetHashCode();
@@ -1600,6 +1626,10 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         output.WriteRawTag(130, 3);
         output.WriteMessage(XmatMessengerChatFontChange);
       }
+      if (contentCase_ == ContentOneofCase.XmatHomebaseStatusChanged) {
+        output.WriteRawTag(138, 3);
+        output.WriteMessage(XmatHomebaseStatusChanged);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -1802,6 +1832,10 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         output.WriteRawTag(130, 3);
         output.WriteMessage(XmatMessengerChatFontChange);
       }
+      if (contentCase_ == ContentOneofCase.XmatHomebaseStatusChanged) {
+        output.WriteRawTag(138, 3);
+        output.WriteMessage(XmatHomebaseStatusChanged);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -1946,6 +1980,9 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
       }
       if (contentCase_ == ContentOneofCase.XmatMessengerChatFontChange) {
         size += 2 + pb::CodedOutputStream.ComputeMessageSize(XmatMessengerChatFontChange);
+      }
+      if (contentCase_ == ContentOneofCase.XmatHomebaseStatusChanged) {
+        size += 2 + pb::CodedOutputStream.ComputeMessageSize(XmatHomebaseStatusChanged);
       }
       if (HasSkipBumpThread) {
         size += 2 + 1;
@@ -2247,6 +2284,12 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
             XmatMessengerChatFontChange = new global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.XmatMessengerChatFontChange();
           }
           XmatMessengerChatFontChange.MergeFrom(other.XmatMessengerChatFontChange);
+          break;
+        case ContentOneofCase.XmatHomebaseStatusChanged:
+          if (XmatHomebaseStatusChanged == null) {
+            XmatHomebaseStatusChanged = new global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.XmatHomebaseStatusChanged();
+          }
+          XmatHomebaseStatusChanged.MergeFrom(other.XmatHomebaseStatusChanged);
           break;
       }
 
@@ -2686,6 +2729,15 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
             XmatMessengerChatFontChange = subBuilder;
             break;
           }
+          case 394: {
+            global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.XmatHomebaseStatusChanged subBuilder = new global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.XmatHomebaseStatusChanged();
+            if (contentCase_ == ContentOneofCase.XmatHomebaseStatusChanged) {
+              subBuilder.MergeFrom(XmatHomebaseStatusChanged);
+            }
+            input.ReadMessage(subBuilder);
+            XmatHomebaseStatusChanged = subBuilder;
+            break;
+          }
         }
       }
     #endif
@@ -3120,6 +3172,15 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
             }
             input.ReadMessage(subBuilder);
             XmatMessengerChatFontChange = subBuilder;
+            break;
+          }
+          case 394: {
+            global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.XmatHomebaseStatusChanged subBuilder = new global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Types.XmatHomebaseStatusChanged();
+            if (contentCase_ == ContentOneofCase.XmatHomebaseStatusChanged) {
+              subBuilder.MergeFrom(XmatHomebaseStatusChanged);
+            }
+            input.ReadMessage(subBuilder);
+            XmatHomebaseStatusChanged = subBuilder;
             break;
           }
         }
@@ -4774,6 +4835,375 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
       }
 
       [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+      public sealed partial class XmatHomebaseStatusChanged : pb::IMessage<XmatHomebaseStatusChanged>
+      #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+          , pb::IBufferMessage
+      #endif
+      {
+        private static readonly pb::MessageParser<XmatHomebaseStatusChanged> _parser = new pb::MessageParser<XmatHomebaseStatusChanged>(() => new XmatHomebaseStatusChanged());
+        private pb::UnknownFieldSet _unknownFields;
+        private int _hasBits0;
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public static pb::MessageParser<XmatHomebaseStatusChanged> Parser { get { return _parser; } }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public static pbr::MessageDescriptor Descriptor {
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[7]; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        pbr::MessageDescriptor pb::IMessage.Descriptor {
+          get { return Descriptor; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public XmatHomebaseStatusChanged() {
+          OnConstruction();
+        }
+
+        partial void OnConstruction();
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public XmatHomebaseStatusChanged(XmatHomebaseStatusChanged other) : this() {
+          _hasBits0 = other._hasBits0;
+          statusType_ = other.statusType_;
+          actorID_ = other.actorID_;
+          actorName_ = other.actorName_;
+          pauseDurationSeconds_ = other.pauseDurationSeconds_;
+          _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public XmatHomebaseStatusChanged Clone() {
+          return new XmatHomebaseStatusChanged(this);
+        }
+
+        /// <summary>Field number for the "statusType" field.</summary>
+        public const int StatusTypeFieldNumber = 1;
+        private readonly static string StatusTypeDefaultValue = "";
+
+        private string statusType_;
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public string StatusType {
+          get { return statusType_ ?? StatusTypeDefaultValue; }
+          set {
+            statusType_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+          }
+        }
+        /// <summary>Gets whether the "statusType" field is set</summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public bool HasStatusType {
+          get { return statusType_ != null; }
+        }
+        /// <summary>Clears the value of the "statusType" field</summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public void ClearStatusType() {
+          statusType_ = null;
+        }
+
+        /// <summary>Field number for the "actorID" field.</summary>
+        public const int ActorIDFieldNumber = 2;
+        private readonly static long ActorIDDefaultValue = 0L;
+
+        private long actorID_;
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public long ActorID {
+          get { if ((_hasBits0 & 1) != 0) { return actorID_; } else { return ActorIDDefaultValue; } }
+          set {
+            _hasBits0 |= 1;
+            actorID_ = value;
+          }
+        }
+        /// <summary>Gets whether the "actorID" field is set</summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public bool HasActorID {
+          get { return (_hasBits0 & 1) != 0; }
+        }
+        /// <summary>Clears the value of the "actorID" field</summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public void ClearActorID() {
+          _hasBits0 &= ~1;
+        }
+
+        /// <summary>Field number for the "actorName" field.</summary>
+        public const int ActorNameFieldNumber = 3;
+        private readonly static string ActorNameDefaultValue = "";
+
+        private string actorName_;
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public string ActorName {
+          get { return actorName_ ?? ActorNameDefaultValue; }
+          set {
+            actorName_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+          }
+        }
+        /// <summary>Gets whether the "actorName" field is set</summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public bool HasActorName {
+          get { return actorName_ != null; }
+        }
+        /// <summary>Clears the value of the "actorName" field</summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public void ClearActorName() {
+          actorName_ = null;
+        }
+
+        /// <summary>Field number for the "pauseDurationSeconds" field.</summary>
+        public const int PauseDurationSecondsFieldNumber = 4;
+        private readonly static long PauseDurationSecondsDefaultValue = 0L;
+
+        private long pauseDurationSeconds_;
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public long PauseDurationSeconds {
+          get { if ((_hasBits0 & 2) != 0) { return pauseDurationSeconds_; } else { return PauseDurationSecondsDefaultValue; } }
+          set {
+            _hasBits0 |= 2;
+            pauseDurationSeconds_ = value;
+          }
+        }
+        /// <summary>Gets whether the "pauseDurationSeconds" field is set</summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public bool HasPauseDurationSeconds {
+          get { return (_hasBits0 & 2) != 0; }
+        }
+        /// <summary>Clears the value of the "pauseDurationSeconds" field</summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public void ClearPauseDurationSeconds() {
+          _hasBits0 &= ~2;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public override bool Equals(object other) {
+          return Equals(other as XmatHomebaseStatusChanged);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public bool Equals(XmatHomebaseStatusChanged other) {
+          if (ReferenceEquals(other, null)) {
+            return false;
+          }
+          if (ReferenceEquals(other, this)) {
+            return true;
+          }
+          if (StatusType != other.StatusType) return false;
+          if (ActorID != other.ActorID) return false;
+          if (ActorName != other.ActorName) return false;
+          if (PauseDurationSeconds != other.PauseDurationSeconds) return false;
+          return Equals(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public override int GetHashCode() {
+          int hash = 1;
+          if (HasStatusType) hash ^= StatusType.GetHashCode();
+          if (HasActorID) hash ^= ActorID.GetHashCode();
+          if (HasActorName) hash ^= ActorName.GetHashCode();
+          if (HasPauseDurationSeconds) hash ^= PauseDurationSeconds.GetHashCode();
+          if (_unknownFields != null) {
+            hash ^= _unknownFields.GetHashCode();
+          }
+          return hash;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public override string ToString() {
+          return pb::JsonFormatter.ToDiagnosticString(this);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public void WriteTo(pb::CodedOutputStream output) {
+        #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+          output.WriteRawMessage(this);
+        #else
+          if (HasStatusType) {
+            output.WriteRawTag(10);
+            output.WriteString(StatusType);
+          }
+          if (HasActorID) {
+            output.WriteRawTag(16);
+            output.WriteInt64(ActorID);
+          }
+          if (HasActorName) {
+            output.WriteRawTag(26);
+            output.WriteString(ActorName);
+          }
+          if (HasPauseDurationSeconds) {
+            output.WriteRawTag(32);
+            output.WriteInt64(PauseDurationSeconds);
+          }
+          if (_unknownFields != null) {
+            _unknownFields.WriteTo(output);
+          }
+        #endif
+        }
+
+        #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+          if (HasStatusType) {
+            output.WriteRawTag(10);
+            output.WriteString(StatusType);
+          }
+          if (HasActorID) {
+            output.WriteRawTag(16);
+            output.WriteInt64(ActorID);
+          }
+          if (HasActorName) {
+            output.WriteRawTag(26);
+            output.WriteString(ActorName);
+          }
+          if (HasPauseDurationSeconds) {
+            output.WriteRawTag(32);
+            output.WriteInt64(PauseDurationSeconds);
+          }
+          if (_unknownFields != null) {
+            _unknownFields.WriteTo(ref output);
+          }
+        }
+        #endif
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public int CalculateSize() {
+          int size = 0;
+          if (HasStatusType) {
+            size += 1 + pb::CodedOutputStream.ComputeStringSize(StatusType);
+          }
+          if (HasActorID) {
+            size += 1 + pb::CodedOutputStream.ComputeInt64Size(ActorID);
+          }
+          if (HasActorName) {
+            size += 1 + pb::CodedOutputStream.ComputeStringSize(ActorName);
+          }
+          if (HasPauseDurationSeconds) {
+            size += 1 + pb::CodedOutputStream.ComputeInt64Size(PauseDurationSeconds);
+          }
+          if (_unknownFields != null) {
+            size += _unknownFields.CalculateSize();
+          }
+          return size;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public void MergeFrom(XmatHomebaseStatusChanged other) {
+          if (other == null) {
+            return;
+          }
+          if (other.HasStatusType) {
+            StatusType = other.StatusType;
+          }
+          if (other.HasActorID) {
+            ActorID = other.ActorID;
+          }
+          if (other.HasActorName) {
+            ActorName = other.ActorName;
+          }
+          if (other.HasPauseDurationSeconds) {
+            PauseDurationSeconds = other.PauseDurationSeconds;
+          }
+          _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public void MergeFrom(pb::CodedInputStream input) {
+        #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+          input.ReadRawMessage(this);
+        #else
+          uint tag;
+          while ((tag = input.ReadTag()) != 0) {
+          if ((tag & 7) == 4) {
+            // Abort on any end group tag.
+            return;
+          }
+          switch(tag) {
+              default:
+                _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+                break;
+              case 10: {
+                StatusType = input.ReadString();
+                break;
+              }
+              case 16: {
+                ActorID = input.ReadInt64();
+                break;
+              }
+              case 26: {
+                ActorName = input.ReadString();
+                break;
+              }
+              case 32: {
+                PauseDurationSeconds = input.ReadInt64();
+                break;
+              }
+            }
+          }
+        #endif
+        }
+
+        #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+          uint tag;
+          while ((tag = input.ReadTag()) != 0) {
+          if ((tag & 7) == 4) {
+            // Abort on any end group tag.
+            return;
+          }
+          switch(tag) {
+              default:
+                _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+                break;
+              case 10: {
+                StatusType = input.ReadString();
+                break;
+              }
+              case 16: {
+                ActorID = input.ReadInt64();
+                break;
+              }
+              case 26: {
+                ActorName = input.ReadString();
+                break;
+              }
+              case 32: {
+                PauseDurationSeconds = input.ReadInt64();
+                break;
+              }
+            }
+          }
+        }
+        #endif
+
+      }
+
+      [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
       public sealed partial class XmatHomebaseActionSummary : pb::IMessage<XmatHomebaseActionSummary>
       #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
           , pb::IBufferMessage
@@ -4789,7 +5219,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[7]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[8]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5411,7 +5841,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[8]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[9]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5675,7 +6105,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[9]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[10]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5993,7 +6423,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[10]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[11]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6311,7 +6741,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[11]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[12]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6628,7 +7058,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[12]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[13]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6840,7 +7270,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[13]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[14]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7053,7 +7483,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[14]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[15]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7421,7 +7851,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[15]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[16]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7636,7 +8066,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[16]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[17]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7879,7 +8309,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[17]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[18]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8145,7 +8575,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[18]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[19]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8359,7 +8789,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[19]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[20]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8571,7 +9001,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[20]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[21]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8784,7 +9214,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[21]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[22]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9204,7 +9634,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[22]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[23]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9468,7 +9898,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[23]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[24]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9733,7 +10163,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[24]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[25]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9946,7 +10376,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[25]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[26]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10493,7 +10923,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[26]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[27]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10706,7 +11136,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[27]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[28]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -11023,7 +11453,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[28]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[29]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -11289,7 +11719,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[29]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[30]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -11907,7 +12337,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[30]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[31]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -12276,7 +12706,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[31]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[32]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -12539,7 +12969,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[32]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[33]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -12854,7 +13284,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[33]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[34]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -13326,7 +13756,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[34]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[35]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -14360,7 +14790,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[35]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[36]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -14674,7 +15104,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[36]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[37]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -14989,7 +15419,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[37]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[38]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -15412,7 +15842,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[38]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[39]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -15678,7 +16108,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[39]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[40]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -15890,7 +16320,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[40]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[41]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -16351,7 +16781,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[41]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[42]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -16563,7 +16993,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[42]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[43]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -16775,7 +17205,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[43]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[44]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -17039,7 +17469,7 @@ namespace Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[44]; }
+          get { return global::Whatsmeow.Proto.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.Descriptor.NestedTypes[45]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

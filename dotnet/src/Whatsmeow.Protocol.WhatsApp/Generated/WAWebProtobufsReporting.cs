@@ -25,349 +25,33 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "Cil3YVJlcG9ydGluZy9XQVdlYlByb3RvYnVmc1JlcG9ydGluZy5wcm90bxIX",
-            "V0FXZWJQcm90b2J1ZnNSZXBvcnRpbmcinAEKClJlcG9ydGFibGUSHgoKbWlu",
-            "VmVyc2lvbhgBIAEoDVIKbWluVmVyc2lvbhIeCgptYXhWZXJzaW9uGAIgASgN",
-            "UgptYXhWZXJzaW9uEjgKF25vdFJlcG9ydGFibGVNaW5WZXJzaW9uGAMgASgN",
-            "Uhdub3RSZXBvcnRhYmxlTWluVmVyc2lvbhIUCgVuZXZlchgEIAEoCFIFbmV2",
-            "ZXIivgEKBkNvbmZpZxJACgVmaWVsZBgBIAMoCzIqLldBV2ViUHJvdG9idWZz",
-            "UmVwb3J0aW5nLkNvbmZpZy5GaWVsZEVudHJ5UgVmaWVsZBIYCgd2ZXJzaW9u",
-            "GAIgASgNUgd2ZXJzaW9uGlgKCkZpZWxkRW50cnkSEAoDa2V5GAEgASgNUgNr",
-            "ZXkSNAoFdmFsdWUYAiABKAsyHi5XQVdlYlByb3RvYnVmc1JlcG9ydGluZy5G",
-            "aWVsZFIFdmFsdWU6AjgBIsYCCgVGaWVsZBIeCgptaW5WZXJzaW9uGAEgASgN",
-            "UgptaW5WZXJzaW9uEh4KCm1heFZlcnNpb24YAiABKA1SCm1heFZlcnNpb24S",
-            "OAoXbm90UmVwb3J0YWJsZU1pblZlcnNpb24YAyABKA1SF25vdFJlcG9ydGFi",
-            "bGVNaW5WZXJzaW9uEhwKCWlzTWVzc2FnZRgEIAEoCFIJaXNNZXNzYWdlEkgK",
-            "CHN1YmZpZWxkGAUgAygLMiwuV0FXZWJQcm90b2J1ZnNSZXBvcnRpbmcuRmll",
-            "bGQuU3ViZmllbGRFbnRyeVIIc3ViZmllbGQaWwoNU3ViZmllbGRFbnRyeRIQ",
-            "CgNrZXkYASABKA1SA2tleRI0CgV2YWx1ZRgCIAEoCzIeLldBV2ViUHJvdG9i",
-            "dWZzUmVwb3J0aW5nLkZpZWxkUgV2YWx1ZToCOAFC7gEKG2NvbS5XQVdlYlBy",
-            "b3RvYnVmc1JlcG9ydGluZ0IcV0FXZWJQcm90b2J1ZnNSZXBvcnRpbmdQcm90",
-            "b1ABWiVnby5tYXUuZmkvd2hhdHNtZW93L3Byb3RvL3dhUmVwb3J0aW5nogID",
-            "V1hYqgInV2hhdHNtZW93LlByb3RvLldBV2ViUHJvdG9idWZzUmVwb3J0aW5n",
-            "ygIXV0FXZWJQcm90b2J1ZnNSZXBvcnRpbmfiAiNXQVdlYlByb3RvYnVmc1Jl",
-            "cG9ydGluZ1xHUEJNZXRhZGF0YeoCF1dBV2ViUHJvdG9idWZzUmVwb3J0aW5n",
-            "YgZwcm90bzM="));
+            "V0FXZWJQcm90b2J1ZnNSZXBvcnRpbmcipAEKBkNvbmZpZxJACgVmaWVsZBgB",
+            "IAMoCzIqLldBV2ViUHJvdG9idWZzUmVwb3J0aW5nLkNvbmZpZy5GaWVsZEVu",
+            "dHJ5UgVmaWVsZBpYCgpGaWVsZEVudHJ5EhAKA2tleRgBIAEoDVIDa2V5EjQK",
+            "BXZhbHVlGAIgASgLMh4uV0FXZWJQcm90b2J1ZnNSZXBvcnRpbmcuRmllbGRS",
+            "BXZhbHVlOgI4ASKMAgoFRmllbGQSHgoKbWluVmVyc2lvbhgBIAEoDVIKbWlu",
+            "VmVyc2lvbhIeCgptYXhWZXJzaW9uGAIgASgNUgptYXhWZXJzaW9uEhwKCWlz",
+            "TWVzc2FnZRgEIAEoCFIJaXNNZXNzYWdlEkgKCHN1YmZpZWxkGAUgAygLMiwu",
+            "V0FXZWJQcm90b2J1ZnNSZXBvcnRpbmcuRmllbGQuU3ViZmllbGRFbnRyeVII",
+            "c3ViZmllbGQaWwoNU3ViZmllbGRFbnRyeRIQCgNrZXkYASABKA1SA2tleRI0",
+            "CgV2YWx1ZRgCIAEoCzIeLldBV2ViUHJvdG9idWZzUmVwb3J0aW5nLkZpZWxk",
+            "UgV2YWx1ZToCOAFC7gEKG2NvbS5XQVdlYlByb3RvYnVmc1JlcG9ydGluZ0Ic",
+            "V0FXZWJQcm90b2J1ZnNSZXBvcnRpbmdQcm90b1ABWiVnby5tYXUuZmkvd2hh",
+            "dHNtZW93L3Byb3RvL3dhUmVwb3J0aW5nogIDV1hYqgInV2hhdHNtZW93LlBy",
+            "b3RvLldBV2ViUHJvdG9idWZzUmVwb3J0aW5nygIXV0FXZWJQcm90b2J1ZnNS",
+            "ZXBvcnRpbmfiAiNXQVdlYlByb3RvYnVmc1JlcG9ydGluZ1xHUEJNZXRhZGF0",
+            "YeoCF1dBV2ViUHJvdG9idWZzUmVwb3J0aW5nYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsReporting.Reportable), global::Whatsmeow.Proto.WAWebProtobufsReporting.Reportable.Parser, new[]{ "MinVersion", "MaxVersion", "NotReportableMinVersion", "Never" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsReporting.Config), global::Whatsmeow.Proto.WAWebProtobufsReporting.Config.Parser, new[]{ "Field", "Version" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsReporting.Field), global::Whatsmeow.Proto.WAWebProtobufsReporting.Field.Parser, new[]{ "MinVersion", "MaxVersion", "NotReportableMinVersion", "IsMessage", "Subfield" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, })
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsReporting.Config), global::Whatsmeow.Proto.WAWebProtobufsReporting.Config.Parser, new[]{ "Field" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsReporting.Field), global::Whatsmeow.Proto.WAWebProtobufsReporting.Field.Parser, new[]{ "MinVersion", "MaxVersion", "IsMessage", "Subfield" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, })
           }));
     }
     #endregion
 
   }
   #region Messages
-  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
-  public sealed partial class Reportable : pb::IMessage<Reportable>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
-    private static readonly pb::MessageParser<Reportable> _parser = new pb::MessageParser<Reportable>(() => new Reportable());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public static pb::MessageParser<Reportable> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebProtobufsReporting.WAWebProtobufsReportingReflection.Descriptor.MessageTypes[0]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public Reportable() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public Reportable(Reportable other) : this() {
-      minVersion_ = other.minVersion_;
-      maxVersion_ = other.maxVersion_;
-      notReportableMinVersion_ = other.notReportableMinVersion_;
-      never_ = other.never_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public Reportable Clone() {
-      return new Reportable(this);
-    }
-
-    /// <summary>Field number for the "minVersion" field.</summary>
-    public const int MinVersionFieldNumber = 1;
-    private uint minVersion_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public uint MinVersion {
-      get { return minVersion_; }
-      set {
-        minVersion_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "maxVersion" field.</summary>
-    public const int MaxVersionFieldNumber = 2;
-    private uint maxVersion_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public uint MaxVersion {
-      get { return maxVersion_; }
-      set {
-        maxVersion_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "notReportableMinVersion" field.</summary>
-    public const int NotReportableMinVersionFieldNumber = 3;
-    private uint notReportableMinVersion_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public uint NotReportableMinVersion {
-      get { return notReportableMinVersion_; }
-      set {
-        notReportableMinVersion_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "never" field.</summary>
-    public const int NeverFieldNumber = 4;
-    private bool never_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool Never {
-      get { return never_; }
-      set {
-        never_ = value;
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public override bool Equals(object other) {
-      return Equals(other as Reportable);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool Equals(Reportable other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (MinVersion != other.MinVersion) return false;
-      if (MaxVersion != other.MaxVersion) return false;
-      if (NotReportableMinVersion != other.NotReportableMinVersion) return false;
-      if (Never != other.Never) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (MinVersion != 0) hash ^= MinVersion.GetHashCode();
-      if (MaxVersion != 0) hash ^= MaxVersion.GetHashCode();
-      if (NotReportableMinVersion != 0) hash ^= NotReportableMinVersion.GetHashCode();
-      if (Never != false) hash ^= Never.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
-      if (MinVersion != 0) {
-        output.WriteRawTag(8);
-        output.WriteUInt32(MinVersion);
-      }
-      if (MaxVersion != 0) {
-        output.WriteRawTag(16);
-        output.WriteUInt32(MaxVersion);
-      }
-      if (NotReportableMinVersion != 0) {
-        output.WriteRawTag(24);
-        output.WriteUInt32(NotReportableMinVersion);
-      }
-      if (Never != false) {
-        output.WriteRawTag(32);
-        output.WriteBool(Never);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    #endif
-    }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (MinVersion != 0) {
-        output.WriteRawTag(8);
-        output.WriteUInt32(MinVersion);
-      }
-      if (MaxVersion != 0) {
-        output.WriteRawTag(16);
-        output.WriteUInt32(MaxVersion);
-      }
-      if (NotReportableMinVersion != 0) {
-        output.WriteRawTag(24);
-        output.WriteUInt32(NotReportableMinVersion);
-      }
-      if (Never != false) {
-        output.WriteRawTag(32);
-        output.WriteBool(Never);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public int CalculateSize() {
-      int size = 0;
-      if (MinVersion != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(MinVersion);
-      }
-      if (MaxVersion != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(MaxVersion);
-      }
-      if (NotReportableMinVersion != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(NotReportableMinVersion);
-      }
-      if (Never != false) {
-        size += 1 + 1;
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(Reportable other) {
-      if (other == null) {
-        return;
-      }
-      if (other.MinVersion != 0) {
-        MinVersion = other.MinVersion;
-      }
-      if (other.MaxVersion != 0) {
-        MaxVersion = other.MaxVersion;
-      }
-      if (other.NotReportableMinVersion != 0) {
-        NotReportableMinVersion = other.NotReportableMinVersion;
-      }
-      if (other.Never != false) {
-        Never = other.Never;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 8: {
-            MinVersion = input.ReadUInt32();
-            break;
-          }
-          case 16: {
-            MaxVersion = input.ReadUInt32();
-            break;
-          }
-          case 24: {
-            NotReportableMinVersion = input.ReadUInt32();
-            break;
-          }
-          case 32: {
-            Never = input.ReadBool();
-            break;
-          }
-        }
-      }
-    #endif
-    }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 8: {
-            MinVersion = input.ReadUInt32();
-            break;
-          }
-          case 16: {
-            MaxVersion = input.ReadUInt32();
-            break;
-          }
-          case 24: {
-            NotReportableMinVersion = input.ReadUInt32();
-            break;
-          }
-          case 32: {
-            Never = input.ReadBool();
-            break;
-          }
-        }
-      }
-    }
-    #endif
-
-  }
-
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class Config : pb::IMessage<Config>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
@@ -383,7 +67,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebProtobufsReporting.WAWebProtobufsReportingReflection.Descriptor.MessageTypes[1]; }
+      get { return global::Whatsmeow.Proto.WAWebProtobufsReporting.WAWebProtobufsReportingReflection.Descriptor.MessageTypes[0]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -404,7 +88,6 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Config(Config other) : this() {
       field_ = other.field_.Clone();
-      version_ = other.version_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -425,18 +108,6 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
       get { return field_; }
     }
 
-    /// <summary>Field number for the "version" field.</summary>
-    public const int VersionFieldNumber = 2;
-    private uint version_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public uint Version {
-      get { return version_; }
-      set {
-        version_ = value;
-      }
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -453,7 +124,6 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
         return true;
       }
       if (!Field.Equals(other.Field)) return false;
-      if (Version != other.Version) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -462,7 +132,6 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
     public override int GetHashCode() {
       int hash = 1;
       hash ^= Field.GetHashCode();
-      if (Version != 0) hash ^= Version.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -482,10 +151,6 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
       output.WriteRawMessage(this);
     #else
       field_.WriteTo(output, _map_field_codec);
-      if (Version != 0) {
-        output.WriteRawTag(16);
-        output.WriteUInt32(Version);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -497,10 +162,6 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
       field_.WriteTo(ref output, _map_field_codec);
-      if (Version != 0) {
-        output.WriteRawTag(16);
-        output.WriteUInt32(Version);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -512,9 +173,6 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
     public int CalculateSize() {
       int size = 0;
       size += field_.CalculateSize(_map_field_codec);
-      if (Version != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(Version);
-      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -528,9 +186,6 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
         return;
       }
       field_.MergeFrom(other.field_);
-      if (other.Version != 0) {
-        Version = other.Version;
-      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -552,10 +207,6 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
             break;
           case 10: {
             field_.AddEntriesFrom(input, _map_field_codec);
-            break;
-          }
-          case 16: {
-            Version = input.ReadUInt32();
             break;
           }
         }
@@ -581,10 +232,6 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
             field_.AddEntriesFrom(ref input, _map_field_codec);
             break;
           }
-          case 16: {
-            Version = input.ReadUInt32();
-            break;
-          }
         }
       }
     }
@@ -607,7 +254,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebProtobufsReporting.WAWebProtobufsReportingReflection.Descriptor.MessageTypes[2]; }
+      get { return global::Whatsmeow.Proto.WAWebProtobufsReporting.WAWebProtobufsReportingReflection.Descriptor.MessageTypes[1]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -629,7 +276,6 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
     public Field(Field other) : this() {
       minVersion_ = other.minVersion_;
       maxVersion_ = other.maxVersion_;
-      notReportableMinVersion_ = other.notReportableMinVersion_;
       isMessage_ = other.isMessage_;
       subfield_ = other.subfield_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -662,18 +308,6 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
       get { return maxVersion_; }
       set {
         maxVersion_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "notReportableMinVersion" field.</summary>
-    public const int NotReportableMinVersionFieldNumber = 3;
-    private uint notReportableMinVersion_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public uint NotReportableMinVersion {
-      get { return notReportableMinVersion_; }
-      set {
-        notReportableMinVersion_ = value;
       }
     }
 
@@ -717,7 +351,6 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
       }
       if (MinVersion != other.MinVersion) return false;
       if (MaxVersion != other.MaxVersion) return false;
-      if (NotReportableMinVersion != other.NotReportableMinVersion) return false;
       if (IsMessage != other.IsMessage) return false;
       if (!Subfield.Equals(other.Subfield)) return false;
       return Equals(_unknownFields, other._unknownFields);
@@ -729,7 +362,6 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
       int hash = 1;
       if (MinVersion != 0) hash ^= MinVersion.GetHashCode();
       if (MaxVersion != 0) hash ^= MaxVersion.GetHashCode();
-      if (NotReportableMinVersion != 0) hash ^= NotReportableMinVersion.GetHashCode();
       if (IsMessage != false) hash ^= IsMessage.GetHashCode();
       hash ^= Subfield.GetHashCode();
       if (_unknownFields != null) {
@@ -758,10 +390,6 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
         output.WriteRawTag(16);
         output.WriteUInt32(MaxVersion);
       }
-      if (NotReportableMinVersion != 0) {
-        output.WriteRawTag(24);
-        output.WriteUInt32(NotReportableMinVersion);
-      }
       if (IsMessage != false) {
         output.WriteRawTag(32);
         output.WriteBool(IsMessage);
@@ -785,10 +413,6 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
         output.WriteRawTag(16);
         output.WriteUInt32(MaxVersion);
       }
-      if (NotReportableMinVersion != 0) {
-        output.WriteRawTag(24);
-        output.WriteUInt32(NotReportableMinVersion);
-      }
       if (IsMessage != false) {
         output.WriteRawTag(32);
         output.WriteBool(IsMessage);
@@ -809,9 +433,6 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
       }
       if (MaxVersion != 0) {
         size += 1 + pb::CodedOutputStream.ComputeUInt32Size(MaxVersion);
-      }
-      if (NotReportableMinVersion != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(NotReportableMinVersion);
       }
       if (IsMessage != false) {
         size += 1 + 1;
@@ -834,9 +455,6 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
       }
       if (other.MaxVersion != 0) {
         MaxVersion = other.MaxVersion;
-      }
-      if (other.NotReportableMinVersion != 0) {
-        NotReportableMinVersion = other.NotReportableMinVersion;
       }
       if (other.IsMessage != false) {
         IsMessage = other.IsMessage;
@@ -867,10 +485,6 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
           }
           case 16: {
             MaxVersion = input.ReadUInt32();
-            break;
-          }
-          case 24: {
-            NotReportableMinVersion = input.ReadUInt32();
             break;
           }
           case 32: {
@@ -906,10 +520,6 @@ namespace Whatsmeow.Proto.WAWebProtobufsReporting {
           }
           case 16: {
             MaxVersion = input.ReadUInt32();
-            break;
-          }
-          case 24: {
-            NotReportableMinVersion = input.ReadUInt32();
             break;
           }
           case 32: {

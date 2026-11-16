@@ -53,7 +53,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsWa6 {
             "bWVyYWwiqAEKD0hhbmRzaGFrZVBxTW9kZRIdChlIQU5EU0hBS0VfUFFfTU9E",
             "RV9VTktOT1dOEAASCQoFWFhLRU0QARIMCghYWEtFTV9GUxACEg0KCVhYS0VN",
             "X0VQSBAJEhAKDFdBX0NMQVNTSUNBTBADEgkKBVdBX1BREAQSCQoFSUtLRU0Q",
-            "BRIMCghJS0tFTV9GUxAGEgsKB1hYS0VNXzIQBxILCgdJS0tFTV8yEAgi5y4K",
+            "BRIMCghJS0tFTV9GUxAGEgsKB1hYS0VNXzIQBxILCgdJS0tFTV8yEAgixzAK",
             "DUNsaWVudFBheWxvYWQSGgoIdXNlcm5hbWUYASABKARSCHVzZXJuYW1lEhgK",
             "B3Bhc3NpdmUYAyABKAhSB3Bhc3NpdmUSSAoJdXNlckFnZW50GAUgASgLMiou",
             "V0FXZWJQcm90b2J1ZnNXYTYuQ2xpZW50UGF5bG9hZC5Vc2VyQWdlbnRSCXVz",
@@ -93,114 +93,120 @@ namespace Whatsmeow.Proto.WAWebProtobufsWa6 {
             "IAEoBVITcHJvY2Vzc2luZ1F1ZXVlU2l6ZRIsChFwYWlyZWRQZXJpcGhlcmFs",
             "cxgvIAMoCVIRcGFpcmVkUGVyaXBoZXJhbHMSKAoPdGVzdElzb2xhdGlvbklE",
             "GDAgASgMUg90ZXN0SXNvbGF0aW9uSUQSHgoKbWVzc2FnZVN0cxgxIAEoA1IK",
-            "bWVzc2FnZVN0cxqPAgoJRE5TU291cmNlElwKCWRuc01ldGhvZBgPIAEoDjI+",
-            "LldBV2ViUHJvdG9idWZzV2E2LkNsaWVudFBheWxvYWQuRE5TU291cmNlLkRO",
-            "U1Jlc29sdXRpb25NZXRob2RSCWRuc01ldGhvZBIcCglhcHBDYWNoZWQYECAB",
-            "KAhSCWFwcENhY2hlZCKFAQoTRE5TUmVzb2x1dGlvbk1ldGhvZBIKCgZTWVNU",
-            "RU0QABIKCgZHT09HTEUQARINCglIQVJEQ09ERUQQAhIMCghPVkVSUklERRAD",
-            "EgwKCEZBTExCQUNLEAQSBwoDTU5TEAUSEQoNTU5TX1NFQ09OREFSWRAGEg8K",
-            "C1NPQ0tTX1BST1hZEAcatgcKB1dlYkluZm8SGgoIcmVmVG9rZW4YASABKAlS",
-            "CHJlZlRva2VuEhgKB3ZlcnNpb24YAiABKAlSB3ZlcnNpb24SVgoLd2ViZFBh",
-            "eWxvYWQYAyABKAsyNC5XQVdlYlByb3RvYnVmc1dhNi5DbGllbnRQYXlsb2Fk",
-            "LldlYkluZm8uV2ViZFBheWxvYWRSC3dlYmRQYXlsb2FkEl8KDndlYlN1YlBs",
-            "YXRmb3JtGAQgASgOMjcuV0FXZWJQcm90b2J1ZnNXYTYuQ2xpZW50UGF5bG9h",
-            "ZC5XZWJJbmZvLldlYlN1YlBsYXRmb3JtUg53ZWJTdWJQbGF0Zm9ybRIYCgdi",
-            "cm93c2VyGAUgASgJUgdicm93c2VyEiYKDmJyb3dzZXJWZXJzaW9uGAYgASgJ",
-            "Ug5icm93c2VyVmVyc2lvbhqRBAoLV2ViZFBheWxvYWQSMgoUdXNlc1BhcnRp",
-            "Y2lwYW50SW5LZXkYASABKAhSFHVzZXNQYXJ0aWNpcGFudEluS2V5EjgKF3N1",
-            "cHBvcnRzU3RhcnJlZE1lc3NhZ2VzGAIgASgIUhdzdXBwb3J0c1N0YXJyZWRN",
-            "ZXNzYWdlcxI6ChhzdXBwb3J0c0RvY3VtZW50TWVzc2FnZXMYAyABKAhSGHN1",
-            "cHBvcnRzRG9jdW1lbnRNZXNzYWdlcxIwChNzdXBwb3J0c1VSTE1lc3NhZ2Vz",
-            "GAQgASgIUhNzdXBwb3J0c1VSTE1lc3NhZ2VzEi4KEnN1cHBvcnRzTWVkaWFS",
-            "ZXRyeRgFIAEoCFISc3VwcG9ydHNNZWRpYVJldHJ5EioKEHN1cHBvcnRzRTJF",
-            "SW1hZ2UYBiABKAhSEHN1cHBvcnRzRTJFSW1hZ2USKgoQc3VwcG9ydHNFMkVW",
-            "aWRlbxgHIAEoCFIQc3VwcG9ydHNFMkVWaWRlbxIqChBzdXBwb3J0c0UyRUF1",
-            "ZGlvGAggASgIUhBzdXBwb3J0c0UyRUF1ZGlvEjAKE3N1cHBvcnRzRTJFRG9j",
-            "dW1lbnQYCSABKAhSE3N1cHBvcnRzRTJFRG9jdW1lbnQSJAoNZG9jdW1lbnRU",
-            "eXBlcxgKIAEoCVINZG9jdW1lbnRUeXBlcxIaCghmZWF0dXJlcxgLIAEoDFII",
-            "ZmVhdHVyZXMiZgoOV2ViU3ViUGxhdGZvcm0SDwoLV0VCX0JST1dTRVIQABIN",
-            "CglBUFBfU1RPUkUQARINCglXSU5fU1RPUkUQAhIKCgZEQVJXSU4QAxIJCgVX",
-            "SU4zMhAEEg4KCldJTl9IWUJSSUQQBRr/DgoJVXNlckFnZW50Ek8KCHBsYXRm",
-            "b3JtGAEgASgOMjMuV0FXZWJQcm90b2J1ZnNXYTYuQ2xpZW50UGF5bG9hZC5V",
-            "c2VyQWdlbnQuUGxhdGZvcm1SCHBsYXRmb3JtElUKCmFwcFZlcnNpb24YAiAB",
-            "KAsyNS5XQVdlYlByb3RvYnVmc1dhNi5DbGllbnRQYXlsb2FkLlVzZXJBZ2Vu",
-            "dC5BcHBWZXJzaW9uUgphcHBWZXJzaW9uEhAKA21jYxgDIAEoCVIDbWNjEhAK",
-            "A21uYxgEIAEoCVIDbW5jEhwKCW9zVmVyc2lvbhgFIAEoCVIJb3NWZXJzaW9u",
-            "EiIKDG1hbnVmYWN0dXJlchgGIAEoCVIMbWFudWZhY3R1cmVyEhYKBmRldmlj",
-            "ZRgHIAEoCVIGZGV2aWNlEiQKDW9zQnVpbGROdW1iZXIYCCABKAlSDW9zQnVp",
-            "bGROdW1iZXISGAoHcGhvbmVJRBgJIAEoCVIHcGhvbmVJRBJhCg5yZWxlYXNl",
-            "Q2hhbm5lbBgKIAEoDjI5LldBV2ViUHJvdG9idWZzV2E2LkNsaWVudFBheWxv",
-            "YWQuVXNlckFnZW50LlJlbGVhc2VDaGFubmVsUg5yZWxlYXNlQ2hhbm5lbBI0",
-            "ChVsb2NhbGVMYW5ndWFnZUlzbzYzOTEYCyABKAlSFWxvY2FsZUxhbmd1YWdl",
-            "SXNvNjM5MRJAChtsb2NhbGVDb3VudHJ5SXNvMzE2NjFBbHBoYTIYDCABKAlS",
-            "G2xvY2FsZUNvdW50cnlJc28zMTY2MUFscGhhMhIgCgtkZXZpY2VCb2FyZBgN",
-            "IAEoCVILZGV2aWNlQm9hcmQSIAoLZGV2aWNlRXhwSUQYDiABKAlSC2Rldmlj",
-            "ZUV4cElEElUKCmRldmljZVR5cGUYDyABKA4yNS5XQVdlYlByb3RvYnVmc1dh",
-            "Ni5DbGllbnRQYXlsb2FkLlVzZXJBZ2VudC5EZXZpY2VUeXBlUgpkZXZpY2VU",
-            "eXBlEigKD2RldmljZU1vZGVsVHlwZRgQIAEoCVIPZGV2aWNlTW9kZWxUeXBl",
-            "EnAKE2Rpc3RyaWJ1dGlvbkNoYW5uZWwYESABKA4yPi5XQVdlYlByb3RvYnVm",
-            "c1dhNi5DbGllbnRQYXlsb2FkLlVzZXJBZ2VudC5EaXN0cmlidXRpb25DaGFu",
-            "bmVsUhNkaXN0cmlidXRpb25DaGFubmVsGpoBCgpBcHBWZXJzaW9uEhgKB3By",
-            "aW1hcnkYASABKA1SB3ByaW1hcnkSHAoJc2Vjb25kYXJ5GAIgASgNUglzZWNv",
-            "bmRhcnkSGgoIdGVydGlhcnkYAyABKA1SCHRlcnRpYXJ5Eh4KCnF1YXRlcm5h",
-            "cnkYBCABKA1SCnF1YXRlcm5hcnkSGAoHcXVpbmFyeRgFIAEoDVIHcXVpbmFy",
-            "eSJsCgpEZXZpY2VUeXBlEgkKBVBIT05FEAASCgoGVEFCTEVUEAESCwoHREVT",
-            "S1RPUBACEgwKCFdFQVJBQkxFEAMSBgoCVlIQBBIRCg1TTUFSVF9ESVNQTEFZ",
-            "EAUSEQoNU01BUlRfU1BFQUtFUhAGIk4KE0Rpc3RyaWJ1dGlvbkNoYW5uZWwS",
-            "DAoIQVBQU1RPUkUQABILCgdXRUJTSVRFEAESDgoKVEVTVEZMSUdIVBACEgwK",
-            "CElOVEVSTkFMEAMiPQoOUmVsZWFzZUNoYW5uZWwSCwoHUkVMRUFTRRAAEggK",
-            "BEJFVEEQARIJCgVBTFBIQRACEgkKBURFQlVHEAMi3wQKCFBsYXRmb3JtEgsK",
-            "B0FORFJPSUQQABIHCgNJT1MQARIRCg1XSU5ET1dTX1BIT05FEAISDgoKQkxB",
-            "Q0tCRVJSWRADEg8KC0JMQUNLQkVSUllYEAQSBwoDUzQwEAUSBwoDUzYwEAYS",
-            "EQoNUFlUSE9OX0NMSUVOVBAHEgkKBVRJWkVOEAgSDgoKRU5URVJQUklTRRAJ",
-            "Eg8KC1NNQl9BTkRST0lEEAoSCQoFS0FJT1MQCxILCgdTTUJfSU9TEAwSCwoH",
-            "V0lORE9XUxANEgcKA1dFQhAOEgoKBlBPUlRBTBAPEhEKDUdSRUVOX0FORFJP",
-            "SUQQEBIQCgxHUkVFTl9JUEhPTkUQERIQCgxCTFVFX0FORFJPSUQQEhIPCgtC",
-            "TFVFX0lQSE9ORRATEhIKDkZCTElURV9BTkRST0lEEBQSEQoNTUxJVEVfQU5E",
-            "Uk9JRBAVEhIKDklHTElURV9BTkRST0lEEBYSCAoEUEFHRRAXEgkKBU1BQ09T",
-            "EBgSDgoKT0NVTFVTX01TRxAZEg8KC09DVUxVU19DQUxMEBoSCQoFTUlMQU4Q",
-            "GxIICgRDQVBJEBwSCgoGV0VBUk9TEB0SDAoIQVJERVZJQ0UQHhIMCghWUkRF",
-            "VklDRRAfEgwKCEJMVUVfV0VCECASCAoESVBBRBAhEggKBFRFU1QQIhIRCg1T",
-            "TUFSVF9HTEFTU0VTECMSCwoHQkxVRV9WUhAkEgwKCEFSX1dSSVNUECUSCAoE",
-            "V0FJTBAmEhAKDFdPUktfQU5EUk9JRBAnEgwKCFdPUktfSU9TECgSDgoKQVVU",
-            "T01PVElWRRApGnEKC0ludGVyb3BEYXRhEhwKCWFjY291bnRJRBgBIAEoBFIJ",
-            "YWNjb3VudElEEhQKBXRva2VuGAIgASgMUgV0b2tlbhIuChJlbmFibGVSZWFk",
-            "UmVjZWlwdHMYAyABKAhSEmVuYWJsZVJlYWRSZWNlaXB0cxr9AQodRGV2aWNl",
-            "UGFpcmluZ1JlZ2lzdHJhdGlvbkRhdGESFgoGZVJlZ2lkGAEgASgMUgZlUmVn",
-            "aWQSGgoIZUtleXR5cGUYAiABKAxSCGVLZXl0eXBlEhYKBmVJZGVudBgDIAEo",
-            "DFIGZUlkZW50EhgKB2VTa2V5SUQYBCABKAxSB2VTa2V5SUQSGgoIZVNrZXlW",
-            "YWwYBSABKAxSCGVTa2V5VmFsEhoKCGVTa2V5U2lnGAYgASgMUghlU2tleVNp",
-            "ZxIcCglidWlsZEhhc2gYByABKAxSCWJ1aWxkSGFzaBIgCgtkZXZpY2VQcm9w",
-            "cxgIIAEoDFILZGV2aWNlUHJvcHMiLQoUVHJhZmZpY0Fub255bWl6YXRpb24S",
-            "BwoDT0ZGEAASDAoIU1RBTkRBUkQQASIlCgtBY2NvdW50VHlwZRILCgdERUZB",
-            "VUxUEAASCQoFR1VFU1QQASJXCgdQcm9kdWN0EgwKCFdIQVRTQVBQEAASDQoJ",
-            "TUVTU0VOR0VSEAESCwoHSU5URVJPUBACEhAKDElOVEVST1BfTVNHUhADEhAK",
-            "DFdIQVRTQVBQX0xJRBAEIrACCgtDb25uZWN0VHlwZRIUChBDRUxMVUxBUl9V",
-            "TktOT1dOEAASEAoMV0lGSV9VTktOT1dOEAESEQoNQ0VMTFVMQVJfRURHRRBk",
-            "EhEKDUNFTExVTEFSX0lERU4QZRIRCg1DRUxMVUxBUl9VTVRTEGYSEQoNQ0VM",
-            "TFVMQVJfRVZETxBnEhEKDUNFTExVTEFSX0dQUlMQaBISCg5DRUxMVUxBUl9I",
-            "U0RQQRBpEhIKDkNFTExVTEFSX0hTVVBBEGoSEQoNQ0VMTFVMQVJfSFNQQRBr",
-            "EhEKDUNFTExVTEFSX0NETUEQbBISCg5DRUxMVUxBUl8xWFJUVBBtEhIKDkNF",
-            "TExVTEFSX0VIUlBEEG4SEAoMQ0VMTFVMQVJfTFRFEG8SEgoOQ0VMTFVMQVJf",
-            "SFNQQVAQcCKGAQoNQ29ubmVjdFJlYXNvbhIICgRQVVNIEAASEgoOVVNFUl9B",
-            "Q1RJVkFURUQQARINCglTQ0hFRFVMRUQQAhITCg9FUlJPUl9SRUNPTk5FQ1QQ",
-            "AxISCg5ORVRXT1JLX1NXSVRDSBAEEhIKDlBJTkdfUkVDT05ORUNUEAUSCwoH",
-            "VU5LTk9XThAGIlQKD0lPU0FwcEV4dGVuc2lvbhITCg9TSEFSRV9FWFRFTlNJ",
-            "T04QABIVChFTRVJWSUNFX0VYVEVOU0lPThABEhUKEUlOVEVOVFNfRVhURU5T",
-            "SU9OEAJCxAEKFWNvbS5XQVdlYlByb3RvYnVmc1dhNkIWV0FXZWJQcm90b2J1",
-            "ZnNXYTZQcm90b1ABWh9nby5tYXUuZmkvd2hhdHNtZW93L3Byb3RvL3dhV2E2",
-            "ogIDV1hYqgIhV2hhdHNtZW93LlByb3RvLldBV2ViUHJvdG9idWZzV2E2ygIR",
-            "V0FXZWJQcm90b2J1ZnNXYTbiAh1XQVdlYlByb3RvYnVmc1dhNlxHUEJNZXRh",
-            "ZGF0YeoCEVdBV2ViUHJvdG9idWZzV2E2"));
+            "bWVzc2FnZVN0cxJvChZpbnRlZ3JhdGlvbkF0dGVzdGF0aW9uGDIgASgLMjcu",
+            "V0FXZWJQcm90b2J1ZnNXYTYuQ2xpZW50UGF5bG9hZC5JbnRlZ3JhdGlvbkF0",
+            "dGVzdGF0aW9uUhZpbnRlZ3JhdGlvbkF0dGVzdGF0aW9uGo8CCglETlNTb3Vy",
+            "Y2USXAoJZG5zTWV0aG9kGA8gASgOMj4uV0FXZWJQcm90b2J1ZnNXYTYuQ2xp",
+            "ZW50UGF5bG9hZC5ETlNTb3VyY2UuRE5TUmVzb2x1dGlvbk1ldGhvZFIJZG5z",
+            "TWV0aG9kEhwKCWFwcENhY2hlZBgQIAEoCFIJYXBwQ2FjaGVkIoUBChNETlNS",
+            "ZXNvbHV0aW9uTWV0aG9kEgoKBlNZU1RFTRAAEgoKBkdPT0dMRRABEg0KCUhB",
+            "UkRDT0RFRBACEgwKCE9WRVJSSURFEAMSDAoIRkFMTEJBQ0sQBBIHCgNNTlMQ",
+            "BRIRCg1NTlNfU0VDT05EQVJZEAYSDwoLU09DS1NfUFJPWFkQBxq2BwoHV2Vi",
+            "SW5mbxIaCghyZWZUb2tlbhgBIAEoCVIIcmVmVG9rZW4SGAoHdmVyc2lvbhgC",
+            "IAEoCVIHdmVyc2lvbhJWCgt3ZWJkUGF5bG9hZBgDIAEoCzI0LldBV2ViUHJv",
+            "dG9idWZzV2E2LkNsaWVudFBheWxvYWQuV2ViSW5mby5XZWJkUGF5bG9hZFIL",
+            "d2ViZFBheWxvYWQSXwoOd2ViU3ViUGxhdGZvcm0YBCABKA4yNy5XQVdlYlBy",
+            "b3RvYnVmc1dhNi5DbGllbnRQYXlsb2FkLldlYkluZm8uV2ViU3ViUGxhdGZv",
+            "cm1SDndlYlN1YlBsYXRmb3JtEhgKB2Jyb3dzZXIYBSABKAlSB2Jyb3dzZXIS",
+            "JgoOYnJvd3NlclZlcnNpb24YBiABKAlSDmJyb3dzZXJWZXJzaW9uGpEECgtX",
+            "ZWJkUGF5bG9hZBIyChR1c2VzUGFydGljaXBhbnRJbktleRgBIAEoCFIUdXNl",
+            "c1BhcnRpY2lwYW50SW5LZXkSOAoXc3VwcG9ydHNTdGFycmVkTWVzc2FnZXMY",
+            "AiABKAhSF3N1cHBvcnRzU3RhcnJlZE1lc3NhZ2VzEjoKGHN1cHBvcnRzRG9j",
+            "dW1lbnRNZXNzYWdlcxgDIAEoCFIYc3VwcG9ydHNEb2N1bWVudE1lc3NhZ2Vz",
+            "EjAKE3N1cHBvcnRzVVJMTWVzc2FnZXMYBCABKAhSE3N1cHBvcnRzVVJMTWVz",
+            "c2FnZXMSLgoSc3VwcG9ydHNNZWRpYVJldHJ5GAUgASgIUhJzdXBwb3J0c01l",
+            "ZGlhUmV0cnkSKgoQc3VwcG9ydHNFMkVJbWFnZRgGIAEoCFIQc3VwcG9ydHNF",
+            "MkVJbWFnZRIqChBzdXBwb3J0c0UyRVZpZGVvGAcgASgIUhBzdXBwb3J0c0Uy",
+            "RVZpZGVvEioKEHN1cHBvcnRzRTJFQXVkaW8YCCABKAhSEHN1cHBvcnRzRTJF",
+            "QXVkaW8SMAoTc3VwcG9ydHNFMkVEb2N1bWVudBgJIAEoCFITc3VwcG9ydHNF",
+            "MkVEb2N1bWVudBIkCg1kb2N1bWVudFR5cGVzGAogASgJUg1kb2N1bWVudFR5",
+            "cGVzEhoKCGZlYXR1cmVzGAsgASgMUghmZWF0dXJlcyJmCg5XZWJTdWJQbGF0",
+            "Zm9ybRIPCgtXRUJfQlJPV1NFUhAAEg0KCUFQUF9TVE9SRRABEg0KCVdJTl9T",
+            "VE9SRRACEgoKBkRBUldJThADEgkKBVdJTjMyEAQSDgoKV0lOX0hZQlJJRBAF",
+            "GooPCglVc2VyQWdlbnQSTwoIcGxhdGZvcm0YASABKA4yMy5XQVdlYlByb3Rv",
+            "YnVmc1dhNi5DbGllbnRQYXlsb2FkLlVzZXJBZ2VudC5QbGF0Zm9ybVIIcGxh",
+            "dGZvcm0SVQoKYXBwVmVyc2lvbhgCIAEoCzI1LldBV2ViUHJvdG9idWZzV2E2",
+            "LkNsaWVudFBheWxvYWQuVXNlckFnZW50LkFwcFZlcnNpb25SCmFwcFZlcnNp",
+            "b24SEAoDbWNjGAMgASgJUgNtY2MSEAoDbW5jGAQgASgJUgNtbmMSHAoJb3NW",
+            "ZXJzaW9uGAUgASgJUglvc1ZlcnNpb24SIgoMbWFudWZhY3R1cmVyGAYgASgJ",
+            "UgxtYW51ZmFjdHVyZXISFgoGZGV2aWNlGAcgASgJUgZkZXZpY2USJAoNb3NC",
+            "dWlsZE51bWJlchgIIAEoCVINb3NCdWlsZE51bWJlchIYCgdwaG9uZUlEGAkg",
+            "ASgJUgdwaG9uZUlEEmEKDnJlbGVhc2VDaGFubmVsGAogASgOMjkuV0FXZWJQ",
+            "cm90b2J1ZnNXYTYuQ2xpZW50UGF5bG9hZC5Vc2VyQWdlbnQuUmVsZWFzZUNo",
+            "YW5uZWxSDnJlbGVhc2VDaGFubmVsEjQKFWxvY2FsZUxhbmd1YWdlSXNvNjM5",
+            "MRgLIAEoCVIVbG9jYWxlTGFuZ3VhZ2VJc282MzkxEkAKG2xvY2FsZUNvdW50",
+            "cnlJc28zMTY2MUFscGhhMhgMIAEoCVIbbG9jYWxlQ291bnRyeUlzbzMxNjYx",
+            "QWxwaGEyEiAKC2RldmljZUJvYXJkGA0gASgJUgtkZXZpY2VCb2FyZBIgCgtk",
+            "ZXZpY2VFeHBJRBgOIAEoCVILZGV2aWNlRXhwSUQSVQoKZGV2aWNlVHlwZRgP",
+            "IAEoDjI1LldBV2ViUHJvdG9idWZzV2E2LkNsaWVudFBheWxvYWQuVXNlckFn",
+            "ZW50LkRldmljZVR5cGVSCmRldmljZVR5cGUSKAoPZGV2aWNlTW9kZWxUeXBl",
+            "GBAgASgJUg9kZXZpY2VNb2RlbFR5cGUScAoTZGlzdHJpYnV0aW9uQ2hhbm5l",
+            "bBgRIAEoDjI+LldBV2ViUHJvdG9idWZzV2E2LkNsaWVudFBheWxvYWQuVXNl",
+            "ckFnZW50LkRpc3RyaWJ1dGlvbkNoYW5uZWxSE2Rpc3RyaWJ1dGlvbkNoYW5u",
+            "ZWwamgEKCkFwcFZlcnNpb24SGAoHcHJpbWFyeRgBIAEoDVIHcHJpbWFyeRIc",
+            "CglzZWNvbmRhcnkYAiABKA1SCXNlY29uZGFyeRIaCgh0ZXJ0aWFyeRgDIAEo",
+            "DVIIdGVydGlhcnkSHgoKcXVhdGVybmFyeRgEIAEoDVIKcXVhdGVybmFyeRIY",
+            "CgdxdWluYXJ5GAUgASgNUgdxdWluYXJ5IncKCkRldmljZVR5cGUSCQoFUEhP",
+            "TkUQABIKCgZUQUJMRVQQARILCgdERVNLVE9QEAISDAoIV0VBUkFCTEUQAxIG",
+            "CgJWUhAEEhEKDVNNQVJUX0RJU1BMQVkQBRIRCg1TTUFSVF9TUEVBS0VSEAYS",
+            "CQoFQUdFTlQQByJOChNEaXN0cmlidXRpb25DaGFubmVsEgwKCEFQUFNUT1JF",
+            "EAASCwoHV0VCU0lURRABEg4KClRFU1RGTElHSFQQAhIMCghJTlRFUk5BTBAD",
+            "Ij0KDlJlbGVhc2VDaGFubmVsEgsKB1JFTEVBU0UQABIICgRCRVRBEAESCQoF",
+            "QUxQSEEQAhIJCgVERUJVRxADIt8ECghQbGF0Zm9ybRILCgdBTkRST0lEEAAS",
+            "BwoDSU9TEAESEQoNV0lORE9XU19QSE9ORRACEg4KCkJMQUNLQkVSUlkQAxIP",
+            "CgtCTEFDS0JFUlJZWBAEEgcKA1M0MBAFEgcKA1M2MBAGEhEKDVBZVEhPTl9D",
+            "TElFTlQQBxIJCgVUSVpFThAIEg4KCkVOVEVSUFJJU0UQCRIPCgtTTUJfQU5E",
+            "Uk9JRBAKEgkKBUtBSU9TEAsSCwoHU01CX0lPUxAMEgsKB1dJTkRPV1MQDRIH",
+            "CgNXRUIQDhIKCgZQT1JUQUwQDxIRCg1HUkVFTl9BTkRST0lEEBASEAoMR1JF",
+            "RU5fSVBIT05FEBESEAoMQkxVRV9BTkRST0lEEBISDwoLQkxVRV9JUEhPTkUQ",
+            "ExISCg5GQkxJVEVfQU5EUk9JRBAUEhEKDU1MSVRFX0FORFJPSUQQFRISCg5J",
+            "R0xJVEVfQU5EUk9JRBAWEggKBFBBR0UQFxIJCgVNQUNPUxAYEg4KCk9DVUxV",
+            "U19NU0cQGRIPCgtPQ1VMVVNfQ0FMTBAaEgkKBU1JTEFOEBsSCAoEQ0FQSRAc",
+            "EgoKBldFQVJPUxAdEgwKCEFSREVWSUNFEB4SDAoIVlJERVZJQ0UQHxIMCghC",
+            "TFVFX1dFQhAgEggKBElQQUQQIRIICgRURVNUECISEQoNU01BUlRfR0xBU1NF",
+            "UxAjEgsKB0JMVUVfVlIQJBIMCghBUl9XUklTVBAlEggKBFdBSUwQJhIQCgxX",
+            "T1JLX0FORFJPSUQQJxIMCghXT1JLX0lPUxAoEg4KCkFVVE9NT1RJVkUQKRpi",
+            "ChZJbnRlZ3JhdGlvbkF0dGVzdGF0aW9uEiQKDXN0YXRpY1VuYm91bmQYASAB",
+            "KAlSDXN0YXRpY1VuYm91bmQSIgoMb25saW5lU2lnbmVkGAMgASgJUgxvbmxp",
+            "bmVTaWduZWQacQoLSW50ZXJvcERhdGESHAoJYWNjb3VudElEGAEgASgEUglh",
+            "Y2NvdW50SUQSFAoFdG9rZW4YAiABKAxSBXRva2VuEi4KEmVuYWJsZVJlYWRS",
+            "ZWNlaXB0cxgDIAEoCFISZW5hYmxlUmVhZFJlY2VpcHRzGv0BCh1EZXZpY2VQ",
+            "YWlyaW5nUmVnaXN0cmF0aW9uRGF0YRIWCgZlUmVnaWQYASABKAxSBmVSZWdp",
+            "ZBIaCghlS2V5dHlwZRgCIAEoDFIIZUtleXR5cGUSFgoGZUlkZW50GAMgASgM",
+            "UgZlSWRlbnQSGAoHZVNrZXlJRBgEIAEoDFIHZVNrZXlJRBIaCghlU2tleVZh",
+            "bBgFIAEoDFIIZVNrZXlWYWwSGgoIZVNrZXlTaWcYBiABKAxSCGVTa2V5U2ln",
+            "EhwKCWJ1aWxkSGFzaBgHIAEoDFIJYnVpbGRIYXNoEiAKC2RldmljZVByb3Bz",
+            "GAggASgMUgtkZXZpY2VQcm9wcyItChRUcmFmZmljQW5vbnltaXphdGlvbhIH",
+            "CgNPRkYQABIMCghTVEFOREFSRBABIiUKC0FjY291bnRUeXBlEgsKB0RFRkFV",
+            "TFQQABIJCgVHVUVTVBABIlcKB1Byb2R1Y3QSDAoIV0hBVFNBUFAQABINCglN",
+            "RVNTRU5HRVIQARILCgdJTlRFUk9QEAISEAoMSU5URVJPUF9NU0dSEAMSEAoM",
+            "V0hBVFNBUFBfTElEEAQisAIKC0Nvbm5lY3RUeXBlEhQKEENFTExVTEFSX1VO",
+            "S05PV04QABIQCgxXSUZJX1VOS05PV04QARIRCg1DRUxMVUxBUl9FREdFEGQS",
+            "EQoNQ0VMTFVMQVJfSURFThBlEhEKDUNFTExVTEFSX1VNVFMQZhIRCg1DRUxM",
+            "VUxBUl9FVkRPEGcSEQoNQ0VMTFVMQVJfR1BSUxBoEhIKDkNFTExVTEFSX0hT",
+            "RFBBEGkSEgoOQ0VMTFVMQVJfSFNVUEEQahIRCg1DRUxMVUxBUl9IU1BBEGsS",
+            "EQoNQ0VMTFVMQVJfQ0RNQRBsEhIKDkNFTExVTEFSXzFYUlRUEG0SEgoOQ0VM",
+            "TFVMQVJfRUhSUEQQbhIQCgxDRUxMVUxBUl9MVEUQbxISCg5DRUxMVUxBUl9I",
+            "U1BBUBBwIoYBCg1Db25uZWN0UmVhc29uEggKBFBVU0gQABISCg5VU0VSX0FD",
+            "VElWQVRFRBABEg0KCVNDSEVEVUxFRBACEhMKD0VSUk9SX1JFQ09OTkVDVBAD",
+            "EhIKDk5FVFdPUktfU1dJVENIEAQSEgoOUElOR19SRUNPTk5FQ1QQBRILCgdV",
+            "TktOT1dOEAYiVAoPSU9TQXBwRXh0ZW5zaW9uEhMKD1NIQVJFX0VYVEVOU0lP",
+            "ThAAEhUKEVNFUlZJQ0VfRVhURU5TSU9OEAESFQoRSU5URU5UU19FWFRFTlNJ",
+            "T04QAkLEAQoVY29tLldBV2ViUHJvdG9idWZzV2E2QhZXQVdlYlByb3RvYnVm",
+            "c1dhNlByb3RvUAFaH2dvLm1hdS5maS93aGF0c21lb3cvcHJvdG8vd2FXYTai",
+            "AgNXWFiqAiFXaGF0c21lb3cuUHJvdG8uV0FXZWJQcm90b2J1ZnNXYTbKAhFX",
+            "QVdlYlByb3RvYnVmc1dhNuICHVdBV2ViUHJvdG9idWZzV2E2XEdQQk1ldGFk",
+            "YXRh6gIRV0FXZWJQcm90b2J1ZnNXYTY="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.HandshakeMessage), global::Whatsmeow.Proto.WAWebProtobufsWa6.HandshakeMessage.Parser, new[]{ "ClientHello", "ServerHello", "ClientFinish" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.HandshakeMessage.Types.HandshakePqMode) }, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.HandshakeMessage.Types.ClientFinish), global::Whatsmeow.Proto.WAWebProtobufsWa6.HandshakeMessage.Types.ClientFinish.Parser, new[]{ "Static", "Payload", "ExtendedCiphertext", "PaddedBytes", "SimulateXxkemFs" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.HandshakeMessage.Types.ServerHello), global::Whatsmeow.Proto.WAWebProtobufsWa6.HandshakeMessage.Types.ServerHello.Parser, new[]{ "Ephemeral", "Static", "Payload", "ExtendedStatic", "PaddingBytes", "ExtendedCiphertext" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.HandshakeMessage.Types.ClientHello), global::Whatsmeow.Proto.WAWebProtobufsWa6.HandshakeMessage.Types.ClientHello.Parser, new[]{ "Ephemeral", "Static", "Payload", "UseExtended", "ExtendedCiphertext", "PaddedBytes", "SendServerHelloPaddedBytes", "SimulateXxkemFs", "PqMode", "ExtendedEphemeral" }, null, null, null, null)}),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload), global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Parser, new[]{ "Username", "Passive", "UserAgent", "WebInfo", "PushName", "SessionID", "ShortConnect", "ConnectType", "ConnectReason", "Shards", "DnsSource", "ConnectAttemptCount", "Device", "DevicePairingData", "Product", "FbCat", "FbUserAgent", "Oc", "Lc", "IosAppExtension", "FbAppID", "FbDeviceID", "Pull", "PaddingBytes", "YearClass", "MemClass", "InteropData", "TrafficAnonymization", "LidDbMigrated", "AccountType", "ConnectionSequenceInfo", "PaaLink", "PreacksCount", "ProcessingQueueSize", "PairedPeripherals", "TestIsolationID", "MessageSts" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.TrafficAnonymization), typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.AccountType), typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.Product), typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.ConnectType), typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.ConnectReason), typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.IOSAppExtension) }, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.DNSSource), global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.DNSSource.Parser, new[]{ "DnsMethod", "AppCached" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.DNSSource.Types.DNSResolutionMethod) }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload), global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Parser, new[]{ "Username", "Passive", "UserAgent", "WebInfo", "PushName", "SessionID", "ShortConnect", "ConnectType", "ConnectReason", "Shards", "DnsSource", "ConnectAttemptCount", "Device", "DevicePairingData", "Product", "FbCat", "FbUserAgent", "Oc", "Lc", "IosAppExtension", "FbAppID", "FbDeviceID", "Pull", "PaddingBytes", "YearClass", "MemClass", "InteropData", "TrafficAnonymization", "LidDbMigrated", "AccountType", "ConnectionSequenceInfo", "PaaLink", "PreacksCount", "ProcessingQueueSize", "PairedPeripherals", "TestIsolationID", "MessageSts", "IntegrationAttestation" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.TrafficAnonymization), typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.AccountType), typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.Product), typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.ConnectType), typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.ConnectReason), typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.IOSAppExtension) }, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.DNSSource), global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.DNSSource.Parser, new[]{ "DnsMethod", "AppCached" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.DNSSource.Types.DNSResolutionMethod) }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.WebInfo), global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.WebInfo.Parser, new[]{ "RefToken", "Version", "WebdPayload", "WebSubPlatform", "Browser", "BrowserVersion" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.WebInfo.Types.WebSubPlatform) }, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.WebInfo.Types.WebdPayload), global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.WebInfo.Types.WebdPayload.Parser, new[]{ "UsesParticipantInKey", "SupportsStarredMessages", "SupportsDocumentMessages", "SupportsURLMessages", "SupportsMediaRetry", "SupportsE2EImage", "SupportsE2EVideo", "SupportsE2EAudio", "SupportsE2EDocument", "DocumentTypes", "Features" }, null, null, null, null)}),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.UserAgent), global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.UserAgent.Parser, new[]{ "Platform", "AppVersion", "Mcc", "Mnc", "OsVersion", "Manufacturer", "Device", "OsBuildNumber", "PhoneID", "ReleaseChannel", "LocaleLanguageIso6391", "LocaleCountryIso31661Alpha2", "DeviceBoard", "DeviceExpID", "DeviceType", "DeviceModelType", "DistributionChannel" }, null, new[]{ typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.UserAgent.Types.DeviceType), typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.UserAgent.Types.DistributionChannel), typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.UserAgent.Types.ReleaseChannel), typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.UserAgent.Types.Platform) }, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.UserAgent.Types.AppVersion), global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.UserAgent.Types.AppVersion.Parser, new[]{ "Primary", "Secondary", "Tertiary", "Quaternary", "Quinary" }, null, null, null, null)}),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.IntegrationAttestation), global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.IntegrationAttestation.Parser, new[]{ "StaticUnbound", "OnlineSigned" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.InteropData), global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.InteropData.Parser, new[]{ "AccountID", "Token", "EnableReadReceipts" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.DevicePairingRegistrationData), global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.DevicePairingRegistrationData.Parser, new[]{ "ERegid", "EKeytype", "EIdent", "ESkeyID", "ESkeyVal", "ESkeySig", "BuildHash", "DeviceProps" }, null, null, null, null)})
           }));
@@ -2166,6 +2172,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsWa6 {
       pairedPeripherals_ = other.pairedPeripherals_.Clone();
       testIsolationID_ = other.testIsolationID_;
       messageSts_ = other.messageSts_;
+      integrationAttestation_ = other.integrationAttestation_ != null ? other.integrationAttestation_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -3061,6 +3068,18 @@ namespace Whatsmeow.Proto.WAWebProtobufsWa6 {
       _hasBits0 &= ~8388608;
     }
 
+    /// <summary>Field number for the "integrationAttestation" field.</summary>
+    public const int IntegrationAttestationFieldNumber = 50;
+    private global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.IntegrationAttestation integrationAttestation_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.IntegrationAttestation IntegrationAttestation {
+      get { return integrationAttestation_; }
+      set {
+        integrationAttestation_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -3113,6 +3132,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsWa6 {
       if(!pairedPeripherals_.Equals(other.pairedPeripherals_)) return false;
       if (TestIsolationID != other.TestIsolationID) return false;
       if (MessageSts != other.MessageSts) return false;
+      if (!object.Equals(IntegrationAttestation, other.IntegrationAttestation)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -3157,6 +3177,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsWa6 {
       hash ^= pairedPeripherals_.GetHashCode();
       if (HasTestIsolationID) hash ^= TestIsolationID.GetHashCode();
       if (HasMessageSts) hash ^= MessageSts.GetHashCode();
+      if (integrationAttestation_ != null) hash ^= IntegrationAttestation.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -3317,6 +3338,10 @@ namespace Whatsmeow.Proto.WAWebProtobufsWa6 {
         output.WriteRawTag(136, 3);
         output.WriteInt64(MessageSts);
       }
+      if (integrationAttestation_ != null) {
+        output.WriteRawTag(146, 3);
+        output.WriteMessage(IntegrationAttestation);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -3469,6 +3494,10 @@ namespace Whatsmeow.Proto.WAWebProtobufsWa6 {
         output.WriteRawTag(136, 3);
         output.WriteInt64(MessageSts);
       }
+      if (integrationAttestation_ != null) {
+        output.WriteRawTag(146, 3);
+        output.WriteMessage(IntegrationAttestation);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -3585,6 +3614,9 @@ namespace Whatsmeow.Proto.WAWebProtobufsWa6 {
       }
       if (HasMessageSts) {
         size += 2 + pb::CodedOutputStream.ComputeInt64Size(MessageSts);
+      }
+      if (integrationAttestation_ != null) {
+        size += 2 + pb::CodedOutputStream.ComputeMessageSize(IntegrationAttestation);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -3719,6 +3751,12 @@ namespace Whatsmeow.Proto.WAWebProtobufsWa6 {
       }
       if (other.HasMessageSts) {
         MessageSts = other.MessageSts;
+      }
+      if (other.integrationAttestation_ != null) {
+        if (integrationAttestation_ == null) {
+          IntegrationAttestation = new global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.IntegrationAttestation();
+        }
+        IntegrationAttestation.MergeFrom(other.IntegrationAttestation);
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -3903,6 +3941,13 @@ namespace Whatsmeow.Proto.WAWebProtobufsWa6 {
             MessageSts = input.ReadInt64();
             break;
           }
+          case 402: {
+            if (integrationAttestation_ == null) {
+              IntegrationAttestation = new global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.IntegrationAttestation();
+            }
+            input.ReadMessage(IntegrationAttestation);
+            break;
+          }
         }
       }
     #endif
@@ -4084,6 +4129,13 @@ namespace Whatsmeow.Proto.WAWebProtobufsWa6 {
           }
           case 392: {
             MessageSts = input.ReadInt64();
+            break;
+          }
+          case 402: {
+            if (integrationAttestation_ == null) {
+              IntegrationAttestation = new global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Types.IntegrationAttestation();
+            }
+            input.ReadMessage(IntegrationAttestation);
             break;
           }
         }
@@ -6689,6 +6741,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsWa6 {
             [pbr::OriginalName("VR")] Vr = 4,
             [pbr::OriginalName("SMART_DISPLAY")] SmartDisplay = 5,
             [pbr::OriginalName("SMART_SPEAKER")] SmartSpeaker = 6,
+            [pbr::OriginalName("AGENT")] Agent = 7,
           }
 
           public enum DistributionChannel {
@@ -7179,6 +7232,269 @@ namespace Whatsmeow.Proto.WAWebProtobufsWa6 {
       }
 
       [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+      public sealed partial class IntegrationAttestation : pb::IMessage<IntegrationAttestation>
+      #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+          , pb::IBufferMessage
+      #endif
+      {
+        private static readonly pb::MessageParser<IntegrationAttestation> _parser = new pb::MessageParser<IntegrationAttestation>(() => new IntegrationAttestation());
+        private pb::UnknownFieldSet _unknownFields;
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public static pb::MessageParser<IntegrationAttestation> Parser { get { return _parser; } }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public static pbr::MessageDescriptor Descriptor {
+          get { return global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Descriptor.NestedTypes[3]; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        pbr::MessageDescriptor pb::IMessage.Descriptor {
+          get { return Descriptor; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public IntegrationAttestation() {
+          OnConstruction();
+        }
+
+        partial void OnConstruction();
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public IntegrationAttestation(IntegrationAttestation other) : this() {
+          staticUnbound_ = other.staticUnbound_;
+          onlineSigned_ = other.onlineSigned_;
+          _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public IntegrationAttestation Clone() {
+          return new IntegrationAttestation(this);
+        }
+
+        /// <summary>Field number for the "staticUnbound" field.</summary>
+        public const int StaticUnboundFieldNumber = 1;
+        private readonly static string StaticUnboundDefaultValue = "";
+
+        private string staticUnbound_;
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public string StaticUnbound {
+          get { return staticUnbound_ ?? StaticUnboundDefaultValue; }
+          set {
+            staticUnbound_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+          }
+        }
+        /// <summary>Gets whether the "staticUnbound" field is set</summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public bool HasStaticUnbound {
+          get { return staticUnbound_ != null; }
+        }
+        /// <summary>Clears the value of the "staticUnbound" field</summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public void ClearStaticUnbound() {
+          staticUnbound_ = null;
+        }
+
+        /// <summary>Field number for the "onlineSigned" field.</summary>
+        public const int OnlineSignedFieldNumber = 3;
+        private readonly static string OnlineSignedDefaultValue = "";
+
+        private string onlineSigned_;
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public string OnlineSigned {
+          get { return onlineSigned_ ?? OnlineSignedDefaultValue; }
+          set {
+            onlineSigned_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+          }
+        }
+        /// <summary>Gets whether the "onlineSigned" field is set</summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public bool HasOnlineSigned {
+          get { return onlineSigned_ != null; }
+        }
+        /// <summary>Clears the value of the "onlineSigned" field</summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public void ClearOnlineSigned() {
+          onlineSigned_ = null;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public override bool Equals(object other) {
+          return Equals(other as IntegrationAttestation);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public bool Equals(IntegrationAttestation other) {
+          if (ReferenceEquals(other, null)) {
+            return false;
+          }
+          if (ReferenceEquals(other, this)) {
+            return true;
+          }
+          if (StaticUnbound != other.StaticUnbound) return false;
+          if (OnlineSigned != other.OnlineSigned) return false;
+          return Equals(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public override int GetHashCode() {
+          int hash = 1;
+          if (HasStaticUnbound) hash ^= StaticUnbound.GetHashCode();
+          if (HasOnlineSigned) hash ^= OnlineSigned.GetHashCode();
+          if (_unknownFields != null) {
+            hash ^= _unknownFields.GetHashCode();
+          }
+          return hash;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public override string ToString() {
+          return pb::JsonFormatter.ToDiagnosticString(this);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public void WriteTo(pb::CodedOutputStream output) {
+        #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+          output.WriteRawMessage(this);
+        #else
+          if (HasStaticUnbound) {
+            output.WriteRawTag(10);
+            output.WriteString(StaticUnbound);
+          }
+          if (HasOnlineSigned) {
+            output.WriteRawTag(26);
+            output.WriteString(OnlineSigned);
+          }
+          if (_unknownFields != null) {
+            _unknownFields.WriteTo(output);
+          }
+        #endif
+        }
+
+        #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+          if (HasStaticUnbound) {
+            output.WriteRawTag(10);
+            output.WriteString(StaticUnbound);
+          }
+          if (HasOnlineSigned) {
+            output.WriteRawTag(26);
+            output.WriteString(OnlineSigned);
+          }
+          if (_unknownFields != null) {
+            _unknownFields.WriteTo(ref output);
+          }
+        }
+        #endif
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public int CalculateSize() {
+          int size = 0;
+          if (HasStaticUnbound) {
+            size += 1 + pb::CodedOutputStream.ComputeStringSize(StaticUnbound);
+          }
+          if (HasOnlineSigned) {
+            size += 1 + pb::CodedOutputStream.ComputeStringSize(OnlineSigned);
+          }
+          if (_unknownFields != null) {
+            size += _unknownFields.CalculateSize();
+          }
+          return size;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public void MergeFrom(IntegrationAttestation other) {
+          if (other == null) {
+            return;
+          }
+          if (other.HasStaticUnbound) {
+            StaticUnbound = other.StaticUnbound;
+          }
+          if (other.HasOnlineSigned) {
+            OnlineSigned = other.OnlineSigned;
+          }
+          _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        public void MergeFrom(pb::CodedInputStream input) {
+        #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+          input.ReadRawMessage(this);
+        #else
+          uint tag;
+          while ((tag = input.ReadTag()) != 0) {
+          if ((tag & 7) == 4) {
+            // Abort on any end group tag.
+            return;
+          }
+          switch(tag) {
+              default:
+                _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+                break;
+              case 10: {
+                StaticUnbound = input.ReadString();
+                break;
+              }
+              case 26: {
+                OnlineSigned = input.ReadString();
+                break;
+              }
+            }
+          }
+        #endif
+        }
+
+        #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+        void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+          uint tag;
+          while ((tag = input.ReadTag()) != 0) {
+          if ((tag & 7) == 4) {
+            // Abort on any end group tag.
+            return;
+          }
+          switch(tag) {
+              default:
+                _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+                break;
+              case 10: {
+                StaticUnbound = input.ReadString();
+                break;
+              }
+              case 26: {
+                OnlineSigned = input.ReadString();
+                break;
+              }
+            }
+          }
+        }
+        #endif
+
+      }
+
+      [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
       public sealed partial class InteropData : pb::IMessage<InteropData>
       #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
           , pb::IBufferMessage
@@ -7194,7 +7510,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsWa6 {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Descriptor.NestedTypes[3]; }
+          get { return global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Descriptor.NestedTypes[4]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7511,7 +7827,7 @@ namespace Whatsmeow.Proto.WAWebProtobufsWa6 {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public static pbr::MessageDescriptor Descriptor {
-          get { return global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Descriptor.NestedTypes[4]; }
+          get { return global::Whatsmeow.Proto.WAWebProtobufsWa6.ClientPayload.Descriptor.NestedTypes[5]; }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

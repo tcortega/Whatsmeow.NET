@@ -30,7 +30,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             "cklEGAIgAigEUgZ1c2VySUQimQMKE0VuY3J5cHRNZXNzYWdlSW5wdXQSIgoM",
             "ZXBvY2hSb290S2V5GAEgAigMUgxlcG9jaFJvb3RLZXkSJgoObWFpbGJveFJv",
             "b3RLZXkYAiACKAxSDm1haWxib3hSb290S2V5EiYKDm9yZkNsaWVudFN0YXRl",
-            "GAMgAigMUg5vcmZDbGllbnRTdGF0ZRIgCgtlcG9jaEFub25JRBgEIAIoDFIL",
+            "GAMgAigMUg5vcmZDbGllbnRTdGF0ZRIgCgtlcG9jaEFub25JRBgEIAIoBVIL",
             "ZXBvY2hBbm9uSUQSGAoHZXBvY2hJRBgFIAIoBFIHZXBvY2hJRBIaCgh0aHJl",
             "YWRJRBgGIAIoCVIIdGhyZWFkSUQSMAoTd2FDYW5vbmljYWxVc2VyRmJpZBgH",
             "IAIoBFITd2FDYW5vbmljYWxVc2VyRmJpZBIgCgt0aW1lc3RhbXBNUxgIIAIo",
@@ -38,18 +38,18 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             "EHBsYWludGV4dFBheWxvYWQYCiACKAxSEHBsYWludGV4dFBheWxvYWQSGgoI",
             "c3RhbnphSUQYCyACKAlSCHN0YW56YUlEIsUBChNEZWNyeXB0TWVzc2FnZUlu",
             "cHV0EiIKDGVwb2NoUm9vdEtleRgBIAIoDFIMZXBvY2hSb290S2V5EiAKC2Vw",
-            "b2NoQW5vbklEGAIgAigMUgtlcG9jaEFub25JRBIaCgh0aHJlYWRJRBgDIAIo",
+            "b2NoQW5vbklEGAIgAigFUgtlcG9jaEFub25JRBIaCgh0aHJlYWRJRBgDIAIo",
             "CVIIdGhyZWFkSUQSLAoRZW5jcnlwdGlvblZlcnNpb24YBCACKAVSEWVuY3J5",
             "cHRpb25WZXJzaW9uEh4KCmNpcGhlcnRleHQYBSACKAxSCmNpcGhlcnRleHQi",
             "VgoQT3JmVGhyZWFkSWRJbnB1dBImCg5vcmZDbGllbnRTdGF0ZRgBIAIoDFIO",
             "b3JmQ2xpZW50U3RhdGUSGgoIdGhyZWFkSUQYAiACKAlSCHRocmVhZElEInkK",
             "FURlcml2ZU1lc3NhZ2VLZXlJbnB1dBIiCgxlcG9jaFJvb3RLZXkYASACKAxS",
-            "DGVwb2NoUm9vdEtleRIgCgtlcG9jaEFub25JRBgCIAIoDFILZXBvY2hBbm9u",
+            "DGVwb2NoUm9vdEtleRIgCgtlcG9jaEFub25JRBgCIAIoBVILZXBvY2hBbm9u",
             "SUQSGgoIdGhyZWFkSUQYAyACKAlSCHRocmVhZElEIlgKGkRlcml2ZVZpcnR1",
             "YWxEZXZpY2VJZElucHV0EiIKDHJlY292ZXJ5Q29kZRgBIAIoCVIMcmVjb3Zl",
             "cnlDb2RlEhYKBnVzZXJJRBgCIAIoBFIGdXNlcklEItEBChdBZGREZXZpY2VT",
             "eW5jRXBvY2hJbnB1dBIYCgdlcG9jaElEGAEgAigEUgdlcG9jaElEEiAKC2Vw",
-            "b2NoQW5vbklEGAIgAigMUgtlcG9jaEFub25JRBIsChFlbmNyeXB0ZWRFcG9j",
+            "b2NoQW5vbklEGAIgAigFUgtlcG9jaEFub25JRBIsChFlbmNyeXB0ZWRFcG9j",
             "aEtleRgDIAEoDFIRZW5jcnlwdGVkRXBvY2hLZXkSKgoQc2VuZGVyQXV0aFB1",
             "YktleRgEIAIoDFIQc2VuZGVyQXV0aFB1YktleRIgCgtuZXh0RXBvY2hJRBgF",
             "IAEoBFILbmV4dEVwb2NoSUQiwgIKFVByZXBhcmVBZGREZXZpY2VJbnB1dBIi",
@@ -92,192 +92,209 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             "VG9rZW4YBSACKAxSEW9jbWZSb3RhdGlvblRva2VuEigKD2RldmljZUVwb2No",
             "SG1hYxgGIAIoDFIPZGV2aWNlRXBvY2hIbWFjEmcKFWVuY3J5cHRlZFNlY3Jl",
             "dFZhbHVlcxgHIAIoCzIxLldBV2ViTGFieXJpbnRoV2FXYXNtLkVuY3J5cHRl",
-            "ZFNlY3JldFZhbHVlc091dHB1dFIVZW5jcnlwdGVkU2VjcmV0VmFsdWVzIqwB",
-            "CgxFcG9jaDBPdXRwdXQSHAoJZXBvY2hGYmlkGAEgAigEUgllcG9jaEZiaWQS",
-            "IAoLZXBvY2hBbm9uSUQYAiACKAxSC2Vwb2NoQW5vbklEEjgKF2Vwb2NoUm9v",
-            "dEtleUZpbmdlcnByaW50GAYgAigMUhdlcG9jaFJvb3RLZXlGaW5nZXJwcmlu",
-            "dBIiCgxlcG9jaFJvb3RLZXkYByACKAxSDGVwb2NoUm9vdEtleSJ9ChJDcmVh",
-            "dGVCYWNrdXBPdXRwdXQSRQoHc3VjY2VzcxgBIAEoCzIpLldBV2ViTGFieXJp",
-            "bnRoV2FXYXNtLkNyZWF0ZUJhY2t1cFN1Y2Nlc3NIAFIHc3VjY2VzcxIWCgVl",
-            "cnJvchgCIAEoCUgAUgVlcnJvckIICgZyZXN1bHQihgIKE0NyZWF0ZUJhY2t1",
-            "cFN1Y2Nlc3MSOgoGZGV2aWNlGAEgAigLMiIuV0FXZWJMYWJ5cmludGhXYVdh",
-            "c20uRGV2aWNlT3V0cHV0UgZkZXZpY2USTwoNdmlydHVhbERldmljZRgCIAIo",
-            "CzIpLldBV2ViTGFieXJpbnRoV2FXYXNtLlZpcnR1YWxEZXZpY2VPdXRwdXRS",
-            "DXZpcnR1YWxEZXZpY2USOgoGZXBvY2gwGAMgAigLMiIuV0FXZWJMYWJ5cmlu",
-            "dGhXYVdhc20uRXBvY2gwT3V0cHV0UgZlcG9jaDASJgoObWFpbGJveFJvb3RL",
-            "ZXkYBCACKAxSDm1haWxib3hSb290S2V5IoEBChRFbmNyeXB0TWVzc2FnZU91",
-            "dHB1dBJHCgdzdWNjZXNzGAEgASgLMisuV0FXZWJMYWJ5cmludGhXYVdhc20u",
-            "RW5jcnlwdE1lc3NhZ2VTdWNjZXNzSABSB3N1Y2Nlc3MSFgoFZXJyb3IYAiAB",
-            "KAlIAFIFZXJyb3JCCAoGcmVzdWx0IuEBChVFbmNyeXB0TWVzc2FnZVN1Y2Nl",
-            "c3MSLAoRZW5jcnlwdGVkUHJvdG9idWYYASACKAxSEWVuY3J5cHRlZFByb3Rv",
-            "YnVmEiAKC29yZlRocmVhZElEGAIgAigMUgtvcmZUaHJlYWRJRBImCg52YWx1",
-            "ZVNlY3JldFJlZhgDIAIoCVIOdmFsdWVTZWNyZXRSZWYSLgoSb2ZmbGluZVRo",
-            "cmVhZGluZ0lEGAQgAigEUhJvZmZsaW5lVGhyZWFkaW5nSUQSIAoLdGltZXN0",
-            "YW1wTVMYBSACKARSC3RpbWVzdGFtcE1TIoEBChREZWNyeXB0TWVzc2FnZU91",
-            "dHB1dBJHCgdzdWNjZXNzGAEgASgLMisuV0FXZWJMYWJ5cmludGhXYVdhc20u",
-            "RGVjcnlwdE1lc3NhZ2VTdWNjZXNzSABSB3N1Y2Nlc3MSFgoFZXJyb3IYAiAB",
-            "KAlIAFIFZXJyb3JCCAoGcmVzdWx0IkMKFURlY3J5cHRNZXNzYWdlU3VjY2Vz",
-            "cxIqChBwbGFpbnRleHRQYXlsb2FkGAEgAigMUhBwbGFpbnRleHRQYXlsb2Fk",
-            "InsKEU9yZlRocmVhZElkT3V0cHV0EkQKB3N1Y2Nlc3MYASABKAsyKC5XQVdl",
-            "YkxhYnlyaW50aFdhV2FzbS5PcmZUaHJlYWRJZFN1Y2Nlc3NIAFIHc3VjY2Vz",
-            "cxIWCgVlcnJvchgCIAEoCUgAUgVlcnJvckIICgZyZXN1bHQiNgoST3JmVGhy",
-            "ZWFkSWRTdWNjZXNzEiAKC29yZlRocmVhZElEGAEgAigMUgtvcmZUaHJlYWRJ",
-            "RCKFAQoWRGVyaXZlTWVzc2FnZUtleU91dHB1dBJJCgdzdWNjZXNzGAEgASgL",
-            "Mi0uV0FXZWJMYWJ5cmludGhXYVdhc20uRGVyaXZlTWVzc2FnZUtleVN1Y2Nl",
-            "c3NIAFIHc3VjY2VzcxIWCgVlcnJvchgCIAEoCUgAUgVlcnJvckIICgZyZXN1",
-            "bHQiOQoXRGVyaXZlTWVzc2FnZUtleVN1Y2Nlc3MSHgoKbWVzc2FnZUtleRgB",
-            "IAIoDFIKbWVzc2FnZUtleSKPAQobRGVyaXZlVmlydHVhbERldmljZUlkT3V0",
-            "cHV0Ek4KB3N1Y2Nlc3MYASABKAsyMi5XQVdlYkxhYnlyaW50aFdhV2FzbS5E",
-            "ZXJpdmVWaXJ0dWFsRGV2aWNlSWRTdWNjZXNzSABSB3N1Y2Nlc3MSFgoFZXJy",
-            "b3IYAiABKAlIAFIFZXJyb3JCCAoGcmVzdWx0IkgKHERlcml2ZVZpcnR1YWxE",
-            "ZXZpY2VJZFN1Y2Nlc3MSKAoPdmlydHVhbERldmljZUlEGAEgAigMUg92aXJ0",
-            "dWFsRGV2aWNlSUQi9wIKE0FkZERldmljZUtleXNPdXRwdXQSKAoPZGV2aWNl",
-            "UHVibGljS2V5GAEgAigMUg9kZXZpY2VQdWJsaWNLZXkSLgoSZXBvY2hBdXRo",
-            "UHVibGljS2V5GAIgAigMUhJlcG9jaEF1dGhQdWJsaWNLZXkSNAoVZXBvY2hB",
-            "dXRoUHVibGljS2V5U2lnGAMgAigMUhVlcG9jaEF1dGhQdWJsaWNLZXlTaWcS",
-            "NAoVZXBvY2hTdG9yYWdlUHVibGljS2V5GAQgAigMUhVlcG9jaFN0b3JhZ2VQ",
-            "dWJsaWNLZXkSOgoYZXBvY2hTdG9yYWdlUHVibGljS2V5U2lnGAUgAigMUhhl",
-            "cG9jaFN0b3JhZ2VQdWJsaWNLZXlTaWcSNgoWZXBvY2hTdG9yYWdlUHJpdmF0",
-            "ZUtleRgGIAIoDFIWZXBvY2hTdG9yYWdlUHJpdmF0ZUtleRImCg5vcmZDbGll",
-            "bnRTdGF0ZRgHIAIoDFIOb3JmQ2xpZW50U3RhdGUidgoIRXBvY2hLZXkSJAoN",
-            "c2VydmVyRXBvY2hJRBgBIAIoBFINc2VydmVyRXBvY2hJRBIgCgtlcG9jaEFu",
-            "b25JRBgCIAIoDFILZXBvY2hBbm9uSUQSIgoMZXBvY2hSb290S2V5GAMgAigM",
-            "UgxlcG9jaFJvb3RLZXkihQEKFlByZXBhcmVBZGREZXZpY2VPdXRwdXQSSQoH",
-            "c3VjY2VzcxgBIAEoCzItLldBV2ViTGFieXJpbnRoV2FXYXNtLlByZXBhcmVB",
-            "ZGREZXZpY2VTdWNjZXNzSABSB3N1Y2Nlc3MSFgoFZXJyb3IYAiABKAlIAFIF",
-            "ZXJyb3JCCAoGcmVzdWx0IooEChdQcmVwYXJlQWRkRGV2aWNlU3VjY2VzcxJJ",
-            "CgpkZXZpY2VLZXlzGAEgAigLMikuV0FXZWJMYWJ5cmludGhXYVdhc20uQWRk",
-            "RGV2aWNlS2V5c091dHB1dFIKZGV2aWNlS2V5cxJCCgxjdXJyZW50RXBvY2gY",
-            "AiACKAsyHi5XQVdlYkxhYnlyaW50aFdhV2FzbS5FcG9jaEtleVIMY3VycmVu",
-            "dEVwb2NoEigKD21haWxib3hSb290U2FsdBgDIAIoDFIPbWFpbGJveFJvb3RT",
-            "YWx0EioKEG9yZlJvdGF0aW9uVG9rZW4YBCACKAxSEG9yZlJvdGF0aW9uVG9r",
-            "ZW4SKAoPZGV2aWNlRXBvY2hIbWFjGAUgAigMUg9kZXZpY2VFcG9jaEhtYWMS",
-            "OAoXZXBvY2hSb290S2V5RmluZ2VycHJpbnQYBiACKAxSF2Vwb2NoUm9vdEtl",
-            "eUZpbmdlcnByaW50EkAKG3N1cHBvcnRlZEVuY3J5cHRpb25WZXJzaW9ucxgH",
-            "IAMoBVIbc3VwcG9ydGVkRW5jcnlwdGlvblZlcnNpb25zEj4KGmVuY3J5cHRp",
-            "b25WZXJzaW9uU2lnbmF0dXJlGAggAigMUhplbmNyeXB0aW9uVmVyc2lvblNp",
-            "Z25hdHVyZRIkCg1jbGllbnRWZXJzaW9uGAkgAigFUg1jbGllbnRWZXJzaW9u",
-            "IoICChZSb3RhdGVFcG9jaE1lbWJlcklucHV0EhoKCGRldmljZUlEGAEgAigE",
-            "UghkZXZpY2VJRBI0ChVlcG9jaFN0b3JhZ2VQdWJsaWNLZXkYAiACKAxSFWVw",
-            "b2NoU3RvcmFnZVB1YmxpY0tleRIoCg9kZXZpY2VQdWJsaWNLZXkYAyACKAxS",
-            "D2RldmljZVB1YmxpY0tleRIwChNwcmV2RGV2aWNlRXBvY2hIbWFjGAQgAigM",
-            "UhNwcmV2RGV2aWNlRXBvY2hIbWFjEjoKGGVwb2NoU3RvcmFnZVB1YmxpY0tl",
-            "eVNpZxgFIAIoDFIYZXBvY2hTdG9yYWdlUHVibGljS2V5U2lnIqgCChBSb3Rh",
-            "dGVFcG9jaElucHV0EjAKE2N1cnJlbnRFcG9jaFJvb3RLZXkYASACKAxSE2N1",
-            "cnJlbnRFcG9jaFJvb3RLZXkSLgoSY3VycmVudEVwb2NoQW5vbklEGAIgAigM",
-            "UhJjdXJyZW50RXBvY2hBbm9uSUQSKgoQY3VycmVudEVwb2NoRmJpZBgDIAIo",
-            "BFIQY3VycmVudEVwb2NoRmJpZBI+ChplcG9jaFN0b3JhZ2VBdXRoUHJpdmF0",
-            "ZUtleRgEIAIoDFIaZXBvY2hTdG9yYWdlQXV0aFByaXZhdGVLZXkSRgoHbWVt",
-            "YmVycxgFIAMoCzIsLldBV2ViTGFieXJpbnRoV2FXYXNtLlJvdGF0ZUVwb2No",
-            "TWVtYmVySW5wdXRSB21lbWJlcnMiiwEKFVJvdGF0ZUVwb2NoTWVtYmVyRWRn",
-            "ZRIaCghkZXZpY2VJRBgBIAIoBFIIZGV2aWNlSUQSLAoRZW5jcnlwdGVkRXBv",
-            "Y2hLZXkYAiACKAxSEWVuY3J5cHRlZEVwb2NoS2V5EigKD2RldmljZUVwb2No",
-            "SG1hYxgDIAIoDFIPZGV2aWNlRXBvY2hIbWFjIsoBCgxCYWNrd2FyZEVkZ2US",
-            "OgoYZW5jcnlwdGVkUHJldkVwb2NoQW5vbklEGAEgAigMUhhlbmNyeXB0ZWRQ",
-            "cmV2RXBvY2hBbm9uSUQSPAoZZW5jcnlwdGVkUHJldkVwb2NoUm9vdEtleRgC",
-            "IAIoDFIZZW5jcnlwdGVkUHJldkVwb2NoUm9vdEtleRJAChtwcmV2RXBvY2hS",
-            "b290S2V5RmluZ2VycHJpbnQYAyACKAxSG3ByZXZFcG9jaFJvb3RLZXlGaW5n",
-            "ZXJwcmludCJ7ChFSb3RhdGVFcG9jaE91dHB1dBJECgdzdWNjZXNzGAEgASgL",
-            "MiguV0FXZWJMYWJ5cmludGhXYVdhc20uUm90YXRlRXBvY2hTdWNjZXNzSABS",
-            "B3N1Y2Nlc3MSFgoFZXJyb3IYAiABKAlIAFIFZXJyb3JCCAoGcmVzdWx0ItkC",
-            "ChJSb3RhdGVFcG9jaFN1Y2Nlc3MSKAoPbmV3RXBvY2hSb290S2V5GAEgAigM",
-            "Ug9uZXdFcG9jaFJvb3RLZXkSJgoObmV3RXBvY2hBbm9uSUQYAiACKARSDm5l",
-            "d0Vwb2NoQW5vbklEEiAKC2Vwb2NoQW5vbklEGAMgAigMUgtlcG9jaEFub25J",
-            "RBJGCgxiYWNrd2FyZEVkZ2UYBCACKAsyIi5XQVdlYkxhYnlyaW50aFdhV2Fz",
-            "bS5CYWNrd2FyZEVkZ2VSDGJhY2t3YXJkRWRnZRJNCgttZW1iZXJFZGdlcxgF",
-            "IAMoCzIrLldBV2ViTGFieXJpbnRoV2FXYXNtLlJvdGF0ZUVwb2NoTWVtYmVy",
-            "RWRnZVILbWVtYmVyRWRnZXMSOAoXZXBvY2hSb290S2V5RmluZ2VycHJpbnQY",
-            "BiACKAxSF2Vwb2NoUm9vdEtleUZpbmdlcnByaW50ImEKG0NvbXB1dGVDbGll",
-            "bnRTZWFsVG9rZW5JbnB1dBImCg5vcmZDbGllbnRTdGF0ZRgBIAIoDFIOb3Jm",
-            "Q2xpZW50U3RhdGUSGgoIYmFja3VwSUQYAiACKARSCGJhY2t1cElEIpEBChxD",
-            "b21wdXRlQ2xpZW50U2VhbFRva2VuT3V0cHV0Ek8KB3N1Y2Nlc3MYASABKAsy",
-            "My5XQVdlYkxhYnlyaW50aFdhV2FzbS5Db21wdXRlQ2xpZW50U2VhbFRva2Vu",
-            "U3VjY2Vzc0gAUgdzdWNjZXNzEhYKBWVycm9yGAIgASgJSABSBWVycm9yQggK",
-            "BnJlc3VsdCJJCh1Db21wdXRlQ2xpZW50U2VhbFRva2VuU3VjY2VzcxIoCg9j",
-            "bGllbnRTZWFsVG9rZW4YASACKAxSD2NsaWVudFNlYWxUb2tlbiKRAQoRU2Vh",
-            "bFRocmVhZElkSW5wdXQSIgoMZXBvY2hSb290S2V5GAEgAigMUgxlcG9jaFJv",
-            "b3RLZXkSIAoLZXBvY2hBbm9uSUQYAiACKAxSC2Vwb2NoQW5vbklEEhoKCGJh",
-            "Y2t1cElEGAMgAigEUghiYWNrdXBJRBIaCgh0aHJlYWRJRBgEIAIoCVIIdGhy",
-            "ZWFkSUQifQoSU2VhbFRocmVhZElkT3V0cHV0EkUKB3N1Y2Nlc3MYASABKAsy",
-            "KS5XQVdlYkxhYnlyaW50aFdhV2FzbS5TZWFsVGhyZWFkSWRTdWNjZXNzSABS",
-            "B3N1Y2Nlc3MSFgoFZXJyb3IYAiABKAlIAFIFZXJyb3JCCAoGcmVzdWx0Ij0K",
-            "E1NlYWxUaHJlYWRJZFN1Y2Nlc3MSJgoOc2VhbGVkVGhyZWFkSUQYASACKAxS",
-            "DnNlYWxlZFRocmVhZElEIpUBChdPcGVuU2VhbGVkVGhyZWFkSWRJbnB1dBIa",
-            "CghiYWNrdXBJRBgBIAIoBFIIYmFja3VwSUQSJgoOc2VhbGVkVGhyZWFkSUQY",
-            "AiACKAxSDnNlYWxlZFRocmVhZElEEjYKBmVwb2NocxgDIAMoCzIeLldBV2Vi",
-            "TGFieXJpbnRoV2FXYXNtLkVwb2NoS2V5UgZlcG9jaHMiiQEKGE9wZW5TZWFs",
-            "ZWRUaHJlYWRJZE91dHB1dBJLCgdzdWNjZXNzGAEgASgLMi8uV0FXZWJMYWJ5",
-            "cmludGhXYVdhc20uT3BlblNlYWxlZFRocmVhZElkU3VjY2Vzc0gAUgdzdWNj",
-            "ZXNzEhYKBWVycm9yGAIgASgJSABSBWVycm9yQggKBnJlc3VsdCJhChlPcGVu",
-            "U2VhbGVkVGhyZWFkSWRTdWNjZXNzEhoKCHRocmVhZElEGAEgAigJUgh0aHJl",
-            "YWRJRBIoCg9zZWFsRXBvY2hBbm9uSUQYAiACKA1SD3NlYWxFcG9jaEFub25J",
-            "RCJSCghFcG9jaElkcxIkCg1zZXJ2ZXJFcG9jaElEGAEgAigEUg1zZXJ2ZXJF",
-            "cG9jaElEEiAKC2Vwb2NoQW5vbklEGAIgAigMUgtlcG9jaEFub25JRCJkChBG",
-            "b3J3YXJkRWRnZUlucHV0EioKEGVuY3J5cHRlZEVudHJvcHkYASACKAxSEGVu",
-            "Y3J5cHRlZEVudHJvcHkSJAoNYXV0aFB1YmxpY0tleRgCIAIoDFINYXV0aFB1",
-            "YmxpY0tleSL7AQoTRXBvY2hEZXJpdmF0aW9uRWRnZRI8Cglmcm9tRXBvY2gY",
-            "ASACKAsyHi5XQVdlYkxhYnlyaW50aFdhV2FzbS5FcG9jaElkc1IJZnJvbUVw",
-            "b2NoEjgKB3RvRXBvY2gYAiACKAsyHi5XQVdlYkxhYnlyaW50aFdhV2FzbS5F",
-            "cG9jaElkc1IHdG9FcG9jaBJICgtmb3J3YXJkRWRnZRgDIAEoCzImLldBV2Vi",
-            "TGFieXJpbnRoV2FXYXNtLkZvcndhcmRFZGdlSW5wdXRSC2ZvcndhcmRFZGdl",
-            "EiIKDGJhY2t3YXJkRWRnZRgEIAEoDFIMYmFja3dhcmRFZGdlIsQBChFEZXJp",
-            "dmVFcG9jaHNJbnB1dBI2ChZlcG9jaFN0b3JhZ2VQcml2YXRlS2V5GAEgAigM",
-            "UhZlcG9jaFN0b3JhZ2VQcml2YXRlS2V5EjYKBmVwb2NocxgCIAMoCzIeLldB",
-            "V2ViTGFieXJpbnRoV2FXYXNtLkVwb2NoS2V5UgZlcG9jaHMSPwoFZWRnZXMY",
-            "AyADKAsyKS5XQVdlYkxhYnlyaW50aFdhV2FzbS5FcG9jaERlcml2YXRpb25F",
-            "ZGdlUgVlZGdlcyJ9ChJEZXJpdmVFcG9jaHNPdXRwdXQSRQoHc3VjY2VzcxgB",
-            "IAEoCzIpLldBV2ViTGFieXJpbnRoV2FXYXNtLkRlcml2ZUVwb2Noc1N1Y2Nl",
-            "c3NIAFIHc3VjY2VzcxIWCgVlcnJvchgCIAEoCUgAUgVlcnJvckIICgZyZXN1",
-            "bHQiTQoTRGVyaXZlRXBvY2hzU3VjY2VzcxI2CgZlcG9jaHMYASADKAsyHi5X",
-            "QVdlYkxhYnlyaW50aFdhV2FzbS5FcG9jaEtleVIGZXBvY2hzIu0BChlQcmVw",
-            "YXJlQWRkUGVlckRldmljZUlucHV0EhwKCWFkdlNlY3JldBgBIAIoDFIJYWR2",
-            "U2VjcmV0EiQKDXNlYWxlZFBheWxvYWQYAiACKAxSDXNlYWxlZFBheWxvYWQS",
-            "GgoIYmFja3VwSUQYAyACKARSCGJhY2t1cElEEhYKBnVzZXJJRBgEIAIoBFIG",
-            "dXNlcklEEjIKFGNvbXBhbmlvbklkZW50aXR5UHViGAUgAigMUhRjb21wYW5p",
-            "b25JZGVudGl0eVB1YhIkCg1hY3RpdmVFcG9jaElEGAYgAigEUg1hY3RpdmVF",
-            "cG9jaElEIo0BChpQcmVwYXJlQWRkUGVlckRldmljZU91dHB1dBJNCgdzdWNj",
-            "ZXNzGAEgASgLMjEuV0FXZWJMYWJ5cmludGhXYVdhc20uUHJlcGFyZUFkZFBl",
-            "ZXJEZXZpY2VTdWNjZXNzSABSB3N1Y2Nlc3MSFgoFZXJyb3IYAiABKAlIAFIF",
-            "ZXJyb3JCCAoGcmVzdWx0IsYBChtQcmVwYXJlQWRkUGVlckRldmljZVN1Y2Nl",
-            "c3MSSwoJZW5yb2xtZW50GAEgAigLMi0uV0FXZWJMYWJ5cmludGhXYVdhc20u",
-            "UHJlcGFyZUFkZERldmljZVN1Y2Nlc3NSCWVucm9sbWVudBIiCgxzZXJ2ZXJE",
-            "YXRhSUQYAiACKARSDHNlcnZlckRhdGFJRBI2ChZjb21wYW5pb25EZXZpY2VC",
-            "aW5kaW5nGAMgAigMUhZjb21wYW5pb25EZXZpY2VCaW5kaW5nIqoKChJMYWJ5",
-            "cmludGhXYUNvbW1hbmQSVwoRY3JlYXRlQmFja3VwSW5wdXQYASABKAsyJy5X",
-            "QVdlYkxhYnlyaW50aFdhV2FzbS5DcmVhdGVCYWNrdXBJbnB1dEgAUhFjcmVh",
-            "dGVCYWNrdXBJbnB1dBJdChNlbmNyeXB0TWVzc2FnZUlucHV0GAIgASgLMiku",
-            "V0FXZWJMYWJ5cmludGhXYVdhc20uRW5jcnlwdE1lc3NhZ2VJbnB1dEgAUhNl",
-            "bmNyeXB0TWVzc2FnZUlucHV0El0KE2RlY3J5cHRNZXNzYWdlSW5wdXQYAyAB",
-            "KAsyKS5XQVdlYkxhYnlyaW50aFdhV2FzbS5EZWNyeXB0TWVzc2FnZUlucHV0",
-            "SABSE2RlY3J5cHRNZXNzYWdlSW5wdXQSVAoQb3JmVGhyZWFkSURJbnB1dBgE",
-            "IAEoCzImLldBV2ViTGFieXJpbnRoV2FXYXNtLk9yZlRocmVhZElkSW5wdXRI",
-            "AFIQb3JmVGhyZWFkSURJbnB1dBJjChVkZXJpdmVNZXNzYWdlS2V5SW5wdXQY",
-            "BSABKAsyKy5XQVdlYkxhYnlyaW50aFdhV2FzbS5EZXJpdmVNZXNzYWdlS2V5",
-            "SW5wdXRIAFIVZGVyaXZlTWVzc2FnZUtleUlucHV0ElQKEHJvdGF0ZUVwb2No",
-            "SW5wdXQYBiABKAsyJi5XQVdlYkxhYnlyaW50aFdhV2FzbS5Sb3RhdGVFcG9j",
-            "aElucHV0SABSEHJvdGF0ZUVwb2NoSW5wdXQScgoaZGVyaXZlVmlydHVhbERl",
-            "dmljZUlESW5wdXQYByABKAsyMC5XQVdlYkxhYnlyaW50aFdhV2FzbS5EZXJp",
-            "dmVWaXJ0dWFsRGV2aWNlSWRJbnB1dEgAUhpkZXJpdmVWaXJ0dWFsRGV2aWNl",
-            "SURJbnB1dBJjChVwcmVwYXJlQWRkRGV2aWNlSW5wdXQYCCABKAsyKy5XQVdl",
-            "YkxhYnlyaW50aFdhV2FzbS5QcmVwYXJlQWRkRGV2aWNlSW5wdXRIAFIVcHJl",
-            "cGFyZUFkZERldmljZUlucHV0EnUKG2NvbXB1dGVDbGllbnRTZWFsVG9rZW5J",
-            "bnB1dBgJIAEoCzIxLldBV2ViTGFieXJpbnRoV2FXYXNtLkNvbXB1dGVDbGll",
-            "bnRTZWFsVG9rZW5JbnB1dEgAUhtjb21wdXRlQ2xpZW50U2VhbFRva2VuSW5w",
-            "dXQSaQoXb3BlblNlYWxlZFRocmVhZElESW5wdXQYCiABKAsyLS5XQVdlYkxh",
-            "YnlyaW50aFdhV2FzbS5PcGVuU2VhbGVkVGhyZWFkSWRJbnB1dEgAUhdvcGVu",
-            "U2VhbGVkVGhyZWFkSURJbnB1dBJXChFkZXJpdmVFcG9jaHNJbnB1dBgLIAEo",
-            "CzInLldBV2ViTGFieXJpbnRoV2FXYXNtLkRlcml2ZUVwb2Noc0lucHV0SABS",
-            "EWRlcml2ZUVwb2Noc0lucHV0ElcKEXNlYWxUaHJlYWRJRElucHV0GAwgASgL",
-            "MicuV0FXZWJMYWJ5cmludGhXYVdhc20uU2VhbFRocmVhZElkSW5wdXRIAFIR",
-            "c2VhbFRocmVhZElESW5wdXQSbwoZcHJlcGFyZUFkZFBlZXJEZXZpY2VJbnB1",
-            "dBgNIAEoCzIvLldBV2ViTGFieXJpbnRoV2FXYXNtLlByZXBhcmVBZGRQZWVy",
-            "RGV2aWNlSW5wdXRIAFIZcHJlcGFyZUFkZFBlZXJEZXZpY2VJbnB1dEIOCgxj",
-            "b21tYW5kSW5wdXRC5QEKGGNvbS5XQVdlYkxhYnlyaW50aFdhV2FzbUIZV0FX",
-            "ZWJMYWJ5cmludGhXYVdhc21Qcm90b1ABWi5nby5tYXUuZmkvd2hhdHNtZW93",
-            "L3Byb3RvL3dhV2ViTGFieXJpbnRoV2FXYXNtogIDV1hYqgIkV2hhdHNtZW93",
-            "LlByb3RvLldBV2ViTGFieXJpbnRoV2FXYXNtygIUV0FXZWJMYWJ5cmludGhX",
-            "YVdhc23iAiBXQVdlYkxhYnlyaW50aFdhV2FzbVxHUEJNZXRhZGF0YeoCFFdB",
-            "V2ViTGFieXJpbnRoV2FXYXNt"));
+            "ZFNlY3JldFZhbHVlc091dHB1dFIVZW5jcnlwdGVkU2VjcmV0VmFsdWVzIo4B",
+            "CgxFcG9jaDBPdXRwdXQSIAoLZXBvY2hBbm9uSUQYAiACKAVSC2Vwb2NoQW5v",
+            "bklEEjgKF2Vwb2NoUm9vdEtleUZpbmdlcnByaW50GAYgAigMUhdlcG9jaFJv",
+            "b3RLZXlGaW5nZXJwcmludBIiCgxlcG9jaFJvb3RLZXkYByACKAxSDGVwb2No",
+            "Um9vdEtleSJ9ChJDcmVhdGVCYWNrdXBPdXRwdXQSRQoHc3VjY2VzcxgBIAEo",
+            "CzIpLldBV2ViTGFieXJpbnRoV2FXYXNtLkNyZWF0ZUJhY2t1cFN1Y2Nlc3NI",
+            "AFIHc3VjY2VzcxIWCgVlcnJvchgCIAEoCUgAUgVlcnJvckIICgZyZXN1bHQi",
+            "hgIKE0NyZWF0ZUJhY2t1cFN1Y2Nlc3MSOgoGZGV2aWNlGAEgAigLMiIuV0FX",
+            "ZWJMYWJ5cmludGhXYVdhc20uRGV2aWNlT3V0cHV0UgZkZXZpY2USTwoNdmly",
+            "dHVhbERldmljZRgCIAIoCzIpLldBV2ViTGFieXJpbnRoV2FXYXNtLlZpcnR1",
+            "YWxEZXZpY2VPdXRwdXRSDXZpcnR1YWxEZXZpY2USOgoGZXBvY2gwGAMgAigL",
+            "MiIuV0FXZWJMYWJ5cmludGhXYVdhc20uRXBvY2gwT3V0cHV0UgZlcG9jaDAS",
+            "JgoObWFpbGJveFJvb3RLZXkYBCACKAxSDm1haWxib3hSb290S2V5IoEBChRF",
+            "bmNyeXB0TWVzc2FnZU91dHB1dBJHCgdzdWNjZXNzGAEgASgLMisuV0FXZWJM",
+            "YWJ5cmludGhXYVdhc20uRW5jcnlwdE1lc3NhZ2VTdWNjZXNzSABSB3N1Y2Nl",
+            "c3MSFgoFZXJyb3IYAiABKAlIAFIFZXJyb3JCCAoGcmVzdWx0IuEBChVFbmNy",
+            "eXB0TWVzc2FnZVN1Y2Nlc3MSLAoRZW5jcnlwdGVkUHJvdG9idWYYASACKAxS",
+            "EWVuY3J5cHRlZFByb3RvYnVmEiAKC29yZlRocmVhZElEGAIgAigMUgtvcmZU",
+            "aHJlYWRJRBImCg52YWx1ZVNlY3JldFJlZhgDIAIoCVIOdmFsdWVTZWNyZXRS",
+            "ZWYSLgoSb2ZmbGluZVRocmVhZGluZ0lEGAQgAigEUhJvZmZsaW5lVGhyZWFk",
+            "aW5nSUQSIAoLdGltZXN0YW1wTVMYBSACKARSC3RpbWVzdGFtcE1TIoEBChRE",
+            "ZWNyeXB0TWVzc2FnZU91dHB1dBJHCgdzdWNjZXNzGAEgASgLMisuV0FXZWJM",
+            "YWJ5cmludGhXYVdhc20uRGVjcnlwdE1lc3NhZ2VTdWNjZXNzSABSB3N1Y2Nl",
+            "c3MSFgoFZXJyb3IYAiABKAlIAFIFZXJyb3JCCAoGcmVzdWx0IkMKFURlY3J5",
+            "cHRNZXNzYWdlU3VjY2VzcxIqChBwbGFpbnRleHRQYXlsb2FkGAEgAigMUhBw",
+            "bGFpbnRleHRQYXlsb2FkInsKEU9yZlRocmVhZElkT3V0cHV0EkQKB3N1Y2Nl",
+            "c3MYASABKAsyKC5XQVdlYkxhYnlyaW50aFdhV2FzbS5PcmZUaHJlYWRJZFN1",
+            "Y2Nlc3NIAFIHc3VjY2VzcxIWCgVlcnJvchgCIAEoCUgAUgVlcnJvckIICgZy",
+            "ZXN1bHQiNgoST3JmVGhyZWFkSWRTdWNjZXNzEiAKC29yZlRocmVhZElEGAEg",
+            "AigMUgtvcmZUaHJlYWRJRCKFAQoWRGVyaXZlTWVzc2FnZUtleU91dHB1dBJJ",
+            "CgdzdWNjZXNzGAEgASgLMi0uV0FXZWJMYWJ5cmludGhXYVdhc20uRGVyaXZl",
+            "TWVzc2FnZUtleVN1Y2Nlc3NIAFIHc3VjY2VzcxIWCgVlcnJvchgCIAEoCUgA",
+            "UgVlcnJvckIICgZyZXN1bHQiOQoXRGVyaXZlTWVzc2FnZUtleVN1Y2Nlc3MS",
+            "HgoKbWVzc2FnZUtleRgBIAIoDFIKbWVzc2FnZUtleSKPAQobRGVyaXZlVmly",
+            "dHVhbERldmljZUlkT3V0cHV0Ek4KB3N1Y2Nlc3MYASABKAsyMi5XQVdlYkxh",
+            "YnlyaW50aFdhV2FzbS5EZXJpdmVWaXJ0dWFsRGV2aWNlSWRTdWNjZXNzSABS",
+            "B3N1Y2Nlc3MSFgoFZXJyb3IYAiABKAlIAFIFZXJyb3JCCAoGcmVzdWx0IkgK",
+            "HERlcml2ZVZpcnR1YWxEZXZpY2VJZFN1Y2Nlc3MSKAoPdmlydHVhbERldmlj",
+            "ZUlEGAEgAigMUg92aXJ0dWFsRGV2aWNlSUQi9wIKE0FkZERldmljZUtleXNP",
+            "dXRwdXQSKAoPZGV2aWNlUHVibGljS2V5GAEgAigMUg9kZXZpY2VQdWJsaWNL",
+            "ZXkSLgoSZXBvY2hBdXRoUHVibGljS2V5GAIgAigMUhJlcG9jaEF1dGhQdWJs",
+            "aWNLZXkSNAoVZXBvY2hBdXRoUHVibGljS2V5U2lnGAMgAigMUhVlcG9jaEF1",
+            "dGhQdWJsaWNLZXlTaWcSNAoVZXBvY2hTdG9yYWdlUHVibGljS2V5GAQgAigM",
+            "UhVlcG9jaFN0b3JhZ2VQdWJsaWNLZXkSOgoYZXBvY2hTdG9yYWdlUHVibGlj",
+            "S2V5U2lnGAUgAigMUhhlcG9jaFN0b3JhZ2VQdWJsaWNLZXlTaWcSNgoWZXBv",
+            "Y2hTdG9yYWdlUHJpdmF0ZUtleRgGIAIoDFIWZXBvY2hTdG9yYWdlUHJpdmF0",
+            "ZUtleRImCg5vcmZDbGllbnRTdGF0ZRgHIAIoDFIOb3JmQ2xpZW50U3RhdGUi",
+            "dgoIRXBvY2hLZXkSJAoNc2VydmVyRXBvY2hJRBgBIAIoBFINc2VydmVyRXBv",
+            "Y2hJRBIgCgtlcG9jaEFub25JRBgCIAIoBVILZXBvY2hBbm9uSUQSIgoMZXBv",
+            "Y2hSb290S2V5GAMgAigMUgxlcG9jaFJvb3RLZXkihQEKFlByZXBhcmVBZGRE",
+            "ZXZpY2VPdXRwdXQSSQoHc3VjY2VzcxgBIAEoCzItLldBV2ViTGFieXJpbnRo",
+            "V2FXYXNtLlByZXBhcmVBZGREZXZpY2VTdWNjZXNzSABSB3N1Y2Nlc3MSFgoF",
+            "ZXJyb3IYAiABKAlIAFIFZXJyb3JCCAoGcmVzdWx0IooEChdQcmVwYXJlQWRk",
+            "RGV2aWNlU3VjY2VzcxJJCgpkZXZpY2VLZXlzGAEgAigLMikuV0FXZWJMYWJ5",
+            "cmludGhXYVdhc20uQWRkRGV2aWNlS2V5c091dHB1dFIKZGV2aWNlS2V5cxJC",
+            "CgxjdXJyZW50RXBvY2gYAiACKAsyHi5XQVdlYkxhYnlyaW50aFdhV2FzbS5F",
+            "cG9jaEtleVIMY3VycmVudEVwb2NoEigKD21haWxib3hSb290U2FsdBgDIAIo",
+            "DFIPbWFpbGJveFJvb3RTYWx0EioKEG9yZlJvdGF0aW9uVG9rZW4YBCACKAxS",
+            "EG9yZlJvdGF0aW9uVG9rZW4SKAoPZGV2aWNlRXBvY2hIbWFjGAUgAigMUg9k",
+            "ZXZpY2VFcG9jaEhtYWMSOAoXZXBvY2hSb290S2V5RmluZ2VycHJpbnQYBiAC",
+            "KAxSF2Vwb2NoUm9vdEtleUZpbmdlcnByaW50EkAKG3N1cHBvcnRlZEVuY3J5",
+            "cHRpb25WZXJzaW9ucxgHIAMoBVIbc3VwcG9ydGVkRW5jcnlwdGlvblZlcnNp",
+            "b25zEj4KGmVuY3J5cHRpb25WZXJzaW9uU2lnbmF0dXJlGAggAigMUhplbmNy",
+            "eXB0aW9uVmVyc2lvblNpZ25hdHVyZRIkCg1jbGllbnRWZXJzaW9uGAkgAigF",
+            "Ug1jbGllbnRWZXJzaW9uIoICChZSb3RhdGVFcG9jaE1lbWJlcklucHV0EhoK",
+            "CGRldmljZUlEGAEgAigEUghkZXZpY2VJRBI0ChVlcG9jaFN0b3JhZ2VQdWJs",
+            "aWNLZXkYAiACKAxSFWVwb2NoU3RvcmFnZVB1YmxpY0tleRIoCg9kZXZpY2VQ",
+            "dWJsaWNLZXkYAyACKAxSD2RldmljZVB1YmxpY0tleRIwChNwcmV2RGV2aWNl",
+            "RXBvY2hIbWFjGAQgAigMUhNwcmV2RGV2aWNlRXBvY2hIbWFjEjoKGGVwb2No",
+            "U3RvcmFnZVB1YmxpY0tleVNpZxgFIAIoDFIYZXBvY2hTdG9yYWdlUHVibGlj",
+            "S2V5U2lnIqgCChBSb3RhdGVFcG9jaElucHV0EjAKE2N1cnJlbnRFcG9jaFJv",
+            "b3RLZXkYASACKAxSE2N1cnJlbnRFcG9jaFJvb3RLZXkSLgoSY3VycmVudEVw",
+            "b2NoQW5vbklEGAIgAigFUhJjdXJyZW50RXBvY2hBbm9uSUQSKgoQY3VycmVu",
+            "dEVwb2NoRmJpZBgDIAIoBFIQY3VycmVudEVwb2NoRmJpZBI+ChplcG9jaFN0",
+            "b3JhZ2VBdXRoUHJpdmF0ZUtleRgEIAIoDFIaZXBvY2hTdG9yYWdlQXV0aFBy",
+            "aXZhdGVLZXkSRgoHbWVtYmVycxgFIAMoCzIsLldBV2ViTGFieXJpbnRoV2FX",
+            "YXNtLlJvdGF0ZUVwb2NoTWVtYmVySW5wdXRSB21lbWJlcnMiiwEKFVJvdGF0",
+            "ZUVwb2NoTWVtYmVyRWRnZRIaCghkZXZpY2VJRBgBIAIoBFIIZGV2aWNlSUQS",
+            "LAoRZW5jcnlwdGVkRXBvY2hLZXkYAiACKAxSEWVuY3J5cHRlZEVwb2NoS2V5",
+            "EigKD2RldmljZUVwb2NoSG1hYxgDIAIoDFIPZGV2aWNlRXBvY2hIbWFjIsoB",
+            "CgxCYWNrd2FyZEVkZ2USOgoYZW5jcnlwdGVkUHJldkVwb2NoQW5vbklEGAEg",
+            "AigMUhhlbmNyeXB0ZWRQcmV2RXBvY2hBbm9uSUQSPAoZZW5jcnlwdGVkUHJl",
+            "dkVwb2NoUm9vdEtleRgCIAIoDFIZZW5jcnlwdGVkUHJldkVwb2NoUm9vdEtl",
+            "eRJAChtwcmV2RXBvY2hSb290S2V5RmluZ2VycHJpbnQYAyACKAxSG3ByZXZF",
+            "cG9jaFJvb3RLZXlGaW5nZXJwcmludCJ7ChFSb3RhdGVFcG9jaE91dHB1dBJE",
+            "CgdzdWNjZXNzGAEgASgLMiguV0FXZWJMYWJ5cmludGhXYVdhc20uUm90YXRl",
+            "RXBvY2hTdWNjZXNzSABSB3N1Y2Nlc3MSFgoFZXJyb3IYAiABKAlIAFIFZXJy",
+            "b3JCCAoGcmVzdWx0IrcCChJSb3RhdGVFcG9jaFN1Y2Nlc3MSKAoPbmV3RXBv",
+            "Y2hSb290S2V5GAEgAigMUg9uZXdFcG9jaFJvb3RLZXkSJgoObmV3RXBvY2hB",
+            "bm9uSUQYAiACKAVSDm5ld0Vwb2NoQW5vbklEEkYKDGJhY2t3YXJkRWRnZRgE",
+            "IAIoCzIiLldBV2ViTGFieXJpbnRoV2FXYXNtLkJhY2t3YXJkRWRnZVIMYmFj",
+            "a3dhcmRFZGdlEk0KC21lbWJlckVkZ2VzGAUgAygLMisuV0FXZWJMYWJ5cmlu",
+            "dGhXYVdhc20uUm90YXRlRXBvY2hNZW1iZXJFZGdlUgttZW1iZXJFZGdlcxI4",
+            "ChdlcG9jaFJvb3RLZXlGaW5nZXJwcmludBgGIAIoDFIXZXBvY2hSb290S2V5",
+            "RmluZ2VycHJpbnQiYQobQ29tcHV0ZUNsaWVudFNlYWxUb2tlbklucHV0EiYK",
+            "Dm9yZkNsaWVudFN0YXRlGAEgAigMUg5vcmZDbGllbnRTdGF0ZRIaCghiYWNr",
+            "dXBJRBgCIAIoBFIIYmFja3VwSUQikQEKHENvbXB1dGVDbGllbnRTZWFsVG9r",
+            "ZW5PdXRwdXQSTwoHc3VjY2VzcxgBIAEoCzIzLldBV2ViTGFieXJpbnRoV2FX",
+            "YXNtLkNvbXB1dGVDbGllbnRTZWFsVG9rZW5TdWNjZXNzSABSB3N1Y2Nlc3MS",
+            "FgoFZXJyb3IYAiABKAlIAFIFZXJyb3JCCAoGcmVzdWx0IkkKHUNvbXB1dGVD",
+            "bGllbnRTZWFsVG9rZW5TdWNjZXNzEigKD2NsaWVudFNlYWxUb2tlbhgBIAIo",
+            "DFIPY2xpZW50U2VhbFRva2VuIpEBChFTZWFsVGhyZWFkSWRJbnB1dBIiCgxl",
+            "cG9jaFJvb3RLZXkYASACKAxSDGVwb2NoUm9vdEtleRIgCgtlcG9jaEFub25J",
+            "RBgCIAIoBVILZXBvY2hBbm9uSUQSGgoIYmFja3VwSUQYAyACKARSCGJhY2t1",
+            "cElEEhoKCHRocmVhZElEGAQgAigJUgh0aHJlYWRJRCJ9ChJTZWFsVGhyZWFk",
+            "SWRPdXRwdXQSRQoHc3VjY2VzcxgBIAEoCzIpLldBV2ViTGFieXJpbnRoV2FX",
+            "YXNtLlNlYWxUaHJlYWRJZFN1Y2Nlc3NIAFIHc3VjY2VzcxIWCgVlcnJvchgC",
+            "IAEoCUgAUgVlcnJvckIICgZyZXN1bHQiPQoTU2VhbFRocmVhZElkU3VjY2Vz",
+            "cxImCg5zZWFsZWRUaHJlYWRJRBgBIAIoDFIOc2VhbGVkVGhyZWFkSUQilQEK",
+            "F09wZW5TZWFsZWRUaHJlYWRJZElucHV0EhoKCGJhY2t1cElEGAEgAigEUghi",
+            "YWNrdXBJRBImCg5zZWFsZWRUaHJlYWRJRBgCIAIoDFIOc2VhbGVkVGhyZWFk",
+            "SUQSNgoGZXBvY2hzGAMgAygLMh4uV0FXZWJMYWJ5cmludGhXYVdhc20uRXBv",
+            "Y2hLZXlSBmVwb2NocyKJAQoYT3BlblNlYWxlZFRocmVhZElkT3V0cHV0EksK",
+            "B3N1Y2Nlc3MYASABKAsyLy5XQVdlYkxhYnlyaW50aFdhV2FzbS5PcGVuU2Vh",
+            "bGVkVGhyZWFkSWRTdWNjZXNzSABSB3N1Y2Nlc3MSFgoFZXJyb3IYAiABKAlI",
+            "AFIFZXJyb3JCCAoGcmVzdWx0ImEKGU9wZW5TZWFsZWRUaHJlYWRJZFN1Y2Nl",
+            "c3MSGgoIdGhyZWFkSUQYASACKAlSCHRocmVhZElEEigKD3NlYWxFcG9jaEFu",
+            "b25JRBgCIAIoBVIPc2VhbEVwb2NoQW5vbklEIlIKCEVwb2NoSWRzEiQKDXNl",
+            "cnZlckVwb2NoSUQYASACKARSDXNlcnZlckVwb2NoSUQSIAoLZXBvY2hBbm9u",
+            "SUQYAiACKAVSC2Vwb2NoQW5vbklEImQKEEZvcndhcmRFZGdlSW5wdXQSKgoQ",
+            "ZW5jcnlwdGVkRW50cm9weRgBIAIoDFIQZW5jcnlwdGVkRW50cm9weRIkCg1h",
+            "dXRoUHVibGljS2V5GAIgAigMUg1hdXRoUHVibGljS2V5IvsBChNFcG9jaERl",
+            "cml2YXRpb25FZGdlEjwKCWZyb21FcG9jaBgBIAIoCzIeLldBV2ViTGFieXJp",
+            "bnRoV2FXYXNtLkVwb2NoSWRzUglmcm9tRXBvY2gSOAoHdG9FcG9jaBgCIAIo",
+            "CzIeLldBV2ViTGFieXJpbnRoV2FXYXNtLkVwb2NoSWRzUgd0b0Vwb2NoEkgK",
+            "C2ZvcndhcmRFZGdlGAMgASgLMiYuV0FXZWJMYWJ5cmludGhXYVdhc20uRm9y",
+            "d2FyZEVkZ2VJbnB1dFILZm9yd2FyZEVkZ2USIgoMYmFja3dhcmRFZGdlGAQg",
+            "ASgMUgxiYWNrd2FyZEVkZ2UixAEKEURlcml2ZUVwb2Noc0lucHV0EjYKFmVw",
+            "b2NoU3RvcmFnZVByaXZhdGVLZXkYASACKAxSFmVwb2NoU3RvcmFnZVByaXZh",
+            "dGVLZXkSNgoGZXBvY2hzGAIgAygLMh4uV0FXZWJMYWJ5cmludGhXYVdhc20u",
+            "RXBvY2hLZXlSBmVwb2NocxI/CgVlZGdlcxgDIAMoCzIpLldBV2ViTGFieXJp",
+            "bnRoV2FXYXNtLkVwb2NoRGVyaXZhdGlvbkVkZ2VSBWVkZ2VzIn0KEkRlcml2",
+            "ZUVwb2Noc091dHB1dBJFCgdzdWNjZXNzGAEgASgLMikuV0FXZWJMYWJ5cmlu",
+            "dGhXYVdhc20uRGVyaXZlRXBvY2hzU3VjY2Vzc0gAUgdzdWNjZXNzEhYKBWVy",
+            "cm9yGAIgASgJSABSBWVycm9yQggKBnJlc3VsdCJNChNEZXJpdmVFcG9jaHNT",
+            "dWNjZXNzEjYKBmVwb2NocxgBIAMoCzIeLldBV2ViTGFieXJpbnRoV2FXYXNt",
+            "LkVwb2NoS2V5UgZlcG9jaHMi7QEKGVByZXBhcmVBZGRQZWVyRGV2aWNlSW5w",
+            "dXQSHAoJYWR2U2VjcmV0GAEgAigMUglhZHZTZWNyZXQSJAoNc2VhbGVkUGF5",
+            "bG9hZBgCIAIoDFINc2VhbGVkUGF5bG9hZBIaCghiYWNrdXBJRBgDIAIoBFII",
+            "YmFja3VwSUQSFgoGdXNlcklEGAQgAigEUgZ1c2VySUQSMgoUY29tcGFuaW9u",
+            "SWRlbnRpdHlQdWIYBSACKAxSFGNvbXBhbmlvbklkZW50aXR5UHViEiQKDWFj",
+            "dGl2ZUVwb2NoSUQYBiACKARSDWFjdGl2ZUVwb2NoSUQijQEKGlByZXBhcmVB",
+            "ZGRQZWVyRGV2aWNlT3V0cHV0Ek0KB3N1Y2Nlc3MYASABKAsyMS5XQVdlYkxh",
+            "YnlyaW50aFdhV2FzbS5QcmVwYXJlQWRkUGVlckRldmljZVN1Y2Nlc3NIAFIH",
+            "c3VjY2VzcxIWCgVlcnJvchgCIAEoCUgAUgVlcnJvckIICgZyZXN1bHQixgEK",
+            "G1ByZXBhcmVBZGRQZWVyRGV2aWNlU3VjY2VzcxJLCgllbnJvbG1lbnQYASAC",
+            "KAsyLS5XQVdlYkxhYnlyaW50aFdhV2FzbS5QcmVwYXJlQWRkRGV2aWNlU3Vj",
+            "Y2Vzc1IJZW5yb2xtZW50EiIKDHNlcnZlckRhdGFJRBgCIAIoBFIMc2VydmVy",
+            "RGF0YUlEEjYKFmNvbXBhbmlvbkRldmljZUJpbmRpbmcYAyACKAxSFmNvbXBh",
+            "bmlvbkRldmljZUJpbmRpbmciIwohQ29tcGFuaW9uVGVzdE1lc3NhZ2VUaHJl",
+            "YWRJZElucHV0Ip0BCiJDb21wYW5pb25UZXN0TWVzc2FnZVRocmVhZElkT3V0",
+            "cHV0ElUKB3N1Y2Nlc3MYASABKAsyOS5XQVdlYkxhYnlyaW50aFdhV2FzbS5D",
+            "b21wYW5pb25UZXN0TWVzc2FnZVRocmVhZElkU3VjY2Vzc0gAUgdzdWNjZXNz",
+            "EhYKBWVycm9yGAIgASgJSABSBWVycm9yQggKBnJlc3VsdCJBCiNDb21wYW5p",
+            "b25UZXN0TWVzc2FnZVRocmVhZElkU3VjY2VzcxIaCgh0aHJlYWRJRBgBIAIo",
+            "CVIIdGhyZWFkSUQiPgoeUGFyc2VDb21wYW5pb25UZXN0TWVzc2FnZUlucHV0",
+            "EhwKCXBsYWludGV4dBgBIAIoDFIJcGxhaW50ZXh0IpcBCh9QYXJzZUNvbXBh",
+            "bmlvblRlc3RNZXNzYWdlT3V0cHV0ElIKB3N1Y2Nlc3MYASABKAsyNi5XQVdl",
+            "YkxhYnlyaW50aFdhV2FzbS5QYXJzZUNvbXBhbmlvblRlc3RNZXNzYWdlU3Vj",
+            "Y2Vzc0gAUgdzdWNjZXNzEhYKBWVycm9yGAIgASgJSABSBWVycm9yQggKBnJl",
+            "c3VsdCJECiBQYXJzZUNvbXBhbmlvblRlc3RNZXNzYWdlU3VjY2VzcxIgCgtj",
+            "cmVhdGVkQXRNUxgBIAIoBFILY3JlYXRlZEF0TVMitAwKEkxhYnlyaW50aFdh",
+            "Q29tbWFuZBJXChFjcmVhdGVCYWNrdXBJbnB1dBgBIAEoCzInLldBV2ViTGFi",
+            "eXJpbnRoV2FXYXNtLkNyZWF0ZUJhY2t1cElucHV0SABSEWNyZWF0ZUJhY2t1",
+            "cElucHV0El0KE2VuY3J5cHRNZXNzYWdlSW5wdXQYAiABKAsyKS5XQVdlYkxh",
+            "YnlyaW50aFdhV2FzbS5FbmNyeXB0TWVzc2FnZUlucHV0SABSE2VuY3J5cHRN",
+            "ZXNzYWdlSW5wdXQSXQoTZGVjcnlwdE1lc3NhZ2VJbnB1dBgDIAEoCzIpLldB",
+            "V2ViTGFieXJpbnRoV2FXYXNtLkRlY3J5cHRNZXNzYWdlSW5wdXRIAFITZGVj",
+            "cnlwdE1lc3NhZ2VJbnB1dBJUChBvcmZUaHJlYWRJRElucHV0GAQgASgLMiYu",
+            "V0FXZWJMYWJ5cmludGhXYVdhc20uT3JmVGhyZWFkSWRJbnB1dEgAUhBvcmZU",
+            "aHJlYWRJRElucHV0EmMKFWRlcml2ZU1lc3NhZ2VLZXlJbnB1dBgFIAEoCzIr",
+            "LldBV2ViTGFieXJpbnRoV2FXYXNtLkRlcml2ZU1lc3NhZ2VLZXlJbnB1dEgA",
+            "UhVkZXJpdmVNZXNzYWdlS2V5SW5wdXQSVAoQcm90YXRlRXBvY2hJbnB1dBgG",
+            "IAEoCzImLldBV2ViTGFieXJpbnRoV2FXYXNtLlJvdGF0ZUVwb2NoSW5wdXRI",
+            "AFIQcm90YXRlRXBvY2hJbnB1dBJyChpkZXJpdmVWaXJ0dWFsRGV2aWNlSURJ",
+            "bnB1dBgHIAEoCzIwLldBV2ViTGFieXJpbnRoV2FXYXNtLkRlcml2ZVZpcnR1",
+            "YWxEZXZpY2VJZElucHV0SABSGmRlcml2ZVZpcnR1YWxEZXZpY2VJRElucHV0",
+            "EmMKFXByZXBhcmVBZGREZXZpY2VJbnB1dBgIIAEoCzIrLldBV2ViTGFieXJp",
+            "bnRoV2FXYXNtLlByZXBhcmVBZGREZXZpY2VJbnB1dEgAUhVwcmVwYXJlQWRk",
+            "RGV2aWNlSW5wdXQSdQobY29tcHV0ZUNsaWVudFNlYWxUb2tlbklucHV0GAkg",
+            "ASgLMjEuV0FXZWJMYWJ5cmludGhXYVdhc20uQ29tcHV0ZUNsaWVudFNlYWxU",
+            "b2tlbklucHV0SABSG2NvbXB1dGVDbGllbnRTZWFsVG9rZW5JbnB1dBJpChdv",
+            "cGVuU2VhbGVkVGhyZWFkSURJbnB1dBgKIAEoCzItLldBV2ViTGFieXJpbnRo",
+            "V2FXYXNtLk9wZW5TZWFsZWRUaHJlYWRJZElucHV0SABSF29wZW5TZWFsZWRU",
+            "aHJlYWRJRElucHV0ElcKEWRlcml2ZUVwb2Noc0lucHV0GAsgASgLMicuV0FX",
+            "ZWJMYWJ5cmludGhXYVdhc20uRGVyaXZlRXBvY2hzSW5wdXRIAFIRZGVyaXZl",
+            "RXBvY2hzSW5wdXQSVwoRc2VhbFRocmVhZElESW5wdXQYDCABKAsyJy5XQVdl",
+            "YkxhYnlyaW50aFdhV2FzbS5TZWFsVGhyZWFkSWRJbnB1dEgAUhFzZWFsVGhy",
+            "ZWFkSURJbnB1dBJvChlwcmVwYXJlQWRkUGVlckRldmljZUlucHV0GA0gASgL",
+            "Mi8uV0FXZWJMYWJ5cmludGhXYVdhc20uUHJlcGFyZUFkZFBlZXJEZXZpY2VJ",
+            "bnB1dEgAUhlwcmVwYXJlQWRkUGVlckRldmljZUlucHV0EocBCiFjb21wYW5p",
+            "b25UZXN0TWVzc2FnZVRocmVhZElESW5wdXQYDiABKAsyNy5XQVdlYkxhYnly",
+            "aW50aFdhV2FzbS5Db21wYW5pb25UZXN0TWVzc2FnZVRocmVhZElkSW5wdXRI",
+            "AFIhY29tcGFuaW9uVGVzdE1lc3NhZ2VUaHJlYWRJRElucHV0En4KHnBhcnNl",
+            "Q29tcGFuaW9uVGVzdE1lc3NhZ2VJbnB1dBgPIAEoCzI0LldBV2ViTGFieXJp",
+            "bnRoV2FXYXNtLlBhcnNlQ29tcGFuaW9uVGVzdE1lc3NhZ2VJbnB1dEgAUh5w",
+            "YXJzZUNvbXBhbmlvblRlc3RNZXNzYWdlSW5wdXRCDgoMY29tbWFuZElucHV0",
+            "QuUBChhjb20uV0FXZWJMYWJ5cmludGhXYVdhc21CGVdBV2ViTGFieXJpbnRo",
+            "V2FXYXNtUHJvdG9QAVouZ28ubWF1LmZpL3doYXRzbWVvdy9wcm90by93YVdl",
+            "YkxhYnlyaW50aFdhV2FzbaICA1dYWKoCJFdoYXRzbWVvdy5Qcm90by5XQVdl",
+            "YkxhYnlyaW50aFdhV2FzbcoCFFdBV2ViTGFieXJpbnRoV2FXYXNt4gIgV0FX",
+            "ZWJMYWJ5cmludGhXYVdhc21cR1BCTWV0YWRhdGHqAhRXQVdlYkxhYnlyaW50",
+            "aFdhV2FzbQ=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -292,7 +309,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeviceOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.DeviceOutput.Parser, new[]{ "PublicKey", "EpochAuthPublicKey", "EpochAuthPublicKeySig", "EpochStoragePublicKey", "EpochStoragePublicKeySig", "SupportedEncryptionVersions", "EncryptionVersionSignature", "ClientVersion", "OcmfClientState", "EpochStoragePrivateKey", "EpochAuthPrivateKey", "DeviceEpochHmac" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptedSecretValuesOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptedSecretValuesOutput.Parser, new[]{ "EncryptedDevicePrivateKey", "EncryptedObliviousValidationTokenBlob", "EncryptedEpochStoragePrivateKey", "EncryptedOcmfClientState", "EncryptedMailboxRootKeyBlob", "EncryptedEpochAnonID", "EncryptedEpochRootKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.VirtualDeviceOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.VirtualDeviceOutput.Parser, new[]{ "VdID", "VdPublicKey", "VdEpochStoragePublicKey", "VdEpochStoragePublicKeySig", "OcmfRotationToken", "DeviceEpochHmac", "EncryptedSecretValues" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.Epoch0Output), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.Epoch0Output.Parser, new[]{ "EpochFbid", "EpochAnonID", "EpochRootKeyFingerprint", "EpochRootKey" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.Epoch0Output), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.Epoch0Output.Parser, new[]{ "EpochAnonID", "EpochRootKeyFingerprint", "EpochRootKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CreateBackupOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CreateBackupOutput.Parser, new[]{ "Success", "Error" }, new[]{ "Result" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CreateBackupSuccess), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CreateBackupSuccess.Parser, new[]{ "Device", "VirtualDevice", "Epoch0", "MailboxRootKey" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptMessageOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.EncryptMessageOutput.Parser, new[]{ "Success", "Error" }, new[]{ "Result" }, null, null, null),
@@ -314,7 +331,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochMemberEdge), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochMemberEdge.Parser, new[]{ "DeviceID", "EncryptedEpochKey", "DeviceEpochHmac" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.BackwardEdge), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.BackwardEdge.Parser, new[]{ "EncryptedPrevEpochAnonID", "EncryptedPrevEpochRootKey", "PrevEpochRootKeyFingerprint" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochOutput.Parser, new[]{ "Success", "Error" }, new[]{ "Result" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochSuccess), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochSuccess.Parser, new[]{ "NewEpochRootKey", "NewEpochAnonID", "EpochAnonID", "BackwardEdge", "MemberEdges", "EpochRootKeyFingerprint" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochSuccess), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.RotateEpochSuccess.Parser, new[]{ "NewEpochRootKey", "NewEpochAnonID", "BackwardEdge", "MemberEdges", "EpochRootKeyFingerprint" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenInput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenInput.Parser, new[]{ "OrfClientState", "BackupID" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenOutput.Parser, new[]{ "Success", "Error" }, new[]{ "Result" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenSuccess), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ComputeClientSealTokenSuccess.Parser, new[]{ "ClientSealToken" }, null, null, null, null),
@@ -333,7 +350,13 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceInput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceInput.Parser, new[]{ "AdvSecret", "SealedPayload", "BackupID", "UserID", "CompanionIdentityPub", "ActiveEpochID" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceOutput.Parser, new[]{ "Success", "Error" }, new[]{ "Result" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceSuccess), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceSuccess.Parser, new[]{ "Enrolment", "ServerDataID", "CompanionDeviceBinding" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.LabyrinthWaCommand), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.LabyrinthWaCommand.Parser, new[]{ "CreateBackupInput", "EncryptMessageInput", "DecryptMessageInput", "OrfThreadIDInput", "DeriveMessageKeyInput", "RotateEpochInput", "DeriveVirtualDeviceIDInput", "PrepareAddDeviceInput", "ComputeClientSealTokenInput", "OpenSealedThreadIDInput", "DeriveEpochsInput", "SealThreadIDInput", "PrepareAddPeerDeviceInput" }, new[]{ "CommandInput" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CompanionTestMessageThreadIdInput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CompanionTestMessageThreadIdInput.Parser, null, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CompanionTestMessageThreadIdOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CompanionTestMessageThreadIdOutput.Parser, new[]{ "Success", "Error" }, new[]{ "Result" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CompanionTestMessageThreadIdSuccess), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CompanionTestMessageThreadIdSuccess.Parser, new[]{ "ThreadID" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ParseCompanionTestMessageInput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ParseCompanionTestMessageInput.Parser, new[]{ "Plaintext" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ParseCompanionTestMessageOutput), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ParseCompanionTestMessageOutput.Parser, new[]{ "Success", "Error" }, new[]{ "Result" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ParseCompanionTestMessageSuccess), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ParseCompanionTestMessageSuccess.Parser, new[]{ "CreatedAtMS" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.LabyrinthWaCommand), global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.LabyrinthWaCommand.Parser, new[]{ "CreateBackupInput", "EncryptMessageInput", "DecryptMessageInput", "OrfThreadIDInput", "DeriveMessageKeyInput", "RotateEpochInput", "DeriveVirtualDeviceIDInput", "PrepareAddDeviceInput", "ComputeClientSealTokenInput", "OpenSealedThreadIDInput", "DeriveEpochsInput", "SealThreadIDInput", "PrepareAddPeerDeviceInput", "CompanionTestMessageThreadIDInput", "ParseCompanionTestMessageInput" }, new[]{ "CommandInput" }, null, null, null)
           }));
     }
     #endregion
@@ -743,28 +766,29 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     /// <summary>Field number for the "epochAnonID" field.</summary>
     public const int EpochAnonIDFieldNumber = 4;
-    private readonly static pb::ByteString EpochAnonIDDefaultValue = pb::ByteString.Empty;
+    private readonly static int EpochAnonIDDefaultValue = 0;
 
-    private pb::ByteString epochAnonID_;
+    private int epochAnonID_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString EpochAnonID {
-      get { return epochAnonID_ ?? EpochAnonIDDefaultValue; }
+    public int EpochAnonID {
+      get { if ((_hasBits0 & 1) != 0) { return epochAnonID_; } else { return EpochAnonIDDefaultValue; } }
       set {
-        epochAnonID_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        _hasBits0 |= 1;
+        epochAnonID_ = value;
       }
     }
     /// <summary>Gets whether the "epochAnonID" field is set</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool HasEpochAnonID {
-      get { return epochAnonID_ != null; }
+      get { return (_hasBits0 & 1) != 0; }
     }
     /// <summary>Clears the value of the "epochAnonID" field</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void ClearEpochAnonID() {
-      epochAnonID_ = null;
+      _hasBits0 &= ~1;
     }
 
     /// <summary>Field number for the "epochID" field.</summary>
@@ -775,9 +799,9 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong EpochID {
-      get { if ((_hasBits0 & 1) != 0) { return epochID_; } else { return EpochIDDefaultValue; } }
+      get { if ((_hasBits0 & 2) != 0) { return epochID_; } else { return EpochIDDefaultValue; } }
       set {
-        _hasBits0 |= 1;
+        _hasBits0 |= 2;
         epochID_ = value;
       }
     }
@@ -785,13 +809,13 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool HasEpochID {
-      get { return (_hasBits0 & 1) != 0; }
+      get { return (_hasBits0 & 2) != 0; }
     }
     /// <summary>Clears the value of the "epochID" field</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void ClearEpochID() {
-      _hasBits0 &= ~1;
+      _hasBits0 &= ~2;
     }
 
     /// <summary>Field number for the "threadID" field.</summary>
@@ -828,9 +852,9 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong WaCanonicalUserFbid {
-      get { if ((_hasBits0 & 2) != 0) { return waCanonicalUserFbid_; } else { return WaCanonicalUserFbidDefaultValue; } }
+      get { if ((_hasBits0 & 4) != 0) { return waCanonicalUserFbid_; } else { return WaCanonicalUserFbidDefaultValue; } }
       set {
-        _hasBits0 |= 2;
+        _hasBits0 |= 4;
         waCanonicalUserFbid_ = value;
       }
     }
@@ -838,13 +862,13 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool HasWaCanonicalUserFbid {
-      get { return (_hasBits0 & 2) != 0; }
+      get { return (_hasBits0 & 4) != 0; }
     }
     /// <summary>Clears the value of the "waCanonicalUserFbid" field</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void ClearWaCanonicalUserFbid() {
-      _hasBits0 &= ~2;
+      _hasBits0 &= ~4;
     }
 
     /// <summary>Field number for the "timestampMS" field.</summary>
@@ -855,9 +879,9 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong TimestampMS {
-      get { if ((_hasBits0 & 4) != 0) { return timestampMS_; } else { return TimestampMSDefaultValue; } }
+      get { if ((_hasBits0 & 8) != 0) { return timestampMS_; } else { return TimestampMSDefaultValue; } }
       set {
-        _hasBits0 |= 4;
+        _hasBits0 |= 8;
         timestampMS_ = value;
       }
     }
@@ -865,13 +889,13 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool HasTimestampMS {
-      get { return (_hasBits0 & 4) != 0; }
+      get { return (_hasBits0 & 8) != 0; }
     }
     /// <summary>Clears the value of the "timestampMS" field</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void ClearTimestampMS() {
-      _hasBits0 &= ~4;
+      _hasBits0 &= ~8;
     }
 
     /// <summary>Field number for the "backupID" field.</summary>
@@ -882,9 +906,9 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong BackupID {
-      get { if ((_hasBits0 & 8) != 0) { return backupID_; } else { return BackupIDDefaultValue; } }
+      get { if ((_hasBits0 & 16) != 0) { return backupID_; } else { return BackupIDDefaultValue; } }
       set {
-        _hasBits0 |= 8;
+        _hasBits0 |= 16;
         backupID_ = value;
       }
     }
@@ -892,13 +916,13 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool HasBackupID {
-      get { return (_hasBits0 & 8) != 0; }
+      get { return (_hasBits0 & 16) != 0; }
     }
     /// <summary>Clears the value of the "backupID" field</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void ClearBackupID() {
-      _hasBits0 &= ~8;
+      _hasBits0 &= ~16;
     }
 
     /// <summary>Field number for the "plaintextPayload" field.</summary>
@@ -1028,8 +1052,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteBytes(OrfClientState);
       }
       if (HasEpochAnonID) {
-        output.WriteRawTag(34);
-        output.WriteBytes(EpochAnonID);
+        output.WriteRawTag(32);
+        output.WriteInt32(EpochAnonID);
       }
       if (HasEpochID) {
         output.WriteRawTag(40);
@@ -1082,8 +1106,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteBytes(OrfClientState);
       }
       if (HasEpochAnonID) {
-        output.WriteRawTag(34);
-        output.WriteBytes(EpochAnonID);
+        output.WriteRawTag(32);
+        output.WriteInt32(EpochAnonID);
       }
       if (HasEpochID) {
         output.WriteRawTag(40);
@@ -1133,7 +1157,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(OrfClientState);
       }
       if (HasEpochAnonID) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EpochAnonID);
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(EpochAnonID);
       }
       if (HasEpochID) {
         size += 1 + pb::CodedOutputStream.ComputeUInt64Size(EpochID);
@@ -1232,8 +1256,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             OrfClientState = input.ReadBytes();
             break;
           }
-          case 34: {
-            EpochAnonID = input.ReadBytes();
+          case 32: {
+            EpochAnonID = input.ReadInt32();
             break;
           }
           case 40: {
@@ -1295,8 +1319,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             OrfClientState = input.ReadBytes();
             break;
           }
-          case 34: {
-            EpochAnonID = input.ReadBytes();
+          case 32: {
+            EpochAnonID = input.ReadInt32();
             break;
           }
           case 40: {
@@ -1413,28 +1437,29 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     /// <summary>Field number for the "epochAnonID" field.</summary>
     public const int EpochAnonIDFieldNumber = 2;
-    private readonly static pb::ByteString EpochAnonIDDefaultValue = pb::ByteString.Empty;
+    private readonly static int EpochAnonIDDefaultValue = 0;
 
-    private pb::ByteString epochAnonID_;
+    private int epochAnonID_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString EpochAnonID {
-      get { return epochAnonID_ ?? EpochAnonIDDefaultValue; }
+    public int EpochAnonID {
+      get { if ((_hasBits0 & 1) != 0) { return epochAnonID_; } else { return EpochAnonIDDefaultValue; } }
       set {
-        epochAnonID_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        _hasBits0 |= 1;
+        epochAnonID_ = value;
       }
     }
     /// <summary>Gets whether the "epochAnonID" field is set</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool HasEpochAnonID {
-      get { return epochAnonID_ != null; }
+      get { return (_hasBits0 & 1) != 0; }
     }
     /// <summary>Clears the value of the "epochAnonID" field</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void ClearEpochAnonID() {
-      epochAnonID_ = null;
+      _hasBits0 &= ~1;
     }
 
     /// <summary>Field number for the "threadID" field.</summary>
@@ -1471,9 +1496,9 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int EncryptionVersion {
-      get { if ((_hasBits0 & 1) != 0) { return encryptionVersion_; } else { return EncryptionVersionDefaultValue; } }
+      get { if ((_hasBits0 & 2) != 0) { return encryptionVersion_; } else { return EncryptionVersionDefaultValue; } }
       set {
-        _hasBits0 |= 1;
+        _hasBits0 |= 2;
         encryptionVersion_ = value;
       }
     }
@@ -1481,13 +1506,13 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool HasEncryptionVersion {
-      get { return (_hasBits0 & 1) != 0; }
+      get { return (_hasBits0 & 2) != 0; }
     }
     /// <summary>Clears the value of the "encryptionVersion" field</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void ClearEncryptionVersion() {
-      _hasBits0 &= ~1;
+      _hasBits0 &= ~2;
     }
 
     /// <summary>Field number for the "ciphertext" field.</summary>
@@ -1571,8 +1596,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteBytes(EpochRootKey);
       }
       if (HasEpochAnonID) {
-        output.WriteRawTag(18);
-        output.WriteBytes(EpochAnonID);
+        output.WriteRawTag(16);
+        output.WriteInt32(EpochAnonID);
       }
       if (HasThreadID) {
         output.WriteRawTag(26);
@@ -1601,8 +1626,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteBytes(EpochRootKey);
       }
       if (HasEpochAnonID) {
-        output.WriteRawTag(18);
-        output.WriteBytes(EpochAnonID);
+        output.WriteRawTag(16);
+        output.WriteInt32(EpochAnonID);
       }
       if (HasThreadID) {
         output.WriteRawTag(26);
@@ -1630,7 +1655,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(EpochRootKey);
       }
       if (HasEpochAnonID) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EpochAnonID);
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(EpochAnonID);
       }
       if (HasThreadID) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(ThreadID);
@@ -1691,8 +1716,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             EpochRootKey = input.ReadBytes();
             break;
           }
-          case 18: {
-            EpochAnonID = input.ReadBytes();
+          case 16: {
+            EpochAnonID = input.ReadInt32();
             break;
           }
           case 26: {
@@ -1730,8 +1755,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             EpochRootKey = input.ReadBytes();
             break;
           }
-          case 18: {
-            EpochAnonID = input.ReadBytes();
+          case 16: {
+            EpochAnonID = input.ReadInt32();
             break;
           }
           case 26: {
@@ -2024,6 +2049,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
   {
     private static readonly pb::MessageParser<DeriveMessageKeyInput> _parser = new pb::MessageParser<DeriveMessageKeyInput>(() => new DeriveMessageKeyInput());
     private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pb::MessageParser<DeriveMessageKeyInput> Parser { get { return _parser; } }
@@ -2051,6 +2077,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public DeriveMessageKeyInput(DeriveMessageKeyInput other) : this() {
+      _hasBits0 = other._hasBits0;
       epochRootKey_ = other.epochRootKey_;
       epochAnonID_ = other.epochAnonID_;
       threadID_ = other.threadID_;
@@ -2091,28 +2118,29 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     /// <summary>Field number for the "epochAnonID" field.</summary>
     public const int EpochAnonIDFieldNumber = 2;
-    private readonly static pb::ByteString EpochAnonIDDefaultValue = pb::ByteString.Empty;
+    private readonly static int EpochAnonIDDefaultValue = 0;
 
-    private pb::ByteString epochAnonID_;
+    private int epochAnonID_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString EpochAnonID {
-      get { return epochAnonID_ ?? EpochAnonIDDefaultValue; }
+    public int EpochAnonID {
+      get { if ((_hasBits0 & 1) != 0) { return epochAnonID_; } else { return EpochAnonIDDefaultValue; } }
       set {
-        epochAnonID_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        _hasBits0 |= 1;
+        epochAnonID_ = value;
       }
     }
     /// <summary>Gets whether the "epochAnonID" field is set</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool HasEpochAnonID {
-      get { return epochAnonID_ != null; }
+      get { return (_hasBits0 & 1) != 0; }
     }
     /// <summary>Clears the value of the "epochAnonID" field</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void ClearEpochAnonID() {
-      epochAnonID_ = null;
+      _hasBits0 &= ~1;
     }
 
     /// <summary>Field number for the "threadID" field.</summary>
@@ -2192,8 +2220,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteBytes(EpochRootKey);
       }
       if (HasEpochAnonID) {
-        output.WriteRawTag(18);
-        output.WriteBytes(EpochAnonID);
+        output.WriteRawTag(16);
+        output.WriteInt32(EpochAnonID);
       }
       if (HasThreadID) {
         output.WriteRawTag(26);
@@ -2214,8 +2242,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteBytes(EpochRootKey);
       }
       if (HasEpochAnonID) {
-        output.WriteRawTag(18);
-        output.WriteBytes(EpochAnonID);
+        output.WriteRawTag(16);
+        output.WriteInt32(EpochAnonID);
       }
       if (HasThreadID) {
         output.WriteRawTag(26);
@@ -2235,7 +2263,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(EpochRootKey);
       }
       if (HasEpochAnonID) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EpochAnonID);
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(EpochAnonID);
       }
       if (HasThreadID) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(ThreadID);
@@ -2284,8 +2312,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             EpochRootKey = input.ReadBytes();
             break;
           }
-          case 18: {
-            EpochAnonID = input.ReadBytes();
+          case 16: {
+            EpochAnonID = input.ReadInt32();
             break;
           }
           case 26: {
@@ -2315,8 +2343,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             EpochRootKey = input.ReadBytes();
             break;
           }
-          case 18: {
-            EpochAnonID = input.ReadBytes();
+          case 16: {
+            EpochAnonID = input.ReadInt32();
             break;
           }
           case 26: {
@@ -2676,28 +2704,29 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     /// <summary>Field number for the "epochAnonID" field.</summary>
     public const int EpochAnonIDFieldNumber = 2;
-    private readonly static pb::ByteString EpochAnonIDDefaultValue = pb::ByteString.Empty;
+    private readonly static int EpochAnonIDDefaultValue = 0;
 
-    private pb::ByteString epochAnonID_;
+    private int epochAnonID_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString EpochAnonID {
-      get { return epochAnonID_ ?? EpochAnonIDDefaultValue; }
+    public int EpochAnonID {
+      get { if ((_hasBits0 & 2) != 0) { return epochAnonID_; } else { return EpochAnonIDDefaultValue; } }
       set {
-        epochAnonID_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        _hasBits0 |= 2;
+        epochAnonID_ = value;
       }
     }
     /// <summary>Gets whether the "epochAnonID" field is set</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool HasEpochAnonID {
-      get { return epochAnonID_ != null; }
+      get { return (_hasBits0 & 2) != 0; }
     }
     /// <summary>Clears the value of the "epochAnonID" field</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void ClearEpochAnonID() {
-      epochAnonID_ = null;
+      _hasBits0 &= ~2;
     }
 
     /// <summary>Field number for the "encryptedEpochKey" field.</summary>
@@ -2760,9 +2789,9 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong NextEpochID {
-      get { if ((_hasBits0 & 2) != 0) { return nextEpochID_; } else { return NextEpochIDDefaultValue; } }
+      get { if ((_hasBits0 & 4) != 0) { return nextEpochID_; } else { return NextEpochIDDefaultValue; } }
       set {
-        _hasBits0 |= 2;
+        _hasBits0 |= 4;
         nextEpochID_ = value;
       }
     }
@@ -2770,13 +2799,13 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool HasNextEpochID {
-      get { return (_hasBits0 & 2) != 0; }
+      get { return (_hasBits0 & 4) != 0; }
     }
     /// <summary>Clears the value of the "nextEpochID" field</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void ClearNextEpochID() {
-      _hasBits0 &= ~2;
+      _hasBits0 &= ~4;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2834,8 +2863,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteUInt64(EpochID);
       }
       if (HasEpochAnonID) {
-        output.WriteRawTag(18);
-        output.WriteBytes(EpochAnonID);
+        output.WriteRawTag(16);
+        output.WriteInt32(EpochAnonID);
       }
       if (HasEncryptedEpochKey) {
         output.WriteRawTag(26);
@@ -2864,8 +2893,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteUInt64(EpochID);
       }
       if (HasEpochAnonID) {
-        output.WriteRawTag(18);
-        output.WriteBytes(EpochAnonID);
+        output.WriteRawTag(16);
+        output.WriteInt32(EpochAnonID);
       }
       if (HasEncryptedEpochKey) {
         output.WriteRawTag(26);
@@ -2893,7 +2922,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         size += 1 + pb::CodedOutputStream.ComputeUInt64Size(EpochID);
       }
       if (HasEpochAnonID) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EpochAnonID);
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(EpochAnonID);
       }
       if (HasEncryptedEpochKey) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(EncryptedEpochKey);
@@ -2954,8 +2983,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             EpochID = input.ReadUInt64();
             break;
           }
-          case 18: {
-            EpochAnonID = input.ReadBytes();
+          case 16: {
+            EpochAnonID = input.ReadInt32();
             break;
           }
           case 26: {
@@ -2993,8 +3022,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             EpochID = input.ReadUInt64();
             break;
           }
-          case 18: {
-            EpochAnonID = input.ReadBytes();
+          case 16: {
+            EpochAnonID = input.ReadInt32();
             break;
           }
           case 26: {
@@ -5284,7 +5313,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Epoch0Output(Epoch0Output other) : this() {
       _hasBits0 = other._hasBits0;
-      epochFbid_ = other.epochFbid_;
       epochAnonID_ = other.epochAnonID_;
       epochRootKeyFingerprint_ = other.epochRootKeyFingerprint_;
       epochRootKey_ = other.epochRootKey_;
@@ -5297,57 +5325,31 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       return new Epoch0Output(this);
     }
 
-    /// <summary>Field number for the "epochFbid" field.</summary>
-    public const int EpochFbidFieldNumber = 1;
-    private readonly static ulong EpochFbidDefaultValue = 0UL;
-
-    private ulong epochFbid_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public ulong EpochFbid {
-      get { if ((_hasBits0 & 1) != 0) { return epochFbid_; } else { return EpochFbidDefaultValue; } }
-      set {
-        _hasBits0 |= 1;
-        epochFbid_ = value;
-      }
-    }
-    /// <summary>Gets whether the "epochFbid" field is set</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasEpochFbid {
-      get { return (_hasBits0 & 1) != 0; }
-    }
-    /// <summary>Clears the value of the "epochFbid" field</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearEpochFbid() {
-      _hasBits0 &= ~1;
-    }
-
     /// <summary>Field number for the "epochAnonID" field.</summary>
     public const int EpochAnonIDFieldNumber = 2;
-    private readonly static pb::ByteString EpochAnonIDDefaultValue = pb::ByteString.Empty;
+    private readonly static int EpochAnonIDDefaultValue = 0;
 
-    private pb::ByteString epochAnonID_;
+    private int epochAnonID_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString EpochAnonID {
-      get { return epochAnonID_ ?? EpochAnonIDDefaultValue; }
+    public int EpochAnonID {
+      get { if ((_hasBits0 & 1) != 0) { return epochAnonID_; } else { return EpochAnonIDDefaultValue; } }
       set {
-        epochAnonID_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        _hasBits0 |= 1;
+        epochAnonID_ = value;
       }
     }
     /// <summary>Gets whether the "epochAnonID" field is set</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool HasEpochAnonID {
-      get { return epochAnonID_ != null; }
+      get { return (_hasBits0 & 1) != 0; }
     }
     /// <summary>Clears the value of the "epochAnonID" field</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void ClearEpochAnonID() {
-      epochAnonID_ = null;
+      _hasBits0 &= ~1;
     }
 
     /// <summary>Field number for the "epochRootKeyFingerprint" field.</summary>
@@ -5417,7 +5419,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (EpochFbid != other.EpochFbid) return false;
       if (EpochAnonID != other.EpochAnonID) return false;
       if (EpochRootKeyFingerprint != other.EpochRootKeyFingerprint) return false;
       if (EpochRootKey != other.EpochRootKey) return false;
@@ -5428,7 +5429,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
-      if (HasEpochFbid) hash ^= EpochFbid.GetHashCode();
       if (HasEpochAnonID) hash ^= EpochAnonID.GetHashCode();
       if (HasEpochRootKeyFingerprint) hash ^= EpochRootKeyFingerprint.GetHashCode();
       if (HasEpochRootKey) hash ^= EpochRootKey.GetHashCode();
@@ -5450,13 +5450,9 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (HasEpochFbid) {
-        output.WriteRawTag(8);
-        output.WriteUInt64(EpochFbid);
-      }
       if (HasEpochAnonID) {
-        output.WriteRawTag(18);
-        output.WriteBytes(EpochAnonID);
+        output.WriteRawTag(16);
+        output.WriteInt32(EpochAnonID);
       }
       if (HasEpochRootKeyFingerprint) {
         output.WriteRawTag(50);
@@ -5476,13 +5472,9 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (HasEpochFbid) {
-        output.WriteRawTag(8);
-        output.WriteUInt64(EpochFbid);
-      }
       if (HasEpochAnonID) {
-        output.WriteRawTag(18);
-        output.WriteBytes(EpochAnonID);
+        output.WriteRawTag(16);
+        output.WriteInt32(EpochAnonID);
       }
       if (HasEpochRootKeyFingerprint) {
         output.WriteRawTag(50);
@@ -5502,11 +5494,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
-      if (HasEpochFbid) {
-        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(EpochFbid);
-      }
       if (HasEpochAnonID) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EpochAnonID);
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(EpochAnonID);
       }
       if (HasEpochRootKeyFingerprint) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(EpochRootKeyFingerprint);
@@ -5525,9 +5514,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     public void MergeFrom(Epoch0Output other) {
       if (other == null) {
         return;
-      }
-      if (other.HasEpochFbid) {
-        EpochFbid = other.EpochFbid;
       }
       if (other.HasEpochAnonID) {
         EpochAnonID = other.EpochAnonID;
@@ -5557,12 +5543,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
-          case 8: {
-            EpochFbid = input.ReadUInt64();
-            break;
-          }
-          case 18: {
-            EpochAnonID = input.ReadBytes();
+          case 16: {
+            EpochAnonID = input.ReadInt32();
             break;
           }
           case 50: {
@@ -5592,12 +5574,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
-          case 8: {
-            EpochFbid = input.ReadUInt64();
-            break;
-          }
-          case 18: {
-            EpochAnonID = input.ReadBytes();
+          case 16: {
+            EpochAnonID = input.ReadInt32();
             break;
           }
           case 50: {
@@ -9599,28 +9577,29 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     /// <summary>Field number for the "epochAnonID" field.</summary>
     public const int EpochAnonIDFieldNumber = 2;
-    private readonly static pb::ByteString EpochAnonIDDefaultValue = pb::ByteString.Empty;
+    private readonly static int EpochAnonIDDefaultValue = 0;
 
-    private pb::ByteString epochAnonID_;
+    private int epochAnonID_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString EpochAnonID {
-      get { return epochAnonID_ ?? EpochAnonIDDefaultValue; }
+    public int EpochAnonID {
+      get { if ((_hasBits0 & 2) != 0) { return epochAnonID_; } else { return EpochAnonIDDefaultValue; } }
       set {
-        epochAnonID_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        _hasBits0 |= 2;
+        epochAnonID_ = value;
       }
     }
     /// <summary>Gets whether the "epochAnonID" field is set</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool HasEpochAnonID {
-      get { return epochAnonID_ != null; }
+      get { return (_hasBits0 & 2) != 0; }
     }
     /// <summary>Clears the value of the "epochAnonID" field</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void ClearEpochAnonID() {
-      epochAnonID_ = null;
+      _hasBits0 &= ~2;
     }
 
     /// <summary>Field number for the "epochRootKey" field.</summary>
@@ -9700,8 +9679,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteUInt64(ServerEpochID);
       }
       if (HasEpochAnonID) {
-        output.WriteRawTag(18);
-        output.WriteBytes(EpochAnonID);
+        output.WriteRawTag(16);
+        output.WriteInt32(EpochAnonID);
       }
       if (HasEpochRootKey) {
         output.WriteRawTag(26);
@@ -9722,8 +9701,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteUInt64(ServerEpochID);
       }
       if (HasEpochAnonID) {
-        output.WriteRawTag(18);
-        output.WriteBytes(EpochAnonID);
+        output.WriteRawTag(16);
+        output.WriteInt32(EpochAnonID);
       }
       if (HasEpochRootKey) {
         output.WriteRawTag(26);
@@ -9743,7 +9722,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         size += 1 + pb::CodedOutputStream.ComputeUInt64Size(ServerEpochID);
       }
       if (HasEpochAnonID) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EpochAnonID);
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(EpochAnonID);
       }
       if (HasEpochRootKey) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(EpochRootKey);
@@ -9792,8 +9771,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             ServerEpochID = input.ReadUInt64();
             break;
           }
-          case 18: {
-            EpochAnonID = input.ReadBytes();
+          case 16: {
+            EpochAnonID = input.ReadInt32();
             break;
           }
           case 26: {
@@ -9823,8 +9802,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             ServerEpochID = input.ReadUInt64();
             break;
           }
-          case 18: {
-            EpochAnonID = input.ReadBytes();
+          case 16: {
+            EpochAnonID = input.ReadInt32();
             break;
           }
           case 26: {
@@ -11221,28 +11200,29 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     /// <summary>Field number for the "currentEpochAnonID" field.</summary>
     public const int CurrentEpochAnonIDFieldNumber = 2;
-    private readonly static pb::ByteString CurrentEpochAnonIDDefaultValue = pb::ByteString.Empty;
+    private readonly static int CurrentEpochAnonIDDefaultValue = 0;
 
-    private pb::ByteString currentEpochAnonID_;
+    private int currentEpochAnonID_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString CurrentEpochAnonID {
-      get { return currentEpochAnonID_ ?? CurrentEpochAnonIDDefaultValue; }
+    public int CurrentEpochAnonID {
+      get { if ((_hasBits0 & 1) != 0) { return currentEpochAnonID_; } else { return CurrentEpochAnonIDDefaultValue; } }
       set {
-        currentEpochAnonID_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        _hasBits0 |= 1;
+        currentEpochAnonID_ = value;
       }
     }
     /// <summary>Gets whether the "currentEpochAnonID" field is set</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool HasCurrentEpochAnonID {
-      get { return currentEpochAnonID_ != null; }
+      get { return (_hasBits0 & 1) != 0; }
     }
     /// <summary>Clears the value of the "currentEpochAnonID" field</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void ClearCurrentEpochAnonID() {
-      currentEpochAnonID_ = null;
+      _hasBits0 &= ~1;
     }
 
     /// <summary>Field number for the "currentEpochFbid" field.</summary>
@@ -11253,9 +11233,9 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong CurrentEpochFbid {
-      get { if ((_hasBits0 & 1) != 0) { return currentEpochFbid_; } else { return CurrentEpochFbidDefaultValue; } }
+      get { if ((_hasBits0 & 2) != 0) { return currentEpochFbid_; } else { return CurrentEpochFbidDefaultValue; } }
       set {
-        _hasBits0 |= 1;
+        _hasBits0 |= 2;
         currentEpochFbid_ = value;
       }
     }
@@ -11263,13 +11243,13 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool HasCurrentEpochFbid {
-      get { return (_hasBits0 & 1) != 0; }
+      get { return (_hasBits0 & 2) != 0; }
     }
     /// <summary>Clears the value of the "currentEpochFbid" field</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void ClearCurrentEpochFbid() {
-      _hasBits0 &= ~1;
+      _hasBits0 &= ~2;
     }
 
     /// <summary>Field number for the "epochStorageAuthPrivateKey" field.</summary>
@@ -11364,8 +11344,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteBytes(CurrentEpochRootKey);
       }
       if (HasCurrentEpochAnonID) {
-        output.WriteRawTag(18);
-        output.WriteBytes(CurrentEpochAnonID);
+        output.WriteRawTag(16);
+        output.WriteInt32(CurrentEpochAnonID);
       }
       if (HasCurrentEpochFbid) {
         output.WriteRawTag(24);
@@ -11391,8 +11371,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteBytes(CurrentEpochRootKey);
       }
       if (HasCurrentEpochAnonID) {
-        output.WriteRawTag(18);
-        output.WriteBytes(CurrentEpochAnonID);
+        output.WriteRawTag(16);
+        output.WriteInt32(CurrentEpochAnonID);
       }
       if (HasCurrentEpochFbid) {
         output.WriteRawTag(24);
@@ -11417,7 +11397,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(CurrentEpochRootKey);
       }
       if (HasCurrentEpochAnonID) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(CurrentEpochAnonID);
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(CurrentEpochAnonID);
       }
       if (HasCurrentEpochFbid) {
         size += 1 + pb::CodedOutputStream.ComputeUInt64Size(CurrentEpochFbid);
@@ -11474,8 +11454,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             CurrentEpochRootKey = input.ReadBytes();
             break;
           }
-          case 18: {
-            CurrentEpochAnonID = input.ReadBytes();
+          case 16: {
+            CurrentEpochAnonID = input.ReadInt32();
             break;
           }
           case 24: {
@@ -11513,8 +11493,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             CurrentEpochRootKey = input.ReadBytes();
             break;
           }
-          case 18: {
-            CurrentEpochAnonID = input.ReadBytes();
+          case 16: {
+            CurrentEpochAnonID = input.ReadInt32();
             break;
           }
           case 24: {
@@ -12501,7 +12481,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       _hasBits0 = other._hasBits0;
       newEpochRootKey_ = other.newEpochRootKey_;
       newEpochAnonID_ = other.newEpochAnonID_;
-      epochAnonID_ = other.epochAnonID_;
       backwardEdge_ = other.backwardEdge_ != null ? other.backwardEdge_.Clone() : null;
       memberEdges_ = other.memberEdges_.Clone();
       epochRootKeyFingerprint_ = other.epochRootKeyFingerprint_;
@@ -12542,12 +12521,12 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     /// <summary>Field number for the "newEpochAnonID" field.</summary>
     public const int NewEpochAnonIDFieldNumber = 2;
-    private readonly static ulong NewEpochAnonIDDefaultValue = 0UL;
+    private readonly static int NewEpochAnonIDDefaultValue = 0;
 
-    private ulong newEpochAnonID_;
+    private int newEpochAnonID_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public ulong NewEpochAnonID {
+    public int NewEpochAnonID {
       get { if ((_hasBits0 & 1) != 0) { return newEpochAnonID_; } else { return NewEpochAnonIDDefaultValue; } }
       set {
         _hasBits0 |= 1;
@@ -12565,32 +12544,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void ClearNewEpochAnonID() {
       _hasBits0 &= ~1;
-    }
-
-    /// <summary>Field number for the "epochAnonID" field.</summary>
-    public const int EpochAnonIDFieldNumber = 3;
-    private readonly static pb::ByteString EpochAnonIDDefaultValue = pb::ByteString.Empty;
-
-    private pb::ByteString epochAnonID_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString EpochAnonID {
-      get { return epochAnonID_ ?? EpochAnonIDDefaultValue; }
-      set {
-        epochAnonID_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-    /// <summary>Gets whether the "epochAnonID" field is set</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasEpochAnonID {
-      get { return epochAnonID_ != null; }
-    }
-    /// <summary>Clears the value of the "epochAnonID" field</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearEpochAnonID() {
-      epochAnonID_ = null;
     }
 
     /// <summary>Field number for the "backwardEdge" field.</summary>
@@ -12659,7 +12612,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       }
       if (NewEpochRootKey != other.NewEpochRootKey) return false;
       if (NewEpochAnonID != other.NewEpochAnonID) return false;
-      if (EpochAnonID != other.EpochAnonID) return false;
       if (!object.Equals(BackwardEdge, other.BackwardEdge)) return false;
       if(!memberEdges_.Equals(other.memberEdges_)) return false;
       if (EpochRootKeyFingerprint != other.EpochRootKeyFingerprint) return false;
@@ -12672,7 +12624,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       int hash = 1;
       if (HasNewEpochRootKey) hash ^= NewEpochRootKey.GetHashCode();
       if (HasNewEpochAnonID) hash ^= NewEpochAnonID.GetHashCode();
-      if (HasEpochAnonID) hash ^= EpochAnonID.GetHashCode();
       if (backwardEdge_ != null) hash ^= BackwardEdge.GetHashCode();
       hash ^= memberEdges_.GetHashCode();
       if (HasEpochRootKeyFingerprint) hash ^= EpochRootKeyFingerprint.GetHashCode();
@@ -12700,11 +12651,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       }
       if (HasNewEpochAnonID) {
         output.WriteRawTag(16);
-        output.WriteUInt64(NewEpochAnonID);
-      }
-      if (HasEpochAnonID) {
-        output.WriteRawTag(26);
-        output.WriteBytes(EpochAnonID);
+        output.WriteInt32(NewEpochAnonID);
       }
       if (backwardEdge_ != null) {
         output.WriteRawTag(34);
@@ -12731,11 +12678,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       }
       if (HasNewEpochAnonID) {
         output.WriteRawTag(16);
-        output.WriteUInt64(NewEpochAnonID);
-      }
-      if (HasEpochAnonID) {
-        output.WriteRawTag(26);
-        output.WriteBytes(EpochAnonID);
+        output.WriteInt32(NewEpochAnonID);
       }
       if (backwardEdge_ != null) {
         output.WriteRawTag(34);
@@ -12760,10 +12703,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(NewEpochRootKey);
       }
       if (HasNewEpochAnonID) {
-        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(NewEpochAnonID);
-      }
-      if (HasEpochAnonID) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EpochAnonID);
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(NewEpochAnonID);
       }
       if (backwardEdge_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(BackwardEdge);
@@ -12789,9 +12729,6 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       }
       if (other.HasNewEpochAnonID) {
         NewEpochAnonID = other.NewEpochAnonID;
-      }
-      if (other.HasEpochAnonID) {
-        EpochAnonID = other.EpochAnonID;
       }
       if (other.backwardEdge_ != null) {
         if (backwardEdge_ == null) {
@@ -12827,11 +12764,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             break;
           }
           case 16: {
-            NewEpochAnonID = input.ReadUInt64();
-            break;
-          }
-          case 26: {
-            EpochAnonID = input.ReadBytes();
+            NewEpochAnonID = input.ReadInt32();
             break;
           }
           case 34: {
@@ -12873,11 +12806,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             break;
           }
           case 16: {
-            NewEpochAnonID = input.ReadUInt64();
-            break;
-          }
-          case 26: {
-            EpochAnonID = input.ReadBytes();
+            NewEpochAnonID = input.ReadInt32();
             break;
           }
           case 34: {
@@ -13753,28 +13682,29 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     /// <summary>Field number for the "epochAnonID" field.</summary>
     public const int EpochAnonIDFieldNumber = 2;
-    private readonly static pb::ByteString EpochAnonIDDefaultValue = pb::ByteString.Empty;
+    private readonly static int EpochAnonIDDefaultValue = 0;
 
-    private pb::ByteString epochAnonID_;
+    private int epochAnonID_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString EpochAnonID {
-      get { return epochAnonID_ ?? EpochAnonIDDefaultValue; }
+    public int EpochAnonID {
+      get { if ((_hasBits0 & 1) != 0) { return epochAnonID_; } else { return EpochAnonIDDefaultValue; } }
       set {
-        epochAnonID_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        _hasBits0 |= 1;
+        epochAnonID_ = value;
       }
     }
     /// <summary>Gets whether the "epochAnonID" field is set</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool HasEpochAnonID {
-      get { return epochAnonID_ != null; }
+      get { return (_hasBits0 & 1) != 0; }
     }
     /// <summary>Clears the value of the "epochAnonID" field</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void ClearEpochAnonID() {
-      epochAnonID_ = null;
+      _hasBits0 &= ~1;
     }
 
     /// <summary>Field number for the "backupID" field.</summary>
@@ -13785,9 +13715,9 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong BackupID {
-      get { if ((_hasBits0 & 1) != 0) { return backupID_; } else { return BackupIDDefaultValue; } }
+      get { if ((_hasBits0 & 2) != 0) { return backupID_; } else { return BackupIDDefaultValue; } }
       set {
-        _hasBits0 |= 1;
+        _hasBits0 |= 2;
         backupID_ = value;
       }
     }
@@ -13795,13 +13725,13 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool HasBackupID {
-      get { return (_hasBits0 & 1) != 0; }
+      get { return (_hasBits0 & 2) != 0; }
     }
     /// <summary>Clears the value of the "backupID" field</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void ClearBackupID() {
-      _hasBits0 &= ~1;
+      _hasBits0 &= ~2;
     }
 
     /// <summary>Field number for the "threadID" field.</summary>
@@ -13883,8 +13813,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteBytes(EpochRootKey);
       }
       if (HasEpochAnonID) {
-        output.WriteRawTag(18);
-        output.WriteBytes(EpochAnonID);
+        output.WriteRawTag(16);
+        output.WriteInt32(EpochAnonID);
       }
       if (HasBackupID) {
         output.WriteRawTag(24);
@@ -13909,8 +13839,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteBytes(EpochRootKey);
       }
       if (HasEpochAnonID) {
-        output.WriteRawTag(18);
-        output.WriteBytes(EpochAnonID);
+        output.WriteRawTag(16);
+        output.WriteInt32(EpochAnonID);
       }
       if (HasBackupID) {
         output.WriteRawTag(24);
@@ -13934,7 +13864,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(EpochRootKey);
       }
       if (HasEpochAnonID) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EpochAnonID);
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(EpochAnonID);
       }
       if (HasBackupID) {
         size += 1 + pb::CodedOutputStream.ComputeUInt64Size(BackupID);
@@ -13989,8 +13919,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             EpochRootKey = input.ReadBytes();
             break;
           }
-          case 18: {
-            EpochAnonID = input.ReadBytes();
+          case 16: {
+            EpochAnonID = input.ReadInt32();
             break;
           }
           case 24: {
@@ -14024,8 +13954,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             EpochRootKey = input.ReadBytes();
             break;
           }
-          case 18: {
-            EpochAnonID = input.ReadBytes();
+          case 16: {
+            EpochAnonID = input.ReadInt32();
             break;
           }
           case 24: {
@@ -15213,12 +15143,12 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     /// <summary>Field number for the "sealEpochAnonID" field.</summary>
     public const int SealEpochAnonIDFieldNumber = 2;
-    private readonly static uint SealEpochAnonIDDefaultValue = 0;
+    private readonly static int SealEpochAnonIDDefaultValue = 0;
 
-    private uint sealEpochAnonID_;
+    private int sealEpochAnonID_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public uint SealEpochAnonID {
+    public int SealEpochAnonID {
       get { if ((_hasBits0 & 1) != 0) { return sealEpochAnonID_; } else { return SealEpochAnonIDDefaultValue; } }
       set {
         _hasBits0 |= 1;
@@ -15288,7 +15218,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       }
       if (HasSealEpochAnonID) {
         output.WriteRawTag(16);
-        output.WriteUInt32(SealEpochAnonID);
+        output.WriteInt32(SealEpochAnonID);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -15306,7 +15236,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       }
       if (HasSealEpochAnonID) {
         output.WriteRawTag(16);
-        output.WriteUInt32(SealEpochAnonID);
+        output.WriteInt32(SealEpochAnonID);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
@@ -15322,7 +15252,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(ThreadID);
       }
       if (HasSealEpochAnonID) {
-        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(SealEpochAnonID);
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(SealEpochAnonID);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -15366,7 +15296,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             break;
           }
           case 16: {
-            SealEpochAnonID = input.ReadUInt32();
+            SealEpochAnonID = input.ReadInt32();
             break;
           }
         }
@@ -15393,7 +15323,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             break;
           }
           case 16: {
-            SealEpochAnonID = input.ReadUInt32();
+            SealEpochAnonID = input.ReadInt32();
             break;
           }
         }
@@ -15480,28 +15410,29 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
 
     /// <summary>Field number for the "epochAnonID" field.</summary>
     public const int EpochAnonIDFieldNumber = 2;
-    private readonly static pb::ByteString EpochAnonIDDefaultValue = pb::ByteString.Empty;
+    private readonly static int EpochAnonIDDefaultValue = 0;
 
-    private pb::ByteString epochAnonID_;
+    private int epochAnonID_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString EpochAnonID {
-      get { return epochAnonID_ ?? EpochAnonIDDefaultValue; }
+    public int EpochAnonID {
+      get { if ((_hasBits0 & 2) != 0) { return epochAnonID_; } else { return EpochAnonIDDefaultValue; } }
       set {
-        epochAnonID_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        _hasBits0 |= 2;
+        epochAnonID_ = value;
       }
     }
     /// <summary>Gets whether the "epochAnonID" field is set</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool HasEpochAnonID {
-      get { return epochAnonID_ != null; }
+      get { return (_hasBits0 & 2) != 0; }
     }
     /// <summary>Clears the value of the "epochAnonID" field</summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void ClearEpochAnonID() {
-      epochAnonID_ = null;
+      _hasBits0 &= ~2;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -15553,8 +15484,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteUInt64(ServerEpochID);
       }
       if (HasEpochAnonID) {
-        output.WriteRawTag(18);
-        output.WriteBytes(EpochAnonID);
+        output.WriteRawTag(16);
+        output.WriteInt32(EpochAnonID);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -15571,8 +15502,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteUInt64(ServerEpochID);
       }
       if (HasEpochAnonID) {
-        output.WriteRawTag(18);
-        output.WriteBytes(EpochAnonID);
+        output.WriteRawTag(16);
+        output.WriteInt32(EpochAnonID);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
@@ -15588,7 +15519,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         size += 1 + pb::CodedOutputStream.ComputeUInt64Size(ServerEpochID);
       }
       if (HasEpochAnonID) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(EpochAnonID);
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(EpochAnonID);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -15631,8 +15562,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             ServerEpochID = input.ReadUInt64();
             break;
           }
-          case 18: {
-            EpochAnonID = input.ReadBytes();
+          case 16: {
+            EpochAnonID = input.ReadInt32();
             break;
           }
         }
@@ -15658,8 +15589,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             ServerEpochID = input.ReadUInt64();
             break;
           }
-          case 18: {
-            EpochAnonID = input.ReadBytes();
+          case 16: {
+            EpochAnonID = input.ReadInt32();
             break;
           }
         }
@@ -18108,6 +18039,1396 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
   }
 
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class CompanionTestMessageThreadIdInput : pb::IMessage<CompanionTestMessageThreadIdInput>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<CompanionTestMessageThreadIdInput> _parser = new pb::MessageParser<CompanionTestMessageThreadIdInput>(() => new CompanionTestMessageThreadIdInput());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<CompanionTestMessageThreadIdInput> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[52]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CompanionTestMessageThreadIdInput() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CompanionTestMessageThreadIdInput(CompanionTestMessageThreadIdInput other) : this() {
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CompanionTestMessageThreadIdInput Clone() {
+      return new CompanionTestMessageThreadIdInput(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as CompanionTestMessageThreadIdInput);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(CompanionTestMessageThreadIdInput other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(CompanionTestMessageThreadIdInput other) {
+      if (other == null) {
+        return;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class CompanionTestMessageThreadIdOutput : pb::IMessage<CompanionTestMessageThreadIdOutput>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<CompanionTestMessageThreadIdOutput> _parser = new pb::MessageParser<CompanionTestMessageThreadIdOutput>(() => new CompanionTestMessageThreadIdOutput());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<CompanionTestMessageThreadIdOutput> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[53]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CompanionTestMessageThreadIdOutput() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CompanionTestMessageThreadIdOutput(CompanionTestMessageThreadIdOutput other) : this() {
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          Success = other.Success.Clone();
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CompanionTestMessageThreadIdOutput Clone() {
+      return new CompanionTestMessageThreadIdOutput(this);
+    }
+
+    /// <summary>Field number for the "success" field.</summary>
+    public const int SuccessFieldNumber = 1;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CompanionTestMessageThreadIdSuccess Success {
+      get { return resultCase_ == ResultOneofCase.Success ? (global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CompanionTestMessageThreadIdSuccess) result_ : null; }
+      set {
+        result_ = value;
+        resultCase_ = value == null ? ResultOneofCase.None : ResultOneofCase.Success;
+      }
+    }
+
+    /// <summary>Field number for the "error" field.</summary>
+    public const int ErrorFieldNumber = 2;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Error {
+      get { return HasError ? (string) result_ : ""; }
+      set {
+        result_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        resultCase_ = ResultOneofCase.Error;
+      }
+    }
+    /// <summary>Gets whether the "error" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasError {
+      get { return resultCase_ == ResultOneofCase.Error; }
+    }
+    /// <summary> Clears the value of the oneof if it's currently set to "error" </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearError() {
+      if (HasError) {
+        ClearResult();
+      }
+    }
+
+    private object result_;
+    /// <summary>Enum of possible cases for the "result" oneof.</summary>
+    public enum ResultOneofCase {
+      None = 0,
+      Success = 1,
+      Error = 2,
+    }
+    private ResultOneofCase resultCase_ = ResultOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ResultOneofCase ResultCase {
+      get { return resultCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearResult() {
+      resultCase_ = ResultOneofCase.None;
+      result_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as CompanionTestMessageThreadIdOutput);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(CompanionTestMessageThreadIdOutput other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Success, other.Success)) return false;
+      if (Error != other.Error) return false;
+      if (ResultCase != other.ResultCase) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (resultCase_ == ResultOneofCase.Success) hash ^= Success.GetHashCode();
+      if (HasError) hash ^= Error.GetHashCode();
+      hash ^= (int) resultCase_;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (resultCase_ == ResultOneofCase.Success) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Success);
+      }
+      if (HasError) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(CompanionTestMessageThreadIdOutput other) {
+      if (other == null) {
+        return;
+      }
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          if (Success == null) {
+            Success = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CompanionTestMessageThreadIdSuccess();
+          }
+          Success.MergeFrom(other.Success);
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CompanionTestMessageThreadIdSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CompanionTestMessageThreadIdSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CompanionTestMessageThreadIdSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CompanionTestMessageThreadIdSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class CompanionTestMessageThreadIdSuccess : pb::IMessage<CompanionTestMessageThreadIdSuccess>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<CompanionTestMessageThreadIdSuccess> _parser = new pb::MessageParser<CompanionTestMessageThreadIdSuccess>(() => new CompanionTestMessageThreadIdSuccess());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<CompanionTestMessageThreadIdSuccess> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[54]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CompanionTestMessageThreadIdSuccess() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CompanionTestMessageThreadIdSuccess(CompanionTestMessageThreadIdSuccess other) : this() {
+      threadID_ = other.threadID_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CompanionTestMessageThreadIdSuccess Clone() {
+      return new CompanionTestMessageThreadIdSuccess(this);
+    }
+
+    /// <summary>Field number for the "threadID" field.</summary>
+    public const int ThreadIDFieldNumber = 1;
+    private readonly static string ThreadIDDefaultValue = "";
+
+    private string threadID_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string ThreadID {
+      get { return threadID_ ?? ThreadIDDefaultValue; }
+      set {
+        threadID_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "threadID" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasThreadID {
+      get { return threadID_ != null; }
+    }
+    /// <summary>Clears the value of the "threadID" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearThreadID() {
+      threadID_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as CompanionTestMessageThreadIdSuccess);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(CompanionTestMessageThreadIdSuccess other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (ThreadID != other.ThreadID) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (HasThreadID) hash ^= ThreadID.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (HasThreadID) {
+        output.WriteRawTag(10);
+        output.WriteString(ThreadID);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (HasThreadID) {
+        output.WriteRawTag(10);
+        output.WriteString(ThreadID);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (HasThreadID) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ThreadID);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(CompanionTestMessageThreadIdSuccess other) {
+      if (other == null) {
+        return;
+      }
+      if (other.HasThreadID) {
+        ThreadID = other.ThreadID;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            ThreadID = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            ThreadID = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class ParseCompanionTestMessageInput : pb::IMessage<ParseCompanionTestMessageInput>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<ParseCompanionTestMessageInput> _parser = new pb::MessageParser<ParseCompanionTestMessageInput>(() => new ParseCompanionTestMessageInput());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<ParseCompanionTestMessageInput> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[55]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ParseCompanionTestMessageInput() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ParseCompanionTestMessageInput(ParseCompanionTestMessageInput other) : this() {
+      plaintext_ = other.plaintext_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ParseCompanionTestMessageInput Clone() {
+      return new ParseCompanionTestMessageInput(this);
+    }
+
+    /// <summary>Field number for the "plaintext" field.</summary>
+    public const int PlaintextFieldNumber = 1;
+    private readonly static pb::ByteString PlaintextDefaultValue = pb::ByteString.Empty;
+
+    private pb::ByteString plaintext_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString Plaintext {
+      get { return plaintext_ ?? PlaintextDefaultValue; }
+      set {
+        plaintext_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "plaintext" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasPlaintext {
+      get { return plaintext_ != null; }
+    }
+    /// <summary>Clears the value of the "plaintext" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearPlaintext() {
+      plaintext_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as ParseCompanionTestMessageInput);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(ParseCompanionTestMessageInput other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Plaintext != other.Plaintext) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (HasPlaintext) hash ^= Plaintext.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (HasPlaintext) {
+        output.WriteRawTag(10);
+        output.WriteBytes(Plaintext);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (HasPlaintext) {
+        output.WriteRawTag(10);
+        output.WriteBytes(Plaintext);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (HasPlaintext) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Plaintext);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(ParseCompanionTestMessageInput other) {
+      if (other == null) {
+        return;
+      }
+      if (other.HasPlaintext) {
+        Plaintext = other.Plaintext;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Plaintext = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Plaintext = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class ParseCompanionTestMessageOutput : pb::IMessage<ParseCompanionTestMessageOutput>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<ParseCompanionTestMessageOutput> _parser = new pb::MessageParser<ParseCompanionTestMessageOutput>(() => new ParseCompanionTestMessageOutput());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<ParseCompanionTestMessageOutput> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[56]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ParseCompanionTestMessageOutput() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ParseCompanionTestMessageOutput(ParseCompanionTestMessageOutput other) : this() {
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          Success = other.Success.Clone();
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ParseCompanionTestMessageOutput Clone() {
+      return new ParseCompanionTestMessageOutput(this);
+    }
+
+    /// <summary>Field number for the "success" field.</summary>
+    public const int SuccessFieldNumber = 1;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ParseCompanionTestMessageSuccess Success {
+      get { return resultCase_ == ResultOneofCase.Success ? (global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ParseCompanionTestMessageSuccess) result_ : null; }
+      set {
+        result_ = value;
+        resultCase_ = value == null ? ResultOneofCase.None : ResultOneofCase.Success;
+      }
+    }
+
+    /// <summary>Field number for the "error" field.</summary>
+    public const int ErrorFieldNumber = 2;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Error {
+      get { return HasError ? (string) result_ : ""; }
+      set {
+        result_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        resultCase_ = ResultOneofCase.Error;
+      }
+    }
+    /// <summary>Gets whether the "error" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasError {
+      get { return resultCase_ == ResultOneofCase.Error; }
+    }
+    /// <summary> Clears the value of the oneof if it's currently set to "error" </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearError() {
+      if (HasError) {
+        ClearResult();
+      }
+    }
+
+    private object result_;
+    /// <summary>Enum of possible cases for the "result" oneof.</summary>
+    public enum ResultOneofCase {
+      None = 0,
+      Success = 1,
+      Error = 2,
+    }
+    private ResultOneofCase resultCase_ = ResultOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ResultOneofCase ResultCase {
+      get { return resultCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearResult() {
+      resultCase_ = ResultOneofCase.None;
+      result_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as ParseCompanionTestMessageOutput);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(ParseCompanionTestMessageOutput other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Success, other.Success)) return false;
+      if (Error != other.Error) return false;
+      if (ResultCase != other.ResultCase) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (resultCase_ == ResultOneofCase.Success) hash ^= Success.GetHashCode();
+      if (HasError) hash ^= Error.GetHashCode();
+      hash ^= (int) resultCase_;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (resultCase_ == ResultOneofCase.Success) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Success);
+      }
+      if (HasError) {
+        output.WriteRawTag(18);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (resultCase_ == ResultOneofCase.Success) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Success);
+      }
+      if (HasError) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(ParseCompanionTestMessageOutput other) {
+      if (other == null) {
+        return;
+      }
+      switch (other.ResultCase) {
+        case ResultOneofCase.Success:
+          if (Success == null) {
+            Success = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ParseCompanionTestMessageSuccess();
+          }
+          Success.MergeFrom(other.Success);
+          break;
+        case ResultOneofCase.Error:
+          Error = other.Error;
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ParseCompanionTestMessageSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ParseCompanionTestMessageSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ParseCompanionTestMessageSuccess subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ParseCompanionTestMessageSuccess();
+            if (resultCase_ == ResultOneofCase.Success) {
+              subBuilder.MergeFrom(Success);
+            }
+            input.ReadMessage(subBuilder);
+            Success = subBuilder;
+            break;
+          }
+          case 18: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class ParseCompanionTestMessageSuccess : pb::IMessage<ParseCompanionTestMessageSuccess>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<ParseCompanionTestMessageSuccess> _parser = new pb::MessageParser<ParseCompanionTestMessageSuccess>(() => new ParseCompanionTestMessageSuccess());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<ParseCompanionTestMessageSuccess> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[57]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ParseCompanionTestMessageSuccess() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ParseCompanionTestMessageSuccess(ParseCompanionTestMessageSuccess other) : this() {
+      _hasBits0 = other._hasBits0;
+      createdAtMS_ = other.createdAtMS_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ParseCompanionTestMessageSuccess Clone() {
+      return new ParseCompanionTestMessageSuccess(this);
+    }
+
+    /// <summary>Field number for the "createdAtMS" field.</summary>
+    public const int CreatedAtMSFieldNumber = 1;
+    private readonly static ulong CreatedAtMSDefaultValue = 0UL;
+
+    private ulong createdAtMS_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public ulong CreatedAtMS {
+      get { if ((_hasBits0 & 1) != 0) { return createdAtMS_; } else { return CreatedAtMSDefaultValue; } }
+      set {
+        _hasBits0 |= 1;
+        createdAtMS_ = value;
+      }
+    }
+    /// <summary>Gets whether the "createdAtMS" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCreatedAtMS {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "createdAtMS" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCreatedAtMS() {
+      _hasBits0 &= ~1;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as ParseCompanionTestMessageSuccess);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(ParseCompanionTestMessageSuccess other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (CreatedAtMS != other.CreatedAtMS) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (HasCreatedAtMS) hash ^= CreatedAtMS.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (HasCreatedAtMS) {
+        output.WriteRawTag(8);
+        output.WriteUInt64(CreatedAtMS);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (HasCreatedAtMS) {
+        output.WriteRawTag(8);
+        output.WriteUInt64(CreatedAtMS);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (HasCreatedAtMS) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(CreatedAtMS);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(ParseCompanionTestMessageSuccess other) {
+      if (other == null) {
+        return;
+      }
+      if (other.HasCreatedAtMS) {
+        CreatedAtMS = other.CreatedAtMS;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            CreatedAtMS = input.ReadUInt64();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            CreatedAtMS = input.ReadUInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class LabyrinthWaCommand : pb::IMessage<LabyrinthWaCommand>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -18122,7 +19443,7 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[52]; }
+      get { return global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.WAWebLabyrinthWaWasmReflection.Descriptor.MessageTypes[58]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -18181,6 +19502,12 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
           break;
         case CommandInputOneofCase.PrepareAddPeerDeviceInput:
           PrepareAddPeerDeviceInput = other.PrepareAddPeerDeviceInput.Clone();
+          break;
+        case CommandInputOneofCase.CompanionTestMessageThreadIDInput:
+          CompanionTestMessageThreadIDInput = other.CompanionTestMessageThreadIDInput.Clone();
+          break;
+        case CommandInputOneofCase.ParseCompanionTestMessageInput:
+          ParseCompanionTestMessageInput = other.ParseCompanionTestMessageInput.Clone();
           break;
       }
 
@@ -18349,6 +19676,30 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       }
     }
 
+    /// <summary>Field number for the "companionTestMessageThreadIDInput" field.</summary>
+    public const int CompanionTestMessageThreadIDInputFieldNumber = 14;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CompanionTestMessageThreadIdInput CompanionTestMessageThreadIDInput {
+      get { return commandInputCase_ == CommandInputOneofCase.CompanionTestMessageThreadIDInput ? (global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CompanionTestMessageThreadIdInput) commandInput_ : null; }
+      set {
+        commandInput_ = value;
+        commandInputCase_ = value == null ? CommandInputOneofCase.None : CommandInputOneofCase.CompanionTestMessageThreadIDInput;
+      }
+    }
+
+    /// <summary>Field number for the "parseCompanionTestMessageInput" field.</summary>
+    public const int ParseCompanionTestMessageInputFieldNumber = 15;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ParseCompanionTestMessageInput ParseCompanionTestMessageInput {
+      get { return commandInputCase_ == CommandInputOneofCase.ParseCompanionTestMessageInput ? (global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ParseCompanionTestMessageInput) commandInput_ : null; }
+      set {
+        commandInput_ = value;
+        commandInputCase_ = value == null ? CommandInputOneofCase.None : CommandInputOneofCase.ParseCompanionTestMessageInput;
+      }
+    }
+
     private object commandInput_;
     /// <summary>Enum of possible cases for the "commandInput" oneof.</summary>
     public enum CommandInputOneofCase {
@@ -18366,6 +19717,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       DeriveEpochsInput = 11,
       SealThreadIDInput = 12,
       PrepareAddPeerDeviceInput = 13,
+      CompanionTestMessageThreadIDInput = 14,
+      ParseCompanionTestMessageInput = 15,
     }
     private CommandInputOneofCase commandInputCase_ = CommandInputOneofCase.None;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -18409,6 +19762,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (!object.Equals(DeriveEpochsInput, other.DeriveEpochsInput)) return false;
       if (!object.Equals(SealThreadIDInput, other.SealThreadIDInput)) return false;
       if (!object.Equals(PrepareAddPeerDeviceInput, other.PrepareAddPeerDeviceInput)) return false;
+      if (!object.Equals(CompanionTestMessageThreadIDInput, other.CompanionTestMessageThreadIDInput)) return false;
+      if (!object.Equals(ParseCompanionTestMessageInput, other.ParseCompanionTestMessageInput)) return false;
       if (CommandInputCase != other.CommandInputCase) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -18430,6 +19785,8 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       if (commandInputCase_ == CommandInputOneofCase.DeriveEpochsInput) hash ^= DeriveEpochsInput.GetHashCode();
       if (commandInputCase_ == CommandInputOneofCase.SealThreadIDInput) hash ^= SealThreadIDInput.GetHashCode();
       if (commandInputCase_ == CommandInputOneofCase.PrepareAddPeerDeviceInput) hash ^= PrepareAddPeerDeviceInput.GetHashCode();
+      if (commandInputCase_ == CommandInputOneofCase.CompanionTestMessageThreadIDInput) hash ^= CompanionTestMessageThreadIDInput.GetHashCode();
+      if (commandInputCase_ == CommandInputOneofCase.ParseCompanionTestMessageInput) hash ^= ParseCompanionTestMessageInput.GetHashCode();
       hash ^= (int) commandInputCase_;
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -18501,6 +19858,14 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(106);
         output.WriteMessage(PrepareAddPeerDeviceInput);
       }
+      if (commandInputCase_ == CommandInputOneofCase.CompanionTestMessageThreadIDInput) {
+        output.WriteRawTag(114);
+        output.WriteMessage(CompanionTestMessageThreadIDInput);
+      }
+      if (commandInputCase_ == CommandInputOneofCase.ParseCompanionTestMessageInput) {
+        output.WriteRawTag(122);
+        output.WriteMessage(ParseCompanionTestMessageInput);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -18563,6 +19928,14 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
         output.WriteRawTag(106);
         output.WriteMessage(PrepareAddPeerDeviceInput);
       }
+      if (commandInputCase_ == CommandInputOneofCase.CompanionTestMessageThreadIDInput) {
+        output.WriteRawTag(114);
+        output.WriteMessage(CompanionTestMessageThreadIDInput);
+      }
+      if (commandInputCase_ == CommandInputOneofCase.ParseCompanionTestMessageInput) {
+        output.WriteRawTag(122);
+        output.WriteMessage(ParseCompanionTestMessageInput);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -18611,6 +19984,12 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
       }
       if (commandInputCase_ == CommandInputOneofCase.PrepareAddPeerDeviceInput) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(PrepareAddPeerDeviceInput);
+      }
+      if (commandInputCase_ == CommandInputOneofCase.CompanionTestMessageThreadIDInput) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(CompanionTestMessageThreadIDInput);
+      }
+      if (commandInputCase_ == CommandInputOneofCase.ParseCompanionTestMessageInput) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(ParseCompanionTestMessageInput);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -18702,6 +20081,18 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             PrepareAddPeerDeviceInput = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.PrepareAddPeerDeviceInput();
           }
           PrepareAddPeerDeviceInput.MergeFrom(other.PrepareAddPeerDeviceInput);
+          break;
+        case CommandInputOneofCase.CompanionTestMessageThreadIDInput:
+          if (CompanionTestMessageThreadIDInput == null) {
+            CompanionTestMessageThreadIDInput = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CompanionTestMessageThreadIdInput();
+          }
+          CompanionTestMessageThreadIDInput.MergeFrom(other.CompanionTestMessageThreadIDInput);
+          break;
+        case CommandInputOneofCase.ParseCompanionTestMessageInput:
+          if (ParseCompanionTestMessageInput == null) {
+            ParseCompanionTestMessageInput = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ParseCompanionTestMessageInput();
+          }
+          ParseCompanionTestMessageInput.MergeFrom(other.ParseCompanionTestMessageInput);
           break;
       }
 
@@ -18841,6 +20232,24 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             PrepareAddPeerDeviceInput = subBuilder;
             break;
           }
+          case 114: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CompanionTestMessageThreadIdInput subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CompanionTestMessageThreadIdInput();
+            if (commandInputCase_ == CommandInputOneofCase.CompanionTestMessageThreadIDInput) {
+              subBuilder.MergeFrom(CompanionTestMessageThreadIDInput);
+            }
+            input.ReadMessage(subBuilder);
+            CompanionTestMessageThreadIDInput = subBuilder;
+            break;
+          }
+          case 122: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ParseCompanionTestMessageInput subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ParseCompanionTestMessageInput();
+            if (commandInputCase_ == CommandInputOneofCase.ParseCompanionTestMessageInput) {
+              subBuilder.MergeFrom(ParseCompanionTestMessageInput);
+            }
+            input.ReadMessage(subBuilder);
+            ParseCompanionTestMessageInput = subBuilder;
+            break;
+          }
         }
       }
     #endif
@@ -18975,6 +20384,24 @@ namespace Whatsmeow.Proto.WAWebLabyrinthWaWasm {
             }
             input.ReadMessage(subBuilder);
             PrepareAddPeerDeviceInput = subBuilder;
+            break;
+          }
+          case 114: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CompanionTestMessageThreadIdInput subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.CompanionTestMessageThreadIdInput();
+            if (commandInputCase_ == CommandInputOneofCase.CompanionTestMessageThreadIDInput) {
+              subBuilder.MergeFrom(CompanionTestMessageThreadIDInput);
+            }
+            input.ReadMessage(subBuilder);
+            CompanionTestMessageThreadIDInput = subBuilder;
+            break;
+          }
+          case 122: {
+            global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ParseCompanionTestMessageInput subBuilder = new global::Whatsmeow.Proto.WAWebLabyrinthWaWasm.ParseCompanionTestMessageInput();
+            if (commandInputCase_ == CommandInputOneofCase.ParseCompanionTestMessageInput) {
+              subBuilder.MergeFrom(ParseCompanionTestMessageInput);
+            }
+            input.ReadMessage(subBuilder);
+            ParseCompanionTestMessageInput = subBuilder;
             break;
           }
         }
